@@ -75,7 +75,7 @@ TextTheme _textTheme(TextTheme base, ColorScheme scheme) {
   );
 }
 
-/// Тема Кладовки: тёмный матовый графит и белый, M3 Expressive по ДНК
+/// Тема Stowa: тёмный матовый графит и белый, M3 Expressive по ДНК
 /// Togetherly. Теней нет, листы снизу, кнопки пилюлей.
 ThemeData buildAppTheme() {
   final scheme = buildColorScheme();

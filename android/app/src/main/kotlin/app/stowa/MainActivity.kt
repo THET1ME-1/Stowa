@@ -1,4 +1,4 @@
-package app.kladovka
+package app.stowa
 
 import io.flutter.embedding.android.FlutterActivity
 

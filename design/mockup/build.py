@@ -29,6 +29,6 @@ page = page.replace('/*ICONS*/{}', json.dumps(icons))
 # фото: img:p49 меняется на data-адрес
 page = re.sub(r'img:(p\d+)', lambda match: f'data:image/webp;base64,{b64(f"{HERE}/img/{match.group(1)}.webp")}', page)
 
-out = f'{HERE}/Кладовка.html'
+out = f'{HERE}/Stowa.html'
 open(out, 'w').write(page)
 print(os.path.getsize(out) // 1024, 'КБ')

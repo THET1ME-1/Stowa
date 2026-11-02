@@ -10,7 +10,7 @@ class LPl extends L {
   LPl([String locale = 'pl']) : super(locale);
 
   @override
-  String get appName => 'Kladovka';
+  String get appName => 'Stowa';
 
   @override
   String get composerHint => 'Drop anything or search';

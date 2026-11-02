@@ -27,7 +27,7 @@ String normalizeSearchText(String text) => text.replaceAll('ё', 'е').replaceAl
   tables: [Items, Attachments, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'kladovka'));
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa'));
 
   /// База в памяти для тестов. Стримы закрываются сразу: иначе drift ждёт
   /// оборот цикла событий, а часы теста поддельные, и закрытие виснет.

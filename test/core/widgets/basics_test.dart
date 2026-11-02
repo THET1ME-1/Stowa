@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/core/theme/shapes.dart';
-import 'package:kladovka/core/widgets/pressable.dart';
-import 'package:kladovka/core/widgets/shape_badge.dart';
+import 'package:stowa/core/theme/shapes.dart';
+import 'package:stowa/core/widgets/pressable.dart';
+import 'package:stowa/core/widgets/shape_badge.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: Center(child: child)));
 

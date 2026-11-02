@@ -6,8 +6,8 @@ import 'features/home/home_screen.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 
-class KladovkaApp extends StatelessWidget {
-  const KladovkaApp({super.key, this.locale});
+class StowaApp extends StatelessWidget {
+  const StowaApp({super.key, this.locale});
 
   /// Язык, выбранный в настройках. Пусто — язык устройства.
   final Locale? locale;

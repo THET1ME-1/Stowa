@@ -10,7 +10,7 @@ class LEn extends L {
   LEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Kladovka';
+  String get appName => 'Stowa';
 
   @override
   String get composerHint => 'Drop anything or search';

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/l10n/app_language.dart';
+import 'package:stowa/l10n/app_language.dart';
 
 Map<String, dynamic> _arb(String locale) =>
     jsonDecode(File('lib/l10n/app_$locale.arb').readAsStringSync()) as Map<String, dynamic>;

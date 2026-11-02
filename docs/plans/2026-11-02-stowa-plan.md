@@ -1,6 +1,8 @@
-# Кладовка: план разработки
+# Stowa: план разработки
 
 > **Исполнителю:** план идёт задача за задачей, шаги отмечаются галочками (`- [ ]`). Каждая веха заканчивается рабочим приложением, которое можно поставить на телефон.
+
+> **Сделано (2 ноября 2026):** задачи 0.1, 0.2, 1.1, 1.2, 1.3. Отступления от текста ниже: название Stowa (`app.stowa`, шрифты `StowaSymbols` и `StowaSymbolsFilled`); языков семь, шаблон словаря английский; поиск живёт в строке ввода (задачи 5.1–5.2 и 1.4 читать вместе с экраном 2 описания); поисковый индекс сам приводит «ё» к «е» (`normalizeSearchText`).
 
 **Цель:** Android-приложение на Flutter, которое сохраняет что угодно мгновенно и само раскладывает по папкам и тегам: правилами без сети и ИИ по ключу пользователя.
 
@@ -8,11 +10,11 @@
 
 **Стек:** Flutter 3.47.6, flutter_riverpod, drift + sqlite3_flutter_libs, http, flutter_secure_storage, connectivity_plus, workmanager, flutter_local_notifications + timezone + flutter_timezone, image_picker, file_picker, flutter_image_compress, record, just_audio, receive_sharing_intent, home_widget, material_new_shapes, html, archive, share_plus, uuid, url_launcher, path_provider. Версии ставит `flutter pub add` на момент задачи.
 
-**Описание:** `docs/specs/2026-11-02-kladovka-design.md`. Макет: `design/mockup/Кладовка.html`. План спорит с описанием, а не с памятью: при сомнении открыть описание.
+**Описание:** `docs/specs/2026-11-02-stowa-design.md`. Макет: `design/mockup/Stowa.html`. План спорит с описанием, а не с памятью: при сомнении открыть описание.
 
 ## Общие требования
 
-- Flutter 3.47.6, Android, `minSdk` 26, `applicationId` `app.kladovka`.
+- Flutter 3.47.6, Android, `minSdk` 26, `applicationId` `app.stowa`.
 - Сохранение вещи: строка очищается меньше чем за 100 мс от нажатия, без единого сетевого вызова на этом пути.
 - ИИ только по ключу пользователя. Ключ в `flutter_secure_storage`, адрес поставщика по умолчанию `https://openrouter.ai/api/v1`, протокол OpenAI chat completions.
 - Никаких моделей на телефоне.
@@ -21,9 +23,9 @@
 - В ИИ уходит текст не длиннее 6000 знаков и картинка не больше 1024 px по длинной стороне, JPEG качества 80.
 - Все id — UUID v4 с телефона. Удаление мягкое (`deletedAt`), чистка корзины через 30 дней.
 - Тема: тёмный графит и белый, токены из таблицы описания, шрифты Unbounded и Onest, теней нет, листы снизу.
-- Строки интерфейса по-русски через `gen-l10n` (`lib/l10n/app_ru.arb`), чтобы позже добавить другие языки.
+- Строки интерфейса через `gen-l10n`, семь языков (`lib/l10n/app_{ru,en,uk,ro,pl,de,es}.arb`), шаблон английский. Новую строку добавляет `tool/add_strings.py`, русский и английский обязательны. Русского текста в `lib/features` и `lib/domain` нет.
 - Код: имена полными словами без сокращений, стиль Dart (`lowerCamelCase`), комментарий одной короткой строкой над важным блоком.
-- APK: `Kladovka-<версия>-<abi>.apk`, сборка выпуска только в CI.
+- APK: `Stowa-<версия>-<abi>.apk`, сборка выпуска только в CI, с `--no-tree-shake-icons`.
 - Коммиты по-русски: заголовок что изменилось для человека, ниже абзац зачем. Работа прямо в `main`, пуш после каждой задачи.
 
 ## На что смотреть при проверке
@@ -46,7 +48,7 @@ lib/
     theme/tokens.dart            цвета графитовой темы из описания
     theme/app_theme.dart         ThemeData по M3-ДНК поверх токенов
     theme/shapes.dart            формы значков (печенька, сквиркл, самоцвет, пилюля)
-    icons/icon_registry.dart     имя иконки → кодовая точка шрифта KladovkaSymbols
+    icons/icon_registry.dart     имя иконки → кодовая точка шрифта StowaSymbols
     widgets/                     общие виджеты: pressable.dart, shape_badge.dart, tag_chip.dart, sheet.dart
   data/
     db/tables.dart               таблицы Drift
@@ -97,16 +99,16 @@ test/                             зеркало lib/
 ### Задача 0.1: Проект, зависимости, тема, шрифты, иконки
 
 **Файлы:**
-- Создать: проект `flutter create --org app --project-name kladovka --platforms android .`
-- Создать: `lib/core/theme/tokens.dart`, `lib/core/theme/app_theme.dart`, `lib/core/theme/shapes.dart`, `lib/core/icons/icon_registry.dart`, `lib/core/widgets/shape_badge.dart`, `lib/core/widgets/pressable.dart`, `lib/app.dart`, `lib/main.dart`, `lib/l10n/app_ru.arb`, `l10n.yaml`, `tool/build_icon_font.py`, `assets/fonts/{Unbounded,Onest,KladovkaSymbols}.ttf`
-- Изменить: `android/app/build.gradle.kts` (`applicationId = "app.kladovka"`, `minSdk = 26`), `.gitignore`
+- Создать: проект `flutter create --org app --project-name stowa --platforms android .`
+- Создать: `lib/core/theme/tokens.dart`, `lib/core/theme/app_theme.dart`, `lib/core/theme/shapes.dart`, `lib/core/icons/icon_registry.dart`, `lib/core/widgets/shape_badge.dart`, `lib/core/widgets/pressable.dart`, `lib/app.dart`, `lib/main.dart`, `lib/l10n/app_ru.arb`, `l10n.yaml`, `tool/build_icon_font.py`, `assets/fonts/{Unbounded,Onest,StowaSymbols}.ttf`
+- Изменить: `android/app/build.gradle.kts` (`applicationId = "app.stowa"`, `minSdk = 26`), `.gitignore`
 - Тест: `test/core/theme_test.dart`, `test/core/icon_registry_test.dart`
 
 **Интерфейсы:**
-- Производит: `abstract final class Tokens { static const background = Color(0xFF141517); ... }` с полями `background, containerLow, container, containerHigh, containerHighest, graphite, outline, onSurface, onSurfaceVariant, muted, accent, onAccent`; `ThemeData buildAppTheme()`; `enum BadgeShape { cookie9, cookie6, squircle, gem, pill }`; `Path badgeShapePath(BadgeShape shape, Size size)`; `IconData symbolIcon(String name)`; `const symbolFontFamily = 'KladovkaSymbols'`.
+- Производит: `abstract final class Tokens { static const background = Color(0xFF141517); ... }` с полями `background, containerLow, container, containerHigh, containerHighest, graphite, outline, onSurface, onSurfaceVariant, muted, accent, onAccent`; `ThemeData buildAppTheme()`; `enum BadgeShape { cookie9, cookie6, squircle, gem, pill }`; `Path badgeShapePath(BadgeShape shape, Size size)`; `IconData symbolIcon(String name)`; `const symbolFontFamily = 'StowaSymbols'`.
 
 - [ ] **Шаг 1.** `flutter create`, затем `flutter pub add flutter_riverpod drift sqlite3_flutter_libs path_provider path uuid http flutter_secure_storage shared_preferences connectivity_plus material_new_shapes intl` и `flutter pub add -d drift_dev build_runner material_symbols_icons`.
-- [ ] **Шаг 2.** Шрифты: Unbounded и Onest скопировать из `~/Projects/GitHub/m3-dna/assets/fonts/`. `tool/build_icon_font.py` перенести из `~/Projects/GitHub/Veha/tool/build_icon_font.py` с заменой имён на `KladovkaSymbols` и реестра на `lib/core/icons/icon_registry.dart`. Набор полный (все иконки Material Symbols Rounded одним начертанием, ~1,7 МБ): тегу нужна любая иконка, белый список не годится.
+- [ ] **Шаг 2.** Шрифты: Unbounded и Onest скопировать из `~/Projects/GitHub/m3-dna/assets/fonts/`. `tool/build_icon_font.py` перенести из `~/Projects/GitHub/Veha/tool/build_icon_font.py` с заменой имён на `StowaSymbols` и реестра на `lib/core/icons/icon_registry.dart`. Набор полный (все иконки Material Symbols Rounded одним начертанием, ~1,7 МБ): тегу нужна любая иконка, белый список не годится.
 - [ ] **Шаг 3. Тесты темы.**
 
 ```dart
@@ -120,7 +122,7 @@ test('фон и карточки берутся из токенов графит
   expect(theme.cardTheme.elevation, 0);
 });
 test('иконка тега находится по имени', () {
-  expect(symbolIcon('directions_car').fontFamily, 'KladovkaSymbols');
+  expect(symbolIcon('directions_car').fontFamily, 'StowaSymbols');
   expect(symbolIcon('нет_такой'), symbolIcon('label')); // запасная иконка
 });
 ```
@@ -128,7 +130,7 @@ test('иконка тега находится по имени', () {
 - [ ] **Шаг 4.** `flutter test test/core` — FAIL, функций нет.
 - [ ] **Шаг 5.** `buildAppTheme()`: `ColorScheme.fromSeed(seedColor: Tokens.accent, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.monochrome)`, затем `copyWith` всех ролей из `Tokens`. Остальное по `~/Projects/GitHub/m3-dna/lib/theme/app_theme.dart`: кнопки `StadiumBorder` высотой 56, карточки радиус 28 с `elevation: 0`, поля с заливкой радиус 28 без рамки, `bottomSheetTheme` радиус 28 сверху, `textTheme` Onest, крупные заголовки Unbounded 700 с `letterSpacing: -0.5`. `badgeShapePath` считает контур так же, как макет (`design/mockup/template.html`, функция `shape_path`): печенька `r = half * (1 - depth * (1 + cos(n * angle)) / 2)`, `cookie9` n=9 depth=0.09, `cookie6` n=6 depth=0.12, `gem` n=5 depth=0.07, сквиркл степень 4, пилюля степень 2.4.
 - [ ] **Шаг 6.** `flutter test test/core` — PASS. `flutter analyze` — без замечаний.
-- [ ] **Шаг 7.** `app.dart`: `MaterialApp` с темой, локалью `ru`, пустым экраном «Кладовка». Запуск на телефоне `flutter run`, глазами: фон графитовый, заголовок Unbounded.
+- [ ] **Шаг 7.** `app.dart`: `MaterialApp` с темой, локалью `ru`, пустым экраном «Stowa». Запуск на телефоне `flutter run`, глазами: фон графитовый, заголовок Unbounded.
 - [ ] **Шаг 8.** Коммит «Каркас: тема графита, шрифты и набор иконок».
 
 ### Задача 0.2: CI
@@ -182,7 +184,7 @@ test('мягко удалённая вещь не ищется', () async { ... 
 ```
 
 - [ ] **Шаг 2.** `flutter test test/data/database_test.dart` — FAIL.
-- [ ] **Шаг 3.** Таблицы, `schema.drift`, `AppDatabase` (`drift_flutter` для открытия файла `kladovka.sqlite` в папке документов), `Future<List<String>> searchIds(String ftsMatch)` с отбором `deletedAt IS NULL`. `dart run build_runner build --delete-conflicting-outputs`.
+- [ ] **Шаг 3.** Таблицы, `schema.drift`, `AppDatabase` (`drift_flutter` для открытия файла `stowa.sqlite` в папке документов), `Future<List<String>> searchIds(String ftsMatch)` с отбором `deletedAt IS NULL`. `dart run build_runner build --delete-conflicting-outputs`.
 - [ ] **Шаг 4.** Тесты — PASS.
 - [ ] **Шаг 5.** Коммит «База: вещи, папки, теги, правила, связи и полнотекстовый поиск».
 
@@ -511,9 +513,11 @@ expect(parseSearchQuery('#только_тег').toFtsMatch(), isNull);
 
 - [ ] **Шаг 2–4.** FAIL → реализация → PASS. **Шаг 5.** Коммит «Строка поиска понимает теги и „без тега“».
 
-### Задача 5.2: Экран поиска и «похожее» при вводе
+### Задача 5.2: Поиск в строке и «похожее» при вводе
 
-**Файлы:** создать `lib/features/search/search_screen.dart`, `lib/features/search/search_result_tile.dart`; изменить `items_repository.dart`; тест `test/data/search_test.dart`.
+Отдельного экрана поиска нет: выдача растёт панелью над строкой ввода (экран 2 описания, живой прототип макета). Ранжирование как в прототипе: начало слова, срезанное окончание, одна опечатка у слов от 4 букв, вес полей (заголовок выше текста), свежесть; кнопку определяет белая подсветка — точное совпадение короткого запроса или новая запись.
+
+**Файлы:** создать `lib/domain/line_query.dart` (разбор строки: команда, `#`, `@`, ссылка, дата, разметка), `lib/domain/line_rank.dart` (ранжирование), `lib/features/composer/line_panel.dart`; изменить `items_repository.dart`; тест `test/data/search_test.dart`, `test/domain/line_query_test.dart`, `test/domain/line_rank_test.dart`.
 
 **Интерфейсы:**
 - Производит: `ItemsRepository.search(SearchQuery query, {Set<String> folderIds = const {}, Set<ItemKind> kinds = const {}, DateTimeRange? range}) → Future<List<SearchHit>>`; `class SearchHit { final ItemCard item; final String snippet; final HitField field; }`; `enum HitField { title, body, aiDescription, transcript, url, tagOnly }`; `ItemsRepository.searchSimilar(String draftText, {int limit = 3}) → Future<List<ItemCard>>`.
@@ -528,7 +532,7 @@ test('выдача по тегу без слов работает', ...
 test('похожее при вводе не показывает удалённые', ...
 ```
 
-- [ ] **Шаг 2–4.** FAIL → реализация → PASS. Сниппет — функция FTS5 `snippet()` с отметками, которые экран красит белой подложкой. Экран 8 по макету: чипы «Везде», папки, виды, даты; число найденного Unbounded; строка снизу та же `ComposerBar` в режиме поиска; `#` в строке открывает подсказку тегов с иконками; касание по чипу тега переключает «с тегом → без тега → убрать».
+- [ ] **Шаг 2–4.** FAIL → реализация → PASS. Сниппет — функция FTS5 `snippet()` с отметками, которые экран красит белой подложкой. Панель по живому прототипу: внизу строка «Закинуть», выше найденное, лучшее у пальца; фильтры видов в шапке панели; `#` и `@` открывают теги и папки, выбранное уходит в чип над строкой; касание по чипу тега переключает «с тегом → без тега → убрать».
 - [ ] **Шаг 5.** Коммит «Поиск обычными словами и тегами, похожее прямо при вводе».
 
 ---
@@ -552,7 +556,7 @@ test('401 и 403 дают auth, 402 — payment', ...
 test('429 с retry-after: 30 даёт rateLimit и паузу 30 секунд', ...
   expect(failure.retryAfter, const Duration(seconds: 30));
 test('ответ без choices даёт badResponse', ...
-test('заголовки: Bearer-ключ и X-Title: Kladovka', ...
+test('заголовки: Bearer-ключ и X-Title: Stowa', ...
 test('нет сети даёт network', ...
 ```
 
@@ -738,11 +742,11 @@ expect(markdownRanges('см. [[Ремонт кухни]]').last.style, MarkStyle
 - Производит: `class IncomingMessage { final int updateId; final String text; final List<TelegramFileRef> files; final DateTime date; }`; `List<IncomingMessage> parseUpdates(Map<String, Object?> json)`; `TelegramService.pull()` (берёт `getUpdates?offset=<последний+1>&timeout=0`, сохраняет каждое сообщение вещью, скачивает файлы через `getFile`, двигает offset только после записи).
 
 - [ ] **Шаг 1–4.** Тесты: пересланное сообщение с подписью даёт текст подписи; альбом из трёх фото — одна вещь с тремя вложениями (по `media_group_id`); стикеры и служебные сообщения пропускаются; ссылка из `entities` попадает в текст. Опрос при открытии и в `workmanager` раз в 15 минут. В настройках поле токена и «Проверить» (`getMe` показывает имя бота).
-- [ ] **Шаг 5.** Коммит «Свой бот Telegram: переслал боту — лежит в Кладовке».
+- [ ] **Шаг 5.** Коммит «Свой бот Telegram: переслал боту — лежит в Stowa».
 
 ### Задача 10.3: Виджет рабочего стола
 
-**Файлы:** создать `lib/services/widget_service.dart`, `android/app/src/main/res/layout/composer_widget.xml`, `android/app/src/main/kotlin/app/kladovka/ComposerWidgetProvider.kt`.
+**Файлы:** создать `lib/services/widget_service.dart`, `android/app/src/main/res/layout/composer_widget.xml`, `android/app/src/main/kotlin/app/stowa/ComposerWidgetProvider.kt`.
 
 - [ ] **Шаг 1–3.** `home_widget`: строка «Закинь что угодно» и кнопка микрофона, касание открывает приложение сразу в строке ввода с клавиатурой, микрофон — сразу запись. Цвета из токенов. Проверка на телефоне.
 - [ ] **Шаг 4.** Коммит «Виджет: закинуть, не открывая главную».
@@ -759,14 +763,14 @@ expect(markdownRanges('см. [[Ремонт кухни]]').last.style, MarkStyle
 - Производит: `BackupService.export() → Future<File>` (zip: снимок базы через `VACUUM INTO` и папка вложений), `BackupService.import(File zip)` (проверка версии схемы, замена после подтверждения).
 
 - [ ] **Шаг 1–4.** Тест: экспорт → импорт в чистую базу даёт те же вещи, теги, правила, связи и файлы. Ключ ИИ и токен бота в копию не попадают. Кнопки в настройках, отправка файла через `share_plus`.
-- [ ] **Шаг 5.** Коммит «Резервная копия всей Кладовки одним файлом».
+- [ ] **Шаг 5.** Коммит «Резервная копия всей Stowa одним файлом».
 
 ### Задача 11.2: Выпуск через CI
 
 **Файлы:** создать `.github/workflows/release.yml`; изменить `android/app/build.gradle.kts` (подпись из переменных окружения).
 
-- [ ] **Шаг 1.** Ключ выпуска: `keytool -genkeypair -v -keystore kladovka-release.jks -alias kladovka -keyalg RSA -keysize 4096 -validity 36500`, хранить вне репозитория рядом с ключами других приложений; в секреты репозитория через `gh secret set`: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
-- [ ] **Шаг 2.** Workflow на тег `v*`: `flutter build apk --release --split-per-abi`, переименование в `Kladovka-<версия из pubspec>-<abi>.apk` (`arm64-v8a`, `armeabi-v7a`, `x86_64`), `gh release create v<версия> *.apk` с заметками из коммитов.
+- [ ] **Шаг 1.** Ключ выпуска: `keytool -genkeypair -v -keystore stowa-release.jks -alias stowa -keyalg RSA -keysize 4096 -validity 36500`, хранить вне репозитория рядом с ключами других приложений; в секреты репозитория через `gh secret set`: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+- [ ] **Шаг 2.** Workflow на тег `v*`: `flutter build apk --release --split-per-abi`, переименование в `Stowa-<версия из pubspec>-<abi>.apk` (`arm64-v8a`, `armeabi-v7a`, `x86_64`), `gh release create v<версия> *.apk` с заметками из коммитов.
 - [ ] **Шаг 3.** Тег `v0.1.0`, `gh run watch`, проверить файлы в выпуске.
 - [ ] **Шаг 4.** Коммит «Выпуск собирается в CI и выкладывается на GitHub».
 

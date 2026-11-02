@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/core/theme/shapes.dart';
+import 'package:stowa/core/theme/shapes.dart';
 
 void main() {
   const size = Size(100, 100);

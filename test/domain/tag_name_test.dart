@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/domain/inline_tags.dart';
-import 'package:kladovka/domain/tag_name.dart';
+import 'package:stowa/domain/inline_tags.dart';
+import 'package:stowa/domain/tag_name.dart';
 
 void main() {
   test('один тег разными буквами — одно имя', () {

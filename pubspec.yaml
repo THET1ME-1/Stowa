@@ -1,4 +1,4 @@
-name: kladovka
+name: stowa
 description: "Черновик, который разбирает себя сам."
 publish_to: 'none'
 version: 0.1.0+1
@@ -38,9 +38,9 @@ flutter:
     - family: Unbounded
       fonts:
         - asset: assets/fonts/Unbounded.ttf
-    - family: KladovkaSymbols
+    - family: StowaSymbols
       fonts:
-        - asset: assets/fonts/KladovkaSymbols.ttf
-    - family: KladovkaSymbolsFilled
+        - asset: assets/fonts/StowaSymbols.ttf
+    - family: StowaSymbolsFilled
       fonts:
-        - asset: assets/fonts/KladovkaSymbolsFilled.ttf
+        - asset: assets/fonts/StowaSymbolsFilled.ttf

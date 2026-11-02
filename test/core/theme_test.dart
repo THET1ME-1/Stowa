@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/core/theme/app_theme.dart';
-import 'package:kladovka/core/theme/tokens.dart';
+import 'package:stowa/core/theme/app_theme.dart';
+import 'package:stowa/core/theme/tokens.dart';
 
 void main() {
   test('фон и карточки берутся из токенов графита', () {

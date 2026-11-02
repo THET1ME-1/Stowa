@@ -10,7 +10,7 @@ class LRu extends L {
   LRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appName => 'Кладовка';
+  String get appName => 'Stowa';
 
   @override
   String get composerHint => 'Закинь что угодно или найди';

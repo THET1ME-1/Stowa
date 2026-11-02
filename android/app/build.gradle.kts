@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "app.kladovka"
+    namespace = "app.stowa"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "app.kladovka"
+        applicationId = "app.stowa"
         // Android 8: ниже нет адаптивных иконок и нормальных каналов уведомлений
         minSdk = 26
         targetSdk = flutter.targetSdkVersion

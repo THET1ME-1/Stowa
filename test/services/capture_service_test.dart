@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/data/db/database.dart';
-import 'package:kladovka/data/repositories/items_repository.dart';
-import 'package:kladovka/data/repositories/tags_repository.dart';
-import 'package:kladovka/domain/models.dart';
-import 'package:kladovka/services/capture_service.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/repositories/items_repository.dart';
+import 'package:stowa/data/repositories/tags_repository.dart';
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/capture_service.dart';
 import 'package:path/path.dart' as p;
 
 void main() {
@@ -16,7 +16,7 @@ void main() {
 
   setUp(() async {
     db = AppDatabase.memory();
-    home = await Directory.systemTemp.createTemp('kladovka_test');
+    home = await Directory.systemTemp.createTemp('stowa_test');
     items = ItemsRepository(db);
     capture = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => DateTime(2026, 11, 2, 12));
   });

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/domain/item_kind.dart';
-import 'package:kladovka/domain/models.dart';
+import 'package:stowa/domain/item_kind.dart';
+import 'package:stowa/domain/models.dart';
 
 void main() {
   test('ролики узнаются по адресу, даже без схемы', () {

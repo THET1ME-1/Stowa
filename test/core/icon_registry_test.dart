@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/core/icons/icon_registry.dart';
+import 'package:stowa/core/icons/icon_registry.dart';
 
 void main() {
   test('иконка тега находится по имени', () {
-    expect(symbolIcon('directions_car').fontFamily, 'KladovkaSymbols');
-    expect(symbolIcon('directions_car', filled: true).fontFamily, 'KladovkaSymbolsFilled');
+    expect(symbolIcon('directions_car').fontFamily, 'StowaSymbols');
+    expect(symbolIcon('directions_car', filled: true).fontFamily, 'StowaSymbolsFilled');
     expect(symbolIcon('directions_car').codePoint, isNot(symbolIcon('label').codePoint));
   });
 

@@ -1,8 +1,8 @@
 // Файл собран tool/build_icon_font.py, руками не править.
 import 'package:flutter/widgets.dart';
 
-const symbolFontFamily = 'KladovkaSymbols';
-const symbolFilledFontFamily = 'KladovkaSymbolsFilled';
+const symbolFontFamily = 'StowaSymbols';
+const symbolFilledFontFamily = 'StowaSymbolsFilled';
 
 /// Запасная иконка: имя пришло из базы с устройства, где набор шире.
 const symbolFallback = 'label';

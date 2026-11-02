@@ -10,7 +10,7 @@ class LUk extends L {
   LUk([String locale = 'uk']) : super(locale);
 
   @override
-  String get appName => 'Комора';
+  String get appName => 'Stowa';
 
   @override
   String get composerHint => 'Drop anything or search';

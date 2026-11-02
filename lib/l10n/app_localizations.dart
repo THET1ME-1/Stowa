@@ -110,7 +110,7 @@ abstract class L {
   /// Название приложения
   ///
   /// In en, this message translates to:
-  /// **'Kladovka'**
+  /// **'Stowa'**
   String get appName;
 
   /// Пустая строка снизу на главной

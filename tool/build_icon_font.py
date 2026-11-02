@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Собирает шрифты иконок Кладовки из Material Symbols Rounded.
+"""Собирает шрифты иконок Stowa из Material Symbols Rounded.
 
 Иконку тега человек выбирает из всего набора, и в базе она лежит строкой.
 Tree-shaking такие обращения не видит и режет глифы вслепую (у Veha так
@@ -22,8 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DART = ROOT / 'lib' / 'core' / 'icons' / 'icon_registry.dart'
 FONTS = {
-    'KladovkaSymbols': 'FILL=0',
-    'KladovkaSymbolsFilled': 'FILL=1',
+    'StowaSymbols': 'FILL=0',
+    'StowaSymbolsFilled': 'FILL=1',
 }
 
 # С этих иконок начинается выбор иконки тега, остальное через поиск.
@@ -85,8 +85,8 @@ def write_dart(codes: dict[str, int]) -> None:
         '// Файл собран tool/build_icon_font.py, руками не править.',
         "import 'package:flutter/widgets.dart';",
         '',
-        "const symbolFontFamily = 'KladovkaSymbols';",
-        "const symbolFilledFontFamily = 'KladovkaSymbolsFilled';",
+        "const symbolFontFamily = 'StowaSymbols';",
+        "const symbolFilledFontFamily = 'StowaSymbolsFilled';",
         '',
         '/// Запасная иконка: имя пришло из базы с устройства, где набор шире.',
         "const symbolFallback = 'label';",

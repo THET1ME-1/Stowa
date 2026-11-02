@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kladovka/data/db/database.dart';
-import 'package:kladovka/domain/models.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/models.dart';
 import 'package:drift/native.dart' show SqliteException;
 
 ItemsCompanion _item(String id, String title, {String body = ''}) {
