@@ -1,0 +1,28 @@
+# Память проекта, личная
+CLAUDE.md
+CLAUDE.local.md
+
+# Служебное проверки дизайна
+.impeccable/
+
+# Ключи выпуска
+*.jks
+*.keystore
+key.properties
+
+# Flutter и Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+.idea/
+.vscode/
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/

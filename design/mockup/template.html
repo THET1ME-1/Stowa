@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кладовка, макет</title>
+<style>
+/*FONTS*/
+/* Система: тёмный матовый графит и белый, M3 Expressive по ДНК Togetherly.
+   Поле экрана 16, внутри большой карточки 16, внутри плитки 12. Радиусы: карточка 28, плитка 20, поле 28 (пилюля), фото 16.
+   Шрифты: Unbounded только заголовки экранов и числа, остальное Onest 13–17. Теней нет, глубина ступенями поверхности. */
+:root{
+  --bg:#141517; --c-low:#1A1B1E; --c:#1F2023; --c-high:#26272B; --c-highest:#2E2F33; --graphite:#333438; --line:#3A3B40;
+  --on:#F2F2F0; --on-var:#B0B1B6; --muted:#96979D;
+  --white:#F4F4F2; --on-white:#141517; --on-white-var:#56575C;
+  --page:#0C0D0E;
+  --pad:16px; --pad-card:16px; --pad-tile:12px;
+  --r-card:28px; --r-tile:20px; --r-photo:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--page);color:var(--on)}
+body{font-family:Onest,sans-serif;font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;padding:40px 16px 80px}
+:where(button){all:unset;box-sizing:border-box;cursor:pointer}
+.ic{font-family:TgSymbols;font-style:normal;font-weight:400;font-size:24px;line-height:1;display:inline-block;width:1em;height:1em;text-align:center;font-variation-settings:'FILL' 0,'wght' 400;flex:none}
+.ic.f{font-variation-settings:'FILL' 1,'wght' 400}
+.ic.s{font-size:20px}.ic.xs{font-size:18px}.ic.l{font-size:28px}
+
+/* шапка страницы */
+.head{max-width:1180px;margin:0 auto 40px}
+.head h1{font-family:Unbounded;font-weight:700;font-size:32px;letter-spacing:-.5px}
+.head p{color:var(--on-var);max-width:640px;margin-top:10px;font-size:16px}
+.head .new{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13px;color:var(--muted)}
+.head .new b{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--white)}
+
+.board{display:flex;flex-wrap:wrap;gap:48px 32px;justify-content:center;max-width:1580px;margin:0 auto}
+.shot{width:360px}
+.cap{margin-top:16px}
+.cap h3{font-family:Unbounded;font-weight:600;font-size:16px;letter-spacing:-.3px}
+.cap h3 span{color:var(--muted);font-family:Onest;font-weight:500;font-size:14px;margin-right:6px}
+.cap p{color:var(--on-var);font-size:14px;margin-top:6px;text-wrap:pretty}
+
+/* телефон */
+.phone{width:360px;height:780px;border-radius:40px;background:var(--bg);position:relative;overflow:hidden;outline:1px solid #222326;isolation:isolate}
+.phone::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:50;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.status{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;position:relative;z-index:5}
+.status .ic{font-size:17px;margin-left:3px}
+.gesture{position:absolute;left:0;right:0;bottom:0;height:20px;display:flex;align-items:center;justify-content:center;z-index:30;background:var(--bg)}
+.gesture.clear{background:none}
+.gesture::before{content:"";width:108px;height:4px;border-radius:2px;background:var(--on);opacity:.55}
+.scroll{position:absolute;left:0;right:0;top:36px;bottom:0;overflow:hidden}
+
+/* общие элементы */
+.bar{height:56px;display:flex;align-items:center;gap:8px;padding:0 var(--pad)}
+.title{font-family:Unbounded;font-weight:700;font-size:20px;letter-spacing:-.5px;flex:1;white-space:nowrap}
+.ibtn{width:44px;height:44px;border-radius:50%;background:var(--c-high);display:flex;align-items:center;justify-content:center;color:var(--on);flex:none}
+.ibtn.ghost{background:none}
+.sec{display:flex;align-items:baseline;justify-content:space-between;padding:0 var(--pad);margin:20px 0 10px}
+.sec h2{font-size:15px;font-weight:600;color:var(--on-var)}
+.sec a{font-size:14px;color:var(--muted);display:flex;align-items:center}
+.chips{display:flex;gap:8px;padding:0 var(--pad);overflow:hidden;white-space:nowrap}
+.chip{height:36px;padding:0 14px;border-radius:18px;background:var(--c-high);display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--on);flex:none}
+.chip.on{background:var(--white);color:var(--on-white)}
+.chip .ic{font-size:18px}
+.chip.sm{height:28px;padding:0 10px;font-size:13px;border-radius:14px}
+.num{font-family:Unbounded;font-weight:700;letter-spacing:-.5px}
+.sh{display:inline-flex;align-items:center;justify-content:center;flex:none;background:var(--graphite);color:var(--on)}
+.sh.w{background:var(--white);color:var(--on-white)}
+.ph{background-size:cover;background-position:center;background-color:var(--c-high)}
+.tag{font-size:13px;color:var(--muted)}
+.new-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--white);outline:3px solid var(--page)}
+
+/* строка ввода снизу */
+.dock{position:absolute;left:0;right:0;bottom:20px;padding:8px 8px 8px;z-index:20;background:var(--bg)}
+.dock.float{background:linear-gradient(transparent,var(--bg) 30%);padding-top:24px}
+.composer{background:var(--c-highest);border-radius:28px;padding:14px 8px 8px;position:relative}
+.composer .grip{position:absolute;top:6px;left:50%;width:32px;height:4px;margin-left:-16px;border-radius:2px;background:var(--line)}
+.composer .ct{padding:4px 12px 12px;font-size:16px;line-height:1.4;color:var(--muted);min-height:24px}
+.composer.typed .ct{color:var(--on)}
+.crow{display:flex;align-items:center;gap:4px}
+.crow .sp{flex:1}
+.cb{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--on-var);flex:none}
+.cb.tonal{background:var(--graphite);color:var(--on)}
+.send{width:48px;height:48px;border-radius:50%;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;flex:none}
+.caret{display:inline-block;width:2px;height:19px;background:var(--white);vertical-align:-3px;margin-left:1px}
+
+/* 1. главная */
+.today{margin:4px var(--pad) 0;background:var(--white);color:var(--on-white);border-radius:var(--r-card);padding:var(--pad-card);display:flex;gap:14px;align-items:center}
+.today .sh{width:52px;height:52px}
+.today b{display:block;font-size:17px;font-weight:600;line-height:1.25}
+.today small{display:block;font-size:14px;color:var(--on-white-var);margin-top:2px}
+.today .ok{width:44px;height:44px;border-radius:50%;background:#E2E2DF;display:flex;align-items:center;justify-content:center;margin-left:auto;flex:none}
+.more-today{margin:8px var(--pad) 0;height:44px;border-radius:22px;background:var(--c-low);display:flex;align-items:center;padding:0 8px 0 16px;font-size:14px;color:var(--on-var);gap:8px}
+.more-today .ic{margin-left:auto;color:var(--muted)}
+.recent{display:flex;gap:8px;padding:0 var(--pad);overflow:hidden}
+.rc{width:132px;flex:none;background:var(--c);border-radius:var(--r-tile);overflow:hidden}
+.rc .ph{height:64px}
+.rc .body{padding:10px var(--pad-tile) 12px}
+.rc .body p{font-size:14px;line-height:1.3;height:36px;overflow:hidden;font-weight:500}
+.rc .to{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);margin-top:8px;white-space:nowrap}
+.rc .to .ic{font-size:15px}
+.rc.note .txt{height:64px;padding:10px var(--pad-tile);font-size:13px;color:var(--on-var);line-height:1.3;background:var(--c-high)}
+.rc.note .txt b{font-family:Unbounded;font-size:19px;color:var(--on);display:block;margin-top:2px;letter-spacing:1px}
+.rc.sorting .to{color:var(--on)}
+.rc.sorting .to i.bar2{display:inline-block;width:46px;height:4px;border-radius:2px;background:var(--line);position:relative;overflow:hidden}
+.rc.sorting .to i.bar2::after{content:"";position:absolute;left:0;top:0;bottom:0;width:60%;border-radius:2px;background:var(--white)}
+.groups{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 var(--pad)}
+.g{background:var(--c);border-radius:var(--r-card);padding:var(--pad-tile);position:relative;overflow:hidden;min-height:132px;display:flex;flex-direction:column}
+.g .top{display:flex;align-items:center;justify-content:space-between}
+.g .sh{width:40px;height:40px}
+.g .sh .ic{font-size:21px}
+.g .cnt{font-size:20px}
+.g h4{font-size:16px;font-weight:600;margin-top:auto;padding-top:12px;line-height:1.2}
+.g .tag{margin-top:2px}
+.g.big{grid-row:span 2;padding:0;background:var(--c)}
+.g.big .mosaic{display:grid;grid-template-columns:1fr 1fr;gap:3px;height:124px}
+.g.big .mosaic .ph:first-child{grid-row:span 2}
+.g.big .in{padding:var(--pad-tile);display:flex;flex-direction:column;flex:1}
+.g.big .in .top{margin-bottom:auto}
+.g.thumbs .strip{display:flex;gap:4px;margin-top:12px}
+.g.thumbs .strip .ph{flex:1;height:40px;border-radius:10px}
+.g.list .li{font-size:13px;color:var(--on-var);display:flex;align-items:center;gap:6px;margin-top:6px}
+.g.list .li .ic{font-size:16px}
+.g.list .li.done{color:var(--muted);text-decoration:line-through}
+.g.fresh{background:var(--c-high)}
+.badge-new{font-size:12px;font-weight:600;background:var(--white);color:var(--on-white);height:22px;padding:0 8px;border-radius:11px;display:inline-flex;align-items:center}
+.snack{position:absolute;left:12px;right:12px;bottom:100px;z-index:21;background:var(--white);color:var(--on-white);border-radius:20px;height:52px;display:flex;align-items:center;padding:0 6px 0 16px;gap:10px;font-size:14px;font-weight:500}
+.snack .ic{font-size:20px}
+.snack span{flex:1}
+.snack button{height:40px;padding:0 14px;border-radius:20px;background:#E2E2DF;font-weight:600;display:flex;align-items:center}
+
+/* 2. ввод */
+.dim{position:absolute;inset:36px 0 0;background:rgba(12,13,14,.62);z-index:10}
+.panel{position:absolute;left:8px;right:8px;z-index:19;background:var(--c-high);border-radius:var(--r-card);padding:var(--pad-card)}
+.panel .lbl{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.panel .chips{padding:0;flex-wrap:wrap;white-space:normal}
+.panel .chip{background:var(--c-highest)}
+.panel .chip.on{background:var(--white)}
+.panel hr{border:0;height:1px;background:var(--line);margin:16px 0 14px}
+.match{display:flex;gap:12px;align-items:center;padding:6px 0}
+.match .ph{width:44px;height:44px;border-radius:12px;flex:none}
+.match b{display:block;font-size:15px;font-weight:500;line-height:1.25}
+.match b em{font-style:normal;background:rgba(244,244,242,.16);border-radius:4px;padding:0 2px}
+.match small{font-size:13px;color:var(--muted)}
+.match .ic.go{margin-left:auto;color:var(--muted)}
+.kb{position:absolute;left:0;right:0;bottom:0;height:252px;background:#1B1C1F;z-index:25;padding:8px 4px 24px}
+.kb .sug{display:flex;justify-content:space-around;height:36px;align-items:center;font-size:15px;color:var(--on-var);margin-bottom:6px}
+.kb .row{display:flex;gap:4px;justify-content:center;margin-bottom:8px}
+.kb .k{height:40px;flex:1;max-width:30px;border-radius:8px;background:var(--c-highest);display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--on)}
+.kb .k.w{max-width:48px;flex:1.5;background:var(--graphite)}
+.kb .k.sp{max-width:none;flex:5;font-size:13px;color:var(--muted)}
+.kb .k .ic{font-size:20px}
+.kb .k.ret{background:var(--white);color:var(--on-white)}
+
+/* 3. строка на весь экран */
+.ed-top{display:flex;align-items:center;gap:8px;height:56px;padding:0 var(--pad)}
+.ed-top .go{height:44px;padding:0 18px 0 14px;border-radius:22px;background:var(--white);color:var(--on-white);display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;margin-left:auto}
+.md{padding:8px var(--pad) 0}
+.md h2{font-size:24px;font-weight:700;letter-spacing:-.3px;line-height:1.2}
+.md p{font-size:16px;line-height:1.5;margin-top:8px}
+.md .cl{margin-top:6px}
+.md .cl div{display:flex;gap:10px;align-items:center;height:34px;font-size:16px}
+.md .cl .ic{color:var(--on-var)}
+.md .cl div.done span{text-decoration:line-through;color:var(--muted)}
+.md .cl div.done .ic{color:var(--white)}
+.md code{font-family:ui-monospace,Menlo,monospace;font-size:14px;background:var(--c-highest);border-radius:6px;padding:1px 6px}
+.md .quote{margin-top:10px;background:var(--c-high);border-radius:var(--r-tile);padding:10px 14px;display:flex;gap:10px;font-size:15px;color:var(--on-var);line-height:1.4}
+.md .quote .ic{color:var(--muted)}
+.md .raw{color:var(--muted);font-weight:400}
+.files{display:flex;gap:8px;margin-top:12px}
+.file{display:flex;align-items:center;gap:10px;background:var(--c);border-radius:var(--r-tile);padding:8px 12px 8px 8px;flex:1;min-width:0}
+.file .sh,.file .ph{width:40px;height:40px;border-radius:12px;flex:none}
+.file b{display:block;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file small{font-size:12px;color:var(--muted)}
+.mdbar{position:absolute;left:0;right:0;bottom:252px;height:56px;background:var(--c-low);display:flex;align-items:center;gap:2px;padding:0 8px;z-index:26;overflow:hidden}
+.mdbar .cb{color:var(--on);width:40px;height:40px}
+.mdbar .cb.on{background:var(--white);color:var(--on-white)}
+.mdbar i.div{width:1px;height:24px;background:var(--line);margin:0 2px;flex:none}
+.mdbar{justify-content:space-between}
+
+/* теги: плитка-иконка и счётчик, как метки в Telegram */
+.tags{display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--pad)}
+.tg{height:36px;border-radius:18px;background:var(--c-high);display:inline-flex;align-items:center;gap:7px;padding:0 12px 0 6px;font-size:14px;font-weight:600;color:var(--on);flex:none}
+.tg .ti{width:26px;height:26px;border-radius:9px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;flex:none}
+.tg .ti .ic{font-size:17px;font-variation-settings:'FILL' 1,'wght' 500}
+.tg .n{color:var(--muted);font-size:13px}
+.tg.add{padding:0 10px;color:var(--on-var)}
+.tg.add .ic{font-size:20px}
+.tags.compact .tg{height:32px;padding:0 10px 0 4px;gap:6px;font-size:13px}
+.tags.compact .tg .ti{width:24px;height:24px;border-radius:8px}
+.tags.compact .tg .ti .ic{font-size:16px}
+.tags.compact .tg.add{padding:0 8px}
+/* одна строка с прокруткой вбок: сколько тегов ни закрепи, высота не растёт */
+.tags.row{flex-wrap:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
+.tg.on{background:var(--white);color:var(--on-white)}
+.tg.on .ti{background:var(--graphite);color:var(--on)}
+.tg.on .n{color:var(--on-white-var)}
+.panel .tg{background:var(--c-highest)}
+.panel .tg.on{background:var(--white)}
+.rules{padding:0 var(--pad);display:flex;flex-direction:column;gap:6px}
+.rule{background:var(--c);border-radius:var(--r-tile);padding:10px var(--pad-tile);display:flex;align-items:center;gap:6px;min-height:56px}
+.rule .when{font-size:14px;color:var(--on-var);display:flex;align-items:center;gap:6px}
+.rule .arrow{color:var(--muted);font-size:20px}
+.rule .to{height:32px;border-radius:16px;background:var(--c-highest);display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 10px;font-size:14px;font-weight:500}
+.rule .to .ic{font-size:17px}
+.rule .to.none{background:none;color:var(--muted);padding-left:4px}
+.rule .go{margin-left:auto;color:var(--muted);font-size:20px}
+.rule .tg{height:32px;background:var(--c-highest)}
+.rule .tg .ti{width:22px;height:22px;border-radius:7px}
+.rule .tg .ti .ic{font-size:15px}
+.add-rule{margin:8px var(--pad) 0;height:52px;border-radius:26px;background:var(--c-high);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px}
+.hint{padding:0 var(--pad);margin-top:-4px;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.icgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.icgrid span{height:48px;border-radius:16px;background:var(--c-high);display:flex;align-items:center;justify-content:center;color:var(--on)}
+.icgrid span.on{background:var(--white);color:var(--on-white);border-radius:24px}
+.icgrid .ic{font-variation-settings:'FILL' 1,'wght' 500}
+.tagname{display:flex;align-items:center;gap:12px;background:var(--c-high);border-radius:var(--r-tile);padding:8px 16px 8px 8px}
+.tagname .ti{width:48px;height:48px;border-radius:16px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center}
+.tagname .ti .ic{font-size:26px;font-variation-settings:'FILL' 1,'wght' 500}
+.tagname b{font-size:18px;font-weight:600;flex:1}
+.tagname small{font-size:12px;color:var(--muted);display:block;font-weight:500}
+.mini-seg{display:flex;gap:2px;margin-bottom:10px}
+.mini-seg div{flex:1;height:36px;background:var(--c-high);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--on-var)}
+.mini-seg div:first-child{border-radius:18px 6px 6px 18px}
+.mini-seg div:last-child{border-radius:6px 18px 18px 6px}
+.mini-seg div.on{background:var(--white);color:var(--on-white);border-radius:18px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:15px;font-weight:500}
+.switch{width:52px;height:32px;border-radius:16px;background:var(--white);position:relative;flex:none}
+.switch::after{content:"";position:absolute;right:4px;top:4px;width:24px;height:24px;border-radius:12px;background:var(--on-white)}
+
+/* 4. доска */
+.seg{display:flex;gap:2px;margin:4px var(--pad) 0}
+.seg div{flex:1;height:44px;background:var(--c-high);display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:500;color:var(--on-var)}
+.seg div:first-child{border-radius:22px 8px 8px 22px}
+.seg div:last-child{border-radius:8px 22px 22px 8px}
+.seg div.on{background:var(--white);color:var(--on-white);border-radius:22px}
+.seg .ic{font-size:19px}
+.gtitle{padding:4px var(--pad) 0;display:flex;align-items:flex-end;gap:12px}
+.gtitle h1{font-family:Unbounded;font-weight:700;font-size:26px;letter-spacing:-.6px;line-height:1.1;flex:1}
+.gtitle .num{font-size:15px;color:var(--muted);font-weight:600;padding-bottom:3px}
+.gsub{padding:6px var(--pad) 0;font-size:14px;color:var(--muted)}
+.masonry{display:flex;gap:8px;padding:0 var(--pad)}
+.masonry .col{flex:1;display:flex;flex-direction:column;gap:8px}
+.masonry .ph{border-radius:var(--r-photo);position:relative}
+.masonry .pill{position:absolute;left:8px;bottom:8px;height:26px;padding:0 10px;border-radius:13px;background:var(--white);color:var(--on-white);font-size:12px;font-weight:600;display:flex;align-items:center}
+.masonry .pill.dark{background:var(--c-highest);color:var(--on)}
+
+/* 4. холст */
+.canvas{position:absolute;inset:36px 0 0;background-color:#111214;background-image:radial-gradient(#2A2B2F 1px,transparent 1.2px);background-size:22px 22px;overflow:hidden}
+.canvas .ph{position:absolute;border-radius:6px}
+.canvas .sel{outline:2px solid var(--white);outline-offset:3px}
+.canvas .sel::after{content:"";position:absolute;right:-9px;bottom:-9px;width:12px;height:12px;border-radius:50%;background:var(--white)}
+.canvas .note{position:absolute;background:var(--white);color:var(--on-white);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.3;width:132px;font-weight:500}
+.ctop{position:absolute;top:44px;left:12px;right:12px;display:flex;gap:8px;align-items:center;z-index:5}
+.ctop .name{height:44px;border-radius:22px;background:var(--c-high);display:flex;align-items:center;padding:0 16px;font-weight:600;font-size:15px;gap:8px;flex:1}
+.ctop .name small{color:var(--muted);font-weight:500}
+.zoom{height:44px;border-radius:22px;background:var(--c-high);display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:600;gap:4px}
+.tb{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;z-index:6}
+.tb .grp{height:64px;border-radius:32px;background:var(--c-highest);display:flex;align-items:center;padding:0 8px;gap:2px}
+.tb .grp .ibtn{background:none;width:48px;height:48px}
+.tb .grp .ibtn.on{background:var(--graphite)}
+.tb .fab{width:64px;height:64px;border-radius:22px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center}
+
+/* 5. рецепты */
+.feed{padding:0 var(--pad);display:flex;flex-direction:column;gap:8px}
+.vid{background:var(--c);border-radius:var(--r-card);overflow:hidden}
+.vid .ph{height:168px;position:relative}
+.vid .src{position:absolute;left:12px;top:12px;height:28px;padding:0 10px;border-radius:14px;background:var(--white);color:var(--on-white);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px}
+.vid .play{position:absolute;right:12px;bottom:12px;width:44px;height:44px;border-radius:50%;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center}
+.vid .time{position:absolute;left:12px;bottom:12px;height:24px;padding:0 8px;border-radius:12px;background:var(--c-highest);font-size:12px;font-weight:600;display:flex;align-items:center}
+.vid .body{padding:12px var(--pad-card) 16px}
+.vid .body b{font-size:16px;font-weight:600;display:block;line-height:1.3}
+.vid .body .tags{display:flex;gap:6px;margin-top:10px}
+.row2{background:var(--c);border-radius:var(--r-tile);padding:var(--pad-tile);display:flex;gap:12px;align-items:center}
+.row2 .ph,.row2 .sh{width:56px;height:56px;border-radius:14px;flex:none}
+.row2 b{display:block;font-size:15px;font-weight:500;line-height:1.3}
+.row2 small{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--muted);margin-top:2px}
+.row2 small .ic{font-size:15px}
+.voice{background:var(--c);border-radius:var(--r-tile);padding:var(--pad-tile)}
+.voice .top{display:flex;align-items:center;gap:12px}
+.voice .pb{width:44px;height:44px;border-radius:50%;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;flex:none}
+.wave{flex:1;display:flex;align-items:center;gap:2px;height:32px}
+.wave i{flex:1;background:var(--on-var);border-radius:2px;opacity:.75}
+.wave i.p{background:var(--white);opacity:1}
+.voice .dur{font-size:13px;color:var(--muted);font-weight:600}
+.voice p{font-size:14px;color:var(--on-var);margin-top:10px;line-height:1.4}
+.voice p small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.notecard{background:var(--c-high);border-radius:var(--r-tile);padding:var(--pad-tile) var(--pad-card)}
+.notecard b{font-size:15px;font-weight:600}
+.notecard p{font-size:14px;color:var(--on-var);margin-top:4px;line-height:1.4}
+
+/* 6. заметка */
+.page{padding:0 var(--pad)}
+.page h1{font-family:Unbounded;font-weight:700;font-size:24px;letter-spacing:-.6px;line-height:1.15;margin-top:8px}
+.page .meta{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.page p{font-size:16px;line-height:1.5;color:var(--on);margin-top:16px}
+.page .cl{margin-top:12px}
+.page .cl div{display:flex;align-items:center;gap:12px;height:40px;font-size:16px}
+.page .cl div .ic{font-size:24px;color:var(--on-var)}
+.page .cl div.done{color:var(--muted)}
+.page .cl div.done span{text-decoration:line-through}
+.page .cl div.done .ic{color:var(--white)}
+.page .img{height:150px;border-radius:var(--r-tile);margin-top:16px;position:relative}
+.page .img .pill{position:absolute;left:10px;bottom:10px;height:26px;padding:0 10px;border-radius:13px;background:var(--white);color:var(--on-white);font-size:12px;font-weight:600;display:flex;align-items:center}
+.page .linkc{margin-top:10px;background:var(--c);border-radius:var(--r-tile);padding:var(--pad-tile);display:flex;gap:12px;align-items:center}
+.page .linkc .sh{width:44px;height:44px;border-radius:12px}
+.page .linkc b{font-size:15px;font-weight:500;display:block}
+.page .linkc small{font-size:13px;color:var(--muted)}
+
+/* 7. поиск */
+.res{padding:0 var(--pad);display:flex;flex-direction:column;gap:8px}
+.hit{background:var(--c);border-radius:var(--r-tile);padding:var(--pad-tile);display:flex;gap:12px}
+.hit .ph{width:64px;height:64px;border-radius:14px;flex:none}
+.hit b{display:block;font-size:15px;font-weight:600;line-height:1.3}
+.hit p{font-size:14px;color:var(--on-var);margin-top:4px;line-height:1.35}
+.hit p em{font-style:normal;color:var(--on-white);background:var(--white);border-radius:4px;padding:0 3px}
+.hit .why{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);margin-top:8px;font-weight:500}
+.hit .why .ic{font-size:15px}
+.found{padding:0 var(--pad);margin:16px 0 10px;display:flex;align-items:baseline;gap:8px}
+.found .num{font-size:28px}
+.found span{color:var(--muted);font-size:14px}
+
+/* 8. поделиться */
+.other{position:absolute;inset:0;background:#EDEDEA;color:#141517}
+.other .ob{height:56px;margin-top:36px;display:flex;align-items:center;padding:0 16px;gap:12px;font-weight:600}
+.other .ob i{width:32px;height:32px;border-radius:50%;background:#CFCFCB;display:block}
+.other .post{height:360px;background-size:cover;background-position:center}
+.other .lines{padding:14px 16px}
+.other .lines i{display:block;height:10px;border-radius:5px;background:#D6D6D2;margin-bottom:8px}
+.scrim{position:absolute;inset:0;background:rgba(12,13,14,.55);z-index:8}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;background:var(--c-low);border-radius:var(--r-card) var(--r-card) 0 0;padding:10px var(--pad) 40px}
+.handle{width:32px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 18px}
+.saved{display:flex;gap:14px;align-items:center}
+.saved .ph{width:64px;height:64px;border-radius:16px;flex:none}
+.saved b{font-family:Unbounded;font-weight:700;font-size:18px;letter-spacing:-.4px;display:block}
+.saved small{font-size:14px;color:var(--on-var)}
+.saved .ring{margin-left:auto;width:44px;height:44px;flex:none;position:relative;display:flex;align-items:center;justify-content:center}
+.saved .ring svg{position:absolute;inset:0}
+.sheet .lbl{font-size:13px;color:var(--muted);font-weight:500;margin:20px 0 10px}
+.sheet .chips{padding:0;flex-wrap:wrap}
+.sheet .chip{background:var(--c-high)}
+.sheet .chip.on{background:var(--white)}
+.sheet .note-in{margin-top:16px;height:52px;border-radius:26px;background:var(--c-high);display:flex;align-items:center;padding:0 18px;color:var(--muted);font-size:15px;gap:10px}
+.sheet .done{width:100%;margin-top:12px;height:56px;border-radius:28px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Кладовка</h1>
+  <p>Черновик-свалка, который сам разбирает себя по полкам. Закинул ссылку, фото, голосовое или «напомни завтра» в строку снизу, и приложение само решает, что это, куда положить и когда напомнить. Название рабочее.</p>
+</div>
+
+<div class="board">
+
+<!-- 1. ГЛАВНАЯ -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:48</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><div class="title">Кладовка</div><button class="ibtn"><i class="ic s">tune</i></button></div>
+
+    <div class="tags compact row">
+      <span class="tg"><span class="ti"><i class="ic">directions_car</i></span>9</span>
+      <span class="tg"><span class="ti"><i class="ic">restaurant</i></span>23</span>
+      <span class="tg"><span class="ti"><i class="ic">lightbulb</i></span>12</span>
+      <span class="tg"><span class="ti"><i class="ic">key</i></span>6</span>
+      <span class="tg"><span class="ti"><i class="ic">movie</i></span>7</span>
+      <span class="tg"><span class="ti"><i class="ic">redeem</i></span>4</span>
+      <span class="tg"><span class="ti"><i class="ic">fitness_center</i></span>3</span>
+      <span class="tg"><span class="ti"><i class="ic">menu_book</i></span>5</span>
+      <span class="tg"><span class="ti"><i class="ic">smart_display</i></span>31</span>
+      <span class="tg add"><i class="ic">add</i></span>
+    </div>
+
+    <div class="today" style="margin-top:14px">
+      <span class="sh" data-shape="cookie9" style="width:52px;height:52px"><i class="ic f">alarm</i></span>
+      <div><b>Позвонить в сервис</b><small>10:00 · ещё 2 на сегодня</small></div>
+      <button class="ok"><i class="ic">check</i></button>
+    </div>
+
+    <div class="sec"><h2>Только что</h2><a>Все<i class="ic xs">chevron_right</i></a></div>
+    <div class="recent">
+      <div class="rc sorting"><div class="ph" style="background-image:url(img:p78)"></div><div class="body"><p>Фото с телефона</p><div class="to"><i class="bar2"></i>разбираю</div></div></div>
+      <div class="rc"><div class="ph" style="background-image:url(img:p102)"></div><div class="body"><p>Тарт с малиной без духовки</p><div class="to"><i class="ic">restaurant</i>Рецепты</div></div></div>
+      <div class="rc note"><div class="txt">Код домофона<b>4512</b></div><div class="body"><p>Квартира Сани</p><div class="to"><i class="ic">home</i>Дом</div></div></div>
+    </div>
+
+    <div class="sec"><h2>Папки</h2><a>Сортировка<i class="ic xs">sort</i></a></div>
+    <div class="groups">
+      <div class="g big">
+        <div class="mosaic"><div class="ph" style="background-image:url(img:p49)"></div><div class="ph" style="background-image:url(img:p76)"></div><div class="ph" style="background-image:url(img:p42)"></div></div>
+        <div class="in"><div class="top"><span class="sh w" data-shape="squircle" style="width:40px;height:40px"><i class="ic">palette</i></span><span class="num cnt">48</span></div><h4>Референсы</h4><div class="tag">интерьер · свет · двери</div></div>
+      </div>
+      <div class="g thumbs">
+        <div class="top"><span class="sh" data-shape="cookie9"><i class="ic">restaurant</i></span><span class="num cnt">23</span></div>
+        <div class="strip"><div class="ph" style="background-image:url(img:p102)"></div><div class="ph" style="background-image:url(img:p63)"></div><div class="ph" style="background-image:url(img:p75)"></div></div>
+        <h4>Рецепты</h4>
+      </div>
+      <div class="g list">
+        <div class="top"><span class="sh" data-shape="gem"><i class="ic">shopping_cart</i></span><span class="num cnt">7</span></div>
+        <div class="li"><i class="ic">check_box_outline_blank</i>Батарейки AA</div>
+        <div class="li done"><i class="ic f">check_box</i>Молоко</div>
+        <h4>Покупки</h4>
+      </div>
+      <div class="g fresh">
+        <div class="top"><span class="sh w" data-shape="cookie6"><i class="ic">redeem</i></span><span class="badge-new">новая</span></div>
+        <h4>Подарки Сане</h4><div class="tag">собрал из 4 вещей</div>
+      </div>
+      <div class="g">
+        <div class="top"><span class="sh" data-shape="pill"><i class="ic">directions_car</i></span><span class="num cnt">9</span></div>
+        <h4>Машина</h4><div class="tag">сервис, страховка</div>
+      </div>
+    </div>
+  </div>
+  <div class="dock"><div class="composer"><i class="grip"></i><div class="ct">Закинь что угодно</div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic f">mic</i></button></div></div></div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>1</span>Главная</h3><p>Сверху закреплённые теги одной строкой с прокруткой вбок: иконка и сколько вещей, как метки в Telegram. Сколько тегов ни закрепи, строка остаётся одна. Касание по тегу показывает всё с ним, долгое нажатие показывает имя. Ниже напоминание на сегодня, последние вещи и папки. Подпись под карточкой показывает, в какую папку легла вещь, касание по ней перекладывает.</p></div>
+</div>
+
+<!-- 2. ВВОД -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:49</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><div class="title">Кладовка</div><button class="ibtn"><i class="ic s">tune</i></button></div>
+    <div class="today"><span class="sh" data-shape="cookie9" style="width:52px;height:52px"><i class="ic f">alarm</i></span><div><b>Позвонить в сервис</b><small>10:00 · Машина</small></div></div>
+  </div>
+  <div class="dim"></div>
+  <div class="panel" style="bottom:404px">
+    <div class="lbl">Папка</div>
+    <div class="chips">
+      <span class="chip on"><i class="ic">folder</i>Рецепты<i class="ic">expand_more</i></span>
+      <span class="chip"><i class="ic">alarm</i>Сб, 12:00</span>
+    </div>
+    <div class="lbl" style="margin-top:14px">Теги</div>
+    <div class="tags compact row" style="padding:0">
+      <span class="tg on"><span class="ti"><i class="ic">restaurant</i></span>рецепт</span>
+      <span class="tg on"><span class="ti"><i class="ic">smart_display</i></span>видео</span>
+      <span class="tg"><span class="ti"><i class="ic">celebration</i></span>десерт</span>
+      <span class="tg add"><i class="ic">add</i></span>
+    </div>
+    <hr>
+    <div class="lbl"><i class="ic xs">history</i>Уже есть похожее</div>
+    <div class="match"><div class="ph" style="background-image:url(img:p102)"></div><div><b>Малиновый <em>тарт</em> за 20 минут</b><small>Рецепты · 3 дня назад</small></div><i class="ic go s">chevron_right</i></div>
+  </div>
+  <div class="dock" style="bottom:252px;z-index:26"><div class="composer typed"><i class="grip"></i><div class="ct">тарт с малиной в субботу испечь vm.tiktok.com/ZM8x<span class="caret"></span></div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic">arrow_upward</i></button></div></div></div>
+  <div class="kb">
+    <div class="sug"><span>испечь</span><span>испечём</span><span>испеку</span></div>
+    <div class="row"><span class="k">й</span><span class="k">ц</span><span class="k">у</span><span class="k">к</span><span class="k">е</span><span class="k">н</span><span class="k">г</span><span class="k">ш</span><span class="k">щ</span><span class="k">з</span><span class="k">х</span></div>
+    <div class="row"><span class="k">ф</span><span class="k">ы</span><span class="k">в</span><span class="k">а</span><span class="k">п</span><span class="k">р</span><span class="k">о</span><span class="k">л</span><span class="k">д</span><span class="k">ж</span><span class="k">э</span></div>
+    <div class="row"><span class="k w"><i class="ic">arrow_upward</i></span><span class="k">я</span><span class="k">ч</span><span class="k">с</span><span class="k">м</span><span class="k">и</span><span class="k">т</span><span class="k">ь</span><span class="k">б</span><span class="k">ю</span><span class="k w"><i class="ic">backspace</i></span></div>
+    <div class="row"><span class="k w" style="font-size:14px">?123</span><span class="k w"><i class="ic">mood</i></span><span class="k sp">Русский</span><span class="k">.</span><span class="k w ret"><i class="ic">keyboard_return</i></span></div>
+  </div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>2</span>Пишешь в строку</h3><p>Пока печатаешь, приложение показывает папку и теги, которые поставит, и само вытащило из текста напоминание на субботу. Любой чип можно поменять до отправки, без интернета подсказываются папки и теги, куда ты кладёшь чаще. Ниже похожее из уже сохранённого: так строка работает и поиском, и ловит дубли.</p></div>
+</div>
+
+<!-- 3. СТРОКА НА ВЕСЬ ЭКРАН -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:50</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="ed-top"><button class="ibtn"><i class="ic s">close_fullscreen</i></button><span class="chip"><i class="ic">folder</i>Авто<i class="ic">expand_more</i></span><button class="go"><i class="ic s">arrow_upward</i>Закинуть</button></div>
+    <div class="md">
+      <h2>Ремонт кухни</h2>
+      <p>Мастер придёт в <b>четверг</b>, до этого надо:</p>
+      <div class="cl">
+        <div class="done"><i class="ic f">check_box</i><span>Вынести старый шкаф</span></div>
+        <div><i class="ic">check_box_outline_blank</i>Купить плитку <code>30×60</code></div>
+        <div><i class="ic">check_box_outline_blank</i>Снять размеры окна</div>
+      </div>
+      <div class="quote"><i class="ic s">format_quote</i>Плитку брать матовую, глянцевая скользкая</div>
+      <p><span class="raw">**</span><b>Бюджет:</b><span class="raw">**</span> 12 000 лей<span class="caret"></span></p>
+      <div class="files">
+        <div class="file"><span class="sh w" data-shape="squircle" style="width:40px;height:40px"><i class="ic s">picture_as_pdf</i></span><div style="min-width:0"><b>Смета.pdf</b><small>240 КБ</small></div></div>
+        <div class="file"><div class="ph" style="background-image:url(img:p42)"></div><div style="min-width:0"><b>кухня.jpg</b><small>1,2 МБ</small></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="mdbar"><button class="cb"><i class="ic">title</i></button><button class="cb on"><i class="ic">format_bold</i></button><button class="cb"><i class="ic">format_italic</i></button><i class="div"></i><button class="cb"><i class="ic">format_list_bulleted</i></button><button class="cb"><i class="ic">check_box</i></button><button class="cb"><i class="ic">format_quote</i></button><button class="cb"><i class="ic">code</i></button><i class="div"></i><button class="cb"><i class="ic">attach_file</i></button></div>
+  <div class="kb">
+    <div class="sug"><span>лей</span><span>лея</span><span>леев</span></div>
+    <div class="row"><span class="k">й</span><span class="k">ц</span><span class="k">у</span><span class="k">к</span><span class="k">е</span><span class="k">н</span><span class="k">г</span><span class="k">ш</span><span class="k">щ</span><span class="k">з</span><span class="k">х</span></div>
+    <div class="row"><span class="k">ф</span><span class="k">ы</span><span class="k">в</span><span class="k">а</span><span class="k">п</span><span class="k">р</span><span class="k">о</span><span class="k">л</span><span class="k">д</span><span class="k">ж</span><span class="k">э</span></div>
+    <div class="row"><span class="k w"><i class="ic">arrow_upward</i></span><span class="k">я</span><span class="k">ч</span><span class="k">с</span><span class="k">м</span><span class="k">и</span><span class="k">т</span><span class="k">ь</span><span class="k">б</span><span class="k">ю</span><span class="k w"><i class="ic">backspace</i></span></div>
+    <div class="row"><span class="k w" style="font-size:14px">?123</span><span class="k w"><i class="ic">mood</i></span><span class="k sp">Русский</span><span class="k">.</span><span class="k w ret"><i class="ic">keyboard_return</i></span></div>
+  </div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>3</span>Строка на весь экран</h3><p>Потянул строку вверх или нажал ⤢, и она раскрывается в редактор. Пишешь в Markdown: заголовки, жирный, списки, чек-листы, цитаты, код. Строка под курсором показывает разметку, остальное уже отрисовано. Файлы и фото прикрепляются прямо в текст, а куда всё положить, приложение решит само.</p></div>
+</div>
+
+<!-- 4. ДОСКА -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:50</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><button class="ibtn"><i class="ic">arrow_back</i></button><div style="flex:1"></div><button class="ibtn"><i class="ic s">search</i></button><button class="ibtn"><i class="ic">more_vert</i></button></div>
+    <div class="gtitle"><h1>Референсы</h1><span class="num">48</span></div>
+    <div class="seg" style="margin-top:14px"><div class="on"><i class="ic">grid_view</i>Доска</div><div><i class="ic">dashboard</i>Холст</div><div><i class="ic">view_agenda</i>Список</div></div>
+    <div class="chips" style="margin-top:12px"><span class="chip on">Все</span><span class="chip">Интерьер</span><span class="chip">Двери</span><span class="chip">Свет</span><span class="chip">Город</span></div>
+    <div class="masonry" style="margin-top:12px">
+      <div class="col">
+        <div class="ph" style="height:200px;background-image:url(img:p78)"><span class="pill">#двери</span></div>
+        <div class="ph" style="height:132px;background-image:url(img:p42)"></div>
+        <div class="ph" style="height:180px;background-image:url(img:p58)"></div>
+      </div>
+      <div class="col">
+        <div class="ph" style="height:128px;background-image:url(img:p49)"></div>
+        <div class="ph" style="height:210px;background-image:url(img:p57)"><span class="pill dark">#город</span></div>
+        <div class="ph" style="height:150px;background-image:url(img:p76)"></div>
+      </div>
+    </div>
+  </div>
+  <div class="dock float"><div class="composer"><i class="grip"></i><div class="ct">Закинуть сюда</div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic f">mic</i></button></div></div></div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>4</span>Папка с картинками</h3><p>Картинки сами встают плиткой. Чипы сверху это теги, которые приложение расставило само по тому, что на фото. Строка снизу кладёт сразу сюда, минуя сортировку.</p></div>
+</div>
+
+<!-- 4. ХОЛСТ -->
+<div class="shot">
+<div class="phone">
+  <div class="status" style="z-index:7"><span>14:51</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="canvas">
+    <div class="ph" style="left:-30px;top:96px;width:190px;height:240px;background-image:url(img:p78)"></div>
+    <div class="ph sel" style="left:176px;top:120px;width:170px;height:118px;background-image:url(img:p49)"></div>
+    <div class="ph" style="left:198px;top:252px;width:150px;height:200px;background-image:url(img:p57)"></div>
+    <div class="note" style="left:20px;top:352px">Белые стены, синие двери. Взять для кухни</div>
+    <div class="ph" style="left:24px;top:446px;width:160px;height:110px;background-image:url(img:p42)"></div>
+    <div class="ph" style="left:200px;top:470px;width:190px;height:150px;background-image:url(img:p76)"></div>
+    <div class="ph" style="left:-40px;top:574px;width:200px;height:130px;background-image:url(img:p58)"></div>
+  </div>
+  <div class="ctop"><button class="ibtn"><i class="ic">arrow_back</i></button><div class="name">Референсы<small>холст</small></div><div class="zoom">64%</div></div>
+  <div class="tb"><div class="grp"><button class="ibtn on"><i class="ic">north_west</i></button><button class="ibtn"><i class="ic">text_fields</i></button><button class="ibtn"><i class="ic">fit_screen</i></button><button class="ibtn"><i class="ic">sell</i></button></div><button class="fab"><i class="ic l">add_photo_alternate</i></button></div>
+  <div class="gesture clear"></div>
+</div>
+<div class="cap"><h3><span>5</span>Холст, как PureRef</h3><p>Та же папка, но картинки лежат свободно: двигаешь, тянешь за угол, щипком приближаешь, кладёшь рядом записку. Раскладка запоминается.</p></div>
+</div>
+
+<!-- 5. РЕЦЕПТЫ -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:52</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><button class="ibtn"><i class="ic">arrow_back</i></button><div style="flex:1"></div><button class="ibtn"><i class="ic s">sort</i></button><button class="ibtn"><i class="ic">more_vert</i></button></div>
+    <div class="gtitle"><h1>Рецепты</h1><span class="num">23</span></div>
+    <div class="chips" style="margin-top:14px"><span class="chip on">Все</span><span class="chip"><i class="ic">play_arrow</i>Видео</span><span class="chip"><i class="ic">link</i>Ссылки</span><span class="chip"><i class="ic">description</i>Заметки</span></div>
+    <div class="feed" style="margin-top:12px">
+      <div class="vid"><div class="ph" style="background-image:url(img:p102)"><span class="src"><i class="ic xs">play_arrow</i>TikTok</span><span class="time">0:48</span><span class="play"><i class="ic f">play_arrow</i></span></div>
+        <div class="body"><b>Тарт с малиной без духовки</b><div class="tags"><span class="chip sm"><i class="ic" style="font-size:15px">alarm</i>Сб, 12:00</span><span class="chip sm">#выпечка</span><span class="chip sm">#десерт</span></div></div></div>
+      <div class="voice"><div class="top"><span class="pb"><i class="ic f">play_arrow</i></span><div class="wave"></div><span class="dur">0:42</span></div>
+        <p><small>Голосовое, расшифровано</small>Мама сказала: тесто на пирог, три яйца, стакан сахара и стакан муки, в духовку на сорок минут…</p></div>
+      <div class="row2"><div class="ph" style="background-image:url(img:p63)"></div><div><b>Как варить кофе в турке</b><small><i class="ic">link</i>coffee-guide.ru</small></div></div>
+    </div>
+  </div>
+  <div class="dock float"><div class="composer"><i class="grip"></i><div class="ct">Закинуть сюда</div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic f">mic</i></button></div></div></div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>6</span>Папка вперемешку</h3><p>Каждая вещь выглядит по-своему: у видео обложка и длина, у голосового расшифровка текстом, у ссылки заголовок сайта. Фильтр по типу в одно касание.</p></div>
+</div>
+
+<!-- 6. ЗАМЕТКА -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:53</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><button class="ibtn"><i class="ic">arrow_back</i></button><span class="chip" style="margin-left:4px"><i class="ic">flight</i>Поездка в Грецию<i class="ic">expand_more</i></span><div style="flex:1"></div><button class="ibtn ghost"><i class="ic">more_vert</i></button></div>
+    <div class="page">
+      <h1>Что взять на Санторини</h1>
+      <div class="meta"><span class="chip sm"><i class="ic" style="font-size:15px">alarm</i>12 нояб, 9:00</span><span class="chip sm">#поездка</span><span class="chip sm">#списки</span></div>
+      <p>Вылет в пятницу утром, багаж до 10 кг. Остальное докупить на месте.</p>
+      <div class="cl">
+        <div class="done"><i class="ic f">check_box</i><span>Паспорт и страховка</span></div>
+        <div class="done"><i class="ic f">check_box</i><span>Переходник для розетки</span></div>
+        <div><i class="ic">check_box_outline_blank</i>Крем от солнца</div>
+        <div><i class="ic">check_box_outline_blank</i>Плёнка для фотика</div>
+      </div>
+      <div class="img ph" style="background-image:url(img:p49)"><span class="pill">Ия, закат</span></div>
+    </div>
+  </div>
+  <div class="tb" style="bottom:36px"><div class="grp"><button class="ibtn"><i class="ic">format_list_bulleted</i></button><button class="ibtn"><i class="ic">check_box</i></button><button class="ibtn"><i class="ic">image</i></button><button class="ibtn"><i class="ic">alarm</i></button></div><button class="fab"><i class="ic l">done</i></button></div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>7</span>Заметка, как в Notion</h3><p>Открытая вещь раскрывается в страницу: текст, чек-лист, фото и ссылки внутри. Папка сверху меняется касанием. Снизу плавающая панель вместо строки, чтобы дописывать.</p></div>
+</div>
+
+<!-- 7. ПОИСК -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:54</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><button class="ibtn"><i class="ic">arrow_back</i></button><div class="title" style="font-size:18px">Поиск</div></div>
+    <div class="chips" style="margin-top:4px"><span class="chip on">Везде</span><span class="chip"><i class="ic">restaurant</i>Рецепты</span><span class="chip"><i class="ic">play_arrow</i>Видео</span><span class="chip">За месяц</span></div>
+    <div class="found"><span class="num">3</span><span>нашлось</span></div>
+    <div class="res">
+      <div class="hit"><div class="ph" style="background-image:url(img:p75)"></div><div><b>Курица в винограде</b><p>«…<em>курицу</em> обжарить, потом виноград и вино…»</p><div class="why"><i class="ic">play_arrow</i>в видео из TikTok · Рецепты</div></div></div>
+      <div class="hit"><div class="ph" style="background-image:url(img:p30)"></div><div><b>Скриншот меню</b><p>«Суп с <em>курицей</em> и лапшой, 45 лей»</p><div class="why"><i class="ic">image</i>текст на картинке · Идеи</div></div></div>
+      <div class="hit"><span class="sh" data-shape="cookie9" style="width:64px;height:64px"><i class="ic l">graphic_eq</i></span><div><b>Голосовое от 28 окт</b><p>«…купи <em>курицу</em> и рис на ужин…»</p><div class="why"><i class="ic">graphic_eq</i>в расшифровке · Покупки</div></div></div>
+    </div>
+  </div>
+  <div class="dock"><div class="composer typed"><i class="grip"></i><div class="ct">рецепт с курицей из тиктока<span class="caret"></span></div><div class="crow"><button class="cb tonal"><i class="ic">close</i></button><span class="sp"></span><button class="send"><i class="ic">search</i></button></div></div></div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>8</span>Поиск обычными словами</h3><p>Пишешь как помнишь, а приложение ищет по тексту, расшифровкам голосовых, тексту на скриншотах и даже по тому, что говорят в видео. Под каждым ответом видно, где именно нашлось.</p></div>
+</div>
+
+<!-- 8. ПОДЕЛИТЬСЯ -->
+<div class="shot">
+<div class="phone">
+  <div class="other">
+    <div class="status"><span>14:55</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+    <div class="ob"><i></i>любое приложение</div>
+    <div class="post" style="background-image:url(img:p74)"></div>
+    <div class="lines"><i style="width:70%"></i><i style="width:45%"></i></div>
+  </div>
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="saved"><div class="ph" style="background-image:url(img:p74)"></div><div><b>Сохранено</b><small>в папке «Поездка в Грецию»</small></div>
+      <div class="ring"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" fill="none" stroke="#3A3B40" stroke-width="3"/><circle cx="22" cy="22" r="19" fill="none" stroke="#F4F4F2" stroke-width="3" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="40" transform="rotate(-90 22 22)"/></svg><span class="num" style="font-size:14px">2</span></div></div>
+    <div class="lbl">Или в другую</div>
+    <div class="chips"><span class="chip on"><i class="ic">flight</i>Поездка в Грецию</span><span class="chip"><i class="ic">palette</i>Референсы</span><span class="chip"><i class="ic">add</i>Новая</span></div>
+    <div class="note-in"><i class="ic s">edit</i>Добавить пару слов</div>
+    <button class="done">Готово</button>
+  </div>
+  <div class="gesture" style="background:var(--c-low)"></div>
+</div>
+<div class="cap"><h3><span>9</span>Из меню «Поделиться»</h3><p>Нажал «Поделиться» в любом приложении, выбрал Кладовку, и всё уже сохранено. Лист сам закроется через три секунды, если ничего не трогать. Так же работает пересылка боту в Telegram.</p></div>
+</div>
+
+<!-- 10. ТЕГИ И ПРАВИЛА -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:56</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><button class="ibtn"><i class="ic">arrow_back</i></button><div class="title" style="font-size:18px">Теги и папки</div><button class="ibtn"><i class="ic">add</i></button></div>
+    <div class="seg" style="margin-top:4px"><div class="on"><i class="ic">label</i>Теги</div><div><i class="ic">folder</i>Папки</div></div>
+    <div class="sec" style="margin-top:18px"><h2>На главной</h2></div>
+    <div class="hint">Зажми и перетащи, чтобы поменять порядок</div>
+    <div class="tags">
+      <span class="tg"><span class="ti"><i class="ic">directions_car</i></span>машина<span class="n">9</span></span>
+      <span class="tg"><span class="ti"><i class="ic">restaurant</i></span>рецепт<span class="n">23</span></span>
+      <span class="tg"><span class="ti"><i class="ic">lightbulb</i></span>идея<span class="n">12</span></span>
+      <span class="tg"><span class="ti"><i class="ic">key</i></span>код<span class="n">6</span></span>
+      <span class="tg"><span class="ti"><i class="ic">movie</i></span>кино<span class="n">7</span></span>
+      <span class="tg"><span class="ti"><i class="ic">redeem</i></span>подарки<span class="n">4</span></span>
+      <span class="tg"><span class="ti"><i class="ic">smart_display</i></span>видео<span class="n">31</span></span>
+    </div>
+    <div class="sec" style="margin-top:20px"><h2>Правила</h2></div>
+    <div class="rules">
+      <div class="rule"><span class="tg"><span class="ti"><i class="ic">directions_car</i></span>машина</span><i class="ic arrow">arrow_right_alt</i><span class="to"><i class="ic">folder</i>Машина</span><i class="ic go">chevron_right</i></div>
+      <div class="rule"><span class="tg"><span class="ti"><i class="ic">restaurant</i></span>рецепт</span><i class="ic arrow">arrow_right_alt</i><span class="to"><i class="ic">folder</i>Рецепты</span><i class="ic go">chevron_right</i></div>
+      <div class="rule"><span class="when"><i class="ic s">link</i>tiktok.com</span><i class="ic arrow">arrow_right_alt</i><span class="tg"><span class="ti"><i class="ic">smart_display</i></span>видео</span><i class="ic go">chevron_right</i></div>
+      <div class="rule"><span class="when"><i class="ic s">text_fields</i>«пароль», «код»</span><i class="ic arrow">arrow_right_alt</i><span class="tg"><span class="ti"><i class="ic">key</i></span>код</span><i class="ic go">chevron_right</i></div>
+      <div class="rule"><span class="tg"><span class="ti"><i class="ic">lightbulb</i></span>идея</span><i class="ic arrow">arrow_right_alt</i><span class="to none">остаётся где лежит</span><i class="ic go">chevron_right</i></div>
+    </div>
+    <div class="add-rule"><i class="ic s">add</i>Новое правило</div>
+  </div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>10</span>Теги и правила</h3><p>Папка у вещи одна, это место, где она лежит. Тегов сколько угодно, и они работают как правила сортировки: тег #машина отправляет вещь в папку «Машина», ссылка с tiktok.com получает тег #видео. Правила срабатывают сразу и без интернета, ИИ разбирает только то, что ни одно правило не поймало.</p></div>
+</div>
+
+<!-- 11. НОВЫЙ ТЕГ -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:57</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><button class="ibtn"><i class="ic">arrow_back</i></button><div class="title" style="font-size:18px">Теги и папки</div></div>
+  </div>
+  <div class="scrim" style="top:0"></div>
+  <div class="sheet" style="padding-bottom:36px">
+    <div class="handle"></div>
+    <div class="tagname"><span class="ti"><i class="ic">movie</i></span><div style="flex:1"><small>Новый тег</small><b>кино<span class="caret"></span></b></div></div>
+    <div class="lbl">Иконка</div>
+    <div class="mini-seg"><div class="on">Иконки</div><div>Эмодзи</div><div>Своя картинка</div></div>
+    <div class="icgrid">
+      <span class="on"><i class="ic">movie</i></span><span><i class="ic">directions_car</i></span><span><i class="ic">restaurant</i></span><span><i class="ic">lightbulb</i></span><span><i class="ic">key</i></span><span><i class="ic">redeem</i></span>
+      <span><i class="ic">fitness_center</i></span><span><i class="ic">pets</i></span><span><i class="ic">school</i></span><span><i class="ic">sports_esports</i></span><span><i class="ic">menu_book</i></span><span><i class="ic">favorite</i></span>
+      <span><i class="ic">savings</i></span><span><i class="ic">local_cafe</i></span><span><i class="ic">checkroom</i></span><span><i class="ic">brush</i></span><span><i class="ic">park</i></span><span><i class="ic">build</i></span>
+    </div>
+    <div class="lbl">Класть в папку</div>
+    <div class="chips"><span class="chip">Без папки</span><span class="chip on"><i class="ic">folder</i>Фильмы</span><span class="chip"><i class="ic">add</i>Новая</span></div>
+    <div class="switch-row">Закрепить на главной<span class="switch"></span></div>
+    <button class="done">Создать тег</button>
+  </div>
+  <div class="gesture" style="background:var(--c-low)"></div>
+</div>
+<div class="cap"><h3><span>11</span>Свой тег с иконкой</h3><p>Как метки в Telegram: имя, иконка из набора, эмодзи или своя картинка. Тут же правило «класть в папку» и переключатель, чтобы тег встал на главную.</p></div>
+</div>
+
+</div>
+
+<script>
+// формы M3: печенька, сквиркл, самоцвет, пилюля — путь считается под размер элемента
+function shape_path(name, size) {
+  var half = size / 2, points = [], steps = 180;
+  for (var step = 0; step < steps; step++) {
+    var angle = step / steps * Math.PI * 2, radius;
+    if (name === 'cookie9') radius = half * (1 - 0.09 * (1 + Math.cos(9 * angle)) / 2);
+    else if (name === 'cookie6') radius = half * (1 - 0.12 * (1 + Math.cos(6 * angle)) / 2);
+    else if (name === 'gem') radius = half * (1 - 0.07 * (1 + Math.cos(5 * angle - Math.PI / 2)) / 2);
+    else if (name === 'squircle') {
+      var cos = Math.abs(Math.cos(angle)), sin = Math.abs(Math.sin(angle));
+      radius = half / Math.pow(Math.pow(cos, 4) + Math.pow(sin, 4), 1 / 4);
+    }
+    else if (name === 'pill') {
+      var cos2 = Math.abs(Math.cos(angle)), sin2 = Math.abs(Math.sin(angle));
+      radius = half * 0.98 / Math.pow(Math.pow(cos2, 2.4) + Math.pow(sin2 * 1.0, 2.4), 1 / 2.4);
+    }
+    points.push((half + radius * Math.cos(angle)).toFixed(2) + ' ' + (half + radius * Math.sin(angle)).toFixed(2));
+  }
+  return 'path("M' + points.join(' L') + ' Z")';
+}
+document.querySelectorAll('.sh[data-shape]').forEach(function (element) {
+  element.style.borderRadius = '0';
+  element.style.clipPath = shape_path(element.dataset.shape, element.offsetWidth);
+});
+
+// волна голосового
+var wave = document.querySelector('.wave');
+if (wave) {
+  var heights = [8,14,20,12,26,18,30,22,14,24,28,16,10,22,30,18,12,20,26,14,8,16,22,12,18,10];
+  heights.forEach(function (height, index) {
+    var bar = document.createElement('i');
+    bar.style.height = height + 'px';
+    if (index < 9) bar.className = 'p';
+    wave.appendChild(bar);
+  });
+}
+
+// на узком экране телефоны уменьшаются целиком
+function fit_phones() {
+  var scale = Math.min(1, (window.innerWidth - 32) / 360);
+  document.querySelectorAll('.shot').forEach(function (shot) { shot.style.zoom = scale; });
+}
+fit_phones();
+window.addEventListener('resize', fit_phones);
+</script>
+</body>
+</html>
