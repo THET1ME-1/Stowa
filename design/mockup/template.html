@@ -355,6 +355,205 @@ body{font-family:Onest,sans-serif;font-size:15px;line-height:1.4;-webkit-font-sm
 .sheet .chip.on{background:var(--white)}
 .sheet .note-in{margin-top:16px;height:52px;border-radius:26px;background:var(--c-high);display:flex;align-items:center;padding:0 18px;color:var(--muted);font-size:15px;gap:10px}
 .sheet .done{width:100%;margin-top:12px;height:56px;border-radius:28px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px}
+
+/* ЖИВАЯ СТРОКА: одна строка и ищет, и сохраняет.
+   Движение: пространственное с лёгким перелётом (--e-spr), остальное по M3 emphasized. Лучшее всегда ближе к пальцу, у самой строки. */
+:root{--e-emph:cubic-bezier(.2,0,0,1);--e-dec:cubic-bezier(.05,.7,.1,1);--e-acc:cubic-bezier(.3,0,.8,.15);--e-spr:cubic-bezier(.34,1.22,.5,1)}
+.live{max-width:1180px;margin:0 auto 96px}
+.live-wrap{display:flex;gap:56px;align-items:flex-start;justify-content:center}
+.live-cap{display:none;max-width:360px;margin:14px auto 0;color:var(--on-var);font-size:14px;text-wrap:pretty;min-height:60px}
+.scen{width:420px;position:sticky;top:24px}
+.scen h2{font-family:Unbounded;font-weight:700;font-size:26px;letter-spacing:-.6px}
+.scen > p{color:var(--on-var);font-size:15px;margin:10px 0 18px;text-wrap:pretty}
+.scen .list{display:flex;flex-direction:column;gap:6px}
+.sc{display:flex;gap:14px;align-items:flex-start;padding:12px 16px;border-radius:var(--r-tile);background:var(--c-low);transition:background .2s,color .2s}
+.sc:hover{background:var(--c)}
+.sc.on{background:var(--white);color:var(--on-white)}
+.sc .n{font-family:Unbounded;font-weight:700;font-size:13px;color:var(--muted);width:20px;flex:none;padding-top:2px}
+.sc.on .n{color:var(--on-white-var)}
+.sc b{display:block;font-size:15px;font-weight:600;line-height:1.3}
+.sc small{display:block;color:var(--on-var);font-size:14px;margin-top:3px;line-height:1.4;text-wrap:pretty}
+.sc.on small{color:var(--on-white-var)}
+.keys{color:var(--muted);font-size:13px;margin-top:16px;line-height:1.9}
+.keys kbd{font-family:Onest;font-size:12px;font-weight:600;background:var(--c-high);border-radius:6px;padding:2px 7px;color:var(--on)}
+@media (max-width:880px){
+  .live-wrap{flex-direction:column;align-items:center;gap:16px}
+  .scen{width:100%;max-width:640px;position:static;order:-1}
+  .scen .list{flex-direction:row;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+  .scen .list::-webkit-scrollbar{display:none}
+  .sc{flex:none;padding:10px 16px 10px 12px;align-items:center;border-radius:22px}
+  .sc small{display:none}
+  .sc .n{width:auto;padding:0}
+  .live-cap{display:block}
+  .keys{display:none}
+}
+
+#lp .home{position:absolute;inset:36px 0 0;overflow:hidden}
+#lp .gesture{transition:background .45s var(--e-emph)}
+#lp.act .gesture{background:#1B1C1F}
+.lv-scrim{position:absolute;inset:0;z-index:15;background:rgba(12,13,14,.72);opacity:0;pointer-events:none;transition:opacity .3s var(--e-emph)}
+#lp.shade .lv-scrim{opacity:1;pointer-events:auto}
+.ob{position:absolute;left:8px;right:8px;top:44px;bottom:28px;z-index:20;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;pointer-events:none;transition:bottom .45s var(--e-emph)}
+#lp.act .ob{bottom:260px}
+.ob > *{pointer-events:auto}
+#lp .kb{transform:translateY(100%);transition:transform .45s var(--e-emph);user-select:none;-webkit-user-select:none}
+#lp.act .kb{transform:none}
+#lp .kb .k{cursor:pointer;transition:background .12s}
+#lp .kb .k.hit,#lp .kb .k:active{background:#4A4B50}
+#lp .kb .k.ret.hit,#lp .kb .k.ret:active{background:#D8D8D4}
+#lp .kb .k.on{background:var(--white);color:var(--on-white)}
+#lp .kb .sug span{cursor:pointer;min-width:60px;text-align:center}
+
+/* панель над строкой */
+.rp{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--c-high);border-radius:var(--r-card);padding:6px;transform-origin:50% 100%;animation:rp-in .42s var(--e-spr)}
+.rp[hidden],.toast[hidden],.top[hidden],.tray[hidden],.rp-list[hidden],.rp-head[hidden]{display:none}
+.rp.out{animation:rp-out .18s var(--e-acc) forwards}
+@keyframes rp-in{from{opacity:0;transform:translateY(28px) scale(.95)}}
+@keyframes rp-out{to{opacity:0;transform:translateY(16px) scale(.98)}}
+.rp-head{display:flex;align-items:center;gap:6px;padding:6px 4px 8px 10px;flex:none;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.rp-head::-webkit-scrollbar{display:none}
+.rp-head .lbl{font-size:13px;font-weight:600;color:var(--on-var);margin-right:auto;padding-right:4px;display:flex;align-items:center;gap:6px;flex:none}
+.rp-head .lbl .ic{font-size:16px}
+.rp-head .hint{font-size:12px;color:var(--muted);padding-right:6px}
+.rp-head .fc{height:30px;padding:0 12px;border-radius:15px;background:var(--c-highest);font-size:13px;font-weight:500;display:inline-flex;align-items:center;flex:none;transition:background .2s,color .2s}
+.rp-head .fc.on{background:var(--white);color:var(--on-white)}
+.rp-list{position:relative;flex:0 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:none;overscroll-behavior:contain}
+.rp-list.fade{-webkit-mask-image:linear-gradient(transparent,#000 18px);mask-image:linear-gradient(transparent,#000 18px)}
+.rp-list::-webkit-scrollbar{display:none}
+.rp-in{margin-top:auto;display:flex;flex-direction:column;gap:2px}
+.rp-hl{position:absolute;left:0;right:0;top:0;height:0;border-radius:var(--r-tile);background:var(--white);opacity:0;z-index:0;pointer-events:none;transition:top .4s var(--e-spr),height .4s var(--e-spr),opacity .2s}
+.rw{position:relative;z-index:1;display:flex;align-items:center;gap:12px;padding:8px 10px 8px 8px;border-radius:var(--r-tile);min-height:60px;cursor:pointer;color:var(--on);transition:transform .4s var(--e-spr),color .2s}
+.rw.in{animation:rw-in .36s var(--e-dec) backwards}
+@keyframes rw-in{from{opacity:0;transform:translateY(14px) scale(.97)}}
+.rw .th{width:44px;height:44px;border-radius:12px;flex:none;background-size:cover;background-position:center;background-color:var(--c-highest)}
+.rw .sh{width:44px;height:44px}
+.rw .sh .ic{font-size:22px}
+.rw .ti{width:44px;height:44px;border-radius:14px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;flex:none;transition:background .2s,color .2s}
+.rw .ti .ic{font-size:22px;font-variation-settings:'FILL' 1,'wght' 500}
+.rw.sel .ti{background:var(--graphite);color:var(--on)}
+.rw .tx{flex:1;min-width:0}
+.rw b{display:block;font-size:15px;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rw p{font-size:13px;color:var(--on-var);line-height:1.35;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s}
+.rw p .ic{font-size:15px;vertical-align:-3px;margin-right:2px}
+.rw .wh{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;transition:color .2s}
+.rw .wh .ic{font-size:14px}
+.rw.sel{color:var(--on-white)}
+.rw.sel p,.rw.sel .wh{color:var(--on-white-var)}
+.rw em{font-style:normal;border-radius:4px;background:rgba(244,244,242,.17);box-shadow:0 0 0 1.5px rgba(244,244,242,.17);transition:background .2s,box-shadow .2s}
+.rw.sel em{background:rgba(20,21,23,.1);box-shadow:0 0 0 1.5px rgba(20,21,23,.1)}
+.rw .app{height:36px;padding:0 12px 0 10px;border-radius:18px;background:var(--white);color:var(--on-white);display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;flex:none}
+.rw .app .ic{font-size:18px}
+.rw.sel .app{background:var(--graphite);color:var(--on)}
+.rw .badge{height:22px;padding:0 8px 0 6px;border-radius:11px;background:var(--graphite);color:var(--on-var);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;flex:none}
+.rw .badge .ic{font-size:14px}
+.rw.sel .badge{background:#E2E2DF;color:var(--on-white-var)}
+
+/* вложения прямо над строкой: вкладки как в примере, выбранная раскрывается в пилюлю с подписью */
+.tray{padding:6px 2px 2px}
+.tabs{display:flex;gap:4px;padding:0 0 10px}
+.tab{height:44px;min-width:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--on-var);padding:0 10px;transition:background .3s,color .3s,padding .42s var(--e-spr)}
+.tab .lab{max-width:0;opacity:0;overflow:hidden;white-space:nowrap;font-size:14px;font-weight:600;transition:max-width .42s var(--e-spr),opacity .2s,margin .42s var(--e-spr)}
+.tab.on{background:var(--white);color:var(--on-white);padding:0 16px 0 12px}
+.tab.on .lab{max-width:90px;opacity:1;margin-left:6px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.gp{aspect-ratio:1;border-radius:14px;background-size:cover;background-position:center;position:relative;cursor:pointer;transition:transform .35s var(--e-spr),border-radius .35s var(--e-spr)}
+.gp.on{transform:scale(.86);border-radius:24px}
+.gp .no{position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:11px;box-shadow:inset 0 0 0 2px var(--white);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--on-white);transition:background .2s}
+.gp.on .no{background:var(--white)}
+
+/* сама строка */
+.cmp{flex:none;background:var(--c-highest);border-radius:28px;padding:12px 8px 8px;position:relative;display:flex;flex-direction:column;overflow:hidden;transition:height .46s var(--e-spr),transform .25s var(--e-emph)}
+.cmp .grip{position:absolute;top:0;left:50%;width:72px;height:18px;margin-left:-36px;cursor:grab;touch-action:none;z-index:2}
+.cmp .grip::before{content:"";position:absolute;left:20px;right:20px;top:6px;height:4px;border-radius:2px;background:var(--line);transition:background .2s}
+.cmp .grip:hover::before{background:var(--muted)}
+.fmt{display:flex;align-items:center;justify-content:space-between;flex:none;max-height:0;opacity:0;overflow:hidden;transition:max-height .42s var(--e-emph),opacity .25s,margin .42s var(--e-emph)}
+#lp.full .fmt{max-height:48px;opacity:1;margin:8px 0 6px}
+.fmt .cb{width:30px;height:40px;border-radius:12px;color:var(--on)}
+.fmt .cb .ic{font-size:21px}
+.fmt i.div{width:1px;height:22px;background:var(--line);flex:none}
+.top{display:flex;gap:8px;padding:8px 4px 8px;overflow-x:auto;flex:none;scrollbar-width:none}
+.top::-webkit-scrollbar{display:none}
+.sg{height:40px;border-radius:20px;background:var(--c-high);display:inline-flex;align-items:center;gap:8px;padding:0 14px 0 4px;font-size:13px;font-weight:500;flex:none;color:var(--on);animation:rw-in .36s var(--e-dec) backwards}
+.sg .si{width:32px;height:32px;border-radius:16px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;flex:none}
+.sg .si .ic{font-size:18px}
+.sg .th{width:32px;height:32px;border-radius:12px;background-size:cover;background-position:center;flex:none}
+.sg small{color:var(--muted);font-size:12px}
+.att{width:60px;height:60px;border-radius:16px;background-size:cover;background-position:center;position:relative;flex:none;animation:att-in .45s var(--e-spr) backwards}
+@keyframes att-in{from{opacity:0;transform:scale(.5)}}
+.att .st{position:absolute;right:4px;top:4px;width:22px;height:22px;border-radius:11px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center}
+.att .st .ic{font-size:16px;font-variation-settings:'wght' 600;animation:pop .35s var(--e-spr)}
+.att .st svg{width:14px;height:14px;animation:spin .8s linear infinite}
+.att .st circle{fill:none;stroke:var(--on-white);stroke-width:2.6;stroke-dasharray:24 44;stroke-linecap:round}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dest{height:34px;padding:0 10px 0 8px;border-radius:17px;background:var(--c-high);display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;flex:none;animation:rw-in .36s var(--e-dec) backwards}
+.dest .ic{font-size:18px}
+.dest.tg2{font-weight:500;color:var(--on-var);padding:0 12px}
+.fld{position:relative;padding:4px 12px 10px;max-height:150px;overflow-y:auto;flex:0 1 auto;scrollbar-width:none}
+.fld::-webkit-scrollbar{display:none}
+#lp.full .fld{flex:1;max-height:none}
+.fin{position:relative}
+.mir,.fin textarea{font-family:Onest,sans-serif;font-size:16px;font-weight:400;line-height:1.45;letter-spacing:0;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;tab-size:4}
+.mir{min-height:23px;color:var(--on);pointer-events:none}
+.fin textarea{position:absolute;inset:0;width:100%;height:100%;border:0;outline:0;background:none;resize:none;padding:0;margin:0;color:transparent;caret-color:var(--white);overflow:hidden;cursor:text}
+.fin textarea::selection{background:rgba(244,244,242,.25);color:transparent}
+.mir .plh{color:var(--muted)}
+.mir .tk{border-radius:5px;background:rgba(244,244,242,.15);box-shadow:0 0 0 2px rgba(244,244,242,.15)}
+.mir .tk.cmd{background:var(--white);color:var(--on-white);box-shadow:0 0 0 2px var(--white)}
+.mir .tk.dt{background:none;box-shadow:none;text-decoration:underline 1.5px dotted;text-underline-offset:5px}
+.mir .tk.url{background:none;box-shadow:none;color:var(--on-var);text-decoration:underline 1px;text-underline-offset:3px}
+.mir .tk.mk{background:none;box-shadow:none;color:var(--muted)}
+.cr{display:flex;align-items:center;gap:2px;flex:none}
+.cr .sp{flex:1}
+.cb.gl{font-family:Onest;font-weight:500;font-size:20px;line-height:1;color:var(--on-var);width:34px;overflow:hidden;transition:width .4s var(--e-emph),opacity .2s}
+#lp:not(.act) .cb.gl{width:0;opacity:0;pointer-events:none}
+.cb.tonal .ic{transition:transform .4s var(--e-spr)}
+.cb.tonal.open{background:var(--white);color:var(--on-white)}
+.cb.tonal.open .ic{transform:rotate(45deg)}
+.snd{height:48px;min-width:48px;padding:0 12px;border-radius:24px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;flex:none;transition:padding .42s var(--e-spr)}
+.snd .lab{max-width:0;opacity:0;overflow:hidden;white-space:nowrap;transition:max-width .42s var(--e-spr),opacity .2s,margin .42s var(--e-spr)}
+.snd.wide{padding:0 12px 0 16px}
+.snd.wide .lab{max-width:120px;opacity:1;margin-right:6px}
+.snd .ic.pop,.pop{animation:pop .32s var(--e-spr)}
+@keyframes pop{from{transform:scale(.4) rotate(-40deg);opacity:0}}
+.tap{animation:tap .26s var(--e-emph)}
+@keyframes tap{40%{transform:scale(.9)}}
+.rec{display:none;align-items:center;gap:10px;flex:1;min-width:0}
+#lp.recording .rec{display:flex}
+#lp.recording .fld,#lp.recording .top,#lp.recording .cr > .cb,#lp.recording .cr > .sp{display:none}
+#lp.recording .cmp{padding-top:8px}
+.rec .dot{width:10px;height:10px;border-radius:5px;background:var(--white);animation:blink 1s infinite;flex:none}
+@keyframes blink{50%{opacity:.2}}
+.rec .tm{font-family:Unbounded;font-weight:600;font-size:15px;width:42px;flex:none}
+.rec .wv{flex:1;display:flex;align-items:center;gap:3px;height:32px;overflow:hidden}
+.rec .wv i{width:3px;flex:none;border-radius:2px;background:var(--on-var);height:5px;animation:wv .7s ease-in-out infinite alternate}
+@keyframes wv{to{height:var(--h)}}
+
+/* подтверждение снизу */
+.toast{flex:none;height:56px;border-radius:28px;background:var(--white);color:var(--on-white);display:flex;align-items:center;gap:10px;padding:0 8px 0 10px;font-size:14px;font-weight:500;animation:rp-in .42s var(--e-spr)}
+.toast.out{animation:rp-out .2s var(--e-acc) forwards}
+.toast .tm{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.toast .tm .ic{width:36px;height:36px;border-radius:18px;background:var(--graphite);color:var(--on);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.toast .tm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast button{height:40px;padding:0 14px;border-radius:20px;background:#E2E2DF;font-weight:600;display:flex;align-items:center;flex:none}
+
+/* открытая вещь */
+.pg{position:absolute;inset:0;z-index:40;background:var(--bg);transform:translateX(104%);transition:transform .5s var(--e-emph);overflow:hidden}
+.pg.on{transform:none}
+.pg .page{padding-bottom:40px}
+.pg .deep{margin-top:14px;background:var(--c);border-radius:var(--r-tile);padding:12px 14px;font-size:15px;color:var(--on-var);line-height:1.45}
+.pg .deep small,.pg .added small{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--muted)}
+.pg .added{margin-top:10px;background:var(--white);color:var(--on-white);border-radius:var(--r-tile);padding:12px 14px;font-size:15px;line-height:1.45;animation:rw-in .5s var(--e-dec) .4s backwards}
+.pg .added small{color:var(--on-white-var)}
+.pg .copy{margin-top:16px;height:48px;border-radius:24px;background:var(--white);color:var(--on-white);display:inline-flex;align-items:center;gap:8px;padding:0 18px 0 14px;font-weight:600}
+
+/* «только что» на главной оживает */
+#lp .rc{transition:transform .5s var(--e-spr)}
+#lp .rc.rc-in{animation:rc-in .55s var(--e-spr) backwards}
+@keyframes rc-in{from{opacity:0;transform:translateY(24px) scale(.7)}}
+#lp .rc.note .txt{display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden}
+#lp .rc.sorting .to i.bar2::after{animation:sortbar 1.3s var(--e-emph) infinite}
+@keyframes sortbar{from{transform:translateX(-100%)}to{transform:translateX(170%)}}
+@media (prefers-reduced-motion:reduce){.live *{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -363,6 +562,106 @@ body{font-family:Onest,sans-serif;font-size:15px;line-height:1.4;-webkit-font-sm
   <h1>Кладовка</h1>
   <p>Черновик-свалка, который сам разбирает себя по полкам. Закинул ссылку, фото, голосовое или «напомни завтра» в строку снизу, и приложение само решает, что это, куда положить и когда напомнить. Название рабочее.</p>
 </div>
+
+<!-- ЖИВАЯ СТРОКА -->
+<section class="live">
+<div class="live-wrap">
+  <div class="live-phone">
+    <div class="shot">
+    <div class="phone" id="lp">
+      <div class="status"><span>14:48</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+      <div class="home">
+        <div class="bar"><div class="title">Кладовка</div><button class="ibtn"><i class="ic s">tune</i></button></div>
+        <div class="tags compact row">
+          <span class="tg"><span class="ti"><i class="ic">directions_car</i></span>9</span>
+          <span class="tg"><span class="ti"><i class="ic">restaurant</i></span>23</span>
+          <span class="tg"><span class="ti"><i class="ic">lightbulb</i></span>12</span>
+          <span class="tg"><span class="ti"><i class="ic">key</i></span>6</span>
+          <span class="tg"><span class="ti"><i class="ic">movie</i></span>7</span>
+          <span class="tg"><span class="ti"><i class="ic">redeem</i></span>4</span>
+          <span class="tg"><span class="ti"><i class="ic">fitness_center</i></span>3</span>
+          <span class="tg"><span class="ti"><i class="ic">smart_display</i></span>31</span>
+          <span class="tg add"><i class="ic">add</i></span>
+        </div>
+        <div class="today" style="margin-top:14px">
+          <span class="sh" data-shape="cookie9" style="width:52px;height:52px"><i class="ic f">alarm</i></span>
+          <div><b>Позвонить в сервис</b><small>10:00 · ещё 2 на сегодня</small></div>
+          <button class="ok"><i class="ic">check</i></button>
+        </div>
+        <div class="sec"><h2>Только что</h2><a>Все<i class="ic xs">chevron_right</i></a></div>
+        <div class="recent" id="lv-recent"></div>
+        <div class="sec"><h2>Папки</h2><a>Сортировка<i class="ic xs">sort</i></a></div>
+        <div class="groups">
+          <div class="g big">
+            <div class="mosaic"><div class="ph" style="background-image:url(img:p49)"></div><div class="ph" style="background-image:url(img:p76)"></div><div class="ph" style="background-image:url(img:p42)"></div></div>
+            <div class="in"><div class="top"><span class="sh w" data-shape="squircle" style="width:40px;height:40px"><i class="ic">palette</i></span><span class="num cnt">48</span></div><h4>Референсы</h4><div class="tag">интерьер · свет · двери</div></div>
+          </div>
+          <div class="g thumbs">
+            <div class="top"><span class="sh" data-shape="cookie9"><i class="ic">restaurant</i></span><span class="num cnt">23</span></div>
+            <div class="strip"><div class="ph" style="background-image:url(img:p102)"></div><div class="ph" style="background-image:url(img:p63)"></div><div class="ph" style="background-image:url(img:p75)"></div></div>
+            <h4>Рецепты</h4>
+          </div>
+          <div class="g list">
+            <div class="top"><span class="sh" data-shape="gem"><i class="ic">lightbulb</i></span><span class="num cnt">12</span></div>
+            <h4>Идеи</h4><div class="tag">togetherly · канал</div>
+          </div>
+        </div>
+      </div>
+      <div class="lv-scrim" id="lv-scrim"></div>
+      <div class="ob" id="lv-ob">
+        <div class="toast" id="lv-toast" hidden></div>
+        <div class="rp" id="lv-rp" hidden>
+          <div class="rp-head" id="lv-head"></div>
+          <div class="rp-list" id="lv-list"><div class="rp-hl" id="lv-hl"></div><div class="rp-in" id="lv-in"></div></div>
+          <div class="tray" id="lv-tray" hidden></div>
+        </div>
+        <div class="cmp" id="lv-cmp">
+          <i class="grip" id="lv-grip" title="Потяни вверх"></i>
+          <div class="fmt" id="lv-fmt">
+            <button class="cb" data-md="h"><i class="ic">format_h1</i></button>
+            <button class="cb" data-md="b"><i class="ic">format_bold</i></button>
+            <button class="cb" data-md="i"><i class="ic">format_italic</i></button>
+            <button class="cb" data-md="s"><i class="ic">format_strikethrough</i></button>
+            <i class="div"></i>
+            <button class="cb" data-md="ul"><i class="ic">format_list_bulleted</i></button>
+            <button class="cb" data-md="cl"><i class="ic">check_box</i></button>
+            <button class="cb" data-md="q"><i class="ic">format_quote</i></button>
+            <button class="cb" data-md="code"><i class="ic">code</i></button>
+            <i class="div"></i>
+            <button class="cb" data-md="undo"><i class="ic">undo</i></button>
+            <button class="cb" data-md="redo"><i class="ic">redo</i></button>
+          </div>
+          <div class="top" id="lv-top" hidden></div>
+          <div class="fld" id="lv-fld"><div class="fin"><div class="mir" id="lv-mir"></div><textarea id="lv-ta" rows="1" spellcheck="false" inputmode="none" aria-label="Строка"></textarea></div></div>
+          <div class="cr">
+            <button class="cb tonal" id="lv-add"><i class="ic">add</i></button>
+            <button class="cb gl" data-ins="#">#</button>
+            <button class="cb gl" data-ins="@">@</button>
+            <button class="cb gl" data-ins="/">/</button>
+            <div class="rec"><button class="cb" id="lv-cancel"><i class="ic">close</i></button><i class="dot"></i><span class="tm" id="lv-tm">0:00</span><span class="wv" id="lv-wv"></span></div>
+            <span class="sp"></span>
+            <button class="cb" id="lv-exp"><i class="ic s">open_in_full</i></button>
+            <button class="snd" id="lv-snd"><span class="lab"></span><i class="ic">mic</i></button>
+          </div>
+        </div>
+      </div>
+      <div class="kb" id="lv-kb"></div>
+      <div class="pg" id="lv-pg"></div>
+      <div class="gesture"></div>
+    </div>
+    </div>
+    <p class="live-cap" id="lv-cap"></p>
+  </div>
+  <div class="scen">
+    <h2>Одна строка</h2>
+    <p>Строка снизу и ищет, и сохраняет. Пока печатаешь, над ней видно, что у тебя уже лежит и куда ляжет новое. Белая строка показывает, что сделает кнопка справа. Нажми на пример или печатай сам.</p>
+    <div class="list" id="lv-scen"></div>
+    <div class="keys"><kbd>↑</kbd> <kbd>↓</kbd> двигают белую строку, <kbd>Enter</kbd> делает то, что на ней, <kbd>Tab</kbd> вставляет тег или команду, <kbd>Esc</kbd> стирает. Строку можно потянуть за полоску вверх.</div>
+  </div>
+</div>
+</section>
+
+<div class="head" style="margin-bottom:32px"><h1 style="font-size:24px">Экраны</h1></div>
 
 <div class="board">
 
@@ -810,6 +1109,1133 @@ function fit_phones() {
 }
 fit_phones();
 window.addEventListener('resize', fit_phones);
+</script>
+
+<script>
+// ЖИВАЯ СТРОКА: печатаешь, и строка сразу ищет по всему, что лежит, и показывает, куда ляжет новое
+(function () {
+var ICONS = /*ICONS*/{};
+var PIC = {p102: 'img:p102', p75: 'img:p75', p63: 'img:p63', p78: 'img:p78', p42: 'img:p42', p49: 'img:p49', p57: 'img:p57', p76: 'img:p76',
+  p111: 'img:p111', p26: 'img:p26', p60: 'img:p60', p82: 'img:p82', p84: 'img:p84', p58: 'img:p58', p39: 'img:p39', p16: 'img:p16',
+  p29: 'img:p29', p116: 'img:p116', p85: 'img:p85'};
+
+function ic(name, extra) { return '<i class="ic' + (extra ? ' ' + extra : '') + '">&#x' + ICONS[name] + ';</i>'; }
+function esc(text) { return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function norm(text) { return text.toLowerCase().replace(/ё/g, 'е'); }
+function by_id(id) { return document.getElementById(id); }
+
+var phone = by_id('lp'), ta = by_id('lv-ta'), mirror = by_id('lv-mir'), composer = by_id('lv-cmp'), panel = by_id('lv-rp'),
+  head = by_id('lv-head'), list = by_id('lv-list'), inner = by_id('lv-in'), highlight = by_id('lv-hl'), tray = by_id('lv-tray'),
+  top_row = by_id('lv-top'), send = by_id('lv-snd'), toast = by_id('lv-toast'), page = by_id('lv-pg'), keyboard = by_id('lv-kb'),
+  field = by_id('lv-fld'), add_button = by_id('lv-add'), expand = by_id('lv-exp');
+
+// данные: папки, теги, команды и то, что уже лежит
+var FOLDERS = {
+  ideas: {name: 'Идеи', icon: 'lightbulb', shape: 'cookie9'},
+  food: {name: 'Рецепты', icon: 'restaurant', shape: 'cookie9'},
+  car: {name: 'Машина', icon: 'directions_car', shape: 'pill'},
+  home: {name: 'Дом', icon: 'home', shape: 'squircle'},
+  buy: {name: 'Покупки', icon: 'shopping_cart', shape: 'gem'},
+  refs: {name: 'Референсы', icon: 'palette', shape: 'squircle'},
+  gifts: {name: 'Подарки Сане', icon: 'redeem', shape: 'cookie6'},
+  trip: {name: 'Поездка в Грецию', icon: 'flight', shape: 'pill'},
+  film: {name: 'Кино', icon: 'movie', shape: 'cookie6'},
+  inbox: {name: 'Входящие', icon: 'inbox', shape: 'squircle'}
+};
+var TAGS = [
+  {name: 'видео', icon: 'smart_display', count: 31}, {name: 'рецепт', icon: 'restaurant', count: 23}, {name: 'идея', icon: 'lightbulb', count: 12},
+  {name: 'togetherly', icon: 'rocket_launch', count: 9}, {name: 'машина', icon: 'directions_car', count: 9}, {name: 'купить', icon: 'shopping_cart', count: 7},
+  {name: 'кино', icon: 'movie', count: 7}, {name: 'код', icon: 'key', count: 6}, {name: 'поездка', icon: 'flight', count: 5},
+  {name: 'свет', icon: 'emoji_objects', count: 5}, {name: 'подарки', icon: 'redeem', count: 4}, {name: 'двери', icon: 'door_front', count: 4},
+  {name: 'интерьер', icon: 'chair', count: 3}, {name: 'город', icon: 'location_city', count: 3}, {name: 'ремонт', icon: 'build', count: 3},
+  {name: 'виджет', icon: 'widgets', count: 2}
+];
+var COMMANDS = [
+  {key: 'напомнить', icon: 'alarm', text: 'Скажи когда: «завтра в 10», «в пт»'},
+  {key: 'задача', icon: 'task_alt', text: 'Ляжет с галочкой в «Сегодня»'},
+  {key: 'список', icon: 'checklist', text: 'Каждая строка или запятая станет пунктом'},
+  {key: 'найти', icon: 'search', text: 'Только искать, ничего не сохранять'},
+  {key: 'входящие', icon: 'inbox', text: 'Положить как есть, без разбора'},
+  {key: 'фильм', icon: 'movie_info', text: 'Найдёт год, рейтинг и длину', plugin: 'Кино'},
+  {key: 'курс', icon: 'currency_exchange', text: 'Пересчитает сумму в леи', plugin: 'Валюты'},
+  {key: 'перевод', icon: 'translate', text: 'Переведёт твоим ключом ИИ', plugin: 'Перевод'}
+];
+var FILMS = [
+  {key: 'дюна', title: 'Дюна: Часть вторая', meta: '2024 · фантастика · 2 ч 46 мин · 8,1'},
+  {key: 'интерстеллар', title: 'Интерстеллар', meta: '2014 · фантастика · 2 ч 49 мин · 8,6'},
+  {key: 'матрица', title: 'Матрица', meta: '1999 · боевик · 2 ч 16 мин · 8,5'}
+];
+var CLIP_URL = 'https://vt.tiktok.com/ZSpasta15/';
+var PREVIEWS = {};
+PREVIEWS[CLIP_URL] = {title: 'Паста с креветками за 15 минут', kind: 'video', site: 'tiktok.com', folder: 'food', tag: 'видео'};
+var KINDS = {
+  note: {icon: 'description', name: 'заметка', many: 'Заметки'},
+  photo: {icon: 'image', name: 'фото', many: 'Фото'},
+  video: {icon: 'play_arrow', name: 'видео', many: 'Видео'},
+  voice: {icon: 'graphic_eq', name: 'голосовое', many: 'Голос'},
+  link: {icon: 'link', name: 'ссылка', many: 'Ссылки'},
+  file: {icon: 'picture_as_pdf', name: 'файл', many: 'Файлы'}
+};
+var DEEP_TITLE = {'в расшифровке': 'Расшифровка', 'на картинке': 'Текст на картинке', 'в видео': 'Что говорят в видео', 'в файле': 'Текст из файла'};
+var ITEMS = [
+  {id: 1, kind: 'note', title: 'Погода для пары', text: 'Виджет показывает, какая погода сейчас у второго, и рисует его небо', folder: 'ideas', tags: ['togetherly', 'виджет'], date: '12 окт', days: 21},
+  {id: 2, kind: 'note', title: 'Подарки за серию дней', text: 'Если пара заходит 7 дней подряд, открывается подарок', folder: 'ideas', tags: ['togetherly'], date: '3 окт', days: 30},
+  {id: 3, kind: 'note', title: 'Общий список фильмов на вечер', text: 'Оба кидают фильмы, вечером приложение выбирает один', folder: 'ideas', tags: ['togetherly', 'кино'], date: '21 окт', days: 12},
+  {id: 4, kind: 'note', title: 'Канал про разработку игры', text: 'Снимать ролики, как делаю игру, и выкладывать по пятницам', folder: 'ideas', tags: ['идея'], date: '28 сен', days: 35},
+  {id: 5, kind: 'note', title: 'Пароль от Wi‑Fi', text: 'Сеть Keenetic-4512, пароль zelenyi-chai-77', folder: 'home', tags: ['код'], date: '2 авг', days: 92, kw: 'wifi вайфай интернет роутер', copy: 'zelenyi-chai-77'},
+  {id: 6, kind: 'note', title: 'Код домофона', text: 'Квартира Сани: 4512, потом звонок', folder: 'home', tags: ['код'], date: '9 сен', days: 54, copy: '4512'},
+  {id: 7, kind: 'video', title: 'Тарт с малиной без духовки', text: 'Рецепт из TikTok, 0:48', deep: 'печенье измельчить, смешать с маслом, сверху крем и малина', deepKind: 'в видео', folder: 'food', tags: ['рецепт', 'видео'], date: 'вчера', days: 1, img: 'p102', site: 'tiktok.com'},
+  {id: 8, kind: 'video', title: 'Курица в винограде', text: 'Рецепт из TikTok, 1:12', deep: 'курицу обжарить, потом виноград и белое вино, сорок минут', deepKind: 'в видео', folder: 'food', tags: ['рецепт', 'видео'], date: '14 окт', days: 19, img: 'p75', site: 'tiktok.com'},
+  {id: 9, kind: 'voice', title: 'Голосовое от 28 окт', text: '0:42', deep: 'купи курицу и рис на ужин, и батарейки для пульта', deepKind: 'в расшифровке', folder: 'buy', tags: ['купить'], date: '28 окт', days: 5},
+  {id: 10, kind: 'link', title: 'Как варить кофе в турке', text: 'Помол мельче, чем для фильтра, огонь самый слабый', folder: 'food', tags: ['рецепт'], date: '11 окт', days: 22, img: 'p63', site: 'coffee-guide.ru'},
+  {id: 11, kind: 'note', title: 'Батарейки AA', text: 'Четыре штуки, для пульта и весов', folder: 'buy', tags: ['купить'], date: '30 окт', days: 3},
+  {id: 12, kind: 'note', title: 'Замена масла', text: 'Масло 5W-30, 4,2 литра, фильтр MANN W712', folder: 'car', tags: ['машина'], date: '15 сен', days: 48},
+  {id: 13, kind: 'file', title: 'Страховка.pdf', text: '240 КБ', deep: 'полис действует до 14 марта 2027', deepKind: 'в файле', folder: 'car', tags: ['машина'], date: '14 мар', days: 233},
+  {id: 14, kind: 'photo', title: 'Синие двери', text: 'Белые стены, синие двери. Взять для кухни', folder: 'refs', tags: ['двери'], date: '2 окт', days: 31, img: 'p78'},
+  {id: 15, kind: 'photo', title: 'Кафе с длинным столом', text: 'Лампы низко над столом, тёплый свет', folder: 'refs', tags: ['интерьер', 'свет'], date: '25 сен', days: 38, img: 'p42'},
+  {id: 16, kind: 'photo', title: 'Санторини, Ия', text: 'Закат над белыми домами', deep: 'Oia, Santorini', deepKind: 'на картинке', folder: 'trip', tags: ['поездка'], date: '1 ноя', days: 1, img: 'p49'},
+  {id: 17, kind: 'note', title: 'Что взять на Санторини', text: 'Паспорт, переходник для розетки, крем от солнца, плёнка для фотика', folder: 'trip', tags: ['поездка'], date: '31 окт', days: 2},
+  {id: 18, kind: 'link', title: 'Билеты Кишинёв — Афины', text: 'Вылет 14 ноября в 6:40', folder: 'trip', tags: ['поездка'], date: '29 окт', days: 4, site: 'wizzair.com'},
+  {id: 19, kind: 'note', title: 'Свитер Сане', text: 'Серый оверсайз, размер L, без надписей', folder: 'gifts', tags: ['подарки'], date: '20 окт', days: 13},
+  {id: 20, kind: 'photo', title: 'Часы на ремешке', text: 'Как у него на фото, только чёрные', folder: 'gifts', tags: ['подарки'], date: '18 окт', days: 15, img: 'p26'},
+  {id: 21, kind: 'note', title: 'Интерстеллар пересмотреть', text: 'В кино снова показывают, сеанс в субботу', folder: 'film', tags: ['кино'], date: '26 окт', days: 7},
+  {id: 22, kind: 'photo', title: 'Улица с брусчаткой', text: 'Цвет для заставки', folder: 'refs', tags: ['город'], date: '7 окт', days: 26, img: 'p57'},
+  {id: 23, kind: 'photo', title: 'Старая дверь и велосипед', text: 'Фактура досок', folder: 'refs', tags: ['двери'], date: '22 сен', days: 41, img: 'p76'},
+  {id: 24, kind: 'file', title: 'Смета на кухню.pdf', text: '180 КБ', deep: 'плитка 30×60, работа мастера, итого 12 000 лей', deepKind: 'в файле', folder: 'home', tags: ['ремонт'], date: '19 окт', days: 14},
+  {id: 25, kind: 'voice', title: 'Мама: пирог', text: '1:05', deep: 'тесто на пирог: три яйца, стакан сахара и стакан муки, в духовку на сорок минут', deepKind: 'в расшифровке', folder: 'food', tags: ['рецепт'], date: '6 окт', days: 27},
+  {id: 26, kind: 'link', title: 'Ретро-машины на выставке', text: 'Кишинёв, 16 ноября, вход свободный', folder: 'car', tags: ['машина'], date: '27 окт', days: 6, img: 'p111', site: 'afisha.md'}
+];
+var TRAY = ['p82', 'p84', 'p58', 'p39', 'p16', 'p29', 'p116', 'p85'];
+var next_id = 100;
+
+var S = {active: false, full: false, tray: false, recording: false, filter: 'all', sel: 0, manual: false, rows: [],
+  attachments: [], clip: true, shot: true, page: null, recent: [], history: [''], step: 0, shift: false, layout: 'ru'};
+S.recent = [ITEMS[6], ITEMS[5], ITEMS[15]];
+
+// поиск: слова с началом слова, окончания срезаются, одна опечатка прощается
+var STOP = {};
+'в во на и с со по для что чтобы это от до из же ли не но как мне там тут его ее их про надо нужно или еще уже бы то так вот все тоже только чем где когда у к а о об'.split(' ').forEach(function (word) { STOP[word] = true; });
+function stem(word) {
+  if (word.length < 5 || /[0-9a-z]/.test(word)) return word;
+  return word.replace(/(ами|ями|ого|его|ому|ему|ыми|ими|ая|яя|ое|ее|ые|ие|ой|ей|ий|ый|ом|ем|ам|ям|ах|ях|ую|юю|ов|ев|у|ю|а|я|ы|и|е|о|ь)$/, '');
+}
+function near(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  var i = 0, j = 0, edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (a.length > b.length) i++;
+    else if (b.length > a.length) j++;
+    else { i++; j++; }
+  }
+  return edits + (a.length - i) + (b.length - j) <= 1;
+}
+function hits_in(text, query) {
+  var base = stem(query), found = {strength: 0, ranges: []}, re = /[a-zа-я0-9]+/g, low = norm(text), match;
+  while ((match = re.exec(low))) {
+    var word = match[0], strength = 0, length = 0;
+    if (word.indexOf(base) === 0) {
+      strength = word === query || word === base ? 1 : 0.9;
+      length = base.length;
+      while (length < word.length && length < query.length && word[length] === query[length]) length++;
+    } else if (query.length >= 4 && (near(word.slice(0, query.length), query) || near(word.slice(0, query.length + 1), query))) {
+      strength = 0.6;
+      length = Math.min(word.length, query.length);
+    }
+    if (strength) {
+      found.ranges.push([match.index, length]);
+      if (strength > found.strength) found.strength = strength;
+    }
+  }
+  return found;
+}
+function fields(item) {
+  return [['title', item.title, 3], ['kw', item.kw || '', 2.6], ['tags', item.tags.join(' '), 2.4], ['folder', FOLDERS[item.folder].name, 1.4],
+    ['text', item.text, 1.2], ['deep', item.deep || '', 1.1], ['added', (item.added || []).join(' '), 1.1]];
+}
+function folder_key(name) {
+  var low = norm(name);
+  return low && Object.keys(FOLDERS).filter(function (key) { return norm(FOLDERS[key].name).indexOf(low) === 0; })[0];
+}
+function search(parsed) {
+  var words = parsed.words, results = [];
+  var tags = parsed.tags.filter(Boolean).map(norm), folders = parsed.folders.filter(Boolean).map(folder_key).filter(Boolean);
+  if (!words.length && !tags.length && !folders.length) return results;
+  ITEMS.forEach(function (item) {
+    if (folders.length && folders.indexOf(item.folder) < 0) return;
+    var tagged = tags.filter(function (tag) { return item.tags.some(function (own) { return norm(own).indexOf(tag) === 0; }); }).length;
+    if (!words.length && tags.length && !tagged) return;
+    var total = tagged * 2, matched = 0, strong = true, marks = {};
+    words.forEach(function (word) {
+      var best = 0, best_strength = 0, where = null;
+      fields(item).forEach(function (one) {
+        var found = hits_in(one[1], word);
+        if (!found.strength) return;
+        marks[one[0]] = (marks[one[0]] || []).concat(found.ranges);
+        if (found.strength * one[2] > best) { best = found.strength * one[2]; best_strength = found.strength; where = one[0]; }
+      });
+      if (best) { matched++; total += best; }
+      if (!(where === 'title' || where === 'kw') || best_strength < 0.9) strong = false;
+    });
+    var need = words.length <= 2 ? words.length : Math.max(1, Math.ceil(words.length / 3));
+    if (matched < need) return;
+    results.push({item: item, marks: marks, matched: matched,
+      strong: strong && words.length > 0 && words.length <= 3,
+      score: total / Math.max(1, words.length) + 0.5 / (1 + item.days / 14)});
+  });
+  results.sort(function (a, b) { return b.score - a.score; });
+  return results.slice(0, 6);
+}
+function marked(text, ranges) {
+  var out = '', at = 0;
+  (ranges || []).slice().sort(function (a, b) { return a[0] - b[0]; }).forEach(function (range) {
+    if (range[0] < at) return;
+    out += esc(text.slice(at, range[0])) + '<em>' + esc(text.slice(range[0], range[0] + range[1])) + '</em>';
+    at = range[0] + range[1];
+  });
+  return out + esc(text.slice(at));
+}
+function snippet(text, ranges) {
+  if (!ranges || !ranges.length) return esc(text);
+  var first = Math.min.apply(null, ranges.map(function (range) { return range[0]; }));
+  if (first < 30) return marked(text, ranges);
+  var start = text.lastIndexOf(' ', first - 14) + 1;
+  return '…' + marked(text.slice(start), ranges.filter(function (range) { return range[0] >= start; }).map(function (range) { return [range[0] - start, range[1]]; }));
+}
+
+// разбор строки: команда, теги, папки, ссылка, дата и разметка подсвечиваются прямо в тексте
+var DATE_RE = /(?:сегодня|завтра|послезавтра|в\s(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье|пн|вт|ср|чт|пт|сб|вс))(?:\s(?:утром|днём|днем|вечером))?(?:\sв\s\d{1,2}(?::\d{2})?)?|в\s\d{1,2}:\d{2}|через\s(?:час|\d+\s(?:минут[уы]?|час(?:а|ов)?|дн(?:я|ей)))/gi;
+function parse(text) {
+  var tokens = [], parsed = {tokens: [], cmd: null, tags: [], folders: [], url: null, date: null}, match, re;
+  if ((match = /^\/(\S*)/.exec(text))) { parsed.cmd = norm(match[1]); tokens.push({start: 0, end: match[0].length, kind: 'cmd'}); }
+  re = /^(#{1,3} |- \[[ x]\] |- |> )|\*\*|~~|`/gm;
+  while ((match = re.exec(text))) tokens.push({start: match.index, end: match.index + match[0].length, kind: 'mk'});
+  re = /(^|\s)([#@])([^\s#@]+)/g;
+  while ((match = re.exec(text))) {
+    var start = match.index + match[1].length;
+    tokens.push({start: start, end: start + 1 + match[3].length, kind: match[2] === '#' ? 'tag' : 'fol'});
+    (match[2] === '#' ? parsed.tags : parsed.folders).push(match[3]);
+  }
+  re = /https?:\/\/\S+/g;
+  while ((match = re.exec(text))) { tokens.push({start: match.index, end: match.index + match[0].length, kind: 'url'}); parsed.url = match[0]; }
+  DATE_RE.lastIndex = 0;
+  while ((match = DATE_RE.exec(text))) { tokens.push({start: match.index, end: match.index + match[0].length, kind: 'dt'}); parsed.date = match[0]; }
+  tokens.sort(function (a, b) { return a.start - b.start || b.end - a.end; });
+  var at = 0;
+  tokens.forEach(function (token) { if (token.start >= at) { parsed.tokens.push(token); at = token.end; } });
+  var chars = text.split('');
+  parsed.tokens.forEach(function (token) { for (var i = token.start; i < token.end; i++) chars[i] = ' '; });
+  parsed.free_raw = chars.join('');
+  parsed.free = parsed.free_raw.replace(/\s+/g, ' ').trim();
+  var seen = {};
+  parsed.words = norm(parsed.free).split(/[^a-zа-я0-9]+/).filter(function (word) {
+    if (word.length < 2 || STOP[word] || seen[stem(word)]) return false;
+    return (seen[stem(word)] = true);
+  });
+  return parsed;
+}
+function caret_mode() {
+  var at = ta.selectionEnd, text = ta.value, before = text.slice(0, at), match;
+  var rest = /^[^\s#@]*/.exec(text.slice(at))[0].length;
+  if ((match = /(^|\s)([#@])([^\s#@]*)$/.exec(before))) return {kind: match[2] === '#' ? 'tag' : 'fol', query: norm(match[3]), start: at - match[3].length - 1, end: at + rest};
+  if ((match = /^\/(\S*)$/.exec(before))) return {kind: 'cmd', query: norm(match[1]), start: 0, end: at + rest};
+  return null;
+}
+
+// куда ляжет: сначала явные # и @, потом ссылка, потом правила по словам, ИИ только если ничего не поймалось
+var RULES = [
+  {re: /togetherly/, folder: 'ideas', tag: 'togetherly'},
+  {re: /рецепт|пригот|тесто|запеч|выпеч|паст[аеуы]|суп/, folder: 'food', tag: 'рецепт'},
+  {re: /машин|сервис|шиномонтаж|шин[ыу]|масло|страхов|тормоз/, folder: 'car', tag: 'машина'},
+  {re: /купить|купи|молок|хлеб|батарейк/, folder: 'buy', tag: 'купить'},
+  {re: /подар|сане|саню|саня/, folder: 'gifts', tag: 'подарки'},
+  {re: /фильм|сериал/, folder: 'film', tag: 'кино'},
+  {re: /пароль|домофон/, folder: 'home', tag: 'код'},
+  {re: /санторин|греци|афин|билет|отел/, folder: 'trip', tag: 'поездка'},
+  {re: /ламп|интерьер|двер/, folder: 'refs', tag: null},
+  {re: /иде[яюие]|сделать|добавить|придумал|канал/, folder: 'ideas', tag: 'идея'}
+];
+function word_at(text, index) {
+  var start = index;
+  while (start > 0 && /[a-zа-я0-9]/.test(text[start - 1])) start--;
+  return /[a-zа-я0-9]+/.exec(text.slice(start))[0];
+}
+function host(url) { return url.replace(/^https?:\/\/(www\.|vt\.)?/, '').split('/')[0]; }
+function when(text) {
+  var days = {'пн': 'в понедельник', 'вт': 'во вторник', 'ср': 'в среду', 'чт': 'в четверг', 'пт': 'в пятницу', 'сб': 'в субботу', 'вс': 'в воскресенье'};
+  var out = norm(text).replace(/\s+/g, ' ').replace(/^в (пн|вт|ср|чт|пт|сб|вс)(?=\s|$)/, function (all, day) { return days[day]; });
+  out = out.replace(/в (\d{1,2})$/, 'в $1:00');
+  return /^в \d/.test(out) ? 'сегодня ' + out : out;
+}
+function predict(parsed) {
+  var low = norm(parsed.free), guess = {folder: null, tags: [], remind: null, kind: 'note', reason: '', preview: null};
+  function add_tag(tag) { if (tag && guess.tags.indexOf(tag) < 0) guess.tags.push(tag); }
+  parsed.folders.forEach(function (name) { var key = folder_key(name); if (key) { guess.folder = key; guess.reason = 'ты выбрал папку сам'; } });
+  parsed.tags.forEach(function (tag) {
+    add_tag(norm(tag));
+    var rule = RULES.filter(function (one) { return one.tag === norm(tag); })[0];
+    if (rule && !guess.folder) { guess.folder = rule.folder; guess.reason = 'по тегу #' + norm(tag) + ', без сети'; }
+  });
+  if (parsed.url) {
+    var preview = PREVIEWS[parsed.url] || {title: host(parsed.url), kind: 'link', site: host(parsed.url)};
+    guess.preview = preview;
+    guess.kind = preview.kind;
+    add_tag(preview.tag);
+    if (preview.folder && !guess.folder) { guess.folder = preview.folder; guess.reason = 'по заголовку ролика с ' + preview.site; }
+    low += ' ' + norm(preview.title);
+  }
+  RULES.forEach(function (rule) {
+    var match = rule.re.exec(low);
+    if (!match) return;
+    add_tag(rule.tag);
+    if (!guess.folder) { guess.folder = rule.folder; guess.reason = 'по слову «' + word_at(low, match.index) + '», без сети'; }
+  });
+  if (S.attachments.length) {
+    guess.kind = 'photo';
+    if (!guess.folder) { guess.folder = 'refs'; guess.reason = 'фото ты обычно кладёшь сюда'; }
+  }
+  if (parsed.date) guess.remind = when(parsed.date);
+  if (parsed.cmd === 'входящие') { guess.folder = 'inbox'; guess.reason = 'без разбора, как просил'; }
+  return guess;
+}
+function make_title(parsed, guess) {
+  if (guess.preview && !parsed.free) return guess.preview.title;
+  var line = parsed.free_raw.split('\n').map(function (one) { return one.replace(/\s+/g, ' ').trim(); }).filter(Boolean)[0] || '';
+  if (!line && S.attachments.length) return S.attachments.length + ' фото';
+  line = line.replace(/[,.;:]+$/, '');
+  if (line.length > 48) line = line.slice(0, 46).replace(/\s\S*$/, '') + '…';
+  return line.charAt(0).toUpperCase() + line.slice(1);
+}
+function plural(count, one, few, many) {
+  var tail = count % 10, teen = count % 100;
+  return count + ' ' + (tail === 1 && teen !== 11 ? one : tail >= 2 && tail <= 4 && (teen < 12 || teen > 14) ? few : many);
+}
+
+// строки панели: внизу «закинуть», выше то, что уже лежит
+function find_command(key) { return COMMANDS.filter(function (one) { return one.key === key; })[0]; }
+function save_row(parsed) {
+  if (parsed.cmd === 'найти') return null;
+  if (!parsed.free && !parsed.url && !S.attachments.length) return null;
+  var command = find_command(parsed.cmd);
+  if (command && command.plugin) return plugin_row(command, parsed);
+  var guess = predict(parsed), folder = guess.folder ? FOLDERS[guess.folder] : null, into = folder ? ' в «' + folder.name + '»' : '';
+  var title = {note: 'Закинуть', link: 'Ссылку', video: 'Видео', photo: S.attachments.length + ' фото'}[guess.kind] + into;
+  if (!folder) title = guess.kind === 'note' ? 'Закинуть, папку подберу' : title + ', папку подберу';
+  var key = command && command.key, label = 'Закинуть';
+  if (key === 'напомнить') { title = 'Напомнить' + (guess.remind ? ' ' + guess.remind : ''); label = 'Напомнить'; }
+  if (key === 'задача') title = 'Задача' + into;
+  if (key === 'список') title = 'Список, ' + plural(parsed.free_raw.split(/\n|,/).filter(function (one) { return one.trim(); }).length, 'пункт', 'пункта', 'пунктов') + into;
+  if (key === 'входящие') title = 'Во «Входящие» как есть';
+  var sub = [];
+  if (guess.preview) sub.push(esc(guess.preview.title));
+  if (guess.tags.length) sub.push(guess.tags.map(function (tag) { return '#' + esc(tag); }).join(' '));
+  if (guess.remind && key !== 'напомнить') sub.push(ic('alarm') + 'напомню ' + esc(guess.remind));
+  if (key === 'напомнить' && !guess.remind) sub.push('когда? допиши «завтра в 10»');
+  if (!sub.length) sub.push(guess.kind === 'photo' && !parsed.free ? 'подпись и теги допишет твой ключ ИИ' : esc(make_title(parsed, guess)));
+  return {key: 'save', icon: folder ? folder.icon : 'inbox', shape: folder ? folder.shape : 'squircle', title: esc(title), sub: sub.join(' · '),
+    where: folder ? ic('bolt') + esc(guess.reason) : ic('key') + 'папку подберёт твой ключ ИИ', label: label, send_icon: 'arrow_upward',
+    act: function () { do_save(); }};
+}
+function plugin_row(command, parsed) {
+  var query = norm(parsed.free), where = ic('extension') + 'плагин «' + command.plugin + '»', made = null, title, sub;
+  if (command.key === 'фильм') {
+    var film = query && FILMS.filter(function (one) { return one.key.indexOf(query.split(' ')[0]) === 0 || query.indexOf(one.key) === 0; })[0];
+    if (!query) { title = 'Напиши название'; sub = 'найду год, рейтинг и длину'; }
+    else if (film) { title = film.title; sub = film.meta; where += ' · ляжет в «Кино»'; made = {title: film.title, text: film.meta, folder: 'film', tags: ['кино']}; }
+    else { title = 'Ищу «' + parsed.free + '»'; sub = 'в базе фильмов'; }
+  } else if (command.key === 'курс') {
+    var match = /(\d+(?:[.,]\d+)?)\s*(евро|eur|€|доллар\S*|usd|\$)?/.exec(query);
+    if (match) {
+      var euro = !match[2] || /евро|eur|€/.test(match[2]), amount = parseFloat(match[1].replace(',', '.')), rate = euro ? 19.7 : 17.05;
+      title = match[1] + (euro ? ' €' : ' $') + ' ≈ ' + Math.round(amount * rate).toLocaleString('ru-RU') + ' лей';
+      sub = 'курс на 2 ноября: 1' + (euro ? ' €' : ' $') + ' = ' + String(rate).replace('.', ',') + ' лей';
+      where += ' · ляжет заметкой во «Входящие»';
+      made = {title: title, text: sub, folder: 'inbox', tags: []};
+    } else { title = 'Напиши сумму'; sub = 'например, 120 евро'; }
+  } else {
+    title = 'Переведу на английский';
+    sub = parsed.free ? esc(parsed.free) : 'напиши текст';
+    where += ' · твоим ключом ИИ';
+    if (parsed.free) made = {title: 'Перевод: ' + make_title(parsed, {}), text: parsed.free, folder: 'inbox', tags: [], fresh: true};
+  }
+  return {key: 'save', icon: command.icon, shape: 'gem', title: esc(title), sub: sub, where: where, label: made ? 'Добавить' : 'Закинуть',
+    send_icon: 'arrow_upward', act: function () { do_save(made); }};
+}
+function result_row(result, append) {
+  var item = result.item, marks = result.marks, kind = KINDS[item.kind];
+  var deep = marks.deep && marks.deep.length, added = marks.added && marks.added.length;
+  var body = added ? snippet(item.added.join(' '), marks.added) : deep ? snippet(item.deep, marks.deep) : snippet(item.text, marks.text);
+  var where_text = added ? 'в дописанном' : deep ? item.deepKind : (item.site || kind.name);
+  return {key: 'i' + item.id, img: item.img, icon: kind.icon, shape: 'squircle', title: marked(item.title, marks.title), sub: body,
+    where: ic(kind.icon) + esc(where_text) + ' · ' + esc(FOLDERS[item.folder].name) + ' · ' + esc(item.date),
+    side: append ? '<button class="app" data-append="' + item.id + '">' + ic('edit_note') + 'Дописать</button>' : '',
+    label: 'Открыть', send_icon: 'arrow_outward', act: function () { open_item(item); }};
+}
+function completions(mode) {
+  var query = mode.query, rows = [];
+  if (mode.kind === 'cmd') {
+    COMMANDS.filter(function (one) { return one.key.indexOf(query) === 0; }).forEach(function (one) {
+      rows.push({key: 'c' + one.key, icon: one.icon, shape: 'squircle', title: '/' + esc(one.key), sub: esc(one.text),
+        side: one.plugin ? '<span class="badge">' + ic('extension') + 'плагин</span>' : '', label: 'Вставить', send_icon: 'keyboard_return',
+        act: function () { complete(mode, '/' + one.key + ' '); }});
+    });
+  } else if (mode.kind === 'tag') {
+    var exact = false;
+    TAGS.filter(function (one) { return norm(one.name).indexOf(query) === 0; }).slice(0, 6).forEach(function (one) {
+      if (norm(one.name) === query) exact = true;
+      rows.push({key: 't' + one.name, tile: one.icon, title: '#' + esc(one.name), sub: plural(one.count, 'вещь', 'вещи', 'вещей'),
+        label: 'Вставить', send_icon: 'keyboard_return', act: function () { complete(mode, '#' + one.name + ' '); }});
+    });
+    if (query && !exact) rows.push({key: 'tnew', icon: 'add', shape: 'cookie9', title: 'Создать #' + esc(query), sub: 'иконку выберешь потом',
+      label: 'Создать', send_icon: 'keyboard_return', act: function () { complete(mode, '#' + query + ' '); }});
+  } else {
+    Object.keys(FOLDERS).filter(function (key) {
+      return norm(FOLDERS[key].name).split(' ').some(function (word) { return word.indexOf(query) === 0; });
+    }).slice(0, 6).forEach(function (key) {
+      var folder = FOLDERS[key], count = ITEMS.filter(function (item) { return item.folder === key; }).length;
+      rows.push({key: 'f' + key, icon: folder.icon, shape: folder.shape, title: esc(folder.name), sub: plural(count, 'вещь', 'вещи', 'вещей'),
+        label: 'Вставить', send_icon: 'keyboard_return', act: function () { complete(mode, '@' + folder.name.split(' ')[0] + ' '); }});
+    });
+  }
+  return rows;
+}
+function complete(mode, insert) {
+  var text = ta.value;
+  ta.value = text.slice(0, mode.start) + insert + text.slice(mode.end).replace(/^\s/, '');
+  set_caret(mode.start + insert.length);
+  changed();
+}
+
+// что показать над строкой и что будет белым
+function build() {
+  var text = ta.value, parsed = parse(text), mode = caret_mode();
+  if (mode) {
+    var rows = completions(mode);
+    return {rows: rows, pick: 0, info: {label: {cmd: 'Команды', tag: 'Теги', fol: 'Папки'}[mode.kind], hint: rows.length ? 'Enter вставит' : ''}};
+  }
+  var save = save_row(parsed), found = search(parsed), kinds = [];
+  found.forEach(function (one) { if (kinds.indexOf(one.item.kind) < 0) kinds.push(one.item.kind); });
+  if (S.filter !== 'all' && kinds.indexOf(S.filter) < 0) S.filter = 'all';
+  var shown = S.filter === 'all' ? found : found.filter(function (one) { return one.item.kind === S.filter; });
+  var result = {rows: [], pick: 0, info: {}};
+  if (save) result.rows.push(save);
+  shown.forEach(function (one, index) {
+    var append = index === 0 && save && !one.strong && one.matched >= 3 && one.item.kind === 'note' && parsed.cmd !== 'фильм';
+    result.rows.push(result_row(one, append));
+  });
+  var command = find_command(parsed.cmd);
+  var looking = !save || (shown[0] && shown[0].strong && !parsed.url && !parsed.date && !S.attachments.length && !parsed.cmd && !parsed.tags.length && !parsed.folders.length);
+  if (shown.length && looking) result.pick = save ? 1 : 0;
+  if (command && command.plugin) result.info.label = ic('extension') + 'Плагин «' + command.plugin + '»';
+  else if (!save) result.info.label = shown.length ? 'Нашлось ' + shown.length : 'Ничего не нашлось';
+  else if (shown.length) result.info.label = result.pick ? 'Нашлось ' + shown.length : 'Уже лежит похожее';
+  else if (parsed.words.length) result.info.label = 'Похожего нет, это новое';
+  if (kinds.length > 1 && found.length > 2) result.info.kinds = kinds;
+  return result;
+}
+
+// отрисовка
+function shapes(root) {
+  [].forEach.call(root.querySelectorAll('.sh[data-shape]'), function (element) {
+    element.style.borderRadius = '0';
+    element.style.clipPath = shape_path(element.dataset.shape, element.offsetWidth || 44);
+  });
+}
+function row_html(row) {
+  var thumb = row.img ? '<div class="th" style="background-image:url(' + PIC[row.img] + ')"></div>'
+    : row.tile ? '<span class="ti">' + ic(row.tile) + '</span>'
+    : '<span class="sh" data-shape="' + row.shape + '">' + ic(row.icon) + '</span>';
+  return thumb + '<div class="tx"><b>' + row.title + '</b>' + (row.sub ? '<p>' + row.sub + '</p>' : '') +
+    (row.where ? '<div class="wh">' + row.where + '</div>' : '') + '</div>' + (row.side || '');
+}
+function render_rows(rows) {
+  var old = {};
+  [].forEach.call(inner.children, function (element) { old[element.dataset.key] = {element: element, top: element.offsetTop}; });
+  var used = {}, fresh = 0;
+  rows.slice().reverse().forEach(function (row) {
+    var entry = old[row.key], element = entry && entry.element, html = row_html(row);
+    if (!element) {
+      element = document.createElement('div');
+      element.dataset.key = row.key;
+      element.className = 'rw in';
+      element.style.animationDelay = (rows.indexOf(row) * 26) + 'ms';
+      element.addEventListener('animationend', function () { element.classList.remove('in'); element.style.animationDelay = ''; });
+      fresh++;
+    }
+    element.classList.toggle('sel', rows.indexOf(row) === S.sel);
+    element._row = row;
+    inner.appendChild(element);
+    if (element._html !== html) { element.innerHTML = html; element._html = html; shapes(element); }
+    used[row.key] = true;
+  });
+  Object.keys(old).forEach(function (key) { if (!used[key]) old[key].element.remove(); });
+  // строки, которые остались, переезжают плавно, а не прыгают
+  Object.keys(old).forEach(function (key) {
+    if (!used[key]) return;
+    var element = old[key].element, shift = old[key].top - element.offsetTop;
+    if (!shift) return;
+    element.style.transition = 'none';
+    element.style.transform = 'translateY(' + shift + 'px)';
+    element.offsetHeight;
+    element.style.transition = '';
+    element.style.transform = '';
+  });
+}
+function place_highlight(instant) {
+  var element = inner.querySelector('.rw.sel');
+  if (!element) { highlight.style.opacity = 0; return; }
+  if (instant) highlight.style.transition = 'none';
+  highlight.style.opacity = 1;
+  highlight.style.top = element.offsetTop + 'px';
+  highlight.style.height = element.offsetHeight + 'px';
+  if (instant) { highlight.offsetHeight; highlight.style.transition = ''; }
+  if (element.offsetTop < list.scrollTop) list.scrollTop = element.offsetTop - 6;
+  else if (element.offsetTop + element.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = element.offsetTop + element.offsetHeight - list.clientHeight + 6;
+  fade_list();
+}
+// верх списка тает, только когда над ним есть что прокрутить
+function fade_list() { list.classList.toggle('fade', list.scrollTop > 2); }
+list.addEventListener('scroll', fade_list);
+function render_head(info) {
+  var html = '<span class="lbl">' + (info.label || '') + '</span>' + (info.hint ? '<span class="hint">' + info.hint + '</span>' : '');
+  if (info.kinds) {
+    html += '<button class="fc' + (S.filter === 'all' ? ' on' : '') + '" data-f="all">Всё</button>';
+    info.kinds.slice(0, 3).forEach(function (kind) { html += '<button class="fc' + (S.filter === kind ? ' on' : '') + '" data-f="' + kind + '">' + KINDS[kind].many + '</button>'; });
+  }
+  if (head._html !== html) { head.innerHTML = html; head._html = html; }
+  head.hidden = !info.label && !info.kinds;
+}
+function render_mirror(parsed) {
+  var text = ta.value;
+  if (!text) { mirror.innerHTML = '<span class="plh">' + (S.full ? 'Пиши в Markdown, файлы прикрепляй плюсом' : 'Закинь что угодно или найди') + '</span>'; return; }
+  var html = '', at = 0;
+  parsed.tokens.forEach(function (token) {
+    html += esc(text.slice(at, token.start)) + '<span class="tk ' + token.kind + '">' + esc(text.slice(token.start, token.end)) + '</span>';
+    at = token.end;
+  });
+  html += esc(text.slice(at));
+  mirror.innerHTML = html + (text.slice(-1) === '\n' ? ' ' : '');
+}
+function render_send(row) {
+  var label = '', icon = 'mic';
+  var has = ta.value.trim() || S.attachments.length;
+  if (S.recording || S.full) { label = 'Закинуть'; icon = 'arrow_upward'; }
+  else if (S.tray) { label = has ? 'Закинуть' : ''; icon = has ? 'arrow_upward' : 'mic'; }
+  else if (row) { label = row.label; icon = row.send_icon; }
+  else if (has) { label = 'Закинуть'; icon = 'arrow_upward'; }
+  var lab = send.querySelector('.lab');
+  if (lab.textContent !== label && label) lab.textContent = label;
+  send.classList.toggle('wide', !!label);
+  if (send._icon !== icon) {
+    send._icon = icon;
+    var old = send.querySelector('.ic');
+    old.outerHTML = ic(icon, 'pop');
+  }
+}
+function render_top(guess) {
+  var html = '', sig;
+  if (S.full) {
+    var folder = FOLDERS[guess.folder || 'inbox'];
+    sig = 'full' + guess.folder + guess.tags.join() + guess.remind;
+    html = '<span class="dest">' + ic(folder.icon) + esc(guess.folder ? folder.name : 'Папку подберу') + ic('expand_more') + '</span>' +
+      guess.tags.map(function (tag) { return '<span class="dest tg2">#' + esc(tag) + '</span>'; }).join('') +
+      (guess.remind ? '<span class="dest tg2">' + ic('alarm') + esc(guess.remind) + '</span>' : '');
+  } else if (S.attachments.length) {
+    sig = 'att' + S.attachments.map(function (one) { return one.pic + one.done; }).join();
+    html = S.attachments.map(function (one) {
+      return '<div class="att" data-pic="' + one.pic + '" style="background-image:url(' + PIC[one.pic] + ');animation:' + (one.seen ? 'none' : '') + '"><span class="st">' +
+        (one.done ? ic('check') : '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/></svg>') + '</span></div>';
+    }).join('');
+  } else if (S.active && !ta.value && (S.clip || S.shot)) {
+    sig = 'sg' + S.clip + S.shot;
+    if (S.clip) html += '<button class="sg" data-sg="clip"><span class="si">' + ic('content_paste') + '</span>Ссылка из буфера<small>tiktok.com</small></button>';
+    if (S.shot) html += '<button class="sg" data-sg="shot"><span class="th" style="background-image:url(' + PIC.p60 + ')"></span>Скриншот<small>1 мин назад</small></button>';
+  } else sig = '';
+  if (top_row._sig !== sig) {
+    top_row._sig = sig;
+    top_row.innerHTML = html;
+    S.attachments.forEach(function (one) { one.seen = true; });
+  }
+  top_row.hidden = !html;
+}
+function render_tray() {
+  if (!tray._built) {
+    var tabs = [['photo_library', 'Галерея'], ['photo_camera', 'Камера'], ['attach_file', 'Файл'], ['document_scanner', 'Скан'], ['link', 'Ссылка']];
+    tray.innerHTML = '<div class="tabs">' + tabs.map(function (tab, index) {
+      return '<button class="tab' + (index ? '' : ' on') + '">' + ic(tab[0]) + '<span class="lab">' + tab[1] + '</span></button>';
+    }).join('') + '</div><div class="grid">' + TRAY.map(function (pic) {
+      return '<div class="gp" data-pic="' + pic + '" style="background-image:url(' + PIC[pic] + ')"><span class="no"></span></div>';
+    }).join('') + '</div>';
+    tray._built = true;
+  }
+  [].forEach.call(tray.querySelectorAll('.gp'), function (element) {
+    var index = S.attachments.map(function (one) { return one.pic; }).indexOf(element.dataset.pic);
+    element.classList.toggle('on', index >= 0);
+    element.querySelector('.no').textContent = index >= 0 ? index + 1 : '';
+  });
+}
+var panel_timer = 0;
+function set_panel(show) {
+  if (show) {
+    clearTimeout(panel_timer);
+    if (panel.hidden || panel.classList.contains('out')) {
+      panel.classList.remove('out');
+      panel.hidden = false;
+      return true;
+    }
+    return false;
+  }
+  if (!panel.hidden && !panel.classList.contains('out')) {
+    panel.classList.add('out');
+    panel_timer = setTimeout(function () { panel.hidden = true; panel.classList.remove('out'); inner.innerHTML = ''; }, 180);
+  }
+  return false;
+}
+var fit_timer = 0;
+function fit() {
+  clearTimeout(fit_timer);
+  var from = composer.offsetHeight, to;
+  if (S.full) to = phone.clientHeight - 44 - 260;
+  else { composer.style.height = ''; to = composer.offsetHeight; }
+  if (from === to) { if (!S.full) composer.style.height = ''; return; }
+  composer.style.height = from + 'px';
+  composer.offsetHeight;
+  composer.style.height = to + 'px';
+  if (!S.full) fit_timer = setTimeout(function () { composer.style.height = ''; }, 480);
+}
+
+function update() {
+  var parsed = parse(ta.value), built = null;
+  if (S.active && !S.full && !S.recording && !S.tray) built = build();
+  var rows = built ? built.rows : [];
+  if (!S.manual || S.sel >= rows.length) S.sel = built ? built.pick : 0;
+  S.rows = rows;
+  render_mirror(parsed);
+  var show = S.active && !S.full && !S.recording && (S.tray || rows.length > 0);
+  var first = set_panel(show);
+  tray.hidden = !S.tray;
+  list.hidden = S.tray;
+  if (S.tray) { head.hidden = true; render_tray(); }
+  else if (rows.length) {
+    render_head(built.info);
+    render_rows(rows);
+    if (first) list.scrollTop = list.scrollHeight;
+    place_highlight(first);
+  }
+  render_send(rows[S.sel]);
+  render_top(predict(parsed));
+  add_button.classList.toggle('open', S.tray);
+  expand.innerHTML = ic(S.full ? 'close_fullscreen' : 'open_in_full', 's');
+  phone.classList.toggle('shade', show || S.full);
+  phone.classList.toggle('act', S.active);
+  phone.classList.toggle('full', S.full);
+  fit();
+  render_suggestions();
+}
+function changed() {
+  S.manual = false;
+  if (S.history[S.step] !== ta.value) { S.history = S.history.slice(0, S.step + 1).concat(ta.value).slice(-80); S.step = S.history.length - 1; }
+  if (!ta.value) S.filter = 'all';
+  update();
+  list.scrollTop = list.scrollHeight;
+  if (ta.selectionEnd === ta.value.length) field.scrollTop = field.scrollHeight;
+}
+function move(step) {
+  if (!S.rows.length) return;
+  S.sel = Math.max(0, Math.min(S.rows.length - 1, S.sel + step));
+  S.manual = true;
+  [].forEach.call(inner.children, function (element) { element.classList.toggle('sel', element._row === S.rows[S.sel]); });
+  place_highlight(false);
+  render_send(S.rows[S.sel]);
+}
+
+// действия
+function set_caret(at) { ta.selectionStart = ta.selectionEnd = at; }
+function insert(chars) {
+  var start = ta.selectionStart, end = ta.selectionEnd, text = ta.value;
+  ta.value = text.slice(0, start) + chars + text.slice(end);
+  set_caret(start + chars.length);
+  changed();
+}
+function activate() {
+  if (S.active) return;
+  S.active = true;
+  update();
+}
+function deactivate() {
+  S.active = false; S.full = false; S.tray = false;
+  ta.blur();
+  update();
+}
+function act() {
+  tap(send);
+  if (S.recording) return stop_recording(true);
+  if (S.full || S.tray) { if (ta.value.trim() || S.attachments.length) do_save(); return; }
+  var row = S.rows[S.sel];
+  if (row) return row.act();
+  if (ta.value.trim() || S.attachments.length) return do_save();
+  start_recording();
+}
+function tap(element) {
+  if (!element) return;
+  element.classList.remove('tap');
+  element.offsetWidth;
+  element.classList.add('tap');
+}
+var toast_timer = 0;
+function show_toast(icon, text, action, then) {
+  toast.innerHTML = '<span class="tm">' + ic(icon) + '<span>' + text + '</span></span>' + (action ? '<button>' + action + '</button>' : '');
+  toast.classList.remove('out');
+  toast.hidden = true;
+  toast.offsetWidth;
+  toast.hidden = false;
+  if (action) toast.querySelector('button').onclick = function () { then(); hide_toast(); };
+  clearTimeout(toast_timer);
+  toast_timer = setTimeout(hide_toast, 3400);
+}
+function hide_toast() {
+  if (toast.hidden) return;
+  toast.classList.add('out');
+  setTimeout(function () { if (toast.classList.contains('out')) { toast.hidden = true; toast.classList.remove('out'); } }, 200);
+}
+function do_save(made) {
+  var parsed = parse(ta.value), guess = predict(parsed), text = ta.value;
+  var item = made ? {kind: 'note', title: made.title, text: made.text, folder: made.folder, tags: made.tags, fresh: made.fresh} : {
+    kind: guess.kind, title: make_title(parsed, guess), text: parsed.free || (guess.preview ? guess.preview.site : ''),
+    folder: guess.folder || 'inbox', tags: guess.tags, fresh: !guess.folder,
+    img: S.attachments.length ? S.attachments[0].pic : null, site: guess.preview && guess.preview.site};
+  item.id = next_id++; item.date = 'сейчас'; item.days = 0;
+  if (parsed.url === CLIP_URL) S.clip = false;
+  if (S.attachments.some(function (one) { return one.pic === 'p60'; })) S.shot = false;
+  ITEMS.unshift(item);
+  S.recent.unshift(item);
+  render_recent();
+  var where = item.fresh ? 'Лежит, разберу и разложу' : 'Легло в «' + esc(FOLDERS[item.folder].name) + '»' + (guess.remind ? ', напомню ' + esc(guess.remind) : '');
+  show_toast('check', where, 'Отменить', function () {
+    ITEMS.splice(ITEMS.indexOf(item), 1);
+    S.recent.splice(S.recent.indexOf(item), 1);
+    render_recent();
+    ta.value = text;
+    S.active = true;
+    changed();
+  });
+  ta.value = ''; S.attachments = []; S.filter = 'all';
+  S.history = ['']; S.step = 0;
+  deactivate();
+}
+function do_append(item) {
+  var text = parse(ta.value).free;
+  item.added = (item.added || []).concat(text.charAt(0).toUpperCase() + text.slice(1));
+  item.days = 0;
+  show_toast('edit_note', 'Дописал в «' + esc(item.title) + '»', 'Открыть', function () { open_item(item); });
+  ta.value = ''; S.history = ['']; S.step = 0;
+  deactivate();
+}
+function open_item(item) {
+  var folder = FOLDERS[item.folder];
+  page.innerHTML = '<div class="status"><span>14:49</span><span>' + ic('signal_cellular_alt') + ic('wifi') + ic('battery_full') + '</span></div>' +
+    '<div class="bar"><button class="ibtn" data-back>' + ic('arrow_back') + '</button><span class="chip" style="margin-left:4px">' + ic(folder.icon) + esc(folder.name) + ic('expand_more') + '</span></div>' +
+    '<div class="page"><h1>' + esc(item.title) + '</h1><div class="meta">' +
+    item.tags.map(function (tag) { return '<span class="chip sm">#' + esc(tag) + '</span>'; }).join('') + '<span class="chip sm">' + esc(item.date) + '</span></div>' +
+    (item.img ? '<div class="img ph" style="background-image:url(' + PIC[item.img] + ')"></div>' : '') +
+    '<p>' + esc(item.text) + '</p>' +
+    (item.copy ? '<button class="copy">' + ic('content_paste') + 'Скопировать ' + esc(item.copy) + '</button>' : '') +
+    (item.deep ? '<div class="deep"><small>' + DEEP_TITLE[item.deepKind] + '</small>' + esc(item.deep) + '</div>' : '') +
+    (item.added || []).map(function (text) { return '<div class="added"><small>Дописано сейчас</small>' + esc(text) + '</div>'; }).join('') + '</div>';
+  page.offsetWidth;
+  page.classList.add('on');
+  S.page = item;
+}
+function close_page() { page.classList.remove('on'); S.page = null; }
+function render_recent() {
+  var box = by_id('lv-recent'), old = {};
+  [].forEach.call(box.children, function (element) { old[element.dataset.id] = {element: element, left: element.offsetLeft}; });
+  var shown = S.recent.slice(0, 4), used = {};
+  shown.forEach(function (item) {
+    var entry = old[item.id], element = entry && entry.element;
+    if (!element) {
+      var folder = FOLDERS[item.folder], art;
+      if (item.img) art = '<div class="ph" style="background-image:url(' + PIC[item.img] + ')"></div>';
+      else if (item.kind === 'voice') art = '<div class="txt">' + ic('graphic_eq') + '<b>' + esc(item.text) + '</b></div>';
+      else if (item.kind === 'video' || item.kind === 'link') art = '<div class="txt">' + ic(KINDS[item.kind].icon) + esc(item.site || '') + '</div>';
+      else art = '<div class="txt">' + esc(item.text.slice(0, 64)) + '</div>';
+      var holder = document.createElement('div');
+      holder.innerHTML = '<div class="rc' + (item.img ? '' : ' note') + (item.fresh ? ' sorting' : '') + (S.ready ? ' rc-in' : '') + '" data-id="' + item.id + '">' + art +
+        '<div class="body"><p>' + esc(item.title) + '</p><div class="to">' + (item.fresh ? '<i class="bar2"></i>разбираю' : ic(folder.icon) + esc(folder.name)) + '</div></div></div>';
+      element = holder.firstChild;
+      element.addEventListener('click', function () { open_item(item); });
+    }
+    box.appendChild(element);
+    used[item.id] = true;
+  });
+  Object.keys(old).forEach(function (id) { if (!used[id]) old[id].element.remove(); });
+  Object.keys(old).forEach(function (id) {
+    if (!used[id]) return;
+    var element = old[id].element, shift = old[id].left - element.offsetLeft;
+    if (!shift) return;
+    element.style.transition = 'none';
+    element.style.transform = 'translateX(' + shift + 'px)';
+    element.offsetWidth;
+    element.style.transition = '';
+    element.style.transform = '';
+  });
+}
+
+// голосовое: пустая строка держит микрофон
+var record_timer = 0;
+function start_recording() {
+  S.recording = true;
+  S.record_start = Date.now();
+  var wave = by_id('lv-wv');
+  if (!wave.children.length) {
+    for (var i = 0; i < 34; i++) {
+      var bar = document.createElement('i');
+      bar.style.setProperty('--h', (8 + Math.round(Math.abs(Math.sin(i * 1.7)) * 22)) + 'px');
+      bar.style.animationDelay = (-(i * 97 % 700)) + 'ms';
+      wave.appendChild(bar);
+    }
+  }
+  by_id('lv-tm').textContent = '0:00';
+  record_timer = setInterval(function () {
+    var seconds = Math.floor((Date.now() - S.record_start) / 1000);
+    by_id('lv-tm').textContent = '0:' + (seconds < 10 ? '0' : '') + seconds;
+  }, 250);
+  phone.classList.add('recording');
+  update();
+}
+function stop_recording(keep) {
+  if (!S.recording) return;
+  clearInterval(record_timer);
+  S.recording = false;
+  phone.classList.remove('recording');
+  if (keep) {
+    var seconds = Math.max(1, Math.floor((Date.now() - S.record_start) / 1000));
+    var item = {id: next_id++, kind: 'voice', title: 'Голосовое', text: '0:' + (seconds < 10 ? '0' : '') + seconds, folder: 'inbox', tags: [], date: 'сейчас', days: 0, fresh: true};
+    ITEMS.unshift(item);
+    S.recent.unshift(item);
+    render_recent();
+    show_toast('graphic_eq', 'Голосовое легло, расшифрует твой ключ ИИ', 'Отменить', function () {
+      S.recent.splice(S.recent.indexOf(item), 1);
+      ITEMS.splice(ITEMS.indexOf(item), 1);
+      render_recent();
+    });
+  }
+  update();
+}
+
+// фото из галереи над строкой
+function toggle_tray() {
+  S.tray = !S.tray;
+  if (S.tray) S.active = true;
+  update();
+}
+function pick_photo(pic) {
+  var index = S.attachments.map(function (one) { return one.pic; }).indexOf(pic);
+  if (index >= 0) S.attachments.splice(index, 1);
+  else {
+    var one = {pic: pic, done: false};
+    S.attachments.push(one);
+    setTimeout(function () { one.done = true; update(); }, 1100 + S.attachments.length * 350);
+  }
+  update();
+}
+
+// редактор на весь экран
+function set_full(on) {
+  S.full = on;
+  if (on) { S.active = true; S.tray = false; }
+  update();
+  if (!on) setTimeout(function () { list.scrollTop = list.scrollHeight; }, 0);
+}
+function markdown(kind) {
+  if (kind === 'undo' || kind === 'redo') {
+    S.step = Math.max(0, Math.min(S.history.length - 1, S.step + (kind === 'undo' ? -1 : 1)));
+    ta.value = S.history[S.step];
+    set_caret(ta.value.length);
+    update();
+    return;
+  }
+  var start = ta.selectionStart, end = ta.selectionEnd, text = ta.value;
+  var prefix = {h: '# ', ul: '- ', cl: '- [ ] ', q: '> '}[kind];
+  if (prefix) {
+    var line = text.lastIndexOf('\n', start - 1) + 1;
+    ta.value = text.slice(0, line) + prefix + text.slice(line);
+    set_caret(start + prefix.length);
+  } else {
+    var wrap = {b: '**', i: '_', s: '~~', code: '`'}[kind];
+    ta.value = text.slice(0, start) + wrap + text.slice(start, end) + wrap + text.slice(end);
+    if (start === end) set_caret(start + wrap.length);
+    else { ta.selectionStart = start; ta.selectionEnd = end + wrap.length * 2; }
+  }
+  changed();
+}
+
+// клавиатура: печатает в строку, так прототип работает и с телефона
+var LAYOUTS = {
+  ru: [['й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х'], ['ф', 'ы', 'в', 'а', 'п', 'р', 'о', 'л', 'д', 'ж', 'э'],
+    ['shift', 'я', 'ч', 'с', 'м', 'и', 'т', 'ь', 'б', 'ю', 'back'], ['?123', ',', 'space', '.', 'enter']],
+  sym: [['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], ['@', '#', '/', ':', ';', '(', ')', '-', '«', '»'],
+    ['=', '+', '*', '"', '\'', '?', '!', '%', 'back'], ['АБВ', ',', 'space', '.', 'enter']]
+};
+function render_keyboard() {
+  var html = '<div class="sug" id="lv-sug"></div>';
+  LAYOUTS[S.layout].forEach(function (row) {
+    html += '<div class="row">' + row.map(function (key) {
+      if (key === 'shift') return '<span class="k w' + (S.shift ? ' on' : '') + '" data-k="shift">' + ic('arrow_upward') + '</span>';
+      if (key === 'back') return '<span class="k w" data-k="back">' + ic('backspace') + '</span>';
+      if (key === 'enter') return '<span class="k w ret" data-k="enter">' + ic('keyboard_return') + '</span>';
+      if (key === 'space') return '<span class="k sp" data-k="space">Русский</span>';
+      if (key === '?123' || key === 'АБВ') return '<span class="k w" style="font-size:14px" data-k="' + key + '">' + key + '</span>';
+      return '<span class="k" data-k="' + esc(key) + '">' + esc(S.shift ? key.toUpperCase() : key) + '</span>';
+    }).join('') + '</div>';
+  });
+  keyboard.innerHTML = html;
+  render_suggestions();
+}
+var VOCABULARY = null;
+function render_suggestions() {
+  var box = by_id('lv-sug');
+  if (!box) return;
+  if (!VOCABULARY) {
+    VOCABULARY = {};
+    ITEMS.forEach(function (item) { norm(item.title + ' ' + item.text).split(/[^a-zа-я]+/).forEach(function (word) { if (word.length > 3) VOCABULARY[word] = true; }); });
+  }
+  var before = ta.value.slice(0, ta.selectionEnd), match = /([a-zа-яё]{2,})$/i.exec(before), words = [];
+  if (match) {
+    var part = norm(match[1]);
+    words = Object.keys(VOCABULARY).filter(function (word) { return word.indexOf(part) === 0 && word !== part; }).slice(0, 3);
+  }
+  var html = words.map(function (word) { return '<span data-w="' + word + '">' + word + '</span>'; }).join('');
+  if (box._html !== html) { box.innerHTML = html; box._html = html; }
+}
+function press_key(key) {
+  if (key === 'back') {
+    var start = ta.selectionStart, end = ta.selectionEnd;
+    if (start === end && start > 0) start--;
+    ta.value = ta.value.slice(0, start) + ta.value.slice(end);
+    set_caret(start);
+    changed();
+  } else if (key === 'enter') {
+    if (S.full) insert('\n');
+    else act();
+  } else if (key === 'shift') { S.shift = !S.shift; render_keyboard(); }
+  else if (key === '?123') { S.layout = 'sym'; render_keyboard(); }
+  else if (key === 'АБВ') { S.layout = 'ru'; render_keyboard(); }
+  else {
+    insert(key === 'space' ? ' ' : S.shift ? key.toUpperCase() : key);
+    if (S.shift) { S.shift = false; render_keyboard(); }
+  }
+}
+function flash_key(char) {
+  var key = char === ' ' ? 'space' : char === '\n' ? 'enter' : norm(char);
+  var element = keyboard.querySelector('[data-k="' + (key === '"' ? '&quot;' : key) + '"]');
+  if (!element) return;
+  element.classList.add('hit');
+  setTimeout(function () { element.classList.remove('hit'); }, 110);
+}
+
+// события
+ta.addEventListener('focus', activate);
+ta.addEventListener('input', changed);
+ta.addEventListener('keyup', function (event) { if (/Arrow(Left|Right)|Home|End/.test(event.key)) update(); });
+ta.addEventListener('click', function () { update(); });
+ta.addEventListener('keydown', function (event) {
+  if ((event.key === 'ArrowUp' || event.key === 'ArrowDown') && S.rows.length && !S.full) {
+    event.preventDefault();
+    move(event.key === 'ArrowUp' ? 1 : -1);
+  } else if (event.key === 'Enter' && !event.shiftKey) {
+    if (S.full && !(event.ctrlKey || event.metaKey)) return;
+    event.preventDefault();
+    act();
+  } else if (event.key === 'Tab' && caret_mode() && S.rows.length) {
+    event.preventDefault();
+    S.rows[S.sel].act();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    if (S.full) set_full(false);
+    else if (S.tray) toggle_tray();
+    else if (ta.value) { ta.value = ''; changed(); }
+    else deactivate();
+  }
+});
+composer.addEventListener('click', function (event) { if (!S.active && !event.target.closest('button')) { ta.focus(); activate(); } });
+by_id('lv-scrim').addEventListener('click', function () { if (S.full) set_full(false); else deactivate(); });
+send.addEventListener('click', act);
+add_button.addEventListener('click', function () { tap(add_button); toggle_tray(); });
+expand.addEventListener('click', function () { set_full(!S.full); });
+by_id('lv-cancel').addEventListener('click', function () { stop_recording(false); });
+[].forEach.call(document.querySelectorAll('#lp .cb.gl'), function (button) {
+  button.addEventListener('mousedown', function (event) { event.preventDefault(); });
+  button.addEventListener('click', function () {
+    var before = ta.value.slice(0, ta.selectionStart);
+    insert((button.dataset.ins !== '/' && before && !/\s$/.test(before) ? ' ' : '') + button.dataset.ins);
+    if (button.dataset.ins === '/' && ta.value !== '/') { ta.value = '/' + ta.value.replace(/\/$/, ''); set_caret(1); changed(); }
+  });
+});
+[].forEach.call(document.querySelectorAll('#lv-fmt .cb'), function (button) {
+  button.addEventListener('mousedown', function (event) { event.preventDefault(); });
+  button.addEventListener('click', function () { tap(button); markdown(button.dataset.md); });
+});
+inner.addEventListener('click', function (event) {
+  var append = event.target.closest('.app');
+  if (append) {
+    tap(append);
+    var item = ITEMS.filter(function (one) { return one.id === +append.dataset.append; })[0];
+    return do_append(item);
+  }
+  var row = event.target.closest('.rw');
+  if (row && row._row) row._row.act();
+});
+head.addEventListener('click', function (event) {
+  var chip = event.target.closest('[data-f]');
+  if (chip) { S.filter = chip.dataset.f; S.manual = false; update(); }
+});
+top_row.addEventListener('click', function (event) {
+  var chip = event.target.closest('[data-sg]'), att = event.target.closest('.att');
+  if (chip) { tap(chip); use_suggestion(chip.dataset.sg); }
+  if (att) pick_photo(att.dataset.pic);
+});
+function use_suggestion(kind) {
+  if (kind === 'clip') { ta.value = CLIP_URL; set_caret(ta.value.length); changed(); }
+  else pick_photo('p60');
+}
+tray.addEventListener('click', function (event) {
+  var photo = event.target.closest('.gp'), tab = event.target.closest('.tab');
+  if (photo) pick_photo(photo.dataset.pic);
+  if (tab) [].forEach.call(tray.querySelectorAll('.tab'), function (one) { one.classList.toggle('on', one === tab); });
+});
+keyboard.addEventListener('mousedown', function (event) { event.preventDefault(); });
+keyboard.addEventListener('click', function (event) {
+  var key = event.target.closest('[data-k]'), word = event.target.closest('[data-w]');
+  if (key) press_key(key.dataset.k);
+  if (word) {
+    var before = ta.value.slice(0, ta.selectionEnd), match = /([a-zа-яё]+)$/i.exec(before);
+    ta.value = before.slice(0, before.length - match[1].length) + word.dataset.w + ' ' + ta.value.slice(ta.selectionEnd);
+    set_caret(before.length - match[1].length + word.dataset.w.length + 1);
+    changed();
+  }
+});
+page.addEventListener('click', function (event) { if (event.target.closest('[data-back]')) close_page(); });
+// строку можно потянуть за полоску: вверх раскрывает, вниз сворачивает
+var grip = by_id('lv-grip'), drag = null;
+grip.addEventListener('pointerdown', function (event) { drag = {y: event.clientY}; grip.setPointerCapture(event.pointerId); });
+grip.addEventListener('pointermove', function (event) {
+  if (!drag) return;
+  var shift = Math.max(-40, Math.min(40, event.clientY - drag.y));
+  composer.style.transform = 'translateY(' + shift * 0.35 + 'px)';
+});
+grip.addEventListener('pointerup', function (event) {
+  if (!drag) return;
+  var shift = event.clientY - drag.y;
+  drag = null;
+  composer.style.transform = '';
+  if (shift < -24 && !S.full) set_full(true);
+  else if (shift > 24 && S.full) set_full(false);
+  else if (Math.abs(shift) < 4) set_full(!S.full);
+});
+
+// примеры: строка печатает сама
+var run = 0;
+function wait(id, ms) { return new Promise(function (resolve, reject) { setTimeout(function () { id === run ? resolve() : reject('stop'); }, ms); }); }
+async function typing(id, text, speed) {
+  for (var i = 0; i < text.length; i++) {
+    flash_key(text[i]);
+    insert(text[i]);
+    await wait(id, (speed || 46) + Math.random() * 44);
+  }
+}
+async function press(id, element, then, pause) {
+  tap(element);
+  await wait(id, 160);
+  then();
+  await wait(id, pause || 0);
+}
+function reset() {
+  close_page();
+  stop_recording(false);
+  hide_toast();
+  ta.value = ''; S.attachments = []; S.tray = false; S.full = false; S.filter = 'all'; S.manual = false;
+  S.clip = true; S.shot = true; S.history = ['']; S.step = 0; S.active = true;
+  update();
+}
+var SCENES = [
+  {title: 'Найти пароль', text: 'Пишешь пару слов, и строка уже ищет: в тексте, в расшифровках голосовых, в том, что написано на фото. Совпало точно, поэтому белой стала заметка, и кнопка её открывает.',
+    play: async function (id) { await wait(id, 500); await typing(id, 'пароль вай'); await wait(id, 1500); act(); await wait(id, 2600); close_page(); }},
+  {title: 'Закинуть идею', text: 'Новая мысль, точного совпадения нет. Белая строка у самой кнопки показывает, куда она ляжет и почему: слово togetherly отправило её в «Идеи». Выше лежат похожие идеи.',
+    play: async function (id) { await wait(id, 500); await typing(id, 'добавить в togetherly общий будильник для пары'); await wait(id, 2200); act(); }},
+  {title: 'Такое уже было', text: 'Ты уже записывал почти то же самое. «Дописать» добавит новую мысль в старую заметку, второй заметки не будет.',
+    play: async function (id) {
+      await wait(id, 500); await typing(id, 'виджет погоды в togetherly, чтобы видеть погоду у второго'); await wait(id, 1800);
+      var button = inner.querySelector('.app');
+      if (button) await press(id, button, function () { button.click(); }, 1400);
+      var open = toast.querySelector('button');
+      if (open) await press(id, open, function () { open.click(); }, 2600);
+      close_page();
+    }},
+  {title: 'Напоминание', text: '«Завтра в 10» подчёркнуто прямо в тексте, строка ставит напоминание. «Шиномонтаж» положил всё в «Машину» по правилу, без сети и без ИИ.',
+    play: async function (id) { await wait(id, 500); await typing(id, 'записаться на шиномонтаж завтра в 10'); await wait(id, 2200); act(); }},
+  {title: 'Ссылка из буфера', text: 'Скопировал ссылку и открыл Кладовку, а подсказка уже висит над строкой. Одно касание, видео легло в «Рецепты».',
+    play: async function (id) {
+      await wait(id, 1000);
+      var chip = top_row.querySelector('[data-sg="clip"]');
+      if (chip) await press(id, chip, function () { use_suggestion('clip'); }, 2000);
+      act();
+    }},
+  {title: 'Теги и папки', text: '# открывает теги, @ открывает папки. Две буквы и Enter. В поиске те же значки работают как фильтр.',
+    play: async function (id) {
+      await wait(id, 500); await typing(id, 'лампа над столом #'); await wait(id, 900); await typing(id, 'св'); await wait(id, 900); act();
+      await wait(id, 500); await typing(id, '@'); await wait(id, 800); await typing(id, 'реф'); await wait(id, 900); act(); await wait(id, 2000); act();
+    }},
+  {title: 'Команды и плагины', text: '/ открывает команды. Часть из них поставлена плагинами: /фильм сам находит год, рейтинг и длину и кладёт фильм в «Кино».',
+    play: async function (id) { await wait(id, 500); await typing(id, '/'); await wait(id, 1500); await typing(id, 'фи'); await wait(id, 800); act(); await typing(id, 'дюна'); await wait(id, 2200); act(); }},
+  {title: 'Фото из галереи', text: 'Плюс открывает галерею прямо над строкой. Отметил два фото, они грузятся в самой строке, кнопка кладёт их в папку.',
+    play: async function (id) {
+      await wait(id, 600); await press(id, add_button, toggle_tray, 900);
+      await press(id, tray.querySelector('[data-pic="p82"]'), function () { pick_photo('p82'); }, 500);
+      await press(id, tray.querySelector('[data-pic="p58"]'), function () { pick_photo('p58'); }, 900);
+      await press(id, add_button, toggle_tray, 2400); act();
+    }},
+  {title: 'Голосовое', text: 'Пока строка пустая, справа микрофон. Наговорил, нажал, голосовое легло. Расшифрует его твой ключ ИИ.',
+    play: async function (id) { S.active = false; update(); await wait(id, 700); act(); await wait(id, 3600); act(); }},
+  {title: 'На весь экран', text: 'Потяни строку за полоску вверх, и она раскроется в редактор с разметкой. Куда ляжет текст, видно в чипах сверху.',
+    play: async function (id) {
+      await wait(id, 600); await press(id, expand, function () { set_full(true); }, 700);
+      await typing(id, '# Поездка в Грецию\n', 40);
+      var checkbox = document.querySelector('#lv-fmt [data-md="cl"]');
+      await press(id, checkbox, function () { markdown('cl'); }); await typing(id, 'паспорт\n', 40);
+      await press(id, checkbox, function () { markdown('cl'); }); await typing(id, 'переходник для розетки\n', 40);
+      await typing(id, '**Вылет** в пятницу в 6:40', 40); await wait(id, 2200); act();
+    }}
+];
+var scene_box = by_id('lv-scen'), caption = by_id('lv-cap');
+SCENES.forEach(function (scene, index) {
+  var button = document.createElement('button');
+  button.className = 'sc';
+  button.innerHTML = '<span class="n">' + (index + 1) + '</span><span><b>' + scene.title + '</b><small>' + scene.text + '</small></span>';
+  button.addEventListener('click', function () {
+    var id = ++run;
+    [].forEach.call(scene_box.children, function (one) { one.classList.toggle('on', one === button); });
+    caption.textContent = scene.text;
+    reset();
+    scene.play(id).catch(function (error) { if (error !== 'stop') throw error; });
+  });
+  scene_box.appendChild(button);
+});
+// живое касание останавливает пример
+phone.addEventListener('pointerdown', function (event) {
+  if (!event.isTrusted) return;
+  run++;
+  [].forEach.call(scene_box.children, function (one) { one.classList.remove('on'); });
+}, true);
+document.addEventListener('keydown', function (event) { if (event.isTrusted && document.activeElement === ta) run++; }, true);
+
+caption.textContent = 'Нажми пример сверху или коснись строки и печатай.';
+render_keyboard();
+render_recent();
+S.ready = true;
+update();
+})();
 </script>
 </body>
 </html>

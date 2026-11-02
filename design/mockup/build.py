@@ -23,6 +23,8 @@ def icon_glyph(match):
 page = open(f'{HERE}/template.html').read()
 page = page.replace('/*FONTS*/', fonts)
 page = re.sub(r'(<i class="ic[^"]*"[^>]*>)([a-z0-9_]+)</i>', icon_glyph, page)
+# живая строка рисует иконки из скрипта, ей нужна та же таблица
+page = page.replace('/*ICONS*/{}', json.dumps(icons))
 
 # фото: img:p49 меняется на data-адрес
 page = re.sub(r'img:(p\d+)', lambda match: f'data:image/webp;base64,{b64(f"{HERE}/img/{match.group(1)}.webp")}', page)
