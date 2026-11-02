@@ -178,6 +178,19 @@ body{font-family:Onest,sans-serif;font-size:15px;line-height:1.4;-webkit-font-sm
 .mdbar i.div{width:1px;height:24px;background:var(--line);margin:0 2px;flex:none}
 .mdbar{justify-content:space-between}
 
+/* подсказка «уже есть похожее»: одна карточка, одно главное действие */
+.similar{background:var(--c-highest);border-radius:var(--r-tile);padding:var(--pad-tile)}
+.similar .top{display:flex;gap:12px;align-items:center}
+.similar .top .sh{width:44px;height:44px}
+.similar b{display:block;font-size:16px;font-weight:600;line-height:1.25}
+.similar small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.similar .q{margin-top:10px;padding:10px 12px;border-radius:14px;background:var(--c-high);font-size:14px;color:var(--on-var);line-height:1.4}
+.similar .q + .q{margin-top:4px}
+.similar .acts{display:flex;gap:8px;margin-top:12px}
+.similar .acts button{flex:1;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px;background:var(--graphite);color:var(--on)}
+.similar .acts button.main{background:var(--white);color:var(--on-white);flex:1.4}
+.similar .acts .ic{font-size:19px}
+
 /* теги: плитка-иконка и счётчик, как метки в Telegram */
 .tags{display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--pad)}
 .tg{height:36px;border-radius:18px;background:var(--c-high);display:inline-flex;align-items:center;gap:7px;padding:0 12px 0 6px;font-size:14px;font-weight:600;color:var(--on);flex:none}
@@ -429,25 +442,23 @@ body{font-family:Onest,sans-serif;font-size:15px;line-height:1.4;-webkit-font-sm
   </div>
   <div class="dim"></div>
   <div class="panel" style="bottom:404px">
-    <div class="lbl">Папка</div>
-    <div class="chips">
-      <span class="chip on"><i class="ic">folder</i>Рецепты<i class="ic">expand_more</i></span>
-      <span class="chip"><i class="ic">alarm</i>Сб, 12:00</span>
-    </div>
-    <div class="lbl" style="margin-top:14px">Теги</div>
+    <div class="lbl">Положу так</div>
     <div class="tags compact row" style="padding:0">
-      <span class="tg on"><span class="ti"><i class="ic">restaurant</i></span>рецепт</span>
-      <span class="tg on"><span class="ti"><i class="ic">smart_display</i></span>видео</span>
-      <span class="tg"><span class="ti"><i class="ic">celebration</i></span>десерт</span>
+      <span class="chip on" style="height:32px"><i class="ic">folder</i>Идеи<i class="ic">expand_more</i></span>
+      <span class="tg on"><span class="ti"><i class="ic">rocket_launch</i></span>togetherly</span>
+      <span class="tg on"><span class="ti"><i class="ic">lightbulb</i></span>виджет</span>
       <span class="tg add"><i class="ic">add</i></span>
     </div>
     <hr>
-    <div class="lbl"><i class="ic xs">history</i>Уже есть похожее</div>
-    <div class="match"><div class="ph" style="background-image:url(img:p102)"></div><div><b>Малиновый <em>тарт</em> за 20 минут</b><small>Рецепты · 3 дня назад</small></div><i class="ic go s">chevron_right</i></div>
+    <div class="similar">
+      <div class="top"><span class="sh w" data-shape="cookie9"><i class="ic f">lightbulb</i></span><div><b>Эта идея уже есть</b><small>Записал 12 октября, в «Идеях»</small></div></div>
+      <div class="q">Погода для пары: виджет показывает, какая погода сейчас у второго</div>
+      <div class="acts"><button class="main"><i class="ic">edit_note</i>Дописать туда</button><button>Открыть</button></div>
+    </div>
   </div>
-  <div class="dock" style="bottom:252px;z-index:26"><div class="composer typed"><i class="grip"></i><div class="ct">тарт с малиной в субботу испечь vm.tiktok.com/ZM8x<span class="caret"></span></div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic">arrow_upward</i></button></div></div></div>
+  <div class="dock" style="bottom:252px;z-index:26"><div class="composer typed"><i class="grip"></i><div class="ct">сделать виджет погоды в Togetherly, чтобы видеть погоду у второго<span class="caret"></span></div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic">arrow_upward</i></button></div></div></div>
   <div class="kb">
-    <div class="sug"><span>испечь</span><span>испечём</span><span>испеку</span></div>
+    <div class="sug"><span>второго</span><span>второй</span><span>вторую</span></div>
     <div class="row"><span class="k">й</span><span class="k">ц</span><span class="k">у</span><span class="k">к</span><span class="k">е</span><span class="k">н</span><span class="k">г</span><span class="k">ш</span><span class="k">щ</span><span class="k">з</span><span class="k">х</span></div>
     <div class="row"><span class="k">ф</span><span class="k">ы</span><span class="k">в</span><span class="k">а</span><span class="k">п</span><span class="k">р</span><span class="k">о</span><span class="k">л</span><span class="k">д</span><span class="k">ж</span><span class="k">э</span></div>
     <div class="row"><span class="k w"><i class="ic">arrow_upward</i></span><span class="k">я</span><span class="k">ч</span><span class="k">с</span><span class="k">м</span><span class="k">и</span><span class="k">т</span><span class="k">ь</span><span class="k">б</span><span class="k">ю</span><span class="k w"><i class="ic">backspace</i></span></div>
@@ -455,7 +466,66 @@ body{font-family:Onest,sans-serif;font-size:15px;line-height:1.4;-webkit-font-sm
   </div>
   <div class="gesture"></div>
 </div>
-<div class="cap"><h3><span>2</span>Пишешь в строку</h3><p>Пока печатаешь, приложение показывает папку и теги, которые поставит, и само вытащило из текста напоминание на субботу. Любой чип можно поменять до отправки, без интернета подсказываются папки и теги, куда ты кладёшь чаще. Ниже похожее из уже сохранённого: так строка работает и поиском, и ловит дубли.</p></div>
+<div class="cap"><h3><span>2</span>Такая идея уже есть</h3><p>Пока печатаешь, сверху видно, куда ляжет вещь. Если ты это уже записывал, приложение показывает старую заметку. «Дописать туда» добавит новую мысль в неё, второй заметки не будет. Не нажал — сохранится как обычно.</p></div>
+</div>
+
+<!-- 2а. К ДРУГИМ ИДЕЯМ -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:49</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><div class="title">Кладовка</div><button class="ibtn"><i class="ic s">tune</i></button></div>
+    <div class="today"><span class="sh" data-shape="cookie9" style="width:52px;height:52px"><i class="ic f">alarm</i></span><div><b>Позвонить в сервис</b><small>10:00 · Машина</small></div></div>
+  </div>
+  <div class="dim"></div>
+  <div class="panel" style="bottom:176px">
+    <div class="lbl">Положу так</div>
+    <div class="tags compact row" style="padding:0">
+      <span class="chip on" style="height:32px"><i class="ic">folder</i>Идеи<i class="ic">expand_more</i></span>
+      <span class="tg on"><span class="ti"><i class="ic">rocket_launch</i></span>togetherly</span>
+      <span class="tg add"><i class="ic">add</i></span>
+    </div>
+    <hr>
+    <div class="similar">
+      <div class="top"><span class="sh w" data-shape="squircle"><i class="ic f">layers</i></span><div><b>Ещё 6 идей про Togetherly</b><small>Лежат в разных местах</small></div></div>
+      <div class="q">Подарки друг другу за серию дней</div>
+      <div class="q">Общий список фильмов на вечер</div>
+      <div class="acts"><button class="main"><i class="ic">layers</i>Сложить вместе</button><button>Не надо</button></div>
+    </div>
+  </div>
+  <div class="dock"><div class="composer typed"><i class="grip"></i><div class="ct">в Togetherly добавить общий будильник для пары<span class="caret"></span></div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic">arrow_upward</i></button></div></div></div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>2а</span>Есть идеи про то же</h3><p>Новая идея про Togetherly, а другие про него уже лежат. «Сложить вместе» собирает их в одну стопку, и все идеи про одно потом лежат рядом.</p></div>
+</div>
+
+<!-- 2б. ЗАБЫТАЯ ИДЕЯ -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>14:49</span><span><i class="ic">signal_cellular_alt</i><i class="ic">wifi</i><i class="ic">battery_full</i></span></div>
+  <div class="scroll">
+    <div class="bar"><div class="title">Кладовка</div><button class="ibtn"><i class="ic s">tune</i></button></div>
+    <div class="today"><span class="sh" data-shape="cookie9" style="width:52px;height:52px"><i class="ic f">alarm</i></span><div><b>Позвонить в сервис</b><small>10:00 · Машина</small></div></div>
+  </div>
+  <div class="dim"></div>
+  <div class="panel" style="bottom:176px">
+    <div class="lbl">Положу так</div>
+    <div class="tags compact row" style="padding:0">
+      <span class="chip on" style="height:32px"><i class="ic">folder</i>Идеи<i class="ic">expand_more</i></span>
+      <span class="tg on"><span class="ti"><i class="ic">lightbulb</i></span>канал</span>
+      <span class="tg add"><i class="ic">add</i></span>
+    </div>
+    <hr>
+    <div class="similar">
+      <div class="top"><span class="sh w" data-shape="gem"><i class="ic f">history</i></span><div><b>Похожая идея лежит месяц</b><small>С 28 сентября ни разу не открывал</small></div></div>
+      <div class="q">Снимать ролики, как делаю игру, и выкладывать по пятницам</div>
+      <div class="acts"><button class="main"><i class="ic">notifications_active</i>Напомнить в пт</button><button>Открыть</button></div>
+    </div>
+  </div>
+  <div class="dock"><div class="composer typed"><i class="grip"></i><div class="ct">завести канал про разработку игры<span class="caret"></span></div><div class="crow"><button class="cb tonal"><i class="ic">add</i></button><button class="cb"><i class="ic">photo_camera</i></button><span class="sp"></span><button class="cb"><i class="ic s">open_in_full</i></button><button class="send"><i class="ic">arrow_upward</i></button></div></div></div>
+  <div class="gesture"></div>
+</div>
+<div class="cap"><h3><span>2б</span>Похожая идея забыта</h3><p>Ты уже думал об этом месяц назад и забыл. Приложение напоминает о старой идее и предлагает вернуться к ней в пятницу вместе с новой.</p></div>
 </div>
 
 <!-- 3. СТРОКА НА ВЕСЬ ЭКРАН -->
