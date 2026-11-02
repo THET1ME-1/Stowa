@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+  "appName": "Kladovka",
+  "@appName": {
+    "description": "Название приложения"
+  },
+  "composerHint": "Drop anything or search",
+  "@composerHint": {
+    "description": "Пустая строка снизу на главной"
+  },
+  "homeRecent": "Just now",
+  "@homeRecent": {
+    "description": "Раздел последних вещей на главной"
+  },
+  "homeFolders": "Folders",
+  "@homeFolders": {
+    "description": "Раздел папок на главной"
+  },
+  "homeEmpty": "Nothing here yet. Drop the first thing into the line below.",
+  "@homeEmpty": {
+    "description": "Главная без единой вещи"
+  }
+}

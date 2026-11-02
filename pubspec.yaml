@@ -1,0 +1,46 @@
+name: kladovka
+description: "Черновик, который разбирает себя сам."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  drift: ^2.35.3
+  drift_flutter: ^0.3.1
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^3.4.3
+  intl: ^0.20.3
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  shared_preferences: ^2.5.6
+  uuid: ^4.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.35.2
+  build_runner: ^2.17.1
+  material_symbols_icons: ^4.2960.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  fonts:
+    - family: Onest
+      fonts:
+        - asset: assets/fonts/Onest.ttf
+    - family: Unbounded
+      fonts:
+        - asset: assets/fonts/Unbounded.ttf
+    - family: KladovkaSymbols
+      fonts:
+        - asset: assets/fonts/KladovkaSymbols.ttf
+    - family: KladovkaSymbolsFilled
+      fonts:
+        - asset: assets/fonts/KladovkaSymbolsFilled.ttf
