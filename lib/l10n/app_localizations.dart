@@ -136,6 +136,174 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Nothing here yet. Drop the first thing into the line below.'**
   String get homeEmpty;
+
+  /// Подпись над ближайшим напоминанием
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get homeNext;
+
+  /// Сколько ещё напоминаний после ближайшего
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more'**
+  String homeMoreToday(Object count);
+
+  /// Отметить напоминание сделанным
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get homeReminderDone;
+
+  /// Ссылка «все» у раздела
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get homeAll;
+
+  /// Вещь ещё не разложена по папкам
+  ///
+  /// In en, this message translates to:
+  /// **'No folder'**
+  String get folderNone;
+
+  /// Подпись под вещью, которую разбирает ИИ
+  ///
+  /// In en, this message translates to:
+  /// **'sorting'**
+  String get itemSorting;
+
+  /// Метка папки, которую завёл ИИ
+  ///
+  /// In en, this message translates to:
+  /// **'new'**
+  String get folderNew;
+
+  /// Напоминание сегодня
+  ///
+  /// In en, this message translates to:
+  /// **'today at {time}'**
+  String remindToday(Object time);
+
+  /// Напоминание завтра
+  ///
+  /// In en, this message translates to:
+  /// **'tomorrow at {time}'**
+  String remindTomorrow(Object time);
+
+  /// Напоминание в другой день
+  ///
+  /// In en, this message translates to:
+  /// **'{date} at {time}'**
+  String remindOn(Object date, Object time);
+
+  /// Кнопка сохранить в строке
+  ///
+  /// In en, this message translates to:
+  /// **'Stow'**
+  String get composerStow;
+
+  /// Чип напоминания над строкой
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {when}'**
+  String composerRemind(Object when);
+
+  /// Подсказка к крестику на чипе напоминания
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder'**
+  String get composerRemoveReminder;
+
+  /// Кнопка плюс в строке
+  ///
+  /// In en, this message translates to:
+  /// **'Attach'**
+  String get composerAttach;
+
+  /// Кнопка решётки в строке
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get composerAddTag;
+
+  /// Заголовок панели над строкой
+  ///
+  /// In en, this message translates to:
+  /// **'It goes'**
+  String get composerGoesTo;
+
+  /// Attach sheet: pick photos and videos from the gallery
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos'**
+  String get attachGallery;
+
+  /// Attach sheet: open the camera for a photo
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get attachCamera;
+
+  /// Attach sheet: pick any files
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get attachFile;
+
+  /// Сообщение после сохранения
+  ///
+  /// In en, this message translates to:
+  /// **'Stowed'**
+  String get savedToast;
+
+  /// Сообщение после сохранения с напоминанием
+  ///
+  /// In en, this message translates to:
+  /// **'Stowed, reminder {when}'**
+  String savedWithReminder(Object when);
+
+  /// Отменить сохранение
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// Ошибка сохранения
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save, the text is back in the line'**
+  String get saveFailed;
+
+  /// Убрать вложение из строки
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeAttachment;
+
+  /// Attach sheet: hint under the gallery option
+  ///
+  /// In en, this message translates to:
+  /// **'Several at once'**
+  String get attachGalleryHint;
+
+  /// Attach sheet: open the camera for a video
+  ///
+  /// In en, this message translates to:
+  /// **'Record a video'**
+  String get attachVideo;
+
+  /// Attach sheet: hint under the files option
+  ///
+  /// In en, this message translates to:
+  /// **'Any format: documents, text, archives'**
+  String get attachFileHint;
+
+  /// Toast when a picker fails to return files
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open it. Try again'**
+  String get attachFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

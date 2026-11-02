@@ -1,8 +1,20 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
 import '../db/database.dart';
+
+/// Закреплённый тег на главной: плитка-иконка и число вещей, как метки в Telegram.
+class PinnedTag {
+  const PinnedTag({required this.id, required this.name, required this.iconKind, required this.iconValue, required this.count});
+
+  final String id;
+  final String name;
+  final TagIconKind iconKind;
+  final String iconValue;
+  final int count;
+}
 
 class TagsRepository {
   TagsRepository(this._db, {Uuid? uuid, DateTime Function()? clock})
@@ -24,5 +36,25 @@ class TagsRepository {
           mode: InsertMode.insertOrIgnore,
         );
     return (_db.select(_db.tags)..where((t) => t.name.equals(name))).getSingle();
+  }
+
+  /// Закреплённые теги по порядку, число — только живые вещи.
+  Stream<List<PinnedTag>> watchPinned() {
+    return _db.customSelect(
+      '''
+SELECT tags.*, (SELECT COUNT(*) FROM item_tags JOIN items ON items.id = item_tags.item_id
+  WHERE item_tags.tag_id = tags.id AND items.deleted_at IS NULL) AS item_count
+FROM tags WHERE tags.pinned = 1 ORDER BY tags.pin_order, tags.name''',
+      readsFrom: {_db.tags, _db.itemTags, _db.items},
+    ).watch().map((rows) => [
+          for (final row in rows)
+            PinnedTag(
+              id: row.read<String>('id'),
+              name: row.read<String>('name'),
+              iconKind: TagIconKind.values.byName(row.read<String>('icon_kind')),
+              iconValue: row.read<String>('icon_value'),
+              count: row.read<int>('item_count'),
+            ),
+        ]);
   }
 }

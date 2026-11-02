@@ -103,6 +103,11 @@ class ItemsRepository {
         });
   }
 
+  /// «Готово» у напоминания: вещь остаётся, напоминание снимается.
+  Future<void> clearReminder(String id) {
+    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(reminderAt: Value(null)));
+  }
+
   /// Мягкое удаление: вещь пропадает из лент и поиска, чистка — через 30 дней.
   Future<void> softDelete(String id, DateTime at) {
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(deletedAt: Value(at)));

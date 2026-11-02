@@ -22,6 +22,9 @@ Uri? firstUrl(String text) {
   return null;
 }
 
+/// Ссылки в тексте по местам: строка ввода их подчёркивает.
+Iterable<Match> urlMatches(String text) => _url.allMatches(text);
+
 bool _isVideoHost(Uri uri) {
   final host = uri.host.toLowerCase();
   final hit = _videoHosts.any((video) => host == video || host.endsWith('.$video'));

@@ -1,0 +1,88 @@
+import 'package:drift/drift.dart' hide isNull;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/repositories/folders_repository.dart';
+import 'package:stowa/data/repositories/items_repository.dart';
+import 'package:stowa/data/repositories/tags_repository.dart';
+import 'package:stowa/domain/models.dart';
+
+final _day = DateTime(2026, 11, 2, 12);
+
+Future<void> _item(AppDatabase db, String id, {String? folder, String? image, int minutes = 0, bool deleted = false}) async {
+  final at = _day.add(Duration(minutes: minutes));
+  await db.into(db.items).insert(ItemsCompanion.insert(
+        id: id,
+        kind: image == null ? ItemKind.note : ItemKind.image,
+        title: 'Вещь $id',
+        folderId: Value(folder),
+        createdAt: at,
+        updatedAt: at,
+        deletedAt: Value(deleted ? at : null),
+      ));
+  if (image != null) {
+    await db.into(db.attachments).insert(
+          AttachmentsCompanion.insert(id: 'a$id', itemId: id, path: image, mime: 'image/jpeg', size: 1),
+        );
+  }
+}
+
+void main() {
+  late AppDatabase db;
+  setUp(() => db = AppDatabase.memory());
+  tearDown(() => db.close());
+
+  test('папки со счётом живых вещей, обложками и последними заголовками', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'refs', name: 'Референсы', icon: 'palette', shape: 'squircle'));
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'car', name: 'Машина', icon: 'directions_car', shape: 'pill', sortOrder: const Value(1)));
+    await _item(db, '1', folder: 'refs', image: 'p/1.jpg', minutes: 1);
+    await _item(db, '2', folder: 'refs', image: 'p/2.jpg', minutes: 2);
+    await _item(db, '3', folder: 'refs', minutes: 3);
+    await _item(db, '4', folder: 'refs', image: 'p/4.jpg', minutes: 4, deleted: true);
+    await _item(db, '5', folder: 'car', minutes: 5);
+
+    final folders = await FoldersRepository(db).watchAll().first;
+    expect(folders.map((folder) => folder.name), ['Референсы', 'Машина']);
+    final refs = folders.first;
+    expect(refs.count, 3);
+    expect(refs.covers, ['p/2.jpg', 'p/1.jpg']);
+    expect(refs.recentTitles.first, 'Вещь 3');
+    expect(folders.last.count, 1);
+  });
+
+  test('удалённая папка не показывается', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'x', name: 'Старое', icon: 'folder', shape: 'gem', deletedAt: Value(_day)));
+    expect(await FoldersRepository(db).watchAll().first, isEmpty);
+  });
+
+  test('закреплённые теги по порядку и с числом вещей', () async {
+    final tags = TagsRepository(db, clock: () => _day);
+    final car = await tags.ensure('машина');
+    final food = await tags.ensure('рецепт');
+    await tags.ensure('прочее');
+    await (db.update(db.tags)..where((t) => t.id.equals(car.id))).write(const TagsCompanion(pinned: Value(true), pinOrder: Value(2), iconValue: Value('directions_car')));
+    await (db.update(db.tags)..where((t) => t.id.equals(food.id))).write(const TagsCompanion(pinned: Value(true), pinOrder: Value(1)));
+    await _item(db, '1');
+    await _item(db, '2');
+    await _item(db, '3', deleted: true);
+    for (final id in ['1', '2', '3']) {
+      await db.into(db.itemTags).insert(ItemTagsCompanion.insert(itemId: id, tagId: car.id, source: TagSource.inline));
+    }
+
+    final pinned = await tags.watchPinned().first;
+    expect(pinned.map((tag) => tag.name), ['рецепт', 'машина']);
+    expect(pinned.last.count, 2);
+    expect(pinned.last.iconValue, 'directions_car');
+    expect(pinned.first.count, 0);
+  });
+
+  test('«Готово» у напоминания убирает его из ближайших, вещь остаётся', () async {
+    await _item(db, '1');
+    await (db.update(db.items)..where((t) => t.id.equals('1'))).write(ItemsCompanion(reminderAt: Value(_day.add(const Duration(hours: 1)))));
+    final items = ItemsRepository(db);
+    expect(await items.watchUpcoming(_day).first, hasLength(1));
+
+    await items.clearReminder('1');
+    expect(await items.watchUpcoming(_day).first, isEmpty);
+    expect(await items.watchRecent().first, hasLength(1));
+  });
+}

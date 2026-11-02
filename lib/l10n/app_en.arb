@@ -19,5 +19,117 @@
   "homeEmpty": "Nothing here yet. Drop the first thing into the line below.",
   "@homeEmpty": {
     "description": "Главная без единой вещи"
+  },
+  "homeNext": "Up next",
+  "@homeNext": {
+    "description": "Подпись над ближайшим напоминанием"
+  },
+  "homeMoreToday": "{count} more",
+  "@homeMoreToday": {
+    "description": "Сколько ещё напоминаний после ближайшего"
+  },
+  "homeReminderDone": "Done",
+  "@homeReminderDone": {
+    "description": "Отметить напоминание сделанным"
+  },
+  "homeAll": "All",
+  "@homeAll": {
+    "description": "Ссылка «все» у раздела"
+  },
+  "folderNone": "No folder",
+  "@folderNone": {
+    "description": "Вещь ещё не разложена по папкам"
+  },
+  "itemSorting": "sorting",
+  "@itemSorting": {
+    "description": "Подпись под вещью, которую разбирает ИИ"
+  },
+  "folderNew": "new",
+  "@folderNew": {
+    "description": "Метка папки, которую завёл ИИ"
+  },
+  "remindToday": "today at {time}",
+  "@remindToday": {
+    "description": "Напоминание сегодня"
+  },
+  "remindTomorrow": "tomorrow at {time}",
+  "@remindTomorrow": {
+    "description": "Напоминание завтра"
+  },
+  "remindOn": "{date} at {time}",
+  "@remindOn": {
+    "description": "Напоминание в другой день"
+  },
+  "composerStow": "Stow",
+  "@composerStow": {
+    "description": "Кнопка сохранить в строке"
+  },
+  "composerRemind": "Remind {when}",
+  "@composerRemind": {
+    "description": "Чип напоминания над строкой"
+  },
+  "composerRemoveReminder": "No reminder",
+  "@composerRemoveReminder": {
+    "description": "Подсказка к крестику на чипе напоминания"
+  },
+  "composerAttach": "Attach",
+  "@composerAttach": {
+    "description": "Кнопка плюс в строке"
+  },
+  "composerAddTag": "Tag",
+  "@composerAddTag": {
+    "description": "Кнопка решётки в строке"
+  },
+  "composerGoesTo": "It goes",
+  "@composerGoesTo": {
+    "description": "Заголовок панели над строкой"
+  },
+  "attachGallery": "Photos and videos",
+  "@attachGallery": {
+    "description": "Attach sheet: pick photos and videos from the gallery"
+  },
+  "attachCamera": "Take a photo",
+  "@attachCamera": {
+    "description": "Attach sheet: open the camera for a photo"
+  },
+  "attachFile": "Files",
+  "@attachFile": {
+    "description": "Attach sheet: pick any files"
+  },
+  "savedToast": "Stowed",
+  "@savedToast": {
+    "description": "Сообщение после сохранения"
+  },
+  "savedWithReminder": "Stowed, reminder {when}",
+  "@savedWithReminder": {
+    "description": "Сообщение после сохранения с напоминанием"
+  },
+  "undo": "Undo",
+  "@undo": {
+    "description": "Отменить сохранение"
+  },
+  "saveFailed": "Couldn't save, the text is back in the line",
+  "@saveFailed": {
+    "description": "Ошибка сохранения"
+  },
+  "removeAttachment": "Remove",
+  "@removeAttachment": {
+    "description": "Убрать вложение из строки"
+  },
+  "attachGalleryHint": "Several at once",
+  "@attachGalleryHint": {
+    "description": "Attach sheet: hint under the gallery option"
+  },
+  "attachVideo": "Record a video",
+  "@attachVideo": {
+    "description": "Attach sheet: open the camera for a video"
+  },
+  "attachFileHint": "Any format: documents, text, archives",
+  "@attachFileHint": {
+    "description": "Attach sheet: hint under the files option"
+  },
+  "attachFailed": "Couldn't open it. Try again",
+  "@attachFailed": {
+    "description": "Toast when a picker fails to return files"
   }
 }
