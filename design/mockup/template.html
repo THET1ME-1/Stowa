@@ -497,11 +497,22 @@ body{font-family:Onest,sans-serif;font-size:15px;line-height:1.4;-webkit-font-sm
 .fin textarea{position:absolute;inset:0;width:100%;height:100%;border:0;outline:0;background:none;resize:none;padding:0;margin:0;color:transparent;caret-color:var(--white);overflow:hidden;cursor:text}
 .fin textarea::selection{background:rgba(244,244,242,.25);color:transparent}
 .mir .plh{color:var(--muted)}
-.mir .tk{border-radius:5px;background:rgba(244,244,242,.15);box-shadow:0 0 0 2px rgba(244,244,242,.15)}
-.mir .tk.cmd{background:var(--white);color:var(--on-white);box-shadow:0 0 0 2px var(--white)}
-.mir .tk.dt{background:none;box-shadow:none;text-decoration:underline 1.5px dotted;text-underline-offset:5px}
-.mir .tk.url{background:none;box-shadow:none;color:var(--on-var);text-decoration:underline 1px;text-underline-offset:3px}
-.mir .tk.mk{background:none;box-shadow:none;color:var(--muted)}
+/* подсветка в тексте меняет только цвет и фон, ширина букв та же, иначе курсор уедет */
+.mir .tk{border-radius:5px;background:rgba(244,244,242,.15);box-shadow:0 0 0 1px rgba(244,244,242,.15)}
+.mir .tk-cmd{background:var(--white);color:var(--on-white);box-shadow:0 0 0 2px var(--white)}
+.mir .tk-dt{background:none;box-shadow:none;text-decoration:underline 1.5px dotted;text-underline-offset:5px}
+.mir .tk-url{background:none;box-shadow:none;color:var(--on-var);text-decoration:underline 1px;text-underline-offset:3px}
+.mir .tk-mk{background:none;box-shadow:none;color:var(--muted)}
+/* выбранные теги и папка живут чипами над строкой, в тексте их нет */
+.ct-chip{height:34px;border-radius:17px;background:var(--c-high);display:inline-flex;align-items:center;gap:7px;padding:0 8px 0 4px;font-size:14px;font-weight:600;flex:none;color:var(--on);animation:att-in .4s var(--e-spr) backwards}
+.ct-chip .ti{width:26px;height:26px;border-radius:9px;background:var(--white);color:var(--on-white);display:flex;align-items:center;justify-content:center;flex:none}
+.ct-chip .ti .ic{font-size:17px;font-variation-settings:'FILL' 1,'wght' 500}
+.ct-chip .sh{width:26px;height:26px}
+.ct-chip .sh .ic{font-size:16px}
+.ct-chip .x{font-size:16px;color:var(--muted)}
+.ct-chip.auto{background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--on-var);font-weight:500;padding:0 12px 0 8px;gap:4px}
+.ct-chip.auto .ic{font-size:16px}
+.top .old{animation:none}
 .cr{display:flex;align-items:center;gap:2px;flex:none}
 .cr .sp{flex:1}
 .cb.gl{font-family:Onest;font-weight:500;font-size:20px;line-height:1;color:var(--on-var);width:34px;overflow:hidden;transition:width .4s var(--e-emph),opacity .2s}
@@ -1209,7 +1220,8 @@ var TRAY = ['p82', 'p84', 'p58', 'p39', 'p16', 'p29', 'p116', 'p85'];
 var next_id = 100;
 
 var S = {active: false, full: false, tray: false, recording: false, filter: 'all', sel: 0, manual: false, rows: [],
-  attachments: [], clip: true, shot: true, page: null, recent: [], history: [''], step: 0, shift: false, layout: 'ru'};
+  attachments: [], clip: true, shot: true, page: null, recent: [], history: [''], step: 0, shift: false, layout: 'ru',
+  chosen_tags: [], chosen_folder: null};
 S.recent = [ITEMS[6], ITEMS[5], ITEMS[15]];
 
 // поиск: слова с началом слова, окончания срезаются, одна опечатка прощается
@@ -1333,7 +1345,38 @@ function parse(text) {
     if (word.length < 2 || STOP[word] || seen[stem(word)]) return false;
     return (seen[stem(word)] = true);
   });
+  S.chosen_tags.forEach(function (tag) { if (parsed.tags.indexOf(tag) < 0) parsed.tags.push(tag); });
+  if (S.chosen_folder) parsed.folders.push(FOLDERS[S.chosen_folder].name);
   return parsed;
+}
+// дописанный тег или папка уходят из текста в чип: #свет и пробел, и тег уже над строкой
+function lift_chips() {
+  var text = ta.value, at = ta.selectionEnd, re = /(^|\s)([#@])([^\s#@]+)(?=\s)/g, match, cuts = [];
+  while ((match = re.exec(text))) {
+    var value = match[3], start = match.index + match[1].length, end = start + 1 + value.length;
+    if (match[2] === '@') {
+      var key = folder_key(value);
+      if (!key) continue;
+      S.chosen_folder = key;
+    } else if (S.chosen_tags.indexOf(norm(value)) < 0) S.chosen_tags.push(norm(value));
+    cuts.push([start, text[end] === ' ' ? end + 1 : end]);
+  }
+  for (var i = cuts.length - 1; i >= 0; i--) {
+    text = text.slice(0, cuts[i][0]) + text.slice(cuts[i][1]);
+    if (at > cuts[i][0]) at = Math.max(cuts[i][0], at - (cuts[i][1] - cuts[i][0]));
+  }
+  if (cuts.length) { ta.value = text; set_caret(at); }
+}
+function drop_last_chip() {
+  if (S.chosen_tags.length) S.chosen_tags.pop();
+  else if (S.chosen_folder) S.chosen_folder = null;
+  else return false;
+  update();
+  return true;
+}
+function tag_icon(name) {
+  var found = TAGS.filter(function (one) { return norm(one.name) === name; })[0];
+  return found ? found.icon : 'sell';
 }
 function caret_mode() {
   var at = ta.selectionEnd, text = ta.value, before = text.slice(0, at), match;
@@ -1429,7 +1472,9 @@ function save_row(parsed) {
   if (key === 'входящие') title = 'Во «Входящие» как есть';
   var sub = [];
   if (guess.preview) sub.push(esc(guess.preview.title));
-  if (guess.tags.length) sub.push(guess.tags.map(function (tag) { return '#' + esc(tag); }).join(' '));
+  // выбранные теги уже видны чипами под панелью, здесь только те, что строка поставит сама
+  var auto = guess.tags.filter(function (tag) { return S.chosen_tags.indexOf(tag) < 0; });
+  if (auto.length) sub.push(auto.map(function (tag) { return '#' + esc(tag); }).join(' '));
   if (guess.remind && key !== 'напомнить') sub.push(ic('alarm') + 'напомню ' + esc(guess.remind));
   if (key === 'напомнить' && !guess.remind) sub.push('когда? допиши «завтра в 10»');
   if (!sub.length) sub.push(guess.kind === 'photo' && !parsed.free ? 'подпись и теги допишет твой ключ ИИ' : esc(make_title(parsed, guess)));
@@ -1611,7 +1656,7 @@ function render_mirror(parsed) {
   if (!text) { mirror.innerHTML = '<span class="plh">' + (S.full ? 'Пиши в Markdown, файлы прикрепляй плюсом' : 'Закинь что угодно или найди') + '</span>'; return; }
   var html = '', at = 0;
   parsed.tokens.forEach(function (token) {
-    html += esc(text.slice(at, token.start)) + '<span class="tk ' + token.kind + '">' + esc(text.slice(token.start, token.end)) + '</span>';
+    html += esc(text.slice(at, token.start)) + '<span class="tk tk-' + token.kind + '">' + esc(text.slice(token.start, token.end)) + '</span>';
     at = token.end;
   });
   html += esc(text.slice(at));
@@ -1634,30 +1679,45 @@ function render_send(row) {
   }
 }
 function render_top(guess) {
-  var html = '', sig;
-  if (S.full) {
+  var parts = [];
+  // папка: выбранная своей рукой с крестиком, в редакторе ещё и догадка строки
+  if (S.chosen_folder) {
+    var chosen = FOLDERS[S.chosen_folder];
+    parts.push(['f' + S.chosen_folder, '<button class="ct-chip" data-rm="f"><span class="sh" data-shape="' + chosen.shape + '">' + ic(chosen.icon) + '</span>' + esc(chosen.name) + ic('close', 'x') + '</button>']);
+  } else if (S.full) {
     var folder = FOLDERS[guess.folder || 'inbox'];
-    sig = 'full' + guess.folder + guess.tags.join() + guess.remind;
-    html = '<span class="dest">' + ic(folder.icon) + esc(guess.folder ? folder.name : 'Папку подберу') + ic('expand_more') + '</span>' +
-      guess.tags.map(function (tag) { return '<span class="dest tg2">#' + esc(tag) + '</span>'; }).join('') +
-      (guess.remind ? '<span class="dest tg2">' + ic('alarm') + esc(guess.remind) + '</span>' : '');
-  } else if (S.attachments.length) {
-    sig = 'att' + S.attachments.map(function (one) { return one.pic + one.done; }).join();
-    html = S.attachments.map(function (one) {
-      return '<div class="att" data-pic="' + one.pic + '" style="background-image:url(' + PIC[one.pic] + ');animation:' + (one.seen ? 'none' : '') + '"><span class="st">' +
-        (one.done ? ic('check') : '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/></svg>') + '</span></div>';
-    }).join('');
-  } else if (S.active && !ta.value && (S.clip || S.shot)) {
-    sig = 'sg' + S.clip + S.shot;
-    if (S.clip) html += '<button class="sg" data-sg="clip"><span class="si">' + ic('content_paste') + '</span>Ссылка из буфера<small>tiktok.com</small></button>';
-    if (S.shot) html += '<button class="sg" data-sg="shot"><span class="th" style="background-image:url(' + PIC.p60 + ')"></span>Скриншот<small>1 мин назад</small></button>';
-  } else sig = '';
-  if (top_row._sig !== sig) {
-    top_row._sig = sig;
-    top_row.innerHTML = html;
-    S.attachments.forEach(function (one) { one.seen = true; });
+    parts.push(['g' + guess.folder, '<span class="dest">' + ic(folder.icon) + esc(guess.folder ? folder.name : 'Папку подберу') + ic('expand_more') + '</span>']);
   }
-  top_row.hidden = !html;
+  S.chosen_tags.forEach(function (tag) {
+    parts.push(['t' + tag, '<button class="ct-chip" data-rm="t' + esc(tag) + '"><span class="ti">' + ic(tag_icon(tag)) + '</span>' + esc(tag) + ic('close', 'x') + '</button>']);
+  });
+  if (S.full) {
+    // теги, которые строка поставит сама: пунктиром, касание закрепляет
+    guess.tags.filter(function (tag) { return S.chosen_tags.indexOf(tag) < 0; }).forEach(function (tag) {
+      parts.push(['a' + tag, '<button class="ct-chip auto" data-add="' + esc(tag) + '">' + ic('add') + esc(tag) + '</button>']);
+    });
+    if (guess.remind) parts.push(['r' + guess.remind, '<span class="dest tg2">' + ic('alarm') + esc(guess.remind) + '</span>']);
+  }
+  S.attachments.forEach(function (one) {
+    parts.push(['p' + one.pic, '<div class="att" data-pic="' + one.pic + '" style="background-image:url(' + PIC[one.pic] + ')"><span class="st">' +
+      (one.done ? ic('check') : '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/></svg>') + '</span></div>']);
+  });
+  if (!parts.length && S.active && !S.full && !ta.value) {
+    if (S.clip) parts.push(['sclip', '<button class="sg" data-sg="clip"><span class="si">' + ic('content_paste') + '</span>Ссылка из буфера<small>tiktok.com</small></button>']);
+    if (S.shot) parts.push(['sshot', '<button class="sg" data-sg="shot"><span class="th" style="background-image:url(' + PIC.p60 + ')"></span>Скриншот<small>1 мин назад</small></button>']);
+  }
+  var sig = parts.map(function (part) { return part[0]; }).join('|') + '|' + S.attachments.map(function (one) { return one.done ? 1 : 0; }).join('');
+  if (top_row._sig !== sig) {
+    // появляется с отскоком только новое, остальное стоит на месте
+    var before = (top_row._sig || '').split('|');
+    top_row._sig = sig;
+    top_row.innerHTML = parts.map(function (part) { return part[1]; }).join('');
+    parts.forEach(function (part, index) {
+      if (before.indexOf(part[0]) >= 0) top_row.children[index].classList.add('old');
+    });
+    shapes(top_row);
+  }
+  top_row.hidden = !parts.length;
 }
 function render_tray() {
   if (!tray._built) {
@@ -1735,6 +1795,7 @@ function update() {
 }
 function changed() {
   S.manual = false;
+  lift_chips();
   if (S.history[S.step] !== ta.value) { S.history = S.history.slice(0, S.step + 1).concat(ta.value).slice(-80); S.step = S.history.length - 1; }
   if (!ta.value) S.filter = 'all';
   update();
@@ -1800,7 +1861,7 @@ function hide_toast() {
   setTimeout(function () { if (toast.classList.contains('out')) { toast.hidden = true; toast.classList.remove('out'); } }, 200);
 }
 function do_save(made) {
-  var parsed = parse(ta.value), guess = predict(parsed), text = ta.value;
+  var parsed = parse(ta.value), guess = predict(parsed), text = ta.value, tags = S.chosen_tags.slice(), folder = S.chosen_folder;
   var item = made ? {kind: 'note', title: made.title, text: made.text, folder: made.folder, tags: made.tags, fresh: made.fresh} : {
     kind: guess.kind, title: make_title(parsed, guess), text: parsed.free || (guess.preview ? guess.preview.site : ''),
     folder: guess.folder || 'inbox', tags: guess.tags, fresh: !guess.folder,
@@ -1817,10 +1878,11 @@ function do_save(made) {
     S.recent.splice(S.recent.indexOf(item), 1);
     render_recent();
     ta.value = text;
+    S.chosen_tags = tags; S.chosen_folder = folder;
     S.active = true;
     changed();
   });
-  ta.value = ''; S.attachments = []; S.filter = 'all';
+  ta.value = ''; S.attachments = []; S.filter = 'all'; S.chosen_tags = []; S.chosen_folder = null;
   S.history = ['']; S.step = 0;
   deactivate();
 }
@@ -1829,7 +1891,7 @@ function do_append(item) {
   item.added = (item.added || []).concat(text.charAt(0).toUpperCase() + text.slice(1));
   item.days = 0;
   show_toast('edit_note', 'Дописал в «' + esc(item.title) + '»', 'Открыть', function () { open_item(item); });
-  ta.value = ''; S.history = ['']; S.step = 0;
+  ta.value = ''; S.history = ['']; S.step = 0; S.chosen_tags = []; S.chosen_folder = null;
   deactivate();
 }
 function open_item(item) {
@@ -2012,6 +2074,7 @@ function render_suggestions() {
 function press_key(key) {
   if (key === 'back') {
     var start = ta.selectionStart, end = ta.selectionEnd;
+    if (!start && !end && drop_last_chip()) return;
     if (start === end && start > 0) start--;
     ta.value = ta.value.slice(0, start) + ta.value.slice(end);
     set_caret(start);
@@ -2051,6 +2114,8 @@ ta.addEventListener('keydown', function (event) {
   } else if (event.key === 'Tab' && caret_mode() && S.rows.length) {
     event.preventDefault();
     S.rows[S.sel].act();
+  } else if (event.key === 'Backspace' && !ta.selectionStart && !ta.selectionEnd) {
+    if (drop_last_chip()) event.preventDefault();
   } else if (event.key === 'Escape') {
     event.preventDefault();
     if (S.full) set_full(false);
@@ -2061,6 +2126,10 @@ ta.addEventListener('keydown', function (event) {
 });
 composer.addEventListener('click', function (event) { if (!S.active && !event.target.closest('button')) { ta.focus(); activate(); } });
 by_id('lv-scrim').addEventListener('click', function () { if (S.full) set_full(false); else deactivate(); });
+// кнопки, чипы и строки панели не забирают фокус у строки, иначе первая буква после нажатия теряется
+by_id('lv-ob').addEventListener('mousedown', function (event) {
+  if (event.target !== ta && event.target.closest('button, .rw, .gp, .att, .grip')) event.preventDefault();
+});
 send.addEventListener('click', act);
 add_button.addEventListener('click', function () { tap(add_button); toggle_tray(); });
 expand.addEventListener('click', function () { set_full(!S.full); });
@@ -2093,6 +2162,13 @@ head.addEventListener('click', function (event) {
 });
 top_row.addEventListener('click', function (event) {
   var chip = event.target.closest('[data-sg]'), att = event.target.closest('.att');
+  var remove = event.target.closest('[data-rm]'), keep = event.target.closest('[data-add]');
+  if (remove) {
+    if (remove.dataset.rm === 'f') S.chosen_folder = null;
+    else S.chosen_tags.splice(S.chosen_tags.indexOf(remove.dataset.rm.slice(1)), 1);
+    return update();
+  }
+  if (keep) { S.chosen_tags.push(keep.dataset.add); return update(); }
   if (chip) { tap(chip); use_suggestion(chip.dataset.sg); }
   if (att) pick_photo(att.dataset.pic);
 });
@@ -2156,7 +2232,7 @@ function reset() {
   stop_recording(false);
   hide_toast();
   ta.value = ''; S.attachments = []; S.tray = false; S.full = false; S.filter = 'all'; S.manual = false;
-  S.clip = true; S.shot = true; S.history = ['']; S.step = 0; S.active = true;
+  S.clip = true; S.shot = true; S.history = ['']; S.step = 0; S.active = true; S.chosen_tags = []; S.chosen_folder = null;
   update();
 }
 var SCENES = [
@@ -2182,7 +2258,7 @@ var SCENES = [
       if (chip) await press(id, chip, function () { use_suggestion('clip'); }, 2000);
       act();
     }},
-  {title: 'Теги и папки', text: '# открывает теги, @ открывает папки. Две буквы и Enter. В поиске те же значки работают как фильтр.',
+  {title: 'Теги и папки', text: '# открывает теги, @ открывает папки. Две буквы и Enter, и тег уходит из текста в чип над строкой, с иконкой, как на главной. Крестик или стирание в начале строки убирает чип. В поиске чипы работают как фильтр.',
     play: async function (id) {
       await wait(id, 500); await typing(id, 'лампа над столом #'); await wait(id, 900); await typing(id, 'св'); await wait(id, 900); act();
       await wait(id, 500); await typing(id, '@'); await wait(id, 800); await typing(id, 'реф'); await wait(id, 900); act(); await wait(id, 2000); act();
