@@ -121,6 +121,8 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
     SaveReason.word => (text: l.reasonWord(value), icon: 'bolt'),
     SaveReason.domain => (text: l.reasonDomain(value), icon: 'bolt'),
     SaveReason.kind => (text: l.reasonKind, icon: 'bolt'),
+    SaveReason.name => (text: l.reasonName(value), icon: 'bolt'),
+    SaveReason.similar => (text: l.reasonSimilar(value), icon: 'bolt'),
     SaveReason.none => (text: l.reasonNone, icon: 'key'),
   };
 }

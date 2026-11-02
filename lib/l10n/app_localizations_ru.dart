@@ -518,4 +518,14 @@ class LRu extends L {
 
   @override
   String get itemSortingBadge => 'разбираю';
+
+  @override
+  String reasonName(String name) {
+    return 'по имени «$name», без сети';
+  }
+
+  @override
+  String reasonSimilar(String words) {
+    return 'по словам «$words», без сети';
+  }
 }

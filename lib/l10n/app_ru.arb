@@ -145,5 +145,7 @@
   "itemDescription": "Что на картинке",
   "itemFiles": "Файлы",
   "itemMoved": "Переложил в «{folder}»",
-  "itemSortingBadge": "разбираю"
+  "itemSortingBadge": "разбираю",
+  "reasonName": "по имени «{name}», без сети",
+  "reasonSimilar": "по словам «{words}», без сети"
 }

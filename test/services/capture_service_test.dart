@@ -190,6 +190,20 @@ void main() {
     });
   });
 
+  test('без правила заметка ложится туда, где уже был её герой', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'novel', name: 'Роман', icon: 'menu_book', shape: 'squircle'));
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'car', name: 'Машина', icon: 'directions_car', shape: 'pill'));
+    await capture.capture(const CaptureInput(text: 'Милтон работает курьером', forcedFolderId: 'novel'));
+    await capture.capture(const CaptureInput(text: 'Сцена: Милтон спорит с сестрой', forcedFolderId: 'novel'));
+    await capture.capture(const CaptureInput(text: 'Замена масла', forcedFolderId: 'car'));
+
+    final id = await capture.capture(const CaptureInput(text: 'Пусть у Милтона будет личная проблема'));
+    final saved = (await items.get(id))!;
+    expect(saved.item.folderId, 'novel');
+    expect(saved.item.sortedBy, SortedBy.similar);
+    expect(saved.item.sortState, SortState.sorted);
+  });
+
   test('голосовое получает свой заголовок, а не имя файла', () async {
     final source = File(p.join(home.path, 'voice_1.m4a'))..writeAsBytesSync([1, 2, 3]);
     final id = await capture.capture(CaptureInput(files: [PickedFile(path: source.path, mime: 'audio/mp4', size: 3)], title: 'Голосовое'));

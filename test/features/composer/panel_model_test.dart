@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/repositories/folders_repository.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
+import 'package:stowa/domain/folder_guess.dart';
 import 'package:stowa/domain/line_query.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/search_rank.dart';
@@ -68,6 +69,25 @@ void main() {
     expect(plan.reason, SaveReason.tag);
     expect(plan.reasonValue, 'машина');
     expect(plan.autoTags, ['машина']);
+  });
+
+  test('без правила имя героя находит его книгу, причина — имя', () {
+    const novel = FolderCard(id: 'novel', name: 'Роман', icon: 'menu_book', shape: 'squircle', count: 2, covers: [], recentTitles: [], createdByAi: false);
+    final index = FolderIndex(const [
+      FolderDoc(folderId: 'novel', text: 'Милтон работает курьером'),
+      FolderDoc(folderId: 'novel', text: 'Сцена: Милтон спорит с сестрой'),
+      FolderDoc(folderId: 'car', text: 'Замена масла'),
+    ]);
+    final plan = buildPanel(PanelInput(
+      text: 'Пусть у Милтона будет личная проблема',
+      caret: 37,
+      commandKeys: _keys,
+      folders: const [_car, novel],
+      folderIndex: index,
+    )).plan!;
+    expect(plan.folder?.id, 'novel');
+    expect(plan.reason, SaveReason.name);
+    expect(plan.reasonValue, 'Милтона');
   });
 
   test('без правила папку подберёт ключ ИИ, а новое — новое', () {

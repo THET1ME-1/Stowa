@@ -6,8 +6,10 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../data/db/database.dart';
+import '../data/repositories/items_repository.dart';
 import '../data/repositories/rules_repository.dart';
 import '../data/repositories/tags_repository.dart';
+import '../domain/folder_guess.dart';
 import '../domain/inline_tags.dart';
 import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
@@ -99,15 +101,18 @@ class CaptureService {
       // правила раньше ИИ: разложили — вещь в очередь ИИ не встаёт
       final rules = byHand ? const RuleOutcome() : applyRules(await RulesRepository(_db).enabled(), text: text, tags: ownTags, host: url?.host, kind: kind);
       final byRule = rules.folderId != null;
+      // правила молчат — угадыватель смотрит, в какой папке уже живут слова заметки
+      final guess = byHand || byRule || text.isEmpty ? null : FolderIndex(await ItemsRepository(_db).folderDocs()).guess(text);
+      final sorted = byHand || byRule || guess != null;
       await _db.into(_db.items).insert(ItemsCompanion.insert(
             id: id,
             kind: kind,
             title: input.title ?? titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
             body: Value(text),
             url: Value(url?.toString()),
-            folderId: Value(input.forcedFolderId ?? rules.folderId),
-            sortedBy: Value(byHand ? SortedBy.user : byRule ? SortedBy.rule : SortedBy.none),
-            sortState: Value(byHand || byRule ? SortState.sorted : SortState.pending),
+            folderId: Value(input.forcedFolderId ?? rules.folderId ?? guess?.folderId),
+            sortedBy: Value(byHand ? SortedBy.user : byRule ? SortedBy.rule : guess != null ? SortedBy.similar : SortedBy.none),
+            sortState: Value(sorted ? SortState.sorted : SortState.pending),
             reminderAt: Value(input.forcedReminder ?? found?.at),
             createdAt: now,
             updatedAt: now,

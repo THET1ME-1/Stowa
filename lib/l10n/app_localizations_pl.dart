@@ -519,4 +519,14 @@ class LPl extends L {
 
   @override
   String get itemSortingBadge => 'sorting';
+
+  @override
+  String reasonName(String name) {
+    return 'by the name “$name”, offline';
+  }
+
+  @override
+  String reasonSimilar(String words) {
+    return 'by the words “$words”, offline';
+  }
 }

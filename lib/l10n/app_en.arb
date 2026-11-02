@@ -679,5 +679,23 @@
   "itemSortingBadge": "sorting",
   "@itemSortingBadge": {
     "description": "Recent card while AI sorts"
+  },
+  "reasonName": "by the name “{name}”, offline",
+  "@reasonName": {
+    "description": "Why the folder: a character name already lives there",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonSimilar": "by the words “{words}”, offline",
+  "@reasonSimilar": {
+    "description": "Why the folder: rare words already live there",
+    "placeholders": {
+      "words": {
+        "type": "String"
+      }
+    }
   }
 }

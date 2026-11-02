@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/folder_guess.dart';
 import '../services/capture_service.dart';
 import 'db/database.dart';
 import 'repositories/folders_repository.dart';
@@ -36,6 +37,9 @@ final upcomingProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvid
 final foldersProvider = StreamProvider((ref) => ref.watch(foldersRepositoryProvider).watchAll());
 final pinnedTagsProvider = StreamProvider((ref) => ref.watch(tagsRepositoryProvider).watchPinned());
 final allTagsProvider = StreamProvider((ref) => ref.watch(tagsRepositoryProvider).watchAll());
+
+/// Угадыватель папки по тому, что уже разложено. Пересобирается вместе с базой.
+final folderIndexProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchFolderDocs().map(FolderIndex.new));
 
 final rulesRepositoryProvider = Provider((ref) => RulesRepository(ref.watch(databaseProvider)));
 final rulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider).watchEnabled());

@@ -72,6 +72,9 @@ const _stopWords = {
   'the', 'an', 'of', 'to', 'in', 'on', 'for', 'and', 'or', 'is', 'it', 'my', 'at', 'with',
 };
 
+/// Служебное слово: ни искать, ни раскладывать по нему нечего.
+bool isStopWord(String word) => _stopWords.contains(word);
+
 final _wordSplit = RegExp(r'[^a-zа-я0-9]+');
 final _latinOrDigit = RegExp(r'[0-9a-z]');
 final _ending = RegExp(r'(ами|ями|ого|его|ому|ему|ыми|ими|ая|яя|ое|ее|ые|ие|ой|ей|ий|ый|ом|ем|ам|ям|ах|ях|ую|юю|ов|ев|у|ю|а|я|ы|и|е|о|ь)$');

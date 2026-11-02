@@ -1,13 +1,14 @@
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../data/repositories/tags_repository.dart';
+import '../../domain/folder_guess.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/sort_rules.dart';
 
 /// Почему вещь ляжет именно сюда: строка показывает это под «Закинуть».
-enum SaveReason { chosen, asIs, tag, word, domain, kind, none }
+enum SaveReason { chosen, asIs, tag, word, domain, kind, name, similar, none }
 
 /// Что сделает «Закинуть» прямо сейчас.
 class SavePlan {
@@ -151,7 +152,11 @@ class PanelInput {
     this.found = const [],
     this.filter,
     this.remindAt,
+    this.folderIndex,
   });
+
+  /// Что уже лежит по папкам: угадыватель без сети.
+  final FolderIndex? folderIndex;
 
   final String text;
   final int caret;
@@ -192,20 +197,31 @@ SavePlan planSave(PanelInput input, {required LineCommand? command, required Str
   final chosen = input.chosenFolder;
   final ruleFolder = outcome.folderId == null ? null : folderById(outcome.folderId!);
   final rule = outcome.folderRule;
+  // ни выбора, ни правила — угадыватель по словам, которые уже лежат в папках
+  final guess = chosen == null && ruleFolder == null ? input.folderIndex?.guess(rest) : null;
+  final guessFolder = guess == null ? null : folderById(guess.folderId);
   return SavePlan(
     kind: kind,
-    folder: chosen ?? ruleFolder,
+    folder: chosen ?? ruleFolder ?? guessFolder,
     reason: chosen != null
         ? SaveReason.chosen
-        : ruleFolder == null || rule == null
-            ? SaveReason.none
-            : switch (rule.condition) {
+        : ruleFolder != null && rule != null
+            ? switch (rule.condition) {
                 RuleConditionKind.hasTag => SaveReason.tag,
                 RuleConditionKind.keyword => SaveReason.word,
                 RuleConditionKind.domain => SaveReason.domain,
                 RuleConditionKind.kind => SaveReason.kind,
-              },
-    reasonValue: chosen == null ? rule?.conditionValue : null,
+              }
+            : guessFolder != null
+                ? (guess!.byName ? SaveReason.name : SaveReason.similar)
+                : SaveReason.none,
+    reasonValue: chosen != null
+        ? null
+        : ruleFolder != null
+            ? rule?.conditionValue
+            : guessFolder != null
+                ? (guess!.byName ? guess.words.first : guess.words.take(2).join(', '))
+                : null,
     autoTags: autoTags,
     remindAt: input.remindAt,
     command: command,

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../domain/folder_guess.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
@@ -114,6 +115,24 @@ class ItemsRepository {
           return cards.take(limit).toList();
         });
   }
+
+  static const _folderDocsSql = '''
+SELECT items.folder_id AS folder_id,
+  items.title || ' ' || items.body || ' ' || coalesce(items.ai_description, '') || ' ' || coalesce(items.transcript, '') || ' ' ||
+  coalesce((SELECT group_concat(tags.name, ' ') FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
+    WHERE item_tags.item_id = items.id), '') AS text
+FROM items JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
+WHERE items.deleted_at IS NULL''';
+
+  FolderDoc _folderDoc(QueryRow row) => FolderDoc(folderId: row.read<String>('folder_id'), text: row.read<String>('text'));
+
+  /// Всё, что уже разложено по живым папкам: из этого учится угадыватель папки.
+  Future<List<FolderDoc>> folderDocs() async => [for (final row in await _db.customSelect(_folderDocsSql).get()) _folderDoc(row)];
+
+  Stream<List<FolderDoc>> watchFolderDocs() => _db
+      .customSelect(_folderDocsSql, readsFrom: {_db.items, _db.folders, _db.itemTags, _db.tags})
+      .watch()
+      .map((rows) => [for (final row in rows) _folderDoc(row)]);
 
   /// Вещь целиком и дальше при каждой правке.
   Stream<ItemFull?> watchItem(String id) {

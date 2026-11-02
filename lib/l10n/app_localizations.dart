@@ -982,6 +982,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'sorting'**
   String get itemSortingBadge;
+
+  /// Why the folder: a character name already lives there
+  ///
+  /// In en, this message translates to:
+  /// **'by the name “{name}”, offline'**
+  String reasonName(String name);
+
+  /// Why the folder: rare words already live there
+  ///
+  /// In en, this message translates to:
+  /// **'by the words “{words}”, offline'**
+  String reasonSimilar(String words);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

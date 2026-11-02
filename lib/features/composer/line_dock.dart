@@ -615,6 +615,7 @@ class LineDockState extends ConsumerState<LineDock> {
         found: _found,
         filter: _filter,
         remindAt: _line.reminder?.at,
+        folderIndex: ref.watch(folderIndexProvider).value,
       ),
     );
     final rows = _panel.rows;

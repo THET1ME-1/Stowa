@@ -8,7 +8,8 @@ enum ItemKind { note, link, video, image, file, voice }
 enum SortState { pending, queued, sorted, failed }
 
 /// Кто положил вещь в папку. Решение человека главнее правил и ИИ.
-enum SortedBy { none, rule, ai, user }
+/// similar — алгоритм на телефоне по словам, которые уже лежат в папке.
+enum SortedBy { none, rule, ai, user, similar }
 
 enum FolderView { auto, board, canvas, list }
 
