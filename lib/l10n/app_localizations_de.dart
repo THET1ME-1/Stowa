@@ -120,4 +120,403 @@ class LDe extends L {
 
   @override
   String get attachFailed => 'Couldn\'t open it. Try again';
+
+  @override
+  String get panelTags => 'Tags';
+
+  @override
+  String get panelFolders => 'Folders';
+
+  @override
+  String get panelCommands => 'Commands';
+
+  @override
+  String panelFound(int count) {
+    return 'Found $count';
+  }
+
+  @override
+  String get panelNothing => 'Nothing found';
+
+  @override
+  String get panelSimilar => 'Something similar is here';
+
+  @override
+  String get panelFresh => 'Nothing like it yet, this is new';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get kindsNote => 'Notes';
+
+  @override
+  String get kindsLink => 'Links';
+
+  @override
+  String get kindsVideo => 'Videos';
+
+  @override
+  String get kindsImage => 'Photos';
+
+  @override
+  String get kindsFile => 'Files';
+
+  @override
+  String get kindsVoice => 'Voice';
+
+  @override
+  String get kindNote => 'note';
+
+  @override
+  String get kindLink => 'link';
+
+  @override
+  String get kindVideo => 'video';
+
+  @override
+  String get kindImage => 'photo';
+
+  @override
+  String get kindFile => 'file';
+
+  @override
+  String get kindVoice => 'voice note';
+
+  @override
+  String get foundInTranscript => 'in the transcript';
+
+  @override
+  String get foundOnImage => 'on the picture';
+
+  @override
+  String get foundInDescription => 'in the description';
+
+  @override
+  String get dateToday => 'today';
+
+  @override
+  String get dateYesterday => 'yesterday';
+
+  @override
+  String get saveWhatNote => 'Stow it';
+
+  @override
+  String get saveWhatLink => 'Link';
+
+  @override
+  String get saveWhatVideo => 'Video';
+
+  @override
+  String saveWhatPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '$count photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String saveWhatFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '$count file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get saveWhatTask => 'Task';
+
+  @override
+  String saveWhatList(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count-item list',
+      one: '$count-item list',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String saveInto(String what, String folder) {
+    return '$what to “$folder”';
+  }
+
+  @override
+  String saveNoFolder(String what) {
+    return '$what, I’ll pick a folder';
+  }
+
+  @override
+  String saveRemind(String when) {
+    return 'Remind $when';
+  }
+
+  @override
+  String get saveRemindBare => 'Remind';
+
+  @override
+  String get saveAsIs => 'No folder, as is';
+
+  @override
+  String saveRemindAt(String when) {
+    return 'remind $when';
+  }
+
+  @override
+  String get saveRemindWhen => 'when? add “tomorrow at 10”';
+
+  @override
+  String get savePhotosHint => 'your AI key will add a caption and tags';
+
+  @override
+  String get reasonChosen => 'you picked the folder';
+
+  @override
+  String reasonTag(String tag) {
+    return 'by tag #$tag, offline';
+  }
+
+  @override
+  String reasonWord(String word) {
+    return 'by the word “$word”, offline';
+  }
+
+  @override
+  String reasonDomain(String domain) {
+    return 'by a link to $domain, offline';
+  }
+
+  @override
+  String get reasonKind => 'by item type, offline';
+
+  @override
+  String get reasonNone => 'your AI key will pick the folder';
+
+  @override
+  String get reasonAsIs => 'unsorted, as asked';
+
+  @override
+  String get actionStow => 'Stow';
+
+  @override
+  String get actionRemind => 'Remind';
+
+  @override
+  String get actionOpen => 'Open';
+
+  @override
+  String get actionInsert => 'Insert';
+
+  @override
+  String get actionCreate => 'Create';
+
+  @override
+  String get actionAppend => 'Append';
+
+  @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tagCreate(String name) {
+    return 'Create #$name';
+  }
+
+  @override
+  String get tagCreateHint => 'pick an icon later';
+
+  @override
+  String get cmdRemind => 'remind';
+
+  @override
+  String get cmdTask => 'task';
+
+  @override
+  String get cmdList => 'list';
+
+  @override
+  String get cmdFind => 'find';
+
+  @override
+  String get cmdInbox => 'inbox';
+
+  @override
+  String get cmdRemindHint => 'Say when: “tomorrow at 10”, “on fri”';
+
+  @override
+  String get cmdTaskHint => 'Saved with a checkbox';
+
+  @override
+  String get cmdListHint => 'Every line or comma becomes an item';
+
+  @override
+  String get cmdFindHint => 'Only search, save nothing';
+
+  @override
+  String get cmdInboxHint => 'Keep as is, unsorted';
+
+  @override
+  String savedInto(String folder) {
+    return 'Went to “$folder”';
+  }
+
+  @override
+  String savedIntoRemind(String folder, String when) {
+    return 'Went to “$folder”, will remind $when';
+  }
+
+  @override
+  String appendedTo(String title) {
+    return 'Added to “$title”';
+  }
+
+  @override
+  String get voiceSaved => 'Voice note saved, your AI key will transcribe it';
+
+  @override
+  String get voiceTitle => 'Voice note';
+
+  @override
+  String get voiceCancel => 'Cancel recording';
+
+  @override
+  String get voiceDenied => 'No microphone access';
+
+  @override
+  String get voiceRecord => 'Record a voice note';
+
+  @override
+  String get suggestClip => 'Link from clipboard';
+
+  @override
+  String get suggestShot => 'Screenshot';
+
+  @override
+  String minutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String get justNow => 'just now';
+
+  @override
+  String get trayGallery => 'Gallery';
+
+  @override
+  String get trayCamera => 'Camera';
+
+  @override
+  String get trayFile => 'File';
+
+  @override
+  String get trayLink => 'Link';
+
+  @override
+  String get trayVideo => 'Video';
+
+  @override
+  String get trayAccess => 'Allow photo access to pick right here';
+
+  @override
+  String get trayAllow => 'Allow';
+
+  @override
+  String get trayEmpty => 'The gallery is empty';
+
+  @override
+  String get trayNoLink => 'No link in the clipboard';
+
+  @override
+  String get fullHint => 'Write in Markdown, attach files with plus';
+
+  @override
+  String get fullPickFolder => 'I’ll pick a folder';
+
+  @override
+  String get fullExpand => 'Full screen';
+
+  @override
+  String get fullCollapse => 'Collapse';
+
+  @override
+  String get folderPickTitle => 'Where to put it';
+
+  @override
+  String get mdHeading => 'Heading';
+
+  @override
+  String get mdBold => 'Bold';
+
+  @override
+  String get mdItalic => 'Italic';
+
+  @override
+  String get mdStrike => 'Strikethrough';
+
+  @override
+  String get mdBullets => 'Bullets';
+
+  @override
+  String get mdChecklist => 'Checklist';
+
+  @override
+  String get mdQuote => 'Quote';
+
+  @override
+  String get mdCode => 'Code';
+
+  @override
+  String get mdUndo => 'Undo';
+
+  @override
+  String get mdRedo => 'Redo';
+
+  @override
+  String get removeChip => 'Remove';
+
+  @override
+  String get pinTag => 'Add tag';
+
+  @override
+  String get itemCopy => 'Copy text';
+
+  @override
+  String get itemCopied => 'Copied';
+
+  @override
+  String get itemDelete => 'Delete';
+
+  @override
+  String get itemDeleted => 'Deleted';
+
+  @override
+  String get itemTranscript => 'Transcript';
+
+  @override
+  String get itemDescription => 'What is in the picture';
+
+  @override
+  String get itemFiles => 'Files';
+
+  @override
+  String itemMoved(String folder) {
+    return 'Moved to “$folder”';
+  }
+
+  @override
+  String get itemSortingBadge => 'sorting';
 }

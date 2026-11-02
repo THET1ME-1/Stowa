@@ -190,6 +190,14 @@ void main() {
     });
   });
 
+  test('голосовое получает свой заголовок, а не имя файла', () async {
+    final source = File(p.join(home.path, 'voice_1.m4a'))..writeAsBytesSync([1, 2, 3]);
+    final id = await capture.capture(CaptureInput(files: [PickedFile(path: source.path, mime: 'audio/mp4', size: 3)], title: 'Голосовое'));
+    final saved = (await items.get(id))!;
+    expect(saved.item.title, 'Голосовое');
+    expect(saved.item.kind, ItemKind.voice);
+  });
+
   test('«Дописать» добавляет мысль в конец старой заметки', () async {
     final id = await capture.capture(const CaptureInput(text: 'Погода для пары'));
     await items.append(id, 'видеть небо у второго', DateTime(2026, 11, 3));

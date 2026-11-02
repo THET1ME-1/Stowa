@@ -30,11 +30,11 @@ void main() {
     expect(find.text('Drop anything or search'), findsOneWidget);
   });
 
-  testWidgets('закинутое сразу видно в «Только что», «Отменить» убирает', (tester) async {
+  testWidgets('закинутое сразу видно в «Только что», «Отменить» убирает и возвращает текст', (tester) async {
     await open(tester);
     await tester.enterText(find.byType(TextField), 'Купить батарейки для пульта');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Закинуть'));
+    await tester.tap(find.text('Закинуть').last);
     await tester.pumpAndSettle();
 
     expect(find.text('Только что'), findsOneWidget);
@@ -43,15 +43,16 @@ void main() {
 
     await tester.tap(find.text('Отменить'));
     await tester.pumpAndSettle();
-    expect(find.text('Купить батарейки для пульта'), findsNothing);
+    expect(find.text('Только что'), findsNothing);
     expect(find.text('Закинул'), findsNothing);
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'Купить батарейки для пульта');
   });
 
   testWidgets('плашка «Закинул» уходит сама', (tester) async {
     await open(tester);
     await tester.enterText(find.byType(TextField), 'мысль');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Закинуть'));
+    await tester.tap(find.text('Закинуть').last);
     await tester.pumpAndSettle();
     expect(find.text('Закинул'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));

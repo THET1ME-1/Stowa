@@ -131,5 +131,553 @@
   "attachFailed": "Couldn't open it. Try again",
   "@attachFailed": {
     "description": "Toast when a picker fails to return files"
+  },
+  "panelTags": "Tags",
+  "@panelTags": {
+    "description": "Panel header while typing #"
+  },
+  "panelFolders": "Folders",
+  "@panelFolders": {
+    "description": "Panel header while typing @"
+  },
+  "panelCommands": "Commands",
+  "@panelCommands": {
+    "description": "Panel header while typing /"
+  },
+  "panelFound": "Found {count}",
+  "@panelFound": {
+    "description": "Panel header: search results count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "panelNothing": "Nothing found",
+  "@panelNothing": {
+    "description": "Panel header: no results"
+  },
+  "panelSimilar": "Something similar is here",
+  "@panelSimilar": {
+    "description": "Panel header: similar items exist"
+  },
+  "panelFresh": "Nothing like it yet, this is new",
+  "@panelFresh": {
+    "description": "Panel header: no similar items"
+  },
+  "filterAll": "All",
+  "@filterAll": {
+    "description": "Kind filter: everything"
+  },
+  "kindsNote": "Notes",
+  "@kindsNote": {
+    "description": "Kind filter"
+  },
+  "kindsLink": "Links",
+  "@kindsLink": {
+    "description": "Kind filter"
+  },
+  "kindsVideo": "Videos",
+  "@kindsVideo": {
+    "description": "Kind filter"
+  },
+  "kindsImage": "Photos",
+  "@kindsImage": {
+    "description": "Kind filter"
+  },
+  "kindsFile": "Files",
+  "@kindsFile": {
+    "description": "Kind filter"
+  },
+  "kindsVoice": "Voice",
+  "@kindsVoice": {
+    "description": "Kind filter"
+  },
+  "kindNote": "note",
+  "@kindNote": {
+    "description": "Where line in a result"
+  },
+  "kindLink": "link",
+  "@kindLink": {
+    "description": "Where line in a result"
+  },
+  "kindVideo": "video",
+  "@kindVideo": {
+    "description": "Where line in a result"
+  },
+  "kindImage": "photo",
+  "@kindImage": {
+    "description": "Where line in a result"
+  },
+  "kindFile": "file",
+  "@kindFile": {
+    "description": "Where line in a result"
+  },
+  "kindVoice": "voice note",
+  "@kindVoice": {
+    "description": "Where line in a result"
+  },
+  "foundInTranscript": "in the transcript",
+  "@foundInTranscript": {
+    "description": "Where the match was found"
+  },
+  "foundOnImage": "on the picture",
+  "@foundOnImage": {
+    "description": "Where the match was found"
+  },
+  "foundInDescription": "in the description",
+  "@foundInDescription": {
+    "description": "Where the match was found"
+  },
+  "dateToday": "today",
+  "@dateToday": {
+    "description": "Short date"
+  },
+  "dateYesterday": "yesterday",
+  "@dateYesterday": {
+    "description": "Short date"
+  },
+  "saveWhatNote": "Stow it",
+  "@saveWhatNote": {
+    "description": "Save row: what is saved"
+  },
+  "saveWhatLink": "Link",
+  "@saveWhatLink": {
+    "description": "Save row: what is saved"
+  },
+  "saveWhatVideo": "Video",
+  "@saveWhatVideo": {
+    "description": "Save row: what is saved"
+  },
+  "saveWhatPhotos": "{count, plural, one{{count} photo} other{{count} photos}}",
+  "@saveWhatPhotos": {
+    "description": "Save row: photos",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "saveWhatFiles": "{count, plural, one{{count} file} other{{count} files}}",
+  "@saveWhatFiles": {
+    "description": "Save row: files",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "saveWhatTask": "Task",
+  "@saveWhatTask": {
+    "description": "Save row for /task"
+  },
+  "saveWhatList": "{count, plural, one{{count}-item list} other{{count}-item list}}",
+  "@saveWhatList": {
+    "description": "Save row for /list",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "saveInto": "{what} to “{folder}”",
+  "@saveInto": {
+    "description": "Save row title with folder",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "saveNoFolder": "{what}, I’ll pick a folder",
+  "@saveNoFolder": {
+    "description": "Save row title without folder",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "saveRemind": "Remind {when}",
+  "@saveRemind": {
+    "description": "Save row for /remind",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "saveRemindBare": "Remind",
+  "@saveRemindBare": {
+    "description": "Save row for /remind without a date"
+  },
+  "saveAsIs": "No folder, as is",
+  "@saveAsIs": {
+    "description": "Save row for /inbox"
+  },
+  "saveRemindAt": "remind {when}",
+  "@saveRemindAt": {
+    "description": "Save row subtitle",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "saveRemindWhen": "when? add “tomorrow at 10”",
+  "@saveRemindWhen": {
+    "description": "Save row subtitle for /remind without date"
+  },
+  "savePhotosHint": "your AI key will add a caption and tags",
+  "@savePhotosHint": {
+    "description": "Save row subtitle for photos without text"
+  },
+  "reasonChosen": "you picked the folder",
+  "@reasonChosen": {
+    "description": "Why the folder"
+  },
+  "reasonTag": "by tag #{tag}, offline",
+  "@reasonTag": {
+    "description": "Why the folder",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonWord": "by the word “{word}”, offline",
+  "@reasonWord": {
+    "description": "Why the folder",
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonDomain": "by a link to {domain}, offline",
+  "@reasonDomain": {
+    "description": "Why the folder",
+    "placeholders": {
+      "domain": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonKind": "by item type, offline",
+  "@reasonKind": {
+    "description": "Why the folder"
+  },
+  "reasonNone": "your AI key will pick the folder",
+  "@reasonNone": {
+    "description": "Why the folder"
+  },
+  "reasonAsIs": "unsorted, as asked",
+  "@reasonAsIs": {
+    "description": "Why no folder"
+  },
+  "actionStow": "Stow",
+  "@actionStow": {
+    "description": "Send button label"
+  },
+  "actionRemind": "Remind",
+  "@actionRemind": {
+    "description": "Send button label"
+  },
+  "actionOpen": "Open",
+  "@actionOpen": {
+    "description": "Send button label"
+  },
+  "actionInsert": "Insert",
+  "@actionInsert": {
+    "description": "Send button label"
+  },
+  "actionCreate": "Create",
+  "@actionCreate": {
+    "description": "Send button label"
+  },
+  "actionAppend": "Append",
+  "@actionAppend": {
+    "description": "Add the thought to a similar note"
+  },
+  "itemsCount": "{count, plural, one{{count} item} other{{count} items}}",
+  "@itemsCount": {
+    "description": "Count of items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tagCreate": "Create #{name}",
+  "@tagCreate": {
+    "description": "New tag row",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tagCreateHint": "pick an icon later",
+  "@tagCreateHint": {
+    "description": "New tag row subtitle"
+  },
+  "cmdRemind": "remind",
+  "@cmdRemind": {
+    "description": "Line command word, lowercase, one word"
+  },
+  "cmdTask": "task",
+  "@cmdTask": {
+    "description": "Line command word, lowercase, one word"
+  },
+  "cmdList": "list",
+  "@cmdList": {
+    "description": "Line command word, lowercase, one word"
+  },
+  "cmdFind": "find",
+  "@cmdFind": {
+    "description": "Line command word, lowercase, one word"
+  },
+  "cmdInbox": "inbox",
+  "@cmdInbox": {
+    "description": "Line command word, lowercase, one word"
+  },
+  "cmdRemindHint": "Say when: “tomorrow at 10”, “on fri”",
+  "@cmdRemindHint": {
+    "description": "Command description"
+  },
+  "cmdTaskHint": "Saved with a checkbox",
+  "@cmdTaskHint": {
+    "description": "Command description"
+  },
+  "cmdListHint": "Every line or comma becomes an item",
+  "@cmdListHint": {
+    "description": "Command description"
+  },
+  "cmdFindHint": "Only search, save nothing",
+  "@cmdFindHint": {
+    "description": "Command description"
+  },
+  "cmdInboxHint": "Keep as is, unsorted",
+  "@cmdInboxHint": {
+    "description": "Command description"
+  },
+  "savedInto": "Went to “{folder}”",
+  "@savedInto": {
+    "description": "Toast after saving",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "savedIntoRemind": "Went to “{folder}”, will remind {when}",
+  "@savedIntoRemind": {
+    "description": "Toast after saving",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "appendedTo": "Added to “{title}”",
+  "@appendedTo": {
+    "description": "Toast after appending",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceSaved": "Voice note saved, your AI key will transcribe it",
+  "@voiceSaved": {
+    "description": "Toast after recording"
+  },
+  "voiceTitle": "Voice note",
+  "@voiceTitle": {
+    "description": "Title of a voice item"
+  },
+  "voiceCancel": "Cancel recording",
+  "@voiceCancel": {
+    "description": "Tooltip"
+  },
+  "voiceDenied": "No microphone access",
+  "@voiceDenied": {
+    "description": "Toast"
+  },
+  "voiceRecord": "Record a voice note",
+  "@voiceRecord": {
+    "description": "Tooltip for the mic button"
+  },
+  "suggestClip": "Link from clipboard",
+  "@suggestClip": {
+    "description": "Suggestion chip"
+  },
+  "suggestShot": "Screenshot",
+  "@suggestShot": {
+    "description": "Suggestion chip"
+  },
+  "minutesAgo": "{count} min ago",
+  "@minutesAgo": {
+    "description": "Suggestion age",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "justNow": "just now",
+  "@justNow": {
+    "description": "Suggestion age"
+  },
+  "trayGallery": "Gallery",
+  "@trayGallery": {
+    "description": "Tray tab"
+  },
+  "trayCamera": "Camera",
+  "@trayCamera": {
+    "description": "Tray tab"
+  },
+  "trayFile": "File",
+  "@trayFile": {
+    "description": "Tray tab"
+  },
+  "trayLink": "Link",
+  "@trayLink": {
+    "description": "Tray tab"
+  },
+  "trayVideo": "Video",
+  "@trayVideo": {
+    "description": "Tray tab: record a video"
+  },
+  "trayAccess": "Allow photo access to pick right here",
+  "@trayAccess": {
+    "description": "Tray without permission"
+  },
+  "trayAllow": "Allow",
+  "@trayAllow": {
+    "description": "Button"
+  },
+  "trayEmpty": "The gallery is empty",
+  "@trayEmpty": {
+    "description": "Tray without photos"
+  },
+  "trayNoLink": "No link in the clipboard",
+  "@trayNoLink": {
+    "description": "Toast"
+  },
+  "fullHint": "Write in Markdown, attach files with plus",
+  "@fullHint": {
+    "description": "Placeholder of the full editor"
+  },
+  "fullPickFolder": "I’ll pick a folder",
+  "@fullPickFolder": {
+    "description": "Destination chip in the full editor"
+  },
+  "fullExpand": "Full screen",
+  "@fullExpand": {
+    "description": "Tooltip"
+  },
+  "fullCollapse": "Collapse",
+  "@fullCollapse": {
+    "description": "Tooltip"
+  },
+  "folderPickTitle": "Where to put it",
+  "@folderPickTitle": {
+    "description": "Folder picker title"
+  },
+  "mdHeading": "Heading",
+  "@mdHeading": {
+    "description": "Markdown toolbar"
+  },
+  "mdBold": "Bold",
+  "@mdBold": {
+    "description": "Markdown toolbar"
+  },
+  "mdItalic": "Italic",
+  "@mdItalic": {
+    "description": "Markdown toolbar"
+  },
+  "mdStrike": "Strikethrough",
+  "@mdStrike": {
+    "description": "Markdown toolbar"
+  },
+  "mdBullets": "Bullets",
+  "@mdBullets": {
+    "description": "Markdown toolbar"
+  },
+  "mdChecklist": "Checklist",
+  "@mdChecklist": {
+    "description": "Markdown toolbar"
+  },
+  "mdQuote": "Quote",
+  "@mdQuote": {
+    "description": "Markdown toolbar"
+  },
+  "mdCode": "Code",
+  "@mdCode": {
+    "description": "Markdown toolbar"
+  },
+  "mdUndo": "Undo",
+  "@mdUndo": {
+    "description": "Markdown toolbar"
+  },
+  "mdRedo": "Redo",
+  "@mdRedo": {
+    "description": "Markdown toolbar"
+  },
+  "removeChip": "Remove",
+  "@removeChip": {
+    "description": "Tooltip on a chip"
+  },
+  "pinTag": "Add tag",
+  "@pinTag": {
+    "description": "Tooltip on a suggested tag chip"
+  },
+  "itemCopy": "Copy text",
+  "@itemCopy": {
+    "description": "Item page action"
+  },
+  "itemCopied": "Copied",
+  "@itemCopied": {
+    "description": "Toast"
+  },
+  "itemDelete": "Delete",
+  "@itemDelete": {
+    "description": "Item page action"
+  },
+  "itemDeleted": "Deleted",
+  "@itemDeleted": {
+    "description": "Toast"
+  },
+  "itemTranscript": "Transcript",
+  "@itemTranscript": {
+    "description": "Item page block"
+  },
+  "itemDescription": "What is in the picture",
+  "@itemDescription": {
+    "description": "Item page block"
+  },
+  "itemFiles": "Files",
+  "@itemFiles": {
+    "description": "Item page block"
+  },
+  "itemMoved": "Moved to “{folder}”",
+  "@itemMoved": {
+    "description": "Toast",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "itemSortingBadge": "sorting",
+  "@itemSortingBadge": {
+    "description": "Recent card while AI sorts"
   }
 }

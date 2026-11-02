@@ -1,0 +1,450 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+
+import '../../core/icons/icon_registry.dart';
+import '../../core/theme/motion.dart';
+import '../../core/theme/shapes.dart';
+import '../../core/theme/tokens.dart';
+import '../../core/widgets/shape_badge.dart';
+import '../../core/widgets/tag_tile.dart';
+import '../../domain/item_title.dart';
+import '../../domain/models.dart';
+import '../../domain/search_rank.dart';
+import '../../l10n/app_localizations.dart';
+import 'panel_model.dart';
+import 'panel_text.dart';
+
+/// Панель над строкой: снизу «Закинуть», выше то, что уже лежит, или подсказки
+/// под курсором. Белая плашка переезжает к строке, которую сделает кнопка.
+class LinePanel extends StatefulWidget {
+  const LinePanel({
+    super.key,
+    required this.state,
+    required this.selected,
+    required this.rest,
+    required this.now,
+    required this.filesRoot,
+    required this.filter,
+    required this.onFilter,
+    required this.onTap,
+    required this.onAppend,
+  });
+
+  final PanelState state;
+  final int selected;
+
+  /// Текст строки без команды: из него заголовок будущей вещи.
+  final String rest;
+  final DateTime now;
+  final Directory filesRoot;
+  final ItemKind? filter;
+  final ValueChanged<ItemKind?> onFilter;
+  final ValueChanged<int> onTap;
+  final ValueChanged<ResultRow> onAppend;
+
+  @override
+  State<LinePanel> createState() => _LinePanelState();
+}
+
+class _LinePanelState extends State<LinePanel> {
+  final _stack = GlobalKey();
+  final _keys = <String, GlobalKey>{};
+  final _scroll = ScrollController();
+  Rect? _highlight;
+  bool _faded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(() {
+      final faded = _scroll.hasClients && _scroll.offset < _scroll.position.maxScrollExtent - 2;
+      if (faded != _faded) setState(() => _faded = faded);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  // плашка встаёт под выбранную строку после раскладки
+  void _placeHighlight() {
+    final rows = widget.state.rows;
+    final stack = _stack.currentContext?.findRenderObject() as RenderBox?;
+    final selected = widget.selected < rows.length ? _keys[rows[widget.selected].key]?.currentContext?.findRenderObject() as RenderBox? : null;
+    Rect? next;
+    if (stack != null && selected != null && selected.attached && stack.attached) {
+      final offset = selected.localToGlobal(Offset.zero, ancestor: stack);
+      next = offset & selected.size;
+    }
+    if (next != _highlight && mounted) setState(() => _highlight = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final state = widget.state;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _placeHighlight());
+    final header = _header(l, state);
+    final rows = state.rows;
+    _keys.removeWhere((key, _) => !rows.any((row) => row.key == key));
+
+    return Container(
+      decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
+      padding: const EdgeInsets.all(6),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        ?header,
+        Flexible(
+          child: ShaderMask(
+            blendMode: BlendMode.dstIn,
+            // верх списка тает, только когда над ним есть что прокрутить
+            shaderCallback: (bounds) => LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [_faded ? Colors.transparent : Colors.white, Colors.white],
+              stops: [0, 18 / (bounds.height == 0 ? 1 : bounds.height)],
+            ).createShader(bounds),
+            child: SingleChildScrollView(
+              controller: _scroll,
+              reverse: true,
+              child: Stack(key: _stack, children: [
+                if (_highlight != null)
+                  AnimatedPositioned(
+                    duration: Motion.long,
+                    curve: Motion.spatial,
+                    left: 0,
+                    right: 0,
+                    top: _highlight!.top,
+                    height: _highlight!.height,
+                    child: Container(decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(Radii.tile))),
+                  ),
+                Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  // нулевая строка у самой кнопки, лучшее найденное прямо над ней
+                  for (final (index, row) in rows.indexed.toList().reversed)
+                    _Arrive(
+                      key: ValueKey(row.key),
+                      delay: index,
+                      child: KeyedSubtree(
+                        key: _keys.putIfAbsent(row.key, GlobalKey.new),
+                        child: _RowView(
+                          row: row,
+                          selected: index == widget.selected,
+                          rest: widget.rest,
+                          now: widget.now,
+                          filesRoot: widget.filesRoot,
+                          onTap: () => widget.onTap(index),
+                          onAppend: row is ResultRow && row.canAppend ? () => widget.onAppend(row) : null,
+                        ),
+                      ),
+                    ),
+                ]),
+              ]),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget? _header(L l, PanelState state) {
+    final label = switch (state.header) {
+      PanelHeader.none => null,
+      PanelHeader.tags => l.panelTags,
+      PanelHeader.folders => l.panelFolders,
+      PanelHeader.commands => l.panelCommands,
+      PanelHeader.found => l.panelFound(state.count),
+      PanelHeader.nothingFound => l.panelNothing,
+      PanelHeader.similar => l.panelSimilar,
+      PanelHeader.fresh => l.panelFresh,
+    };
+    if (label == null && state.kinds.isEmpty) return null;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 6, 4, 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: [
+          if (label != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Text(label, style: text.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
+            ),
+          if (state.kinds.isNotEmpty) ...[
+            _FilterChip(label: l.filterAll, on: widget.filter == null, onTap: () => widget.onFilter(null)),
+            for (final kind in state.kinds) _FilterChip(label: kindsLabel(l, kind), on: widget.filter == kind, onTap: () => widget.onFilter(kind)),
+          ],
+        ]),
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({required this.label, required this.on, required this.onTap});
+
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Motion.short,
+          height: 30,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: on ? Tokens.accent : Tokens.containerHighest, borderRadius: BorderRadius.circular(15)),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: on ? Tokens.onAccent : Tokens.onSurface),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Новая строка въезжает снизу, лесенкой за соседями.
+class _Arrive extends StatelessWidget {
+  const _Arrive({super.key, required this.delay, required this.child});
+
+  final int delay;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Motion.medium + Duration(milliseconds: 26 * delay),
+      curve: Interval((26 * delay) / (350 + 26 * delay), 1, curve: Motion.emphasizedDecelerate),
+      builder: (context, value, child) => Opacity(
+        opacity: value,
+        child: Transform.translate(offset: Offset(0, 14 * (1 - value)), child: Transform.scale(scale: 0.97 + 0.03 * value, child: child)),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _RowView extends StatelessWidget {
+  const _RowView({
+    required this.row,
+    required this.selected,
+    required this.rest,
+    required this.now,
+    required this.filesRoot,
+    required this.onTap,
+    this.onAppend,
+  });
+
+  final PanelRow row;
+  final bool selected;
+  final String rest;
+  final DateTime now;
+  final Directory filesRoot;
+  final VoidCallback onTap;
+  final VoidCallback? onAppend;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final text = Theme.of(context).textTheme;
+    final ink = selected ? Tokens.onAccent : Tokens.onSurface;
+    final soft = selected ? Tokens.onAccentVariant : Tokens.onSurfaceVariant;
+    final faint = selected ? Tokens.onAccentVariant : Tokens.muted;
+    final markColor = selected ? Tokens.onAccent.withValues(alpha: 0.1) : Tokens.onSurface.withValues(alpha: 0.17);
+    final titleStyle = text.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, height: 1.25, color: ink);
+    final subStyle = text.bodySmall!.copyWith(fontSize: 13, height: 1.35, color: soft);
+    final whereStyle = text.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w500, color: faint);
+
+    final Widget thumb;
+    final Widget title;
+    Widget? sub;
+    Widget? where;
+    switch (row) {
+      case SaveRow(:final plan):
+        final folder = plan.folder;
+        thumb = _badge(folder?.shape ?? 'squircle', folder?.icon ?? 'inbox', selected);
+        title = Text(saveTitle(l, plan, now), maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
+        final subText = saveSub(l, plan, rest, now);
+        sub = Row(children: [
+          if (subText.alarm) Padding(padding: const EdgeInsets.only(right: 2), child: Icon(symbolIcon('alarm'), size: 15, color: soft)),
+          Expanded(child: Text(subText.text, maxLines: 1, overflow: TextOverflow.ellipsis, style: subStyle)),
+        ]);
+        final why = saveWhere(l, plan);
+        where = _where(why.icon, why.text, whereStyle, faint);
+      case ResultRow(:final result):
+        final card = result.card;
+        final hit = result.hit;
+        thumb = card.thumbPath != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(p.join(filesRoot.path, card.thumbPath!)),
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.cover,
+                  cacheWidth: (44 * MediaQuery.devicePixelRatioOf(context)).round(),
+                  errorBuilder: (_, _, _) => _badge('squircle', kindIcon(card.kind), selected),
+                ),
+              )
+            : _badge('squircle', kindIcon(card.kind), selected);
+        title = MarkedText(text: card.title, marks: hit.marks[SearchField.title] ?? const [], style: titleStyle, markColor: markColor);
+        final whereField = hit.where;
+        var source = whereField == SearchField.deep ? hit.doc.deep : card.body;
+        var marks = hit.marks[whereField ?? SearchField.body] ?? const <TextMark>[];
+        if (whereField != SearchField.deep) {
+          // первая строка заметки уже стоит заголовком, подпись берёт текст после неё
+          final lineEnd = card.body.indexOf('\n');
+          if (titleFor(lineEnd < 0 ? card.body : card.body.substring(0, lineEnd)) == card.title) {
+            final cut = lineEnd < 0 ? card.body.length : lineEnd + 1;
+            source = card.body.substring(cut);
+            marks = [for (final mark in marks) if (mark.$1 >= cut) (mark.$1 - cut, mark.$2)];
+          }
+        }
+        sub = source.trim().isEmpty
+            ? null
+            : MarkedText(text: snippetOf(source, marks), marks: snippetMarks(source, marks), style: subStyle, markColor: markColor);
+        final host = card.url == null ? null : Uri.tryParse(card.url!)?.host.replaceFirst('www.', '');
+        final found = whereField == SearchField.deep ? deepLabel(l, card.kind) : (host ?? kindLabel(l, card.kind));
+        where = _where(kindIcon(card.kind), '$found · ${card.folderName ?? l.folderNone} · ${shortDate(l, card.createdAt, now)}', whereStyle, faint);
+      case TagRow(:final tag):
+        thumb = TagTile(kind: tag.iconKind, value: tag.iconValue, filesRoot: filesRoot, size: 44, inverted: selected);
+        title = Text('#${tag.name}', maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
+        sub = Text(l.itemsCount(tag.count), style: subStyle);
+      case NewTagRow(:final name):
+        thumb = _badge('cookie9', 'add', selected);
+        title = Text(l.tagCreate(name), maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
+        sub = Text(l.tagCreateHint, style: subStyle);
+      case FolderRow(:final folder):
+        thumb = _badge(folder.shape, folder.icon, selected);
+        title = Text(folder.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
+        sub = Text(l.itemsCount(folder.count), style: subStyle);
+      case CommandRow(:final command, :final key_):
+        thumb = _badge('squircle', commandIcons[command]!, selected);
+        title = Text('/$key_', style: titleStyle);
+        sub = Text(commandHint(l, command), maxLines: 1, overflow: TextOverflow.ellipsis, style: subStyle);
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedDefaultTextStyle(
+        duration: Motion.short,
+        style: TextStyle(color: ink),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 60),
+          padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
+          child: Row(children: [
+            thumb,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                title,
+                if (sub != null) ...[const SizedBox(height: 2), sub],
+                if (where != null) ...[const SizedBox(height: 3), where],
+              ]),
+            ),
+            if (onAppend != null) ...[
+              const SizedBox(width: 8),
+              _AppendButton(label: l.actionAppend, selected: selected, onTap: onAppend!),
+            ],
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _badge(String shape, String icon, bool selected) => ShapeBadge(
+        shape: BadgeShape.values.asNameMap()[shape] ?? BadgeShape.squircle,
+        size: 44,
+        color: selected ? Tokens.graphite : Tokens.containerHighest,
+        child: Icon(symbolIcon(icon), size: 22, color: Tokens.onSurface),
+      );
+
+  Widget _where(String icon, String label, TextStyle style, Color color) => Row(children: [
+        Icon(symbolIcon(icon), size: 14, color: color),
+        const SizedBox(width: 4),
+        Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style)),
+      ]);
+}
+
+class _AppendButton extends StatelessWidget {
+  const _AppendButton({required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? Tokens.onSurface : Tokens.onAccent;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
+        decoration: BoxDecoration(color: selected ? Tokens.graphite : Tokens.accent, borderRadius: BorderRadius.circular(18)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(symbolIcon('edit_note'), size: 18, color: color),
+          const SizedBox(width: 5),
+          Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+        ]),
+      ),
+    );
+  }
+}
+
+// длинный текст начинается чуть раньше первого совпадения, чтобы оно было видно
+int _snippetStart(String text, List<TextMark>? marks) {
+  if (marks == null || marks.isEmpty) return 0;
+  final first = marks.map((mark) => mark.$1).reduce((a, b) => a < b ? a : b);
+  if (first < 30) return 0;
+  return text.lastIndexOf(' ', first - 14) + 1;
+}
+
+String snippetOf(String text, List<TextMark>? marks) {
+  final start = _snippetStart(text, marks);
+  final flat = text.substring(start).replaceAll('\n', ' ');
+  return start == 0 ? flat : '…$flat';
+}
+
+List<TextMark> snippetMarks(String text, List<TextMark>? marks) {
+  if (marks == null) return const [];
+  final start = _snippetStart(text, marks);
+  final shift = start == 0 ? 0 : start - 1;
+  return [for (final mark in marks) if (mark.$1 >= start) (mark.$1 - shift, mark.$2)];
+}
+
+/// Текст с подсвеченными совпадениями: фон, ширина букв та же.
+class MarkedText extends StatelessWidget {
+  const MarkedText({super.key, required this.text, required this.marks, required this.style, required this.markColor});
+
+  final String text;
+  final List<TextMark> marks;
+  final TextStyle style;
+  final Color markColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = [...marks]..sort((a, b) => a.$1.compareTo(b.$1));
+    final spans = <TextSpan>[];
+    var at = 0;
+    for (final (start, length) in sorted) {
+      if (start < at || start >= text.length) continue;
+      final end = (start + length).clamp(start, text.length);
+      if (start > at) spans.add(TextSpan(text: text.substring(at, start)));
+      spans.add(TextSpan(text: text.substring(start, end), style: TextStyle(backgroundColor: markColor)));
+      at = end;
+    }
+    if (at < text.length) spans.add(TextSpan(text: text.substring(at)));
+    return Text.rich(TextSpan(style: style, children: spans), maxLines: 1, overflow: TextOverflow.ellipsis);
+  }
+}

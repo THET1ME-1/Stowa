@@ -115,6 +115,40 @@ class ItemsRepository {
         });
   }
 
+  /// Вещь целиком и дальше при каждой правке.
+  Stream<ItemFull?> watchItem(String id) {
+    return _db
+        .customSelect('SELECT 1', readsFrom: {_db.items, _db.itemTags, _db.tags, _db.attachments})
+        .watch()
+        .asyncMap((_) => get(id));
+  }
+
+  /// Человек переложил вещь сам: ИИ её больше не трогает, а пример запоминается.
+  Future<void> moveToFolder(String id, String? folderId, DateTime at) async {
+    await _db.transaction(() async {
+      final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingle();
+      await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(
+            folderId: Value(folderId),
+            sortedBy: const Value(SortedBy.user),
+            sortState: const Value(SortState.sorted),
+            updatedAt: Value(at),
+          ));
+      if (folderId != null && folderId != item.folderId) {
+        await _db.into(_db.corrections).insert(CorrectionsCompanion.insert(
+              id: '$id-${at.microsecondsSinceEpoch}',
+              itemId: id,
+              fromFolderId: Value(item.folderId),
+              toFolderId: folderId,
+              at: at,
+            ));
+      }
+    });
+  }
+
+  Future<void> setBody(String id, String body, DateTime at) {
+    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(body), updatedAt: Value(at)));
+  }
+
   /// «Дописать»: новая мысль ложится в конец старой заметки, второй заметки нет.
   Future<void> append(String id, String text, DateTime at) async {
     final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingle();

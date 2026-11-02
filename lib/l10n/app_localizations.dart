@@ -304,6 +304,684 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Couldn\'t open it. Try again'**
   String get attachFailed;
+
+  /// Panel header while typing #
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get panelTags;
+
+  /// Panel header while typing @
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get panelFolders;
+
+  /// Panel header while typing /
+  ///
+  /// In en, this message translates to:
+  /// **'Commands'**
+  String get panelCommands;
+
+  /// Panel header: search results count
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count}'**
+  String panelFound(int count);
+
+  /// Panel header: no results
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found'**
+  String get panelNothing;
+
+  /// Panel header: similar items exist
+  ///
+  /// In en, this message translates to:
+  /// **'Something similar is here'**
+  String get panelSimilar;
+
+  /// Panel header: no similar items
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing like it yet, this is new'**
+  String get panelFresh;
+
+  /// Kind filter: everything
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// Kind filter
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get kindsNote;
+
+  /// Kind filter
+  ///
+  /// In en, this message translates to:
+  /// **'Links'**
+  String get kindsLink;
+
+  /// Kind filter
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get kindsVideo;
+
+  /// Kind filter
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get kindsImage;
+
+  /// Kind filter
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get kindsFile;
+
+  /// Kind filter
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get kindsVoice;
+
+  /// Where line in a result
+  ///
+  /// In en, this message translates to:
+  /// **'note'**
+  String get kindNote;
+
+  /// Where line in a result
+  ///
+  /// In en, this message translates to:
+  /// **'link'**
+  String get kindLink;
+
+  /// Where line in a result
+  ///
+  /// In en, this message translates to:
+  /// **'video'**
+  String get kindVideo;
+
+  /// Where line in a result
+  ///
+  /// In en, this message translates to:
+  /// **'photo'**
+  String get kindImage;
+
+  /// Where line in a result
+  ///
+  /// In en, this message translates to:
+  /// **'file'**
+  String get kindFile;
+
+  /// Where line in a result
+  ///
+  /// In en, this message translates to:
+  /// **'voice note'**
+  String get kindVoice;
+
+  /// Where the match was found
+  ///
+  /// In en, this message translates to:
+  /// **'in the transcript'**
+  String get foundInTranscript;
+
+  /// Where the match was found
+  ///
+  /// In en, this message translates to:
+  /// **'on the picture'**
+  String get foundOnImage;
+
+  /// Where the match was found
+  ///
+  /// In en, this message translates to:
+  /// **'in the description'**
+  String get foundInDescription;
+
+  /// Short date
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get dateToday;
+
+  /// Short date
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get dateYesterday;
+
+  /// Save row: what is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Stow it'**
+  String get saveWhatNote;
+
+  /// Save row: what is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get saveWhatLink;
+
+  /// Save row: what is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get saveWhatVideo;
+
+  /// Save row: photos
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo} other{{count} photos}}'**
+  String saveWhatPhotos(int count);
+
+  /// Save row: files
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file} other{{count} files}}'**
+  String saveWhatFiles(int count);
+
+  /// Save row for /task
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get saveWhatTask;
+
+  /// Save row for /list
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count}-item list} other{{count}-item list}}'**
+  String saveWhatList(int count);
+
+  /// Save row title with folder
+  ///
+  /// In en, this message translates to:
+  /// **'{what} to “{folder}”'**
+  String saveInto(String what, String folder);
+
+  /// Save row title without folder
+  ///
+  /// In en, this message translates to:
+  /// **'{what}, I’ll pick a folder'**
+  String saveNoFolder(String what);
+
+  /// Save row for /remind
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {when}'**
+  String saveRemind(String when);
+
+  /// Save row for /remind without a date
+  ///
+  /// In en, this message translates to:
+  /// **'Remind'**
+  String get saveRemindBare;
+
+  /// Save row for /inbox
+  ///
+  /// In en, this message translates to:
+  /// **'No folder, as is'**
+  String get saveAsIs;
+
+  /// Save row subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'remind {when}'**
+  String saveRemindAt(String when);
+
+  /// Save row subtitle for /remind without date
+  ///
+  /// In en, this message translates to:
+  /// **'when? add “tomorrow at 10”'**
+  String get saveRemindWhen;
+
+  /// Save row subtitle for photos without text
+  ///
+  /// In en, this message translates to:
+  /// **'your AI key will add a caption and tags'**
+  String get savePhotosHint;
+
+  /// Why the folder
+  ///
+  /// In en, this message translates to:
+  /// **'you picked the folder'**
+  String get reasonChosen;
+
+  /// Why the folder
+  ///
+  /// In en, this message translates to:
+  /// **'by tag #{tag}, offline'**
+  String reasonTag(String tag);
+
+  /// Why the folder
+  ///
+  /// In en, this message translates to:
+  /// **'by the word “{word}”, offline'**
+  String reasonWord(String word);
+
+  /// Why the folder
+  ///
+  /// In en, this message translates to:
+  /// **'by a link to {domain}, offline'**
+  String reasonDomain(String domain);
+
+  /// Why the folder
+  ///
+  /// In en, this message translates to:
+  /// **'by item type, offline'**
+  String get reasonKind;
+
+  /// Why the folder
+  ///
+  /// In en, this message translates to:
+  /// **'your AI key will pick the folder'**
+  String get reasonNone;
+
+  /// Why no folder
+  ///
+  /// In en, this message translates to:
+  /// **'unsorted, as asked'**
+  String get reasonAsIs;
+
+  /// Send button label
+  ///
+  /// In en, this message translates to:
+  /// **'Stow'**
+  String get actionStow;
+
+  /// Send button label
+  ///
+  /// In en, this message translates to:
+  /// **'Remind'**
+  String get actionRemind;
+
+  /// Send button label
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get actionOpen;
+
+  /// Send button label
+  ///
+  /// In en, this message translates to:
+  /// **'Insert'**
+  String get actionInsert;
+
+  /// Send button label
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get actionCreate;
+
+  /// Add the thought to a similar note
+  ///
+  /// In en, this message translates to:
+  /// **'Append'**
+  String get actionAppend;
+
+  /// Count of items
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item} other{{count} items}}'**
+  String itemsCount(int count);
+
+  /// New tag row
+  ///
+  /// In en, this message translates to:
+  /// **'Create #{name}'**
+  String tagCreate(String name);
+
+  /// New tag row subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'pick an icon later'**
+  String get tagCreateHint;
+
+  /// Line command word, lowercase, one word
+  ///
+  /// In en, this message translates to:
+  /// **'remind'**
+  String get cmdRemind;
+
+  /// Line command word, lowercase, one word
+  ///
+  /// In en, this message translates to:
+  /// **'task'**
+  String get cmdTask;
+
+  /// Line command word, lowercase, one word
+  ///
+  /// In en, this message translates to:
+  /// **'list'**
+  String get cmdList;
+
+  /// Line command word, lowercase, one word
+  ///
+  /// In en, this message translates to:
+  /// **'find'**
+  String get cmdFind;
+
+  /// Line command word, lowercase, one word
+  ///
+  /// In en, this message translates to:
+  /// **'inbox'**
+  String get cmdInbox;
+
+  /// Command description
+  ///
+  /// In en, this message translates to:
+  /// **'Say when: “tomorrow at 10”, “on fri”'**
+  String get cmdRemindHint;
+
+  /// Command description
+  ///
+  /// In en, this message translates to:
+  /// **'Saved with a checkbox'**
+  String get cmdTaskHint;
+
+  /// Command description
+  ///
+  /// In en, this message translates to:
+  /// **'Every line or comma becomes an item'**
+  String get cmdListHint;
+
+  /// Command description
+  ///
+  /// In en, this message translates to:
+  /// **'Only search, save nothing'**
+  String get cmdFindHint;
+
+  /// Command description
+  ///
+  /// In en, this message translates to:
+  /// **'Keep as is, unsorted'**
+  String get cmdInboxHint;
+
+  /// Toast after saving
+  ///
+  /// In en, this message translates to:
+  /// **'Went to “{folder}”'**
+  String savedInto(String folder);
+
+  /// Toast after saving
+  ///
+  /// In en, this message translates to:
+  /// **'Went to “{folder}”, will remind {when}'**
+  String savedIntoRemind(String folder, String when);
+
+  /// Toast after appending
+  ///
+  /// In en, this message translates to:
+  /// **'Added to “{title}”'**
+  String appendedTo(String title);
+
+  /// Toast after recording
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note saved, your AI key will transcribe it'**
+  String get voiceSaved;
+
+  /// Title of a voice item
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get voiceTitle;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel recording'**
+  String get voiceCancel;
+
+  /// Toast
+  ///
+  /// In en, this message translates to:
+  /// **'No microphone access'**
+  String get voiceDenied;
+
+  /// Tooltip for the mic button
+  ///
+  /// In en, this message translates to:
+  /// **'Record a voice note'**
+  String get voiceRecord;
+
+  /// Suggestion chip
+  ///
+  /// In en, this message translates to:
+  /// **'Link from clipboard'**
+  String get suggestClip;
+
+  /// Suggestion chip
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot'**
+  String get suggestShot;
+
+  /// Suggestion age
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min ago'**
+  String minutesAgo(int count);
+
+  /// Suggestion age
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get justNow;
+
+  /// Tray tab
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get trayGallery;
+
+  /// Tray tab
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get trayCamera;
+
+  /// Tray tab
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get trayFile;
+
+  /// Tray tab
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get trayLink;
+
+  /// Tray tab: record a video
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get trayVideo;
+
+  /// Tray without permission
+  ///
+  /// In en, this message translates to:
+  /// **'Allow photo access to pick right here'**
+  String get trayAccess;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get trayAllow;
+
+  /// Tray without photos
+  ///
+  /// In en, this message translates to:
+  /// **'The gallery is empty'**
+  String get trayEmpty;
+
+  /// Toast
+  ///
+  /// In en, this message translates to:
+  /// **'No link in the clipboard'**
+  String get trayNoLink;
+
+  /// Placeholder of the full editor
+  ///
+  /// In en, this message translates to:
+  /// **'Write in Markdown, attach files with plus'**
+  String get fullHint;
+
+  /// Destination chip in the full editor
+  ///
+  /// In en, this message translates to:
+  /// **'I’ll pick a folder'**
+  String get fullPickFolder;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get fullExpand;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get fullCollapse;
+
+  /// Folder picker title
+  ///
+  /// In en, this message translates to:
+  /// **'Where to put it'**
+  String get folderPickTitle;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get mdHeading;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get mdBold;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get mdItalic;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Strikethrough'**
+  String get mdStrike;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Bullets'**
+  String get mdBullets;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get mdChecklist;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Quote'**
+  String get mdQuote;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get mdCode;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get mdUndo;
+
+  /// Markdown toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get mdRedo;
+
+  /// Tooltip on a chip
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeChip;
+
+  /// Tooltip on a suggested tag chip
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get pinTag;
+
+  /// Item page action
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get itemCopy;
+
+  /// Toast
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get itemCopied;
+
+  /// Item page action
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get itemDelete;
+
+  /// Toast
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get itemDeleted;
+
+  /// Item page block
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript'**
+  String get itemTranscript;
+
+  /// Item page block
+  ///
+  /// In en, this message translates to:
+  /// **'What is in the picture'**
+  String get itemDescription;
+
+  /// Item page block
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get itemFiles;
+
+  /// Toast
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to “{folder}”'**
+  String itemMoved(String folder);
+
+  /// Recent card while AI sorts
+  ///
+  /// In en, this message translates to:
+  /// **'sorting'**
+  String get itemSortingBadge;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

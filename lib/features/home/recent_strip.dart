@@ -207,6 +207,14 @@ class _Where extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final style = Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 12, color: Tokens.muted);
+    // ключ ИИ разбирает вещь: бегущая полоска вместо папки
+    if (item.sortState == SortState.queued) {
+      return Row(children: [
+        const SizedBox(width: 16, height: 3, child: ClipRRect(borderRadius: BorderRadius.all(Radius.circular(2)), child: LinearProgressIndicator(color: Tokens.onSurfaceVariant, backgroundColor: Tokens.graphite))),
+        const SizedBox(width: 6),
+        Expanded(child: Text(l.itemSortingBadge, maxLines: 1, overflow: TextOverflow.ellipsis, style: style)),
+      ]);
+    }
     final (String icon, String label) = item.folderName != null
         ? (item.folderIcon ?? 'folder', item.folderName!)
         : item.reminderAt != null

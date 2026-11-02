@@ -34,7 +34,11 @@ class CaptureInput {
     this.forcedReminder,
     this.detectReminder = true,
     this.asIs = false,
+    this.title,
   });
+
+  /// Свой заголовок, когда из текста его не взять: «Голосовое».
+  final String? title;
 
   final String text;
   final List<PickedFile> files;
@@ -98,7 +102,7 @@ class CaptureService {
       await _db.into(_db.items).insert(ItemsCompanion.insert(
             id: id,
             kind: kind,
-            title: titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
+            title: input.title ?? titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
             body: Value(text),
             url: Value(url?.toString()),
             folderId: Value(input.forcedFolderId ?? rules.folderId),

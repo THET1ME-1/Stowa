@@ -36,7 +36,11 @@ def main() -> int:
                 continue
             data[key] = translations[locale]
             if locale == 'en':
-                data[f'@{key}'] = {'description': translations.get('@', key)}
+                meta = {'description': translations.get('@', key)}
+                # типы подстановок нужны для чисел во множественном числе
+                if 'placeholders' in translations:
+                    meta['placeholders'] = translations['placeholders']
+                data[f'@{key}'] = meta
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
     print(f'Добавлено {len(source)} строк')

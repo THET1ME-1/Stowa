@@ -6,6 +6,7 @@ import '../services/capture_service.dart';
 import 'db/database.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
+import 'repositories/rules_repository.dart';
 import 'repositories/tags_repository.dart';
 
 /// База и папка файлов открываются в main и подставляются сюда.
@@ -34,3 +35,10 @@ final upcomingProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvid
 
 final foldersProvider = StreamProvider((ref) => ref.watch(foldersRepositoryProvider).watchAll());
 final pinnedTagsProvider = StreamProvider((ref) => ref.watch(tagsRepositoryProvider).watchPinned());
+final allTagsProvider = StreamProvider((ref) => ref.watch(tagsRepositoryProvider).watchAll());
+
+final rulesRepositoryProvider = Provider((ref) => RulesRepository(ref.watch(databaseProvider)));
+final rulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider).watchEnabled());
+
+/// Одна вещь целиком для её страницы, обновляется вместе с базой.
+final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchItem(id));

@@ -103,6 +103,21 @@ Future<void> _seed(TestWorld world) async {
           iconValue: Value(icon),
         ));
   }
+  await db.into(db.rules).insert(RulesCompanion.insert(
+        id: 'r1',
+        conditionKind: RuleConditionKind.keyword,
+        conditionValue: 'шиномонтаж',
+        actionKind: RuleActionKind.addTag,
+        actionValue: 'машина',
+      ));
+  await db.into(db.rules).insert(RulesCompanion.insert(
+        id: 'r2',
+        conditionKind: RuleConditionKind.hasTag,
+        conditionValue: 'машина',
+        actionKind: RuleActionKind.toFolder,
+        actionValue: 'car',
+        sortOrder: const Value(1),
+      ));
   for (final (itemId, tagId) in [('f1', 't1'), ('f2', 't1'), ('f3', 't1'), ('c1', 't2'), ('c2', 't2'), ('n1', 't3'), ('w1', 't3')]) {
     await db.into(db.itemTags).insert(ItemTagsCompanion.insert(itemId: itemId, tagId: tagId, source: TagSource.user));
   }
@@ -162,23 +177,86 @@ void main() {
     await _shot(tester, '2-с-вещами');
   });
 
-  testWidgets('пишу с датой и тегом', (tester) async {
+  Future<void> type(WidgetTester tester, String text) async {
+    await tester.showKeyboard(find.byType(TextField));
+    await tester.enterText(find.byType(TextField), text);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('новая мысль по правилу', (tester) async {
     await tester.runAsync(() => _seed(world));
     await open(tester);
-    await tester.showKeyboard(find.byType(TextField));
-    await tester.enterText(find.byType(TextField), 'сходить к зубному #здоровье 23 декабря 13:00');
+    await type(tester, 'записаться на шиномонтаж завтра в 10');
+    await _shot(tester, '3-правило');
+  });
+
+  testWidgets('нашлось точно', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await type(tester, 'паста');
+    await _shot(tester, '4-нашлось');
+  });
+
+  testWidgets('похожее и дописать', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await type(tester, 'виджет погоды для пары чтобы видеть небо');
+    await _shot(tester, '5-дописать');
+  });
+
+  testWidgets('теги под решёткой', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await type(tester, 'том ям #ре');
+    await _shot(tester, '6-теги');
+  });
+
+  testWidgets('команды', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await type(tester, '/');
+    await _shot(tester, '7-команды');
+  });
+
+  testWidgets('чипы над строкой', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await type(tester, '@маш');
+    await tester.tap(find.text('Вставить'));
     await tester.pumpAndSettle();
-    await _shot(tester, '3-пишу');
+    await type(tester, 'резина #шины зубной 23 декабря 13:00');
+    await _shot(tester, '8-чипы');
+  });
+
+  testWidgets('на весь экран', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await type(tester, '# Поездка в Грецию\n- [ ] паспорт\n- [ ] переходник для розетки\n**Вылет** в пятницу в 6:40');
+    await tester.tap(find.byTooltip('На весь экран'));
+    await tester.pumpAndSettle();
+    await _shot(tester, '9-весь-экран');
   });
 
   testWidgets('закинул', (tester) async {
     await tester.runAsync(() => _seed(world));
     await open(tester);
-    await tester.enterText(find.byType(TextField), '23 декабря 13:00 зубной');
+    await type(tester, 'записаться на шиномонтаж завтра в 10');
+    await tester.tap(find.text('Закинуть').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Закинуть'));
-    await tester.pumpAndSettle();
-    await _shot(tester, '4-закинул');
+    await _shot(tester, '10-закинул');
+  });
+
+  testWidgets('галерея над строкой', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await tester.tap(find.byTooltip('Прикрепить'));
+    // ответ плагина галереи приходит в настоящем времени, без него лоток просит доступ
+    for (var round = 0; round < 4; round++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    await _shot(tester, '11-галерея');
   });
 
   testWidgets('крупный шрифт на узком', (tester) async {
@@ -187,6 +265,7 @@ void main() {
     await open(tester, textScale: 1.3);
     tester.view.physicalSize = const Size(320, 700);
     await tester.pumpAndSettle();
-    await _shot(tester, '5-узкий');
+    await type(tester, 'паста завтра в 10 #рецепт ');
+    await _shot(tester, '12-узкий');
   });
 }

@@ -119,4 +119,403 @@ class LRu extends L {
 
   @override
   String get attachFailed => 'Не открылось. Попробуй ещё раз';
+
+  @override
+  String get panelTags => 'Теги';
+
+  @override
+  String get panelFolders => 'Папки';
+
+  @override
+  String get panelCommands => 'Команды';
+
+  @override
+  String panelFound(int count) {
+    return 'Нашлось $count';
+  }
+
+  @override
+  String get panelNothing => 'Ничего не нашлось';
+
+  @override
+  String get panelSimilar => 'Уже лежит похожее';
+
+  @override
+  String get panelFresh => 'Похожего нет, это новое';
+
+  @override
+  String get filterAll => 'Всё';
+
+  @override
+  String get kindsNote => 'Заметки';
+
+  @override
+  String get kindsLink => 'Ссылки';
+
+  @override
+  String get kindsVideo => 'Видео';
+
+  @override
+  String get kindsImage => 'Фото';
+
+  @override
+  String get kindsFile => 'Файлы';
+
+  @override
+  String get kindsVoice => 'Голос';
+
+  @override
+  String get kindNote => 'заметка';
+
+  @override
+  String get kindLink => 'ссылка';
+
+  @override
+  String get kindVideo => 'видео';
+
+  @override
+  String get kindImage => 'фото';
+
+  @override
+  String get kindFile => 'файл';
+
+  @override
+  String get kindVoice => 'голосовое';
+
+  @override
+  String get foundInTranscript => 'в расшифровке';
+
+  @override
+  String get foundOnImage => 'на картинке';
+
+  @override
+  String get foundInDescription => 'в описании';
+
+  @override
+  String get dateToday => 'сегодня';
+
+  @override
+  String get dateYesterday => 'вчера';
+
+  @override
+  String get saveWhatNote => 'Закинуть';
+
+  @override
+  String get saveWhatLink => 'Ссылку';
+
+  @override
+  String get saveWhatVideo => 'Видео';
+
+  @override
+  String saveWhatPhotos(int count) {
+    return '$count фото';
+  }
+
+  @override
+  String saveWhatFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла',
+      many: '$count файлов',
+      few: '$count файла',
+      one: '$count файл',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get saveWhatTask => 'Задача';
+
+  @override
+  String saveWhatList(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Список, $count пункта',
+      many: 'Список, $count пунктов',
+      few: 'Список, $count пункта',
+      one: 'Список, $count пункт',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String saveInto(String what, String folder) {
+    return '$what в «$folder»';
+  }
+
+  @override
+  String saveNoFolder(String what) {
+    return '$what, папку подберу';
+  }
+
+  @override
+  String saveRemind(String when) {
+    return 'Напомнить $when';
+  }
+
+  @override
+  String get saveRemindBare => 'Напомнить';
+
+  @override
+  String get saveAsIs => 'Без папки, как есть';
+
+  @override
+  String saveRemindAt(String when) {
+    return 'напомню $when';
+  }
+
+  @override
+  String get saveRemindWhen => 'когда? допиши «завтра в 10»';
+
+  @override
+  String get savePhotosHint => 'подпись и теги допишет твой ключ ИИ';
+
+  @override
+  String get reasonChosen => 'ты выбрал папку сам';
+
+  @override
+  String reasonTag(String tag) {
+    return 'по тегу #$tag, без сети';
+  }
+
+  @override
+  String reasonWord(String word) {
+    return 'по слову «$word», без сети';
+  }
+
+  @override
+  String reasonDomain(String domain) {
+    return 'по ссылке на $domain, без сети';
+  }
+
+  @override
+  String get reasonKind => 'по виду вещи, без сети';
+
+  @override
+  String get reasonNone => 'папку подберёт твой ключ ИИ';
+
+  @override
+  String get reasonAsIs => 'без разбора, как просил';
+
+  @override
+  String get actionStow => 'Закинуть';
+
+  @override
+  String get actionRemind => 'Напомнить';
+
+  @override
+  String get actionOpen => 'Открыть';
+
+  @override
+  String get actionInsert => 'Вставить';
+
+  @override
+  String get actionCreate => 'Создать';
+
+  @override
+  String get actionAppend => 'Дописать';
+
+  @override
+  String itemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вещи',
+      many: '$count вещей',
+      few: '$count вещи',
+      one: '$count вещь',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tagCreate(String name) {
+    return 'Создать #$name';
+  }
+
+  @override
+  String get tagCreateHint => 'иконку выберешь потом';
+
+  @override
+  String get cmdRemind => 'напомнить';
+
+  @override
+  String get cmdTask => 'задача';
+
+  @override
+  String get cmdList => 'список';
+
+  @override
+  String get cmdFind => 'найти';
+
+  @override
+  String get cmdInbox => 'входящие';
+
+  @override
+  String get cmdRemindHint => 'Скажи когда: «завтра в 10», «в пт»';
+
+  @override
+  String get cmdTaskHint => 'Ляжет с галочкой';
+
+  @override
+  String get cmdListHint => 'Каждая строка или запятая станет пунктом';
+
+  @override
+  String get cmdFindHint => 'Только искать, ничего не сохранять';
+
+  @override
+  String get cmdInboxHint => 'Положить как есть, без разбора';
+
+  @override
+  String savedInto(String folder) {
+    return 'Легло в «$folder»';
+  }
+
+  @override
+  String savedIntoRemind(String folder, String when) {
+    return 'Легло в «$folder», напомню $when';
+  }
+
+  @override
+  String appendedTo(String title) {
+    return 'Дописал в «$title»';
+  }
+
+  @override
+  String get voiceSaved => 'Голосовое легло, расшифрует твой ключ ИИ';
+
+  @override
+  String get voiceTitle => 'Голосовое';
+
+  @override
+  String get voiceCancel => 'Отменить запись';
+
+  @override
+  String get voiceDenied => 'Нет доступа к микрофону';
+
+  @override
+  String get voiceRecord => 'Записать голосовое';
+
+  @override
+  String get suggestClip => 'Ссылка из буфера';
+
+  @override
+  String get suggestShot => 'Скриншот';
+
+  @override
+  String minutesAgo(int count) {
+    return '$count мин назад';
+  }
+
+  @override
+  String get justNow => 'только что';
+
+  @override
+  String get trayGallery => 'Галерея';
+
+  @override
+  String get trayCamera => 'Камера';
+
+  @override
+  String get trayFile => 'Файл';
+
+  @override
+  String get trayLink => 'Ссылка';
+
+  @override
+  String get trayVideo => 'Видео';
+
+  @override
+  String get trayAccess => 'Дай доступ к фото, и выбирать можно прямо здесь';
+
+  @override
+  String get trayAllow => 'Разрешить';
+
+  @override
+  String get trayEmpty => 'В галерее пусто';
+
+  @override
+  String get trayNoLink => 'В буфере нет ссылки';
+
+  @override
+  String get fullHint => 'Пиши в Markdown, файлы прикрепляй плюсом';
+
+  @override
+  String get fullPickFolder => 'Папку подберу';
+
+  @override
+  String get fullExpand => 'На весь экран';
+
+  @override
+  String get fullCollapse => 'Свернуть';
+
+  @override
+  String get folderPickTitle => 'Куда положить';
+
+  @override
+  String get mdHeading => 'Заголовок';
+
+  @override
+  String get mdBold => 'Жирный';
+
+  @override
+  String get mdItalic => 'Курсив';
+
+  @override
+  String get mdStrike => 'Зачеркнуть';
+
+  @override
+  String get mdBullets => 'Список';
+
+  @override
+  String get mdChecklist => 'Чек-лист';
+
+  @override
+  String get mdQuote => 'Цитата';
+
+  @override
+  String get mdCode => 'Код';
+
+  @override
+  String get mdUndo => 'Отменить';
+
+  @override
+  String get mdRedo => 'Вернуть';
+
+  @override
+  String get removeChip => 'Убрать';
+
+  @override
+  String get pinTag => 'Поставить тег';
+
+  @override
+  String get itemCopy => 'Скопировать текст';
+
+  @override
+  String get itemCopied => 'Скопировал';
+
+  @override
+  String get itemDelete => 'Удалить';
+
+  @override
+  String get itemDeleted => 'Удалил';
+
+  @override
+  String get itemTranscript => 'Расшифровка';
+
+  @override
+  String get itemDescription => 'Что на картинке';
+
+  @override
+  String get itemFiles => 'Файлы';
+
+  @override
+  String itemMoved(String folder) {
+    return 'Переложил в «$folder»';
+  }
+
+  @override
+  String get itemSortingBadge => 'разбираю';
 }

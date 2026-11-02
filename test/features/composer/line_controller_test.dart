@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/data/repositories/folders_repository.dart';
 import 'package:stowa/features/composer/line_controller.dart';
 
 TextEditingValue _typed(String text) => TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
@@ -65,6 +66,40 @@ void main() {
     line.value = _typed('#дом #кино ');
     line.removeTag('дом');
     expect(line.tags, ['кино']);
+  });
+
+  test('@папка с пробелом встаёт чипом папки, незнакомая остаётся текстом', () {
+    const refs = FolderCard(id: 'refs', name: 'Референсы', icon: 'palette', shape: 'squircle', count: 0, covers: [], recentTitles: [], createdByAi: false);
+    line.resolveFolder = (query) => 'референсы'.startsWith(query) ? refs : null;
+    line.value = _typed('лампа @реф ');
+    expect(line.folder?.id, 'refs');
+    expect(line.text, 'лампа ');
+    line.value = _typed('почта @нигде ');
+    expect(line.text, 'почта @нигде ');
+  });
+
+  test('стирание в начале снимает чипы с конца: теги, потом папка', () {
+    const car = FolderCard(id: 'car', name: 'Машина', icon: 'directions_car', shape: 'pill', count: 0, covers: [], recentTitles: [], createdByAi: false);
+    line.chooseFolder(car);
+    line.addTag('шины');
+    expect(line.dropLastChip(), isTrue);
+    expect(line.tags, isEmpty);
+    expect(line.dropLastChip(), isTrue);
+    expect(line.folder, isNull);
+    expect(line.dropLastChip(), isFalse);
+  });
+
+  test('«Отменить» возвращает текст и чипы', () {
+    line.restore(text: 'зубной завтра', tags: ['здоровье']);
+    expect(line.text, 'зубной завтра');
+    expect(line.tags, ['здоровье']);
+    expect(line.selection.baseOffset, line.text.length);
+  });
+
+  test('кнопка # вставляет знак через пробел от слова', () {
+    line.value = _typed('лампа');
+    line.insertAtCaret('#', spaced: true);
+    expect(line.text, 'лампа #');
   });
 
   testWidgets('дата в строке подчёркнута точками', (tester) async {

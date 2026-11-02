@@ -1,29 +1,25 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
-import '../composer/composer_bar.dart';
-import '../composer/line_controller.dart';
+import '../composer/line_dock.dart';
+import '../item/item_screen.dart';
 import 'folders_grid.dart';
 import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
 import 'recent_strip.dart';
-import 'saved_toast.dart';
 import 'section_header.dart';
 
-const _toastTime = Duration(seconds: 4);
+/// Место под свёрнутую строку внизу ленты, чтобы последняя плитка не пряталась.
+const _dockSpace = 150.0;
 
 /// Главная: закреплённые теги, ближайшее напоминание, последние вещи, папки
-/// и строка снизу. Пока пишешь, лента притихает под тенью.
+/// и живая строка поверх ленты.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -32,11 +28,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObserver {
-  late final LineController _line = LineController(clock: ref.read(clockProvider));
-  final _focus = FocusNode();
-  ({String id, String message})? _saved;
-  Timer? _toastTimer;
-
   @override
   void initState() {
     super.initState();
@@ -46,13 +37,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _toastTimer?.cancel();
-    _line.dispose();
-    _focus.dispose();
     super.dispose();
   }
-
-  bool get _drafting => _focus.hasFocus && (_line.text.isNotEmpty || _line.tags.isNotEmpty);
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -60,78 +46,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     if (state == AppLifecycleState.resumed) ref.invalidate(upcomingProvider);
   }
 
-  void _onSaved(String id, DateTime? reminderAt) {
-    final l = L.of(context);
-    final now = ref.read(clockProvider)();
-    _toastTimer?.cancel();
-    _toastTimer = Timer(_toastTime, () {
-      if (mounted) setState(() => _saved = null);
-    });
-    setState(() => _saved = (
-          id: id,
-          message: reminderAt == null ? l.savedToast : l.savedWithReminder(formatReminder(l, reminderAt, now)),
-        ));
-  }
+  final _dock = GlobalKey<LineDockState>();
 
-  Future<void> _undo() async {
-    final saved = _saved;
-    if (saved == null) return;
-    _toastTimer?.cancel();
-    setState(() => _saved = null);
-    await ref.read(itemsRepositoryProvider).softDelete(saved.id, ref.read(clockProvider)());
-  }
+  void _open(String id) => Navigator.of(context).push(itemRoute(id));
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
-    final saved = _saved;
     return Scaffold(
-      body: Column(children: [
-        Expanded(
-          child: Stack(children: [
-            const _Feed(),
-            // тень только пока пишешь: закинул — лента светлеет, и видно, как въезжает новое
-            ListenableBuilder(
-              listenable: Listenable.merge([_focus, _line]),
-              builder: (context, _) => IgnorePointer(
-                ignoring: !_drafting,
-                child: AnimatedOpacity(
-                  opacity: _drafting ? 1 : 0,
-                  duration: Motion.medium,
-                  curve: Motion.emphasized,
-                  child: GestureDetector(
-                    onTap: _focus.unfocus,
-                    child: ColoredBox(color: Tokens.background.withValues(alpha: 0.72), child: const SizedBox.expand()),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: Space.screen,
-              right: Space.screen,
-              bottom: 8,
-              child: AnimatedSwitcher(
-                duration: Motion.medium,
-                switchInCurve: Motion.spatial,
-                switchOutCurve: Motion.emphasizedAccelerate,
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: ScaleTransition(scale: Tween(begin: 0.9, end: 1.0).animate(animation), child: child),
-                ),
-                child: saved == null
-                    ? const SizedBox(key: ValueKey('none'))
-                    : SavedToast(key: ValueKey(saved.id), message: saved.message, undoLabel: l.undo, onUndo: _undo),
-              ),
-            ),
-          ]),
-        ),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-            child: ComposerBar(line: _line, focusNode: _focus, onSaved: _onSaved),
-          ),
-        ),
+      body: Stack(children: [
+        _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
+        Positioned.fill(child: LineDock(key: _dock, onOpenItem: _open)),
       ]),
     );
   }
@@ -139,7 +63,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
 /// Лента главной. Читает базу потоками: закинул — вещь въезжает сама.
 class _Feed extends ConsumerWidget {
-  const _Feed();
+  const _Feed({required this.onOpen, required this.onTag});
+
+  final ValueChanged<String> onOpen;
+  final ValueChanged<String> onTag;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -152,6 +79,7 @@ class _Feed extends ConsumerWidget {
     final recent = ref.watch(recentItemsProvider).value ?? const [];
     final folders = ref.watch(foldersProvider).value ?? const [];
     final items = ref.read(itemsRepositoryProvider);
+    final bottom = MediaQuery.paddingOf(context).bottom;
 
     return CustomScrollView(slivers: [
       SliverSafeArea(
@@ -165,7 +93,7 @@ class _Feed extends ConsumerWidget {
       ),
       if (pinned.isNotEmpty)
         SliverToBoxAdapter(
-          child: Padding(padding: const EdgeInsets.only(bottom: 16), child: PinnedTagsRow(tags: pinned, filesRoot: filesRoot)),
+          child: Padding(padding: const EdgeInsets.only(bottom: 16), child: PinnedTagsRow(tags: pinned, filesRoot: filesRoot, onTap: (tag) => onTag(tag.name))),
         ),
       if (upcoming.isNotEmpty)
         SliverToBoxAdapter(
@@ -175,20 +103,21 @@ class _Feed extends ConsumerWidget {
             more: upcoming.length - 1,
             now: now,
             onDone: () => items.clearReminder(upcoming.first.id),
+            onTap: () => onOpen(upcoming.first.id),
           ),
         ),
       if (recent.isNotEmpty) ...[
         SliverToBoxAdapter(child: SectionHeader(title: l.homeRecent)),
-        SliverToBoxAdapter(child: RecentStrip(items: recent, filesRoot: filesRoot, now: now)),
+        SliverToBoxAdapter(child: RecentStrip(items: recent, filesRoot: filesRoot, now: now, onOpen: (card) => onOpen(card.id))),
       ],
       if (folders.isNotEmpty) ...[
         SliverToBoxAdapter(child: SectionHeader(title: l.homeFolders)),
         SliverToBoxAdapter(child: FoldersGrid(folders: folders, filesRoot: filesRoot)),
       ],
       if (recent.isEmpty && folders.isEmpty)
-        SliverFillRemaining(hasScrollBody: false, child: _Empty(message: l.homeEmpty))
+        SliverFillRemaining(hasScrollBody: false, child: Padding(padding: EdgeInsets.only(bottom: _dockSpace + bottom), child: _Empty(message: l.homeEmpty)))
       else
-        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
     ]);
   }
 }
