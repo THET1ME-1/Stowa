@@ -4,43 +4,48 @@ import 'package:flutter/widgets.dart';
 
 import '../theme/motion.dart';
 
+// Движение двигает и проявляет готовый слой: FadeTransition и MatrixTransition не
+// перерисовывают содержимое на каждом кадре, поэтому на телефоне кадры не пропускаются.
+
+/// Пружина перелетает за единицу, прозрачность так не умеет — обрезаем.
+class UnitClamp extends Animatable<double> {
+  const UnitClamp();
+
+  @override
+  double transform(double t) => t.clamp(0.0, 1.0);
+}
+
 /// Панель и плашка, как rp-in и rp-out в макете: появляется снизу на 28 точек из
 /// 95% размера с пружинкой, уходит вниз на 16 точек к 98% и тает.
 Widget riseTransition(Widget child, Animation<double> animation) {
-  return AnimatedBuilder(
-    animation: animation,
-    child: child,
-    builder: (context, child) {
-      final leaving = animation.status == AnimationStatus.reverse;
-      final t = animation.value;
-      final shift = (leaving ? 16 : 28) * (1 - t);
-      final scale = leaving ? 0.98 + 0.02 * t : 0.95 + 0.05 * t;
-      return Opacity(
-        opacity: t.clamp(0.0, 1.0),
-        child: Transform.translate(
-          offset: Offset(0, shift),
-          child: Transform.scale(scale: scale, alignment: Alignment.bottomCenter, child: child),
-        ),
-      );
-    },
+  return FadeTransition(
+    opacity: animation.drive(const UnitClamp()),
+    child: MatrixTransition(
+      animation: animation,
+      alignment: Alignment.bottomCenter,
+      onTransform: (t) {
+        final leaving = animation.status == AnimationStatus.reverse;
+        final shift = (leaving ? 16 : 28) * (1 - t);
+        final scale = leaving ? 0.98 + 0.02 * t : 0.95 + 0.05 * t;
+        return Matrix4.translationValues(0, shift, 0)..scaleByDouble(scale, scale, 1, 1);
+      },
+      child: child,
+    ),
   );
 }
 
 /// Значок, как pop в макете: выпрыгивает из 40% с поворотом на −40°.
 Widget popTransition(Widget child, Animation<double> animation) {
-  return AnimatedBuilder(
-    animation: animation,
-    child: child,
-    builder: (context, child) {
-      final t = animation.value;
-      return Opacity(
-        opacity: t.clamp(0.0, 1.0),
-        child: Transform.rotate(
-          angle: -40 * pi / 180 * (1 - t),
-          child: Transform.scale(scale: 0.4 + 0.6 * t, child: child),
-        ),
-      );
-    },
+  return FadeTransition(
+    opacity: animation.drive(const UnitClamp()),
+    child: MatrixTransition(
+      animation: animation,
+      onTransform: (t) {
+        final scale = 0.4 + 0.6 * t;
+        return Matrix4.rotationZ(-40 * pi / 180 * (1 - t))..scaleByDouble(scale, scale, 1, 1);
+      },
+      child: child,
+    ),
   );
 }
 
@@ -83,14 +88,40 @@ class _RiseInState extends State<RiseIn> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _value,
-      child: widget.child,
-      builder: (context, child) => Opacity(
-        opacity: _value.value,
-        child: Transform.translate(
-          offset: Offset(0, 14 * (1 - _value.value)),
-          child: Transform.scale(scale: 0.97 + 0.03 * _value.value, child: child),
+    return FadeTransition(
+      opacity: _value,
+      child: MatrixTransition(
+        animation: _value,
+        onTransform: (t) {
+          final scale = 0.97 + 0.03 * t;
+          return Matrix4.translationValues(0, 14 * (1 - t), 0)..scaleByDouble(scale, scale, 1, 1);
+        },
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// Край, который тает в цвет фона: наложенный градиент вместо маски. Маска
+/// перерисовывает слой на каждом кадре и рвёт анимацию, градиент почти бесплатен.
+class EdgeFade extends StatelessWidget {
+  const EdgeFade({super.key, required this.color, this.toRight = false, this.toTop = false});
+
+  final Color color;
+
+  /// Тает к правому краю: строка листается вбок.
+  final bool toRight;
+
+  /// Тает к верху: список листается вверх.
+  final bool toTop;
+
+  @override
+  Widget build(BuildContext context) {
+    final (begin, end) = toTop ? (Alignment.bottomCenter, Alignment.topCenter) : (Alignment.centerLeft, Alignment.centerRight);
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: begin, end: end, colors: [color.withValues(alpha: 0), color]),
         ),
       ),
     );

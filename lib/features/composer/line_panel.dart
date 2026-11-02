@@ -103,61 +103,57 @@ class _LinePanelState extends State<LinePanel> {
         children: [
           ?header,
           Flexible(
-            child: ShaderMask(
-              blendMode: BlendMode.dstIn,
-              // верх списка тает, только когда над ним есть что прокрутить
-              shaderCallback: (bounds) => LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [_faded ? Colors.transparent : Colors.white, Colors.white],
-                stops: [0, 18 / (bounds.height == 0 ? 1 : bounds.height)],
-              ).createShader(bounds),
-              child: SingleChildScrollView(
-                controller: _scroll,
-                reverse: true,
-                child: Stack(
-                  key: _stack,
-                  children: [
-                    if (_highlight != null)
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 400),
-                        curve: Motion.spatial,
-                        left: 0,
-                        right: 0,
-                        bottom: _highlight!.bottom,
-                        height: _highlight!.height,
-                        child: Container(
-                          decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(Radii.tile)),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  controller: _scroll,
+                  reverse: true,
+                  child: Stack(
+                    key: _stack,
+                    children: [
+                      if (_highlight != null)
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Motion.spatial,
+                          left: 0,
+                          right: 0,
+                          bottom: _highlight!.bottom,
+                          height: _highlight!.height,
+                          child: Container(
+                            decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(Radii.tile)),
+                          ),
                         ),
-                      ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // нулевая строка у самой кнопки, лучшее найденное прямо над ней
-                        for (final (index, row) in rows.indexed.toList().reversed)
-                          // переезд снаружи въезда: замер места не сбивает сдвиг самого въезда
-                          _Glide(
-                            key: _keys.putIfAbsent(row.key, GlobalKey.new),
-                            stack: _stack,
-                            child: RiseIn(
-                              delay: index,
-                              child: _RowView(
-                                row: row,
-                                selected: index == widget.selected,
-                                rest: widget.rest,
-                                now: widget.now,
-                                filesRoot: widget.filesRoot,
-                                onTap: () => widget.onTap(index),
-                                onAppend: row is ResultRow && row.canAppend ? () => widget.onAppend(row) : null,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // нулевая строка у самой кнопки, лучшее найденное прямо над ней
+                          for (final (index, row) in rows.indexed.toList().reversed)
+                            // переезд снаружи въезда: замер места не сбивает сдвиг самого въезда
+                            _Glide(
+                              key: _keys.putIfAbsent(row.key, GlobalKey.new),
+                              stack: _stack,
+                              child: RiseIn(
+                                delay: index,
+                                child: _RowView(
+                                  row: row,
+                                  selected: index == widget.selected,
+                                  rest: widget.rest,
+                                  now: widget.now,
+                                  filesRoot: widget.filesRoot,
+                                  onTap: () => widget.onTap(index),
+                                  onAppend: row is ResultRow && row.canAppend ? () => widget.onAppend(row) : null,
+                                ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                // верх списка тает, только когда над ним есть что прокрутить
+                if (_faded) const Positioned(top: 0, left: 0, right: 0, height: 18, child: EdgeFade(color: Tokens.containerHigh, toTop: true)),
+              ],
             ),
           ),
         ],

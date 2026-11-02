@@ -7,6 +7,7 @@ import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/models.dart';
@@ -107,15 +108,16 @@ class _ArriveState extends State<_Arrive> with SingleTickerProviderStateMixin {
       sizeFactor: room,
       axis: Axis.horizontal,
       alignment: AlignmentDirectional.centerStart,
-      child: AnimatedBuilder(
-        animation: rise,
-        child: widget.child,
-        builder: (context, child) => Opacity(
-          opacity: rise.value.clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(0, 24 * (1 - rise.value)),
-            child: Transform.scale(scale: 0.7 + 0.3 * rise.value, child: child),
-          ),
+      // двигается готовый слой, содержимое на каждом кадре не перерисовывается
+      child: FadeTransition(
+        opacity: rise.drive(const UnitClamp()),
+        child: MatrixTransition(
+          animation: rise,
+          onTransform: (t) {
+            final scale = 0.7 + 0.3 * t;
+            return Matrix4.translationValues(0, 24 * (1 - t), 0)..scaleByDouble(scale, scale, 1, 1);
+          },
+          child: widget.child,
         ),
       ),
     );

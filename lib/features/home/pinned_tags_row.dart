@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../data/repositories/tags_repository.dart';
 
@@ -20,16 +21,18 @@ class PinnedTagsRow extends StatelessWidget {
     final height = MediaQuery.textScalerOf(context).scale(13) + 19;
     return SizedBox(
       height: height < 32 ? 32 : height,
-      child: ShaderMask(
-        blendMode: BlendMode.dstIn,
-        shaderCallback: (bounds) => const LinearGradient(colors: [Colors.white, Colors.white, Colors.transparent], stops: [0, 0.86, 1]).createShader(bounds),
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: Space.screen),
-          itemCount: tags.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 6),
-          itemBuilder: (context, index) => _TagPill(tag: tags[index], filesRoot: filesRoot, onTap: onTap),
-        ),
+      child: Stack(
+        children: [
+          ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: Space.screen),
+            itemCount: tags.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
+            itemBuilder: (context, index) => _TagPill(tag: tags[index], filesRoot: filesRoot, onTap: onTap),
+          ),
+          // край тает градиентом поверх, а не маской: маска перерисовывает слой при прокрутке
+          const Positioned(top: 0, bottom: 0, right: 0, width: 48, child: EdgeFade(color: Tokens.background, toRight: true)),
+        ],
       ),
     );
   }

@@ -194,12 +194,18 @@ void main() {
 
     await tester.tap(find.byTooltip('Свернуть'));
     await tester.pump();
+    // сжимается сама карточка, кадр за кадром, пружинкой макета: на старте едет быстро,
+    // но через 60 мс ещё в пути, а не уже внизу
+    double progress() => (full - tester.getSize(card).height) / (full - compact);
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(progress(), inExclusiveRange(0.1, 0.8));
+    // панели подсказок нет, пока строка едет
+    expect(find.text('Похожего нет, это новое'), findsNothing);
     await tester.pump(const Duration(milliseconds: 120));
-    final middle = tester.getSize(card).height;
-    expect(middle, lessThan(full - 10));
-    expect(middle, greaterThan(compact + 10));
+    expect(progress(), inExclusiveRange(0.5, 1.1));
     await tester.pumpAndSettle();
     expect(tester.getSize(card).height, closeTo(compact, 1));
+    expect(find.text('Похожего нет, это новое'), findsOneWidget);
   });
 
   testWidgets('касание закреплённого тега показывает вещи с ним', (tester) async {

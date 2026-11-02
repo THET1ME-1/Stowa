@@ -35,6 +35,9 @@ import 'picked_files.dart';
 import 'voice_session.dart';
 
 const _toastTime = Duration(milliseconds: 3400);
+
+/// Сколько строка раскрывается на весь экран и сворачивается обратно.
+const _lineMorph = Duration(milliseconds: 460);
 const _searchDelay = Duration(milliseconds: 90);
 
 /// Вложение в строке: грузится, пока крутится значок, потом галочка.
@@ -69,7 +72,7 @@ class LineDock extends ConsumerStatefulWidget {
   ConsumerState<LineDock> createState() => LineDockState();
 }
 
-class LineDockState extends ConsumerState<LineDock> {
+class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderStateMixin {
   late final LineController _line = LineController(clock: ref.read(clockProvider), resolveFolder: _resolveFolder);
   late final FocusNode _focus = FocusNode(onKeyEvent: _onKey);
   final _undo = UndoHistoryController();
@@ -94,6 +97,14 @@ class LineDockState extends ConsumerState<LineDock> {
 
   _Toast? _toast;
   Timer? _toastTimer;
+  // раскрытие на весь экран: 0 — свёрнута, 1 — во весь экран
+  late final AnimationController _morph = AnimationController(vsync: this, duration: _lineMorph)
+    ..addStatusListener((_) {
+      // панель подсказок ждёт, пока строка доедет, чтобы не выскочить посреди движения
+      if (mounted) setState(() {});
+    });
+  final _cardKey = GlobalKey();
+  double? _compactHeight;
   int _toastCount = 0;
 
   String? _clip;
@@ -114,6 +125,7 @@ class LineDockState extends ConsumerState<LineDock> {
   void dispose() {
     _searchTimer?.cancel();
     _toastTimer?.cancel();
+    _morph.dispose();
     _voice?.dispose();
     _line.dispose();
     _focus.dispose();
@@ -528,6 +540,10 @@ class LineDockState extends ConsumerState<LineDock> {
   }
 
   void _setFull(bool on) {
+    if (on == _full) return;
+    // высота свёрнутой строки снимается до раскрытия: к ней строка и вернётся
+    final card = _cardKey.currentContext?.findRenderObject() as RenderBox?;
+    if (on && card != null && card.hasSize) _compactHeight = card.size.height;
     setState(() {
       _full = on;
       if (on) {
@@ -535,6 +551,9 @@ class LineDockState extends ConsumerState<LineDock> {
         _tray = false;
       }
     });
+    // анимация всегда идёт вперёд от начала: и раскрытие, и сворачивание трогаются сразу
+    // и мягко садятся, а не играют одну кривую задом наперёд
+    _morph.forward(from: 0);
     if (on) _focus.requestFocus();
   }
 
@@ -627,7 +646,7 @@ class LineDockState extends ConsumerState<LineDock> {
     );
     final rows = _panel.rows;
     _shownSelected = !_manual || _selected >= rows.length ? _panel.pick : _selected;
-    final showPanel = _active && !_full && _voice == null && (_tray || rows.isNotEmpty);
+    final showPanel = _active && !_full && !_morph.isAnimating && _voice == null && (_tray || rows.isNotEmpty);
     final shade = showPanel || _full;
     final rest = queryOf(_line.text, keys).rest;
 
@@ -714,14 +733,21 @@ class LineDockState extends ConsumerState<LineDock> {
                                   ),
                           ),
                         ),
-                      // строка растёт и раскрывается на весь экран с пружинкой, как в макете
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 460),
-                        // на весь экран без перелёта: выше экрана расти некуда
-                        curve: _full ? Motion.emphasized : Motion.spatial,
-                        alignment: Alignment.bottomCenter,
-                        // обёртка одна и та же в обоих видах, меняется только высота
-                        child: SizedBox(height: _full ? constraints.maxHeight : null, child: _composer(l, now)),
+                      // раскрытие и сворачивание ведёт сама высота карточки, кадр за кадром,
+                      // пружинкой макета в обе стороны; выше экрана перелёт не пускаем
+                      AnimatedBuilder(
+                        animation: _morph,
+                        builder: (context, child) {
+                          final compact = _compactHeight ?? 0;
+                          final from = _full ? compact : constraints.maxHeight;
+                          final to = _full ? constraints.maxHeight : compact;
+                          final height = _full || _morph.isAnimating
+                              // ниже свёрнутой высоты не проваливается: туда не влезает содержимое
+                              ? (from + (to - from) * Motion.spatial.transform(_morph.value)).clamp(compact, constraints.maxHeight)
+                              : null;
+                          return SizedBox(key: _cardKey, height: height, child: child);
+                        },
+                        child: _composer(l, now),
                       ),
                     ],
                   ),
@@ -783,59 +809,67 @@ class LineDockState extends ConsumerState<LineDock> {
       ),
     );
 
+    // фон со скруглёнными углами снаружи, рамка роста внутри: растёт сама карточка, как height
+    // в макете (0,46 с пружинкой), а не обрезанная рамкой копия с плоскими углами
     return AnimatedContainer(
       key: const ValueKey('composer'),
       duration: const Duration(milliseconds: 250),
       curve: Motion.emphasized,
       transform: Matrix4.translationValues(0, _drag * 0.35, 0),
       decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(Radii.card)),
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-      child: Column(
-        mainAxisSize: _full ? MainAxisSize.max : MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _grip(l),
-          // панель разметки выезжает за 0,42 с и проявляется за 0,25 с
-          AnimatedSize(
-            duration: const Duration(milliseconds: 420),
-            curve: Motion.emphasized,
-            child: AnimatedOpacity(
-              opacity: _full ? 1 : 0,
-              duration: const Duration(milliseconds: 250),
-              child: _full ? _MarkdownBar(onAction: _markdown, undo: _undo, l: l) : const SizedBox(width: double.infinity),
-            ),
-          ),
-          AnimatedSize(
-            duration: Motion.medium,
-            curve: Motion.emphasized,
-            alignment: Alignment.bottomCenter,
-            child: chips.isEmpty
-                ? const SizedBox(width: double.infinity)
-                : ShaderMask(
-                    blendMode: BlendMode.dstIn,
-                    shaderCallback: (bounds) =>
-                        const LinearGradient(colors: [Colors.white, Colors.white, Colors.transparent], stops: [0, 0.9, 1]).createShader(bounds),
-                    child: SingleChildScrollView(
+      clipBehavior: Clip.antiAlias,
+      child: AnimatedSize(
+        // во время раскрытия высоту ведёт сама анимация раскрытия; ноль Flutter не принимает
+        duration: _full || _morph.isAnimating ? const Duration(milliseconds: 1) : const Duration(milliseconds: 460),
+        curve: Motion.spatial,
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Column(
+            mainAxisSize: _full ? MainAxisSize.max : MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _grip(l),
+              // панель разметки выезжает за 0,42 с, когда строка уже раскрылась, и уходит сразу
+              // при сворачивании: пока строка едет, ей не хватает места
+              AnimatedSize(
+                duration: _full ? const Duration(milliseconds: 420) : const Duration(milliseconds: 1),
+                curve: Motion.emphasized,
+                child: AnimatedOpacity(
+                  opacity: _full && !_morph.isAnimating ? 1 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  child: _full && !_morph.isAnimating ? _MarkdownBar(onAction: _markdown, undo: _undo, l: l) : const SizedBox(width: double.infinity),
+                ),
+              ),
+              // рост под чипы ведёт рамка всей строки; край не маской (она перерисовывает слой
+              // каждый кадр и рвёт анимацию на телефоне), а наложенным градиентом цвета строки
+              if (chips.isNotEmpty)
+                Stack(
+                  children: [
+                    SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.fromLTRB(4, 2, 24, 8),
                       child: Row(
                         children: [for (final chip in chips) Padding(padding: const EdgeInsets.only(right: 8), child: chip)],
                       ),
                     ),
-                  ),
+                    const Positioned(top: 0, bottom: 0, right: 0, width: 28, child: EdgeFade(color: Tokens.containerHighest, toRight: true)),
+                  ],
+                ),
+              // поле всегда в одном и том же месте дерева: иначе Flutter пересоздаёт его,
+              // фокус теряется, клавиатура уходит
+              Flexible(
+                fit: _full ? FlexFit.tight : FlexFit.loose,
+                child: Visibility(
+                  visible: _voice == null,
+                  maintainState: true,
+                  child: KeyedSubtree(key: _fieldKey, child: field),
+                ),
+              ),
+              _controls(l),
+            ],
           ),
-          // поле всегда в одном и том же месте дерева: иначе Flutter пересоздаёт его,
-          // фокус теряется, клавиатура уходит
-          Flexible(
-            fit: _full ? FlexFit.tight : FlexFit.loose,
-            child: Visibility(
-              visible: _voice == null,
-              maintainState: true,
-              child: KeyedSubtree(key: _fieldKey, child: field),
-            ),
-          ),
-          _controls(l),
-        ],
+        ),
       ),
     );
   }
@@ -888,7 +922,8 @@ class LineDockState extends ConsumerState<LineDock> {
           onRemove: () => _line.chooseFolder(null),
         ),
       );
-    } else if (_full) {
+    } else if (_full && !_morph.isAnimating) {
+      // догадки редактора появляются, когда строка раскрылась: пока едет, им нет места
       final guess = plan?.folder;
       chips.add(_DestChip(key: const ValueKey('dest'), icon: guess?.icon ?? 'inbox', label: guess?.name ?? l.fullPickFolder, onTap: _pickFolder));
     }
@@ -906,7 +941,7 @@ class LineDockState extends ConsumerState<LineDock> {
         ),
       );
     }
-    if (_full && plan != null) {
+    if (_full && !_morph.isAnimating && plan != null) {
       // теги, которые строка поставит сама: пунктиром, касание закрепляет
       for (final tag in plan.autoTags) {
         chips.add(_AutoChip(key: ValueKey('a$tag'), label: tag, tooltip: l.pinTag, onTap: () => _line.addTag(tag)));
@@ -1432,22 +1467,31 @@ class _AttachmentTile extends StatelessWidget {
 }
 
 /// Чип и вложение появляются с пружинкой, а не возникают.
-class _Pop extends StatelessWidget {
+class _Pop extends StatefulWidget {
   const _Pop({required this.child});
 
   final Widget child;
 
   @override
+  State<_Pop> createState() => _PopState();
+}
+
+// как att-in в макете: из 50% и прозрачности, пружинка 0,4 с; двигается готовый слой
+class _PopState extends State<_Pop> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 400))..forward();
+  late final Animation<double> _value = CurvedAnimation(parent: _controller, curve: Motion.spatial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.5, end: 1),
-      duration: Motion.long,
-      curve: Motion.spatial,
-      builder: (context, scale, child) => Opacity(
-        opacity: ((scale - 0.5) / 0.5).clamp(0.0, 1.0),
-        child: Transform.scale(scale: scale, child: child),
-      ),
-      child: child,
+    return FadeTransition(
+      opacity: _value.drive(const UnitClamp()),
+      child: ScaleTransition(scale: _value.drive(Tween(begin: 0.5, end: 1.0)), child: widget.child),
     );
   }
 }
