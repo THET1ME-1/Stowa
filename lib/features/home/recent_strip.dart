@@ -98,9 +98,16 @@ class _ArriveState extends State<_Arrive> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final scale = CurvedAnimation(parent: _controller, curve: Motion.spatial);
     final fade = CurvedAnimation(parent: _controller, curve: Motion.emphasizedDecelerate);
-    return FadeTransition(
-      opacity: fade,
-      child: ScaleTransition(scale: Tween(begin: 0.8, end: 1.0).animate(scale), child: widget.child),
+    final room = CurvedAnimation(parent: _controller, curve: Motion.emphasized);
+    // место под новую карточку растёт, соседи отъезжают плавно, а не прыгают
+    return SizeTransition(
+      sizeFactor: room,
+      axis: Axis.horizontal,
+      alignment: AlignmentDirectional.centerStart,
+      child: FadeTransition(
+        opacity: fade,
+        child: ScaleTransition(scale: Tween(begin: 0.8, end: 1.0).animate(scale), child: widget.child),
+      ),
     );
   }
 }

@@ -655,63 +655,72 @@ class LineDockState extends ConsumerState<LineDock> {
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _toastView(),
-                    // в редакторе на весь экран панели нет, строка забирает всю высоту
-                    Flexible(
-                      flex: _full ? 0 : 1,
-                      child: AnimatedSwitcher(
-                        duration: Motion.medium,
-                        switchInCurve: Motion.spatial,
-                        switchOutCurve: Motion.emphasizedAccelerate,
-                        layoutBuilder: (current, previous) => Stack(alignment: Alignment.bottomCenter, children: [...previous, ?current]),
-                        transitionBuilder: (child, animation) => FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween(begin: const Offset(0, 0.06), end: Offset.zero).animate(animation),
-                            child: ScaleTransition(scale: Tween(begin: 0.95, end: 1.0).animate(animation), alignment: Alignment.bottomCenter, child: child),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (!_full) _toastView(),
+                      // в редакторе на весь экран панели нет, строка забирает всю высоту
+                      if (!_full)
+                        Flexible(
+                          child: AnimatedSwitcher(
+                            duration: Motion.medium,
+                            switchInCurve: Motion.spatial,
+                            switchOutCurve: Motion.emphasizedAccelerate,
+                            layoutBuilder: (current, previous) => Stack(alignment: Alignment.bottomCenter, children: [...previous, ?current]),
+                            transitionBuilder: (child, animation) => FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween(begin: const Offset(0, 0.06), end: Offset.zero).animate(animation),
+                                child: ScaleTransition(scale: Tween(begin: 0.95, end: 1.0).animate(animation), alignment: Alignment.bottomCenter, child: child),
+                              ),
+                            ),
+                            child: !showPanel
+                                ? const SizedBox(key: ValueKey('none'), width: double.infinity)
+                                : Padding(
+                                    key: ValueKey(_tray ? 'tray' : 'panel'),
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: _tray
+                                        ? Container(
+                                            decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
+                                            padding: const EdgeInsets.all(6),
+                                            child: AttachTray(
+                                              selected: [for (final file in _files) file.key],
+                                              onToggle: _toggleAsset,
+                                              onCamera: () => _pick(pickCameraPhoto),
+                                              onVideo: () => _pick(pickCameraVideo),
+                                              onFiles: () => _pick(pickAnyFiles),
+                                              onLink: _pasteLink,
+                                            ),
+                                          )
+                                        : LinePanel(
+                                            state: _panel,
+                                            selected: _shownSelected,
+                                            rest: rest,
+                                            now: now,
+                                            filesRoot: ref.watch(filesRootProvider),
+                                            filter: _filter,
+                                            onFilter: (kind) => setState(() {
+                                              _filter = kind;
+                                              _manual = false;
+                                            }),
+                                            onTap: (index) => _actRow(rows[index]),
+                                            onAppend: _append,
+                                          ),
+                                  ),
                           ),
                         ),
-                        child: !showPanel
-                            ? const SizedBox(key: ValueKey('none'), width: double.infinity)
-                            : Padding(
-                                key: ValueKey(_tray ? 'tray' : 'panel'),
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: _tray
-                                    ? Container(
-                                        decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
-                                        padding: const EdgeInsets.all(6),
-                                        child: AttachTray(
-                                          selected: [for (final file in _files) file.key],
-                                          onToggle: _toggleAsset,
-                                          onCamera: () => _pick(pickCameraPhoto),
-                                          onVideo: () => _pick(pickCameraVideo),
-                                          onFiles: () => _pick(pickAnyFiles),
-                                          onLink: _pasteLink,
-                                        ),
-                                      )
-                                    : LinePanel(
-                                        state: _panel,
-                                        selected: _shownSelected,
-                                        rest: rest,
-                                        now: now,
-                                        filesRoot: ref.watch(filesRootProvider),
-                                        filter: _filter,
-                                        onFilter: (kind) => setState(() {
-                                          _filter = kind;
-                                          _manual = false;
-                                        }),
-                                        onTap: (index) => _actRow(rows[index]),
-                                        onAppend: _append,
-                                      ),
-                              ),
+                      // строка растёт и раскрывается на весь экран с пружинкой, как в макете
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 460),
+                        // на весь экран без перелёта: выше экрана расти некуда
+                        curve: _full ? Motion.emphasized : Motion.spatial,
+                        alignment: Alignment.bottomCenter,
+                        child: _full ? SizedBox(height: constraints.maxHeight, child: _composer(l, now)) : _composer(l, now),
                       ),
-                    ),
-                    if (_full) Expanded(child: _composer(l, now)) else _composer(l, now),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1374,9 +1383,22 @@ class _AttachmentTile extends StatelessWidget {
                     height: 22,
                     decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
                     alignment: Alignment.center,
-                    child: file == null
-                        ? const SizedBox.square(dimension: 13, child: CircularProgressIndicator(strokeWidth: 2.4, color: Tokens.onAccent))
-                        : Icon(symbolIcon('check'), size: 16, color: Tokens.onAccent),
+                    // загрузилось — галочка выпрыгивает с поворотом
+                    child: AnimatedSwitcher(
+                      duration: Motion.medium,
+                      switchInCurve: Motion.spatial,
+                      transitionBuilder: (child, animation) => RotationTransition(
+                        turns: Tween(begin: -0.11, end: 0.0).animate(animation),
+                        child: ScaleTransition(scale: Tween(begin: 0.4, end: 1.0).animate(animation), child: child),
+                      ),
+                      child: file == null
+                          ? const SizedBox.square(
+                              key: ValueKey('loading'),
+                              dimension: 13,
+                              child: CircularProgressIndicator(strokeWidth: 2.4, color: Tokens.onAccent),
+                            )
+                          : Icon(symbolIcon('check'), key: const ValueKey('done'), size: 16, color: Tokens.onAccent),
+                    ),
                   ),
                 ),
               ],
@@ -1421,6 +1443,7 @@ class _AddButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Pressable(
+        pressedScale: 0.9,
         onTap: onTap,
         child: AnimatedContainer(
           duration: Motion.medium,
@@ -1566,6 +1589,7 @@ class _SendButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Pressable(
+        pressedScale: 0.9,
         onTap: busy ? null : onTap,
         child: AnimatedContainer(
           duration: Motion.long,

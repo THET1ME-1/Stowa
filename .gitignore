@@ -26,3 +26,4 @@ android/local.properties
 android/app/debug/
 android/app/profile/
 android/app/release/
+dist/

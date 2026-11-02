@@ -52,7 +52,7 @@ class _LinePanelState extends State<LinePanel> {
   final _stack = GlobalKey();
   final _keys = <String, GlobalKey>{};
   final _scroll = ScrollController();
-  Rect? _highlight;
+  ({double bottom, double height})? _highlight;
   bool _faded = false;
 
   @override
@@ -75,10 +75,11 @@ class _LinePanelState extends State<LinePanel> {
     final rows = widget.state.rows;
     final stack = _stack.currentContext?.findRenderObject() as RenderBox?;
     final selected = widget.selected < rows.length ? _keys[rows[widget.selected].key]?.currentContext?.findRenderObject() as RenderBox? : null;
-    Rect? next;
+    // от низа: список прижат к кнопке, новая строка сверху не двигает плашку
+    ({double bottom, double height})? next;
     if (stack != null && selected != null && selected.attached && stack.attached) {
-      final offset = selected.localToGlobal(Offset.zero, ancestor: stack);
-      next = offset & selected.size;
+      final top = selected.localToGlobal(Offset.zero, ancestor: stack).dy;
+      next = (bottom: stack.size.height - top - selected.size.height, height: selected.size.height);
     }
     if (next != _highlight && mounted) setState(() => _highlight = next);
   }
@@ -95,57 +96,71 @@ class _LinePanelState extends State<LinePanel> {
     return Container(
       decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
       padding: const EdgeInsets.all(6),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        ?header,
-        Flexible(
-          child: ShaderMask(
-            blendMode: BlendMode.dstIn,
-            // верх списка тает, только когда над ним есть что прокрутить
-            shaderCallback: (bounds) => LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [_faded ? Colors.transparent : Colors.white, Colors.white],
-              stops: [0, 18 / (bounds.height == 0 ? 1 : bounds.height)],
-            ).createShader(bounds),
-            child: SingleChildScrollView(
-              controller: _scroll,
-              reverse: true,
-              child: Stack(key: _stack, children: [
-                if (_highlight != null)
-                  AnimatedPositioned(
-                    duration: Motion.long,
-                    curve: Motion.spatial,
-                    left: 0,
-                    right: 0,
-                    top: _highlight!.top,
-                    height: _highlight!.height,
-                    child: Container(decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(Radii.tile))),
-                  ),
-                Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  // нулевая строка у самой кнопки, лучшее найденное прямо над ней
-                  for (final (index, row) in rows.indexed.toList().reversed)
-                    _Arrive(
-                      key: ValueKey(row.key),
-                      delay: index,
-                      child: KeyedSubtree(
-                        key: _keys.putIfAbsent(row.key, GlobalKey.new),
-                        child: _RowView(
-                          row: row,
-                          selected: index == widget.selected,
-                          rest: widget.rest,
-                          now: widget.now,
-                          filesRoot: widget.filesRoot,
-                          onTap: () => widget.onTap(index),
-                          onAppend: row is ResultRow && row.canAppend ? () => widget.onAppend(row) : null,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ?header,
+          Flexible(
+            child: ShaderMask(
+              blendMode: BlendMode.dstIn,
+              // верх списка тает, только когда над ним есть что прокрутить
+              shaderCallback: (bounds) => LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [_faded ? Colors.transparent : Colors.white, Colors.white],
+                stops: [0, 18 / (bounds.height == 0 ? 1 : bounds.height)],
+              ).createShader(bounds),
+              child: SingleChildScrollView(
+                controller: _scroll,
+                reverse: true,
+                child: Stack(
+                  key: _stack,
+                  children: [
+                    if (_highlight != null)
+                      AnimatedPositioned(
+                        duration: Motion.long,
+                        curve: Motion.spatial,
+                        left: 0,
+                        right: 0,
+                        bottom: _highlight!.bottom,
+                        height: _highlight!.height,
+                        child: Container(
+                          decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(Radii.tile)),
                         ),
                       ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // нулевая строка у самой кнопки, лучшее найденное прямо над ней
+                        for (final (index, row) in rows.indexed.toList().reversed)
+                          // переезд снаружи въезда: замер места не сбивает сдвиг самого въезда
+                          _Glide(
+                            key: _keys.putIfAbsent(row.key, GlobalKey.new),
+                            stack: _stack,
+                            child: _Arrive(
+                              delay: index,
+                              child: _RowView(
+                                row: row,
+                                selected: index == widget.selected,
+                                rest: widget.rest,
+                                now: widget.now,
+                                filesRoot: widget.filesRoot,
+                                onTap: () => widget.onTap(index),
+                                onAppend: row is ResultRow && row.canAppend ? () => widget.onAppend(row) : null,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                ]),
-              ]),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -166,17 +181,22 @@ class _LinePanelState extends State<LinePanel> {
       padding: const EdgeInsets.fromLTRB(10, 6, 4, 8),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: Row(children: [
-          if (label != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Text(label, style: text.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
-            ),
-          if (state.kinds.isNotEmpty) ...[
-            _FilterChip(label: l.filterAll, on: widget.filter == null, onTap: () => widget.onFilter(null)),
-            for (final kind in state.kinds) _FilterChip(label: kindsLabel(l, kind), on: widget.filter == kind, onTap: () => widget.onFilter(kind)),
+        child: Row(
+          children: [
+            if (label != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Text(
+                  label,
+                  style: text.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant),
+                ),
+              ),
+            if (state.kinds.isNotEmpty) ...[
+              _FilterChip(label: l.filterAll, on: widget.filter == null, onTap: () => widget.onFilter(null)),
+              for (final kind in state.kinds) _FilterChip(label: kindsLabel(l, kind), on: widget.filter == kind, onTap: () => widget.onFilter(kind)),
+            ],
           ],
-        ]),
+        ),
       ),
     );
   }
@@ -201,19 +221,65 @@ class _FilterChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           alignment: Alignment.center,
           decoration: BoxDecoration(color: on ? Tokens.accent : Tokens.containerHighest, borderRadius: BorderRadius.circular(15)),
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: on ? Tokens.onAccent : Tokens.onSurface),
-          ),
+          child: Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: on ? Tokens.onAccent : Tokens.onSurface)),
         ),
       ),
     );
   }
 }
 
+/// Строка, которая осталась, переезжает на новое место плавно, а не прыгает.
+class _Glide extends StatefulWidget {
+  const _Glide({super.key, required this.stack, required this.child});
+
+  final GlobalKey stack;
+  final Widget child;
+
+  @override
+  State<_Glide> createState() => _GlideState();
+}
+
+class _GlideState extends State<_Glide> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this, duration: Motion.long);
+  double? _top;
+  double _from = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _measure() {
+    if (!mounted) return;
+    final box = context.findRenderObject() as RenderBox?;
+    final stack = widget.stack.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || stack == null || !box.attached || !stack.attached) return;
+    // список прижат к низу, поэтому место строки — расстояние от низа, оно не зависит от прокрутки
+    final fromBottom = stack.size.height - box.localToGlobal(Offset.zero, ancestor: stack).dy;
+    final before = _top;
+    _top = fromBottom;
+    if (before == null || (before - fromBottom).abs() < 0.5) return;
+    // сдвиг с учётом ещё не доехавшей части прошлого переезда
+    _from = fromBottom - before + _from * (1 - Motion.spatial.transform(_controller.value));
+    _controller.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) =>
+          Transform.translate(offset: Offset(0, _controller.isAnimating ? _from * (1 - Motion.spatial.transform(_controller.value)) : 0), child: child),
+      child: widget.child,
+    );
+  }
+}
+
 /// Новая строка въезжает снизу, лесенкой за соседями.
 class _Arrive extends StatelessWidget {
-  const _Arrive({super.key, required this.delay, required this.child});
+  const _Arrive({required this.delay, required this.child});
 
   final int delay;
   final Widget child;
@@ -226,7 +292,10 @@ class _Arrive extends StatelessWidget {
       curve: Interval((26 * delay) / (350 + 26 * delay), 1, curve: Motion.emphasizedDecelerate),
       builder: (context, value, child) => Opacity(
         opacity: value,
-        child: Transform.translate(offset: Offset(0, 14 * (1 - value)), child: Transform.scale(scale: 0.97 + 0.03 * value, child: child)),
+        child: Transform.translate(
+          offset: Offset(0, 14 * (1 - value)),
+          child: Transform.scale(scale: 0.97 + 0.03 * value, child: child),
+        ),
       ),
       child: child,
     );
@@ -274,10 +343,18 @@ class _RowView extends StatelessWidget {
         thumb = _badge(folder?.shape ?? 'squircle', folder?.icon ?? 'inbox', selected);
         title = Text(saveTitle(l, plan, now), maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
         final subText = saveSub(l, plan, rest, now);
-        sub = Row(children: [
-          if (subText.alarm) Padding(padding: const EdgeInsets.only(right: 2), child: Icon(symbolIcon('alarm'), size: 15, color: soft)),
-          Expanded(child: Text(subText.text, maxLines: 1, overflow: TextOverflow.ellipsis, style: subStyle)),
-        ]);
+        sub = Row(
+          children: [
+            if (subText.alarm)
+              Padding(
+                padding: const EdgeInsets.only(right: 2),
+                child: Icon(symbolIcon('alarm'), size: 15, color: soft),
+              ),
+            Expanded(
+              child: Text(subText.text, maxLines: 1, overflow: TextOverflow.ellipsis, style: subStyle),
+            ),
+          ],
+        );
         final why = saveWhere(l, plan);
         where = _where(why.icon, why.text, whereStyle, faint);
       case ResultRow(:final result):
@@ -306,7 +383,10 @@ class _RowView extends StatelessWidget {
           if (titleFor(lineEnd < 0 ? card.body : card.body.substring(0, lineEnd)) == card.title) {
             final cut = lineEnd < 0 ? card.body.length : lineEnd + 1;
             source = card.body.substring(cut);
-            marks = [for (final mark in marks) if (mark.$1 >= cut) (mark.$1 - cut, mark.$2)];
+            marks = [
+              for (final mark in marks)
+                if (mark.$1 >= cut) (mark.$1 - cut, mark.$2),
+            ];
           }
         }
         sub = source.trim().isEmpty
@@ -342,38 +422,45 @@ class _RowView extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(minHeight: 60),
           padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
-          child: Row(children: [
-            thumb,
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                title,
-                if (sub != null) ...[const SizedBox(height: 2), sub],
-                if (where != null) ...[const SizedBox(height: 3), where],
-              ]),
-            ),
-            if (onAppend != null) ...[
-              const SizedBox(width: 8),
-              _AppendButton(label: l.actionAppend, selected: selected, onTap: onAppend!),
+          child: Row(
+            children: [
+              thumb,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    title,
+                    if (sub != null) ...[const SizedBox(height: 2), sub],
+                    if (where != null) ...[const SizedBox(height: 3), where],
+                  ],
+                ),
+              ),
+              if (onAppend != null) ...[const SizedBox(width: 8), _AppendButton(label: l.actionAppend, selected: selected, onTap: onAppend!)],
             ],
-          ]),
+          ),
         ),
       ),
     );
   }
 
   Widget _badge(String shape, String icon, bool selected) => ShapeBadge(
-        shape: BadgeShape.values.asNameMap()[shape] ?? BadgeShape.squircle,
-        size: 44,
-        color: selected ? Tokens.graphite : Tokens.containerHighest,
-        child: Icon(symbolIcon(icon), size: 22, color: Tokens.onSurface),
-      );
+    shape: BadgeShape.values.asNameMap()[shape] ?? BadgeShape.squircle,
+    size: 44,
+    color: selected ? Tokens.graphite : Tokens.containerHighest,
+    child: Icon(symbolIcon(icon), size: 22, color: Tokens.onSurface),
+  );
 
-  Widget _where(String icon, String label, TextStyle style, Color color) => Row(children: [
-        Icon(symbolIcon(icon), size: 14, color: color),
-        const SizedBox(width: 4),
-        Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style)),
-      ]);
+  Widget _where(String icon, String label, TextStyle style, Color color) => Row(
+    children: [
+      Icon(symbolIcon(icon), size: 14, color: color),
+      const SizedBox(width: 4),
+      Expanded(
+        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+      ),
+    ],
+  );
 }
 
 class _AppendButton extends StatelessWidget {
@@ -392,11 +479,17 @@ class _AppendButton extends StatelessWidget {
         height: 36,
         padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
         decoration: BoxDecoration(color: selected ? Tokens.graphite : Tokens.accent, borderRadius: BorderRadius.circular(18)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(symbolIcon('edit_note'), size: 18, color: color),
-          const SizedBox(width: 5),
-          Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
-        ]),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(symbolIcon('edit_note'), size: 18, color: color),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: color),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -420,7 +513,10 @@ List<TextMark> snippetMarks(String text, List<TextMark>? marks) {
   if (marks == null) return const [];
   final start = _snippetStart(text, marks);
   final shift = start == 0 ? 0 : start - 1;
-  return [for (final mark in marks) if (mark.$1 >= start) (mark.$1 - shift, mark.$2)];
+  return [
+    for (final mark in marks)
+      if (mark.$1 >= start) (mark.$1 - shift, mark.$2),
+  ];
 }
 
 /// Текст с подсвеченными совпадениями: фон, ширина букв та же.
@@ -441,10 +537,19 @@ class MarkedText extends StatelessWidget {
       if (start < at || start >= text.length) continue;
       final end = (start + length).clamp(start, text.length);
       if (start > at) spans.add(TextSpan(text: text.substring(at, start)));
-      spans.add(TextSpan(text: text.substring(start, end), style: TextStyle(backgroundColor: markColor)));
+      spans.add(
+        TextSpan(
+          text: text.substring(start, end),
+          style: TextStyle(backgroundColor: markColor),
+        ),
+      );
       at = end;
     }
     if (at < text.length) spans.add(TextSpan(text: text.substring(at)));
-    return Text.rich(TextSpan(style: style, children: spans), maxLines: 1, overflow: TextOverflow.ellipsis);
+    return Text.rich(
+      TextSpan(style: style, children: spans),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
