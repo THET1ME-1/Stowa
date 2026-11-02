@@ -6,12 +6,15 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../data/db/database.dart';
+import '../data/repositories/rules_repository.dart';
 import '../data/repositories/tags_repository.dart';
 import '../domain/inline_tags.dart';
 import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
 import '../domain/models.dart';
 import '../domain/reminder_parser.dart';
+import '../domain/sort_rules.dart';
+import '../domain/tag_name.dart';
 
 class PickedFile {
   const PickedFile({required this.path, required this.mime, required this.size});
@@ -30,6 +33,7 @@ class CaptureInput {
     this.forcedTagNames = const [],
     this.forcedReminder,
     this.detectReminder = true,
+    this.asIs = false,
   });
 
   final String text;
@@ -42,6 +46,9 @@ class CaptureInput {
 
   /// Искать дату в тексте. Человек снял чип напоминания — не ищем.
   final bool detectReminder;
+
+  /// «Во Входящие как есть»: без папки, правила и ИИ вещь не трогают.
+  final bool asIs;
 }
 
 /// Единая точка «сохранить вещь». Запись идёт одной транзакцией без сети,
@@ -75,22 +82,28 @@ class CaptureService {
     final id = _uuid.v4();
     final now = _clock();
     final firstFile = input.files.isEmpty ? null : input.files.first;
-    final byHand = input.forcedFolderId != null;
+    final byHand = input.forcedFolderId != null || input.asIs;
     final found = input.forcedReminder == null && input.detectReminder ? parseReminder(text, now) : null;
     // дата уходит из заголовка, если без неё что-то осталось: «23 декабря 13:00 зубной» → «Зубной»
     final rest = found?.restOf(text) ?? '';
     final titleSource = rest.isNotEmpty ? rest : text;
+    final kind = detectKind(text: text, mime: firstFile?.mime);
+    final url = firstUrl(text);
+    final ownTags = [...input.forcedTagNames.map(normalizeTagName), ...extractInlineTags(text)];
 
     await _db.transaction(() async {
+      // правила раньше ИИ: разложили — вещь в очередь ИИ не встаёт
+      final rules = byHand ? const RuleOutcome() : applyRules(await RulesRepository(_db).enabled(), text: text, tags: ownTags, host: url?.host, kind: kind);
+      final byRule = rules.folderId != null;
       await _db.into(_db.items).insert(ItemsCompanion.insert(
             id: id,
-            kind: detectKind(text: text, mime: firstFile?.mime),
+            kind: kind,
             title: titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
             body: Value(text),
-            url: Value(firstUrl(text)?.toString()),
-            folderId: Value(input.forcedFolderId),
-            sortedBy: Value(byHand ? SortedBy.user : SortedBy.none),
-            sortState: Value(byHand ? SortState.sorted : SortState.pending),
+            url: Value(url?.toString()),
+            folderId: Value(input.forcedFolderId ?? rules.folderId),
+            sortedBy: Value(byHand ? SortedBy.user : byRule ? SortedBy.rule : SortedBy.none),
+            sortState: Value(byHand || byRule ? SortState.sorted : SortState.pending),
             reminderAt: Value(input.forcedReminder ?? found?.at),
             createdAt: now,
             updatedAt: now,
@@ -101,6 +114,9 @@ class CaptureService {
       }
       for (final name in extractInlineTags(text)) {
         await _linkTag(id, name, TagSource.inline);
+      }
+      for (final name in rules.tags) {
+        await _linkTag(id, name, TagSource.rule);
       }
     });
 

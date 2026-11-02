@@ -1,21 +1,19 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 
-import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/tag_tile.dart';
 import '../../data/repositories/tags_repository.dart';
-import '../../domain/models.dart';
 
 /// Закреплённые теги одной строкой с прокруткой вбок: высота не растёт,
 /// сколько тегов ни закрепи. Правый край тает, чтобы было видно, что строка листается.
 class PinnedTagsRow extends StatelessWidget {
   const PinnedTagsRow({super.key, required this.tags, required this.filesRoot, this.onTap});
 
-  final List<PinnedTag> tags;
+  final List<TagCard> tags;
   final Directory filesRoot;
-  final ValueChanged<PinnedTag>? onTap;
+  final ValueChanged<TagCard>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +41,9 @@ class PinnedTagsRow extends StatelessWidget {
 class _TagPill extends StatelessWidget {
   const _TagPill({required this.tag, required this.filesRoot, this.onTap});
 
-  final PinnedTag tag;
+  final TagCard tag;
   final Directory filesRoot;
-  final ValueChanged<PinnedTag>? onTap;
+  final ValueChanged<TagCard>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -61,14 +59,7 @@ class _TagPill extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(4, 4, 10, 4),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(8)),
-                alignment: Alignment.center,
-                clipBehavior: Clip.antiAlias,
-                child: _icon(),
-              ),
+              TagTile(kind: tag.iconKind, value: tag.iconValue, filesRoot: filesRoot),
               const SizedBox(width: 6),
               Text('${tag.count}', style: text.labelMedium!.copyWith(fontWeight: FontWeight.w600)),
             ]),
@@ -76,13 +67,5 @@ class _TagPill extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _icon() {
-    return switch (tag.iconKind) {
-      TagIconKind.symbol => Icon(symbolIcon(tag.iconValue, filled: true), size: 16, color: Tokens.onAccent),
-      TagIconKind.emoji => Text(tag.iconValue, style: const TextStyle(fontSize: 14)),
-      TagIconKind.image => Image.file(File(p.join(filesRoot.path, tag.iconValue)), fit: BoxFit.cover, width: 24, height: 24),
-    };
   }
 }

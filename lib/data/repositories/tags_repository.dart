@@ -5,9 +5,9 @@ import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
 import '../db/database.dart';
 
-/// Закреплённый тег на главной: плитка-иконка и число вещей, как метки в Telegram.
-class PinnedTag {
-  const PinnedTag({required this.id, required this.name, required this.iconKind, required this.iconValue, required this.count});
+/// Тег для экрана: плитка-иконка и число живых вещей, как метки в Telegram.
+class TagCard {
+  const TagCard({required this.id, required this.name, required this.iconKind, required this.iconValue, required this.count});
 
   final String id;
   final String name;
@@ -15,6 +15,12 @@ class PinnedTag {
   final String iconValue;
   final int count;
 }
+
+// тег и сколько у него живых вещей
+const _tagSelect = '''
+SELECT tags.*, (SELECT COUNT(*) FROM item_tags JOIN items ON items.id = item_tags.item_id
+  WHERE item_tags.tag_id = tags.id AND items.deleted_at IS NULL) AS item_count
+FROM tags''';
 
 class TagsRepository {
   TagsRepository(this._db, {Uuid? uuid, DateTime Function()? clock})
@@ -39,16 +45,15 @@ class TagsRepository {
   }
 
   /// Закреплённые теги по порядку, число — только живые вещи.
-  Stream<List<PinnedTag>> watchPinned() {
-    return _db.customSelect(
-      '''
-SELECT tags.*, (SELECT COUNT(*) FROM item_tags JOIN items ON items.id = item_tags.item_id
-  WHERE item_tags.tag_id = tags.id AND items.deleted_at IS NULL) AS item_count
-FROM tags WHERE tags.pinned = 1 ORDER BY tags.pin_order, tags.name''',
-      readsFrom: {_db.tags, _db.itemTags, _db.items},
-    ).watch().map((rows) => [
+  Stream<List<TagCard>> watchPinned() => _watch('$_tagSelect WHERE tags.pinned = 1 ORDER BY tags.pin_order, tags.name');
+
+  /// Все теги, частые первыми: подсказки после `#`.
+  Stream<List<TagCard>> watchAll() => _watch('$_tagSelect ORDER BY item_count DESC, tags.name');
+
+  Stream<List<TagCard>> _watch(String sql) {
+    return _db.customSelect(sql, readsFrom: {_db.tags, _db.itemTags, _db.items}).watch().map((rows) => [
           for (final row in rows)
-            PinnedTag(
+            TagCard(
               id: row.read<String>('id'),
               name: row.read<String>('name'),
               iconKind: TagIconKind.values.byName(row.read<String>('icon_kind')),

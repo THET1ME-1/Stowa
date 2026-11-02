@@ -143,4 +143,59 @@ void main() {
     final recent = await items.watchRecent().first;
     expect(recent.map((card) => card.title), ['Вторая', 'Первая']);
   });
+
+  group('правила', () {
+    setUp(() async {
+      await db.into(db.folders).insert(FoldersCompanion.insert(id: 'car', name: 'Машина', icon: 'directions_car', shape: 'pill'));
+      await db.into(db.rules).insert(RulesCompanion.insert(
+            id: 'r1',
+            conditionKind: RuleConditionKind.keyword,
+            conditionValue: 'шиномонтаж',
+            actionKind: RuleActionKind.addTag,
+            actionValue: 'машина',
+          ));
+      await db.into(db.rules).insert(RulesCompanion.insert(
+            id: 'r2',
+            conditionKind: RuleConditionKind.hasTag,
+            conditionValue: 'машина',
+            actionKind: RuleActionKind.toFolder,
+            actionValue: 'car',
+          ));
+    });
+
+    test('слово ставит тег, тег кладёт в папку, разобрано правилом', () async {
+      final id = await capture.capture(const CaptureInput(text: 'записаться на шиномонтаж'));
+      final saved = (await items.get(id))!;
+      expect(saved.item.folderId, 'car');
+      expect(saved.item.sortedBy, SortedBy.rule);
+      expect(saved.item.sortState, SortState.sorted);
+      expect(saved.tags, {'машина': TagSource.rule});
+    });
+
+    test('«во Входящие как есть» правила не трогают и ИИ не разбирает', () async {
+      final id = await capture.capture(const CaptureInput(text: 'записаться на шиномонтаж', asIs: true));
+      final saved = (await items.get(id))!;
+      expect(saved.item.folderId, isNull);
+      expect(saved.item.sortedBy, SortedBy.user);
+      expect(saved.item.sortState, SortState.sorted);
+      expect(saved.tags, isEmpty);
+    });
+
+    test('папка, выбранная руками, главнее правила', () async {
+      await db.into(db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'squircle'));
+      final id = await capture.capture(const CaptureInput(text: 'шиномонтаж', forcedFolderId: 'home'));
+      final saved = (await items.get(id))!;
+      expect(saved.item.folderId, 'home');
+      expect(saved.item.sortedBy, SortedBy.user);
+    });
+  });
+
+  test('«Дописать» добавляет мысль в конец старой заметки', () async {
+    final id = await capture.capture(const CaptureInput(text: 'Погода для пары'));
+    await items.append(id, 'видеть небо у второго', DateTime(2026, 11, 3));
+    final saved = (await items.get(id))!;
+    expect(saved.item.body, 'Погода для пары\n\nвидеть небо у второго');
+    expect(saved.item.updatedAt, DateTime(2026, 11, 3));
+    expect(await db.searchIds('небо'), [id]);
+  });
 }
