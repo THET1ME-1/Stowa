@@ -24,12 +24,22 @@ class CaretToken {
 String normalizeQuery(String text) => text.toLowerCase().replaceAll('ё', 'е');
 
 final _markBefore = RegExp(r'(^|\s)([#@])([^\s#@]*)$');
+// имя папки бывает из нескольких слов: «@Беспроводные возможности», до четырёх слов
+final _folderBefore = RegExp(r'(^|\s)@([^\s#@][^#@\n]*)$');
+const _folderWords = 4;
 final _commandBefore = RegExp(r'^/(\S*)$');
 final _wordTail = RegExp(r'^[^\s#@]*');
 
 CaretToken? caretToken(String text, int caret) {
   if (caret < 0 || caret > text.length) return null;
   final before = text.substring(0, caret);
+  final folder = _folderBefore.firstMatch(before);
+  final typedFolder = folder?.group(2);
+  if (typedFolder != null && typedFolder.contains(' ')) {
+    if (typedFolder.trim().split(RegExp(r'\s+')).length > _folderWords) return null;
+    final tail = _wordTail.firstMatch(text.substring(caret))!.group(0)!.length;
+    return CaretToken(kind: CaretKind.folder, query: normalizeQuery(typedFolder), start: caret - typedFolder.length - 1, end: caret + tail);
+  }
   final mark = _markBefore.firstMatch(before);
   if (mark != null) {
     final typed = mark.group(3)!;

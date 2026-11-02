@@ -314,11 +314,19 @@ PanelState _completions(PanelInput input, CaretToken token) {
       }
       if (query.isNotEmpty && !exact && !input.chosenTags.contains(query)) rows.add(NewTagRow(query));
     case CaretKind.folder:
-      for (final folder in input.folders.where((folder) => normalizeQuery(folder.name).split(' ').any((word) => word.startsWith(query))).take(6)) {
+      // по началу всего имени («подарки с» → «Подарки Сане») или любого его слова
+      final wanted = query.trimRight();
+      bool fits(FolderCard folder) {
+        final name = normalizeQuery(folder.name);
+        return name.startsWith(wanted) || name.split(' ').any((word) => word.startsWith(wanted));
+      }
+
+      for (final folder in input.folders.where(fits).take(6)) {
         rows.add(FolderRow(folder));
       }
-      final exact = input.folders.any((folder) => normalizeQuery(folder.name) == query);
-      if (query.isNotEmpty && !exact) rows.add(NewFolderRow(input.text.substring(token.start + 1, token.end)));
+      final exact = input.folders.any((folder) => normalizeQuery(folder.name) == wanted);
+      final name = input.text.substring(token.start + 1, token.end).trim();
+      if (name.isNotEmpty && !exact) rows.add(NewFolderRow(name));
   }
   return PanelState(
     rows: rows,

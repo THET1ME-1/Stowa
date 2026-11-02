@@ -127,9 +127,11 @@ class LineDockState extends ConsumerState<LineDock> {
 
   bool get _hasContent => _line.text.trim().isNotEmpty || _files.isNotEmpty;
 
-  FolderCard? _resolveFolder(String query) {
+  // сама по пробелу встаёт только папка с точно таким именем; по началу имени выбирают в панели,
+  // иначе «@Беспроводные » схватит «Беспроводные наушники» и новую папку не создать
+  FolderCard? _resolveFolder(String name) {
     final folders = ref.read(foldersProvider).value ?? const [];
-    return folders.where((folder) => normalizeQuery(folder.name).split(' ').any((word) => word.startsWith(query))).firstOrNull;
+    return folders.where((folder) => normalizeQuery(folder.name) == name).firstOrNull;
   }
 
   void _onFocus() {

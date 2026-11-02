@@ -23,7 +23,7 @@ class LineController extends TextEditingController {
 
   final DateTime Function() _clock;
 
-  /// Папка по началу имени: `@реф` находит «Референсы».
+  /// Папка по точному имени в нижнем регистре: `@машина ` становится чипом «Машина».
   FolderCard? Function(String query)? resolveFolder;
 
   final List<String> _tags = [];

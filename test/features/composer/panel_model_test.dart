@@ -61,6 +61,13 @@ void main() {
     expect(_panel('@машина').rows.whereType<NewFolderRow>(), isEmpty);
   });
 
+  test('папка с пробелами: создать целиком, найти существующую по началу имени', () {
+    expect((_panel('@Беспроводные возможности').rows.single as NewFolderRow).name, 'Беспроводные возможности');
+    const gifts = FolderCard(id: 'gifts', name: 'Подарки Сане', icon: 'redeem', shape: 'gem', count: 1, covers: [], recentTitles: [], createdByAi: false);
+    final panel = buildPanel(const PanelInput(text: '@подарки с', caret: 10, commandKeys: _keys, folders: [_car, gifts]));
+    expect((panel.rows.first as FolderRow).folder.id, 'gifts');
+  });
+
   test('/ в начале показывает команды', () {
     final panel = _panel('/за');
     expect((panel.rows.single as CommandRow).command, LineCommand.task);

@@ -96,6 +96,20 @@ void main() {
     expect(find.text('Легло в «Машина»'), findsOneWidget);
   });
 
+  testWidgets('папка с пробелом в имени создаётся из строки и встаёт чипом', (tester) async {
+    await open(tester);
+    await type(tester, '@Беспроводные возможности');
+    expect(find.text('Создать папку «Беспроводные возможности»'), findsOneWidget);
+    await tester.tap(find.text('Создать'));
+    await tester.pumpAndSettle();
+
+    final folder = await world.db.select(world.db.folders).getSingle();
+    expect(folder.name, 'Беспроводные возможности');
+    // чип над строкой и плитка новой папки в ленте
+    expect(find.text('Беспроводные возможности'), findsNWidgets(2));
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
+  });
+
   testWidgets('/ показывает команды, «/задача» кладёт с галочкой', (tester) async {
     await open(tester);
     await type(tester, '/за');

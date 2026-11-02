@@ -31,9 +31,20 @@ void main() {
       expect(token.query, 'за');
     });
 
-    test('после пробела подсказок нет', () {
+    test('после пробела подсказок тега нет', () {
       expect(caretToken('#свет ', 6), isNull);
       expect(caretToken('адрес почты me@site', 19), isNull);
+    });
+
+    test('имя папки может быть из нескольких слов', () {
+      final token = caretToken('лампа @Беспроводные возм', 24)!;
+      expect(token.kind, CaretKind.folder);
+      expect(token.query, 'беспроводные возм');
+      expect((token.start, token.end), (6, 24));
+    });
+
+    test('после четырёх слов строка уже не ищет папку', () {
+      expect(caretToken('@раз два три четыре пять', 24), isNull);
     });
   });
 

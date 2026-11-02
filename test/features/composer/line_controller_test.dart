@@ -70,12 +70,23 @@ void main() {
 
   test('@папка с пробелом встаёт чипом папки, незнакомая остаётся текстом', () {
     const refs = FolderCard(id: 'refs', name: 'Референсы', icon: 'palette', shape: 'squircle', count: 0, covers: [], recentTitles: [], createdByAi: false);
-    line.resolveFolder = (query) => 'референсы'.startsWith(query) ? refs : null;
-    line.value = _typed('лампа @реф ');
+    line.resolveFolder = (name) => name == 'референсы' ? refs : null;
+    line.value = _typed('лампа @Референсы ');
     expect(line.folder?.id, 'refs');
     expect(line.text, 'лампа ');
     line.value = _typed('почта @нигде ');
     expect(line.text, 'почта @нигде ');
+  });
+
+  test('@ с пробелом не хватает папку по началу слова, только по точному имени', () {
+    const radio = FolderCard(id: 'radio', name: 'Беспроводные наушники', icon: 'headphones', shape: 'pill', count: 0, covers: [], recentTitles: [], createdByAi: false);
+    const car = FolderCard(id: 'car', name: 'Машина', icon: 'directions_car', shape: 'pill', count: 0, covers: [], recentTitles: [], createdByAi: false);
+    line.resolveFolder = (name) => [radio, car].where((folder) => folder.name.toLowerCase() == name).firstOrNull;
+    line.value = _typed('@Беспроводные ');
+    expect(line.folder, isNull);
+    expect(line.text, '@Беспроводные ');
+    line.value = _typed('@машина ');
+    expect(line.folder?.id, 'car');
   });
 
   test('стирание в начале снимает чипы с конца: теги, потом папка', () {
