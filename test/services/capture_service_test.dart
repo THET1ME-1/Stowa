@@ -95,6 +95,36 @@ void main() {
     expect(saved.item.sortState, SortState.sorted);
   });
 
+  test('дата в тексте ставит напоминание и уходит из заголовка', () async {
+    final id = await capture.capture(const CaptureInput(text: '23 декабря 13:00 зубной'));
+    final saved = await items.get(id);
+    expect(saved!.item.reminderAt, DateTime(2026, 12, 23, 13));
+    expect(saved.item.title, 'Зубной');
+    expect(saved.item.body, '23 декабря 13:00 зубной');
+  });
+
+  test('напоминание, снятое человеком, из текста не ставится', () async {
+    final id = await capture.capture(const CaptureInput(text: 'завтра в 10 сервис', detectReminder: false));
+    final saved = await items.get(id);
+    expect(saved!.item.reminderAt, isNull);
+    expect(saved.item.title, 'Завтра в 10 сервис');
+  });
+
+  test('время, выбранное руками, главнее найденного в тексте', () async {
+    final picked = DateTime(2026, 11, 20, 18);
+    final id = await capture.capture(CaptureInput(text: 'завтра в 10 сервис', forcedReminder: picked));
+    expect((await items.get(id))!.item.reminderAt, picked);
+  });
+
+  test('ближайшие напоминания приходят потоком по порядку', () async {
+    await capture.capture(const CaptureInput(text: '23 декабря 13:00 зубной'));
+    await capture.capture(const CaptureInput(text: 'завтра в 10 сервис'));
+    await capture.capture(const CaptureInput(text: 'просто заметка'));
+    final upcoming = await items.watchUpcoming(DateTime(2026, 11, 2, 12)).first;
+    expect(upcoming.map((card) => card.title), ['Сервис', 'Зубной']);
+    expect(upcoming.first.reminderAt, DateTime(2026, 11, 3, 10));
+  });
+
   test('пустую вещь не сохраняет', () async {
     expect(() => capture.capture(const CaptureInput(text: '   ')), throwsArgumentError);
   });

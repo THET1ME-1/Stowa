@@ -11,6 +11,7 @@ import '../domain/inline_tags.dart';
 import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
 import '../domain/models.dart';
+import '../domain/reminder_parser.dart';
 
 class PickedFile {
   const PickedFile({required this.path, required this.mime, required this.size});
@@ -28,6 +29,7 @@ class CaptureInput {
     this.forcedFolderId,
     this.forcedTagNames = const [],
     this.forcedReminder,
+    this.detectReminder = true,
   });
 
   final String text;
@@ -37,6 +39,9 @@ class CaptureInput {
   final String? forcedFolderId;
   final List<String> forcedTagNames;
   final DateTime? forcedReminder;
+
+  /// Искать дату в тексте. Человек снял чип напоминания — не ищем.
+  final bool detectReminder;
 }
 
 /// Единая точка «сохранить вещь». Запись идёт одной транзакцией без сети,
@@ -71,18 +76,22 @@ class CaptureService {
     final now = _clock();
     final firstFile = input.files.isEmpty ? null : input.files.first;
     final byHand = input.forcedFolderId != null;
+    final found = input.forcedReminder == null && input.detectReminder ? parseReminder(text, now) : null;
+    // дата уходит из заголовка, если без неё что-то осталось: «23 декабря 13:00 зубной» → «Зубной»
+    final rest = found?.restOf(text) ?? '';
+    final titleSource = rest.isNotEmpty ? rest : text;
 
     await _db.transaction(() async {
       await _db.into(_db.items).insert(ItemsCompanion.insert(
             id: id,
             kind: detectKind(text: text, mime: firstFile?.mime),
-            title: titleFor(text, fileName: firstFile == null ? null : p.basename(firstFile.path)),
+            title: titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
             body: Value(text),
             url: Value(firstUrl(text)?.toString()),
             folderId: Value(input.forcedFolderId),
             sortedBy: Value(byHand ? SortedBy.user : SortedBy.none),
             sortState: Value(byHand ? SortState.sorted : SortState.pending),
-            reminderAt: Value(input.forcedReminder),
+            reminderAt: Value(input.forcedReminder ?? found?.at),
             createdAt: now,
             updatedAt: now,
           ));
