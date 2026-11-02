@@ -55,14 +55,12 @@ class _AttachTrayState extends State<AttachTray> {
 
   Future<void> _load({required bool request}) async {
     try {
-      final permission = request ? await PhotoManager.requestPermissionExtend() : await PhotoManager.getPermissionState(requestOption: const PermissionRequestOption());
+      final permission = request
+          ? await PhotoManager.requestPermissionExtend()
+          : await PhotoManager.getPermissionState(requestOption: const PermissionRequestOption());
       var assets = const <AssetEntity>[];
       if (permission.hasAccess) {
-        assets = await PhotoManager.getAssetListRange(
-          start: 0,
-          end: 120,
-          filterOption: FilterOptionGroup(orders: const [OrderOption()]),
-        );
+        assets = await PhotoManager.getAssetListRange(start: 0, end: 120, filterOption: FilterOptionGroup(orders: const [OrderOption()]));
       }
       if (mounted) {
         setState(() {
@@ -98,44 +96,58 @@ class _AttachTrayState extends State<AttachTray> {
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 6, 2, 2),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(children: [
-            for (final (index, (icon, label, action)) in tabs.indexed)
-              _Tab(icon: icon, label: label, on: _tab == index, onTap: () => _pickTab(index, action)),
-          ]),
-        ),
-        Flexible(child: _grid(l)),
-      ]),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                for (final (index, (icon, label, action)) in tabs.indexed)
+                  _Tab(icon: icon, label: label, on: _tab == index, onTap: () => _pickTab(index, action)),
+              ],
+            ),
+          ),
+          Flexible(child: _grid(l)),
+        ],
+      ),
     );
   }
 
   Widget _grid(L l) {
     final text = Theme.of(context).textTheme;
     final permission = _permission;
-    if (permission == null) return const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(strokeWidth: 2.5, color: Tokens.onSurfaceVariant)));
+    if (permission == null) {
+      return const SizedBox(
+        height: 120,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2.5, color: Tokens.onSurfaceVariant)),
+      );
+    }
     if (!permission.hasAccess || _assets.isEmpty) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            permission.hasAccess ? l.trayEmpty : l.trayAccess,
-            textAlign: TextAlign.center,
-            style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant),
-          ),
-          if (!permission.hasAccess) ...[
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () async {
-                await PhotoManager.openSetting();
-                await _load(request: true);
-              },
-              child: Text(l.trayAllow),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              permission.hasAccess ? l.trayEmpty : l.trayAccess,
+              textAlign: TextAlign.center,
+              style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant),
             ),
+            if (!permission.hasAccess) ...[
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: () async {
+                  await PhotoManager.openSetting();
+                  await _load(request: true);
+                },
+                child: Text(l.trayAllow),
+              ),
+            ],
           ],
-        ]),
+        ),
       );
     }
     return ConstrainedBox(
@@ -172,23 +184,38 @@ class _Tab extends StatelessWidget {
         message: label,
         child: GestureDetector(
           onTap: onTap,
+          // фон меняется за 0,3 с, ширина пружинит за 0,42 с, подпись проявляется за 0,2 с
           child: AnimatedContainer(
-            duration: Motion.long,
-            curve: Motion.spatial,
+            duration: const Duration(milliseconds: 300),
             height: 44,
             constraints: const BoxConstraints(minWidth: 44),
-            padding: EdgeInsets.fromLTRB(on ? 12 : 10, 0, on ? 16 : 10, 0),
             decoration: BoxDecoration(color: on ? Tokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(22)),
-            child: AnimatedSize(
-              duration: Motion.long,
+            child: AnimatedPadding(
+              duration: const Duration(milliseconds: 420),
               curve: Motion.spatial,
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(symbolIcon(icon), color: color),
-                if (on) ...[
-                  const SizedBox(width: 6),
-                  Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: color)),
-                ],
-              ]),
+              padding: EdgeInsets.fromLTRB(on ? 12 : 10, 0, on ? 16 : 10, 0),
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 420),
+                curve: Motion.spatial,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(symbolIcon(icon), color: color),
+                    if (on) ...[
+                      const SizedBox(width: 6),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: Motion.short,
+                        builder: (context, opacity, child) => Opacity(opacity: opacity, child: child),
+                        child: Text(
+                          label,
+                          style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: color),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -235,36 +262,42 @@ class _GalleryTileState extends State<_GalleryTile> {
           curve: Motion.spatial,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(on ? 24 : 14)),
-          child: Stack(fit: StackFit.expand, children: [
-            if (_thumb != null) Image.memory(_thumb!, fit: BoxFit.cover, gaplessPlayback: true),
-            if (video)
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_thumb != null) Image.memory(_thumb!, fit: BoxFit.cover, gaplessPlayback: true),
+              if (video)
+                Positioned(
+                  left: 6,
+                  bottom: 6,
+                  child: Text(
+                    _duration(asset.videoDuration),
+                    style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, fontWeight: FontWeight.w700, shadows: const []),
+                  ),
+                ),
               Positioned(
-                left: 6,
-                bottom: 6,
-                child: Text(
-                  _duration(asset.videoDuration),
-                  style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, fontWeight: FontWeight.w700, shadows: const []),
+                right: 6,
+                top: 6,
+                child: AnimatedContainer(
+                  duration: Motion.short,
+                  width: 22,
+                  height: 22,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: on ? Tokens.accent : Colors.transparent,
+                    border: Border.all(color: Tokens.accent, width: 2),
+                  ),
+                  child: on
+                      ? Text(
+                          '${widget.number}',
+                          style: Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: Tokens.onAccent),
+                        )
+                      : null,
                 ),
               ),
-            Positioned(
-              right: 6,
-              top: 6,
-              child: AnimatedContainer(
-                duration: Motion.short,
-                width: 22,
-                height: 22,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: on ? Tokens.accent : Colors.transparent,
-                  border: Border.all(color: Tokens.accent, width: 2),
-                ),
-                child: on
-                    ? Text('${widget.number}', style: Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: Tokens.onAccent))
-                    : null,
-              ),
-            ),
-          ]),
+            ],
+          ),
         ),
       ),
     );

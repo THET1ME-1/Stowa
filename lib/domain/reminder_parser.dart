@@ -25,35 +25,58 @@ const _morning = 9;
 const _letter = r'а-яa-z0-9';
 
 const _weekdays = {
-  'понедельник': 1, 'пн': 1,
-  'вторник': 2, 'вт': 2,
-  'среду': 3, 'ср': 3,
-  'четверг': 4, 'чт': 4,
-  'пятницу': 5, 'пт': 5,
-  'субботу': 6, 'сб': 6,
-  'воскресенье': 7, 'вс': 7,
+  'понедельник': 1,
+  'пн': 1,
+  'вторник': 2,
+  'вт': 2,
+  'среду': 3,
+  'ср': 3,
+  'четверг': 4,
+  'чт': 4,
+  'пятницу': 5,
+  'пт': 5,
+  'субботу': 6,
+  'сб': 6,
+  'воскресенье': 7,
+  'вс': 7,
 };
 
 // полные формы раньше коротких, иначе «мар» съест начало «марта»
 const _months = [
-  ('января', 1), ('февраля', 2), ('марта', 3), ('апреля', 4), ('мая', 5), ('июня', 6),
-  ('июля', 7), ('августа', 8), ('сентября', 9), ('октября', 10), ('ноября', 11), ('декабря', 12),
-  ('янв', 1), ('фев', 2), ('мар', 3), ('апр', 4), ('июн', 6), ('июл', 7),
-  ('авг', 8), ('сент', 9), ('сен', 9), ('окт', 10), ('ноя', 11), ('дек', 12),
+  ('января', 1),
+  ('февраля', 2),
+  ('марта', 3),
+  ('апреля', 4),
+  ('мая', 5),
+  ('июня', 6),
+  ('июля', 7),
+  ('августа', 8),
+  ('сентября', 9),
+  ('октября', 10),
+  ('ноября', 11),
+  ('декабря', 12),
+  ('янв', 1),
+  ('фев', 2),
+  ('мар', 3),
+  ('апр', 4),
+  ('июн', 6),
+  ('июл', 7),
+  ('авг', 8),
+  ('сент', 9),
+  ('сен', 9),
+  ('окт', 10),
+  ('ноя', 11),
+  ('дек', 12),
 ];
 
 const _dayParts = {'утром': 9, 'днем': 13, 'вечером': 19, 'ночью': 23, 'в полдень': 12, 'в полночь': 0};
 
 // слова после «в 13», с которыми число — не час: «в 13 лет», «в 2 раза»
-final _notHour = RegExp(
-  r'^\s*(лет|год|года|раз|раза|процент|%|штук|рубл|лей|долл|евро|км|кг|м\b|см|человек|этаж|класс|сери|сезон|минут|секунд|мес|недел|дн)',
-);
+final _notHour = RegExp(r'^\s*(лет|год|года|раз|раза|процент|%|штук|рубл|лей|долл|евро|км|кг|м\b|см|человек|этаж|класс|сери|сезон|минут|секунд|мес|недел|дн)');
 
 final _dayWord = RegExp('(?<![$_letter])(сегодня|завтра|послезавтра)(?![$_letter])');
 final _weekday = RegExp('(?<![$_letter])во?\\s+(${_weekdays.keys.join('|')})(?![$_letter])');
-final _monthDate = RegExp(
-  '(?<![$_letter])(\\d{1,2})\\s+(${_months.map((month) => month.$1).join('|')})\\.?(?:\\s+(\\d{4}))?(?![$_letter])',
-);
+final _monthDate = RegExp('(?<![$_letter])(\\d{1,2})\\s+(${_months.map((month) => month.$1).join('|')})\\.?(?:\\s+(\\d{4}))?(?![$_letter])');
 final _dotDate = RegExp('(?<![$_letter.:]|в )(\\d{1,2})\\.(\\d{2})(?:\\.(\\d{4}|\\d{2}))?(?![$_letter.:])');
 final _clock = RegExp('(?<![$_letter])(?:(?:в|к)\\s+)?(\\d{1,2})[:.](\\d{2})(?![$_letter])');
 final _hour = RegExp('(?<![$_letter])(?:в|к)\\s+(\\d{1,2})(?:\\s+(утра|дня|вечера|ночи|часов|часа|час))?(?![$_letter:.])');
@@ -144,17 +167,23 @@ List<_Date> _dates(String text, DateTime now) {
   final dates = <_Date>[];
 
   for (final match in _dayWord.allMatches(text)) {
-    final shift = switch (match.group(1)) { 'сегодня' => 0, 'завтра' => 1, _ => 2 };
+    final shift = switch (match.group(1)) {
+      'сегодня' => 0,
+      'завтра' => 1,
+      _ => 2,
+    };
     dates.add(_Date(match.start, match.end, (hour, minute) => DateTime(now.year, now.month, now.day + shift, hour, minute)));
   }
 
   for (final match in _weekday.allMatches(text)) {
     final target = _weekdays[match.group(1)]!;
-    dates.add(_Date(match.start, match.end, (hour, minute) {
-      final ahead = (target - now.weekday + 7) % 7;
-      final at = DateTime(now.year, now.month, now.day + ahead, hour, minute);
-      return at.isAfter(now) ? at : DateTime(now.year, now.month, now.day + ahead + 7, hour, minute);
-    }));
+    dates.add(
+      _Date(match.start, match.end, (hour, minute) {
+        final ahead = (target - now.weekday + 7) % 7;
+        final at = DateTime(now.year, now.month, now.day + ahead, hour, minute);
+        return at.isAfter(now) ? at : DateTime(now.year, now.month, now.day + ahead + 7, hour, minute);
+      }),
+    );
   }
 
   for (final match in _monthDate.allMatches(text)) {

@@ -77,17 +77,13 @@ class ItemsRepository {
     if (item == null) return null;
     final tagRows = await (_db.select(_db.itemTags).join([
       innerJoin(_db.tags, _db.tags.id.equalsExp(_db.itemTags.tagId)),
-    ])..where(_db.itemTags.itemId.equals(id)))
-        .get();
-    final attachments = await (_db.select(_db.attachments)
-          ..where((t) => t.itemId.equals(id))
-          ..orderBy([(t) => OrderingTerm.asc(t.position)]))
-        .get();
-    return ItemFull(
-      item: item,
-      tags: {for (final row in tagRows) row.readTable(_db.tags).name: row.readTable(_db.itemTags).source},
-      attachments: attachments,
-    );
+    ])..where(_db.itemTags.itemId.equals(id))).get();
+    final attachments =
+        await (_db.select(_db.attachments)
+              ..where((t) => t.itemId.equals(id))
+              ..orderBy([(t) => OrderingTerm.asc(t.position)]))
+            .get();
+    return ItemFull(item: item, tags: {for (final row in tagRows) row.readTable(_db.tags).name: row.readTable(_db.itemTags).source}, attachments: attachments);
   }
 
   /// Последние живые вещи, новые первыми. Ничья разрешается по id, иначе
@@ -106,14 +102,11 @@ class ItemsRepository {
   /// Ближайшие напоминания с этого момента, по времени. Их мало, поэтому
   /// отбор идёт в Dart: время хранится текстом, сравнивать строки ненадёжно.
   Stream<List<ItemCard>> watchUpcoming(DateTime now, {int limit = 3}) {
-    return _db
-        .customSelect('$_cardSelect AND items.reminder_at IS NOT NULL', readsFrom: {_db.items, _db.folders, _db.attachments})
-        .watch()
-        .map((rows) {
-          final cards = [for (final row in rows) _card(row)].where((card) => !card.reminderAt!.isBefore(now)).toList()
-            ..sort((a, b) => a.reminderAt!.compareTo(b.reminderAt!));
-          return cards.take(limit).toList();
-        });
+    return _db.customSelect('$_cardSelect AND items.reminder_at IS NOT NULL', readsFrom: {_db.items, _db.folders, _db.attachments}).watch().map((rows) {
+      final cards = [for (final row in rows) _card(row)].where((card) => !card.reminderAt!.isBefore(now)).toList()
+        ..sort((a, b) => a.reminderAt!.compareTo(b.reminderAt!));
+      return cards.take(limit).toList();
+    });
   }
 
   static const _folderDocsSql = '''
@@ -136,30 +129,22 @@ WHERE items.deleted_at IS NULL''';
 
   /// Вещь целиком и дальше при каждой правке.
   Stream<ItemFull?> watchItem(String id) {
-    return _db
-        .customSelect('SELECT 1', readsFrom: {_db.items, _db.itemTags, _db.tags, _db.attachments})
-        .watch()
-        .asyncMap((_) => get(id));
+    return _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.itemTags, _db.tags, _db.attachments}).watch().asyncMap((_) => get(id));
   }
 
   /// Человек переложил вещь сам: ИИ её больше не трогает, а пример запоминается.
   Future<void> moveToFolder(String id, String? folderId, DateTime at) async {
     await _db.transaction(() async {
       final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingle();
-      await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(
-            folderId: Value(folderId),
-            sortedBy: const Value(SortedBy.user),
-            sortState: const Value(SortState.sorted),
-            updatedAt: Value(at),
-          ));
+      await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
+        ItemsCompanion(folderId: Value(folderId), sortedBy: const Value(SortedBy.user), sortState: const Value(SortState.sorted), updatedAt: Value(at)),
+      );
       if (folderId != null && folderId != item.folderId) {
-        await _db.into(_db.corrections).insert(CorrectionsCompanion.insert(
-              id: '$id-${at.microsecondsSinceEpoch}',
-              itemId: id,
-              fromFolderId: Value(item.folderId),
-              toFolderId: folderId,
-              at: at,
-            ));
+        await _db
+            .into(_db.corrections)
+            .insert(
+              CorrectionsCompanion.insert(id: '$id-${at.microsecondsSinceEpoch}', itemId: id, fromFolderId: Value(item.folderId), toFolderId: folderId, at: at),
+            );
       }
     });
   }
@@ -199,29 +184,30 @@ WHERE items.deleted_at IS NULL''';
       ids.addAll(await _db.searchIds(words.map((word) => '"${stem(word)}"*').join(' OR ')));
     }
     final recent = await _db
-        .customSelect(
-          'SELECT items.id FROM items WHERE items.deleted_at IS NULL ORDER BY items.created_at DESC LIMIT 500',
-          readsFrom: {_db.items},
-        )
+        .customSelect('SELECT items.id FROM items WHERE items.deleted_at IS NULL ORDER BY items.created_at DESC LIMIT 500', readsFrom: {_db.items})
         .get();
     ids.addAll(recent.map((row) => row.read<String>('id')));
     if (tags.isNotEmpty || folderId != null) {
-      final filtered = await _db.customSelect(
-        'SELECT DISTINCT items.id FROM items LEFT JOIN item_tags ON item_tags.item_id = items.id '
-        'LEFT JOIN tags ON tags.id = item_tags.tag_id WHERE items.deleted_at IS NULL '
-        '${folderId != null ? 'AND items.folder_id = ?' : ''} ${tags.isNotEmpty ? 'AND tags.name LIKE ?' : ''} LIMIT 500',
-        variables: [if (folderId != null) Variable.withString(folderId), if (tags.isNotEmpty) Variable.withString('${tags.first}%')],
-        readsFrom: {_db.items, _db.itemTags, _db.tags},
-      ).get();
+      final filtered = await _db
+          .customSelect(
+            'SELECT DISTINCT items.id FROM items LEFT JOIN item_tags ON item_tags.item_id = items.id '
+            'LEFT JOIN tags ON tags.id = item_tags.tag_id WHERE items.deleted_at IS NULL '
+            '${folderId != null ? 'AND items.folder_id = ?' : ''} ${tags.isNotEmpty ? 'AND tags.name LIKE ?' : ''} LIMIT 500',
+            variables: [if (folderId != null) Variable.withString(folderId), if (tags.isNotEmpty) Variable.withString('${tags.first}%')],
+            readsFrom: {_db.items, _db.itemTags, _db.tags},
+          )
+          .get();
       ids.addAll(filtered.map((row) => row.read<String>('id')));
     }
     if (ids.isEmpty) return const [];
 
-    final rows = await _db.customSelect(
-      '$_cardSelect AND items.id IN (${List.filled(ids.length, '?').join(',')})',
-      variables: [for (final id in ids) Variable.withString(id)],
-      readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags},
-    ).get();
+    final rows = await _db
+        .customSelect(
+          '$_cardSelect AND items.id IN (${List.filled(ids.length, '?').join(',')})',
+          variables: [for (final id in ids) Variable.withString(id)],
+          readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags},
+        )
+        .get();
     final cards = <String, ItemCard>{};
     final docs = <SearchDoc>[];
     for (final row in rows) {
@@ -229,21 +215,22 @@ WHERE items.deleted_at IS NULL''';
       final item = _db.items.map(row.data);
       final tagNames = row.readNullable<String>('tag_names');
       cards[card.id] = card;
-      docs.add(SearchDoc(
-        id: card.id,
-        title: card.title,
-        body: card.body,
-        tags: tagNames == null || tagNames.isEmpty ? const [] : tagNames.split('\x1f'),
-        folderName: card.folderName,
-        folderId: card.folderId,
-        deep: [item.aiDescription, item.transcript].nonNulls.join('\n'),
-        url: card.url ?? '',
-        ageDays: now.difference(item.updatedAt).inDays,
-      ));
+      docs.add(
+        SearchDoc(
+          id: card.id,
+          title: card.title,
+          body: card.body,
+          tags: tagNames == null || tagNames.isEmpty ? const [] : tagNames.split('\x1f'),
+          folderName: card.folderName,
+          folderId: card.folderId,
+          deep: [item.aiDescription, item.transcript].nonNulls.join('\n'),
+          url: card.url ?? '',
+          ageDays: now.difference(item.updatedAt).inDays,
+        ),
+      );
     }
     return [
-      for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, limit: limit))
-        SearchResult(card: cards[hit.doc.id]!, hit: hit),
+      for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, limit: limit)) SearchResult(card: cards[hit.doc.id]!, hit: hit),
     ];
   }
 

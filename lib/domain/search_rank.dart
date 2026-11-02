@@ -5,14 +5,7 @@ import 'line_query.dart';
 /// Где в вещи нашлось слово. Глубже — описание от ИИ, текст с картинки и расшифровка.
 enum SearchField { title, tags, folder, body, deep, url }
 
-const _weights = {
-  SearchField.title: 3.0,
-  SearchField.tags: 2.4,
-  SearchField.folder: 1.4,
-  SearchField.body: 1.2,
-  SearchField.deep: 1.1,
-  SearchField.url: 1.0,
-};
+const _weights = {SearchField.title: 3.0, SearchField.tags: 2.4, SearchField.folder: 1.4, SearchField.body: 1.2, SearchField.deep: 1.1, SearchField.url: 1.0};
 
 /// Вещь глазами поиска: все поля, по которым ищется.
 class SearchDoc {
@@ -39,13 +32,13 @@ class SearchDoc {
   final int ageDays;
 
   String field(SearchField field) => switch (field) {
-        SearchField.title => title,
-        SearchField.tags => tags.join(' '),
-        SearchField.folder => folderName ?? '',
-        SearchField.body => body,
-        SearchField.deep => deep,
-        SearchField.url => url,
-      };
+    SearchField.title => title,
+    SearchField.tags => tags.join(' '),
+    SearchField.folder => folderName ?? '',
+    SearchField.body => body,
+    SearchField.deep => deep,
+    SearchField.url => url,
+  };
 }
 
 typedef TextMark = (int start, int length);
@@ -69,8 +62,8 @@ class SearchHit {
   SearchField? get where => marks.containsKey(SearchField.deep)
       ? SearchField.deep
       : marks.containsKey(SearchField.body)
-          ? SearchField.body
-          : null;
+      ? SearchField.body
+      : null;
 }
 
 final _word = RegExp(r'[a-zа-я0-9]+');
@@ -91,8 +84,7 @@ final _word = RegExp(r'[a-zа-я0-9]+');
         length++;
       }
     } else if (query.length >= 4 &&
-        (nearWords(word.substring(0, min(word.length, query.length)), query) ||
-            nearWords(word.substring(0, min(word.length, query.length + 1)), query))) {
+        (nearWords(word.substring(0, min(word.length, query.length)), query) || nearWords(word.substring(0, min(word.length, query.length + 1)), query))) {
       hit = 0.6;
       length = min(word.length, query.length);
     }
@@ -140,13 +132,7 @@ List<SearchHit> rankSearch(List<SearchDoc> docs, List<String> words, {List<Strin
       if (bestField != SearchField.title || bestStrength < 0.9) strong = false;
     }
     if (matched < need) continue;
-    hits.add(SearchHit(
-      doc: doc,
-      score: total / max(1, words.length) + 0.5 / (1 + doc.ageDays / 14),
-      matched: matched,
-      strong: strong,
-      marks: marks,
-    ));
+    hits.add(SearchHit(doc: doc, score: total / max(1, words.length) + 0.5 / (1 + doc.ageDays / 14), matched: matched, strong: strong, marks: marks));
   }
   hits.sort((a, b) => b.score.compareTo(a.score));
   return hits.take(limit).toList();

@@ -53,10 +53,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(children: [
-        _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
-        Positioned.fill(child: LineDock(key: _dock, onOpenItem: _open)),
-      ]),
+      body: Stack(
+        children: [
+          _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
+          Positioned.fill(
+            child: LineDock(key: _dock, onOpenItem: _open),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -81,44 +85,59 @@ class _Feed extends ConsumerWidget {
     final items = ref.read(itemsRepositoryProvider);
     final bottom = MediaQuery.paddingOf(context).bottom;
 
-    return CustomScrollView(slivers: [
-      SliverSafeArea(
-        bottom: false,
-        sliver: SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 16),
-            child: Text(l.appName, style: text.headlineSmall),
+    return CustomScrollView(
+      slivers: [
+        SliverSafeArea(
+          bottom: false,
+          sliver: SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 16),
+              child: Text(l.appName, style: text.headlineSmall),
+            ),
           ),
         ),
-      ),
-      if (pinned.isNotEmpty)
-        SliverToBoxAdapter(
-          child: Padding(padding: const EdgeInsets.only(bottom: 16), child: PinnedTagsRow(tags: pinned, filesRoot: filesRoot, onTap: (tag) => onTag(tag.name))),
-        ),
-      if (upcoming.isNotEmpty)
-        SliverToBoxAdapter(
-          child: NextReminderCard(
-            key: ValueKey(upcoming.first.id),
-            item: upcoming.first,
-            more: upcoming.length - 1,
-            now: now,
-            onDone: () => items.clearReminder(upcoming.first.id),
-            onTap: () => onOpen(upcoming.first.id),
+        if (pinned.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: PinnedTagsRow(tags: pinned, filesRoot: filesRoot, onTap: (tag) => onTag(tag.name)),
+            ),
           ),
-        ),
-      if (recent.isNotEmpty) ...[
-        SliverToBoxAdapter(child: SectionHeader(title: l.homeRecent)),
-        SliverToBoxAdapter(child: RecentStrip(items: recent, filesRoot: filesRoot, now: now, onOpen: (card) => onOpen(card.id))),
+        if (upcoming.isNotEmpty)
+          SliverToBoxAdapter(
+            child: NextReminderCard(
+              key: ValueKey(upcoming.first.id),
+              item: upcoming.first,
+              more: upcoming.length - 1,
+              now: now,
+              onDone: () => items.clearReminder(upcoming.first.id),
+              onTap: () => onOpen(upcoming.first.id),
+            ),
+          ),
+        if (recent.isNotEmpty) ...[
+          SliverToBoxAdapter(child: SectionHeader(title: l.homeRecent)),
+          SliverToBoxAdapter(
+            child: RecentStrip(items: recent, filesRoot: filesRoot, now: now, onOpen: (card) => onOpen(card.id)),
+          ),
+        ],
+        if (folders.isNotEmpty) ...[
+          SliverToBoxAdapter(child: SectionHeader(title: l.homeFolders)),
+          SliverToBoxAdapter(
+            child: FoldersGrid(folders: folders, filesRoot: filesRoot),
+          ),
+        ],
+        if (recent.isEmpty && folders.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: _dockSpace + bottom),
+              child: _Empty(message: l.homeEmpty),
+            ),
+          )
+        else
+          SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
       ],
-      if (folders.isNotEmpty) ...[
-        SliverToBoxAdapter(child: SectionHeader(title: l.homeFolders)),
-        SliverToBoxAdapter(child: FoldersGrid(folders: folders, filesRoot: filesRoot)),
-      ],
-      if (recent.isEmpty && folders.isEmpty)
-        SliverFillRemaining(hasScrollBody: false, child: Padding(padding: EdgeInsets.only(bottom: _dockSpace + bottom), child: _Empty(message: l.homeEmpty)))
-      else
-        SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
-    ]);
+    );
   }
 }
 
@@ -132,23 +151,26 @@ class _Empty extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ShapeBadge(
-            shape: BadgeShape.cookie9,
-            size: 72,
-            color: Tokens.containerHigh,
-            child: Icon(symbolIcon('inbox'), size: 32, color: Tokens.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 260),
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Tokens.muted),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ShapeBadge(
+              shape: BadgeShape.cookie9,
+              size: 72,
+              color: Tokens.containerHigh,
+              child: Icon(symbolIcon('inbox'), size: 32, color: Tokens.onSurfaceVariant),
             ),
-          ),
-        ]),
+            const SizedBox(height: 16),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 260),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Tokens.muted),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

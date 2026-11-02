@@ -14,51 +14,51 @@ import 'panel_model.dart';
 Map<LineCommand, List<String>> commandKeys(L l) {
   final languages = [l, lookupL(const Locale('ru')), lookupL(const Locale('en'))];
   String key(L one, LineCommand command) => switch (command) {
-        LineCommand.remind => one.cmdRemind,
-        LineCommand.task => one.cmdTask,
-        LineCommand.list => one.cmdList,
-        LineCommand.find => one.cmdFind,
-        LineCommand.inbox => one.cmdInbox,
-      };
+    LineCommand.remind => one.cmdRemind,
+    LineCommand.task => one.cmdTask,
+    LineCommand.list => one.cmdList,
+    LineCommand.find => one.cmdFind,
+    LineCommand.inbox => one.cmdInbox,
+  };
   return {
     for (final command in LineCommand.values) command: {for (final one in languages) key(one, command)}.toList(),
   };
 }
 
 String commandHint(L l, LineCommand command) => switch (command) {
-      LineCommand.remind => l.cmdRemindHint,
-      LineCommand.task => l.cmdTaskHint,
-      LineCommand.list => l.cmdListHint,
-      LineCommand.find => l.cmdFindHint,
-      LineCommand.inbox => l.cmdInboxHint,
-    };
+  LineCommand.remind => l.cmdRemindHint,
+  LineCommand.task => l.cmdTaskHint,
+  LineCommand.list => l.cmdListHint,
+  LineCommand.find => l.cmdFindHint,
+  LineCommand.inbox => l.cmdInboxHint,
+};
 
 String kindsLabel(L l, ItemKind kind) => switch (kind) {
-      ItemKind.note => l.kindsNote,
-      ItemKind.link => l.kindsLink,
-      ItemKind.video => l.kindsVideo,
-      ItemKind.image => l.kindsImage,
-      ItemKind.file => l.kindsFile,
-      ItemKind.voice => l.kindsVoice,
-    };
+  ItemKind.note => l.kindsNote,
+  ItemKind.link => l.kindsLink,
+  ItemKind.video => l.kindsVideo,
+  ItemKind.image => l.kindsImage,
+  ItemKind.file => l.kindsFile,
+  ItemKind.voice => l.kindsVoice,
+};
 
 String kindLabel(L l, ItemKind kind) => switch (kind) {
-      ItemKind.note => l.kindNote,
-      ItemKind.link => l.kindLink,
-      ItemKind.video => l.kindVideo,
-      ItemKind.image => l.kindImage,
-      ItemKind.file => l.kindFile,
-      ItemKind.voice => l.kindVoice,
-    };
+  ItemKind.note => l.kindNote,
+  ItemKind.link => l.kindLink,
+  ItemKind.video => l.kindVideo,
+  ItemKind.image => l.kindImage,
+  ItemKind.file => l.kindFile,
+  ItemKind.voice => l.kindVoice,
+};
 
 String kindIcon(ItemKind kind) => switch (kind) {
-      ItemKind.note => 'description',
-      ItemKind.link => 'link',
-      ItemKind.video => 'play_arrow',
-      ItemKind.image => 'image',
-      ItemKind.file => 'draft',
-      ItemKind.voice => 'graphic_eq',
-    };
+  ItemKind.note => 'description',
+  ItemKind.link => 'link',
+  ItemKind.video => 'play_arrow',
+  ItemKind.image => 'image',
+  ItemKind.file => 'draft',
+  ItemKind.voice => 'graphic_eq',
+};
 
 /// «сегодня», «вчера» или «12 окт.»
 String shortDate(L l, DateTime at, DateTime now) {
@@ -72,10 +72,10 @@ String shortDate(L l, DateTime at, DateTime now) {
 
 /// Где нашлось, если не в самом тексте.
 String deepLabel(L l, ItemKind kind) => switch (kind) {
-      ItemKind.voice || ItemKind.video => l.foundInTranscript,
-      ItemKind.image => l.foundOnImage,
-      _ => l.foundInDescription,
-    };
+  ItemKind.voice || ItemKind.video => l.foundInTranscript,
+  ItemKind.image => l.foundOnImage,
+  _ => l.foundInDescription,
+};
 
 String saveTitle(L l, SavePlan plan, DateTime now) {
   final command = plan.command;
@@ -84,14 +84,14 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
   final what = command == LineCommand.task
       ? l.saveWhatTask
       : command == LineCommand.list
-          ? l.saveWhatList(plan.listCount)
-          : plan.attachments > 0
-              ? (plan.onlyMedia ? l.saveWhatPhotos(plan.attachments) : l.saveWhatFiles(plan.attachments))
-              : switch (plan.kind) {
-                  ItemKind.link => l.saveWhatLink,
-                  ItemKind.video => l.saveWhatVideo,
-                  _ => l.saveWhatNote,
-                };
+      ? l.saveWhatList(plan.listCount)
+      : plan.attachments > 0
+      ? (plan.onlyMedia ? l.saveWhatPhotos(plan.attachments) : l.saveWhatFiles(plan.attachments))
+      : switch (plan.kind) {
+          ItemKind.link => l.saveWhatLink,
+          ItemKind.video => l.saveWhatVideo,
+          _ => l.saveWhatNote,
+        };
   final folder = plan.folder;
   return folder == null ? l.saveNoFolder(what) : l.saveInto(what, folder.name);
 }
@@ -106,7 +106,13 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
   if (parts.isEmpty) {
     final url = firstUrl(rest);
     final title = titleFor(rest);
-    parts.add(title.isNotEmpty ? title : plan.attachments > 0 ? l.savePhotosHint : url?.host ?? '');
+    parts.add(
+      title.isNotEmpty
+          ? title
+          : plan.attachments > 0
+          ? l.savePhotosHint
+          : url?.host ?? '',
+    );
   }
   return (text: parts.join(' · '), alarm: remind != null && plan.command != LineCommand.remind && plan.autoTags.isEmpty);
 }
@@ -129,8 +135,8 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
 
 /// Подпись и значок кнопки для выбранной строки.
 ({String label, String icon}) actionOf(L l, PanelRow row) => switch (row) {
-      SaveRow(:final plan) => (label: plan.command == LineCommand.remind ? l.actionRemind : l.actionStow, icon: 'arrow_upward'),
-      ResultRow() => (label: l.actionOpen, icon: 'arrow_outward'),
-      NewTagRow() => (label: l.actionCreate, icon: 'keyboard_return'),
-      TagRow() || FolderRow() || CommandRow() => (label: l.actionInsert, icon: 'keyboard_return'),
-    };
+  SaveRow(:final plan) => (label: plan.command == LineCommand.remind ? l.actionRemind : l.actionStow, icon: 'arrow_upward'),
+  ResultRow() => (label: l.actionOpen, icon: 'arrow_outward'),
+  NewTagRow() || NewFolderRow() => (label: l.actionCreate, icon: 'keyboard_return'),
+  TagRow() || FolderRow() || CommandRow() => (label: l.actionInsert, icon: 'keyboard_return'),
+};

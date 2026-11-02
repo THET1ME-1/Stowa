@@ -27,8 +27,7 @@ Path badgeShapePath(BadgeShape shape, Size size) {
 }
 
 double _radiusFactor(BadgeShape shape, double angle) {
-  double cookie(int lobes, double depth, [double phase = 0]) =>
-      1 - depth * (1 + math.cos(lobes * angle - phase)) / 2;
+  double cookie(int lobes, double depth, [double phase = 0]) => 1 - depth * (1 + math.cos(lobes * angle - phase)) / 2;
   double superellipse(double power) {
     final cos = math.cos(angle).abs();
     final sin = math.sin(angle).abs();

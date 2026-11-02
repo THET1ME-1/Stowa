@@ -15,24 +15,25 @@ void main() {
     expect(find.byIcon(Icons.alarm), findsOneWidget);
   });
 
-  testWidgets('нажатие слегка сжимает и зовёт обработчик', (tester) async {
+  double scaleOf(WidgetTester tester) =>
+      tester.widget<ScaleTransition>(find.descendant(of: find.byType(Pressable), matching: find.byType(ScaleTransition))).scale.value;
+
+  testWidgets('касание даёт толчок: сжался и вернулся, обработчик позван', (tester) async {
     var taps = 0;
-    await tester.pumpWidget(_wrap(Pressable(onTap: () => taps++, child: const SizedBox(width: 100, height: 60))));
-    final gesture = await tester.startGesture(tester.getCenter(find.byType(Pressable)));
-    await tester.pump(const Duration(milliseconds: 150));
-    final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale;
-    expect(scale, lessThan(1));
-    await gesture.up();
+    await tester.pumpWidget(_wrap(Pressable(pressedScale: 0.9, onTap: () => taps++, child: const SizedBox(width: 100, height: 60))));
+    await tester.tap(find.byType(Pressable));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 104));
+    expect(scaleOf(tester), closeTo(0.9, 0.01));
     await tester.pumpAndSettle();
     expect(taps, 1);
-    expect(tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale, 1);
+    expect(scaleOf(tester), 1);
   });
 
-  testWidgets('без обработчика нажатие ничего не сжимает', (tester) async {
+  testWidgets('без обработчика касание ничего не сжимает', (tester) async {
     await tester.pumpWidget(_wrap(const Pressable(child: SizedBox(width: 100, height: 60))));
-    final gesture = await tester.startGesture(tester.getCenter(find.byType(Pressable)));
-    await tester.pump(const Duration(milliseconds: 150));
-    expect(tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale, 1);
-    await gesture.up();
+    await tester.tap(find.byType(Pressable));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(scaleOf(tester), 1);
   });
 }

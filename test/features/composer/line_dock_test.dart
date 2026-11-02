@@ -151,6 +151,43 @@ void main() {
     expect(find.text('Папку подберу'), findsOneWidget);
   });
 
+  testWidgets('раскрыл на весь экран и свернул — фокус и клавиатура на месте, поле то же', (tester) async {
+    await open(tester);
+    await type(tester, 'мысль');
+    final field = tester.state(find.byType(EditableText));
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await tester.tap(find.byTooltip('На весь экран'));
+    await tester.pumpAndSettle();
+    expect(tester.state(find.byType(EditableText)), same(field));
+    expect(tester.testTextInput.isVisible, isTrue);
+    expect(FocusManager.instance.primaryFocus?.context?.findAncestorStateOfType<EditableTextState>(), same(field));
+
+    await tester.tap(find.byTooltip('Свернуть'));
+    await tester.pumpAndSettle();
+    expect(tester.state(find.byType(EditableText)), same(field));
+    expect(tester.testTextInput.isVisible, isTrue);
+  });
+
+  testWidgets('строка сворачивается плавно, а не прыжком', (tester) async {
+    await open(tester);
+    await type(tester, 'мысль');
+    final card = find.byKey(const ValueKey('composer'));
+    final compact = tester.getSize(card).height;
+    await tester.tap(find.byTooltip('На весь экран'));
+    await tester.pumpAndSettle();
+    final full = tester.getSize(card).height;
+
+    await tester.tap(find.byTooltip('Свернуть'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    final middle = tester.getSize(card).height;
+    expect(middle, lessThan(full - 10));
+    expect(middle, greaterThan(compact + 10));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(card).height, closeTo(compact, 1));
+  });
+
   testWidgets('касание закреплённого тега показывает вещи с ним', (tester) async {
     await world.db.into(world.db.tags).insert(TagsCompanion.insert(id: 't', name: 'код', createdAt: world.now, pinned: const Value(true)));
     await note('wifi', 'Пароль от Wi-Fi');

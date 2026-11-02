@@ -97,6 +97,17 @@ class FolderRow extends PanelRow {
   String get key => 'f${folder.id}';
 }
 
+/// Такой папки ещё нет: «Создать папку «Книги»».
+class NewFolderRow extends PanelRow {
+  const NewFolderRow(this.name);
+
+  /// Как набрано, без собаки.
+  final String name;
+
+  @override
+  String get key => 'fnew';
+}
+
 class CommandRow extends PanelRow {
   const CommandRow(this.command, this.key_);
 
@@ -206,22 +217,22 @@ SavePlan planSave(PanelInput input, {required LineCommand? command, required Str
     reason: chosen != null
         ? SaveReason.chosen
         : ruleFolder != null && rule != null
-            ? switch (rule.condition) {
-                RuleConditionKind.hasTag => SaveReason.tag,
-                RuleConditionKind.keyword => SaveReason.word,
-                RuleConditionKind.domain => SaveReason.domain,
-                RuleConditionKind.kind => SaveReason.kind,
-              }
-            : guessFolder != null
-                ? (guess!.byName ? SaveReason.name : SaveReason.similar)
-                : SaveReason.none,
+        ? switch (rule.condition) {
+            RuleConditionKind.hasTag => SaveReason.tag,
+            RuleConditionKind.keyword => SaveReason.word,
+            RuleConditionKind.domain => SaveReason.domain,
+            RuleConditionKind.kind => SaveReason.kind,
+          }
+        : guessFolder != null
+        ? (guess!.byName ? SaveReason.name : SaveReason.similar)
+        : SaveReason.none,
     reasonValue: chosen != null
         ? null
         : ruleFolder != null
-            ? rule?.conditionValue
-            : guessFolder != null
-                ? (guess!.byName ? guess.words.first : guess.words.take(2).join(', '))
-                : null,
+        ? rule?.conditionValue
+        : guessFolder != null
+        ? (guess!.byName ? guess.words.first : guess.words.take(2).join(', '))
+        : null,
     autoTags: autoTags,
     remindAt: input.remindAt,
     command: command,
@@ -251,15 +262,13 @@ PanelState buildPanel(PanelInput input) {
   final rows = <PanelRow>[
     if (plan != null) SaveRow(plan),
     for (final (index, result) in shown.indexed)
-      ResultRow(
-        result,
-        canAppend: index == 0 && plan != null && !result.hit.strong && result.hit.matched >= 3 && result.card.kind == ItemKind.note,
-      ),
+      ResultRow(result, canAppend: index == 0 && plan != null && !result.hit.strong && result.hit.matched >= 3 && result.card.kind == ItemKind.note),
   ];
 
   // короткий запрос точно совпал с заголовком — белым становится найденное
   final first = shown.firstOrNull;
-  final looking = plan == null ||
+  final looking =
+      plan == null ||
       (first != null &&
           first.hit.strong &&
           firstUrl(query.rest) == null &&
@@ -308,6 +317,8 @@ PanelState _completions(PanelInput input, CaretToken token) {
       for (final folder in input.folders.where((folder) => normalizeQuery(folder.name).split(' ').any((word) => word.startsWith(query))).take(6)) {
         rows.add(FolderRow(folder));
       }
+      final exact = input.folders.any((folder) => normalizeQuery(folder.name) == query);
+      if (query.isNotEmpty && !exact) rows.add(NewFolderRow(input.text.substring(token.start + 1, token.end)));
   }
   return PanelState(
     rows: rows,

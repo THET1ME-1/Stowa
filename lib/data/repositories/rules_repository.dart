@@ -3,13 +3,8 @@ import 'package:drift/drift.dart';
 import '../../domain/sort_rules.dart';
 import '../db/database.dart';
 
-SortRule sortRuleFrom(Rule row) => SortRule(
-      id: row.id,
-      condition: row.conditionKind,
-      conditionValue: row.conditionValue,
-      action: row.actionKind,
-      actionValue: row.actionValue,
-    );
+SortRule sortRuleFrom(Rule row) =>
+    SortRule(id: row.id, condition: row.conditionKind, conditionValue: row.conditionValue, action: row.actionKind, actionValue: row.actionValue);
 
 class RulesRepository {
   RulesRepository(this._db);

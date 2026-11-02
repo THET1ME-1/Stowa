@@ -22,8 +22,7 @@ class LEn extends L {
   String get homeFolders => 'Folders';
 
   @override
-  String get homeEmpty =>
-      'Nothing here yet. Drop the first thing into the line below.';
+  String get homeEmpty => 'Nothing here yet. Drop the first thing into the line below.';
 
   @override
   String get homeNext => 'Up next';
@@ -209,23 +208,13 @@ class LEn extends L {
 
   @override
   String saveWhatPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count photos',
-      one: '$count photo',
-    );
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count photos', one: '$count photo');
     return '$_temp0';
   }
 
   @override
   String saveWhatFiles(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count files',
-      one: '$count file',
-    );
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count files', one: '$count file');
     return '$_temp0';
   }
 
@@ -234,12 +223,7 @@ class LEn extends L {
 
   @override
   String saveWhatList(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count-item list',
-      one: '$count-item list',
-    );
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count-item list', one: '$count-item list');
     return '$_temp0';
   }
 
@@ -322,12 +306,7 @@ class LEn extends L {
 
   @override
   String itemsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count items',
-      one: '$count item',
-    );
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count items', one: '$count item');
     return '$_temp0';
   }
 
@@ -529,4 +508,12 @@ class LEn extends L {
   String reasonSimilar(String words) {
     return 'by the words “$words”, offline';
   }
+
+  @override
+  String folderCreate(String name) {
+    return 'Create folder “$name”';
+  }
+
+  @override
+  String get folderCreateHint => 'change the icon and shape later';
 }

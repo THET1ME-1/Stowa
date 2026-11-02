@@ -51,7 +51,14 @@ void main() {
   test('@ показывает папки по началу любого слова', () {
     final panel = _panel('@реф');
     expect(panel.header, PanelHeader.folders);
-    expect((panel.rows.single as FolderRow).folder.id, 'refs');
+    expect((panel.rows.first as FolderRow).folder.id, 'refs');
+    expect(panel.rows.last, isA<NewFolderRow>());
+  });
+
+  test('незнакомая папка после @ — «Создать папку» с именем как набрано', () {
+    final panel = _panel('@Книги');
+    expect((panel.rows.single as NewFolderRow).name, 'Книги');
+    expect(_panel('@машина').rows.whereType<NewFolderRow>(), isEmpty);
   });
 
   test('/ в начале показывает команды', () {

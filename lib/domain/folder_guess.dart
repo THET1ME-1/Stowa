@@ -99,11 +99,6 @@ class FolderIndex {
     final second = ranked.length > 1 ? ranked[1].value : 0.0;
     if (best.value < _minScore || best.value < second * _lead) return null;
     final proof = [...evidence[best.key]!]..sort((a, b) => b.$2.compareTo(a.$2));
-    return FolderGuess(
-      folderId: best.key,
-      words: [for (final (word, _, _) in proof.take(3)) word],
-      byName: proof.first.$3,
-      score: best.value,
-    );
+    return FolderGuess(folderId: best.key, words: [for (final (word, _, _) in proof.take(3)) word], byName: proof.first.$3, score: best.value);
   }
 }

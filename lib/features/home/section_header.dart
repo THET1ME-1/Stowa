@@ -19,7 +19,9 @@ class SectionHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(child: Text(title, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant))),
+          Expanded(
+            child: Text(title, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
+          ),
           if (action != null)
             TextButton(
               onPressed: onAction,
@@ -29,10 +31,7 @@ class SectionHeader extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 textStyle: text.labelMedium!.copyWith(fontSize: 14),
               ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(action!),
-                Icon(symbolIcon('chevron_right'), size: 18),
-              ]),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [Text(action!), Icon(symbolIcon('chevron_right'), size: 18)]),
             ),
         ],
       ),

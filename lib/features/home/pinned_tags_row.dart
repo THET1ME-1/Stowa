@@ -22,10 +22,7 @@ class PinnedTagsRow extends StatelessWidget {
       height: height < 32 ? 32 : height,
       child: ShaderMask(
         blendMode: BlendMode.dstIn,
-        shaderCallback: (bounds) => const LinearGradient(
-          colors: [Colors.white, Colors.white, Colors.transparent],
-          stops: [0, 0.86, 1],
-        ).createShader(bounds),
+        shaderCallback: (bounds) => const LinearGradient(colors: [Colors.white, Colors.white, Colors.transparent], stops: [0, 0.86, 1]).createShader(bounds),
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: Space.screen),
@@ -58,11 +55,14 @@ class _TagPill extends StatelessWidget {
           onTap: onTap == null ? null : () => onTap!(tag),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(4, 4, 10, 4),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              TagTile(kind: tag.iconKind, value: tag.iconValue, filesRoot: filesRoot),
-              const SizedBox(width: 6),
-              Text('${tag.count}', style: text.labelMedium!.copyWith(fontWeight: FontWeight.w600)),
-            ]),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TagTile(kind: tag.iconKind, value: tag.iconValue, filesRoot: filesRoot),
+                const SizedBox(width: 6),
+                Text('${tag.count}', style: text.labelMedium!.copyWith(fontWeight: FontWeight.w600)),
+              ],
+            ),
           ),
         ),
       ),

@@ -213,14 +213,7 @@ class LRu extends L {
 
   @override
   String saveWhatFiles(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count файла',
-      many: '$count файлов',
-      few: '$count файла',
-      one: '$count файл',
-    );
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count файла', many: '$count файлов', few: '$count файла', one: '$count файл');
     return '$_temp0';
   }
 
@@ -319,14 +312,7 @@ class LRu extends L {
 
   @override
   String itemsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count вещи',
-      many: '$count вещей',
-      few: '$count вещи',
-      one: '$count вещь',
-    );
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count вещи', many: '$count вещей', few: '$count вещи', one: '$count вещь');
     return '$_temp0';
   }
 
@@ -528,4 +514,12 @@ class LRu extends L {
   String reasonSimilar(String words) {
     return 'по словам «$words», без сети';
   }
+
+  @override
+  String folderCreate(String name) {
+    return 'Создать папку «$name»';
+  }
+
+  @override
+  String get folderCreateHint => 'иконку и форму поменяешь потом';
 }

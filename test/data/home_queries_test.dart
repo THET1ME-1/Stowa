@@ -75,6 +75,16 @@ void main() {
     expect(pinned.first.count, 0);
   });
 
+  test('новая папка из строки: имя с заглавной, своя форма, в конце списка', () async {
+    final folders = FoldersRepository(db);
+    await folders.create('книги');
+    final created = await folders.create('беспроводные возможности');
+    expect(created.name, 'Беспроводные возможности');
+    final all = await folders.watchAll().first;
+    expect(all.map((folder) => folder.name), ['Книги', 'Беспроводные возможности']);
+    expect(all.first.shape, isNot(all.last.shape));
+  });
+
   test('«Готово» у напоминания убирает его из ближайших, вещь остаётся', () async {
     await _item(db, '1');
     await (db.update(db.items)..where((t) => t.id.equals('1'))).write(ItemsCompanion(reminderAt: Value(_day.add(const Duration(hours: 1)))));

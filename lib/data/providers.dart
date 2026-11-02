@@ -21,12 +21,14 @@ final itemsRepositoryProvider = Provider((ref) => ItemsRepository(ref.watch(data
 final foldersRepositoryProvider = Provider((ref) => FoldersRepository(ref.watch(databaseProvider)));
 final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 
-final captureServiceProvider = Provider((ref) => CaptureService(
-      ref.watch(databaseProvider),
-      tags: ref.watch(tagsRepositoryProvider),
-      filesRoot: ref.watch(filesRootProvider),
-      clock: ref.watch(clockProvider),
-    ));
+final captureServiceProvider = Provider(
+  (ref) => CaptureService(
+    ref.watch(databaseProvider),
+    tags: ref.watch(tagsRepositoryProvider),
+    filesRoot: ref.watch(filesRootProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
 
 final recentItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchRecent());
 

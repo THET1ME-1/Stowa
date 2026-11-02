@@ -34,35 +34,40 @@ class NextReminderCard extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(Space.screen),
-            child: Row(children: [
-              ShapeBadge(
-                shape: BadgeShape.cookie9,
-                size: 52,
-                child: Icon(symbolIcon('alarm', filled: true), color: Tokens.onSurface),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.titleMedium!.copyWith(fontSize: 17, color: Tokens.onAccent, height: 1.25),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(sub, style: text.bodyMedium!.copyWith(fontSize: 14, color: Tokens.onAccentVariant)),
-                ]),
-              ),
-              if (onDone != null) ...[
-                const SizedBox(width: 8),
-                IconButton(
-                  tooltip: l.homeReminderDone,
-                  onPressed: onDone,
-                  style: IconButton.styleFrom(backgroundColor: const Color(0xFFE2E2DF), foregroundColor: Tokens.onAccent),
-                  icon: Icon(symbolIcon('check')),
+            child: Row(
+              children: [
+                ShapeBadge(
+                  shape: BadgeShape.cookie9,
+                  size: 52,
+                  child: Icon(symbolIcon('alarm', filled: true), color: Tokens.onSurface),
                 ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.titleMedium!.copyWith(fontSize: 17, color: Tokens.onAccent, height: 1.25),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(sub, style: text.bodyMedium!.copyWith(fontSize: 14, color: Tokens.onAccentVariant)),
+                    ],
+                  ),
+                ),
+                if (onDone != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: l.homeReminderDone,
+                    onPressed: onDone,
+                    style: IconButton.styleFrom(backgroundColor: const Color(0xFFE2E2DF), foregroundColor: Tokens.onAccent),
+                    icon: Icon(symbolIcon('check')),
+                  ),
+                ],
               ],
-            ]),
+            ),
           ),
         ),
       ),

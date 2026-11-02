@@ -80,7 +80,7 @@ class _Arrive extends StatefulWidget {
 }
 
 class _ArriveState extends State<_Arrive> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(vsync: this, duration: Motion.long, value: widget.play ? 0 : 1);
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 550), value: widget.play ? 0 : 1);
 
   @override
   void initState() {
@@ -96,17 +96,27 @@ class _ArriveState extends State<_Arrive> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final scale = CurvedAnimation(parent: _controller, curve: Motion.spatial);
-    final fade = CurvedAnimation(parent: _controller, curve: Motion.emphasizedDecelerate);
-    final room = CurvedAnimation(parent: _controller, curve: Motion.emphasized);
-    // место под новую карточку растёт, соседи отъезжают плавно, а не прыгают
+    // как rc-in в макете: снизу на 24 точки из 70% размера, пружинка 0,55 с;
+    // соседи отъезжают за 0,5 с, место растёт той же пружинкой
+    final rise = CurvedAnimation(parent: _controller, curve: Motion.spatial);
+    final room = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0, 500 / 550, curve: Motion.spatial),
+    );
     return SizeTransition(
       sizeFactor: room,
       axis: Axis.horizontal,
       alignment: AlignmentDirectional.centerStart,
-      child: FadeTransition(
-        opacity: fade,
-        child: ScaleTransition(scale: Tween(begin: 0.8, end: 1.0).animate(scale), child: widget.child),
+      child: AnimatedBuilder(
+        animation: rise,
+        child: widget.child,
+        builder: (context, child) => Opacity(
+          opacity: rise.value.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, 24 * (1 - rise.value)),
+            child: Transform.scale(scale: 0.7 + 0.3 * rise.value, child: child),
+          ),
+        ),
       ),
     );
   }
@@ -129,26 +139,32 @@ class RecentCard extends StatelessWidget {
         width: recentCardWidth,
         decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
         clipBehavior: Clip.antiAlias,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(height: _artHeight, child: _art(context)),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(Space.tile, 10, Space.tile, 12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(
-                  child: Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.bodyMedium!.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w500),
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(height: _artHeight, child: _art(context)),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(Space.tile, 10, Space.tile, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodyMedium!.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _Where(item: item, now: now),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                _Where(item: item, now: now),
-              ]),
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
@@ -175,6 +191,7 @@ class RecentCard extends StatelessWidget {
       ItemKind.link => 'link',
       ItemKind.voice => 'graphic_eq',
       ItemKind.file => 'description',
+      _ when item.body.startsWith('- [') => 'check_box_outline_blank',
       _ when preview.isEmpty => 'notes',
       _ => null,
     };
@@ -189,15 +206,23 @@ class RecentCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: text.bodySmall!.copyWith(fontSize: 13, height: 1.3, color: Tokens.onSurfaceVariant),
               )
-            : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(symbolIcon(iconName, filled: true), size: 20, color: Tokens.onSurface),
-                if (label != null) ...[
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(color: Tokens.onSurfaceVariant)),
-                  ),
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(symbolIcon(iconName, filled: true), size: 20, color: Tokens.onSurface),
+                  if (label != null) ...[
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall!.copyWith(color: Tokens.onSurfaceVariant),
+                      ),
+                    ),
+                  ],
                 ],
-              ]),
+              ),
       ),
     );
   }
@@ -216,21 +241,36 @@ class _Where extends StatelessWidget {
     final style = Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 12, color: Tokens.muted);
     // ключ ИИ разбирает вещь: бегущая полоска вместо папки
     if (item.sortState == SortState.queued) {
-      return Row(children: [
-        const SizedBox(width: 16, height: 3, child: ClipRRect(borderRadius: BorderRadius.all(Radius.circular(2)), child: LinearProgressIndicator(color: Tokens.onSurfaceVariant, backgroundColor: Tokens.graphite))),
-        const SizedBox(width: 6),
-        Expanded(child: Text(l.itemSortingBadge, maxLines: 1, overflow: TextOverflow.ellipsis, style: style)),
-      ]);
+      return Row(
+        children: [
+          const SizedBox(
+            width: 16,
+            height: 3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(2)),
+              child: LinearProgressIndicator(color: Tokens.onSurfaceVariant, backgroundColor: Tokens.graphite),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(l.itemSortingBadge, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+          ),
+        ],
+      );
     }
     final (String icon, String label) = item.folderName != null
         ? (item.folderIcon ?? 'folder', item.folderName!)
         : item.reminderAt != null
-            ? ('alarm', formatReminderShort(l, item.reminderAt!, now))
-            : ('inbox', l.folderNone);
-    return Row(children: [
-      Icon(symbolIcon(icon), size: 15, color: Tokens.muted),
-      const SizedBox(width: 4),
-      Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style)),
-    ]);
+        ? ('alarm', formatReminderShort(l, item.reminderAt!, now))
+        : ('inbox', l.folderNone);
+    return Row(
+      children: [
+        Icon(symbolIcon(icon), size: 15, color: Tokens.muted),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+        ),
+      ],
+    );
   }
 }

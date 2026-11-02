@@ -23,9 +23,7 @@ SELECT tags.*, (SELECT COUNT(*) FROM item_tags JOIN items ON items.id = item_tag
 FROM tags''';
 
 class TagsRepository {
-  TagsRepository(this._db, {Uuid? uuid, DateTime Function()? clock})
-      : _uuid = uuid ?? const Uuid(),
-        _clock = clock ?? DateTime.now;
+  TagsRepository(this._db, {Uuid? uuid, DateTime Function()? clock}) : _uuid = uuid ?? const Uuid(), _clock = clock ?? DateTime.now;
 
   final AppDatabase _db;
   final Uuid _uuid;
@@ -37,7 +35,9 @@ class TagsRepository {
     if (name.isEmpty) throw ArgumentError.value(rawName, 'rawName', 'пустое имя тега');
     final existing = await (_db.select(_db.tags)..where((t) => t.name.equals(name))).getSingleOrNull();
     if (existing != null) return existing;
-    await _db.into(_db.tags).insert(
+    await _db
+        .into(_db.tags)
+        .insert(
           TagsCompanion.insert(id: _uuid.v4(), name: name, createdAt: _clock()),
           mode: InsertMode.insertOrIgnore,
         );
@@ -51,15 +51,20 @@ class TagsRepository {
   Stream<List<TagCard>> watchAll() => _watch('$_tagSelect ORDER BY item_count DESC, tags.name');
 
   Stream<List<TagCard>> _watch(String sql) {
-    return _db.customSelect(sql, readsFrom: {_db.tags, _db.itemTags, _db.items}).watch().map((rows) => [
-          for (final row in rows)
-            TagCard(
-              id: row.read<String>('id'),
-              name: row.read<String>('name'),
-              iconKind: TagIconKind.values.byName(row.read<String>('icon_kind')),
-              iconValue: row.read<String>('icon_value'),
-              count: row.read<int>('item_count'),
-            ),
-        ]);
+    return _db
+        .customSelect(sql, readsFrom: {_db.tags, _db.itemTags, _db.items})
+        .watch()
+        .map(
+          (rows) => [
+            for (final row in rows)
+              TagCard(
+                id: row.read<String>('id'),
+                name: row.read<String>('name'),
+                iconKind: TagIconKind.values.byName(row.read<String>('icon_kind')),
+                iconValue: row.read<String>('icon_value'),
+                count: row.read<int>('item_count'),
+              ),
+          ],
+        );
   }
 }

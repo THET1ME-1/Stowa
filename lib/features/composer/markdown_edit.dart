@@ -2,19 +2,9 @@ import 'package:flutter/widgets.dart';
 
 enum MarkdownAction { heading, bold, italic, strike, bullets, checklist, quote, code }
 
-const _prefixes = {
-  MarkdownAction.heading: '# ',
-  MarkdownAction.bullets: '- ',
-  MarkdownAction.checklist: '- [ ] ',
-  MarkdownAction.quote: '> ',
-};
+const _prefixes = {MarkdownAction.heading: '# ', MarkdownAction.bullets: '- ', MarkdownAction.checklist: '- [ ] ', MarkdownAction.quote: '> '};
 
-const _wraps = {
-  MarkdownAction.bold: '**',
-  MarkdownAction.italic: '_',
-  MarkdownAction.strike: '~~',
-  MarkdownAction.code: '`',
-};
+const _wraps = {MarkdownAction.bold: '**', MarkdownAction.italic: '_', MarkdownAction.strike: '~~', MarkdownAction.code: '`'};
 
 /// Кнопка панели разметки: знак строки встаёт в её начало, знак слова оборачивает выделение.
 TextEditingValue applyMarkdown(TextEditingValue value, MarkdownAction action) {

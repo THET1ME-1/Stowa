@@ -20,7 +20,10 @@ class ShapeBadge extends StatelessWidget {
       dimension: size,
       child: ClipPath(
         clipper: BadgeShapeClipper(shape),
-        child: ColoredBox(color: fill, child: Center(child: child)),
+        child: ColoredBox(
+          color: fill,
+          child: Center(child: child),
+        ),
       ),
     );
   }

@@ -12,6 +12,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
@@ -72,6 +73,7 @@ class LineDockState extends ConsumerState<LineDock> {
   late final LineController _line = LineController(clock: ref.read(clockProvider), resolveFolder: _resolveFolder);
   late final FocusNode _focus = FocusNode(onKeyEvent: _onKey);
   final _undo = UndoHistoryController();
+  final _fieldKey = GlobalKey();
   final List<_Attached> _files = [];
 
   bool _active = false;
@@ -356,6 +358,9 @@ class LineDockState extends ConsumerState<LineDock> {
       case FolderRow(:final folder):
         if (token != null) _line.replaceRange(token.start, token.end, '');
         _line.chooseFolder(folder);
+      case NewFolderRow(:final name):
+        if (token != null) _line.replaceRange(token.start, token.end, '');
+        _line.chooseFolder(await ref.read(foldersRepositoryProvider).create(name));
       case CommandRow(key_: final key):
         if (token != null) _line.replaceRange(token.start, token.end, '/$key ');
     }
@@ -643,7 +648,7 @@ class LineDockState extends ConsumerState<LineDock> {
               ignoring: !shade,
               child: AnimatedOpacity(
                 opacity: shade ? 1 : 0,
-                duration: Motion.medium,
+                duration: const Duration(milliseconds: 300),
                 curve: Motion.emphasized,
                 child: GestureDetector(
                   onTap: _full ? () => _setFull(false) : _deactivate,
@@ -666,17 +671,12 @@ class LineDockState extends ConsumerState<LineDock> {
                       if (!_full)
                         Flexible(
                           child: AnimatedSwitcher(
-                            duration: Motion.medium,
+                            duration: const Duration(milliseconds: 420),
+                            reverseDuration: const Duration(milliseconds: 180),
                             switchInCurve: Motion.spatial,
-                            switchOutCurve: Motion.emphasizedAccelerate,
+                            switchOutCurve: Motion.emphasizedAccelerate.flipped,
                             layoutBuilder: (current, previous) => Stack(alignment: Alignment.bottomCenter, children: [...previous, ?current]),
-                            transitionBuilder: (child, animation) => FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: Tween(begin: const Offset(0, 0.06), end: Offset.zero).animate(animation),
-                                child: ScaleTransition(scale: Tween(begin: 0.95, end: 1.0).animate(animation), alignment: Alignment.bottomCenter, child: child),
-                              ),
-                            ),
+                            transitionBuilder: riseTransition,
                             child: !showPanel
                                 ? const SizedBox(key: ValueKey('none'), width: double.infinity)
                                 : Padding(
@@ -718,7 +718,8 @@ class LineDockState extends ConsumerState<LineDock> {
                         // на весь экран без перелёта: выше экрана расти некуда
                         curve: _full ? Motion.emphasized : Motion.spatial,
                         alignment: Alignment.bottomCenter,
-                        child: _full ? SizedBox(height: constraints.maxHeight, child: _composer(l, now)) : _composer(l, now),
+                        // обёртка одна и та же в обоих видах, меняется только высота
+                        child: SizedBox(height: _full ? constraints.maxHeight : null, child: _composer(l, now)),
                       ),
                     ],
                   ),
@@ -734,13 +735,11 @@ class LineDockState extends ConsumerState<LineDock> {
   Widget _toastView() {
     final toast = _toast;
     return AnimatedSwitcher(
-      duration: Motion.medium,
+      duration: const Duration(milliseconds: 420),
+      reverseDuration: const Duration(milliseconds: 200),
       switchInCurve: Motion.spatial,
-      switchOutCurve: Motion.emphasizedAccelerate,
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: ScaleTransition(scale: Tween(begin: 0.92, end: 1.0).animate(animation), alignment: Alignment.bottomCenter, child: child),
-      ),
+      switchOutCurve: Motion.emphasizedAccelerate.flipped,
+      transitionBuilder: riseTransition,
       child: toast == null
           ? const SizedBox(key: ValueKey('no-toast'), width: double.infinity)
           : Padding(
@@ -783,7 +782,9 @@ class LineDockState extends ConsumerState<LineDock> {
     );
 
     return AnimatedContainer(
-      duration: Motion.short,
+      key: const ValueKey('composer'),
+      duration: const Duration(milliseconds: 250),
+      curve: Motion.emphasized,
       transform: Matrix4.translationValues(0, _drag * 0.35, 0),
       decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(Radii.card)),
       padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
@@ -792,10 +793,15 @@ class LineDockState extends ConsumerState<LineDock> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _grip(l),
+          // панель разметки выезжает за 0,42 с и проявляется за 0,25 с
           AnimatedSize(
-            duration: Motion.long,
+            duration: const Duration(milliseconds: 420),
             curve: Motion.emphasized,
-            child: _full ? _MarkdownBar(onAction: _markdown, undo: _undo, l: l) : const SizedBox(width: double.infinity),
+            child: AnimatedOpacity(
+              opacity: _full ? 1 : 0,
+              duration: const Duration(milliseconds: 250),
+              child: _full ? _MarkdownBar(onAction: _markdown, undo: _undo, l: l) : const SizedBox(width: double.infinity),
+            ),
           ),
           AnimatedSize(
             duration: Motion.medium,
@@ -816,7 +822,16 @@ class LineDockState extends ConsumerState<LineDock> {
                     ),
                   ),
           ),
-          if (_voice == null) (_full ? Expanded(child: field) : field),
+          // поле всегда в одном и том же месте дерева: иначе Flutter пересоздаёт его,
+          // фокус теряется, клавиатура уходит
+          Flexible(
+            fit: _full ? FlexFit.tight : FlexFit.loose,
+            child: Visibility(
+              visible: _voice == null,
+              maintainState: true,
+              child: KeyedSubtree(key: _fieldKey, child: field),
+            ),
+          ),
           _controls(l),
         ],
       ),
@@ -1005,17 +1020,22 @@ class LineDockState extends ConsumerState<LineDock> {
                 child: _Recording(session: voice, cancelTooltip: l.voiceCancel, onCancel: () => _stopVoice(keep: false)),
               )
             else ...[
+              // знаки раздвигаются за 0,4 с и проявляются за 0,2 с
               AnimatedSize(
-                duration: Motion.long,
+                duration: const Duration(milliseconds: 400),
                 curve: Motion.emphasized,
-                child: _active && glyphsFit
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (final glyph in ['#', '@', '/']) _GlyphButton(glyph: glyph, onTap: () => _insertGlyph(glyph)),
-                        ],
-                      )
-                    : const SizedBox(height: 44),
+                child: AnimatedOpacity(
+                  opacity: _active && glyphsFit ? 1 : 0,
+                  duration: Motion.short,
+                  child: _active && glyphsFit
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final glyph in ['#', '@', '/']) _GlyphButton(glyph: glyph, onTap: () => _insertGlyph(glyph)),
+                          ],
+                        )
+                      : const SizedBox(height: 44),
+                ),
               ),
             ],
             if (voice != null)
@@ -1226,7 +1246,7 @@ class _DestChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Pop(
+    return RiseIn(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -1298,7 +1318,7 @@ class _Suggestion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return _Pop(
+    return RiseIn(
       child: Pressable(
         onTap: onTap,
         child: Container(
@@ -1387,11 +1407,9 @@ class _AttachmentTile extends StatelessWidget {
                     // загрузилось — галочка выпрыгивает с поворотом
                     child: AnimatedSwitcher(
                       duration: Motion.medium,
+                      reverseDuration: Duration.zero,
                       switchInCurve: Motion.spatial,
-                      transitionBuilder: (child, animation) => RotationTransition(
-                        turns: Tween(begin: -0.11, end: 0.0).animate(animation),
-                        child: ScaleTransition(scale: Tween(begin: 0.4, end: 1.0).animate(animation), child: child),
-                      ),
+                      transitionBuilder: popTransition,
                       child: file == null
                           ? const SizedBox.square(
                               key: ValueKey('loading'),
@@ -1453,7 +1471,7 @@ class _AddButton extends StatelessWidget {
           decoration: BoxDecoration(color: open ? Tokens.accent : Tokens.graphite, shape: BoxShape.circle),
           child: AnimatedRotation(
             turns: open ? 0.125 : 0,
-            duration: Motion.long,
+            duration: const Duration(milliseconds: 400),
             curve: Motion.spatial,
             child: Icon(symbolIcon('add'), color: open ? Tokens.onAccent : Tokens.onSurface),
           ),
@@ -1575,7 +1593,7 @@ class _BlinkState extends State<_Blink> with SingleTickerProviderStateMixin {
 }
 
 /// Кнопка строки: пустая — микрофон, иначе белая пилюля с тем, что она сделает.
-class _SendButton extends StatelessWidget {
+class _SendButton extends StatefulWidget {
   const _SendButton({required this.label, required this.icon, required this.tooltip, required this.busy, required this.onTap});
 
   final String label;
@@ -1585,46 +1603,71 @@ class _SendButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_SendButton> createState() => _SendButtonState();
+}
+
+class _SendButtonState extends State<_SendButton> {
+  // подпись остаётся на месте, пока тает и сжимается, как в макете
+  String _shown = '';
+
+  @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final label = widget.label;
+    final open = label.isNotEmpty;
+    if (open) _shown = label;
+    const spring = Duration(milliseconds: 420);
     return Tooltip(
-      message: tooltip,
+      message: widget.tooltip,
       child: Pressable(
         pressedScale: 0.9,
-        onTap: busy ? null : onTap,
+        onTap: widget.busy ? null : widget.onTap,
         child: AnimatedContainer(
-          duration: Motion.long,
+          duration: spring,
           curve: Motion.spatial,
           height: 48,
           constraints: const BoxConstraints(minWidth: 48, maxWidth: 180),
-          padding: EdgeInsets.only(left: label.isEmpty ? 12 : 16, right: 12),
+          padding: EdgeInsets.only(left: open ? 16 : 12, right: 12),
           decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(24)),
           child: AnimatedSize(
-            duration: Motion.long,
+            duration: spring,
             curve: Motion.spatial,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (label.isNotEmpty) ...[
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onAccent),
+                Flexible(
+                  child: ClipRect(
+                    // ширина подписи пружинит; перелёт ниже нуля обрезается, иначе раскладка падает
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(end: open ? 1 : 0),
+                      duration: spring,
+                      curve: Motion.spatial,
+                      builder: (context, width, child) => Align(alignment: Alignment.centerLeft, widthFactor: width.clamp(0.0, 1.5), child: child),
+                      child: AnimatedOpacity(
+                        opacity: open ? 1 : 0,
+                        duration: Motion.short,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Text(
+                            _shown,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onAccent),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                ],
+                ),
+                // новый значок выпрыгивает, старый исчезает сразу
                 AnimatedSwitcher(
-                  duration: Motion.medium,
-                  transitionBuilder: (child, animation) => RotationTransition(
-                    turns: Tween(begin: -0.11, end: 0.0).animate(animation),
-                    child: ScaleTransition(scale: animation, child: child),
-                  ),
+                  duration: const Duration(milliseconds: 320),
+                  reverseDuration: Duration.zero,
+                  switchInCurve: Motion.spatial,
+                  transitionBuilder: popTransition,
                   child: Icon(
-                    symbolIcon(icon, filled: icon == 'mic'),
-                    key: ValueKey(icon),
+                    symbolIcon(widget.icon, filled: widget.icon == 'mic'),
+                    key: ValueKey(widget.icon),
                     size: 24,
                     color: Tokens.onAccent,
                   ),

@@ -697,5 +697,18 @@
         "type": "String"
       }
     }
+  },
+  "folderCreate": "Create folder “{name}”",
+  "@folderCreate": {
+    "description": "New folder row after @",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "folderCreateHint": "change the icon and shape later",
+  "@folderCreateHint": {
+    "description": "New folder row subtitle"
   }
 }

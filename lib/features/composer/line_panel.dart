@@ -7,6 +7,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../domain/item_title.dart';
@@ -119,7 +120,7 @@ class _LinePanelState extends State<LinePanel> {
                   children: [
                     if (_highlight != null)
                       AnimatedPositioned(
-                        duration: Motion.long,
+                        duration: const Duration(milliseconds: 400),
                         curve: Motion.spatial,
                         left: 0,
                         right: 0,
@@ -139,7 +140,7 @@ class _LinePanelState extends State<LinePanel> {
                           _Glide(
                             key: _keys.putIfAbsent(row.key, GlobalKey.new),
                             stack: _stack,
-                            child: _Arrive(
+                            child: RiseIn(
                               delay: index,
                               child: _RowView(
                                 row: row,
@@ -240,7 +241,7 @@ class _Glide extends StatefulWidget {
 }
 
 class _GlideState extends State<_Glide> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(vsync: this, duration: Motion.long);
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
   double? _top;
   double _from = 0;
 
@@ -273,31 +274,6 @@ class _GlideState extends State<_Glide> with SingleTickerProviderStateMixin {
       builder: (context, child) =>
           Transform.translate(offset: Offset(0, _controller.isAnimating ? _from * (1 - Motion.spatial.transform(_controller.value)) : 0), child: child),
       child: widget.child,
-    );
-  }
-}
-
-/// Новая строка въезжает снизу, лесенкой за соседями.
-class _Arrive extends StatelessWidget {
-  const _Arrive({required this.delay, required this.child});
-
-  final int delay;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: Motion.medium + Duration(milliseconds: 26 * delay),
-      curve: Interval((26 * delay) / (350 + 26 * delay), 1, curve: Motion.emphasizedDecelerate),
-      builder: (context, value, child) => Opacity(
-        opacity: value,
-        child: Transform.translate(
-          offset: Offset(0, 14 * (1 - value)),
-          child: Transform.scale(scale: 0.97 + 0.03 * value, child: child),
-        ),
-      ),
-      child: child,
     );
   }
 }
@@ -407,6 +383,10 @@ class _RowView extends StatelessWidget {
         thumb = _badge(folder.shape, folder.icon, selected);
         title = Text(folder.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
         sub = Text(l.itemsCount(folder.count), style: subStyle);
+      case NewFolderRow(:final name):
+        thumb = _badge('squircle', 'create_new_folder', selected);
+        title = Text(l.folderCreate(name), maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
+        sub = Text(l.folderCreateHint, style: subStyle);
       case CommandRow(:final command, :final key_):
         thumb = _badge('squircle', commandIcons[command]!, selected);
         title = Text('/$key_', style: titleStyle);

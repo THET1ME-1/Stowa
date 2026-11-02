@@ -60,16 +60,11 @@ class CaptureInput {
 /// Единая точка «сохранить вещь». Запись идёт одной транзакцией без сети,
 /// файлы докладываются после возврата: вещь видна сразу, вложение дорисуется.
 class CaptureService {
-  CaptureService(
-    this._db, {
-    required TagsRepository tags,
-    required Directory filesRoot,
-    DateTime Function()? clock,
-    Uuid? uuid,
-  })  : _tags = tags, // ignore: prefer_initializing_formals
-        _filesRoot = filesRoot, // ignore: prefer_initializing_formals
-        _clock = clock ?? DateTime.now,
-        _uuid = uuid ?? const Uuid();
+  CaptureService(this._db, {required TagsRepository tags, required Directory filesRoot, DateTime Function()? clock, Uuid? uuid})
+    : _tags = tags, // ignore: prefer_initializing_formals
+      _filesRoot = filesRoot, // ignore: prefer_initializing_formals
+      _clock = clock ?? DateTime.now,
+      _uuid = uuid ?? const Uuid();
 
   final AppDatabase _db;
   final TagsRepository _tags;
@@ -104,19 +99,31 @@ class CaptureService {
       // правила молчат — угадыватель смотрит, в какой папке уже живут слова заметки
       final guess = byHand || byRule || text.isEmpty ? null : FolderIndex(await ItemsRepository(_db).folderDocs()).guess(text);
       final sorted = byHand || byRule || guess != null;
-      await _db.into(_db.items).insert(ItemsCompanion.insert(
-            id: id,
-            kind: kind,
-            title: input.title ?? titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
-            body: Value(text),
-            url: Value(url?.toString()),
-            folderId: Value(input.forcedFolderId ?? rules.folderId ?? guess?.folderId),
-            sortedBy: Value(byHand ? SortedBy.user : byRule ? SortedBy.rule : guess != null ? SortedBy.similar : SortedBy.none),
-            sortState: Value(sorted ? SortState.sorted : SortState.pending),
-            reminderAt: Value(input.forcedReminder ?? found?.at),
-            createdAt: now,
-            updatedAt: now,
-          ));
+      await _db
+          .into(_db.items)
+          .insert(
+            ItemsCompanion.insert(
+              id: id,
+              kind: kind,
+              title: input.title ?? titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
+              body: Value(text),
+              url: Value(url?.toString()),
+              folderId: Value(input.forcedFolderId ?? rules.folderId ?? guess?.folderId),
+              sortedBy: Value(
+                byHand
+                    ? SortedBy.user
+                    : byRule
+                    ? SortedBy.rule
+                    : guess != null
+                    ? SortedBy.similar
+                    : SortedBy.none,
+              ),
+              sortState: Value(sorted ? SortState.sorted : SortState.pending),
+              reminderAt: Value(input.forcedReminder ?? found?.at),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
       // выбранные руками ставятся первыми, тег из текста их источник не перебьёт
       for (final raw in input.forcedTagNames) {
         await _linkTag(id, raw, TagSource.user);
@@ -145,7 +152,9 @@ class CaptureService {
 
   Future<void> _linkTag(String itemId, String raw, TagSource source) async {
     final tag = await _tags.ensure(raw);
-    await _db.into(_db.itemTags).insert(
+    await _db
+        .into(_db.itemTags)
+        .insert(
           ItemTagsCompanion.insert(itemId: itemId, tagId: tag.id, source: source),
           mode: InsertMode.insertOrIgnore,
         );
@@ -157,14 +166,9 @@ class CaptureService {
     for (final (index, file) in files.indexed) {
       final relative = p.join(folder, '${index}_${p.basename(file.path)}');
       await File(file.path).copy(p.join(_filesRoot.path, relative));
-      await _db.into(_db.attachments).insert(AttachmentsCompanion.insert(
-            id: _uuid.v4(),
-            itemId: itemId,
-            path: relative,
-            mime: file.mime,
-            size: file.size,
-            position: Value(index),
-          ));
+      await _db
+          .into(_db.attachments)
+          .insert(AttachmentsCompanion.insert(id: _uuid.v4(), itemId: itemId, path: relative, mime: file.mime, size: file.size, position: Value(index)));
     }
   }
 }

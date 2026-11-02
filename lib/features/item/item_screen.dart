@@ -18,14 +18,14 @@ import '../composer/panel_text.dart';
 
 /// Страница въезжает справа, как в макете.
 Route<void> itemRoute(String id) => PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 500),
-      reverseTransitionDuration: Motion.medium,
-      pageBuilder: (context, animation, secondary) => ItemScreen(id: id),
-      transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-        position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-        child: child,
-      ),
-    );
+  transitionDuration: const Duration(milliseconds: 500),
+  reverseTransitionDuration: Motion.medium,
+  pageBuilder: (context, animation, secondary) => ItemScreen(id: id),
+  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
+    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
+    child: child,
+  ),
+);
 
 final _checkLine = RegExp(r'^- \[([ xX])\] (.*)$');
 
@@ -75,79 +75,102 @@ class ItemScreen extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-            child: Row(children: [
-              IconButton(onPressed: () => Navigator.pop(context), icon: Icon(symbolIcon('arrow_back'))),
-              const SizedBox(width: 4),
-              Flexible(
-                child: ActionChip(
-                  onPressed: move,
-                  avatar: Icon(symbolIcon(folder?.icon ?? 'inbox'), size: 18),
-                  label: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Flexible(child: Text(folder?.name ?? l.folderNone, overflow: TextOverflow.ellipsis)),
-                    Icon(symbolIcon('expand_more'), size: 18),
-                  ]),
-                  backgroundColor: Tokens.containerHigh,
-                  side: BorderSide.none,
-                  shape: const StadiumBorder(),
-                ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+              child: Row(
+                children: [
+                  IconButton(onPressed: () => Navigator.pop(context), icon: Icon(symbolIcon('arrow_back'))),
+                  const SizedBox(width: 4),
+                  // чип занимает своё место целиком, а не половину ряда пополам с пустотой
+                  Expanded(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: ActionChip(
+                        onPressed: move,
+                        avatar: Icon(symbolIcon(folder?.icon ?? 'inbox'), size: 18),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(child: Text(folder?.name ?? l.folderNone, overflow: TextOverflow.ellipsis)),
+                            Icon(symbolIcon('expand_more'), size: 18),
+                          ],
+                        ),
+                        backgroundColor: Tokens.containerHigh,
+                        side: BorderSide.none,
+                        shape: const StadiumBorder(),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: l.itemCopy,
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: item.body.isEmpty ? item.title : item.body));
+                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.itemCopied)));
+                    },
+                    icon: Icon(symbolIcon('content_copy')),
+                  ),
+                  IconButton(
+                    tooltip: l.itemDelete,
+                    onPressed: () async {
+                      final repository = ref.read(itemsRepositoryProvider);
+                      final messenger = ScaffoldMessenger.of(context);
+                      await repository.softDelete(id, ref.read(clockProvider)());
+                      if (context.mounted) Navigator.pop(context);
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(l.itemDeleted),
+                          action: SnackBarAction(label: l.undo, onPressed: () => repository.restore(id)),
+                        ),
+                      );
+                    },
+                    icon: Icon(symbolIcon('delete')),
+                  ),
+                ],
               ),
-              const Spacer(),
-              IconButton(
-                tooltip: l.itemCopy,
-                onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: item.body.isEmpty ? item.title : item.body));
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.itemCopied)));
-                },
-                icon: Icon(symbolIcon('content_copy')),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, 40),
+                children: [
+                  Text(item.title, style: text.headlineSmall),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final tag in full.tags.keys) _MetaChip(label: '#$tag'),
+                      _MetaChip(label: shortDate(l, item.createdAt, now)),
+                      if (item.reminderAt != null) _MetaChip(label: formatReminder(l, item.reminderAt!, now), icon: 'alarm'),
+                    ],
+                  ),
+                  for (final image in images) ...[
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(Radii.photo),
+                      child: Image.file(
+                        File(p.join(filesRoot.path, image.path)),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox(height: 120, child: ColoredBox(color: Tokens.containerHigh)),
+                      ),
+                    ),
+                  ],
+                  if (lines.isNotEmpty) const SizedBox(height: 16),
+                  for (final (index, line) in lines) _BodyLine(line: line, onToggle: () => toggle(index)),
+                  if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
+                  if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
+                  if (files.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Text(l.itemFiles, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
+                    const SizedBox(height: 8),
+                    for (final file in files) _FileRow(file: file),
+                  ],
+                ],
               ),
-              IconButton(
-                tooltip: l.itemDelete,
-                onPressed: () async {
-                  final repository = ref.read(itemsRepositoryProvider);
-                  final messenger = ScaffoldMessenger.of(context);
-                  await repository.softDelete(id, ref.read(clockProvider)());
-                  if (context.mounted) Navigator.pop(context);
-                  messenger.showSnackBar(SnackBar(
-                    content: Text(l.itemDeleted),
-                    action: SnackBarAction(label: l.undo, onPressed: () => repository.restore(id)),
-                  ));
-                },
-                icon: Icon(symbolIcon('delete')),
-              ),
-            ]),
-          ),
-          Expanded(
-            child: ListView(padding: const EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, 40), children: [
-              Text(item.title, style: text.headlineSmall),
-              const SizedBox(height: 12),
-              Wrap(spacing: 6, runSpacing: 6, children: [
-                for (final tag in full.tags.keys) _MetaChip(label: '#$tag'),
-                _MetaChip(label: shortDate(l, item.createdAt, now)),
-                if (item.reminderAt != null) _MetaChip(label: formatReminder(l, item.reminderAt!, now), icon: 'alarm'),
-              ]),
-              for (final image in images) ...[
-                const SizedBox(height: 16),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(Radii.photo),
-                  child: Image.file(File(p.join(filesRoot.path, image.path)), fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox(height: 120, child: ColoredBox(color: Tokens.containerHigh))),
-                ),
-              ],
-              if (lines.isNotEmpty) const SizedBox(height: 16),
-              for (final (index, line) in lines) _BodyLine(line: line, onToggle: () => toggle(index)),
-              if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
-              if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
-              if (files.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Text(l.itemFiles, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
-                const SizedBox(height: 8),
-                for (final file in files) _FileRow(file: file),
-              ],
-            ]),
-          ),
-        ]),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -157,7 +180,8 @@ class ItemScreen extends ConsumerWidget {
     final all = body.split('\n');
     final lines = <(int, String)>[for (final (index, line) in all.indexed) (index, line)];
     final first = lines.indexWhere((entry) => entry.$2.trim().isNotEmpty);
-    if (first >= 0 && titleFor(lines[first].$2) == title) lines.removeAt(first);
+    // строку с галочкой оставляем: без неё задачу не отметить
+    if (first >= 0 && !_checkLine.hasMatch(lines[first].$2) && titleFor(lines[first].$2) == title) lines.removeAt(first);
     while (lines.isNotEmpty && lines.first.$2.trim().isEmpty) {
       lines.removeAt(0);
     }
@@ -177,10 +201,13 @@ class _MetaChip extends StatelessWidget {
       height: 28,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(14)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (icon != null) ...[Icon(symbolIcon(icon), size: 15, color: Tokens.onSurfaceVariant), const SizedBox(width: 4)],
-        Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: Tokens.onSurface)),
-      ]),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[Icon(symbolIcon(icon), size: 15, color: Tokens.onSurfaceVariant), const SizedBox(width: 4)],
+          Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: Tokens.onSurface)),
+        ],
+      ),
     );
   }
 }
@@ -204,23 +231,33 @@ class _BodyLine extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(symbolIcon(done ? 'check_box' : 'check_box_outline_blank', filled: done), color: done ? Tokens.accent : Tokens.onSurfaceVariant),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                check.group(2)!,
-                style: body.copyWith(color: done ? Tokens.muted : Tokens.onSurface, decoration: done ? TextDecoration.lineThrough : null, decorationColor: Tokens.muted),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(symbolIcon(done ? 'check_box' : 'check_box_outline_blank', filled: done), color: done ? Tokens.accent : Tokens.onSurfaceVariant),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  check.group(2)!,
+                  style: body.copyWith(
+                    color: done ? Tokens.muted : Tokens.onSurface,
+                    decoration: done ? TextDecoration.lineThrough : null,
+                    decorationColor: Tokens.muted,
+                  ),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ),
       );
     }
     if (line.trim().isEmpty) return const SizedBox(height: 10);
     final heading = RegExp(r'^(#{1,3}) (.*)$').firstMatch(line);
     if (heading != null) {
-      return Padding(padding: const EdgeInsets.only(top: 8, bottom: 4), child: Text(heading.group(2)!, style: text.titleLarge));
+      return Padding(
+        padding: const EdgeInsets.only(top: 8, bottom: 4),
+        child: Text(heading.group(2)!, style: text.titleLarge),
+      );
     }
     if (line.startsWith('> ')) {
       return Container(
@@ -233,13 +270,26 @@ class _BodyLine extends StatelessWidget {
     if (line.startsWith('- ')) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(padding: const EdgeInsets.only(top: 10, right: 10, left: 6), child: Container(width: 5, height: 5, decoration: const BoxDecoration(color: Tokens.onSurfaceVariant, shape: BoxShape.circle))),
-          Expanded(child: Text(line.substring(2), style: body)),
-        ]),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 10, right: 10, left: 6),
+              child: Container(
+                width: 5,
+                height: 5,
+                decoration: const BoxDecoration(color: Tokens.onSurfaceVariant, shape: BoxShape.circle),
+              ),
+            ),
+            Expanded(child: Text(line.substring(2), style: body)),
+          ],
+        ),
       );
     }
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: SelectableText(line, style: body));
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: SelectableText(line, style: body),
+    );
   }
 }
 
@@ -256,11 +306,17 @@ class _DeepBlock extends StatelessWidget {
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: style.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: Tokens.muted)),
-        const SizedBox(height: 4),
-        SelectableText(text, style: style.bodyLarge!.copyWith(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant)),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: style.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: Tokens.muted),
+          ),
+          const SizedBox(height: 4),
+          SelectableText(text, style: style.bodyLarge!.copyWith(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant)),
+        ],
+      ),
     );
   }
 }
@@ -285,21 +341,26 @@ class _FileRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
-      child: Row(children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(12)),
-          child: Icon(symbolIcon(icon), color: Tokens.onSurface),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall),
-            Text(size, style: text.bodySmall!.copyWith(color: Tokens.muted)),
-          ]),
-        ),
-      ]),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(12)),
+            child: Icon(symbolIcon(icon), color: Tokens.onSurface),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall),
+                Text(size, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

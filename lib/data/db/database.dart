@@ -13,9 +13,7 @@ const _ftsSource = ['title', 'body', 'ai_description', 'transcript', 'url'];
 
 // unicode61 не снимает точки с «ё», поэтому индекс получает «е»; NULL — пустая
 // строка, одинаково при записи и при удалении из индекса
-String _ftsValues(String row) => _ftsSource
-    .map((column) => "replace(replace(coalesce($row.$column, ''), 'ё', 'е'), 'Ё', 'Е')")
-    .join(', ');
+String _ftsValues(String row) => _ftsSource.map((column) => "replace(replace(coalesce($row.$column, ''), 'ё', 'е'), 'Ё', 'Е')").join(', ');
 
 final _ftsNew = _ftsValues('new');
 final _ftsOld = _ftsValues('old');
@@ -23,9 +21,7 @@ final _ftsOld = _ftsValues('old');
 /// Запрос к индексу с той же заменой «ё», что и в самом индексе.
 String normalizeSearchText(String text) => text.replaceAll('ё', 'е').replaceAll('Ё', 'Е');
 
-@DriftDatabase(
-  tables: [Items, Attachments, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions],
-)
+@DriftDatabase(tables: [Items, Attachments, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa'));
 
@@ -38,14 +34,14 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (migrator) async {
-          await migrator.createAll();
-          await _createSearch();
-        },
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (migrator) async {
+      await migrator.createAll();
+      await _createSearch();
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 
   Future<void> _createSearch() async {
     // remove_diacritics 2 делает «ё» и «е» одной буквой

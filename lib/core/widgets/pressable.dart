@@ -2,43 +2,53 @@ import 'package:flutter/widgets.dart';
 
 import '../theme/motion.dart';
 
-/// Отклик на нажатие: элемент слегка сжимается под пальцем.
+/// Отклик на нажатие, как в макете: короткий толчок — сжался и вернулся за 0,26 с.
 class Pressable extends StatefulWidget {
   const Pressable({super.key, required this.child, this.onTap, this.onLongPress, this.pressedScale = 0.96});
 
   final Widget child;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+
+  /// Насколько сжимается в самой глубокой точке толчка.
   final double pressedScale;
 
   @override
   State<Pressable> createState() => _PressableState();
 }
 
-class _PressableState extends State<Pressable> {
-  bool _down = false;
+class _PressableState extends State<Pressable> with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
 
-  bool get _enabled => widget.onTap != null || widget.onLongPress != null;
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
 
-  void _set(bool down) {
-    if (_down != down && mounted) setState(() => _down = down);
+  void _tap() {
+    _pulse.forward(from: 0);
+    widget.onTap?.call();
   }
 
   @override
   Widget build(BuildContext context) {
+    // до самой глубокой точки — 40% времени, обратно — остальное
+    final scale = TweenSequence([
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: widget.pressedScale).chain(CurveTween(curve: Motion.emphasized)),
+        weight: 40,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: widget.pressedScale, end: 1.0).chain(CurveTween(curve: Motion.emphasized)),
+        weight: 60,
+      ),
+    ]).animate(_pulse);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: _enabled ? (_) => _set(true) : null,
-      onTapUp: _enabled ? (_) => _set(false) : null,
-      onTapCancel: () => _set(false),
-      onTap: widget.onTap,
+      onTap: widget.onTap == null ? null : _tap,
       onLongPress: widget.onLongPress,
-      child: AnimatedScale(
-        scale: _down ? widget.pressedScale : 1,
-        duration: Motion.tap,
-        curve: Motion.emphasized,
-        child: widget.child,
-      ),
+      child: ScaleTransition(scale: scale, child: widget.child),
     );
   }
 }

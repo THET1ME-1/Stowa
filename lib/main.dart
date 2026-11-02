@@ -10,11 +10,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // вложения лежат рядом с базой, в базе — пути от этой папки
   final filesRoot = await getApplicationSupportDirectory();
-  runApp(ProviderScope(
-    overrides: [
-      databaseProvider.overrideWithValue(AppDatabase()),
-      filesRootProvider.overrideWithValue(filesRoot),
-    ],
-    child: const StowaApp(),
-  ));
+  runApp(
+    ProviderScope(overrides: [databaseProvider.overrideWithValue(AppDatabase()), filesRootProvider.overrideWithValue(filesRoot)], child: const StowaApp()),
+  );
 }

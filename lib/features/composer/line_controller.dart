@@ -93,7 +93,10 @@ class LineController extends TextEditingController {
   void replaceRange(int start, int end, String insert) {
     final tail = text.substring(end).replaceFirst(RegExp(r'^ '), insert.endsWith(' ') ? '' : ' ');
     final next = text.substring(0, start) + insert + tail;
-    value = TextEditingValue(text: next, selection: TextSelection.collapsed(offset: start + insert.length));
+    value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: start + insert.length),
+    );
   }
 
   /// Вставить у курсора, отделив пробелом от слова перед ним.
@@ -102,7 +105,10 @@ class LineController extends TextEditingController {
     final before = text.substring(0, at);
     final glue = spaced && before.isNotEmpty && !before.endsWith(' ') && !before.endsWith('\n') ? ' ' : '';
     final next = before + glue + insert + text.substring(at);
-    value = TextEditingValue(text: next, selection: TextSelection.collapsed(offset: at + glue.length + insert.length));
+    value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: at + glue.length + insert.length),
+    );
   }
 
   /// Вернуть строку как была: «Отменить» после «Закинуть».
@@ -112,7 +118,10 @@ class LineController extends TextEditingController {
       ..addAll(tags);
     _folder = folder;
     _reminderDismissed = reminderDismissed;
-    value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+    value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
   }
 
   /// Строка после отправки: пусто, без чипов, даты снова ищутся.
@@ -152,7 +161,10 @@ class LineController extends TextEditingController {
       text = text.replaceRange(start, end, '');
       if (at > start) at = (at - (end - start)).clamp(start, text.length);
     }
-    return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: at));
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: at),
+    );
   }
 
   @override
@@ -164,19 +176,23 @@ class LineController extends TextEditingController {
     }
     final found = reminder;
     if (found != null) {
-      marks.add((found.start, found.end, const TextStyle(
-        decoration: TextDecoration.underline,
-        decorationStyle: TextDecorationStyle.dotted,
-        decorationThickness: 1.5,
-        decorationColor: Tokens.onSurface,
-      )));
+      marks.add((
+        found.start,
+        found.end,
+        const TextStyle(
+          decoration: TextDecoration.underline,
+          decorationStyle: TextDecorationStyle.dotted,
+          decorationThickness: 1.5,
+          decorationColor: Tokens.onSurface,
+        ),
+      ));
     }
     for (final match in urlMatches(text)) {
-      marks.add((match.start, match.end, const TextStyle(
-        color: Tokens.onSurfaceVariant,
-        decoration: TextDecoration.underline,
-        decorationColor: Tokens.onSurfaceVariant,
-      )));
+      marks.add((
+        match.start,
+        match.end,
+        const TextStyle(color: Tokens.onSurfaceVariant, decoration: TextDecoration.underline, decorationColor: Tokens.onSurfaceVariant),
+      ));
     }
     for (final match in _markdown.allMatches(text)) {
       marks.add((match.start, match.end, const TextStyle(color: Tokens.muted)));

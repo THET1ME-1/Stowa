@@ -8,11 +8,7 @@ const bodyFont = 'Onest';
 /// Схема M3 из токенов графита. Сид нужен только для ролей, которых в макете
 /// нет (tertiary, fixed), всё видимое задано руками.
 ColorScheme buildColorScheme() {
-  return ColorScheme.fromSeed(
-    seedColor: Tokens.accent,
-    brightness: Brightness.dark,
-    dynamicSchemeVariant: DynamicSchemeVariant.monochrome,
-  ).copyWith(
+  return ColorScheme.fromSeed(seedColor: Tokens.accent, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.monochrome).copyWith(
     surface: Tokens.background,
     surfaceDim: Tokens.background,
     surfaceBright: Tokens.containerHighest,
@@ -48,13 +44,8 @@ ColorScheme buildColorScheme() {
 }
 
 TextTheme _textTheme(TextTheme base, ColorScheme scheme) {
-  TextStyle display(TextStyle? style, double size) => style!.copyWith(
-        fontFamily: displayFont,
-        fontSize: size,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.5,
-        color: scheme.onSurface,
-      );
+  TextStyle display(TextStyle? style, double size) =>
+      style!.copyWith(fontFamily: displayFont, fontSize: size, fontWeight: FontWeight.w700, letterSpacing: -0.5, color: scheme.onSurface);
   final body = base.apply(fontFamily: bodyFont, bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
   return body.copyWith(
     displayLarge: display(body.displayLarge, 48),
@@ -105,12 +96,7 @@ ThemeData buildAppTheme() {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.card)),
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(0, 56),
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        shape: pill,
-        textStyle: buttonText,
-      ),
+      style: FilledButton.styleFrom(minimumSize: const Size(0, 56), padding: const EdgeInsets.symmetric(horizontal: 24), shape: pill, textStyle: buttonText),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(shape: pill, textStyle: text.labelLarge),

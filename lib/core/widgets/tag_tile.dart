@@ -29,7 +29,11 @@ class TagTile extends StatelessWidget {
       alignment: Alignment.center,
       clipBehavior: Clip.antiAlias,
       child: switch (kind) {
-        TagIconKind.symbol => Icon(symbolIcon(value, filled: true), size: size <= 30 ? size * 0.66 : size / 2, color: inverted ? Tokens.onSurface : Tokens.onAccent),
+        TagIconKind.symbol => Icon(
+          symbolIcon(value, filled: true),
+          size: size <= 30 ? size * 0.66 : size / 2,
+          color: inverted ? Tokens.onSurface : Tokens.onAccent,
+        ),
         TagIconKind.emoji => Text(value, style: TextStyle(fontSize: size * 0.58)),
         TagIconKind.image => Image.file(File(p.join(filesRoot.path, value)), fit: BoxFit.cover, width: size, height: size),
       },

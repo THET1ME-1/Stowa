@@ -18,7 +18,11 @@ String mimeFor(String path, {String? hint}) {
 }
 
 Future<PickedFile> pickedFrom(String path, {String? hint}) async {
-  return PickedFile(path: path, mime: mimeFor(path, hint: hint), size: await File(path).length());
+  return PickedFile(
+    path: path,
+    mime: mimeFor(path, hint: hint),
+    size: await File(path).length(),
+  );
 }
 
 final _images = ImagePicker();

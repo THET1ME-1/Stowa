@@ -147,5 +147,7 @@
   "itemMoved": "Переложил в «{folder}»",
   "itemSortingBadge": "разбираю",
   "reasonName": "по имени «{name}», без сети",
-  "reasonSimilar": "по словам «{words}», без сети"
+  "reasonSimilar": "по словам «{words}», без сети",
+  "folderCreate": "Создать папку «{name}»",
+  "folderCreateHint": "иконку и форму поменяешь потом"
 }
