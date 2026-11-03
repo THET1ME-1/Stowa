@@ -1131,5 +1131,41 @@
   "ruleDeleted": "Rule deleted",
   "@ruleDeleted": {
     "description": "Snackbar after deleting a rule"
+  },
+  "itemEdit": "Edit",
+  "@itemEdit": {
+    "description": "Pencil button on the item page"
+  },
+  "itemEditDone": "Done",
+  "@itemEditDone": {
+    "description": "Round button that ends editing"
+  },
+  "itemTitleHint": "Title",
+  "@itemTitleHint": {
+    "description": "Empty title field"
+  },
+  "itemBodyHint": "Text, lists, - [ ] tasks",
+  "@itemBodyHint": {
+    "description": "Empty body field"
+  },
+  "itemAddPhoto": "Photo",
+  "@itemAddPhoto": {
+    "description": "Edit bar: attach a photo"
+  },
+  "itemRemind": "Remind",
+  "@itemRemind": {
+    "description": "Edit bar: set a reminder"
+  },
+  "itemReminderChange": "Change time",
+  "@itemReminderChange": {
+    "description": "Reminder sheet action"
+  },
+  "itemReminderRemove": "Remove reminder",
+  "@itemReminderRemove": {
+    "description": "Reminder sheet action"
+  },
+  "itemSaved": "Saved",
+  "@itemSaved": {
+    "description": "Quiet hint after autosave"
   }
 }

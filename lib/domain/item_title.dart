@@ -23,6 +23,10 @@ String _fileTitle(String fileName) {
   return bare[0].toUpperCase() + bare.substring(1);
 }
 
+/// Из этой строки сделан [title]: тогда в тексте её не повторяют. Старые заголовки
+/// хранились с точкой в конце, поэтому сравниваются оба после того же правила.
+bool isTitleLine(String line, String title) => line.trim().isNotEmpty && titleFor(line) == titleFor(title);
+
 /// Заголовок вещи: первая строка без разметки и тегов, с заглавной буквы,
 /// не длиннее [titleLimit]. Без текста — имя первого файла, если его давал человек.
 String titleFor(String text, {String? fileName}) {
@@ -37,7 +41,8 @@ String titleFor(String text, {String? fileName}) {
     if (bare.isNotEmpty) return bare;
     return fileName == null ? text.trim() : _fileTitle(fileName);
   }
-  var title = line;
+  // в заголовке точку не ставят; многоточие — часть мысли, его не трогаем
+  var title = line.endsWith('.') && !line.endsWith('..') ? line.substring(0, line.length - 1) : line;
   if (title.length > titleLimit) {
     final cut = title.substring(0, titleLimit - 1);
     final space = cut.lastIndexOf(' ');

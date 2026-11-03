@@ -241,5 +241,14 @@
   "untitledAudio": "Запись от {date}",
   "untitledFile": "Файл от {date}",
   "shareFailed": "Не получилось сохранить: приложение не дало доступ",
-  "ruleDeleted": "Правило удалено"
+  "ruleDeleted": "Правило удалено",
+  "itemEdit": "Править",
+  "itemEditDone": "Готово",
+  "itemTitleHint": "Заголовок",
+  "itemBodyHint": "Текст, списки, - [ ] дела",
+  "itemAddPhoto": "Фото",
+  "itemRemind": "Напомнить",
+  "itemReminderChange": "Другое время",
+  "itemReminderRemove": "Убрать напоминание",
+  "itemSaved": "Сохранено"
 }

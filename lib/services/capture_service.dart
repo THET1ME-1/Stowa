@@ -167,6 +167,12 @@ class CaptureService {
         );
   }
 
+  /// Дописать файлы к готовой вещи со страницы правки: встают после уже приложенных.
+  Future<void> attach(String itemId, List<PickedFile> files) async {
+    final count = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(itemId))).get().then((rows) => rows.length);
+    await _copyFiles(itemId, files, from: count);
+  }
+
   /// Вещам без текста, которым раньше в заголовок шло имя файла, дать заголовок по
   /// нынешнему правилу: человеческое имя без расширения, машинное — подпись [untitled].
   /// Заголовок, который человек поменял, не трогается: он уже не совпадает с именем.
@@ -210,10 +216,11 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
     }
   }
 
-  Future<void> _copyFiles(String itemId, List<PickedFile> files) async {
+  Future<void> _copyFiles(String itemId, List<PickedFile> files, {int from = 0}) async {
     final folder = p.join('attachments', itemId);
     await Directory(p.join(_filesRoot.path, folder)).create(recursive: true);
-    for (final (index, file) in files.indexed) {
+    for (final (offset, file) in files.indexed) {
+      final index = from + offset;
       final relative = p.join(folder, '${index}_${p.basename(file.path)}');
       await File(file.path).copy(p.join(_filesRoot.path, relative));
       final size = file.mime.startsWith('image/') ? await _imageSize(file.path) : null;

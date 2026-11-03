@@ -353,7 +353,7 @@ class _RowView extends StatelessWidget {
         if (whereField != SearchField.deep) {
           // первая строка заметки уже стоит заголовком, подпись берёт текст после неё
           final lineEnd = card.body.indexOf('\n');
-          if (titleFor(lineEnd < 0 ? card.body : card.body.substring(0, lineEnd)) == card.title) {
+          if (isTitleLine(lineEnd < 0 ? card.body : card.body.substring(0, lineEnd), card.title)) {
             final cut = lineEnd < 0 ? card.body.length : lineEnd + 1;
             source = card.body.substring(cut);
             marks = [

@@ -118,6 +118,14 @@ void main() {
     expect(panel.header, PanelHeader.found);
   });
 
+  test('дописать можно в любую найденную заметку, даже по одному слову; в ссылку — нет', () {
+    final panel = _panel(
+      'Дипломная: ключевые слова оставить',
+      found: [_found('d', 'Разработка архитектуры', matched: 1), _found('e', 'Ещё заметка', matched: 1), _found('l', 'Ссылка', kind: ItemKind.link)],
+    );
+    expect([for (final row in panel.rows.whereType<ResultRow>()) row.canAppend], [true, true, false]);
+  });
+
   test('похожее, но не точное: белое у «Закинуть», первой заметке можно дописать', () {
     final panel = _panel('виджет погоды для пары в togetherly', found: [_found('w', 'Погода для пары', matched: 3)]);
     expect(panel.pick, 0);

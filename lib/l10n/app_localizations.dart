@@ -1558,6 +1558,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Rule deleted'**
   String get ruleDeleted;
+
+  /// Pencil button on the item page
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get itemEdit;
+
+  /// Round button that ends editing
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get itemEditDone;
+
+  /// Empty title field
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get itemTitleHint;
+
+  /// Empty body field
+  ///
+  /// In en, this message translates to:
+  /// **'Text, lists, - [ ] tasks'**
+  String get itemBodyHint;
+
+  /// Edit bar: attach a photo
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get itemAddPhoto;
+
+  /// Edit bar: set a reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Remind'**
+  String get itemRemind;
+
+  /// Reminder sheet action
+  ///
+  /// In en, this message translates to:
+  /// **'Change time'**
+  String get itemReminderChange;
+
+  /// Reminder sheet action
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reminder'**
+  String get itemReminderRemove;
+
+  /// Quiet hint after autosave
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get itemSaved;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

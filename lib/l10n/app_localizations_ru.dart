@@ -845,4 +845,31 @@ class LRu extends L {
 
   @override
   String get ruleDeleted => 'Правило удалено';
+
+  @override
+  String get itemEdit => 'Править';
+
+  @override
+  String get itemEditDone => 'Готово';
+
+  @override
+  String get itemTitleHint => 'Заголовок';
+
+  @override
+  String get itemBodyHint => 'Текст, списки, - [ ] дела';
+
+  @override
+  String get itemAddPhoto => 'Фото';
+
+  @override
+  String get itemRemind => 'Напомнить';
+
+  @override
+  String get itemReminderChange => 'Другое время';
+
+  @override
+  String get itemReminderRemove => 'Убрать напоминание';
+
+  @override
+  String get itemSaved => 'Сохранено';
 }

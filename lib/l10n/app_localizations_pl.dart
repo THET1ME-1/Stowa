@@ -843,4 +843,31 @@ class LPl extends L {
 
   @override
   String get ruleDeleted => 'Rule deleted';
+
+  @override
+  String get itemEdit => 'Edit';
+
+  @override
+  String get itemEditDone => 'Done';
+
+  @override
+  String get itemTitleHint => 'Title';
+
+  @override
+  String get itemBodyHint => 'Text, lists, - [ ] tasks';
+
+  @override
+  String get itemAddPhoto => 'Photo';
+
+  @override
+  String get itemRemind => 'Remind';
+
+  @override
+  String get itemReminderChange => 'Change time';
+
+  @override
+  String get itemReminderRemove => 'Remove reminder';
+
+  @override
+  String get itemSaved => 'Saved';
 }

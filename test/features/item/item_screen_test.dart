@@ -36,6 +36,60 @@ void main() {
     expect(item.body, '- [x] купить молоко');
   });
 
+  Future<Item> saved() => world.db.select(world.db.items).getSingle();
+
+  testWidgets('карандаш открывает правку: заголовок и текст меняются, «Готово» сохраняет', (tester) async {
+    await open(tester, body: 'Дипломная работа\nКлючевые слова оставить', title: 'Дипломная работа');
+    expect(find.byType(TextField), findsNothing);
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'Архитектура приложения');
+    await tester.enterText(find.byType(TextField).last, 'Ключевые слова оставить\nМинимум 20 источников');
+    await tester.tap(find.byTooltip('Готово'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TextField), findsNothing);
+    expect((await saved()).title, 'Архитектура приложения');
+    expect((await saved()).body, 'Ключевые слова оставить\nМинимум 20 источников');
+    expect(find.text('Архитектура приложения'), findsOneWidget);
+  });
+
+  testWidgets('касание по тексту тоже открывает правку', (tester) async {
+    await open(tester, body: 'Мысль\nвторая строка мысли', title: 'Мысль');
+    await tester.tap(find.textContaining('вторая строка'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNWidgets(2));
+  });
+
+  testWidgets('набранное сохраняется само, без «Готово»', (tester) async {
+    await open(tester, body: 'Мысль', title: 'Мысль');
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Мысль\nдописал');
+    await tester.pump(const Duration(seconds: 2));
+    expect((await saved()).body, 'Мысль\nдописал');
+  });
+
+  testWidgets('панель правки: чек-лист ставит «- [ ] » в начало строки', (tester) async {
+    await open(tester, body: 'купить хлеб', title: 'Покупки');
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    final body = find.byType(TextField).last;
+    await tester.tap(body);
+    tester.widget<TextField>(body).controller!.selection = const TextSelection.collapsed(offset: 3);
+    await tester.tap(find.byTooltip('Чек-лист'));
+    await tester.pump();
+    expect(tester.widget<TextField>(body).controller!.text, '- [ ] купить хлеб');
+  });
+
+  testWidgets('разметка видна: жирное жирным, пункт с точкой, без звёздочек', (tester) async {
+    await open(tester, body: 'План\nЭто **важно**\n- первое', title: 'План');
+    expect(find.textContaining('**'), findsNothing);
+    expect(find.textContaining('важно', findRichText: true), findsOneWidget);
+    expect(find.textContaining('первое', findRichText: true), findsOneWidget);
+  });
+
   testWidgets('папка сверху видна целиком', (tester) async {
     await open(tester, body: 'мысль', title: 'Мысль');
     final chip = tester.getSize(find.byType(ActionChip));

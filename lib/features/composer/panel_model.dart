@@ -261,8 +261,8 @@ PanelState buildPanel(PanelInput input) {
 
   final rows = <PanelRow>[
     if (plan != null) SaveRow(plan),
-    for (final (index, result) in shown.indexed)
-      ResultRow(result, canAppend: index == 0 && plan != null && !result.hit.strong && result.hit.matched >= 3 && result.card.kind == ItemKind.note),
+    // в любую найденную заметку можно дописать, если в строке новая мысль: человек сам видит, куда
+    for (final result in shown) ResultRow(result, canAppend: plan != null && result.card.kind == ItemKind.note),
   ];
 
   // короткий запрос точно совпал с заголовком — белым становится найденное

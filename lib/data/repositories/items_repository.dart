@@ -204,6 +204,16 @@ WHERE items.deleted_at IS NULL''';
     });
   }
 
+  /// Правка на странице вещи: заголовок и текст разом.
+  Future<void> setTitleBody(String id, {required String title, required String body, required DateTime at}) {
+    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(title: Value(title), body: Value(body), updatedAt: Value(at)));
+  }
+
+  /// Напоминание руками со страницы вещи; null снимает.
+  Future<void> setReminder(String id, DateTime? at) {
+    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(reminderAt: Value(at)));
+  }
+
   Future<void> setBody(String id, String body, DateTime at) {
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(body), updatedAt: Value(at)));
   }
