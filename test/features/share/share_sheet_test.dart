@@ -51,6 +51,13 @@ void main() {
     expect(tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor, Colors.transparent);
   });
 
+  testWidgets('отсчёт начинается, когда лист выехал целиком, ручка одна', (tester) async {
+    await share(tester, link);
+    expect(find.text('3'), findsOneWidget);
+    // своя ручка уже нарисована, системная лишняя
+    expect(tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle, isFalse);
+  });
+
   testWidgets('ничего не прислали — окно сразу закрывается', (tester) async {
     await share(tester, const []);
     expect(find.text('Сохранено'), findsNothing);

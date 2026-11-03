@@ -982,7 +982,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     }
     final suggest = chips.isEmpty && _active && !_full && !_tray && _voice == null && _line.text.isEmpty;
     if (suggest && _clip != null) {
-      final host = firstUrl(_clip!)?.host.replaceFirst('www.', '') ?? '';
+      final address = firstUrl(_clip!)?.host;
+      final host = address == null ? '' : sourceName(address);
       chips.add(
         _Suggestion(
           key: const ValueKey('sclip'),

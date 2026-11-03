@@ -111,7 +111,9 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
           ? title
           : plan.attachments > 0
           ? l.savePhotosHint
-          : url?.host ?? '',
+          : url == null
+          ? ''
+          : sourceName(url.host),
     );
   }
   return (text: parts.join(' · '), alarm: remind != null && plan.command != LineCommand.remind && plan.autoTags.isEmpty);

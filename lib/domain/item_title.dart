@@ -2,15 +2,22 @@ const titleLimit = 80;
 
 final _markdownLead = RegExp(r'^(#{1,6}\s+|- \[[ xX]\]\s+|[-*>]\s+)');
 final _inlineTag = RegExp(r'(?<![\p{L}\p{N}_#])#[\p{L}_][\p{L}\p{N}_]*', unicode: true);
+final _url = RegExp(r'(?:https?://|www\.)\S+', caseSensitive: false);
+final _danglingPunctuation = RegExp(r'[\s:—–-]+$');
 
 /// Заголовок вещи: первая строка без разметки и тегов, с заглавной буквы,
 /// не длиннее [titleLimit]. Без текста — имя первого файла.
 String titleFor(String text, {String? fileName}) {
-  final line = text
-      .split('\n')
-      .map((raw) => raw.trim().replaceFirst(_markdownLead, '').replaceAll(_inlineTag, '').replaceAll(RegExp(r'\s+'), ' ').trim())
-      .firstWhere((clean) => clean.isNotEmpty, orElse: () => '');
-  if (line.isEmpty) return fileName ?? text.trim();
+  final lines = [
+    for (final raw in text.split('\n')) raw.trim().replaceFirst(_markdownLead, '').replaceAll(_inlineTag, '').replaceAll(RegExp(r'\s+'), ' ').trim(),
+  ];
+  // ссылка в заголовке не читается: берём слова вокруг неё, а голую ссылку оставляем как есть
+  final words = lines.map((line) => line.replaceAll(_url, ' ').replaceAll(RegExp(r'\s+'), ' ').replaceAll(_danglingPunctuation, '').trim());
+  final line = words.firstWhere((clean) => clean.isNotEmpty, orElse: () => '');
+  if (line.isEmpty) {
+    final bare = lines.firstWhere((clean) => clean.isNotEmpty, orElse: () => '');
+    return bare.isNotEmpty ? bare : fileName ?? text.trim();
+  }
   var title = line;
   if (title.length > titleLimit) {
     final cut = title.substring(0, titleLimit - 1);

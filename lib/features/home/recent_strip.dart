@@ -10,6 +10,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/repositories/items_repository.dart';
+import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -184,7 +185,10 @@ class RecentCard extends StatelessWidget {
       );
     }
     final String? label = switch (item.kind) {
-      ItemKind.link || ItemKind.video => item.url == null ? null : Uri.tryParse(item.url!)?.host.replaceFirst('www.', ''),
+      ItemKind.link || ItemKind.video => switch (item.url == null ? null : Uri.tryParse(item.url!)?.host) {
+        final host? when host.isNotEmpty => sourceName(host),
+        _ => null,
+      },
       _ => null,
     };
     final preview = notePreview(item.body);

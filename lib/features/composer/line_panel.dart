@@ -10,6 +10,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
+import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
@@ -364,7 +365,8 @@ class _RowView extends StatelessWidget {
         sub = source.trim().isEmpty
             ? null
             : MarkedText(text: snippetOf(source, marks), marks: snippetMarks(source, marks), style: subStyle, markColor: markColor);
-        final host = card.url == null ? null : Uri.tryParse(card.url!)?.host.replaceFirst('www.', '');
+        final address = card.url == null ? null : Uri.tryParse(card.url!)?.host;
+        final host = address == null || address.isEmpty ? null : sourceName(address);
         final found = whereField == SearchField.deep ? deepLabel(l, card.kind) : (host ?? kindLabel(l, card.kind));
         where = _where(kindIcon(card.kind), '$found · ${card.folderName ?? l.folderNone} · ${shortDate(l, card.createdAt, now)}', whereStyle, faint);
       case TagRow(:final tag):

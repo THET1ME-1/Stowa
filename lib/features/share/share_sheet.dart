@@ -20,10 +20,12 @@ Future<void> showShareSheet(BuildContext context, String itemId) {
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
+    // ручка своя, как в макете
+    showDragHandle: false,
     backgroundColor: Tokens.containerLow,
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: ShareSheet(itemId: itemId),
+      child: SafeArea(top: false, child: ShareSheet(itemId: itemId)),
     ),
   );
 }
@@ -41,13 +43,31 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
   late final AnimationController _timer = AnimationController(vsync: this, duration: _countdown)
     ..addStatusListener((status) {
       if (status == AnimationStatus.completed) _close();
-    })
-    ..forward();
+    });
   final _words = TextEditingController();
   bool _closing = false;
+  bool _touched = false;
+  Animation<double>? _route;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // три секунды идут с той минуты, когда лист виден целиком: на холодном
+    // запуске первые кадры рисуются долго, и отсчёт съедал бы весь показ
+    final route = ModalRoute.of(context)?.animation;
+    if (route == null || route == _route) return;
+    _route?.removeStatusListener(_onRoute);
+    _route = route..addStatusListener(_onRoute);
+    _onRoute(route.status);
+  }
+
+  void _onRoute(AnimationStatus status) {
+    if (status == AnimationStatus.completed && !_touched && !_timer.isAnimating && _timer.value == 0) _timer.forward();
+  }
 
   @override
   void dispose() {
+    _route?.removeStatusListener(_onRoute);
     _timer.dispose();
     _words.dispose();
     super.dispose();
@@ -55,7 +75,11 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
 
   // тронул лист — отсчёт останавливается, дальше человек решает сам
   void _hold() {
-    if (_timer.isAnimating) setState(_timer.stop);
+    if (_touched) return;
+    setState(() {
+      _touched = true;
+      _timer.stop();
+    });
   }
 
   Future<void> _close() async {
@@ -135,7 +159,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
                   ),
                 ),
                 const SizedBox(width: 8),
-                _Ring(timer: _timer),
+                _Ring(timer: _timer, held: _touched),
               ],
             ),
             const SizedBox(height: 20),
@@ -173,9 +197,12 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
 
 /// Кольцо обратного отсчёта с цифрой, как в макете.
 class _Ring extends StatelessWidget {
-  const _Ring({required this.timer});
+  const _Ring({required this.timer, required this.held});
 
   final AnimationController timer;
+
+  /// Человек тронул лист: цифры больше нет, кольцо замерло.
+  final bool held;
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +219,7 @@ class _Ring extends StatelessWidget {
                 dimension: 38,
                 child: CircularProgressIndicator(value: 1 - timer.value, strokeWidth: 3, color: Tokens.accent, backgroundColor: Tokens.outline, strokeCap: StrokeCap.round),
               ),
-              if (timer.isAnimating)
+              if (!held)
                 Text('$left', style: Theme.of(context).textTheme.labelLarge!.copyWith(fontFamily: 'Unbounded', fontWeight: FontWeight.w700, fontSize: 14)),
             ],
           ),
