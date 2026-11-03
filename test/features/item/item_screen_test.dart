@@ -294,5 +294,23 @@ void main() {
       expect(find.text('Договор.pdf'), findsOneWidget);
       expect(find.text('PDF · 1.2 MB'), findsOneWidget);
     });
+
+    testWidgets('«Связано»: похожая вещь с причиной, крестик записывает отказ', (tester) async {
+      for (final (id, title) in [('b', 'Свёкла подешевела, купить на борщ'), ('c', 'Купить хлеб'), ('d', 'Позвонить в банк'), ('e', 'Идея для подарка'), ('f', 'Счёт за свет')]) {
+        await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: id, kind: ItemKind.note, title: title, body: Value(title), createdAt: world.now, updatedAt: world.now));
+      }
+      await show(tester, ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Борщ', body: const Value('Борщ со свёклой, рецепт'), createdAt: world.now, updatedAt: world.now));
+      // до конца: внизу у списка запас под плавающую панель, крестик выходит из-под неё
+      await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(find.text('Свёкла подешевела, купить на борщ'), findsOneWidget);
+      expect(find.textContaining('общее:'), findsOneWidget);
+      await tester.tap(find.byTooltip('Не связывать'));
+      await tester.pumpAndSettle();
+      // что связь уходит с экрана, сторожит test/data/related_repository_test.dart: пересчёт
+      // потока — цепочка запросов к базе, в поддельном времени виджет-теста она не доходит
+      final refused = await world.db.select(world.db.links).getSingle();
+      expect((refused.fromId, refused.toId, refused.rejected), ('a', 'b', true));
+    });
   });
 }

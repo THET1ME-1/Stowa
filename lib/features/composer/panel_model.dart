@@ -209,7 +209,7 @@ SavePlan planSave(PanelInput input, {required LineCommand? command, required Str
   final ruleFolder = outcome.folderId == null ? null : folderById(outcome.folderId!);
   final rule = outcome.folderRule;
   // ни выбора, ни правила — угадыватель по словам, которые уже лежат в папках
-  final guess = chosen == null && ruleFolder == null ? input.folderIndex?.guess(rest) : null;
+  final guess = chosen == null && ruleFolder == null ? input.folderIndex?.guess(rest, signals: itemSignals(kind: kind, url: url?.toString())) : null;
   final guessFolder = guess == null ? null : folderById(guess.folderId);
   return SavePlan(
     kind: kind,

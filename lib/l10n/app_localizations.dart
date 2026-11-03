@@ -539,10 +539,10 @@ abstract class L {
   /// **'when? add “tomorrow at 10”'**
   String get saveRemindWhen;
 
-  /// Save row subtitle for photos without text
+  /// Подсказка при сохранении фото без текста
   ///
   /// In en, this message translates to:
-  /// **'your AI key will add a caption and tags'**
+  /// **'you can add a caption and tags later'**
   String get savePhotosHint;
 
   /// Why the folder
@@ -575,10 +575,10 @@ abstract class L {
   /// **'by item type, offline'**
   String get reasonKind;
 
-  /// Why the folder
+  /// Почему вещь ляжет без папки: ни правила, ни похожего
   ///
   /// In en, this message translates to:
-  /// **'your AI key will pick the folder'**
+  /// **'no folder yet, I\'ll sort it once similar things appear'**
   String get reasonNone;
 
   /// Why no folder
@@ -719,10 +719,10 @@ abstract class L {
   /// **'Added to “{title}”'**
   String appendedTo(String title);
 
-  /// Toast after recording
+  /// Плашка после записи голосового
   ///
   /// In en, this message translates to:
-  /// **'Voice note saved, your AI key will transcribe it'**
+  /// **'Voice note saved'**
   String get voiceSaved;
 
   /// Title of a voice item
@@ -1109,10 +1109,10 @@ abstract class L {
   /// **'Shape'**
   String get lookShape;
 
-  /// Voice card without transcript
+  /// Подпись голосового без текста
   ///
   /// In en, this message translates to:
-  /// **'No transcript yet: your AI key will make it'**
+  /// **'No transcript'**
   String get voiceNoTranscript;
 
   /// Voice card caption
@@ -1708,6 +1708,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Speed'**
   String get voiceSpeed;
+
+  /// Плашка: алгоритм разложил «Без папки» после того, как человек переложил похожее
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} similar item sorted} other{{count} similar items sorted}}'**
+  String autoSorted(num count);
+
+  /// Заголовок блока похожих вещей на странице вещи
+  ///
+  /// In en, this message translates to:
+  /// **'Related'**
+  String get relatedTitle;
+
+  /// Почему вещи связаны: общие слова
+  ///
+  /// In en, this message translates to:
+  /// **'in common: {words}'**
+  String relatedWords(Object words);
+
+  /// Почему вещи связаны: ссылки на один сайт
+  ///
+  /// In en, this message translates to:
+  /// **'same site, {site}'**
+  String relatedSite(Object site);
+
+  /// Кнопка убрать вещь из связанных
+  ///
+  /// In en, this message translates to:
+  /// **'Not related'**
+  String get relatedHide;
+
+  /// Плашка после отклонения связи
+  ///
+  /// In en, this message translates to:
+  /// **'Won\'t show them together again'**
+  String get relatedHidden;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

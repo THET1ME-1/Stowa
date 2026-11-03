@@ -34,6 +34,7 @@ import 'item_media.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
 import 'photo_viewer.dart';
+import 'related_block.dart';
 
 /// Страница въезжает справа, как в макете.
 Route<void> itemRoute(String id) => PageRouteBuilder(
@@ -458,6 +459,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                         if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
                         if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
                         for (final file in files) FileTile(file: file, filesRoot: filesRoot),
+                        if (!_editing) RelatedBlock(itemId: _id, onOpen: (id) => Navigator.of(context).push(itemRoute(id))),
                       ],
                     ),
                     Positioned(

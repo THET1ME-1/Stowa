@@ -43,6 +43,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final reminders = next.value;
       if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
     }, fireImmediately: true);
+    // человек переложил вещь сам (и при запуске): похожее из «Без папки» ложится следом
+    ref.listenManual(manualMovesProvider, (previous, next) {
+      if (next.value == null || previous?.value == next.value) return;
+      _sortInbox();
+    }, fireImmediately: true);
     // ссылки без превью, свежие и старые: заголовок страницы и обложка грузятся в фоне
     ref.listenManual(pendingPreviewsProvider, (previous, next) {
       final ids = next.value;
@@ -63,6 +68,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Разобрать «Без папки» заново и сказать, сколько разложено, с «Отменить».
+  Future<void> _sortInbox() async {
+    final sorter = ref.read(autoSorterProvider);
+    final moved = await sorter.sortInbox();
+    if (moved.isEmpty || !mounted) return;
+    final l = L.of(context);
+    showUndo(ScaffoldMessenger.of(context), message: l.autoSorted(moved.length), label: l.undo, onUndo: () => sorter.undoSort(moved), overDock: true);
   }
 
   @override

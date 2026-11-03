@@ -44,7 +44,7 @@ void main() {
     await type(tester, '23 декабря 13:00 зубной');
     expect(find.text('Закинуть, папку подберу'), findsOneWidget);
     expect(find.text('напомню 23 декабря в 13:00'), findsOneWidget);
-    expect(find.text('папку подберёт твой ключ ИИ'), findsOneWidget);
+    expect(find.text('без папки, разложу, когда появится похожее'), findsOneWidget);
 
     await tester.tap(find.text('Закинуть').last);
     await tester.pumpAndSettle();

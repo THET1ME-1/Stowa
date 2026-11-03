@@ -270,7 +270,7 @@ class LRu extends L {
   String get saveRemindWhen => 'когда? допиши «завтра в 10»';
 
   @override
-  String get savePhotosHint => 'подпись и теги допишет твой ключ ИИ';
+  String get savePhotosHint => 'подпись и теги можно дописать потом';
 
   @override
   String get reasonChosen => 'ты выбрал папку сам';
@@ -294,7 +294,7 @@ class LRu extends L {
   String get reasonKind => 'по виду вещи, без сети';
 
   @override
-  String get reasonNone => 'папку подберёт твой ключ ИИ';
+  String get reasonNone => 'без папки, разложу, когда появится похожее';
 
   @override
   String get reasonAsIs => 'без разбора, как просил';
@@ -384,7 +384,7 @@ class LRu extends L {
   }
 
   @override
-  String get voiceSaved => 'Голосовое легло, расшифрует твой ключ ИИ';
+  String get voiceSaved => 'Голосовое легло';
 
   @override
   String get voiceTitle => 'Голосовое';
@@ -592,7 +592,7 @@ class LRu extends L {
   String get lookShape => 'Форма';
 
   @override
-  String get voiceNoTranscript => 'Без расшифровки: её сделает твой ключ ИИ';
+  String get voiceNoTranscript => 'Без расшифровки';
 
   @override
   String get voiceTranscribed => 'Голосовое, расшифровано';
@@ -933,4 +933,36 @@ class LRu extends L {
 
   @override
   String get voiceSpeed => 'Скорость';
+
+  @override
+  String autoSorted(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Разложил $count похожих вещи',
+      many: 'Разложил $count похожих вещей',
+      few: 'Разложил $count похожие вещи',
+      one: 'Разложил $count похожую вещь',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get relatedTitle => 'Связано';
+
+  @override
+  String relatedWords(Object words) {
+    return 'общее: $words';
+  }
+
+  @override
+  String relatedSite(Object site) {
+    return 'тот же сайт, $site';
+  }
+
+  @override
+  String get relatedHide => 'Не связывать';
+
+  @override
+  String get relatedHidden => 'Больше не покажу их рядом';
 }

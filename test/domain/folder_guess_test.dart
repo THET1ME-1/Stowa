@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/domain/folder_guess.dart';
+import 'package:stowa/domain/models.dart';
 
 void main() {
   // две книги и бытовая папка, как у хозяина
@@ -71,5 +72,43 @@ void main() {
 
   test('пустая база ничего не угадывает', () {
     expect(FolderIndex(const []).guess('Милтон'), isNull);
+  });
+
+  group('приметы кроме слов', () {
+    List<String> link(String url) => itemSignals(kind: ItemKind.link, url: url);
+    final docs = [
+      FolderDoc(folderId: 'read', text: 'Сборщик мусора в Dart', signals: link('https://habr.com/ru/articles/1/')),
+      FolderDoc(folderId: 'read', text: 'Как устроен Flutter', signals: link('https://habr.com/ru/articles/2/')),
+      FolderDoc(folderId: 'refs', text: 'Фото от 1 ноября', signals: itemSignals(kind: ItemKind.image)),
+      FolderDoc(folderId: 'refs', text: 'Фото от 2 ноября', signals: itemSignals(kind: ItemKind.image)),
+      FolderDoc(folderId: 'docs', text: 'Договор аренды', signals: itemSignals(kind: ItemKind.file, fileName: 'dogovor.pdf')),
+      const FolderDoc(folderId: 'car', text: 'Замена масла и фильтра'),
+      const FolderDoc(folderId: 'car', text: 'Шины на зиму'),
+    ];
+    final signalIndex = FolderIndex(docs);
+
+    test('ссылка с того же сайта ложится к другим ссылкам сайта, даже без общих слов', () {
+      final guess = signalIndex.guess('https://habr.com/ru/articles/3/', signals: link('https://habr.com/ru/articles/3/'));
+      expect(guess?.folderId, 'read');
+      expect(guess?.words, contains('habr.com'));
+    });
+
+    test('фото без текста — туда, где уже лежат фото', () {
+      expect(signalIndex.guess('', signals: itemSignals(kind: ItemKind.image))?.folderId, 'refs');
+    });
+
+    test('одно фото в папке ещё не делает её местом для всех фото', () {
+      final single = FolderIndex([...docs.where((doc) => doc.folderId != 'refs'), FolderDoc(folderId: 'refs', text: 'Кадр', signals: itemSignals(kind: ItemKind.image))]);
+      expect(single.guess('', signals: itemSignals(kind: ItemKind.image)), isNull);
+    });
+
+    test('PDF к документам по типу файла', () {
+      expect(signalIndex.guess('', signals: itemSignals(kind: ItemKind.file, fileName: 'schet.pdf'))?.folderId, 'docs');
+    });
+
+    test('у заметки вид не примета, у ссылки — сайт без www', () {
+      expect(itemSignals(kind: ItemKind.note), isEmpty);
+      expect(itemSignals(kind: ItemKind.link, url: 'https://www.youtube.com/watch?v=1'), ['site:youtube.com', 'kind:link']);
+    });
   });
 }

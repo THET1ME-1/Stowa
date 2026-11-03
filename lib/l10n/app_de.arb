@@ -15,5 +15,15 @@
   "photoSaved": "In Galerie gespeichert",
   "photoSaveFailed": "Nicht gespeichert: kein Zugriff auf die Galerie",
   "photoClose": "Schließen",
-  "voiceSpeed": "Tempo"
+  "voiceSpeed": "Tempo",
+  "reasonNone": "noch ohne Ordner, ich sortiere, sobald Ähnliches auftaucht",
+  "savePhotosHint": "Beschriftung und Tags kannst du später ergänzen",
+  "voiceSaved": "Sprachnotiz gespeichert",
+  "voiceNoTranscript": "Ohne Transkript",
+  "autoSorted": "{count, plural, one{{count} ähnliches Element einsortiert} other{{count} ähnliche Elemente einsortiert}}",
+  "relatedTitle": "Verwandt",
+  "relatedWords": "gemeinsam: {words}",
+  "relatedSite": "dieselbe Seite, {site}",
+  "relatedHide": "Nicht verknüpfen",
+  "relatedHidden": "Zeige sie nicht mehr zusammen"
 }

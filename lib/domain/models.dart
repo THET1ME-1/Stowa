@@ -20,6 +20,9 @@ enum RuleConditionKind { hasTag, domain, keyword, kind }
 enum RuleActionKind { toFolder, addTag }
 
 /// Откуда у вещи тег.
-enum TagSource { user, inline, rule, ai }
+/// similar — алгоритм на телефоне поставил тег, который есть у похожих вещей.
+enum TagSource { user, inline, rule, ai, similar }
 
-enum LinkSource { manual, ai }
+/// similar — связь по общим словам или сайту, её считает телефон; в базе
+/// хранится только отклонённая, чтобы больше её не предлагать.
+enum LinkSource { manual, ai, similar }

@@ -51,7 +51,7 @@ Future<FetchReply> httpFetch(Uri uri) async {
 /// Превью ссылок и роликов: заголовок, описание, обложка. Сеть только здесь и
 /// только в фоне — сохранение вещи её не ждёт.
 class LinkPreviewService {
-  LinkPreviewService(this._db, {required Directory filesRoot, required DateTime Function() clock, Fetch fetch = httpFetch})
+  LinkPreviewService(this._db, {required Directory filesRoot, required DateTime Function() clock, Fetch fetch = httpFetch, this.onPreviewed})
     : _filesRoot = filesRoot, // ignore: prefer_initializing_formals
       _clock = clock, // ignore: prefer_initializing_formals
       _fetch = fetch; // ignore: prefer_initializing_formals
@@ -60,6 +60,9 @@ class LinkPreviewService {
   final Directory _filesRoot;
   final DateTime Function() _clock;
   final Fetch _fetch;
+
+  /// Превью записано: у вещи появились заголовок и описание страницы.
+  final Future<void> Function(String itemId)? onPreviewed;
 
   /// Вещи, до которых в этом запуске сеть не достучалась: второй раз не пробуем,
   /// иначе без интернета очередь крутилась бы по кругу.
@@ -130,6 +133,7 @@ class LinkPreviewService {
         previewAt: Value(_clock()),
       ),
     );
+    if (preview != null) await onPreviewed?.call(item.id);
     return true;
   }
 

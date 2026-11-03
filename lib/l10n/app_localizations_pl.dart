@@ -273,7 +273,7 @@ class LPl extends L {
   String get saveRemindWhen => 'when? add “tomorrow at 10”';
 
   @override
-  String get savePhotosHint => 'your AI key will add a caption and tags';
+  String get savePhotosHint => 'podpis i tagi możesz dodać później';
 
   @override
   String get reasonChosen => 'you picked the folder';
@@ -297,7 +297,8 @@ class LPl extends L {
   String get reasonKind => 'by item type, offline';
 
   @override
-  String get reasonNone => 'your AI key will pick the folder';
+  String get reasonNone =>
+      'bez folderu, posortuję, gdy pojawi się coś podobnego';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
@@ -385,7 +386,7 @@ class LPl extends L {
   }
 
   @override
-  String get voiceSaved => 'Voice note saved, your AI key will transcribe it';
+  String get voiceSaved => 'Notatka głosowa zapisana';
 
   @override
   String get voiceTitle => 'Voice note';
@@ -593,7 +594,7 @@ class LPl extends L {
   String get lookShape => 'Shape';
 
   @override
-  String get voiceNoTranscript => 'No transcript yet: your AI key will make it';
+  String get voiceNoTranscript => 'Bez transkrypcji';
 
   @override
   String get voiceTranscribed => 'Voice note, transcribed';
@@ -930,4 +931,36 @@ class LPl extends L {
 
   @override
   String get voiceSpeed => 'Prędkość';
+
+  @override
+  String autoSorted(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count podobnej rzeczy posortowanej',
+      many: '$count podobnych rzeczy posortowanych',
+      few: '$count podobne rzeczy posortowane',
+      one: '$count podobna rzecz posortowana',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get relatedTitle => 'Powiązane';
+
+  @override
+  String relatedWords(Object words) {
+    return 'wspólne: $words';
+  }
+
+  @override
+  String relatedSite(Object site) {
+    return 'ta sama strona, $site';
+  }
+
+  @override
+  String get relatedHide => 'Nie łącz';
+
+  @override
+  String get relatedHidden => 'Nie pokażę ich już razem';
 }

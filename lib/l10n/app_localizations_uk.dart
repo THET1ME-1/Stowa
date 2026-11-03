@@ -273,7 +273,7 @@ class LUk extends L {
   String get saveRemindWhen => 'when? add “tomorrow at 10”';
 
   @override
-  String get savePhotosHint => 'your AI key will add a caption and tags';
+  String get savePhotosHint => 'підпис і теги можна дописати потім';
 
   @override
   String get reasonChosen => 'you picked the folder';
@@ -297,7 +297,7 @@ class LUk extends L {
   String get reasonKind => 'by item type, offline';
 
   @override
-  String get reasonNone => 'your AI key will pick the folder';
+  String get reasonNone => 'без теки, розкладу, коли з\'явиться схоже';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
@@ -385,7 +385,7 @@ class LUk extends L {
   }
 
   @override
-  String get voiceSaved => 'Voice note saved, your AI key will transcribe it';
+  String get voiceSaved => 'Голосове збережено';
 
   @override
   String get voiceTitle => 'Voice note';
@@ -593,7 +593,7 @@ class LUk extends L {
   String get lookShape => 'Shape';
 
   @override
-  String get voiceNoTranscript => 'No transcript yet: your AI key will make it';
+  String get voiceNoTranscript => 'Без розшифровки';
 
   @override
   String get voiceTranscribed => 'Voice note, transcribed';
@@ -930,4 +930,36 @@ class LUk extends L {
 
   @override
   String get voiceSpeed => 'Швидкість';
+
+  @override
+  String autoSorted(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Розклав $count схожих речі',
+      many: 'Розклав $count схожих речей',
+      few: 'Розклав $count схожі речі',
+      one: 'Розклав $count схожу річ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get relatedTitle => 'Пов\'язане';
+
+  @override
+  String relatedWords(Object words) {
+    return 'спільне: $words';
+  }
+
+  @override
+  String relatedSite(Object site) {
+    return 'той самий сайт, $site';
+  }
+
+  @override
+  String get relatedHide => 'Не пов\'язувати';
+
+  @override
+  String get relatedHidden => 'Більше не покажу їх поруч';
 }

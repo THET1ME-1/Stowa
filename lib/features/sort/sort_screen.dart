@@ -13,6 +13,7 @@ import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
+import '../../domain/folder_guess.dart';
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_cards.dart';
 import '../folder/folder_sheets.dart';
@@ -86,7 +87,7 @@ class _SortScreenState extends ConsumerState<SortScreen> {
     final progress = _total == 0 ? 1.0 : 1 - cards.length / _total;
 
     // подсказки первыми, потом остальные папки
-    final hints = card == null || index == null ? const <String>[] : index.rank('${card.title} ${card.body} ${card.tags.join(' ')}').take(3).toList();
+    final hints = card == null || index == null ? const <String>[] : index.rank('${card.title} ${card.body} ${card.tags.join(' ')}', signals: itemSignals(kind: card.kind, url: card.url, fileName: card.filePath)).take(3).toList();
     final ordered = [
       for (final id in hints) ?folders.where((folder) => folder.id == id).firstOrNull,
       ...folders.where((folder) => !hints.contains(folder.id)),

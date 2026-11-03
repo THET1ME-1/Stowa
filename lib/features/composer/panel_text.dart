@@ -129,7 +129,7 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
   return (text: parts.join(' · '), alarm: remind != null && plan.command != LineCommand.remind && plan.autoTags.isEmpty);
 }
 
-/// Почему сюда: правило без сети, свой выбор или ключ ИИ.
+/// Почему сюда: свой выбор, правило или похожее без сети.
 ({String text, String icon}) saveWhere(L l, SavePlan plan) {
   final value = plan.reasonValue ?? '';
   return switch (plan.reason) {
@@ -140,8 +140,9 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
     SaveReason.domain => (text: l.reasonDomain(value), icon: 'bolt'),
     SaveReason.kind => (text: l.reasonKind, icon: 'bolt'),
     SaveReason.name => (text: l.reasonName(value), icon: 'bolt'),
-    SaveReason.similar => (text: l.reasonSimilar(value), icon: 'bolt'),
-    SaveReason.none => (text: l.reasonNone, icon: 'key'),
+    // вид вещи или тип файла словами не назвать: тогда причина — вид
+    SaveReason.similar => (text: value.isEmpty ? l.reasonKind : l.reasonSimilar(value), icon: 'bolt'),
+    SaveReason.none => (text: l.reasonNone, icon: 'inbox'),
   };
 }
 

@@ -15,5 +15,15 @@
   "photoSaved": "Зберіг у галерею",
   "photoSaveFailed": "Не вдалося зберегти: немає доступу до галереї",
   "photoClose": "Закрити",
-  "voiceSpeed": "Швидкість"
+  "voiceSpeed": "Швидкість",
+  "reasonNone": "без теки, розкладу, коли з'явиться схоже",
+  "savePhotosHint": "підпис і теги можна дописати потім",
+  "voiceSaved": "Голосове збережено",
+  "voiceNoTranscript": "Без розшифровки",
+  "autoSorted": "{count, plural, one{Розклав {count} схожу річ} few{Розклав {count} схожі речі} many{Розклав {count} схожих речей} other{Розклав {count} схожих речі}}",
+  "relatedTitle": "Пов'язане",
+  "relatedWords": "спільне: {words}",
+  "relatedSite": "той самий сайт, {site}",
+  "relatedHide": "Не пов'язувати",
+  "relatedHidden": "Більше не покажу їх поруч"
 }

@@ -331,9 +331,9 @@
   "@saveRemindWhen": {
     "description": "Save row subtitle for /remind without date"
   },
-  "savePhotosHint": "your AI key will add a caption and tags",
+  "savePhotosHint": "you can add a caption and tags later",
   "@savePhotosHint": {
-    "description": "Save row subtitle for photos without text"
+    "description": "Подсказка при сохранении фото без текста"
   },
   "reasonChosen": "you picked the folder",
   "@reasonChosen": {
@@ -370,9 +370,9 @@
   "@reasonKind": {
     "description": "Why the folder"
   },
-  "reasonNone": "your AI key will pick the folder",
+  "reasonNone": "no folder yet, I'll sort it once similar things appear",
   "@reasonNone": {
-    "description": "Why the folder"
+    "description": "Почему вещь ляжет без папки: ни правила, ни похожего"
   },
   "reasonAsIs": "unsorted, as asked",
   "@reasonAsIs": {
@@ -494,9 +494,9 @@
       }
     }
   },
-  "voiceSaved": "Voice note saved, your AI key will transcribe it",
+  "voiceSaved": "Voice note saved",
   "@voiceSaved": {
-    "description": "Toast after recording"
+    "description": "Плашка после записи голосового"
   },
   "voiceTitle": "Voice note",
   "@voiceTitle": {
@@ -784,9 +784,9 @@
   "@lookShape": {
     "description": "Look sheet section"
   },
-  "voiceNoTranscript": "No transcript yet: your AI key will make it",
+  "voiceNoTranscript": "No transcript",
   "@voiceNoTranscript": {
-    "description": "Voice card without transcript"
+    "description": "Подпись голосового без текста"
   },
   "voiceTranscribed": "Voice note, transcribed",
   "@voiceTranscribed": {
@@ -1231,5 +1231,29 @@
   "voiceSpeed": "Speed",
   "@voiceSpeed": {
     "description": "Подсказка кнопки скорости голосового"
+  },
+  "autoSorted": "{count, plural, one{{count} similar item sorted} other{{count} similar items sorted}}",
+  "@autoSorted": {
+    "description": "Плашка: алгоритм разложил «Без папки» после того, как человек переложил похожее"
+  },
+  "relatedTitle": "Related",
+  "@relatedTitle": {
+    "description": "Заголовок блока похожих вещей на странице вещи"
+  },
+  "relatedWords": "in common: {words}",
+  "@relatedWords": {
+    "description": "Почему вещи связаны: общие слова"
+  },
+  "relatedSite": "same site, {site}",
+  "@relatedSite": {
+    "description": "Почему вещи связаны: ссылки на один сайт"
+  },
+  "relatedHide": "Not related",
+  "@relatedHide": {
+    "description": "Кнопка убрать вещь из связанных"
+  },
+  "relatedHidden": "Won't show them together again",
+  "@relatedHidden": {
+    "description": "Плашка после отклонения связи"
   }
 }

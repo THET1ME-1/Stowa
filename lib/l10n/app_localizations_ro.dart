@@ -273,7 +273,8 @@ class LRo extends L {
   String get saveRemindWhen => 'when? add “tomorrow at 10”';
 
   @override
-  String get savePhotosHint => 'your AI key will add a caption and tags';
+  String get savePhotosHint =>
+      'poți adăuga descrierea și etichetele mai târziu';
 
   @override
   String get reasonChosen => 'you picked the folder';
@@ -297,7 +298,7 @@ class LRo extends L {
   String get reasonKind => 'by item type, offline';
 
   @override
-  String get reasonNone => 'your AI key will pick the folder';
+  String get reasonNone => 'fără dosar, îl sortez când apare ceva similar';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
@@ -385,7 +386,7 @@ class LRo extends L {
   }
 
   @override
-  String get voiceSaved => 'Voice note saved, your AI key will transcribe it';
+  String get voiceSaved => 'Mesajul vocal a fost salvat';
 
   @override
   String get voiceTitle => 'Voice note';
@@ -593,7 +594,7 @@ class LRo extends L {
   String get lookShape => 'Shape';
 
   @override
-  String get voiceNoTranscript => 'No transcript yet: your AI key will make it';
+  String get voiceNoTranscript => 'Fără transcriere';
 
   @override
   String get voiceTranscribed => 'Voice note, transcribed';
@@ -929,4 +930,35 @@ class LRo extends L {
 
   @override
   String get voiceSpeed => 'Viteză';
+
+  @override
+  String autoSorted(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de elemente similare sortate',
+      few: '$count elemente similare sortate',
+      one: '$count element similar sortat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get relatedTitle => 'Legate';
+
+  @override
+  String relatedWords(Object words) {
+    return 'în comun: $words';
+  }
+
+  @override
+  String relatedSite(Object site) {
+    return 'același site, $site';
+  }
+
+  @override
+  String get relatedHide => 'Nu sunt legate';
+
+  @override
+  String get relatedHidden => 'Nu le mai arăt împreună';
 }

@@ -273,7 +273,7 @@ class LEs extends L {
   String get saveRemindWhen => 'when? add “tomorrow at 10”';
 
   @override
-  String get savePhotosHint => 'your AI key will add a caption and tags';
+  String get savePhotosHint => 'puedes añadir descripción y etiquetas luego';
 
   @override
   String get reasonChosen => 'you picked the folder';
@@ -297,7 +297,8 @@ class LEs extends L {
   String get reasonKind => 'by item type, offline';
 
   @override
-  String get reasonNone => 'your AI key will pick the folder';
+  String get reasonNone =>
+      'sin carpeta, la ordeno cuando aparezca algo parecido';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
@@ -385,7 +386,7 @@ class LEs extends L {
   }
 
   @override
-  String get voiceSaved => 'Voice note saved, your AI key will transcribe it';
+  String get voiceSaved => 'Nota de voz guardada';
 
   @override
   String get voiceTitle => 'Voice note';
@@ -593,7 +594,7 @@ class LEs extends L {
   String get lookShape => 'Shape';
 
   @override
-  String get voiceNoTranscript => 'No transcript yet: your AI key will make it';
+  String get voiceNoTranscript => 'Sin transcripción';
 
   @override
   String get voiceTranscribed => 'Voice note, transcribed';
@@ -928,4 +929,34 @@ class LEs extends L {
 
   @override
   String get voiceSpeed => 'Velocidad';
+
+  @override
+  String autoSorted(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos parecidos ordenados',
+      one: '$count elemento parecido ordenado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get relatedTitle => 'Relacionado';
+
+  @override
+  String relatedWords(Object words) {
+    return 'en común: $words';
+  }
+
+  @override
+  String relatedSite(Object site) {
+    return 'mismo sitio, $site';
+  }
+
+  @override
+  String get relatedHide => 'No relacionar';
+
+  @override
+  String get relatedHidden => 'No los mostraré juntos de nuevo';
 }

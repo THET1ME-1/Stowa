@@ -15,5 +15,15 @@
   "photoSaved": "Salvat în galerie",
   "photoSaveFailed": "Nu s-a salvat: fără acces la galerie",
   "photoClose": "Închide",
-  "voiceSpeed": "Viteză"
+  "voiceSpeed": "Viteză",
+  "reasonNone": "fără dosar, îl sortez când apare ceva similar",
+  "savePhotosHint": "poți adăuga descrierea și etichetele mai târziu",
+  "voiceSaved": "Mesajul vocal a fost salvat",
+  "voiceNoTranscript": "Fără transcriere",
+  "autoSorted": "{count, plural, one{{count} element similar sortat} few{{count} elemente similare sortate} other{{count} de elemente similare sortate}}",
+  "relatedTitle": "Legate",
+  "relatedWords": "în comun: {words}",
+  "relatedSite": "același site, {site}",
+  "relatedHide": "Nu sunt legate",
+  "relatedHidden": "Nu le mai arăt împreună"
 }

@@ -103,8 +103,10 @@ class CaptureService {
       // правила раньше ИИ: разложили — вещь в очередь ИИ не встаёт
       final rules = byHand ? const RuleOutcome() : applyRules(await RulesRepository(_db).enabled(), text: text, tags: ownTags, host: url?.host, kind: kind);
       final byRule = rules.folderId != null;
-      // правила молчат — угадыватель смотрит, в какой папке уже живут слова заметки
-      final guess = byHand || byRule || text.isEmpty ? null : FolderIndex(await ItemsRepository(_db).folderDocs()).guess(text);
+      // правила молчат — угадыватель смотрит, в какой папке уже живут слова заметки,
+      // ссылки с того же сайта и такие же фото и файлы
+      final signals = itemSignals(kind: kind, url: url?.toString(), fileName: firstFile == null ? null : p.basename(firstFile.path));
+      final guess = byHand || byRule ? null : FolderIndex(await ItemsRepository(_db).folderDocs()).guess(text, signals: signals);
       final sorted = byHand || byRule || guess != null;
       await _db
           .into(_db.items)

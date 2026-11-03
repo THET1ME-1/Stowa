@@ -4,6 +4,7 @@ import '../../domain/folder_guess.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
+import '../../domain/related.dart';
 import '../../domain/search_rank.dart';
 import '../../services/reminder_service.dart' show Reminder, reminderText;
 import '../db/database.dart';
@@ -141,14 +142,20 @@ class ItemsRepository {
   }
 
   static const _folderDocsSql = '''
-SELECT items.folder_id AS folder_id,
+SELECT items.folder_id AS folder_id, items.kind AS kind, items.url AS url,
   items.title || ' ' || items.body || ' ' || coalesce(items.ai_description, '') || ' ' || coalesce(items.transcript, '') || ' ' ||
+  coalesce(items.preview_text, '') || ' ' ||
   coalesce((SELECT group_concat(tags.name, ' ') FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
-    WHERE item_tags.item_id = items.id), '') AS text
+    WHERE item_tags.item_id = items.id), '') AS text,
+  (SELECT attachments.path FROM attachments WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS file_path
 FROM items JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
 WHERE items.deleted_at IS NULL''';
 
-  FolderDoc _folderDoc(QueryRow row) => FolderDoc(folderId: row.read<String>('folder_id'), text: row.read<String>('text'));
+  FolderDoc _folderDoc(QueryRow row) => FolderDoc(
+    folderId: row.read<String>('folder_id'),
+    text: row.read<String>('text'),
+    signals: itemSignals(kind: ItemKind.values.byName(row.read<String>('kind')), url: row.readNullable<String>('url'), fileName: row.readNullable<String>('file_path')),
+  );
 
   /// Всё, что уже разложено по живым папкам: из этого учится угадыватель папки.
   Future<List<FolderDoc>> folderDocs() async => [for (final row in await _db.customSelect(_folderDocsSql).get()) _folderDoc(row)];
@@ -157,6 +164,56 @@ WHERE items.deleted_at IS NULL''';
       .customSelect(_folderDocsSql, readsFrom: {_db.items, _db.folders, _db.itemTags, _db.tags})
       .watch()
       .map((rows) => [for (final row in rows) _folderDoc(row)]);
+
+  /// Вещи, связанные с [id] общими редкими словами или сайтом, с причиной.
+  /// Пересчитываются, когда меняются вещи или человек отклонил связь.
+  Stream<List<({ItemCard card, Related why})>> watchRelated(String id) {
+    return _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.links}).watch().asyncMap((_) async {
+      final rows = await _db
+          .customSelect(
+            "SELECT items.id, items.url, items.title || ' ' || items.body || ' ' || coalesce(items.transcript, '') || ' ' || "
+            "coalesce(items.preview_text, '') AS text FROM items WHERE items.deleted_at IS NULL",
+          )
+          .get();
+      final docs = [
+        for (final row in rows)
+          RelatedDoc(
+            id: row.read<String>('id'),
+            text: row.read<String>('text'),
+            site: switch (row.readNullable<String>('url')) {
+              final url? => Uri.tryParse(url)?.host.replaceFirst(RegExp(r'^www\.'), ''),
+              null => null,
+            },
+          ),
+      ];
+      final refused = await (_db.select(_db.links)..where((t) => t.rejected.equals(true) & (t.fromId.equals(id) | t.toId.equals(id)))).get();
+      final related = findRelated(id, docs, rejected: {for (final link in refused) link.fromId == id ? link.toId : link.fromId});
+      if (related.isEmpty) return const <({ItemCard card, Related why})>[];
+      final cards = await _db
+          .customSelect(
+            '$_cardSelect AND items.id IN (${List.filled(related.length, '?').join(',')})',
+            variables: [for (final one in related) Variable.withString(one.id)],
+          )
+          .get();
+      final byId = {for (final row in cards) row.read<String>('id'): _card(row)};
+      return [
+        for (final one in related)
+          if (byId[one.id] case final card?) (card: card, why: one),
+      ];
+    });
+  }
+
+  /// Человек сказал, что вещи не связаны: больше не предлагать.
+  Future<void> rejectRelated(String id, String otherId) {
+    return _db
+        .into(_db.links)
+        .insert(LinksCompanion.insert(fromId: id, toId: otherId, source: LinkSource.similar, rejected: const Value(true)), mode: InsertMode.insertOrReplace);
+  }
+
+  /// Вернуть отклонённую связь: «Отменить» сразу после.
+  Future<void> restoreRelated(String id, String otherId) {
+    return (_db.delete(_db.links)..where((t) => t.fromId.equals(id) & t.toId.equals(otherId) & t.rejected.equals(true))).go();
+  }
 
   /// Все живые напоминания: по ним ставятся будильники системы.
   Stream<List<Reminder>> watchReminders() {
