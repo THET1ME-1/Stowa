@@ -1,8 +1,13 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
@@ -14,6 +19,7 @@ import '../../data/settings_repository.dart';
 import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
+import '../../services/backup_service.dart';
 import '../tags/tags_screen.dart';
 import 'trash_screen.dart';
 
@@ -79,8 +85,14 @@ class SettingsScreen extends ConsumerWidget {
             _Section(l.settingsData),
             _Group(
               children: [
+                _Row(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
+                _Row(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
                 _Row(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
               ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+              child: Text(l.backupSaveHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
             _Section(l.settingsLanguage),
             _Group(
@@ -99,6 +111,73 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Копия собирается во временную папку и уходит через «Поделиться»: в Диск, Telegram, на компьютер.
+Future<void> _saveBackup(BuildContext context, WidgetRef ref) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final box = context.findRenderObject() as RenderBox?;
+  try {
+    final zip = await ref.read(backupServiceProvider).export(await getTemporaryDirectory());
+    await SharePlus.instance.share(
+      ShareParams(files: [XFile(zip.path, mimeType: 'application/zip')], sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size),
+    );
+  } catch (_) {
+    showNote(messenger, l.backupFailed);
+  }
+}
+
+/// Выбрать zip, показать, что в нём, и только после согласия заменить всё.
+Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final picked = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['zip']).catchError((_) => <PlatformFile>[]);
+  final path = picked.firstOrNull?.path;
+  if (path == null || !context.mounted) return;
+  final zip = File(path);
+  final BackupInfo info;
+  try {
+    info = await BackupService.inspect(zip);
+  } on BackupError {
+    showNote(messenger, l.backupNotStowa);
+    return;
+  }
+  if (!context.mounted) return;
+  final date = DateFormat.yMMMMd(Localizations.localeOf(context).toLanguageTag()).format(info.createdAt);
+  final yes = await _sheet<bool>(
+    context,
+    Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, Space.screen),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l.backupRestoreAsk(info.items, date), style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 20),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Tokens.error, foregroundColor: Tokens.onError),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.backupReplace),
+            ),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
+          ],
+        ),
+      ),
+    ),
+  );
+  if (yes != true) return;
+  try {
+    await ref.read(backupServiceProvider).restore(zip);
+    // те же пути к файлам, другие картинки: кэш картинок показал бы прежние
+    PaintingBinding.instance.imageCache.clear();
+    showNote(messenger, l.backupRestored);
+  } on BackupError catch (error) {
+    showNote(messenger, error.problem == BackupProblem.tooNew ? l.backupTooNew : l.backupNotStowa);
+  } catch (_) {
+    showNote(messenger, l.backupFailed);
   }
 }
 

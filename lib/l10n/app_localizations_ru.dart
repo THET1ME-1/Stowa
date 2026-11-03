@@ -1167,4 +1167,47 @@ class LRu extends L {
 
   @override
   String get settingsData => 'Данные';
+
+  @override
+  String get backupSave => 'Сохранить копию';
+
+  @override
+  String get backupSaveHint =>
+      'Вся Stowa одним файлом: вещи, папки, теги, правила и файлы. Ключа ИИ в копии нет.';
+
+  @override
+  String get backupRestore => 'Восстановить из копии';
+
+  @override
+  String backupRestoreAsk(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Заменить всё копией от $date? В ней $count вещи, нынешние пропадут.',
+      many:
+          'Заменить всё копией от $date? В ней $count вещей, нынешние пропадут.',
+      few:
+          'Заменить всё копией от $date? В ней $count вещи, нынешние пропадут.',
+      one:
+          'Заменить всё копией от $date? В ней $count вещь, нынешние пропадут.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupReplace => 'Заменить';
+
+  @override
+  String get backupRestored => 'Восстановлено из копии';
+
+  @override
+  String get backupNotStowa => 'Это не копия Stowa';
+
+  @override
+  String get backupTooNew =>
+      'Копию сделала более новая Stowa, обнови приложение';
+
+  @override
+  String get backupFailed => 'Копия не получилась';
 }

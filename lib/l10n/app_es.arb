@@ -76,5 +76,14 @@
   "trashPurgeAllAsk": "{count, plural, one{{count} elemento se borrará para siempre. No se puede deshacer.} other{{count} elementos se borrarán para siempre. No se puede deshacer.}}",
   "trashRestored": "«{title}» restaurado",
   "trashPurged": "Borrado para siempre",
-  "settingsData": "Datos"
+  "settingsData": "Datos",
+  "backupSave": "Guardar copia",
+  "backupSaveHint": "Todo Stowa en un archivo: elementos, carpetas, etiquetas, reglas y archivos. La clave de IA no se incluye.",
+  "backupRestore": "Restaurar copia",
+  "backupRestoreAsk": "{count, plural, one{{count} elemento de la copia del {date} reemplaza todo lo que tienes ahora.} other{{count} elementos de la copia del {date} reemplazan todo lo que tienes ahora.}}",
+  "backupReplace": "Reemplazar",
+  "backupRestored": "Copia restaurada",
+  "backupNotStowa": "No es una copia de Stowa",
+  "backupTooNew": "Una Stowa más nueva hizo esta copia. Actualiza la app",
+  "backupFailed": "La copia falló"
 }

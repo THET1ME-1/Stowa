@@ -1164,4 +1164,45 @@ class LUk extends L {
 
   @override
   String get settingsData => 'Дані';
+
+  @override
+  String get backupSave => 'Зберегти копію';
+
+  @override
+  String get backupSaveHint =>
+      'Уся Stowa одним файлом: речі, папки, теги, правила й файли. Ключа ШІ в копії немає.';
+
+  @override
+  String get backupRestore => 'Відновити з копії';
+
+  @override
+  String backupRestoreAsk(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Замінити все копією від $date? У ній $count речі, нинішні зникнуть.',
+      many:
+          'Замінити все копією від $date? У ній $count речей, нинішні зникнуть.',
+      few:
+          'Замінити все копією від $date? У ній $count речі, нинішні зникнуть.',
+      one: 'Замінити все копією від $date? У ній $count річ, нинішні зникнуть.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupReplace => 'Замінити';
+
+  @override
+  String get backupRestored => 'Відновлено з копії';
+
+  @override
+  String get backupNotStowa => 'Це не копія Stowa';
+
+  @override
+  String get backupTooNew => 'Копію зробила новіша Stowa, онови застосунок';
+
+  @override
+  String get backupFailed => 'Копія не вийшла';
 }

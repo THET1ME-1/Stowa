@@ -34,6 +34,8 @@ void main() {
     await tester.tap(find.byTooltip('Настройки'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Корзина'), 200);
+    await tester.ensureVisible(find.text('Корзина'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Корзина'));
     await tester.pumpAndSettle();
   }

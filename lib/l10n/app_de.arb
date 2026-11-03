@@ -76,5 +76,14 @@
   "trashPurgeAllAsk": "{count, plural, one{{count} Element wird endgültig gelöscht. Das lässt sich nicht rückgängig machen.} other{{count} Elemente werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.}}",
   "trashRestored": "„{title}“ wiederhergestellt",
   "trashPurged": "Endgültig gelöscht",
-  "settingsData": "Daten"
+  "settingsData": "Daten",
+  "backupSave": "Sicherung speichern",
+  "backupSaveHint": "Ganz Stowa in einer Datei: Elemente, Ordner, Tags, Regeln und Dateien. Der KI-Schlüssel ist nicht enthalten.",
+  "backupRestore": "Aus Sicherung wiederherstellen",
+  "backupRestoreAsk": "{count, plural, one{{count} Element aus der Sicherung vom {date} ersetzt alles, was du jetzt hast.} other{{count} Elemente aus der Sicherung vom {date} ersetzen alles, was du jetzt hast.}}",
+  "backupReplace": "Ersetzen",
+  "backupRestored": "Aus Sicherung wiederhergestellt",
+  "backupNotStowa": "Das ist keine Stowa-Sicherung",
+  "backupTooNew": "Eine neuere Stowa hat die Sicherung erstellt. Aktualisiere die App",
+  "backupFailed": "Die Sicherung ist fehlgeschlagen"
 }

@@ -1160,4 +1160,43 @@ class LDe extends L {
 
   @override
   String get settingsData => 'Daten';
+
+  @override
+  String get backupSave => 'Sicherung speichern';
+
+  @override
+  String get backupSaveHint =>
+      'Ganz Stowa in einer Datei: Elemente, Ordner, Tags, Regeln und Dateien. Der KI-Schlüssel ist nicht enthalten.';
+
+  @override
+  String get backupRestore => 'Aus Sicherung wiederherstellen';
+
+  @override
+  String backupRestoreAsk(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Elemente aus der Sicherung vom $date ersetzen alles, was du jetzt hast.',
+      one:
+          '$count Element aus der Sicherung vom $date ersetzt alles, was du jetzt hast.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupReplace => 'Ersetzen';
+
+  @override
+  String get backupRestored => 'Aus Sicherung wiederhergestellt';
+
+  @override
+  String get backupNotStowa => 'Das ist keine Stowa-Sicherung';
+
+  @override
+  String get backupTooNew =>
+      'Eine neuere Stowa hat die Sicherung erstellt. Aktualisiere die App';
+
+  @override
+  String get backupFailed => 'Die Sicherung ist fehlgeschlagen';
 }

@@ -1160,4 +1160,43 @@ class LRo extends L {
 
   @override
   String get settingsData => 'Date';
+
+  @override
+  String get backupSave => 'Salvează o copie';
+
+  @override
+  String get backupSaveHint =>
+      'Tot Stowa într-un fișier: elemente, dosare, etichete, reguli și fișiere. Cheia AI nu e inclusă.';
+
+  @override
+  String get backupRestore => 'Restaurează din copie';
+
+  @override
+  String backupRestoreAsk(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count de elemente din copia de la $date înlocuiesc tot ce ai acum.',
+      few: '$count elemente din copia de la $date înlocuiesc tot ce ai acum.',
+      one: '$count element din copia de la $date înlocuiește tot ce ai acum.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupReplace => 'Înlocuiește';
+
+  @override
+  String get backupRestored => 'Restaurat din copie';
+
+  @override
+  String get backupNotStowa => 'Nu e o copie Stowa';
+
+  @override
+  String get backupTooNew =>
+      'Copia e făcută de un Stowa mai nou. Actualizează aplicația';
+
+  @override
+  String get backupFailed => 'Copia nu a reușit';
 }

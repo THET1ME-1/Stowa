@@ -88,6 +88,8 @@ void main() {
     await settings.setLanguage(AppLanguage.ru);
     await open(tester, keyStatus: 200, ownLanguage: true);
     await tester.scrollUntilVisible(find.text('Русский'), 200);
+    await tester.ensureVisible(find.text('Русский'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Русский'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('English'));

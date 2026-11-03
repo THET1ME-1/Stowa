@@ -1156,4 +1156,43 @@ class LEs extends L {
 
   @override
   String get settingsData => 'Datos';
+
+  @override
+  String get backupSave => 'Guardar copia';
+
+  @override
+  String get backupSaveHint =>
+      'Todo Stowa en un archivo: elementos, carpetas, etiquetas, reglas y archivos. La clave de IA no se incluye.';
+
+  @override
+  String get backupRestore => 'Restaurar copia';
+
+  @override
+  String backupRestoreAsk(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count elementos de la copia del $date reemplazan todo lo que tienes ahora.',
+      one:
+          '$count elemento de la copia del $date reemplaza todo lo que tienes ahora.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupReplace => 'Reemplazar';
+
+  @override
+  String get backupRestored => 'Copia restaurada';
+
+  @override
+  String get backupNotStowa => 'No es una copia de Stowa';
+
+  @override
+  String get backupTooNew =>
+      'Una Stowa más nueva hizo esta copia. Actualiza la app';
+
+  @override
+  String get backupFailed => 'La copia falló';
 }

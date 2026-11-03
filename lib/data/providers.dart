@@ -11,6 +11,7 @@ import '../domain/related.dart';
 import '../services/ai_image.dart';
 import '../services/ai_worker.dart';
 import '../services/auto_sorter.dart';
+import '../services/backup_service.dart';
 import '../services/capture_service.dart';
 import '../services/link_preview_service.dart';
 import '../services/reminder_service.dart';
@@ -93,6 +94,8 @@ final onlineProvider = StreamProvider<bool>(
 /// Удалённое: лежит 30 дней, потом стирается вместе с файлами.
 final trashRepositoryProvider = Provider((ref) => TrashRepository(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider)));
 final trashProvider = StreamProvider((ref) => ref.watch(trashRepositoryProvider).watch());
+
+final backupServiceProvider = Provider((ref) => BackupService(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider), clock: ref.watch(clockProvider)));
 
 /// Язык, выбранный в настройках; null — язык устройства.
 final languageProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchLanguage());

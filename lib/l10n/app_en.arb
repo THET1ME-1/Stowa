@@ -1508,5 +1508,49 @@
   "settingsData": "Data",
   "@settingsData": {
     "description": "settingsData"
+  },
+  "backupSave": "Save a backup",
+  "@backupSave": {
+    "description": "backupSave"
+  },
+  "backupSaveHint": "All of Stowa in one file: items, folders, tags, rules and files. Your AI key is not included.",
+  "@backupSaveHint": {
+    "description": "backupSaveHint"
+  },
+  "backupRestore": "Restore from backup",
+  "@backupRestore": {
+    "description": "backupRestore"
+  },
+  "backupRestoreAsk": "{count, plural, one{{count} item from the {date} backup will replace everything you have now.} other{{count} items from the {date} backup will replace everything you have now.}}",
+  "@backupRestoreAsk": {
+    "description": "backupRestoreAsk",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupReplace": "Replace",
+  "@backupReplace": {
+    "description": "backupReplace"
+  },
+  "backupRestored": "Restored from backup",
+  "@backupRestored": {
+    "description": "backupRestored"
+  },
+  "backupNotStowa": "This is not a Stowa backup",
+  "@backupNotStowa": {
+    "description": "backupNotStowa"
+  },
+  "backupTooNew": "A newer Stowa made this backup. Update the app first",
+  "@backupTooNew": {
+    "description": "backupTooNew"
+  },
+  "backupFailed": "The backup failed",
+  "@backupFailed": {
+    "description": "backupFailed"
   }
 }

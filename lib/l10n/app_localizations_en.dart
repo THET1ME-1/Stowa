@@ -1155,4 +1155,43 @@ class LEn extends L {
 
   @override
   String get settingsData => 'Data';
+
+  @override
+  String get backupSave => 'Save a backup';
+
+  @override
+  String get backupSaveHint =>
+      'All of Stowa in one file: items, folders, tags, rules and files. Your AI key is not included.';
+
+  @override
+  String get backupRestore => 'Restore from backup';
+
+  @override
+  String backupRestoreAsk(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count items from the $date backup will replace everything you have now.',
+      one:
+          '$count item from the $date backup will replace everything you have now.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupReplace => 'Replace';
+
+  @override
+  String get backupRestored => 'Restored from backup';
+
+  @override
+  String get backupNotStowa => 'This is not a Stowa backup';
+
+  @override
+  String get backupTooNew =>
+      'A newer Stowa made this backup. Update the app first';
+
+  @override
+  String get backupFailed => 'The backup failed';
 }

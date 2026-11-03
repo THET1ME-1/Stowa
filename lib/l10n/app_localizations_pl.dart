@@ -1166,4 +1166,43 @@ class LPl extends L {
 
   @override
   String get settingsData => 'Dane';
+
+  @override
+  String get backupSave => 'Zapisz kopię';
+
+  @override
+  String get backupSaveHint =>
+      'Cała Stowa w jednym pliku: rzeczy, foldery, tagi, reguły i pliki. Klucza AI w kopii nie ma.';
+
+  @override
+  String get backupRestore => 'Przywróć z kopii';
+
+  @override
+  String backupRestoreAsk(int count, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rzeczy z kopii z $date zastąpi wszystko, co masz teraz.',
+      many: '$count rzeczy z kopii z $date zastąpi wszystko, co masz teraz.',
+      few: '$count rzeczy z kopii z $date zastąpią wszystko, co masz teraz.',
+      one: '$count rzecz z kopii z $date zastąpi wszystko, co masz teraz.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupReplace => 'Zastąp';
+
+  @override
+  String get backupRestored => 'Przywrócono z kopii';
+
+  @override
+  String get backupNotStowa => 'To nie jest kopia Stowa';
+
+  @override
+  String get backupTooNew =>
+      'Kopię zrobiła nowsza Stowa, zaktualizuj aplikację';
+
+  @override
+  String get backupFailed => 'Kopia się nie udała';
 }

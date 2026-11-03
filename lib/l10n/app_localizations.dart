@@ -2056,6 +2056,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Data'**
   String get settingsData;
+
+  /// backupSave
+  ///
+  /// In en, this message translates to:
+  /// **'Save a backup'**
+  String get backupSave;
+
+  /// backupSaveHint
+  ///
+  /// In en, this message translates to:
+  /// **'All of Stowa in one file: items, folders, tags, rules and files. Your AI key is not included.'**
+  String get backupSaveHint;
+
+  /// backupRestore
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup'**
+  String get backupRestore;
+
+  /// backupRestoreAsk
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item from the {date} backup will replace everything you have now.} other{{count} items from the {date} backup will replace everything you have now.}}'**
+  String backupRestoreAsk(int count, String date);
+
+  /// backupReplace
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get backupReplace;
+
+  /// backupRestored
+  ///
+  /// In en, this message translates to:
+  /// **'Restored from backup'**
+  String get backupRestored;
+
+  /// backupNotStowa
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a Stowa backup'**
+  String get backupNotStowa;
+
+  /// backupTooNew
+  ///
+  /// In en, this message translates to:
+  /// **'A newer Stowa made this backup. Update the app first'**
+  String get backupTooNew;
+
+  /// backupFailed
+  ///
+  /// In en, this message translates to:
+  /// **'The backup failed'**
+  String get backupFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

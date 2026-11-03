@@ -76,5 +76,14 @@
   "trashPurgeAllAsk": "{count, plural, one{{count} element se șterge definitiv. Nu se poate anula.} few{{count} elemente se șterg definitiv. Nu se poate anula.} other{{count} de elemente se șterg definitiv. Nu se poate anula.}}",
   "trashRestored": "Am readus „{title}”",
   "trashPurged": "Șters definitiv",
-  "settingsData": "Date"
+  "settingsData": "Date",
+  "backupSave": "Salvează o copie",
+  "backupSaveHint": "Tot Stowa într-un fișier: elemente, dosare, etichete, reguli și fișiere. Cheia AI nu e inclusă.",
+  "backupRestore": "Restaurează din copie",
+  "backupRestoreAsk": "{count, plural, one{{count} element din copia de la {date} înlocuiește tot ce ai acum.} few{{count} elemente din copia de la {date} înlocuiesc tot ce ai acum.} other{{count} de elemente din copia de la {date} înlocuiesc tot ce ai acum.}}",
+  "backupReplace": "Înlocuiește",
+  "backupRestored": "Restaurat din copie",
+  "backupNotStowa": "Nu e o copie Stowa",
+  "backupTooNew": "Copia e făcută de un Stowa mai nou. Actualizează aplicația",
+  "backupFailed": "Copia nu a reușit"
 }
