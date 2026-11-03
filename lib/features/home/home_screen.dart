@@ -5,6 +5,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/shape_badge.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
@@ -152,12 +153,7 @@ class _Feed extends ConsumerWidget {
                 // случайный тап не стирает напоминание насовсем
                 messenger
                   ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(l.reminderCleared),
-                      action: SnackBarAction(label: l.undo, onPressed: () => items.snoozeReminder(next.id, next.reminderAt!)),
-                    ),
-                  );
+                  ..showSnackBar(undoSnackBar(message: l.reminderCleared, label: l.undo, onUndo: () => items.snoozeReminder(next.id, next.reminderAt!)));
               },
               onTap: () => onOpen(upcoming.first.id),
             ),

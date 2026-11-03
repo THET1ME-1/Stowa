@@ -135,6 +135,19 @@ void main() {
     expect(find.text('Тарт с малиной'), findsOneWidget);
   });
 
+  testWidgets('плашка с «Отменить» уходит сама и не висит над строкой', (tester) async {
+    await seed();
+    await openFolder(tester);
+    await tester.longPress(find.text('Тарт с малиной'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Удалить'));
+    await tester.pumpAndSettle();
+    expect(find.text('Отменить'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+    expect(find.text('Отменить'), findsNothing);
+  });
+
   testWidgets('долгое нажатие: переложить в другую папку', (tester) async {
     await seed();
     await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'cookie9'));

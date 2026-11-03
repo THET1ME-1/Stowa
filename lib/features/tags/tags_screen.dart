@@ -11,6 +11,7 @@ import '../../core/widgets/pill_segments.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -55,13 +56,7 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final tags = ref.read(tagsRepositoryProvider);
     final snapshot = await tags.delete(tag.id);
-    messenger.showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 5),
-        content: Text(l.tagDeleted(tag.name)),
-        action: SnackBarAction(label: l.restoreAction, onPressed: () => tags.restore(snapshot)),
-      ),
-    );
+    messenger.showSnackBar(undoSnackBar(message: l.tagDeleted(tag.name), label: l.restoreAction, onUndo: () => tags.restore(snapshot)));
   }
 
   @override

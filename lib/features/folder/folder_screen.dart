@@ -8,6 +8,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
@@ -103,12 +104,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         if (!await confirmFolderDelete(context, folder.name)) return;
         final moved = await repository.delete(folder.id, ref.read(clockProvider)());
         if (mounted) Navigator.pop(context);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(l.folderDeleted),
-            action: SnackBarAction(label: l.restoreAction, onPressed: () => repository.restore(folder.id, moved)),
-          ),
-        );
+        messenger.showSnackBar(undoSnackBar(message: l.folderDeleted, label: l.restoreAction, onUndo: () => repository.restore(folder.id, moved)));
     }
   }
 

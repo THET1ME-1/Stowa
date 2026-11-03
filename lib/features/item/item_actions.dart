@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
@@ -32,12 +33,7 @@ Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) async 
   );
   if (picked == null) return;
   await items.moveToFolder(card.id, picked.id, clock());
-  messenger.showSnackBar(
-    SnackBar(
-      content: Text(l.itemMoved(picked.name)),
-      action: SnackBarAction(label: l.undo, onPressed: () => items.moveToFolder(card.id, card.folderId, clock())),
-    ),
-  );
+  messenger.showSnackBar(undoSnackBar(message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(card.id, card.folderId, clock())));
 }
 
 /// Долгое нажатие на вещь в ленте: открыть, переложить в другую папку, удалить с «Вернуть».
@@ -83,11 +79,6 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
       await moveItem(context, ref, card);
     case _Action.delete:
       await items.softDelete(card.id, now);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l.itemDeleted),
-          action: SnackBarAction(label: l.undo, onPressed: () => items.restore(card.id)),
-        ),
-      );
+      messenger.showSnackBar(undoSnackBar(message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(card.id)));
   }
 }

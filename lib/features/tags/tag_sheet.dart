@@ -11,6 +11,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pill_segments.dart';
 import '../../core/widgets/tag_tile.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
@@ -106,13 +107,7 @@ class _TagSheetState extends ConsumerState<TagSheet> {
     final tags = ref.read(tagsRepositoryProvider);
     final snapshot = await tags.delete(tag.id);
     if (mounted) Navigator.pop(context);
-    messenger.showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 5),
-        content: Text(l.tagDeleted(tag.name)),
-        action: SnackBarAction(label: l.restoreAction, onPressed: () => tags.restore(snapshot)),
-      ),
-    );
+    messenger.showSnackBar(undoSnackBar(message: l.tagDeleted(tag.name), label: l.restoreAction, onUndo: () => tags.restore(snapshot)));
   }
 
   Future<void> _newFolder() async {

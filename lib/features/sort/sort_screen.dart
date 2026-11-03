@@ -10,6 +10,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -47,9 +48,7 @@ class _SortScreenState extends ConsumerState<SortScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       // короче обычного: плашка закрывает «Пропустить», а в разборе руки быстрые
-      ..showSnackBar(
-        SnackBar(duration: const Duration(seconds: 3), content: Text(message), action: SnackBarAction(label: L.of(context).undo, onPressed: undo)),
-      );
+      ..showSnackBar(undoSnackBar(message: message, label: L.of(context).undo, onUndo: undo, duration: const Duration(seconds: 3)));
   }
 
   Future<void> _put(String id, FolderCard folder) async {

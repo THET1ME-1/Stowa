@@ -9,6 +9,7 @@ import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -66,12 +67,7 @@ class ItemScreen extends ConsumerWidget {
       final from = item.folderId;
       await items.moveToFolder(id, target.id, clock());
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l.itemMoved(target.name)),
-          action: SnackBarAction(label: l.undo, onPressed: () => items.moveToFolder(id, from, clock())),
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(undoSnackBar(message: l.itemMoved(target.name), label: l.undo, onUndo: () => items.moveToFolder(id, from, clock())));
     }
 
     Future<void> toggle(int index) async {
@@ -127,12 +123,7 @@ class ItemScreen extends ConsumerWidget {
                       final messenger = ScaffoldMessenger.of(context);
                       await repository.softDelete(id, ref.read(clockProvider)());
                       if (context.mounted) Navigator.pop(context);
-                      messenger.showSnackBar(
-                        SnackBar(
-                          content: Text(l.itemDeleted),
-                          action: SnackBarAction(label: l.undo, onPressed: () => repository.restore(id)),
-                        ),
-                      );
+                      messenger.showSnackBar(undoSnackBar(message: l.itemDeleted, label: l.undo, onUndo: () => repository.restore(id)));
                     },
                     icon: Icon(symbolIcon('delete')),
                   ),
