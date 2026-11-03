@@ -433,6 +433,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           forcedTagNames: _line.tags,
           detectReminder: !_line.reminderDismissed,
           asIs: command == LineCommand.inbox,
+          untitled: files.isEmpty ? null : untitledFor(l, mime: files.first.mime, fileName: p.basename(files.first.path), at: _now),
         ),
       );
       if (_clip != null && snapshot.text.contains(_clip!)) _usedSuggestions.add(_clip!);

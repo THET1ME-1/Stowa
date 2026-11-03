@@ -57,7 +57,38 @@ void main() {
     final stored = saved.attachments.single.path;
     expect(p.isRelative(stored), isTrue);
     expect(await File(p.join(home.path, stored)).length(), await source.length());
-    expect(saved.item.title, 'source.jpg');
+    expect(saved.item.title, 'Source');
+  });
+
+  test('у картинки запоминается размер как на экране', () async {
+    final photo = File('test/fixtures/images/rotated.jpg');
+    final id = await capture.capture(CaptureInput(files: [PickedFile(path: photo.path, mime: 'image/jpeg', size: await photo.length())]));
+    await capture.settled();
+    final file = (await items.get(id))!.attachments.single;
+    expect((file.width, file.height), (20, 30));
+  });
+
+  test('картинкам, сохранённым до учёта размеров, размер дописывается', () async {
+    final photo = File('test/fixtures/images/wide.png');
+    await Directory(p.join(home.path, 'attachments', 'old')).create(recursive: true);
+    await photo.copy(p.join(home.path, 'attachments', 'old', 'wide.png'));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.image, title: 'Старое', createdAt: DateTime(2026), updatedAt: DateTime(2026)));
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'fa', itemId: 'old', path: p.join('attachments', 'old', 'wide.png'), mime: 'image/png', size: 92));
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'gone', itemId: 'old', path: 'attachments/old/missing.png', mime: 'image/png', size: 1));
+
+    await capture.fillImageSizes();
+    final file = (await items.get('old'))!.attachments.firstWhere((one) => one.id == 'fa');
+    expect((file.width, file.height), (30, 20));
+  });
+
+  test('фото с камеры без текста: вместо IMG_… подпись от экрана', () async {
+    final source = await bigFile();
+    final camera = await source.copy(p.join(source.parent.path, 'IMG_20261103_154512.jpg'));
+    final id = await capture.capture(CaptureInput(
+      files: [PickedFile(path: camera.path, mime: 'image/jpeg', size: await camera.length())],
+      untitled: 'Фото от 3 ноября',
+    ));
+    expect((await items.get(id))!.item.title, 'Фото от 3 ноября');
   });
 
   test('теги из текста ставятся с источником inline, выбранные руками — user', () async {

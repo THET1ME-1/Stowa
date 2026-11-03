@@ -51,6 +51,16 @@ String kindLabel(L l, ItemKind kind) => switch (kind) {
   ItemKind.voice => l.kindVoice,
 };
 
+/// Заголовок вещи, у которой нет ни текста, ни человеческого имени файла:
+/// «Фото от 3 ноября». По нему же вещь находится поиском.
+String untitledFor(L l, {required String mime, required String fileName, required DateTime at}) {
+  final date = DateFormat.MMMMd(l.localeName).format(at);
+  if (mime.startsWith('image/')) return isScreenshotName(fileName) ? l.untitledScreenshot(date) : l.untitledPhoto(date);
+  if (mime.startsWith('video/')) return l.untitledVideo(date);
+  if (mime.startsWith('audio/')) return l.untitledAudio(date);
+  return l.untitledFile(date);
+}
+
 String kindIcon(ItemKind kind) => switch (kind) {
   ItemKind.note => 'description',
   ItemKind.link => 'link',

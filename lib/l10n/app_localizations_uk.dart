@@ -812,4 +812,32 @@ class LUk extends L {
 
   @override
   String get reminderCleared => 'Reminder cleared';
+
+  @override
+  String untitledPhoto(String date) {
+    return 'Photo, $date';
+  }
+
+  @override
+  String untitledScreenshot(String date) {
+    return 'Screenshot, $date';
+  }
+
+  @override
+  String untitledVideo(String date) {
+    return 'Video, $date';
+  }
+
+  @override
+  String untitledAudio(String date) {
+    return 'Recording, $date';
+  }
+
+  @override
+  String untitledFile(String date) {
+    return 'File, $date';
+  }
+
+  @override
+  String get shareFailed => 'Couldn\'t save: the app didn\'t give access';
 }

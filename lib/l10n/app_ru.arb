@@ -234,5 +234,11 @@
   "reminderDoneAction": "Готово",
   "reminderSnoozeAction": "Через час",
   "folderPickNew": "Новая папка",
-  "reminderCleared": "Напоминание снято"
+  "reminderCleared": "Напоминание снято",
+  "untitledPhoto": "Фото от {date}",
+  "untitledScreenshot": "Скриншот от {date}",
+  "untitledVideo": "Видео от {date}",
+  "untitledAudio": "Запись от {date}",
+  "untitledFile": "Файл от {date}",
+  "shareFailed": "Не получилось сохранить: приложение не дало доступ"
 }

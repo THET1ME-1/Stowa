@@ -61,8 +61,17 @@ class ItemScreen extends ConsumerWidget {
         builder: (sheet) => FolderPickerSheet(title: l.folderPickTitle, folders: folders, onNew: () => askNewFolder(sheet, ref)),
       );
       if (target == null || !context.mounted) return;
-      await ref.read(itemsRepositoryProvider).moveToFolder(id, target.id, ref.read(clockProvider)());
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.itemMoved(target.name))));
+      final items = ref.read(itemsRepositoryProvider);
+      final clock = ref.read(clockProvider);
+      final from = item.folderId;
+      await items.moveToFolder(id, target.id, clock());
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.itemMoved(target.name)),
+          action: SnackBarAction(label: l.undo, onPressed: () => items.moveToFolder(id, from, clock())),
+        ),
+      );
     }
 
     Future<void> toggle(int index) async {

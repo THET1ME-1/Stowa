@@ -58,9 +58,12 @@ void main() {
     expect(tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle, isFalse);
   });
 
-  testWidgets('ничего не прислали — окно сразу закрывается', (tester) async {
+  testWidgets('прочитать нечего — окно говорит об этом и закрывается', (tester) async {
     await share(tester, const []);
     expect(find.text('Сохранено'), findsNothing);
+    expect(find.text('Не получилось сохранить: приложение не дало доступ'), findsOneWidget);
+    expect(finished, 0);
+    await tester.pump(const Duration(seconds: 3));
     expect(finished, 1);
   });
 

@@ -813,4 +813,33 @@ class LRu extends L {
 
   @override
   String get reminderCleared => 'Напоминание снято';
+
+  @override
+  String untitledPhoto(String date) {
+    return 'Фото от $date';
+  }
+
+  @override
+  String untitledScreenshot(String date) {
+    return 'Скриншот от $date';
+  }
+
+  @override
+  String untitledVideo(String date) {
+    return 'Видео от $date';
+  }
+
+  @override
+  String untitledAudio(String date) {
+    return 'Запись от $date';
+  }
+
+  @override
+  String untitledFile(String date) {
+    return 'Файл от $date';
+  }
+
+  @override
+  String get shareFailed =>
+      'Не получилось сохранить: приложение не дало доступ';
 }

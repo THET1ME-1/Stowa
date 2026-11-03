@@ -1516,6 +1516,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Reminder cleared'**
   String get reminderCleared;
+
+  /// Title of a photo saved without text
+  ///
+  /// In en, this message translates to:
+  /// **'Photo, {date}'**
+  String untitledPhoto(String date);
+
+  /// Title of a screenshot saved without text
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot, {date}'**
+  String untitledScreenshot(String date);
+
+  /// Title of a video saved without text
+  ///
+  /// In en, this message translates to:
+  /// **'Video, {date}'**
+  String untitledVideo(String date);
+
+  /// Title of an audio file saved without text
+  ///
+  /// In en, this message translates to:
+  /// **'Recording, {date}'**
+  String untitledAudio(String date);
+
+  /// Title of a file saved without text
+  ///
+  /// In en, this message translates to:
+  /// **'File, {date}'**
+  String untitledFile(String date);
+
+  /// Share window when nothing could be read
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: the app didn\'t give access'**
+  String get shareFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

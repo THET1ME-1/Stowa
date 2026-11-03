@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../../data/providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
 import '../../services/share_intake.dart';
+import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
 import 'share_sheet.dart';
 
@@ -40,8 +43,16 @@ class _ShareHostState extends ConsumerState<ShareHost> {
 
   Future<void> _run() async {
     try {
-      final id = await saveShared(ref, await widget.load());
-      if (id != null && mounted) await showShareSheet(context, id);
+      final l = L.of(context);
+      final id = await saveShared(ref, await widget.load(), l: l);
+      if (!mounted) return;
+      if (id != null) {
+        await showShareSheet(context, id);
+      } else {
+        // источник не дал прочитать файл: молча закрыться — значит оставить человека гадать
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.shareFailed)));
+        await Future<void>.delayed(const Duration(milliseconds: 2500));
+      }
     } finally {
       await widget.onFinish();
     }
@@ -76,7 +87,8 @@ Future<List<SharedPiece>> loadSharedPieces() async {
 }
 
 /// Сохранить присланное одной вещью. Вернёт её id или null, если сохранять нечего.
-Future<String?> saveShared(WidgetRef ref, List<SharedPiece> pieces) async {
+/// [l] даёт подпись «Фото от 3 ноября» вместо имени файла с камеры.
+Future<String?> saveShared(WidgetRef ref, List<SharedPiece> pieces, {L? l}) async {
   final shared = sharedToCapture(pieces);
   if (shared.isEmpty) return null;
   final files = <PickedFile>[];
@@ -88,5 +100,7 @@ Future<String?> saveShared(WidgetRef ref, List<SharedPiece> pieces) async {
     }
   }
   if (shared.text.isEmpty && files.isEmpty) return null;
-  return ref.read(captureServiceProvider).capture(CaptureInput(text: shared.text, files: files));
+  final first = files.firstOrNull;
+  final untitled = l == null || first == null ? null : untitledFor(l, mime: first.mime, fileName: p.basename(first.path), at: ref.read(clockProvider)());
+  return ref.read(captureServiceProvider).capture(CaptureInput(text: shared.text, files: files, untitled: untitled));
 }

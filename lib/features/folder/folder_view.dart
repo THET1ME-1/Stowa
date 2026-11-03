@@ -10,6 +10,28 @@ bool showAsBoard(List<ItemCard> cards, FolderView view) {
   return pictures / cards.length >= 0.6;
 }
 
+/// Высота плитки в ширинах колонки: картинка по своей пропорции, без размера —
+/// квадрат, текст — чуть ниже квадрата. Плюс зазор между плитками.
+double boardTileHeight(ItemCard card) => (card.thumbPath == null ? 0.75 : card.thumbRatio ?? 1.0) + 0.05;
+
+/// Доска в две колонки: каждая следующая плитка ложится в ту, что сейчас короче.
+({List<ItemCard> left, List<ItemCard> right}) boardColumns(List<ItemCard> cards) {
+  final left = <ItemCard>[];
+  final right = <ItemCard>[];
+  var leftHeight = 0.0;
+  var rightHeight = 0.0;
+  for (final card in cards) {
+    if (rightHeight < leftHeight) {
+      right.add(card);
+      rightHeight += boardTileHeight(card);
+    } else {
+      left.add(card);
+      leftHeight += boardTileHeight(card);
+    }
+  }
+  return (left: left, right: right);
+}
+
 enum FolderOrder { newest, oldest, name }
 
 /// Порядок карточек по кнопке в шапке папки.

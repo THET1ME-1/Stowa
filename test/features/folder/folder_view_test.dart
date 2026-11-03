@@ -27,6 +27,18 @@ void main() {
     expect(folderTags(cards), hasLength(5));
   });
 
+  test('доска кладёт каждую карточку в более короткую колонку', () {
+    ItemCard pic(String id, double? ratio) =>
+        ItemCard(id: id, title: id, kind: ItemKind.image, folderId: 'f', sortState: SortState.sorted, createdAt: DateTime(2026), thumbPath: '$id.jpg', thumbRatio: ratio);
+    // высокая слева, справа копятся низкие, пока не перерастут её
+    final columns = boardColumns([pic('a', 1.6), pic('b', 0.6), pic('c', 0.6), pic('d', 1.0), pic('e', 0.5)]);
+    expect(columns.left.map((card) => card.id), ['a', 'e']);
+    expect(columns.right.map((card) => card.id), ['b', 'c', 'd']);
+    // без размеров — по очереди, как квадраты
+    final unknown = boardColumns([pic('a', null), pic('b', null), pic('c', null)]);
+    expect(unknown.left.map((card) => card.id), ['a', 'c']);
+  });
+
   test('порядок в папке: новые, старые, по имени без учёта регистра', () {
     ItemCard at(String title, int day) =>
         ItemCard(id: title, title: title, kind: ItemKind.note, folderId: 'f', sortState: SortState.sorted, createdAt: DateTime(2026, 1, day));

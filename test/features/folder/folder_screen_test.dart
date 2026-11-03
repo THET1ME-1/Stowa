@@ -149,6 +149,11 @@ void main() {
     expect(find.text('Переложил в «Дом»'), findsOneWidget);
     final moved = await (world.db.select(world.db.items)..where((t) => t.id.equals('v'))).getSingle();
     expect(moved.folderId, 'home');
+
+    await tester.tap(find.text('Отменить'));
+    await tester.pumpAndSettle();
+    final back = await (world.db.select(world.db.items)..where((t) => t.id.equals('v'))).getSingle();
+    expect(back.folderId, 'food');
   });
 
   testWidgets('переложить в новую папку прямо из листа', (tester) async {

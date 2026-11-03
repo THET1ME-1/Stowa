@@ -195,7 +195,12 @@ class _PhotoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (card.thumbPath != null) _photo(filesRoot, card.thumbPath!, cacheWidth: width),
+            // высокое фото во весь рост закрыло бы ленту: не выше 340, обрезка по центру
+            if (card.thumbPath != null)
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 340),
+                child: _photo(filesRoot, card.thumbPath!, cacheWidth: width),
+              ),
             if (captioned || card.tags.isNotEmpty || card.reminderAt != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, 16),
@@ -481,11 +486,14 @@ class BoardTile extends StatelessWidget {
                   Image.file(
                     File(p.join(filesRoot.path, thumb)),
                     width: width,
-                    fit: BoxFit.fitWidth,
+                    // размер известен заранее: место под картинку не меняется, когда она прочиталась
+                    height: card.thumbRatio == null ? null : width * card.thumbRatio!,
+                    fit: card.thumbRatio == null ? BoxFit.fitWidth : BoxFit.cover,
                     cacheWidth: (width * MediaQuery.devicePixelRatioOf(context)).round(),
-                    // пока картинка не прочиталась, место держит квадрат
-                    frameBuilder: (context, child, frame, sync) => frame == null && !sync ? SizedBox(width: width, height: width, child: const ColoredBox(color: Tokens.containerHigh)) : child,
-                    errorBuilder: (_, _, _) => SizedBox(width: width, height: width, child: const ColoredBox(color: Tokens.containerHigh)),
+                    frameBuilder: (context, child, frame, sync) => frame == null && !sync
+                        ? SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh))
+                        : child,
+                    errorBuilder: (_, _, _) => SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh)),
                   ),
                   if (tag != null)
                     Positioned(

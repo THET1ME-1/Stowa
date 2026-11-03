@@ -66,7 +66,12 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
       );
       if (picked == null) return;
       await items.moveToFolder(card.id, picked.id, now);
-      messenger.showSnackBar(SnackBar(content: Text(l.itemMoved(picked.name))));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l.itemMoved(picked.name)),
+          action: SnackBarAction(label: l.undo, onPressed: () => items.moveToFolder(card.id, card.folderId, now)),
+        ),
+      );
     case _Action.delete:
       await items.softDelete(card.id, now);
       messenger.showSnackBar(

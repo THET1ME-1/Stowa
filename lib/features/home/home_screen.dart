@@ -40,6 +40,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final reminders = next.value;
       if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
     }, fireImmediately: true);
+    // размеры старых картинок для доски: в фоне, после первого кадра
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(captureServiceProvider).fillImageSizes().ignore();
+    });
   }
 
   @override

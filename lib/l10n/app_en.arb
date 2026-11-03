@@ -1078,5 +1078,54 @@
   "reminderCleared": "Reminder cleared",
   "@reminderCleared": {
     "description": "Snackbar after Done on the reminder card"
+  },
+  "untitledPhoto": "Photo, {date}",
+  "@untitledPhoto": {
+    "description": "Title of a photo saved without text",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "untitledScreenshot": "Screenshot, {date}",
+  "@untitledScreenshot": {
+    "description": "Title of a screenshot saved without text",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "untitledVideo": "Video, {date}",
+  "@untitledVideo": {
+    "description": "Title of a video saved without text",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "untitledAudio": "Recording, {date}",
+  "@untitledAudio": {
+    "description": "Title of an audio file saved without text",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "untitledFile": "File, {date}",
+  "@untitledFile": {
+    "description": "Title of a file saved without text",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "shareFailed": "Couldn't save: the app didn't give access",
+  "@shareFailed": {
+    "description": "Share window when nothing could be read"
   }
 }

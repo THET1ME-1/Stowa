@@ -408,11 +408,12 @@ class _Board extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = (constraints.maxWidth - 8) / 2;
-          Widget column(int side) => Expanded(
+          final columns = boardColumns(cards);
+          Widget column(List<ItemCard> side) => Expanded(
             child: Column(
               children: [
-                for (final (index, card) in cards.indexed)
-                  if (index % 2 == side)
+                for (final card in side)
+                  if (cards.indexOf(card) case final index)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: RiseIn(
@@ -431,7 +432,7 @@ class _Board extends StatelessWidget {
               ],
             ),
           );
-          return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [column(0), const SizedBox(width: 8), column(1)]);
+          return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [column(columns.left), const SizedBox(width: 8), column(columns.right)]);
         },
       ),
     );

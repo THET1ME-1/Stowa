@@ -31,6 +31,7 @@ class ItemCard {
     this.folderIcon,
     this.reminderAt,
     this.thumbPath,
+    this.thumbRatio,
     this.tags = const [],
     this.filePath,
     this.fileMime,
@@ -52,6 +53,9 @@ class ItemCard {
 
   /// Первая картинка вещи, путь от папки приложения.
   final String? thumbPath;
+
+  /// Высота к ширине первой картинки; неизвестна у сохранённых до учёта размеров.
+  final double? thumbRatio;
   final List<String> tags;
 
   /// Первое вложение любого вида: голосовое, ролик, файл.
@@ -75,6 +79,9 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon,
   (SELECT attachments.path FROM attachments
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%'
     ORDER BY attachments.position LIMIT 1) AS thumb_path,
+  (SELECT CAST(attachments.height AS REAL) / attachments.width FROM attachments
+    WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%' AND attachments.width > 0
+    ORDER BY attachments.position LIMIT 1) AS thumb_ratio,
   (SELECT group_concat(tags.name, char(31)) FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
     WHERE item_tags.item_id = items.id) AS tag_names,
   (SELECT attachments.path || char(31) || attachments.mime || char(31) || attachments.size FROM attachments
@@ -190,6 +197,8 @@ WHERE items.deleted_at IS NULL''';
             .into(_db.corrections)
             .insert(
               CorrectionsCompanion.insert(id: '$id-${at.microsecondsSinceEpoch}', itemId: id, fromFolderId: Value(item.folderId), toFolderId: folderId, at: at),
+              // «Отменить» сразу после переноса приходит в тот же миг: последнее решение и есть пример
+              mode: InsertMode.insertOrReplace,
             );
       }
     });
@@ -302,6 +311,7 @@ WHERE items.deleted_at IS NULL''';
       folderIcon: row.readNullable<String>('folder_icon'),
       reminderAt: item.reminderAt,
       thumbPath: row.readNullable<String>('thumb_path'),
+      thumbRatio: row.readNullable<double>('thumb_ratio'),
     );
   }
 }

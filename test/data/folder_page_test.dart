@@ -37,6 +37,16 @@ void main() {
     expect(cards.last.tags, ['выпечка']);
   });
 
+  test('у карточки пропорция первой картинки, без размера — null', () async {
+    await item('a', folder: 'food');
+    await item('b', folder: 'food', minutes: 1);
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'fa', itemId: 'a', path: 'a.jpg', mime: 'image/jpeg', size: 1, width: const Value(30), height: const Value(20)));
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'fb', itemId: 'b', path: 'b.jpg', mime: 'image/jpeg', size: 1));
+    final cards = await items.watchFolder('food').first;
+    expect(cards.firstWhere((card) => card.id == 'a').thumbRatio, closeTo(20 / 30, 0.001));
+    expect(cards.firstWhere((card) => card.id == 'b').thumbRatio, isNull);
+  });
+
   test('«Без папки» — отдельный список', () async {
     await item('a', folder: 'food');
     await item('b');

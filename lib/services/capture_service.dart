@@ -10,6 +10,7 @@ import '../data/repositories/items_repository.dart';
 import '../data/repositories/rules_repository.dart';
 import '../data/repositories/tags_repository.dart';
 import '../domain/folder_guess.dart';
+import '../domain/image_size.dart';
 import '../domain/inline_tags.dart';
 import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
@@ -37,10 +38,14 @@ class CaptureInput {
     this.detectReminder = true,
     this.asIs = false,
     this.title,
+    this.untitled,
   });
 
   /// Свой заголовок, когда из текста его не взять: «Голосовое».
   final String? title;
+
+  /// Подпись, если ни текст, ни имя файла заголовка не дали: «Фото от 3 ноября».
+  final String? untitled;
 
   final String text;
   final List<PickedFile> files;
@@ -88,6 +93,8 @@ class CaptureService {
     // дата уходит из заголовка, если без неё что-то осталось: «23 декабря 13:00 зубной» → «Зубной»
     final rest = found?.restOf(text) ?? '';
     final titleSource = rest.isNotEmpty ? rest : text;
+    final fromContent = titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path));
+    final title = fromContent.isEmpty ? (input.untitled ?? '') : fromContent;
     final kind = detectKind(text: text, mime: firstFile?.mime);
     final url = firstUrl(text);
     final ownTags = [...input.forcedTagNames.map(normalizeTagName), ...extractInlineTags(text)];
@@ -105,7 +112,7 @@ class CaptureService {
             ItemsCompanion.insert(
               id: id,
               kind: kind,
-              title: input.title ?? titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path)),
+              title: input.title ?? title,
               body: Value(text),
               url: Value(url?.toString()),
               folderId: Value(input.forcedFolderId ?? rules.folderId ?? guess?.folderId),
@@ -160,15 +167,49 @@ class CaptureService {
         );
   }
 
+  /// Картинкам, сохранённым до учёта размеров, дописать размер. Пропавший файл пропускается.
+  Future<void> fillImageSizes() async {
+    final missing = await (_db.select(_db.attachments)..where((t) => t.mime.like('image/%') & t.width.isNull())).get();
+    for (final file in missing) {
+      final full = p.join(_filesRoot.path, file.path);
+      if (!await File(full).exists()) continue;
+      final size = await _imageSize(full);
+      if (size == null) continue;
+      await (_db.update(_db.attachments)..where((t) => t.id.equals(file.id))).write(AttachmentsCompanion(width: Value(size.width), height: Value(size.height)));
+    }
+  }
+
+  // хватает начала файла: EXIF с миниатюрой занимает до 64 КБ
+  Future<({int width, int height})?> _imageSize(String path) async {
+    final file = await File(path).open();
+    try {
+      return imageSizeOf(await file.read(256 * 1024));
+    } finally {
+      await file.close();
+    }
+  }
+
   Future<void> _copyFiles(String itemId, List<PickedFile> files) async {
     final folder = p.join('attachments', itemId);
     await Directory(p.join(_filesRoot.path, folder)).create(recursive: true);
     for (final (index, file) in files.indexed) {
       final relative = p.join(folder, '${index}_${p.basename(file.path)}');
       await File(file.path).copy(p.join(_filesRoot.path, relative));
+      final size = file.mime.startsWith('image/') ? await _imageSize(file.path) : null;
       await _db
           .into(_db.attachments)
-          .insert(AttachmentsCompanion.insert(id: _uuid.v4(), itemId: itemId, path: relative, mime: file.mime, size: file.size, position: Value(index)));
+          .insert(
+            AttachmentsCompanion.insert(
+              id: _uuid.v4(),
+              itemId: itemId,
+              path: relative,
+              mime: file.mime,
+              size: file.size,
+              position: Value(index),
+              width: Value(size?.width),
+              height: Value(size?.height),
+            ),
+          );
     }
   }
 }
