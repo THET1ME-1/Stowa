@@ -85,5 +85,6 @@
   "backupRestored": "Copia restaurada",
   "backupNotStowa": "No es una copia de Stowa",
   "backupTooNew": "Una Stowa más nueva hizo esta copia. Actualiza la app",
-  "backupFailed": "La copia falló"
+  "backupFailed": "La copia falló",
+  "folderNewBadge": "nueva"
 }

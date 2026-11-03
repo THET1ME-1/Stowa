@@ -1195,4 +1195,7 @@ class LEs extends L {
 
   @override
   String get backupFailed => 'La copia falló';
+
+  @override
+  String get folderNewBadge => 'nueva';
 }

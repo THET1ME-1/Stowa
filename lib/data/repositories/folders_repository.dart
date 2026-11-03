@@ -92,6 +92,10 @@ ORDER BY folders.sort_order, folders.name''',
     return FolderCard(id: id, name: name, icon: 'folder', shape: shape, count: 0, covers: const [], recentTitles: const [], createdByAi: false);
   }
 
+  /// Человек открыл папку, которую завёл ИИ: метка «новая» больше не нужна.
+  Future<void> markSeen(String id) =>
+      (_db.update(_db.folders)..where((t) => t.id.equals(id) & t.createdByAi.equals(true))).write(const FoldersCompanion(createdByAi: Value(false)));
+
   Future<void> rename(String id, String rawName) {
     final trimmed = rawName.trim();
     final name = trimmed[0].toUpperCase() + trimmed.substring(1);

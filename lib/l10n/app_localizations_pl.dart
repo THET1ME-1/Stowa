@@ -1205,4 +1205,7 @@ class LPl extends L {
 
   @override
   String get backupFailed => 'Kopia się nie udała';
+
+  @override
+  String get folderNewBadge => 'nowy';
 }

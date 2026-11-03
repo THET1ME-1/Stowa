@@ -1210,4 +1210,7 @@ class LRu extends L {
 
   @override
   String get backupFailed => 'Копия не получилась';
+
+  @override
+  String get folderNewBadge => 'новая';
 }

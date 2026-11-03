@@ -1552,5 +1552,9 @@
   "backupFailed": "The backup failed",
   "@backupFailed": {
     "description": "backupFailed"
+  },
+  "folderNewBadge": "new",
+  "@folderNewBadge": {
+    "description": "Badge on a folder the AI created"
   }
 }

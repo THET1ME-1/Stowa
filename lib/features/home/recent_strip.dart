@@ -33,11 +33,14 @@ double recentCardHeight(TextScaler scaler) {
 
 /// «Только что»: последние вещи вбок. Новая вещь въезжает, а не появляется скачком.
 class RecentStrip extends StatefulWidget {
-  const RecentStrip({super.key, required this.items, required this.filesRoot, required this.now, this.onOpen, this.onMove, this.onAct});
+  const RecentStrip({super.key, required this.items, required this.filesRoot, required this.now, this.aiSorting = false, this.onOpen, this.onMove, this.onAct});
 
   final List<ItemCard> items;
   final Directory filesRoot;
   final DateTime now;
+
+  /// Ключ ИИ работает: вещи без папки в очереди подписаны «разбираю», а не «Без папки».
+  final bool aiSorting;
   final ValueChanged<ItemCard>? onOpen;
 
   /// Касание подписи: переложить в папку.
@@ -74,6 +77,7 @@ class _RecentStripState extends State<RecentStrip> {
               item: item,
               filesRoot: widget.filesRoot,
               now: widget.now,
+              aiSorting: widget.aiSorting,
               onTap: widget.onOpen == null ? null : () => widget.onOpen!(item),
               onMove: widget.onMove == null ? null : () => widget.onMove!(item),
               onLongPress: widget.onAct == null ? null : () => widget.onAct!(item),
@@ -140,11 +144,12 @@ class _ArriveState extends State<_Arrive> with SingleTickerProviderStateMixin {
 }
 
 class RecentCard extends StatelessWidget {
-  const RecentCard({super.key, required this.item, required this.filesRoot, required this.now, this.onTap, this.onMove, this.onLongPress});
+  const RecentCard({super.key, required this.item, required this.filesRoot, required this.now, this.aiSorting = false, this.onTap, this.onMove, this.onLongPress});
 
   final ItemCard item;
   final Directory filesRoot;
   final DateTime now;
+  final bool aiSorting;
   final VoidCallback? onTap;
 
   /// Касание подписи с папкой: переложить.
@@ -185,7 +190,7 @@ class RecentCard extends StatelessWidget {
                       onTap: onMove,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: _Where(item: item, now: now),
+                        child: _Where(item: item, now: now, aiSorting: aiSorting),
                       ),
                     ),
                   ],
@@ -257,17 +262,19 @@ class RecentCard extends StatelessWidget {
 
 /// Подпись под карточкой: папка, а если её нет — когда напомнит или «Без папки».
 class _Where extends StatelessWidget {
-  const _Where({required this.item, required this.now});
+  const _Where({required this.item, required this.now, required this.aiSorting});
 
   final ItemCard item;
   final DateTime now;
+  final bool aiSorting;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final style = Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 12, color: Tokens.muted);
     // ключ ИИ разбирает вещь: бегущая полоска вместо папки
-    if (item.sortState == SortState.queued) {
+    final waiting = item.folderId == null && (item.sortState == SortState.queued || item.sortState == SortState.pending);
+    if (aiSorting && waiting) {
       return Row(
         children: [
           const SizedBox(

@@ -1199,4 +1199,7 @@ class LDe extends L {
 
   @override
   String get backupFailed => 'Die Sicherung ist fehlgeschlagen';
+
+  @override
+  String get folderNewBadge => 'neu';
 }

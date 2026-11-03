@@ -9,6 +9,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../data/repositories/folders_repository.dart';
+import '../../l10n/app_localizations.dart';
 
 const _gap = 8.0;
 
@@ -98,6 +99,14 @@ class FolderTile extends StatelessWidget {
           child: Icon(symbolIcon(folder.icon), size: 21, color: big ? Tokens.onAccent : Tokens.onSurface),
         ),
         const Spacer(),
+        // папку завёл ИИ, а человек в неё ещё не заглядывал
+        if (folder.createdByAi)
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(color: big ? Tokens.onAccent : Tokens.accent, borderRadius: BorderRadius.circular(100)),
+            child: Text(L.of(context).folderNewBadge, style: text.labelSmall!.copyWith(color: big ? Tokens.accent : Tokens.onAccent)),
+          ),
         Text('${folder.count}', style: text.headlineSmall!.copyWith(fontSize: 20)),
       ],
     );

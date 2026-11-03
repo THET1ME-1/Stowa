@@ -85,5 +85,6 @@
   "backupRestored": "Restaurat din copie",
   "backupNotStowa": "Nu e o copie Stowa",
   "backupTooNew": "Copia e făcută de un Stowa mai nou. Actualizează aplicația",
-  "backupFailed": "Copia nu a reușit"
+  "backupFailed": "Copia nu a reușit",
+  "folderNewBadge": "nou"
 }

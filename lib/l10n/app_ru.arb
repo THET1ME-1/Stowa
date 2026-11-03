@@ -333,5 +333,6 @@
   "backupRestored": "Восстановлено из копии",
   "backupNotStowa": "Это не копия Stowa",
   "backupTooNew": "Копию сделала более новая Stowa, обнови приложение",
-  "backupFailed": "Копия не получилась"
+  "backupFailed": "Копия не получилась",
+  "folderNewBadge": "новая"
 }

@@ -222,6 +222,7 @@ class _Feed extends ConsumerWidget {
               items: recent,
               filesRoot: filesRoot,
               now: now,
+              aiSorting: ref.watch(aiSettingsProvider).value?.active ?? false,
               onOpen: (card) => onOpen(card.id),
               onMove: (card) => moveItem(context, ref, card),
               onAct: (card) => showItemActions(context, ref, card),

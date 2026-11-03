@@ -85,5 +85,6 @@
   "backupRestored": "Aus Sicherung wiederhergestellt",
   "backupNotStowa": "Das ist keine Stowa-Sicherung",
   "backupTooNew": "Eine neuere Stowa hat die Sicherung erstellt. Aktualisiere die App",
-  "backupFailed": "Die Sicherung ist fehlgeschlagen"
+  "backupFailed": "Die Sicherung ist fehlgeschlagen",
+  "folderNewBadge": "neu"
 }

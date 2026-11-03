@@ -1199,4 +1199,7 @@ class LRo extends L {
 
   @override
   String get backupFailed => 'Copia nu a reușit';
+
+  @override
+  String get folderNewBadge => 'nou';
 }

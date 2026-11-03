@@ -1194,4 +1194,7 @@ class LEn extends L {
 
   @override
   String get backupFailed => 'The backup failed';
+
+  @override
+  String get folderNewBadge => 'new';
 }

@@ -1205,4 +1205,7 @@ class LUk extends L {
 
   @override
   String get backupFailed => 'Копія не вийшла';
+
+  @override
+  String get folderNewBadge => 'нова';
 }

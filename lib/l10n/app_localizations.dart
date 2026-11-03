@@ -2110,6 +2110,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The backup failed'**
   String get backupFailed;
+
+  /// Badge on a folder the AI created
+  ///
+  /// In en, this message translates to:
+  /// **'new'**
+  String get folderNewBadge;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

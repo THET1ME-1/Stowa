@@ -55,6 +55,13 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
 
   FolderOrder _order = FolderOrder.newest;
 
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.folderId;
+    if (id != null) ref.read(foldersRepositoryProvider).markSeen(id).ignore();
+  }
+
   void _open(String id) => Navigator.of(context).push(itemRoute(id));
 
   void _act(ItemCard card) => showItemActions(context, ref, card);
