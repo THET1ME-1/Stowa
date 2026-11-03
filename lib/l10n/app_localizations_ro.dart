@@ -1359,4 +1359,24 @@ class LRo extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get mapTitle => 'Hartă';
+
+  @override
+  String get mapEmpty =>
+      'Încă nimic nu are loc. Notițele noi țin minte unde le-ai salvat și apar aici.';
+
+  @override
+  String get mapWhereAmI => 'Unde sunt';
+
+  @override
+  String get mapPlaceUnnamed => 'Loc fără nume';
+
+  @override
+  String get placeSetting => 'Ține minte unde a fost salvat';
+
+  @override
+  String get placeSettingHint =>
+      'Locul se adaugă după salvare și apare pe pagina elementului și pe hartă. Coordonatele rămân pe telefon, iese doar cererea numelui străzii.';
 }

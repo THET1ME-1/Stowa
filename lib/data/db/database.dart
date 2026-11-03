@@ -31,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +43,12 @@ class AppDatabase extends _$AppDatabase {
       // 2: превью ссылок и роликов
       if (from < 2) {
         for (final column in [items.coverPath, items.previewText, items.previewSite, items.previewAuthor, items.durationSeconds, items.previewAt]) {
+          await migrator.addColumn(items, column);
+        }
+      }
+      // 3: где вещь сохранена
+      if (from < 3) {
+        for (final column in [items.latitude, items.longitude, items.placeName]) {
           await migrator.addColumn(items, column);
         }
       }

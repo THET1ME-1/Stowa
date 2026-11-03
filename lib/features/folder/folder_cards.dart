@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/format/duration_format.dart';
@@ -14,6 +15,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../composer/panel_text.dart' show shortDate;
 
 /// Карточка вещи в ленте папки: у каждого вида своя, как на экране 6 макета.
 class FolderItemCard extends StatelessWidget {
@@ -73,15 +75,26 @@ class _Meta extends StatelessWidget {
       ),
     );
     final reminder = card.reminderAt;
-    if (reminder == null && card.tags.isEmpty) return const SizedBox.shrink();
+    // когда и где сохранено — тихой строкой, чтобы не спорить с заголовком
+    final when = '${shortDate(l, card.createdAt, now)}, ${DateFormat.jm(l.localeName).format(card.createdAt)}';
+    final stamp = [when, ?card.placeName].join(' · ');
     return Padding(
       padding: const EdgeInsets.only(top: 10),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (reminder != null) chip(formatReminderShort(l, reminder, now), icon: 'alarm'),
-          for (final tag in card.tags.take(3)) chip('#$tag'),
+          if (reminder != null || card.tags.isNotEmpty) ...[
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                if (reminder != null) chip(formatReminderShort(l, reminder, now), icon: 'alarm'),
+                for (final tag in card.tags.take(3)) chip('#$tag'),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+          Text(stamp, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 12, color: Tokens.muted)),
         ],
       ),
     );

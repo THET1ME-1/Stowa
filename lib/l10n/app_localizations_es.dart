@@ -1351,4 +1351,24 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get mapTitle => 'Mapa';
+
+  @override
+  String get mapEmpty =>
+      'Aún nada tiene lugar. Las notas nuevas recuerdan dónde las guardaste y aparecen aquí.';
+
+  @override
+  String get mapWhereAmI => 'Dónde estoy';
+
+  @override
+  String get mapPlaceUnnamed => 'Lugar sin nombre';
+
+  @override
+  String get placeSetting => 'Recordar dónde se guardó';
+
+  @override
+  String get placeSettingHint =>
+      'El lugar se añade tras guardar y aparece en la página y en el mapa. Las coordenadas se quedan en el teléfono; solo sale la consulta del nombre de la calle.';
 }

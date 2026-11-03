@@ -173,6 +173,39 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _placeNameMeta = const VerificationMeta(
+    'placeName',
+  );
+  @override
+  late final GeneratedColumn<String> placeName = GeneratedColumn<String>(
+    'place_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _reminderAtMeta = const VerificationMeta(
     'reminderAt',
   );
@@ -235,6 +268,9 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     previewAuthor,
     durationSeconds,
     previewAt,
+    latitude,
+    longitude,
+    placeName,
     reminderAt,
     createdAt,
     updatedAt,
@@ -346,6 +382,24 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         previewAt.isAcceptableOrUnknown(data['preview_at']!, _previewAtMeta),
       );
     }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    }
+    if (data.containsKey('place_name')) {
+      context.handle(
+        _placeNameMeta,
+        placeName.isAcceptableOrUnknown(data['place_name']!, _placeNameMeta),
+      );
+    }
     if (data.containsKey('reminder_at')) {
       context.handle(
         _reminderAtMeta,
@@ -453,6 +507,18 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}preview_at'],
       ),
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      ),
+      placeName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}place_name'],
+      ),
       reminderAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}reminder_at'],
@@ -509,6 +575,12 @@ class Item extends DataClass implements Insertable<Item> {
 
   /// Когда превью загружено. Пусто — ещё не пробовали или сеть не ответила.
   final DateTime? previewAt;
+
+  /// Где вещь сохранена: координаты и человеческое название места («Ботаника, Кишинёв»).
+  /// Пусто — место не разрешено, выключено в настройках или вещь пришла из бота.
+  final double? latitude;
+  final double? longitude;
+  final String? placeName;
   final DateTime? reminderAt;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -530,6 +602,9 @@ class Item extends DataClass implements Insertable<Item> {
     this.previewAuthor,
     this.durationSeconds,
     this.previewAt,
+    this.latitude,
+    this.longitude,
+    this.placeName,
     this.reminderAt,
     required this.createdAt,
     required this.updatedAt,
@@ -584,6 +659,15 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || previewAt != null) {
       map['preview_at'] = Variable<DateTime>(previewAt);
     }
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    if (!nullToAbsent || placeName != null) {
+      map['place_name'] = Variable<String>(placeName);
+    }
     if (!nullToAbsent || reminderAt != null) {
       map['reminder_at'] = Variable<DateTime>(reminderAt);
     }
@@ -631,6 +715,15 @@ class Item extends DataClass implements Insertable<Item> {
       previewAt: previewAt == null && nullToAbsent
           ? const Value.absent()
           : Value(previewAt),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
+      placeName: placeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(placeName),
       reminderAt: reminderAt == null && nullToAbsent
           ? const Value.absent()
           : Value(reminderAt),
@@ -670,6 +763,9 @@ class Item extends DataClass implements Insertable<Item> {
       previewAuthor: serializer.fromJson<String?>(json['previewAuthor']),
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       previewAt: serializer.fromJson<DateTime?>(json['previewAt']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
+      placeName: serializer.fromJson<String?>(json['placeName']),
       reminderAt: serializer.fromJson<DateTime?>(json['reminderAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -702,6 +798,9 @@ class Item extends DataClass implements Insertable<Item> {
       'previewAuthor': serializer.toJson<String?>(previewAuthor),
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'previewAt': serializer.toJson<DateTime?>(previewAt),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
+      'placeName': serializer.toJson<String?>(placeName),
       'reminderAt': serializer.toJson<DateTime?>(reminderAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -726,6 +825,9 @@ class Item extends DataClass implements Insertable<Item> {
     Value<String?> previewAuthor = const Value.absent(),
     Value<int?> durationSeconds = const Value.absent(),
     Value<DateTime?> previewAt = const Value.absent(),
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
+    Value<String?> placeName = const Value.absent(),
     Value<DateTime?> reminderAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -753,6 +855,9 @@ class Item extends DataClass implements Insertable<Item> {
         ? durationSeconds.value
         : this.durationSeconds,
     previewAt: previewAt.present ? previewAt.value : this.previewAt,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
+    placeName: placeName.present ? placeName.value : this.placeName,
     reminderAt: reminderAt.present ? reminderAt.value : this.reminderAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -788,6 +893,9 @@ class Item extends DataClass implements Insertable<Item> {
           ? data.durationSeconds.value
           : this.durationSeconds,
       previewAt: data.previewAt.present ? data.previewAt.value : this.previewAt,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      placeName: data.placeName.present ? data.placeName.value : this.placeName,
       reminderAt: data.reminderAt.present
           ? data.reminderAt.value
           : this.reminderAt,
@@ -816,6 +924,9 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('previewAuthor: $previewAuthor, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('previewAt: $previewAt, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('placeName: $placeName, ')
           ..write('reminderAt: $reminderAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -825,7 +936,7 @@ class Item extends DataClass implements Insertable<Item> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     kind,
     title,
@@ -842,11 +953,14 @@ class Item extends DataClass implements Insertable<Item> {
     previewAuthor,
     durationSeconds,
     previewAt,
+    latitude,
+    longitude,
+    placeName,
     reminderAt,
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -867,6 +981,9 @@ class Item extends DataClass implements Insertable<Item> {
           other.previewAuthor == this.previewAuthor &&
           other.durationSeconds == this.durationSeconds &&
           other.previewAt == this.previewAt &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.placeName == this.placeName &&
           other.reminderAt == this.reminderAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -890,6 +1007,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String?> previewAuthor;
   final Value<int?> durationSeconds;
   final Value<DateTime?> previewAt;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
+  final Value<String?> placeName;
   final Value<DateTime?> reminderAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -912,6 +1032,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.previewAuthor = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.previewAt = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.placeName = const Value.absent(),
     this.reminderAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -935,6 +1058,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.previewAuthor = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.previewAt = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.placeName = const Value.absent(),
     this.reminderAt = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -962,6 +1088,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<String>? previewAuthor,
     Expression<int>? durationSeconds,
     Expression<DateTime>? previewAt,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<String>? placeName,
     Expression<DateTime>? reminderAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -985,6 +1114,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (previewAuthor != null) 'preview_author': previewAuthor,
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (previewAt != null) 'preview_at': previewAt,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (placeName != null) 'place_name': placeName,
       if (reminderAt != null) 'reminder_at': reminderAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1010,6 +1142,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String?>? previewAuthor,
     Value<int?>? durationSeconds,
     Value<DateTime?>? previewAt,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
+    Value<String?>? placeName,
     Value<DateTime?>? reminderAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1033,6 +1168,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       previewAuthor: previewAuthor ?? this.previewAuthor,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       previewAt: previewAt ?? this.previewAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      placeName: placeName ?? this.placeName,
       reminderAt: reminderAt ?? this.reminderAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1098,6 +1236,15 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (previewAt.present) {
       map['preview_at'] = Variable<DateTime>(previewAt.value);
     }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (placeName.present) {
+      map['place_name'] = Variable<String>(placeName.value);
+    }
     if (reminderAt.present) {
       map['reminder_at'] = Variable<DateTime>(reminderAt.value);
     }
@@ -1135,6 +1282,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('previewAuthor: $previewAuthor, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('previewAt: $previewAt, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('placeName: $placeName, ')
           ..write('reminderAt: $reminderAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -5626,6 +5776,9 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<String?> previewAuthor,
   Value<int?> durationSeconds,
   Value<DateTime?> previewAt,
+  Value<double?> latitude,
+  Value<double?> longitude,
+  Value<String?> placeName,
   Value<DateTime?> reminderAt,
   required DateTime createdAt,
   required DateTime updatedAt,
@@ -5649,6 +5802,9 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<String?> previewAuthor,
   Value<int?> durationSeconds,
   Value<DateTime?> previewAt,
+  Value<double?> latitude,
+  Value<double?> longitude,
+  Value<String?> placeName,
   Value<DateTime?> reminderAt,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -5744,6 +5900,21 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get previewAt => $composableBuilder(
     column: $table.previewAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get placeName => $composableBuilder(
+    column: $table.placeName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5857,6 +6028,21 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get placeName => $composableBuilder(
+    column: $table.placeName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get reminderAt => $composableBuilder(
     column: $table.reminderAt,
     builder: (column) => ColumnOrderings(column),
@@ -5947,6 +6133,15 @@ class $$ItemsTableAnnotationComposer
   GeneratedColumn<DateTime> get previewAt =>
       $composableBuilder(column: $table.previewAt, builder: (column) => column);
 
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<String> get placeName =>
+      $composableBuilder(column: $table.placeName, builder: (column) => column);
+
   GeneratedColumn<DateTime> get reminderAt => $composableBuilder(
     column: $table.reminderAt,
     builder: (column) => column,
@@ -6006,6 +6201,9 @@ class $$ItemsTableTableManager
                 Value<String?> previewAuthor = const Value.absent(),
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<DateTime?> previewAt = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<String?> placeName = const Value.absent(),
                 Value<DateTime?> reminderAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -6028,6 +6226,9 @@ class $$ItemsTableTableManager
                 previewAuthor: previewAuthor,
                 durationSeconds: durationSeconds,
                 previewAt: previewAt,
+                latitude: latitude,
+                longitude: longitude,
+                placeName: placeName,
                 reminderAt: reminderAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -6052,6 +6253,9 @@ class $$ItemsTableTableManager
                 Value<String?> previewAuthor = const Value.absent(),
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<DateTime?> previewAt = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<String?> placeName = const Value.absent(),
                 Value<DateTime?> reminderAt = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -6074,6 +6278,9 @@ class $$ItemsTableTableManager
                 previewAuthor: previewAuthor,
                 durationSeconds: durationSeconds,
                 previewAt: previewAt,
+                latitude: latitude,
+                longitude: longitude,
+                placeName: placeName,
                 reminderAt: reminderAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

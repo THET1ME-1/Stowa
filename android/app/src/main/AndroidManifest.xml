@@ -4,6 +4,9 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
     <!-- превью ссылок и роликов; в отладочной сборке разрешение есть само, в релизе без этой строки сети нет -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- где сохранена вещь: дата, место и карта заметок -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- голосовое из строки -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- галерея прямо над строкой и подсказка свежего скриншота -->

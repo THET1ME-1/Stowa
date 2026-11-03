@@ -82,6 +82,7 @@ class SettingsRepository {
   static const _pauseReason = 'ai_pause_reason';
   static const _retryAt = 'ai_retry_at';
   static const _language = 'language';
+  static const _placeEnabled = 'place_enabled';
 
   AiSettings get ai {
     final retry = _prefs.getInt(_retryAt);
@@ -130,6 +131,16 @@ class SettingsRepository {
   });
 
   Future<void> retryAfter(DateTime at) => _set(() => _prefs.setInt(_retryAt, at.millisecondsSinceEpoch));
+
+  /// Запоминать, где сохранена вещь. По умолчанию да: без этого нет карты.
+  bool get placeEnabled => _prefs.getBool(_placeEnabled) ?? true;
+
+  Stream<bool> watchPlaceEnabled() async* {
+    yield placeEnabled;
+    yield* _changes.stream.map((_) => placeEnabled).distinct();
+  }
+
+  Future<void> setPlaceEnabled(bool on) => _set(() => _prefs.setBool(_placeEnabled, on));
 
   /// Язык, выбранный руками. Пусто — язык устройства.
   AppLanguage? get language => switch (_prefs.getString(_language)) {

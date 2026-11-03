@@ -1350,4 +1350,24 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get mapTitle => 'Map';
+
+  @override
+  String get mapEmpty =>
+      'Nothing has a place yet. New notes remember where you saved them and show up here.';
+
+  @override
+  String get mapWhereAmI => 'Where am I';
+
+  @override
+  String get mapPlaceUnnamed => 'Unnamed place';
+
+  @override
+  String get placeSetting => 'Remember where it was saved';
+
+  @override
+  String get placeSettingHint =>
+      'The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.';
 }

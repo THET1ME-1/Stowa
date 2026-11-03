@@ -123,5 +123,11 @@
   "graphTitle": "Grafo de enlaces",
   "graphEmpty": "Aún no hay enlaces. Aparecen cuando los elementos comparten palabras o la IA los une.",
   "graphFailed": "El grafo no se generó",
-  "copyPartlyFailed": "{count, plural, one{{count} archivo no se guardó: la app no dio acceso} other{{count} archivos no se guardaron: la app no dio acceso}}"
+  "copyPartlyFailed": "{count, plural, one{{count} archivo no se guardó: la app no dio acceso} other{{count} archivos no se guardaron: la app no dio acceso}}",
+  "mapTitle": "Mapa",
+  "mapEmpty": "Aún nada tiene lugar. Las notas nuevas recuerdan dónde las guardaste y aparecen aquí.",
+  "mapWhereAmI": "Dónde estoy",
+  "mapPlaceUnnamed": "Lugar sin nombre",
+  "placeSetting": "Recordar dónde se guardó",
+  "placeSettingHint": "El lugar se añade tras guardar y aparece en la página y en el mapa. Las coordenadas se quedan en el teléfono; solo sale la consulta del nombre de la calle."
 }

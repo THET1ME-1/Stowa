@@ -123,5 +123,11 @@
   "graphTitle": "Graful legăturilor",
   "graphEmpty": "Încă nu sunt legături. Apar când elementele au cuvinte comune sau AI le leagă.",
   "graphFailed": "Graful nu s-a construit",
-  "copyPartlyFailed": "{count, plural, one{{count} fișier nu s-a salvat: aplicația nu a dat acces} few{{count} fișiere nu s-au salvat: aplicația nu a dat acces} other{{count} de fișiere nu s-au salvat: aplicația nu a dat acces}}"
+  "copyPartlyFailed": "{count, plural, one{{count} fișier nu s-a salvat: aplicația nu a dat acces} few{{count} fișiere nu s-au salvat: aplicația nu a dat acces} other{{count} de fișiere nu s-au salvat: aplicația nu a dat acces}}",
+  "mapTitle": "Hartă",
+  "mapEmpty": "Încă nimic nu are loc. Notițele noi țin minte unde le-ai salvat și apar aici.",
+  "mapWhereAmI": "Unde sunt",
+  "mapPlaceUnnamed": "Loc fără nume",
+  "placeSetting": "Ține minte unde a fost salvat",
+  "placeSettingHint": "Locul se adaugă după salvare și apare pe pagina elementului și pe hartă. Coordonatele rămân pe telefon, iese doar cererea numelui străzii."
 }

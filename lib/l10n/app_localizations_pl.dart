@@ -1369,4 +1369,24 @@ class LPl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get mapTitle => 'Mapa';
+
+  @override
+  String get mapEmpty =>
+      'Nic jeszcze nie ma miejsca. Nowe notatki zapamiętają, gdzie je zapisano, i pojawią się tutaj.';
+
+  @override
+  String get mapWhereAmI => 'Gdzie jestem';
+
+  @override
+  String get mapPlaceUnnamed => 'Miejsce bez nazwy';
+
+  @override
+  String get placeSetting => 'Zapamiętuj, gdzie zapisano';
+
+  @override
+  String get placeSettingHint =>
+      'Miejsce dodaje się po zapisaniu i widać je na stronie rzeczy i na mapie. Współrzędne zostają w telefonie, na zewnątrz idzie tylko zapytanie o nazwę ulicy.';
 }

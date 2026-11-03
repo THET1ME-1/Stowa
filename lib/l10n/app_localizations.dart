@@ -2338,6 +2338,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} file wasn’t saved: the app didn’t give access} other{{count} files weren’t saved: the app didn’t give access}}'**
   String copyPartlyFailed(int count);
+
+  /// mapTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get mapTitle;
+
+  /// mapEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has a place yet. New notes remember where you saved them and show up here.'**
+  String get mapEmpty;
+
+  /// mapWhereAmI
+  ///
+  /// In en, this message translates to:
+  /// **'Where am I'**
+  String get mapWhereAmI;
+
+  /// mapPlaceUnnamed
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed place'**
+  String get mapPlaceUnnamed;
+
+  /// placeSetting
+  ///
+  /// In en, this message translates to:
+  /// **'Remember where it was saved'**
+  String get placeSetting;
+
+  /// placeSettingHint
+  ///
+  /// In en, this message translates to:
+  /// **'The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.'**
+  String get placeSettingHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

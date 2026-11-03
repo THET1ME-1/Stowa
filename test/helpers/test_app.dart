@@ -30,6 +30,9 @@ class TestWorld {
         aiDrainProvider.overrideWithValue(() async {}),
         aiSortedProvider.overrideWith((ref) => const Stream.empty()),
         aiBusyProvider.overrideWith((ref) => const Stream.empty()),
+        // GPS в тестах нет: место не ставится
+        placeStampProvider.overrideWithValue((id) async {}),
+        whereAmIProvider.overrideWithValue(() async => null),
         // бота Telegram в тестах нет
         telegramPullProvider.overrideWithValue(() async => 0),
         telegramStateProvider.overrideWith((ref) => Stream.value(const TelegramState())),
@@ -39,6 +42,7 @@ class TestWorld {
         else ...[
           aiSettingsProvider.overrideWith((ref) => Stream.value(aiSettings)),
           languageProvider.overrideWith((ref) => Stream.value(null)),
+          placeEnabledProvider.overrideWith((ref) => Stream.value(true)),
         ],
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
       ];

@@ -40,7 +40,12 @@ class CaptureInput {
     this.asIs = false,
     this.title,
     this.untitled,
+    this.here = true,
   });
+
+  /// Вещь сохранена тут и сейчас: ей ставится место. Пересланное боту — нет,
+  /// его могли написать где угодно и давно.
+  final bool here;
 
   /// Свой заголовок, когда из текста его не взять: «Голосовое».
   final String? title;
@@ -81,6 +86,9 @@ class CaptureService {
 
   /// Что сделать после сохранения: правила, напоминание, очередь ИИ.
   void Function(String itemId)? afterCapture;
+
+  /// Поставить вещи место, где её сохранили. Сохранение не ждёт.
+  void Function(String itemId)? stampPlace;
 
   Future<String> capture(CaptureInput input) async {
     final text = input.text.trim();
@@ -151,6 +159,7 @@ class CaptureService {
 
     if (input.files.isNotEmpty) _copies.add(_copyFiles(id, input.files));
     afterCapture?.call(id);
+    if (input.here) stampPlace?.call(id);
     return id;
   }
 

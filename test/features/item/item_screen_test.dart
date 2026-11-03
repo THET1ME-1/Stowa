@@ -93,6 +93,30 @@ void main() {
     expect(find.textContaining('первое', findRichText: true), findsOneWidget);
   });
 
+  testWidgets('место сохранения видно под заголовком и открывает карту', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.note,
+          title: 'Кофе',
+          body: const Value('зерно из той лавки'),
+          latitude: const Value(47.0245),
+          longitude: const Value(28.8323),
+          placeName: const Value('Ботаника, Кишинёв'),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ботаника, Кишинёв'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('item-place')));
+    // карта тянет плитки из сети: ждём только въезд экрана
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Карта'), findsOneWidget);
+    expect(find.text('Ботаника, Кишинёв'), findsWidgets);
+  });
+
   testWidgets('шапка: пилюля с папкой, днём и видом вещи', (tester) async {
     await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'study', name: 'Учёба', icon: 'school', shape: 'cookie9'));
     await world.db.into(world.db.items).insert(ItemsCompanion.insert(
@@ -109,7 +133,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Учёба'), findsOneWidget);
-    expect(find.textContaining('заметка'), findsOneWidget);
+    expect(find.text('Заметка'), findsOneWidget);
+    // дата и время создания видны под заголовком целиком, с днём недели
+    expect(find.text('Понедельник, 2 ноября, 10:00'), findsOneWidget);
     // значок вложен в полукруглый край пилюли: круг с тем же центром, углы не выпирают
     final badge = find.byKey(const ValueKey('item-folder-badge'));
     expect((tester.widget<Container>(badge).decoration! as BoxDecoration).shape, BoxShape.circle);

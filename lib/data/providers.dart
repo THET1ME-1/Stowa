@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +17,7 @@ import '../services/auto_sorter.dart';
 import '../services/backup_service.dart';
 import '../services/capture_service.dart';
 import '../services/link_preview_service.dart';
+import '../services/place_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
 import 'db/database.dart';
@@ -40,6 +43,7 @@ final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databa
 final captureServiceProvider = Provider((ref) {
   final sorter = ref.watch(autoSorterProvider);
   final drain = ref.watch(aiDrainProvider);
+  final stamp = ref.watch(placeStampProvider);
   return CaptureService(
     ref.watch(databaseProvider),
     tags: ref.watch(tagsRepositoryProvider),
@@ -50,8 +54,44 @@ final captureServiceProvider = Provider((ref) {
     ..afterCapture = (id) {
       sorter.tagItem(id).ignore();
       drain().ignore();
-    };
+    }
+    ..stampPlace = (id) => stamp(id).ignore();
 });
+
+/// Поставить вещи место. Тесты подменяют пустышкой: GPS там нет.
+final placeStampProvider = Provider<Future<void> Function(String itemId)>((ref) {
+  final settings = ref.watch(settingsRepositoryProvider);
+  final service = PlaceService(
+    ref.watch(databaseProvider),
+    source: DevicePlaceSource(client: ref.watch(aiHttpProvider), language: () => settings.language?.code ?? PlatformDispatcher.instance.locale.languageCode),
+    clock: ref.watch(clockProvider),
+    enabled: () => settings.placeEnabled,
+  );
+  return service.stamp;
+});
+
+/// Вещи с местом: точки карты.
+final placedItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchPlaced());
+
+/// Где человек сейчас: кнопка «где я» на карте. Тесты подменяют.
+final whereAmIProvider = Provider<Future<(double, double)?> Function()>(
+  (ref) => () async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) return null;
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: AndroidSettings(accuracy: LocationAccuracy.high, forceLocationManager: true, timeLimit: const Duration(seconds: 15)),
+      );
+      return (position.latitude, position.longitude);
+    } catch (_) {
+      return null;
+    }
+  },
+);
+
+/// Запоминать ли место: переключатель в настройках.
+final placeEnabledProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchPlaceEnabled());
 
 /// Файлы, которые не скопировались при сохранении.
 final copyFailuresProvider = StreamProvider((ref) => ref.watch(captureServiceProvider).copyFailures);

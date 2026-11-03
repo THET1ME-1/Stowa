@@ -27,6 +27,12 @@ class Items extends Table {
 
   /// Когда превью загружено. Пусто — ещё не пробовали или сеть не ответила.
   DateTimeColumn get previewAt => dateTime().nullable()();
+
+  /// Где вещь сохранена: координаты и человеческое название места («Ботаника, Кишинёв»).
+  /// Пусто — место не разрешено, выключено в настройках или вещь пришла из бота.
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+  TextColumn get placeName => text().nullable()();
   DateTimeColumn get reminderAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();

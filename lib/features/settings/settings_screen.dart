@@ -97,6 +97,20 @@ class SettingsScreen extends ConsumerWidget {
             _Section(l.settingsData),
             _Group(
               children: [
+                _SwitchRow(
+                  icon: 'location_on',
+                  title: l.placeSetting,
+                  value: ref.watch(placeEnabledProvider).value ?? true,
+                  onChanged: (on) => ref.read(settingsRepositoryProvider).setPlaceEnabled(on),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+              child: Text(l.placeSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
+            _Group(
+              children: [
                 _Row(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
                 _Row(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
                 _Row(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
@@ -846,6 +860,36 @@ class _Row extends StatelessWidget {
                 ),
               const SizedBox(width: 4),
               Icon(symbolIcon('chevron_right'), size: 20, color: Tokens.muted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SwitchRow extends StatelessWidget {
+  const _SwitchRow({required this.icon, required this.title, required this.value, required this.onChanged});
+
+  final String icon;
+  final String title;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Tokens.containerHigh,
+      child: InkWell(
+        onTap: () => onChanged(!value),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
+          child: Row(
+            children: [
+              Icon(symbolIcon(icon), size: 22, color: Tokens.onSurfaceVariant),
+              const SizedBox(width: 14),
+              Expanded(child: Text(title, style: Theme.of(context).textTheme.bodyLarge)),
+              Switch(value: value, onChanged: onChanged),
             ],
           ),
         ),

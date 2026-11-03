@@ -1374,4 +1374,24 @@ class LRu extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get mapTitle => 'Карта';
+
+  @override
+  String get mapEmpty =>
+      'Пока нет вещей с местом. Новые заметки запомнят, где их сохранили, и встанут сюда.';
+
+  @override
+  String get mapWhereAmI => 'Где я';
+
+  @override
+  String get mapPlaceUnnamed => 'Место без названия';
+
+  @override
+  String get placeSetting => 'Запоминать, где сохранено';
+
+  @override
+  String get placeSettingHint =>
+      'Место ставится после сохранения и видно на странице вещи и на карте. Координаты остаются на телефоне, наружу уходит только запрос названия улицы.';
 }

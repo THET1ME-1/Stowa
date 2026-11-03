@@ -1369,4 +1369,24 @@ class LUk extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get mapTitle => 'Мапа';
+
+  @override
+  String get mapEmpty =>
+      'Поки немає речей з місцем. Нові нотатки запам’ятають, де їх збережено, і з’являться тут.';
+
+  @override
+  String get mapWhereAmI => 'Де я';
+
+  @override
+  String get mapPlaceUnnamed => 'Місце без назви';
+
+  @override
+  String get placeSetting => 'Запам’ятовувати, де збережено';
+
+  @override
+  String get placeSettingHint =>
+      'Місце ставиться після збереження і видно на сторінці речі та на мапі. Координати лишаються на телефоні, назовні йде тільки запит назви вулиці.';
 }

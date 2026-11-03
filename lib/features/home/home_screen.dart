@@ -16,6 +16,7 @@ import '../folder/folder_screen.dart';
 import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
+import '../map/map_screen.dart';
 import '../settings/settings_screen.dart';
 import 'folders_grid.dart';
 import 'next_reminder_card.dart';
@@ -204,6 +205,14 @@ class _Feed extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(child: Text(l.appName, style: text.headlineSmall)),
+                  // где что сохранено
+                  IconButton(
+                    tooltip: l.mapTitle,
+                    onPressed: () => Navigator.of(context).push(mapRoute()),
+                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
+                    icon: Icon(symbolIcon('map'), size: 20, color: Tokens.onSurface),
+                  ),
+                  const SizedBox(width: 8),
                   // ключ ИИ, теги, папки и правила, язык — как кнопка tune на главной в макете
                   IconButton(
                     tooltip: l.settingsTitle,

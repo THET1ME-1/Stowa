@@ -40,7 +40,15 @@ class ItemCard {
     this.fileSize = 0,
     this.transcript,
     this.durationSeconds,
+    this.latitude,
+    this.longitude,
+    this.placeName,
   });
+
+  /// Где вещь сохранена. Пусто — место не снималось.
+  final double? latitude;
+  final double? longitude;
+  final String? placeName;
 
   final String id;
   final String title;
@@ -463,6 +471,15 @@ WHERE items.deleted_at IS NULL''';
       thumbPath: row.readNullable<String>('thumb_path'),
       thumbRatio: row.readNullable<double>('thumb_ratio'),
       durationSeconds: item.durationSeconds,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      placeName: item.placeName,
     );
   }
+
+  /// Всё, у чего есть место: точки карты заметок.
+  Stream<List<ItemCard>> watchPlaced() => _db
+      .customSelect('$_cardSelect AND items.latitude IS NOT NULL ORDER BY items.created_at DESC', readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags})
+      .watch()
+      .map((rows) => [for (final row in rows) _card(row)]);
 }

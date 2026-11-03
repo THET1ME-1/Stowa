@@ -126,7 +126,8 @@ class TelegramService {
       final file = await _download(token, ref);
       if (file != null) files.add(file);
     }
-    await _capture.capture(CaptureInput(text: message.text, files: files));
+    // место не ставим: сообщение могли написать где угодно и давно
+    await _capture.capture(CaptureInput(text: message.text, files: files, here: false));
     if (files.isEmpty) return;
     // файлы копируются в папку приложения после возврата: скачанное удаляем только потом
     await _capture.settled();

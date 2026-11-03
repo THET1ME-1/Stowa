@@ -30,6 +30,7 @@ import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
+import '../map/map_screen.dart';
 import '../tags/tag_picker.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
@@ -329,10 +330,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final bottom = MediaQuery.paddingOf(context).bottom;
     final cover = images.isEmpty ? null : images[_cover.clamp(0, images.length - 1)];
 
-    // в шапке: «Сегодня, 14:20 · заметка» или «… · 3 фото», пока правка — что всё сохраняется
-    final when = '${_capitalized(shortDate(l, item.createdAt, now))}, ${DateFormat.jm(l.localeName).format(item.createdAt)}';
+    // в шапке вид вещи («заметка», «3 фото»), пока правка — что всё сохраняется; дата и место — строкой под заголовком
     final what = images.isNotEmpty ? l.itemPhotos(images.length) : kindLabel(l, item.kind);
-    final subtitle = _editing ? l.itemAutosave : '$when · $what';
+    final subtitle = _editing ? l.itemAutosave : _capitalized(what);
 
     return PopScope(
       // «назад» посреди правки сначала закрывает правку, сохранив текст
@@ -400,6 +400,16 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
                             child: Text(item.previewAuthor!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
                           ),
+                        // когда и где сохранено: место открывает карту
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
+                          child: _WhenWhere(
+                            at: item.createdAt,
+                            now: now,
+                            place: item.latitude == null ? null : (item.placeName ?? l.mapPlaceUnnamed),
+                            onPlace: () => Navigator.of(context).push(mapRoute(focusItemId: _id)),
+                          ),
+                        ),
                         const SizedBox(height: 14),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -702,6 +712,45 @@ class _TagPill extends StatelessWidget {
     );
     final tip = onRemove != null ? removeTooltip : (add ? label : null);
     return tip == null ? pill : Tooltip(message: tip, child: pill);
+  }
+}
+
+/// «Вторник, 3 ноября, 20:14 · Ботаника, Кишинёв». Год — только если не нынешний.
+class _WhenWhere extends StatelessWidget {
+  const _WhenWhere({required this.at, required this.now, required this.place, required this.onPlace});
+
+  final DateTime at;
+  final DateTime now;
+  final String? place;
+  final VoidCallback onPlace;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final day = at.year == now.year ? DateFormat.MMMMEEEEd(l.localeName).format(at) : DateFormat.yMMMMEEEEd(l.localeName).format(at);
+    final when = '${_capitalized(day)}, ${DateFormat.jm(l.localeName).format(at)}';
+    const style = TextStyle(fontSize: 14, fontWeight: FontWeight.w500, height: 1.3, color: Tokens.onSurfaceVariant);
+    Widget part(String icon, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(symbolIcon(icon), size: 17, color: Tokens.muted),
+        const SizedBox(width: 6),
+        Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style)),
+      ],
+    );
+    return Wrap(
+      spacing: 16,
+      runSpacing: 6,
+      children: [
+        part('calendar_today', when),
+        if (place != null)
+          GestureDetector(
+            key: const ValueKey('item-place'),
+            onTap: onPlace,
+            child: part('location_on', place!),
+          ),
+      ],
+    );
   }
 }
 

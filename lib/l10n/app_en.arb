@@ -1747,5 +1747,29 @@
         "type": "int"
       }
     }
+  },
+  "mapTitle": "Map",
+  "@mapTitle": {
+    "description": "mapTitle"
+  },
+  "mapEmpty": "Nothing has a place yet. New notes remember where you saved them and show up here.",
+  "@mapEmpty": {
+    "description": "mapEmpty"
+  },
+  "mapWhereAmI": "Where am I",
+  "@mapWhereAmI": {
+    "description": "mapWhereAmI"
+  },
+  "mapPlaceUnnamed": "Unnamed place",
+  "@mapPlaceUnnamed": {
+    "description": "mapPlaceUnnamed"
+  },
+  "placeSetting": "Remember where it was saved",
+  "@placeSetting": {
+    "description": "placeSetting"
+  },
+  "placeSettingHint": "The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.",
+  "@placeSettingHint": {
+    "description": "placeSettingHint"
   }
 }

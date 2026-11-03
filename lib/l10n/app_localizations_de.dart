@@ -1355,4 +1355,24 @@ class LDe extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get mapTitle => 'Karte';
+
+  @override
+  String get mapEmpty =>
+      'Noch nichts hat einen Ort. Neue Notizen merken sich, wo du sie gespeichert hast, und erscheinen hier.';
+
+  @override
+  String get mapWhereAmI => 'Wo bin ich';
+
+  @override
+  String get mapPlaceUnnamed => 'Ort ohne Namen';
+
+  @override
+  String get placeSetting => 'Merken, wo gespeichert wurde';
+
+  @override
+  String get placeSettingHint =>
+      'Der Ort wird nach dem Speichern ergänzt und erscheint auf der Seite und auf der Karte. Koordinaten bleiben auf dem Handy, nur die Straßenname-Abfrage geht raus.';
 }

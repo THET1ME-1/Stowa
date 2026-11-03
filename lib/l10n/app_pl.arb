@@ -123,5 +123,11 @@
   "graphTitle": "Graf powiązań",
   "graphEmpty": "Nie ma jeszcze powiązań. Pojawią się, gdy rzeczy zaczną mieć wspólne słowa albo AI je połączy.",
   "graphFailed": "Graf się nie zbudował",
-  "copyPartlyFailed": "{count, plural, one{{count} plik się nie zapisał: aplikacja nie dała dostępu} few{{count} pliki się nie zapisały: aplikacja nie dała dostępu} many{{count} plików się nie zapisało: aplikacja nie dała dostępu} other{{count} pliku się nie zapisało: aplikacja nie dała dostępu}}"
+  "copyPartlyFailed": "{count, plural, one{{count} plik się nie zapisał: aplikacja nie dała dostępu} few{{count} pliki się nie zapisały: aplikacja nie dała dostępu} many{{count} plików się nie zapisało: aplikacja nie dała dostępu} other{{count} pliku się nie zapisało: aplikacja nie dała dostępu}}",
+  "mapTitle": "Mapa",
+  "mapEmpty": "Nic jeszcze nie ma miejsca. Nowe notatki zapamiętają, gdzie je zapisano, i pojawią się tutaj.",
+  "mapWhereAmI": "Gdzie jestem",
+  "mapPlaceUnnamed": "Miejsce bez nazwy",
+  "placeSetting": "Zapamiętuj, gdzie zapisano",
+  "placeSettingHint": "Miejsce dodaje się po zapisaniu i widać je na stronie rzeczy i na mapie. Współrzędne zostają w telefonie, na zewnątrz idzie tylko zapytanie o nazwę ulicy."
 }

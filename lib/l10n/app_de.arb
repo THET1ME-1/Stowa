@@ -123,5 +123,11 @@
   "graphTitle": "Verknüpfungsgraph",
   "graphEmpty": "Noch keine Verknüpfungen. Sie entstehen, wenn Elemente gemeinsame Wörter haben oder die KI sie verbindet.",
   "graphFailed": "Der Graph wurde nicht erstellt",
-  "copyPartlyFailed": "{count, plural, one{{count} Datei nicht gespeichert: Die App gab keinen Zugriff} other{{count} Dateien nicht gespeichert: Die App gab keinen Zugriff}}"
+  "copyPartlyFailed": "{count, plural, one{{count} Datei nicht gespeichert: Die App gab keinen Zugriff} other{{count} Dateien nicht gespeichert: Die App gab keinen Zugriff}}",
+  "mapTitle": "Karte",
+  "mapEmpty": "Noch nichts hat einen Ort. Neue Notizen merken sich, wo du sie gespeichert hast, und erscheinen hier.",
+  "mapWhereAmI": "Wo bin ich",
+  "mapPlaceUnnamed": "Ort ohne Namen",
+  "placeSetting": "Merken, wo gespeichert wurde",
+  "placeSettingHint": "Der Ort wird nach dem Speichern ergänzt und erscheint auf der Seite und auf der Karte. Koordinaten bleiben auf dem Handy, nur die Straßenname-Abfrage geht raus."
 }
