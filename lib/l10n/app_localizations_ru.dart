@@ -807,4 +807,10 @@ class LRu extends L {
 
   @override
   String get reminderSnoozeAction => 'Через час';
+
+  @override
+  String get folderPickNew => 'Новая папка';
+
+  @override
+  String get reminderCleared => 'Напоминание снято';
 }

@@ -1504,6 +1504,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'In an hour'**
   String get reminderSnoozeAction;
+
+  /// Folder picker row
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get folderPickNew;
+
+  /// Snackbar after Done on the reminder card
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder cleared'**
+  String get reminderCleared;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

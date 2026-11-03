@@ -31,6 +31,8 @@ class FolderItemCard extends StatelessWidget {
     return GestureDetector(
       onLongPress: onLongPress,
       child: switch (card.kind) {
+        // без обложки большая плитка пустая: такой ролик идёт строкой, как ссылка
+        ItemKind.video when card.thumbPath == null => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
         ItemKind.video => _VideoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
         ItemKind.voice => _VoiceCard(card: card, filesRoot: filesRoot, onTap: onTap),
         ItemKind.link || ItemKind.file => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
@@ -258,9 +260,11 @@ class _RowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final link = card.kind == ItemKind.link;
+    final video = card.kind == ItemKind.video;
+    final link = card.kind == ItemKind.link || video;
     final size = card.fileSize < 1024 * 1024 ? '${(card.fileSize / 1024).ceil()} KB' : '${(card.fileSize / 1024 / 1024).toStringAsFixed(1)} MB';
     final source = link ? (_host(card) ?? '') : (card.filePath == null ? '' : '${p.extension(card.filePath!).replaceFirst('.', '').toUpperCase()} · $size');
+    final icon = video ? 'play_arrow' : (link ? 'link' : 'description');
     return Pressable(
       onTap: onTap,
       pressedScale: 0.98,
@@ -277,7 +281,7 @@ class _RowCard extends StatelessWidget {
                     ? _photo(filesRoot, card.thumbPath!, cacheWidth: (56 * MediaQuery.devicePixelRatioOf(context)).round())
                     : ColoredBox(
                         color: Tokens.containerHighest,
-                        child: Icon(symbolIcon(link ? 'link' : 'description'), color: Tokens.onSurface),
+                        child: Icon(symbolIcon(icon, filled: video), color: Tokens.onSurface),
                       ),
               ),
             ),
@@ -292,7 +296,7 @@ class _RowCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 2),
                       child: Row(
                         children: [
-                          Icon(symbolIcon(link ? 'link' : 'draft'), size: 15, color: Tokens.muted),
+                          Icon(symbolIcon(video ? 'play_arrow' : (link ? 'link' : 'draft')), size: 15, color: Tokens.muted),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(source, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(fontSize: 13, color: Tokens.muted)),

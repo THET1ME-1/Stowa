@@ -124,7 +124,9 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     final board = showAsBoard(cards, folder?.view ?? FolderView.auto);
     final bottom = MediaQuery.paddingOf(context).bottom;
 
-    final kinds = <ItemKind>[for (final kind in ItemKind.values) if (cards.any((card) => card.kind == kind)) kind];
+    // порядок чипов как на экране 6 макета: сначала то, что смотрят, потом читают
+    const kindOrder = [ItemKind.video, ItemKind.voice, ItemKind.link, ItemKind.note, ItemKind.image, ItemKind.file];
+    final kinds = <ItemKind>[for (final kind in kindOrder) if (cards.any((card) => card.kind == kind)) kind];
     final tags = folderTags(cards);
     final shown = orderCards(
       cards.where((card) => board ? (_tag == null || card.tags.contains(_tag)) : (_kind == null || card.kind == _kind)),

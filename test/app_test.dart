@@ -75,6 +75,12 @@ void main() {
     await tester.tap(find.byTooltip('Готово'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Готово'), findsNothing);
+
+    // случайный тап не стирает напоминание насовсем
+    await tester.tap(find.text('Отменить'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Готово'), findsOneWidget);
+    expect((await world.db.select(world.db.items).getSingle()).reminderAt, at);
   });
 
   testWidgets('главная с вещами и папками влезает в 320 точек при крупном шрифте', (tester) async {

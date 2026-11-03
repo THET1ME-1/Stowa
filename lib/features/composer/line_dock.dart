@@ -24,6 +24,7 @@ import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
+import '../folder/folder_sheets.dart';
 import '../home/saved_toast.dart';
 import 'attach_tray.dart';
 import 'line_controller.dart';
@@ -1027,7 +1028,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       context: context,
       showDragHandle: true,
       useSafeArea: true,
-      builder: (context) => FolderPickerSheet(title: l.folderPickTitle, folders: folders),
+      builder: (sheet) => FolderPickerSheet(title: l.folderPickTitle, folders: folders, onNew: () => askNewFolder(sheet, ref)),
     );
     if (picked != null) _line.chooseFolder(picked);
   }
@@ -1118,12 +1119,15 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
 /// Лист выбора папки снизу.
 class FolderPickerSheet extends StatelessWidget {
-  const FolderPickerSheet({super.key, required this.title, required this.folders, this.allowNone = false, this.noneLabel});
+  const FolderPickerSheet({super.key, required this.title, required this.folders, this.allowNone = false, this.noneLabel, this.onNew});
 
   final String title;
   final List<FolderCard> folders;
   final bool allowNone;
   final String? noneLabel;
+
+  /// «Новая папка» внизу: заводит папку и сразу выбирает её.
+  final Future<FolderCard?> Function()? onNew;
 
   @override
   Widget build(BuildContext context) {
@@ -1146,6 +1150,16 @@ class FolderPickerSheet extends StatelessWidget {
                 if (allowNone) _FolderOption(icon: 'inbox', shape: 'squircle', name: noneLabel ?? '', onTap: () => Navigator.pop(context, null)),
                 for (final folder in folders)
                   _FolderOption(icon: folder.icon, shape: folder.shape, name: folder.name, onTap: () => Navigator.pop(context, folder)),
+                if (onNew != null)
+                  _FolderOption(
+                    icon: 'create_new_folder',
+                    shape: 'squircle',
+                    name: L.of(context).folderPickNew,
+                    onTap: () async {
+                      final created = await onNew!();
+                      if (created != null && context.mounted) Navigator.pop(context, created);
+                    },
+                  ),
               ],
             ),
           ),

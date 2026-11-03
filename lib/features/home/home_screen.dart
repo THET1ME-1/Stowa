@@ -135,7 +135,20 @@ class _Feed extends ConsumerWidget {
               item: upcoming.first,
               more: upcoming.length - 1,
               now: now,
-              onDone: () => items.clearReminder(upcoming.first.id),
+              onDone: () async {
+                final next = upcoming.first;
+                final messenger = ScaffoldMessenger.of(context);
+                await items.clearReminder(next.id);
+                // случайный тап не стирает напоминание насовсем
+                messenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(l.reminderCleared),
+                      action: SnackBarAction(label: l.undo, onPressed: () => items.snoozeReminder(next.id, next.reminderAt!)),
+                    ),
+                  );
+              },
               onTap: () => onOpen(upcoming.first.id),
             ),
           ),

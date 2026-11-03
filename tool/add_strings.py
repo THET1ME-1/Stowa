@@ -28,6 +28,12 @@ def main() -> int:
             if not translations.get(locale, '').strip():
                 raise SystemExit(f'Нет перевода {key} на {locale}')
 
+    # занятый ключ молча затёр бы чужую строку вместе с её подстановками
+    template = json.loads((L10N / 'app_en.arb').read_text(encoding='utf-8'))
+    taken = [key for key in source if key in template and '--replace' not in sys.argv]
+    if taken:
+        raise SystemExit(f'Ключи уже есть: {", ".join(taken)}. Заменить — с флагом --replace')
+
     for locale in LOCALES:
         path = L10N / f'app_{locale}.arb'
         data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=OrderedDict)

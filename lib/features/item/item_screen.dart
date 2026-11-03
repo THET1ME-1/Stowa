@@ -11,10 +11,12 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
+import '../../data/repositories/folders_repository.dart';
 import '../../domain/item_title.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
+import '../folder/folder_sheets.dart';
 
 /// Страница въезжает справа, как в макете.
 Route<void> itemRoute(String id) => PageRouteBuilder(
@@ -52,15 +54,13 @@ class ItemScreen extends ConsumerWidget {
     final lines = _bodyLines(item.body, item.title);
 
     Future<void> move() async {
-      final picked = await showModalBottomSheet<Object?>(
+      final target = await showModalBottomSheet<FolderCard>(
         context: context,
         showDragHandle: true,
         useSafeArea: true,
-        builder: (context) => FolderPickerSheet(title: l.folderPickTitle, folders: folders),
+        builder: (sheet) => FolderPickerSheet(title: l.folderPickTitle, folders: folders, onNew: () => askNewFolder(sheet, ref)),
       );
-      if (picked == null || !context.mounted) return;
-      final target = folders.where((one) => one == picked).firstOrNull;
-      if (target == null) return;
+      if (target == null || !context.mounted) return;
       await ref.read(itemsRepositoryProvider).moveToFolder(id, target.id, ref.read(clockProvider)());
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.itemMoved(target.name))));
     }

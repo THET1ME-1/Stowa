@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/shape_badge.dart';
+import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
 
 enum FolderAction { rename, look, delete }
+
+/// Спросить имя и завести папку. Отказался — null.
+Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref) async {
+  final name = await showRenameSheet(context, '');
+  if (name == null) return null;
+  return ref.read(foldersRepositoryProvider).create(name);
+}
 
 Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet<T>(
   context: context,

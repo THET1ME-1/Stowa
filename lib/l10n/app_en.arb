@@ -1070,5 +1070,13 @@
   "reminderSnoozeAction": "In an hour",
   "@reminderSnoozeAction": {
     "description": "Notification button"
+  },
+  "folderPickNew": "New folder",
+  "@folderPickNew": {
+    "description": "Folder picker row"
+  },
+  "reminderCleared": "Reminder cleared",
+  "@reminderCleared": {
+    "description": "Snackbar after Done on the reminder card"
   }
 }

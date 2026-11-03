@@ -232,5 +232,7 @@
   "sortByName": "По имени",
   "sortTooltip": "Порядок",
   "reminderDoneAction": "Готово",
-  "reminderSnoozeAction": "Через час"
+  "reminderSnoozeAction": "Через час",
+  "folderPickNew": "Новая папка",
+  "reminderCleared": "Напоминание снято"
 }

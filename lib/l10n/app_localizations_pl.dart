@@ -806,4 +806,10 @@ class LPl extends L {
 
   @override
   String get reminderSnoozeAction => 'In an hour';
+
+  @override
+  String get folderPickNew => 'New folder';
+
+  @override
+  String get reminderCleared => 'Reminder cleared';
 }

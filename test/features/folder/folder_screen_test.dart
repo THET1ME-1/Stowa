@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/folder/folder_cards.dart';
 import 'package:stowa/features/home/folders_grid.dart';
 
 import '../../helpers/test_app.dart';
@@ -52,6 +53,14 @@ void main() {
     expect(find.text('3'), findsOneWidget);
     expect(find.text('Борщ как у бабушки'), findsOneWidget);
     expect(find.text('Как варить кофе в турке'), findsOneWidget);
+    expect(find.text('TikTok'), findsOneWidget);
+  });
+
+  testWidgets('ролик без обложки — строкой, как ссылка, а не пустой плиткой', (tester) async {
+    await seed();
+    await openFolder(tester);
+    final card = find.ancestor(of: find.text('Тарт с малиной'), matching: find.byType(FolderItemCard));
+    expect(tester.getSize(card).height, lessThan(120));
     expect(find.text('TikTok'), findsOneWidget);
   });
 
@@ -140,6 +149,24 @@ void main() {
     expect(find.text('Переложил в «Дом»'), findsOneWidget);
     final moved = await (world.db.select(world.db.items)..where((t) => t.id.equals('v'))).getSingle();
     expect(moved.folderId, 'home');
+  });
+
+  testWidgets('переложить в новую папку прямо из листа', (tester) async {
+    await seed();
+    await openFolder(tester);
+    await tester.longPress(find.text('Тарт с малиной'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Переложить в папку'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Новая папка'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'выпечка');
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    final folder = await (world.db.select(world.db.folders)..where((t) => t.name.equals('Выпечка'))).getSingle();
+    final moved = await (world.db.select(world.db.items)..where((t) => t.id.equals('v'))).getSingle();
+    expect(moved.folderId, folder.id);
   });
 
   testWidgets('кнопка порядка ставит вещи по имени', (tester) async {

@@ -19,10 +19,16 @@ final _lineMarks = RegExp(r'^(#{1,6}\s+|[-*+]\s+\[[ xX]\]\s+|[-*+]\s+|>\s+|\d+[.
 final _inlineMarks = RegExp(r'\*\*|__|`|~~');
 
 /// Строка под заголовком уведомления: первая живая строка текста после заголовка, без разметки.
+/// Первая строка текста — это и есть заголовок, пусть дата из него и ушла.
 String reminderText(String title, String body) {
+  var first = true;
   for (final raw in body.split('\n')) {
     final line = raw.trim().replaceFirst(_lineMarks, '').replaceAll(_inlineMarks, '').trim();
-    if (line.isEmpty || line == title.trim()) continue;
+    if (line.isEmpty) continue;
+    if (first || line == title.trim()) {
+      first = false;
+      continue;
+    }
     return line.length > 120 ? '${line.substring(0, 119)}…' : line;
   }
   return '';

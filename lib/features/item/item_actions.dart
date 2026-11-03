@@ -8,6 +8,7 @@ import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
+import '../folder/folder_sheets.dart';
 import 'item_screen.dart';
 
 enum _Action { open, move, delete }
@@ -57,7 +58,11 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
         context: context,
         showDragHandle: true,
         useSafeArea: true,
-        builder: (context) => FolderPickerSheet(title: l.folderPickTitle, folders: [for (final folder in folders) if (folder.id != card.folderId) folder]),
+        builder: (sheet) => FolderPickerSheet(
+          title: l.folderPickTitle,
+          folders: [for (final folder in folders) if (folder.id != card.folderId) folder],
+          onNew: () => askNewFolder(sheet, ref),
+        ),
       );
       if (picked == null) return;
       await items.moveToFolder(card.id, picked.id, now);
