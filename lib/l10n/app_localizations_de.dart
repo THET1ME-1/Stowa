@@ -961,4 +961,147 @@ class LDe extends L {
 
   @override
   String get relatedHidden => 'Zeige sie nicht mehr zusammen';
+
+  @override
+  String aiSortedInto(String folder) {
+    return 'In „$folder“ gelegt';
+  }
+
+  @override
+  String get aiOtherFolder => 'Anderer';
+
+  @override
+  String get aiPausedAuth => 'Sortieren pausiert: Schlüssel abgelehnt';
+
+  @override
+  String get aiPausedPayment =>
+      'Sortieren pausiert: Guthaben des Schlüssels aufgebraucht';
+
+  @override
+  String get aiPausedAction => 'Schlüssel prüfen';
+
+  @override
+  String get settingsTitle => 'Einstellungen';
+
+  @override
+  String get settingsAi => 'KI-Sortierung';
+
+  @override
+  String get aiStateOff => 'Aus';
+
+  @override
+  String get aiStateOffHint =>
+      'Füge deinen eigenen Schlüssel hinzu, dann sortieren sich Elemente ohne Ordner selbst, mit Tags, Titel und Beschreibung für die Suche. Der Schlüssel bleibt auf diesem Handy, Anfragen gehen direkt an den Anbieter.';
+
+  @override
+  String get aiStateOn => 'An';
+
+  @override
+  String aiStateWait(String time) {
+    return 'Der Anbieter bittet bis $time zu warten';
+  }
+
+  @override
+  String aiQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente warten',
+      one: '$count Element wartet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get aiSortNow => 'Jetzt sortieren';
+
+  @override
+  String get aiKey => 'Schlüssel';
+
+  @override
+  String get aiKeyNone => 'Nicht gesetzt';
+
+  @override
+  String get aiKeySet => 'Gesetzt';
+
+  @override
+  String get aiKeyPaste => 'Einfügen';
+
+  @override
+  String get aiKeySave => 'Speichern und prüfen';
+
+  @override
+  String get aiKeyRemove => 'Schlüssel entfernen';
+
+  @override
+  String get aiKeyWhere =>
+      'Den Schlüssel gibt es beim Anbieter, bei OpenRouter unter Keys. Es gibt kostenlose Modelle.';
+
+  @override
+  String get aiCheckOk => 'Der Schlüssel funktioniert';
+
+  @override
+  String get aiCheckAuth => 'Der Anbieter hat den Schlüssel abgelehnt';
+
+  @override
+  String get aiCheckPayment => 'Der Schlüssel hat kein Guthaben';
+
+  @override
+  String get aiCheckRate => 'Der Anbieter bittet zu warten';
+
+  @override
+  String get aiCheckNetwork => 'Anbieter nicht erreichbar';
+
+  @override
+  String get aiCheckServer => 'Der Anbieter meldet einen Fehler';
+
+  @override
+  String get aiProvider => 'Anbieter';
+
+  @override
+  String get aiProviderHint =>
+      'Adresse einer OpenAI-kompatiblen API. Leer heißt OpenRouter.';
+
+  @override
+  String get aiSortModel => 'Sortiermodell';
+
+  @override
+  String get aiSpeechModel => 'Sprachtranskription';
+
+  @override
+  String get aiSpeechOff => 'Aus';
+
+  @override
+  String get aiModelsSearch => 'Modell suchen';
+
+  @override
+  String get aiModelFree => 'kostenlos';
+
+  @override
+  String get aiModelVision => 'sieht Fotos';
+
+  @override
+  String get aiModelsNeedKey => 'Die Modellliste erscheint nach dem Schlüssel';
+
+  @override
+  String get aiModelsFailed => 'Die Modellliste wurde nicht geladen';
+
+  @override
+  String aiModelOwn(String name) {
+    return 'Eigenes: „$name“';
+  }
+
+  @override
+  String get settingsOrder => 'Ordnung';
+
+  @override
+  String get settingsLanguage => 'Sprache';
+
+  @override
+  String get languageSystem => 'Wie im System';
+
+  @override
+  String settingsVersion(String version) {
+    return 'Stowa $version';
+  }
 }

@@ -959,4 +959,146 @@ class LEn extends L {
 
   @override
   String get relatedHidden => 'Won\'t show them together again';
+
+  @override
+  String aiSortedInto(String folder) {
+    return 'Put in “$folder”';
+  }
+
+  @override
+  String get aiOtherFolder => 'Other';
+
+  @override
+  String get aiPausedAuth => 'Sorting paused: key rejected';
+
+  @override
+  String get aiPausedPayment => 'Sorting paused: the key is out of credit';
+
+  @override
+  String get aiPausedAction => 'Check key';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsAi => 'AI sorting';
+
+  @override
+  String get aiStateOff => 'Off';
+
+  @override
+  String get aiStateOffHint =>
+      'Add your own key and items without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.';
+
+  @override
+  String get aiStateOn => 'On';
+
+  @override
+  String aiStateWait(String time) {
+    return 'The provider asks to wait until $time';
+  }
+
+  @override
+  String aiQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items waiting',
+      one: '$count item waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get aiSortNow => 'Sort now';
+
+  @override
+  String get aiKey => 'Key';
+
+  @override
+  String get aiKeyNone => 'Not set';
+
+  @override
+  String get aiKeySet => 'Set';
+
+  @override
+  String get aiKeyPaste => 'Paste';
+
+  @override
+  String get aiKeySave => 'Save and check';
+
+  @override
+  String get aiKeyRemove => 'Remove key';
+
+  @override
+  String get aiKeyWhere =>
+      'Get a key from your provider: on OpenRouter it is under Keys. Free models are available.';
+
+  @override
+  String get aiCheckOk => 'The key works';
+
+  @override
+  String get aiCheckAuth => 'The provider rejected the key';
+
+  @override
+  String get aiCheckPayment => 'The key has no credit';
+
+  @override
+  String get aiCheckRate => 'The provider asks to wait';
+
+  @override
+  String get aiCheckNetwork => 'Can’t reach the provider';
+
+  @override
+  String get aiCheckServer => 'The provider returned an error';
+
+  @override
+  String get aiProvider => 'Provider';
+
+  @override
+  String get aiProviderHint =>
+      'An OpenAI-compatible API address. Empty means OpenRouter.';
+
+  @override
+  String get aiSortModel => 'Sorting model';
+
+  @override
+  String get aiSpeechModel => 'Voice transcription';
+
+  @override
+  String get aiSpeechOff => 'Off';
+
+  @override
+  String get aiModelsSearch => 'Find a model';
+
+  @override
+  String get aiModelFree => 'free';
+
+  @override
+  String get aiModelVision => 'sees photos';
+
+  @override
+  String get aiModelsNeedKey => 'The model list opens once a key is set';
+
+  @override
+  String get aiModelsFailed => 'The model list didn’t load';
+
+  @override
+  String aiModelOwn(String name) {
+    return 'Custom: “$name”';
+  }
+
+  @override
+  String get settingsOrder => 'Organizing';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get languageSystem => 'System default';
+
+  @override
+  String settingsVersion(String version) {
+    return 'Stowa $version';
+  }
 }

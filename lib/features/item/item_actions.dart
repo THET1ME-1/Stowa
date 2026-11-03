@@ -15,7 +15,10 @@ import 'item_screen.dart';
 enum _Action { open, move, delete }
 
 /// Переложить вещь в другую папку или новую, с «Отменить».
-Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) async {
+Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) => moveItemById(context, ref, id: card.id, from: card.folderId);
+
+/// То же по id: плашка «Положил в …» знает только вещь и папку.
+Future<void> moveItemById(BuildContext context, WidgetRef ref, {required String id, required String? from}) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final items = ref.read(itemsRepositoryProvider);
@@ -27,14 +30,14 @@ Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) async 
     useSafeArea: true,
     builder: (sheet) => FolderPickerSheet(
       title: l.folderPickTitle,
-      folders: [for (final folder in folders) if (folder.id != card.folderId) folder],
+      folders: [for (final folder in folders) if (folder.id != from) folder],
       onNew: () => askNewFolder(sheet, ref),
     ),
   );
   if (picked == null) return;
-  await items.moveToFolder(card.id, picked.id, clock());
+  await items.moveToFolder(id, picked.id, clock());
   // перекладывают с главной и из папки, там внизу строка ввода
-  showUndo(messenger, message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(card.id, card.folderId, clock()), overDock: true);
+  showUndo(messenger, message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(id, from, clock()), overDock: true);
 }
 
 /// Долгое нажатие на вещь в ленте: открыть, переложить в другую папку, удалить с «Вернуть».

@@ -961,4 +961,147 @@ class LRo extends L {
 
   @override
   String get relatedHidden => 'Nu le mai arăt împreună';
+
+  @override
+  String aiSortedInto(String folder) {
+    return 'Pus în „$folder”';
+  }
+
+  @override
+  String get aiOtherFolder => 'Alta';
+
+  @override
+  String get aiPausedAuth => 'Sortare oprită: cheia a fost respinsă';
+
+  @override
+  String get aiPausedPayment => 'Sortare oprită: cheia nu mai are credit';
+
+  @override
+  String get aiPausedAction => 'Verifică cheia';
+
+  @override
+  String get settingsTitle => 'Setări';
+
+  @override
+  String get settingsAi => 'Sortare AI';
+
+  @override
+  String get aiStateOff => 'Oprită';
+
+  @override
+  String get aiStateOffHint =>
+      'Adaugă cheia ta și elementele fără dosar se sortează singure, cu etichete, titlu și descriere pentru căutare. Cheia rămâne pe acest telefon, cererile merg direct la furnizor.';
+
+  @override
+  String get aiStateOn => 'Pornită';
+
+  @override
+  String aiStateWait(String time) {
+    return 'Furnizorul cere să aștepți până la $time';
+  }
+
+  @override
+  String aiQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de elemente așteaptă',
+      few: '$count elemente așteaptă',
+      one: '$count element așteaptă',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get aiSortNow => 'Sortează acum';
+
+  @override
+  String get aiKey => 'Cheie';
+
+  @override
+  String get aiKeyNone => 'Nesetată';
+
+  @override
+  String get aiKeySet => 'Setată';
+
+  @override
+  String get aiKeyPaste => 'Lipește';
+
+  @override
+  String get aiKeySave => 'Salvează și verifică';
+
+  @override
+  String get aiKeyRemove => 'Șterge cheia';
+
+  @override
+  String get aiKeyWhere =>
+      'Cheia o iei de la furnizor: pe OpenRouter, la Keys. Există modele gratuite.';
+
+  @override
+  String get aiCheckOk => 'Cheia funcționează';
+
+  @override
+  String get aiCheckAuth => 'Furnizorul a respins cheia';
+
+  @override
+  String get aiCheckPayment => 'Cheia nu are credit';
+
+  @override
+  String get aiCheckRate => 'Furnizorul cere să aștepți';
+
+  @override
+  String get aiCheckNetwork => 'Furnizorul nu răspunde';
+
+  @override
+  String get aiCheckServer => 'Furnizorul a răspuns cu o eroare';
+
+  @override
+  String get aiProvider => 'Furnizor';
+
+  @override
+  String get aiProviderHint =>
+      'Adresa unui API compatibil OpenAI. Gol înseamnă OpenRouter.';
+
+  @override
+  String get aiSortModel => 'Model de sortare';
+
+  @override
+  String get aiSpeechModel => 'Transcriere vocală';
+
+  @override
+  String get aiSpeechOff => 'Oprită';
+
+  @override
+  String get aiModelsSearch => 'Caută un model';
+
+  @override
+  String get aiModelFree => 'gratuit';
+
+  @override
+  String get aiModelVision => 'vede poze';
+
+  @override
+  String get aiModelsNeedKey => 'Lista de modele apare după cheie';
+
+  @override
+  String get aiModelsFailed => 'Lista de modele nu s-a încărcat';
+
+  @override
+  String aiModelOwn(String name) {
+    return 'Proprie: „$name”';
+  }
+
+  @override
+  String get settingsOrder => 'Organizare';
+
+  @override
+  String get settingsLanguage => 'Limbă';
+
+  @override
+  String get languageSystem => 'Ca în sistem';
+
+  @override
+  String settingsVersion(String version) {
+    return 'Stowa $version';
+  }
 }

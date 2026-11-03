@@ -102,6 +102,9 @@ class SettingsRepository {
 
   Future<String?> readKey() => _keys.read();
 
+  /// Перечитать с диска: фоновая очередь могла поставить паузу, пока приложение спало.
+  Future<void> reload() => _set(_prefs.reload);
+
   /// Новый ключ снимает паузу: ошибку вызывал прежний.
   Future<void> saveKey(String? key) async {
     final cleaned = key?.trim();
@@ -122,7 +125,7 @@ class SettingsRepository {
 
   Future<void> pause(String reason) => _set(() async {
     await _prefs.setBool(_paused, true);
-    await _prefs.setString(_pauseReason, reason);
+    return _prefs.setString(_pauseReason, reason);
   });
 
   Future<void> retryAfter(DateTime at) => _set(() => _prefs.setInt(_retryAt, at.millisecondsSinceEpoch));
@@ -132,6 +135,11 @@ class SettingsRepository {
     final code? => AppLanguage.values.where((language) => language.code == code).firstOrNull,
     null => null,
   };
+
+  Stream<AppLanguage?> watchLanguage() async* {
+    yield language;
+    yield* _changes.stream.map((_) => language).distinct();
+  }
 
   Future<void> setLanguage(AppLanguage? language) => _set(() => language == null ? _prefs.remove(_language) : _prefs.setString(_language, language.code));
 

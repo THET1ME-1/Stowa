@@ -23,10 +23,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // теги, папки и правила живут в настройках
+  Future<void> openTags(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Настройки'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Теги, папки и правила'));
+  }
+
   testWidgets('тег из листа: имя, иконка, папка, закрепить — встаёт на главную и раскладывает', (tester) async {
     await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'film', name: 'Фильмы', icon: 'movie', shape: 'pill'));
     await open(tester);
-    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await openTags(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Добавить тег'));
     await tester.pumpAndSettle();
@@ -54,7 +61,7 @@ void main() {
 
   testWidgets('правило из листа: ссылка на tiktok.com ставит тег #видео', (tester) async {
     await open(tester);
-    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await openTags(tester);
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Новое правило'), 200, scrollable: find.byType(Scrollable).first);
     await tester.tap(find.text('Новое правило'));
@@ -76,7 +83,7 @@ void main() {
 
   testWidgets('правило в новую папку, когда папок ещё нет', (tester) async {
     await open(tester);
-    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await openTags(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Новое правило'));
     await tester.pumpAndSettle();
@@ -102,7 +109,7 @@ void main() {
     final capture = CaptureService(world.db, tags: tags, filesRoot: world.files, clock: () => world.now);
     await capture.capture(const CaptureInput(text: 'Шины на зиму #машина'));
     await open(tester);
-    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await openTags(tester);
     await tester.pumpAndSettle();
 
     await tester.drag(find.text('пусто'), const Offset(-500, 0));
@@ -127,7 +134,7 @@ void main() {
     await tags.ensure('машина');
     await tags.ensure('рецепт');
     await open(tester);
-    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await openTags(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Новое правило'));
     await tester.pumpAndSettle();
@@ -145,7 +152,7 @@ void main() {
   testWidgets('удалил правило — «Вернуть» возвращает его как было', (tester) async {
     await RulesRepository(world.db).save(condition: RuleConditionKind.domain, conditionValue: 'tiktok.com', action: RuleActionKind.addTag, actionValue: 'видео');
     await open(tester);
-    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await openTags(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('tiktok.com'));
     await tester.pumpAndSettle();

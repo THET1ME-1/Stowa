@@ -161,6 +161,14 @@ void main() {
     expect(saved.item.sortState, SortState.sorted);
   });
 
+  test('после сохранения без папки вещь в очереди ИИ, разложенная руками — нет', () async {
+    final loose = await capture.capture(const CaptureInput(text: 'непонятная мысль'));
+    await capture.capture(const CaptureInput(text: 'идея', forcedFolderId: 'ideas'));
+    final jobs = await db.select(db.aiJobs).get();
+    expect(jobs.single.itemId, loose);
+    expect(jobs.single.kind, 'sort');
+  });
+
   test('дата в тексте ставит напоминание и уходит из заголовка', () async {
     final id = await capture.capture(const CaptureInput(text: '23 декабря 13:00 зубной'));
     final saved = await items.get(id);

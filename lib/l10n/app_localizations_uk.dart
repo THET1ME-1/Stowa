@@ -962,4 +962,148 @@ class LUk extends L {
 
   @override
   String get relatedHidden => 'Більше не покажу їх поруч';
+
+  @override
+  String aiSortedInto(String folder) {
+    return 'Поклав у «$folder»';
+  }
+
+  @override
+  String get aiOtherFolder => 'Інша';
+
+  @override
+  String get aiPausedAuth => 'Розбір на паузі: ключ не прийнято';
+
+  @override
+  String get aiPausedPayment => 'Розбір на паузі: на ключі скінчилися гроші';
+
+  @override
+  String get aiPausedAction => 'Перевірити ключ';
+
+  @override
+  String get settingsTitle => 'Налаштування';
+
+  @override
+  String get settingsAi => 'Розбір ШІ';
+
+  @override
+  String get aiStateOff => 'Вимкнено';
+
+  @override
+  String get aiStateOffHint =>
+      'Встав свій ключ, і речі без папки розкладуться самі: з тегами, заголовком і описом для пошуку. Ключ зберігається лише на цьому телефоні, запити йдуть прямо до постачальника.';
+
+  @override
+  String get aiStateOn => 'Працює';
+
+  @override
+  String aiStateWait(String time) {
+    return 'Постачальник просить зачекати до $time';
+  }
+
+  @override
+  String aiQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count речі чекають розбору',
+      many: '$count речей чекають розбору',
+      few: '$count речі чекають розбору',
+      one: '$count річ чекає розбору',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get aiSortNow => 'Розібрати зараз';
+
+  @override
+  String get aiKey => 'Ключ';
+
+  @override
+  String get aiKeyNone => 'Не задано';
+
+  @override
+  String get aiKeySet => 'Задано';
+
+  @override
+  String get aiKeyPaste => 'Вставити';
+
+  @override
+  String get aiKeySave => 'Зберегти й перевірити';
+
+  @override
+  String get aiKeyRemove => 'Видалити ключ';
+
+  @override
+  String get aiKeyWhere =>
+      'Ключ береться в постачальника: на OpenRouter — у розділі Keys. Є безкоштовні моделі.';
+
+  @override
+  String get aiCheckOk => 'Ключ працює';
+
+  @override
+  String get aiCheckAuth => 'Постачальник не прийняв ключ';
+
+  @override
+  String get aiCheckPayment => 'На ключі немає грошей';
+
+  @override
+  String get aiCheckRate => 'Постачальник просить зачекати';
+
+  @override
+  String get aiCheckNetwork => 'Немає зв’язку з постачальником';
+
+  @override
+  String get aiCheckServer => 'Постачальник відповів помилкою';
+
+  @override
+  String get aiProvider => 'Постачальник';
+
+  @override
+  String get aiProviderHint =>
+      'Адреса API, сумісного з OpenAI. Без неї — OpenRouter.';
+
+  @override
+  String get aiSortModel => 'Модель розбору';
+
+  @override
+  String get aiSpeechModel => 'Розшифровка голосових';
+
+  @override
+  String get aiSpeechOff => 'Вимкнено';
+
+  @override
+  String get aiModelsSearch => 'Знайти модель';
+
+  @override
+  String get aiModelFree => 'безкоштовна';
+
+  @override
+  String get aiModelVision => 'бачить фото';
+
+  @override
+  String get aiModelsNeedKey => 'Список моделей відкриється після ключа';
+
+  @override
+  String get aiModelsFailed => 'Список моделей не завантажився';
+
+  @override
+  String aiModelOwn(String name) {
+    return 'Своя: «$name»';
+  }
+
+  @override
+  String get settingsOrder => 'Порядок';
+
+  @override
+  String get settingsLanguage => 'Мова';
+
+  @override
+  String get languageSystem => 'Як у системі';
+
+  @override
+  String settingsVersion(String version) {
+    return 'Stowa $version';
+  }
 }

@@ -18,6 +18,7 @@ import '../domain/models.dart';
 import '../domain/reminder_parser.dart';
 import '../domain/sort_rules.dart';
 import '../domain/tag_name.dart';
+import 'ai_worker.dart' show aiSortJob;
 
 class PickedFile {
   const PickedFile({required this.path, required this.mime, required this.size});
@@ -143,6 +144,8 @@ class CaptureService {
       for (final name in rules.tags) {
         await _linkTag(id, name, TagSource.rule);
       }
+      // папки так и нет — вещь ждёт ключ ИИ; без ключа или сети задача просто лежит
+      if (!sorted) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
     });
 
     if (input.files.isNotEmpty) _copies.add(_copyFiles(id, input.files));

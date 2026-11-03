@@ -1255,5 +1255,194 @@
   "relatedHidden": "Won't show them together again",
   "@relatedHidden": {
     "description": "Плашка после отклонения связи"
+  },
+  "aiSortedInto": "Put in “{folder}”",
+  "@aiSortedInto": {
+    "description": "Toast after the AI sorted an item",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "aiOtherFolder": "Other",
+  "@aiOtherFolder": {
+    "description": "Toast action: pick another folder"
+  },
+  "aiPausedAuth": "Sorting paused: key rejected",
+  "@aiPausedAuth": {
+    "description": "aiPausedAuth"
+  },
+  "aiPausedPayment": "Sorting paused: the key is out of credit",
+  "@aiPausedPayment": {
+    "description": "aiPausedPayment"
+  },
+  "aiPausedAction": "Check key",
+  "@aiPausedAction": {
+    "description": "aiPausedAction"
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "settingsTitle"
+  },
+  "settingsAi": "AI sorting",
+  "@settingsAi": {
+    "description": "settingsAi"
+  },
+  "aiStateOff": "Off",
+  "@aiStateOff": {
+    "description": "aiStateOff"
+  },
+  "aiStateOffHint": "Add your own key and items without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.",
+  "@aiStateOffHint": {
+    "description": "aiStateOffHint"
+  },
+  "aiStateOn": "On",
+  "@aiStateOn": {
+    "description": "aiStateOn"
+  },
+  "aiStateWait": "The provider asks to wait until {time}",
+  "@aiStateWait": {
+    "description": "aiStateWait",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "aiQueued": "{count, plural, one{{count} item waiting} other{{count} items waiting}}",
+  "@aiQueued": {
+    "description": "aiQueued",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiSortNow": "Sort now",
+  "@aiSortNow": {
+    "description": "aiSortNow"
+  },
+  "aiKey": "Key",
+  "@aiKey": {
+    "description": "aiKey"
+  },
+  "aiKeyNone": "Not set",
+  "@aiKeyNone": {
+    "description": "aiKeyNone"
+  },
+  "aiKeySet": "Set",
+  "@aiKeySet": {
+    "description": "aiKeySet"
+  },
+  "aiKeyPaste": "Paste",
+  "@aiKeyPaste": {
+    "description": "aiKeyPaste"
+  },
+  "aiKeySave": "Save and check",
+  "@aiKeySave": {
+    "description": "aiKeySave"
+  },
+  "aiKeyRemove": "Remove key",
+  "@aiKeyRemove": {
+    "description": "aiKeyRemove"
+  },
+  "aiKeyWhere": "Get a key from your provider: on OpenRouter it is under Keys. Free models are available.",
+  "@aiKeyWhere": {
+    "description": "aiKeyWhere"
+  },
+  "aiCheckOk": "The key works",
+  "@aiCheckOk": {
+    "description": "aiCheckOk"
+  },
+  "aiCheckAuth": "The provider rejected the key",
+  "@aiCheckAuth": {
+    "description": "aiCheckAuth"
+  },
+  "aiCheckPayment": "The key has no credit",
+  "@aiCheckPayment": {
+    "description": "aiCheckPayment"
+  },
+  "aiCheckRate": "The provider asks to wait",
+  "@aiCheckRate": {
+    "description": "aiCheckRate"
+  },
+  "aiCheckNetwork": "Can’t reach the provider",
+  "@aiCheckNetwork": {
+    "description": "aiCheckNetwork"
+  },
+  "aiCheckServer": "The provider returned an error",
+  "@aiCheckServer": {
+    "description": "aiCheckServer"
+  },
+  "aiProvider": "Provider",
+  "@aiProvider": {
+    "description": "aiProvider"
+  },
+  "aiProviderHint": "An OpenAI-compatible API address. Empty means OpenRouter.",
+  "@aiProviderHint": {
+    "description": "aiProviderHint"
+  },
+  "aiSortModel": "Sorting model",
+  "@aiSortModel": {
+    "description": "aiSortModel"
+  },
+  "aiSpeechModel": "Voice transcription",
+  "@aiSpeechModel": {
+    "description": "aiSpeechModel"
+  },
+  "aiSpeechOff": "Off",
+  "@aiSpeechOff": {
+    "description": "aiSpeechOff"
+  },
+  "aiModelsSearch": "Find a model",
+  "@aiModelsSearch": {
+    "description": "aiModelsSearch"
+  },
+  "aiModelFree": "free",
+  "@aiModelFree": {
+    "description": "aiModelFree"
+  },
+  "aiModelVision": "sees photos",
+  "@aiModelVision": {
+    "description": "aiModelVision"
+  },
+  "aiModelsNeedKey": "The model list opens once a key is set",
+  "@aiModelsNeedKey": {
+    "description": "aiModelsNeedKey"
+  },
+  "aiModelsFailed": "The model list didn’t load",
+  "@aiModelsFailed": {
+    "description": "aiModelsFailed"
+  },
+  "aiModelOwn": "Custom: “{name}”",
+  "@aiModelOwn": {
+    "description": "aiModelOwn",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsOrder": "Organizing",
+  "@settingsOrder": {
+    "description": "settingsOrder"
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "settingsLanguage"
+  },
+  "languageSystem": "System default",
+  "@languageSystem": {
+    "description": "languageSystem"
+  },
+  "settingsVersion": "Stowa {version}",
+  "@settingsVersion": {
+    "description": "App name is not translated",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   }
 }

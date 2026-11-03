@@ -1,10 +1,15 @@
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart' show BaseAggregate;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
+import '../core/icons/icon_registry.dart';
 import '../domain/folder_guess.dart';
 import '../domain/related.dart';
+import '../services/ai_image.dart';
+import '../services/ai_worker.dart';
 import '../services/auto_sorter.dart';
 import '../services/capture_service.dart';
 import '../services/link_preview_service.dart';
@@ -14,6 +19,7 @@ import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
 import 'repositories/rules_repository.dart';
 import 'repositories/tags_repository.dart';
+import 'settings_repository.dart';
 
 /// База и папка файлов открываются в main и подставляются сюда.
 final databaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('база открывается в main'));
@@ -28,15 +34,63 @@ final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databa
 
 final captureServiceProvider = Provider((ref) {
   final sorter = ref.watch(autoSorterProvider);
+  final drain = ref.watch(aiDrainProvider);
   return CaptureService(
     ref.watch(databaseProvider),
     tags: ref.watch(tagsRepositoryProvider),
     filesRoot: ref.watch(filesRootProvider),
     clock: ref.watch(clockProvider),
   )
-    // теги соседей ставятся после сохранения: строка не ждёт и этого
-    ..afterCapture = (id) => sorter.tagItem(id).ignore();
+    // теги соседей и разбор ИИ идут после сохранения: строка не ждёт ни того, ни другого
+    ..afterCapture = (id) {
+      sorter.tagItem(id).ignore();
+      drain().ignore();
+    };
 });
+
+/// Настройки и ключ ИИ. SharedPreferences открываются в main.
+final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('настройки открываются в main'));
+final aiSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchAi());
+
+/// Пояс устройства для напоминаний от ИИ: main подставляет имя вроде Europe/Chisinau.
+final timeZoneProvider = Provider<String>((ref) => DateTime.now().timeZoneName);
+
+/// Сеть до поставщика ИИ. Тесты подставляют поддельного поставщика.
+final aiHttpProvider = Provider<http.Client>((ref) => http.Client());
+
+final aiWorkerProvider = Provider(
+  (ref) => AiWorker(
+    ref.watch(databaseProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    http: ref.watch(aiHttpProvider),
+    clock: ref.watch(clockProvider),
+    timeZone: ref.watch(timeZoneProvider),
+    filesRoot: ref.watch(filesRootProvider),
+    imageForAi: imageForAi,
+    isIcon: hasSymbol,
+  ),
+);
+
+/// Разобрать всё, что ждёт ИИ. Тесты подменяют пустышкой: ключа и сети там нет.
+final aiDrainProvider = Provider<Future<void> Function()>((ref) => ref.watch(aiWorkerProvider).drain);
+
+/// Вещи, которые ИИ только что положил в папку: плашка «Положил в …».
+final aiSortedProvider = StreamProvider((ref) => ref.watch(aiWorkerProvider).sorted);
+
+/// Сколько вещей ждёт ИИ: в настройках рядом с «Разобрать сейчас».
+final aiQueueProvider = StreamProvider((ref) {
+  final db = ref.watch(databaseProvider);
+  final count = db.aiJobs.itemId.count();
+  return (db.selectOnly(db.aiJobs)..addColumns([count])).map((row) => row.read(count) ?? 0).watchSingle();
+});
+
+/// Появилась сеть: очередь ИИ и превью идут сразу, не дожидаясь фона.
+final onlineProvider = StreamProvider<bool>(
+  (ref) => Connectivity().onConnectivityChanged.map((kinds) => kinds.any((kind) => kind != ConnectivityResult.none)).distinct(),
+);
+
+/// Язык, выбранный в настройках; null — язык устройства.
+final languageProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchLanguage());
 
 /// Сеть для превью. Тесты подставляют свою, без интернета.
 final linkFetchProvider = Provider<Fetch>((ref) => httpFetch);
@@ -55,6 +109,8 @@ final linkPreviewServiceProvider = Provider((ref) {
     onPreviewed: (id) async {
       await sorter.sortInbox(onlyId: id);
       await sorter.tagItem(id);
+      // ссылку, ждавшую превью, ИИ теперь видит с заголовком страницы
+      await ref.read(aiDrainProvider)();
     },
   );
 });

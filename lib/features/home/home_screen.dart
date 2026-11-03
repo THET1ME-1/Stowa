@@ -14,7 +14,7 @@ import '../folder/folder_screen.dart';
 import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
-import '../tags/tags_screen.dart';
+import '../settings/settings_screen.dart';
 import 'folders_grid.dart';
 import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
@@ -53,9 +53,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final ids = next.value;
       if (ids != null && ids.isNotEmpty) ref.read(linkPreviewServiceProvider).run(ids).ignore();
     }, fireImmediately: true);
+    // ИИ положил вещь в папку, пока приложение открыто: сказать куда и дать переложить
+    ref.listenManual(aiSortedProvider, (previous, next) {
+      final sorted = next.value;
+      if (sorted == null || !mounted) return;
+      final l = L.of(context);
+      showUndo(
+        ScaffoldMessenger.of(context),
+        message: l.aiSortedInto(sorted.folderName),
+        label: l.aiOtherFolder,
+        onUndo: () => moveItemById(context, ref, id: sorted.itemId, from: sorted.folderId),
+        duration: const Duration(seconds: 3),
+        overDock: true,
+      );
+    });
+    // сеть вернулась: всё, что ждало ИИ без связи, уходит сразу
+    ref.listenManual(onlineProvider, (previous, next) {
+      if (next.value == true && previous?.value != true) ref.read(aiDrainProvider)().ignore();
+    });
     // старые вещи под нынешние правила: размеры картинок для доски и заголовки вместо имён файлов
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // при открытии: всё, что накопилось без сети или без ключа
+      ref.read(aiDrainProvider)().ignore();
       final l = L.of(context);
       final capture = ref.read(captureServiceProvider);
       capture.fillImageSizes().ignore();
@@ -82,7 +102,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // «ближайшее» считается от момента подписки, после паузы его надо пересчитать
-    if (state == AppLifecycleState.resumed) ref.invalidate(upcomingProvider);
+    if (state != AppLifecycleState.resumed) return;
+    ref.invalidate(upcomingProvider);
+    // вернулся в приложение: то, что фон не успел, разбирается сейчас
+    ref.read(aiDrainProvider)().ignore();
   }
 
   final _dock = GlobalKey<LineDockState>();
@@ -134,10 +157,10 @@ class _Feed extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(child: Text(l.appName, style: text.headlineSmall)),
-                  // теги, папки и правила, как кнопка tune на главной в макете
+                  // ключ ИИ, теги, папки и правила, язык — как кнопка tune на главной в макете
                   IconButton(
-                    tooltip: l.settingsTooltip,
-                    onPressed: () => Navigator.of(context).push(tagsRoute()),
+                    tooltip: l.settingsTitle,
+                    onPressed: () => Navigator.of(context).push(settingsRoute()),
                     style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
                     icon: Icon(symbolIcon('tune'), size: 20, color: Tokens.onSurface),
                   ),
@@ -146,6 +169,13 @@ class _Feed extends ConsumerWidget {
             ),
           ),
         ),
+        if (ref.watch(aiSettingsProvider).value case final ai? when ai.paused)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 16),
+              child: AiPausedBanner(settings: ai, onTap: () => Navigator.of(context).push(settingsRoute())),
+            ),
+          ),
         if (pinned.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(

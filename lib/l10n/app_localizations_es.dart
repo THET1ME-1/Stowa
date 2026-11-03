@@ -959,4 +959,147 @@ class LEs extends L {
 
   @override
   String get relatedHidden => 'No los mostraré juntos de nuevo';
+
+  @override
+  String aiSortedInto(String folder) {
+    return 'Guardado en «$folder»';
+  }
+
+  @override
+  String get aiOtherFolder => 'Otra';
+
+  @override
+  String get aiPausedAuth => 'Orden en pausa: clave rechazada';
+
+  @override
+  String get aiPausedPayment => 'Orden en pausa: la clave no tiene saldo';
+
+  @override
+  String get aiPausedAction => 'Revisar clave';
+
+  @override
+  String get settingsTitle => 'Ajustes';
+
+  @override
+  String get settingsAi => 'Orden con IA';
+
+  @override
+  String get aiStateOff => 'Apagado';
+
+  @override
+  String get aiStateOffHint =>
+      'Añade tu propia clave y lo que no tiene carpeta se ordena solo, con etiquetas, título y descripción para buscar. La clave se queda en este teléfono y las peticiones van directo al proveedor.';
+
+  @override
+  String get aiStateOn => 'Activo';
+
+  @override
+  String aiStateWait(String time) {
+    return 'El proveedor pide esperar hasta las $time';
+  }
+
+  @override
+  String aiQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos en espera',
+      one: '$count elemento en espera',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get aiSortNow => 'Ordenar ahora';
+
+  @override
+  String get aiKey => 'Clave';
+
+  @override
+  String get aiKeyNone => 'Sin clave';
+
+  @override
+  String get aiKeySet => 'Guardada';
+
+  @override
+  String get aiKeyPaste => 'Pegar';
+
+  @override
+  String get aiKeySave => 'Guardar y comprobar';
+
+  @override
+  String get aiKeyRemove => 'Quitar clave';
+
+  @override
+  String get aiKeyWhere =>
+      'La clave la da el proveedor: en OpenRouter está en Keys. Hay modelos gratis.';
+
+  @override
+  String get aiCheckOk => 'La clave funciona';
+
+  @override
+  String get aiCheckAuth => 'El proveedor rechazó la clave';
+
+  @override
+  String get aiCheckPayment => 'La clave no tiene saldo';
+
+  @override
+  String get aiCheckRate => 'El proveedor pide esperar';
+
+  @override
+  String get aiCheckNetwork => 'No hay conexión con el proveedor';
+
+  @override
+  String get aiCheckServer => 'El proveedor respondió con un error';
+
+  @override
+  String get aiProvider => 'Proveedor';
+
+  @override
+  String get aiProviderHint =>
+      'Dirección de una API compatible con OpenAI. Vacía es OpenRouter.';
+
+  @override
+  String get aiSortModel => 'Modelo para ordenar';
+
+  @override
+  String get aiSpeechModel => 'Transcribir notas de voz';
+
+  @override
+  String get aiSpeechOff => 'Apagada';
+
+  @override
+  String get aiModelsSearch => 'Buscar modelo';
+
+  @override
+  String get aiModelFree => 'gratis';
+
+  @override
+  String get aiModelVision => 've fotos';
+
+  @override
+  String get aiModelsNeedKey =>
+      'La lista de modelos aparece tras añadir la clave';
+
+  @override
+  String get aiModelsFailed => 'La lista de modelos no cargó';
+
+  @override
+  String aiModelOwn(String name) {
+    return 'Propio: «$name»';
+  }
+
+  @override
+  String get settingsOrder => 'Orden';
+
+  @override
+  String get settingsLanguage => 'Idioma';
+
+  @override
+  String get languageSystem => 'Como el sistema';
+
+  @override
+  String settingsVersion(String version) {
+    return 'Stowa $version';
+  }
 }

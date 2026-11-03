@@ -1744,6 +1744,252 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Won\'t show them together again'**
   String get relatedHidden;
+
+  /// Toast after the AI sorted an item
+  ///
+  /// In en, this message translates to:
+  /// **'Put in “{folder}”'**
+  String aiSortedInto(String folder);
+
+  /// Toast action: pick another folder
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get aiOtherFolder;
+
+  /// aiPausedAuth
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting paused: key rejected'**
+  String get aiPausedAuth;
+
+  /// aiPausedPayment
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting paused: the key is out of credit'**
+  String get aiPausedPayment;
+
+  /// aiPausedAction
+  ///
+  /// In en, this message translates to:
+  /// **'Check key'**
+  String get aiPausedAction;
+
+  /// settingsTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// settingsAi
+  ///
+  /// In en, this message translates to:
+  /// **'AI sorting'**
+  String get settingsAi;
+
+  /// aiStateOff
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get aiStateOff;
+
+  /// aiStateOffHint
+  ///
+  /// In en, this message translates to:
+  /// **'Add your own key and items without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.'**
+  String get aiStateOffHint;
+
+  /// aiStateOn
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get aiStateOn;
+
+  /// aiStateWait
+  ///
+  /// In en, this message translates to:
+  /// **'The provider asks to wait until {time}'**
+  String aiStateWait(String time);
+
+  /// aiQueued
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item waiting} other{{count} items waiting}}'**
+  String aiQueued(int count);
+
+  /// aiSortNow
+  ///
+  /// In en, this message translates to:
+  /// **'Sort now'**
+  String get aiSortNow;
+
+  /// aiKey
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get aiKey;
+
+  /// aiKeyNone
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get aiKeyNone;
+
+  /// aiKeySet
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get aiKeySet;
+
+  /// aiKeyPaste
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get aiKeyPaste;
+
+  /// aiKeySave
+  ///
+  /// In en, this message translates to:
+  /// **'Save and check'**
+  String get aiKeySave;
+
+  /// aiKeyRemove
+  ///
+  /// In en, this message translates to:
+  /// **'Remove key'**
+  String get aiKeyRemove;
+
+  /// aiKeyWhere
+  ///
+  /// In en, this message translates to:
+  /// **'Get a key from your provider: on OpenRouter it is under Keys. Free models are available.'**
+  String get aiKeyWhere;
+
+  /// aiCheckOk
+  ///
+  /// In en, this message translates to:
+  /// **'The key works'**
+  String get aiCheckOk;
+
+  /// aiCheckAuth
+  ///
+  /// In en, this message translates to:
+  /// **'The provider rejected the key'**
+  String get aiCheckAuth;
+
+  /// aiCheckPayment
+  ///
+  /// In en, this message translates to:
+  /// **'The key has no credit'**
+  String get aiCheckPayment;
+
+  /// aiCheckRate
+  ///
+  /// In en, this message translates to:
+  /// **'The provider asks to wait'**
+  String get aiCheckRate;
+
+  /// aiCheckNetwork
+  ///
+  /// In en, this message translates to:
+  /// **'Can’t reach the provider'**
+  String get aiCheckNetwork;
+
+  /// aiCheckServer
+  ///
+  /// In en, this message translates to:
+  /// **'The provider returned an error'**
+  String get aiCheckServer;
+
+  /// aiProvider
+  ///
+  /// In en, this message translates to:
+  /// **'Provider'**
+  String get aiProvider;
+
+  /// aiProviderHint
+  ///
+  /// In en, this message translates to:
+  /// **'An OpenAI-compatible API address. Empty means OpenRouter.'**
+  String get aiProviderHint;
+
+  /// aiSortModel
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting model'**
+  String get aiSortModel;
+
+  /// aiSpeechModel
+  ///
+  /// In en, this message translates to:
+  /// **'Voice transcription'**
+  String get aiSpeechModel;
+
+  /// aiSpeechOff
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get aiSpeechOff;
+
+  /// aiModelsSearch
+  ///
+  /// In en, this message translates to:
+  /// **'Find a model'**
+  String get aiModelsSearch;
+
+  /// aiModelFree
+  ///
+  /// In en, this message translates to:
+  /// **'free'**
+  String get aiModelFree;
+
+  /// aiModelVision
+  ///
+  /// In en, this message translates to:
+  /// **'sees photos'**
+  String get aiModelVision;
+
+  /// aiModelsNeedKey
+  ///
+  /// In en, this message translates to:
+  /// **'The model list opens once a key is set'**
+  String get aiModelsNeedKey;
+
+  /// aiModelsFailed
+  ///
+  /// In en, this message translates to:
+  /// **'The model list didn’t load'**
+  String get aiModelsFailed;
+
+  /// aiModelOwn
+  ///
+  /// In en, this message translates to:
+  /// **'Custom: “{name}”'**
+  String aiModelOwn(String name);
+
+  /// settingsOrder
+  ///
+  /// In en, this message translates to:
+  /// **'Organizing'**
+  String get settingsOrder;
+
+  /// settingsLanguage
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// languageSystem
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get languageSystem;
+
+  /// App name is not translated
+  ///
+  /// In en, this message translates to:
+  /// **'Stowa {version}'**
+  String settingsVersion(String version);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -29,7 +29,7 @@ const _siteWeight = 1.5;
 
 /// Вещи, похожие на [targetId]: сумма редкости общих слов. Редкое общее слово
 /// весит много, частое почти ничего. Не больше [limit], отклонённые не предлагаются.
-List<Related> findRelated(String targetId, List<RelatedDoc> docs, {Set<String> rejected = const {}, int limit = 3}) {
+List<Related> findRelated(String targetId, List<RelatedDoc> docs, {Set<String> rejected = const {}, int limit = 3, double minScore = _minScore}) {
   final target = docs.where((doc) => doc.id == targetId).firstOrNull;
   if (target == null) return const [];
   final stems = <String, Set<String>>{};
@@ -64,7 +64,7 @@ List<Related> findRelated(String targetId, List<RelatedDoc> docs, {Set<String> r
         words.add((shown[stem] ?? stem, weight));
       }
     }
-    if (score < _minScore) continue;
+    if (score < minScore) continue;
     words.sort((a, b) => b.$2.compareTo(a.$2));
     found.add(Related(id: doc.id, score: score, words: [for (final (word, _) in words.take(3)) word], sameSite: sameSite));
   }
