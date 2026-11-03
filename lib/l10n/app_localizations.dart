@@ -2162,7 +2162,7 @@ abstract class L {
   /// tgHowTo
   ///
   /// In en, this message translates to:
-  /// **'1. Open @BotFather in Telegram and send /newbot.\n2. Name your bot and BotFather will send a token.\n3. Paste the token here.\n4. Write anything to your bot: from then on it listens only to you, and whatever you forward to it lands in Stowa.'**
+  /// **'1. Open @BotFather in Telegram and send /⁠newbot.\n2. Name your bot and BotFather will send a token.\n3. Paste the token here.\n4. Write anything to your bot: from then on it listens only to you, and whatever you forward to it lands in Stowa.'**
   String get tgHowTo;
 
   /// tgConnect

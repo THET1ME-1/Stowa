@@ -1232,7 +1232,7 @@ class LPl extends L {
 
   @override
   String get tgHowTo =>
-      '1. Otwórz @BotFather w Telegramie i wyślij /newbot.\n2. Nazwij bota, BotFather przyśle token.\n3. Wklej token tutaj.\n4. Napisz cokolwiek do swojego bota: od tej chwili słucha tylko ciebie, a wszystko, co mu przekażesz, trafia do Stowa.';
+      '1. Otwórz @BotFather w Telegramie i wyślij /⁠newbot.\n2. Nazwij bota, BotFather przyśle token.\n3. Wklej token tutaj.\n4. Napisz cokolwiek do swojego bota: od tej chwili słucha tylko ciebie, a wszystko, co mu przekażesz, trafia do Stowa.';
 
   @override
   String get tgConnect => 'Połącz';

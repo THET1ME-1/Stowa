@@ -1585,7 +1585,7 @@
   "@tgNone": {
     "description": "tgNone"
   },
-  "tgHowTo": "1. Open @BotFather in Telegram and send /newbot.\n2. Name your bot and BotFather will send a token.\n3. Paste the token here.\n4. Write anything to your bot: from then on it listens only to you, and whatever you forward to it lands in Stowa.",
+  "tgHowTo": "1. Open @BotFather in Telegram and send /⁠newbot.\n2. Name your bot and BotFather will send a token.\n3. Paste the token here.\n4. Write anything to your bot: from then on it listens only to you, and whatever you forward to it lands in Stowa.",
   "@tgHowTo": {
     "description": "tgHowTo"
   },

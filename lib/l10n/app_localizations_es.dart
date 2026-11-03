@@ -1222,7 +1222,7 @@ class LEs extends L {
 
   @override
   String get tgHowTo =>
-      '1. Abre @BotFather en Telegram y envía /newbot.\n2. Ponle nombre al bot y BotFather te enviará un token.\n3. Pega el token aquí.\n4. Escribe lo que sea a tu bot: desde entonces solo te escucha a ti, y lo que le reenvíes llega a Stowa.';
+      '1. Abre @BotFather en Telegram y envía /⁠newbot.\n2. Ponle nombre al bot y BotFather te enviará un token.\n3. Pega el token aquí.\n4. Escribe lo que sea a tu bot: desde entonces solo te escucha a ti, y lo que le reenvíes llega a Stowa.';
 
   @override
   String get tgConnect => 'Conectar';

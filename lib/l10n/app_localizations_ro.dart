@@ -1226,7 +1226,7 @@ class LRo extends L {
 
   @override
   String get tgHowTo =>
-      '1. Deschide @BotFather în Telegram și trimite /newbot.\n2. Dă-i un nume, BotFather îți trimite un token.\n3. Lipește tokenul aici.\n4. Scrie-i botului orice: de atunci ascultă doar de tine, iar ce îi trimiți ajunge în Stowa.';
+      '1. Deschide @BotFather în Telegram și trimite /⁠newbot.\n2. Dă-i un nume, BotFather îți trimite un token.\n3. Lipește tokenul aici.\n4. Scrie-i botului orice: de atunci ascultă doar de tine, iar ce îi trimiți ajunge în Stowa.';
 
   @override
   String get tgConnect => 'Conectează';
