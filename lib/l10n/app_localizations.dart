@@ -2146,6 +2146,78 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The model didn’t answer in time'**
   String get aiCheckTimeout;
+
+  /// tgTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Your Telegram bot'**
+  String get tgTitle;
+
+  /// tgNone
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get tgNone;
+
+  /// tgHowTo
+  ///
+  /// In en, this message translates to:
+  /// **'1. Open @BotFather in Telegram and send /newbot.\n2. Name your bot and BotFather will send a token.\n3. Paste the token here.\n4. Write anything to your bot: from then on it listens only to you, and whatever you forward to it lands in Stowa.'**
+  String get tgHowTo;
+
+  /// tgConnect
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get tgConnect;
+
+  /// tgOwner
+  ///
+  /// In en, this message translates to:
+  /// **'Listens only to {name}'**
+  String tgOwner(String name);
+
+  /// tgWaitingOwner
+  ///
+  /// In en, this message translates to:
+  /// **'Write anything to the bot so it remembers you'**
+  String get tgWaitingOwner;
+
+  /// tgOpenBot
+  ///
+  /// In en, this message translates to:
+  /// **'Open the bot'**
+  String get tgOpenBot;
+
+  /// tgDisconnect
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect the bot'**
+  String get tgDisconnect;
+
+  /// tgBadToken
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram rejected the token'**
+  String get tgBadToken;
+
+  /// tgOffline
+  ///
+  /// In en, this message translates to:
+  /// **'Can’t reach Telegram'**
+  String get tgOffline;
+
+  /// tgPulled
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} message picked up} other{{count} messages picked up}}'**
+  String tgPulled(int count);
+
+  /// settingsOutside
+  ///
+  /// In en, this message translates to:
+  /// **'From outside'**
+  String get settingsOutside;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

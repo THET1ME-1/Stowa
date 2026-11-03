@@ -35,7 +35,8 @@ Future<void> shareMain() async {
 Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
   // вложения лежат рядом с базой, в базе — пути от этой папки
   final filesRoot = await getApplicationSupportDirectory();
-  final settings = SettingsRepository(await SharedPreferences.getInstance(), const SecureKeyStore());
+  final prefs = await SharedPreferences.getInstance();
+  final settings = SettingsRepository(prefs, const SecureKeyStore());
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
   runApp(
     ProviderScope(
@@ -44,6 +45,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
         filesRootProvider.overrideWithValue(filesRoot),
         notificationPortProvider.overrideWithValue(notifications),
         settingsRepositoryProvider.overrideWithValue(settings),
+        preferencesProvider.overrideWithValue(prefs),
         timeZoneProvider.overrideWithValue(timeZone),
       ],
       child: app,

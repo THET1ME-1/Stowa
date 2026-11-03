@@ -13,10 +13,11 @@ abstract interface class KeyStore {
 }
 
 class SecureKeyStore implements KeyStore {
-  const SecureKeyStore();
+  /// [_name] — под каким именем лежит секрет: ключ ИИ или токен бота.
+  const SecureKeyStore([this._name = 'ai_key']);
 
   static const _storage = FlutterSecureStorage();
-  static const _name = 'ai_key';
+  final String _name;
 
   @override
   Future<String?> read() => _storage.read(key: _name);

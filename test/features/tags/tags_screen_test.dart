@@ -27,6 +27,9 @@ void main() {
   Future<void> openTags(WidgetTester tester) async {
     await tester.tap(find.byTooltip('Настройки'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Теги, папки и правила'), 200);
+    await tester.ensureVisible(find.text('Теги, папки и правила'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Теги, папки и правила'));
   }
 

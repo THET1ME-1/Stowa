@@ -1,0 +1,5 @@
+{"ok":true,"result":[
+{"update_id":200,"message":{"message_id":10,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"media_group_id":"g1","photo":[{"file_id":"a1","file_unique_id":"a","width":800,"height":600}],"caption":"Дача, июль"}},
+{"update_id":201,"message":{"message_id":11,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"media_group_id":"g1","photo":[{"file_id":"b1","file_unique_id":"b","width":800,"height":600}]}},
+{"update_id":202,"message":{"message_id":12,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"media_group_id":"g1","photo":[{"file_id":"c1","file_unique_id":"c","width":800,"height":600}]}}
+]}

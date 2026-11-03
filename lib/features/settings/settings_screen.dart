@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
@@ -20,6 +21,7 @@ import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
 import '../../services/backup_service.dart';
+import '../../services/telegram_service.dart';
 import '../tags/tags_screen.dart';
 import 'ai_log_screen.dart';
 import 'trash_screen.dart';
@@ -56,6 +58,7 @@ class SettingsScreen extends ConsumerWidget {
     final queued = ref.watch(aiQueueProvider).value ?? 0;
     final language = ref.watch(languageProvider).value;
     final trashed = ref.watch(trashProvider).value?.length ?? 0;
+    final telegram = ref.watch(telegramStateProvider).value ?? const TelegramState();
 
     return Scaffold(
       body: SafeArea(
@@ -79,6 +82,12 @@ class SettingsScreen extends ConsumerWidget {
                 _Row(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => _showModelSheet(context, speech: false)),
                 _Row(icon: 'graphic_eq', title: l.aiSpeechModel, value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!), onTap: () => _showModelSheet(context, speech: true)),
                 _Row(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
+              ],
+            ),
+            _Section(l.settingsOutside),
+            _Group(
+              children: [
+                _Row(icon: 'send', title: l.tgTitle, value: telegram.botName == null ? l.tgNone : '@${telegram.botName}', onTap: () => _sheet(context, const _BotSheet())),
               ],
             ),
             _Section(l.settingsOrder),
@@ -410,6 +419,118 @@ class _KeySheetState extends ConsumerState<_KeySheet> {
               },
               style: TextButton.styleFrom(foregroundColor: Tokens.error),
               child: Text(l.aiKeyRemove),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Свой бот: как завести у BotFather, токен, кого бот слушает.
+class _BotSheet extends ConsumerStatefulWidget {
+  const _BotSheet();
+
+  @override
+  ConsumerState<_BotSheet> createState() => _BotSheetState();
+}
+
+class _BotSheetState extends ConsumerState<_BotSheet> {
+  final _field = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _field.dispose();
+    super.dispose();
+  }
+
+  Future<void> _connect() async {
+    final token = _field.text.trim();
+    if (token.isEmpty) return;
+    final l = L.of(context);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(telegramServiceProvider).connect(token);
+      _field.clear();
+    } on TelegramFailure catch (failure) {
+      _error = failure.badToken ? l.tgBadToken : l.tgOffline;
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final text = Theme.of(context).textTheme;
+    final state = ref.watch(telegramStateProvider).value ?? const TelegramState();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(l.tgTitle, style: text.titleMedium),
+          const SizedBox(height: 12),
+          if (state.connected) ...[
+            // бот подключён: кто он и кого слушает
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.tile)),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+                    child: Icon(symbolIcon('send', filled: true), size: 20, color: Tokens.onAccent),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('@${state.botName}', style: text.bodyLarge),
+                        Text(
+                          state.ownerName == null ? l.tgWaitingOwner : l.tgOwner(state.ownerName!),
+                          style: text.bodySmall!.copyWith(color: Tokens.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => launchUrl(Uri.parse('https://t.me/${state.botName}'), mode: LaunchMode.externalApplication).catchError((_) => false),
+              child: Text(l.tgOpenBot),
+            ),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () => ref.read(telegramServiceProvider).disconnect(),
+              style: TextButton.styleFrom(foregroundColor: Tokens.error),
+              child: Text(l.tgDisconnect),
+            ),
+          ] else ...[
+            Text(l.tgHowTo, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.5)),
+            const SizedBox(height: 16),
+            TextField(
+              key: const ValueKey('tg-token-field'),
+              controller: _field,
+              autocorrect: false,
+              enableSuggestions: false,
+              decoration: InputDecoration(hintText: '123456:ABC…', errorText: _error),
+              onSubmitted: (_) => _connect(),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: _busy ? null : _connect,
+              child: _busy ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.5)) : Text(l.tgConnect),
             ),
           ],
         ],

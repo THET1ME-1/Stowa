@@ -1,0 +1,1 @@
+{"ok":true,"result":[{"update_id":400,"message":{"message_id":30,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"text":"Почитать вот эту статью","entities":[{"offset":13,"length":10,"type":"text_link","url":"https://habr.com/ru/articles/123/"}]}}]}

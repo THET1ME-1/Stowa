@@ -1217,4 +1217,52 @@ class LRo extends L {
 
   @override
   String get aiCheckTimeout => 'Modelul nu a răspuns la timp';
+
+  @override
+  String get tgTitle => 'Botul tău Telegram';
+
+  @override
+  String get tgNone => 'Neconectat';
+
+  @override
+  String get tgHowTo =>
+      '1. Deschide @BotFather în Telegram și trimite /newbot.\n2. Dă-i un nume, BotFather îți trimite un token.\n3. Lipește tokenul aici.\n4. Scrie-i botului orice: de atunci ascultă doar de tine, iar ce îi trimiți ajunge în Stowa.';
+
+  @override
+  String get tgConnect => 'Conectează';
+
+  @override
+  String tgOwner(String name) {
+    return 'Ascultă doar de $name';
+  }
+
+  @override
+  String get tgWaitingOwner => 'Scrie-i botului orice ca să te țină minte';
+
+  @override
+  String get tgOpenBot => 'Deschide botul';
+
+  @override
+  String get tgDisconnect => 'Deconectează botul';
+
+  @override
+  String get tgBadToken => 'Telegram a respins tokenul';
+
+  @override
+  String get tgOffline => 'Telegram nu răspunde';
+
+  @override
+  String tgPulled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de mesaje preluate',
+      few: '$count mesaje preluate',
+      one: '$count mesaj preluat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsOutside => 'Din afară';
 }

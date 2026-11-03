@@ -69,13 +69,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     });
     // сеть вернулась: всё, что ждало ИИ без связи, уходит сразу
     ref.listenManual(onlineProvider, (previous, next) {
-      if (next.value == true && previous?.value != true) ref.read(aiDrainProvider)().ignore();
+      if (next.value != true || previous?.value == true) return;
+      ref.read(aiDrainProvider)().ignore();
+      ref.read(telegramPullProvider)().ignore();
     });
     // старые вещи под нынешние правила: размеры картинок для доски и заголовки вместо имён файлов
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // при открытии: всё, что накопилось без сети или без ключа
+      // при открытии: всё, что накопилось без сети или без ключа, и что переслали боту
       ref.read(aiDrainProvider)().ignore();
+      ref.read(telegramPullProvider)().ignore();
       // корзина держит удалённое 30 дней, дальше стирает вместе с файлами
       ref.read(trashRepositoryProvider).purgeExpired(ref.read(clockProvider)()).ignore();
       final l = L.of(context);
@@ -108,6 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     ref.invalidate(upcomingProvider);
     // вернулся в приложение: то, что фон не успел, разбирается сейчас
     ref.read(aiDrainProvider)().ignore();
+    ref.read(telegramPullProvider)().ignore();
   }
 
   final _dock = GlobalKey<LineDockState>();

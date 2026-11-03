@@ -1228,4 +1228,53 @@ class LRu extends L {
 
   @override
   String get aiCheckTimeout => 'Модель не ответила вовремя';
+
+  @override
+  String get tgTitle => 'Свой бот Telegram';
+
+  @override
+  String get tgNone => 'Не подключён';
+
+  @override
+  String get tgHowTo =>
+      '1. Открой @BotFather в Telegram и отправь /newbot.\n2. Придумай боту имя, BotFather пришлёт токен.\n3. Вставь токен сюда.\n4. Напиши своему боту что угодно: с этого момента он слушает только тебя, а всё пересланное ему ложится в Stowa.';
+
+  @override
+  String get tgConnect => 'Подключить';
+
+  @override
+  String tgOwner(String name) {
+    return 'Слушает только $name';
+  }
+
+  @override
+  String get tgWaitingOwner => 'Напиши боту что угодно, чтобы он запомнил тебя';
+
+  @override
+  String get tgOpenBot => 'Открыть бота';
+
+  @override
+  String get tgDisconnect => 'Отключить бота';
+
+  @override
+  String get tgBadToken => 'Telegram не принял токен';
+
+  @override
+  String get tgOffline => 'Нет связи с Telegram';
+
+  @override
+  String tgPulled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Забрал $count сообщения',
+      many: 'Забрал $count сообщений',
+      few: 'Забрал $count сообщения',
+      one: 'Забрал $count сообщение',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsOutside => 'Снаружи';
 }

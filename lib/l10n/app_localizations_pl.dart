@@ -1223,4 +1223,53 @@ class LPl extends L {
 
   @override
   String get aiCheckTimeout => 'Model nie odpowiedział na czas';
+
+  @override
+  String get tgTitle => 'Twój bot Telegram';
+
+  @override
+  String get tgNone => 'Niepodłączony';
+
+  @override
+  String get tgHowTo =>
+      '1. Otwórz @BotFather w Telegramie i wyślij /newbot.\n2. Nazwij bota, BotFather przyśle token.\n3. Wklej token tutaj.\n4. Napisz cokolwiek do swojego bota: od tej chwili słucha tylko ciebie, a wszystko, co mu przekażesz, trafia do Stowa.';
+
+  @override
+  String get tgConnect => 'Połącz';
+
+  @override
+  String tgOwner(String name) {
+    return 'Słucha tylko: $name';
+  }
+
+  @override
+  String get tgWaitingOwner => 'Napisz cokolwiek do bota, żeby cię zapamiętał';
+
+  @override
+  String get tgOpenBot => 'Otwórz bota';
+
+  @override
+  String get tgDisconnect => 'Odłącz bota';
+
+  @override
+  String get tgBadToken => 'Telegram odrzucił token';
+
+  @override
+  String get tgOffline => 'Brak połączenia z Telegramem';
+
+  @override
+  String tgPulled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wiadomości odebranej',
+      many: '$count wiadomości odebranych',
+      few: '$count wiadomości odebrane',
+      one: '$count wiadomość odebrana',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsOutside => 'Z zewnątrz';
 }

@@ -1576,5 +1576,63 @@
   "aiCheckTimeout": "The model didn’t answer in time",
   "@aiCheckTimeout": {
     "description": "aiCheckTimeout"
+  },
+  "tgTitle": "Your Telegram bot",
+  "@tgTitle": {
+    "description": "tgTitle"
+  },
+  "tgNone": "Not connected",
+  "@tgNone": {
+    "description": "tgNone"
+  },
+  "tgHowTo": "1. Open @BotFather in Telegram and send /newbot.\n2. Name your bot and BotFather will send a token.\n3. Paste the token here.\n4. Write anything to your bot: from then on it listens only to you, and whatever you forward to it lands in Stowa.",
+  "@tgHowTo": {
+    "description": "tgHowTo"
+  },
+  "tgConnect": "Connect",
+  "@tgConnect": {
+    "description": "tgConnect"
+  },
+  "tgOwner": "Listens only to {name}",
+  "@tgOwner": {
+    "description": "tgOwner",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tgWaitingOwner": "Write anything to the bot so it remembers you",
+  "@tgWaitingOwner": {
+    "description": "tgWaitingOwner"
+  },
+  "tgOpenBot": "Open the bot",
+  "@tgOpenBot": {
+    "description": "tgOpenBot"
+  },
+  "tgDisconnect": "Disconnect the bot",
+  "@tgDisconnect": {
+    "description": "tgDisconnect"
+  },
+  "tgBadToken": "Telegram rejected the token",
+  "@tgBadToken": {
+    "description": "tgBadToken"
+  },
+  "tgOffline": "Can’t reach Telegram",
+  "@tgOffline": {
+    "description": "tgOffline"
+  },
+  "tgPulled": "{count, plural, one{{count} message picked up} other{{count} messages picked up}}",
+  "@tgPulled": {
+    "description": "tgPulled",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsOutside": "From outside",
+  "@settingsOutside": {
+    "description": "settingsOutside"
   }
 }

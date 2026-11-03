@@ -1217,4 +1217,51 @@ class LDe extends L {
 
   @override
   String get aiCheckTimeout => 'Das Modell hat nicht rechtzeitig geantwortet';
+
+  @override
+  String get tgTitle => 'Dein Telegram-Bot';
+
+  @override
+  String get tgNone => 'Nicht verbunden';
+
+  @override
+  String get tgHowTo =>
+      '1. Öffne @BotFather in Telegram und sende /newbot.\n2. Gib dem Bot einen Namen, BotFather schickt ein Token.\n3. Füge das Token hier ein.\n4. Schreib deinem Bot irgendwas: Ab dann hört er nur auf dich, und alles, was du ihm weiterleitest, landet in Stowa.';
+
+  @override
+  String get tgConnect => 'Verbinden';
+
+  @override
+  String tgOwner(String name) {
+    return 'Hört nur auf $name';
+  }
+
+  @override
+  String get tgWaitingOwner => 'Schreib dem Bot irgendwas, damit er dich kennt';
+
+  @override
+  String get tgOpenBot => 'Bot öffnen';
+
+  @override
+  String get tgDisconnect => 'Bot trennen';
+
+  @override
+  String get tgBadToken => 'Telegram hat das Token abgelehnt';
+
+  @override
+  String get tgOffline => 'Telegram nicht erreichbar';
+
+  @override
+  String tgPulled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Nachrichten abgeholt',
+      one: '$count Nachricht abgeholt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsOutside => 'Von außen';
 }

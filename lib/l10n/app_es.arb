@@ -91,5 +91,17 @@
   "aiLog": "Registro de peticiones",
   "aiLogEmpty": "Aún no hubo peticiones al proveedor",
   "aiLogCluster": "Carpetas nuevas de «Sin carpeta»",
-  "aiCheckTimeout": "El modelo no respondió a tiempo"
+  "aiCheckTimeout": "El modelo no respondió a tiempo",
+  "tgTitle": "Tu bot de Telegram",
+  "tgNone": "Sin conectar",
+  "tgHowTo": "1. Abre @BotFather en Telegram y envía /newbot.\n2. Ponle nombre al bot y BotFather te enviará un token.\n3. Pega el token aquí.\n4. Escribe lo que sea a tu bot: desde entonces solo te escucha a ti, y lo que le reenvíes llega a Stowa.",
+  "tgConnect": "Conectar",
+  "tgOwner": "Solo escucha a {name}",
+  "tgWaitingOwner": "Escribe algo al bot para que te recuerde",
+  "tgOpenBot": "Abrir el bot",
+  "tgDisconnect": "Desconectar el bot",
+  "tgBadToken": "Telegram rechazó el token",
+  "tgOffline": "No hay conexión con Telegram",
+  "tgPulled": "{count, plural, one{{count} mensaje recogido} other{{count} mensajes recogidos}}",
+  "settingsOutside": "Desde fuera"
 }

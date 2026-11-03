@@ -1,0 +1,6 @@
+{"ok":true,"result":[
+{"update_id":300,"message":{"message_id":20,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"sticker":{"file_id":"st","file_unique_id":"st","width":512,"height":512,"is_animated":false,"is_video":false,"type":"regular","emoji":"😀"}}},
+{"update_id":301,"message":{"message_id":21,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}},
+{"update_id":302,"edited_message":{"message_id":19,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"edit_date":1793736100,"text":"правка"}},
+{"update_id":303,"message":{"message_id":22,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"text":"купить батарейки"}}
+]}

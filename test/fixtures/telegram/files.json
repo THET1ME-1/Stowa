@@ -1,0 +1,5 @@
+{"ok":true,"result":[
+{"update_id":500,"message":{"message_id":40,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"document":{"file_name":"Договор.pdf","mime_type":"application/pdf","file_id":"doc","file_unique_id":"d","file_size":200000}}},
+{"update_id":501,"message":{"message_id":41,"from":{"id":42,"is_bot":false,"first_name":"Саша"},"chat":{"id":42,"type":"private"},"date":1793736000,"voice":{"duration":4,"mime_type":"audio/ogg","file_id":"vo","file_unique_id":"v","file_size":9000}}},
+{"update_id":502,"message":{"message_id":42,"from":{"id":7,"is_bot":false,"first_name":"Чужой"},"chat":{"id":7,"type":"private"},"date":1793736000,"text":"спам"}}
+]}

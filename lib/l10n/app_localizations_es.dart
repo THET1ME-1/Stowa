@@ -1213,4 +1213,51 @@ class LEs extends L {
 
   @override
   String get aiCheckTimeout => 'El modelo no respondió a tiempo';
+
+  @override
+  String get tgTitle => 'Tu bot de Telegram';
+
+  @override
+  String get tgNone => 'Sin conectar';
+
+  @override
+  String get tgHowTo =>
+      '1. Abre @BotFather en Telegram y envía /newbot.\n2. Ponle nombre al bot y BotFather te enviará un token.\n3. Pega el token aquí.\n4. Escribe lo que sea a tu bot: desde entonces solo te escucha a ti, y lo que le reenvíes llega a Stowa.';
+
+  @override
+  String get tgConnect => 'Conectar';
+
+  @override
+  String tgOwner(String name) {
+    return 'Solo escucha a $name';
+  }
+
+  @override
+  String get tgWaitingOwner => 'Escribe algo al bot para que te recuerde';
+
+  @override
+  String get tgOpenBot => 'Abrir el bot';
+
+  @override
+  String get tgDisconnect => 'Desconectar el bot';
+
+  @override
+  String get tgBadToken => 'Telegram rechazó el token';
+
+  @override
+  String get tgOffline => 'No hay conexión con Telegram';
+
+  @override
+  String tgPulled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mensajes recogidos',
+      one: '$count mensaje recogido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsOutside => 'Desde fuera';
 }

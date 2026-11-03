@@ -91,5 +91,17 @@
   "aiLog": "Журнал запитів",
   "aiLogEmpty": "Запитів до постачальника ще не було",
   "aiLogCluster": "Нові папки з «Без папки»",
-  "aiCheckTimeout": "Модель не відповіла вчасно"
+  "aiCheckTimeout": "Модель не відповіла вчасно",
+  "tgTitle": "Свій бот Telegram",
+  "tgNone": "Не підключено",
+  "tgHowTo": "1. Відкрий @BotFather у Telegram і надішли /newbot.\n2. Вигадай ботові ім’я, BotFather надішле токен.\n3. Встав токен сюди.\n4. Напиши своєму ботові будь-що: відтепер він слухає лише тебе, а все переслане йому потрапляє в Stowa.",
+  "tgConnect": "Підключити",
+  "tgOwner": "Слухає лише {name}",
+  "tgWaitingOwner": "Напиши ботові будь-що, щоб він запам’ятав тебе",
+  "tgOpenBot": "Відкрити бота",
+  "tgDisconnect": "Відключити бота",
+  "tgBadToken": "Telegram не прийняв токен",
+  "tgOffline": "Немає зв’язку з Telegram",
+  "tgPulled": "{count, plural, one{Забрав {count} повідомлення} few{Забрав {count} повідомлення} many{Забрав {count} повідомлень} other{Забрав {count} повідомлення}}",
+  "settingsOutside": "Ззовні"
 }

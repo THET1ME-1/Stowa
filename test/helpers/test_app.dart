@@ -9,6 +9,7 @@ import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/services/telegram_service.dart';
 import 'package:stowa/l10n/app_localizations.dart';
 
 /// База в памяти, своя папка файлов и замёрзшие часы — для виджет-тестов.
@@ -29,6 +30,9 @@ class TestWorld {
         aiDrainProvider.overrideWithValue(() async {}),
         aiSortedProvider.overrideWith((ref) => const Stream.empty()),
         aiBusyProvider.overrideWith((ref) => const Stream.empty()),
+        // бота Telegram в тестах нет
+        telegramPullProvider.overrideWithValue(() async => 0),
+        telegramStateProvider.overrideWith((ref) => Stream.value(const TelegramState())),
         onlineProvider.overrideWith((ref) => const Stream.empty()),
         if (settings case final settings?)
           settingsRepositoryProvider.overrideWithValue(settings)

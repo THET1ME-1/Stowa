@@ -1212,4 +1212,51 @@ class LEn extends L {
 
   @override
   String get aiCheckTimeout => 'The model didn’t answer in time';
+
+  @override
+  String get tgTitle => 'Your Telegram bot';
+
+  @override
+  String get tgNone => 'Not connected';
+
+  @override
+  String get tgHowTo =>
+      '1. Open @BotFather in Telegram and send /newbot.\n2. Name your bot and BotFather will send a token.\n3. Paste the token here.\n4. Write anything to your bot: from then on it listens only to you, and whatever you forward to it lands in Stowa.';
+
+  @override
+  String get tgConnect => 'Connect';
+
+  @override
+  String tgOwner(String name) {
+    return 'Listens only to $name';
+  }
+
+  @override
+  String get tgWaitingOwner => 'Write anything to the bot so it remembers you';
+
+  @override
+  String get tgOpenBot => 'Open the bot';
+
+  @override
+  String get tgDisconnect => 'Disconnect the bot';
+
+  @override
+  String get tgBadToken => 'Telegram rejected the token';
+
+  @override
+  String get tgOffline => 'Can’t reach Telegram';
+
+  @override
+  String tgPulled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count messages picked up',
+      one: '$count message picked up',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsOutside => 'From outside';
 }

@@ -1223,4 +1223,53 @@ class LUk extends L {
 
   @override
   String get aiCheckTimeout => 'Модель не відповіла вчасно';
+
+  @override
+  String get tgTitle => 'Свій бот Telegram';
+
+  @override
+  String get tgNone => 'Не підключено';
+
+  @override
+  String get tgHowTo =>
+      '1. Відкрий @BotFather у Telegram і надішли /newbot.\n2. Вигадай ботові ім’я, BotFather надішле токен.\n3. Встав токен сюди.\n4. Напиши своєму ботові будь-що: відтепер він слухає лише тебе, а все переслане йому потрапляє в Stowa.';
+
+  @override
+  String get tgConnect => 'Підключити';
+
+  @override
+  String tgOwner(String name) {
+    return 'Слухає лише $name';
+  }
+
+  @override
+  String get tgWaitingOwner => 'Напиши ботові будь-що, щоб він запам’ятав тебе';
+
+  @override
+  String get tgOpenBot => 'Відкрити бота';
+
+  @override
+  String get tgDisconnect => 'Відключити бота';
+
+  @override
+  String get tgBadToken => 'Telegram не прийняв токен';
+
+  @override
+  String get tgOffline => 'Немає зв’язку з Telegram';
+
+  @override
+  String tgPulled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Забрав $count повідомлення',
+      many: 'Забрав $count повідомлень',
+      few: 'Забрав $count повідомлення',
+      one: 'Забрав $count повідомлення',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsOutside => 'Ззовні';
 }

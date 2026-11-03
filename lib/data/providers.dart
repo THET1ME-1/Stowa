@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
 import '../domain/folder_guess.dart';
@@ -15,6 +16,7 @@ import '../services/backup_service.dart';
 import '../services/capture_service.dart';
 import '../services/link_preview_service.dart';
 import '../services/reminder_service.dart';
+import '../services/telegram_service.dart';
 import 'db/database.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
@@ -114,6 +116,24 @@ final onlineProvider = StreamProvider<bool>(
 /// Удалённое: лежит 30 дней, потом стирается вместе с файлами.
 final trashRepositoryProvider = Provider((ref) => TrashRepository(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider)));
 final trashProvider = StreamProvider((ref) => ref.watch(trashRepositoryProvider).watch());
+
+/// SharedPreferences открываются в main.
+final preferencesProvider = Provider<SharedPreferences>((ref) => throw UnimplementedError('настройки открываются в main'));
+
+/// Свой бот Telegram: токен в защищённом хранилище, скачанное ждёт копирования в папке бота.
+final telegramServiceProvider = Provider(
+  (ref) => TelegramService(
+    capture: ref.watch(captureServiceProvider),
+    prefs: ref.watch(preferencesProvider),
+    tokens: const SecureKeyStore('tg_token'),
+    http: ref.watch(aiHttpProvider),
+    inbox: Directory('${ref.watch(filesRootProvider).path}/telegram_inbox'),
+  ),
+);
+final telegramStateProvider = StreamProvider((ref) => ref.watch(telegramServiceProvider).watch());
+
+/// Забрать сообщения бота. Тесты подменяют пустышкой.
+final telegramPullProvider = Provider<Future<int> Function()>((ref) => ref.watch(telegramServiceProvider).pull);
 
 final backupServiceProvider = Provider((ref) => BackupService(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider), clock: ref.watch(clockProvider)));
 

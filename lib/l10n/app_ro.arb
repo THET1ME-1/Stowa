@@ -91,5 +91,17 @@
   "aiLog": "Jurnal cereri",
   "aiLogEmpty": "Încă nu au fost cereri către furnizor",
   "aiLogCluster": "Dosare noi din „Fără dosar”",
-  "aiCheckTimeout": "Modelul nu a răspuns la timp"
+  "aiCheckTimeout": "Modelul nu a răspuns la timp",
+  "tgTitle": "Botul tău Telegram",
+  "tgNone": "Neconectat",
+  "tgHowTo": "1. Deschide @BotFather în Telegram și trimite /newbot.\n2. Dă-i un nume, BotFather îți trimite un token.\n3. Lipește tokenul aici.\n4. Scrie-i botului orice: de atunci ascultă doar de tine, iar ce îi trimiți ajunge în Stowa.",
+  "tgConnect": "Conectează",
+  "tgOwner": "Ascultă doar de {name}",
+  "tgWaitingOwner": "Scrie-i botului orice ca să te țină minte",
+  "tgOpenBot": "Deschide botul",
+  "tgDisconnect": "Deconectează botul",
+  "tgBadToken": "Telegram a respins tokenul",
+  "tgOffline": "Telegram nu răspunde",
+  "tgPulled": "{count, plural, one{{count} mesaj preluat} few{{count} mesaje preluate} other{{count} de mesaje preluate}}",
+  "settingsOutside": "Din afară"
 }
