@@ -5,5 +5,15 @@
   "itemShare": "Distribuie",
   "itemAutosave": "Se salvează singur",
   "itemPhotos": "{count, plural, one{{count} fotografie} few{{count} fotografii} other{{count} de fotografii}}",
-  "tagAddShort": "Etichetă"
+  "tagAddShort": "Etichetă",
+  "itemOpenLink": "Deschide",
+  "itemWatch": "Vizionează",
+  "fileOpenFailed": "Nicio aplicație nu poate deschide fișierul",
+  "linkOpenFailed": "Linkul nu s-a deschis",
+  "photoCounter": "{index} din {count}",
+  "photoToGallery": "În galerie",
+  "photoSaved": "Salvat în galerie",
+  "photoSaveFailed": "Nu s-a salvat: fără acces la galerie",
+  "photoClose": "Închide",
+  "voiceSpeed": "Viteză"
 }

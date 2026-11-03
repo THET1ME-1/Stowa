@@ -898,4 +898,36 @@ class LUk extends L {
 
   @override
   String get tagAddShort => 'Тег';
+
+  @override
+  String get itemOpenLink => 'Відкрити';
+
+  @override
+  String get itemWatch => 'Дивитися';
+
+  @override
+  String get fileOpenFailed => 'Немає чим відкрити такий файл';
+
+  @override
+  String get linkOpenFailed => 'Не вдалося відкрити посилання';
+
+  @override
+  String photoCounter(Object count, Object index) {
+    return '$index з $count';
+  }
+
+  @override
+  String get photoToGallery => 'У галерею';
+
+  @override
+  String get photoSaved => 'Зберіг у галерею';
+
+  @override
+  String get photoSaveFailed => 'Не вдалося зберегти: немає доступу до галереї';
+
+  @override
+  String get photoClose => 'Закрити';
+
+  @override
+  String get voiceSpeed => 'Швидкість';
 }

@@ -16,6 +16,17 @@ class Items extends Table {
   /// Описание от ИИ: ищется, но не показывается как текст вещи.
   TextColumn get aiDescription => text().nullable()();
   TextColumn get transcript => text().nullable()();
+
+  /// Превью ссылки или ролика: обложка (путь от папки приложения), описание
+  /// страницы, имя сайта, автор ролика и длина. Пишет `LinkPreviewService`.
+  TextColumn get coverPath => text().nullable()();
+  TextColumn get previewText => text().nullable()();
+  TextColumn get previewSite => text().nullable()();
+  TextColumn get previewAuthor => text().nullable()();
+  IntColumn get durationSeconds => integer().nullable()();
+
+  /// Когда превью загружено. Пусто — ещё не пробовали или сеть не ответила.
+  DateTimeColumn get previewAt => dateTime().nullable()();
   DateTimeColumn get reminderAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();

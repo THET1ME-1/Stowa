@@ -43,6 +43,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final reminders = next.value;
       if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
     }, fireImmediately: true);
+    // ссылки без превью, свежие и старые: заголовок страницы и обложка грузятся в фоне
+    ref.listenManual(pendingPreviewsProvider, (previous, next) {
+      final ids = next.value;
+      if (ids != null && ids.isNotEmpty) ref.read(linkPreviewServiceProvider).run(ids).ignore();
+    }, fireImmediately: true);
     // старые вещи под нынешние правила: размеры картинок для доски и заголовки вместо имён файлов
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

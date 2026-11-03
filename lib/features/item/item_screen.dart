@@ -15,11 +15,14 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/undo_snack.dart';
+import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
+import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
+import '../../domain/models.dart';
 import '../../domain/note_blocks.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
@@ -27,8 +30,10 @@ import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
+import 'item_media.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
+import 'photo_viewer.dart';
 
 /// Страница въезжает справа, как в макете.
 Route<void> itemRoute(String id) => PageRouteBuilder(
@@ -239,8 +244,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   Future<void> _openLink(String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = L.of(context).linkOpenFailed;
     final uri = Uri.tryParse(url);
-    if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final opened = uri != null && await launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) => false);
+    if (!opened) showNote(messenger, message, overDock: true);
   }
 
   /// Текст вещи как есть, а если его нет — заголовок.
@@ -299,8 +307,19 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final item = full.item;
     final folder = folders.where((one) => one.id == item.folderId).firstOrNull;
     final images = full.attachments.where((file) => file.mime.startsWith('image/')).toList();
-    final files = full.attachments.where((file) => !file.mime.startsWith('image/')).toList();
-    final blocks = parseNoteBlocks(item.body, skipTitle: item.title);
+    final url = item.url;
+    // ссылка и ролик по адресу живут превью; свой ролик — файлом с обложкой и «Смотреть»
+    final linkLike = url != null && (item.kind == ItemKind.link || item.kind == ItemKind.video);
+    final videoLink = linkLike && item.kind == ItemKind.video;
+    final videoFile = !linkLike && item.kind == ItemKind.video ? full.attachments.where((file) => file.mime.startsWith('video/')).firstOrNull : null;
+    final voices = full.attachments.where((file) => file.mime.startsWith('audio/')).toList();
+    final files = full.attachments.where((file) => !file.mime.startsWith('image/') && !file.mime.startsWith('audio/') && file != videoFile).toList();
+    // адрес уже стоит в превью: строкой в тексте он не повторяется
+    final shownBody = linkLike ? item.body.split('\n').where((line) => line.trim() != url).join('\n') : item.body;
+    final blocks = parseNoteBlocks(shownBody, skipTitle: item.title);
+    final source = url == null ? null : sourceName(Uri.tryParse(url)?.host ?? '');
+    final duration = item.durationSeconds == null ? null : Duration(seconds: item.durationSeconds!);
+    Future<void> openMain() => videoFile != null ? openLocalFile(context, p.join(filesRoot.path, videoFile.path), videoFile.mime) : _openLink(url!);
     final titleStyle = text.headlineSmall!.copyWith(fontSize: 25, height: 1.2, letterSpacing: -0.4);
     final bodyStyle = text.bodyLarge!.copyWith(fontSize: 16, height: 1.5, color: Tokens.onSurface);
     final bottom = MediaQuery.paddingOf(context).bottom;
@@ -339,18 +358,17 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
                       padding: EdgeInsets.fromLTRB(12, 6, 12, _dockHeight + _dockGap * 2 + bottom),
                       children: [
-                        if (cover != null) ...[
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(Radii.card),
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxHeight: 420),
-                              child: Image.file(
-                                File(p.join(filesRoot.path, cover.path)),
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => const SizedBox(height: 160, child: ColoredBox(color: Tokens.containerHigh)),
-                              ),
-                            ),
+                        if (videoLink || videoFile != null) ...[
+                          VideoCover(coverPath: item.coverPath ?? cover?.path, filesRoot: filesRoot, onPlay: openMain, source: videoLink ? source : null, duration: duration),
+                          const SizedBox(height: 18),
+                        ] else if (linkLike) ...[
+                          LinkPreviewCard(item: item, filesRoot: filesRoot, onOpen: openMain),
+                          const SizedBox(height: 18),
+                        ] else if (cover != null) ...[
+                          _PhotoCover(
+                            image: cover,
+                            filesRoot: filesRoot,
+                            onOpen: () => PhotoViewer.open(context, [for (final image in images) p.join(filesRoot.path, image.path)], _cover.clamp(0, images.length - 1)),
                           ),
                           if (images.length > 1) ...[
                             const SizedBox(height: 8),
@@ -371,8 +389,13 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   style: titleStyle,
                                   decoration: _bare(l.itemTitleHint),
                                 )
-                              : GestureDetector(onTap: () => _startEditing(item), child: Text(item.title, style: titleStyle)),
+                              : GestureDetector(onTap: () => _startEditing(item), child: Text(item.title, style: linkLike ? titleStyle.copyWith(fontSize: 22) : titleStyle)),
                         ),
+                        if (videoLink && item.previewAuthor != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+                            child: Text(item.previewAuthor!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
+                          ),
                         const SizedBox(height: 14),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -398,6 +421,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             now: now,
                             onTap: () => _reminderMenu(item.reminderAt!),
                             onChange: () => _pickReminder(item.reminderAt),
+                          ),
+                        ],
+                        for (final voice in voices) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
+                            decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
+                            child: VoicePlayer(path: p.join(filesRoot.path, voice.path), seedId: voice.id, large: true),
                           ),
                         ],
                         if (_editing || blocks.isNotEmpty) ...[
@@ -426,10 +457,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                         ],
                         if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
                         if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
-                        if (files.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          for (final file in files) _FileRow(file: file),
-                        ],
+                        for (final file in files) FileTile(file: file, filesRoot: filesRoot),
                       ],
                     ),
                     Positioned(
@@ -463,12 +491,16 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     onTap: () => item.reminderAt != null ? _reminderMenu(item.reminderAt!) : _pickReminder(null),
                                   ),
                                   _DockButton(icon: 'tag', tooltip: l.tagAdd, onTap: _addTag),
-                                  _DockButton(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
+                                  // у ссылки главное — открыть, поэтому дописать мысль уходит в панель
+                                  if (linkLike)
+                                    _DockButton(icon: 'edit_note', tooltip: l.itemAppend, onTap: () => _startEditing(item, append: true))
+                                  else
+                                    _DockButton(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
                                   _DockButton(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
                                 ],
-                                accentIcon: 'add',
-                                accentLabel: l.itemAppend,
-                                onAccent: () => _startEditing(item, append: true),
+                                accentIcon: videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add'),
+                                accentLabel: videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend),
+                                onAccent: linkLike || videoFile != null ? openMain : () => _startEditing(item, append: true),
                               ),
                       ),
                     ),
@@ -716,6 +748,43 @@ class _ReminderBlock extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Снимок на странице вещи в своих пропорциях: обрезаются только очень вытянутые.
+/// Касание открывает его во весь экран.
+class _PhotoCover extends StatelessWidget {
+  const _PhotoCover({required this.image, required this.filesRoot, required this.onOpen});
+
+  final Attachment image;
+  final Directory filesRoot;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final path = p.join(filesRoot.path, image.path);
+    final width = image.width;
+    final height = image.height;
+    final ratio = width != null && height != null && width > 0 ? height / width : 0.75;
+    return GestureDetector(
+      onTap: onOpen,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Radii.card),
+        child: AspectRatio(
+          // высота к ширине от 9:16 до 5:4: длинный скриншот не съедает весь экран
+          aspectRatio: 1 / ratio.clamp(0.5625, 1.25),
+          child: Hero(
+            tag: photoHeroTag(path),
+            child: Image.file(
+              File(path),
+              fit: BoxFit.cover,
+              cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
+              errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+            ),
           ),
         ),
       ),
@@ -984,46 +1053,3 @@ class _DeepBlock extends StatelessWidget {
   }
 }
 
-class _FileRow extends StatelessWidget {
-  const _FileRow({required this.file});
-
-  final Attachment file;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final icon = switch (file.mime.split('/').first) {
-      'video' => 'movie',
-      'audio' => 'graphic_eq',
-      'text' => 'notes',
-      _ => 'description',
-    };
-    final name = p.basename(file.path).replaceFirst(RegExp(r'^\d+_'), '');
-    final size = file.size < 1024 * 1024 ? '${(file.size / 1024).ceil()} KB' : '${(file.size / 1024 / 1024).toStringAsFixed(1)} MB';
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(12)),
-            child: Icon(symbolIcon(icon), color: Tokens.onSurface),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall),
-                Text(size, style: text.bodySmall!.copyWith(color: Tokens.muted)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

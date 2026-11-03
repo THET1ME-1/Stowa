@@ -5,5 +5,15 @@
   "itemShare": "Compartir",
   "itemAutosave": "Se guarda solo",
   "itemPhotos": "{count, plural, one{{count} foto} other{{count} fotos}}",
-  "tagAddShort": "Etiqueta"
+  "tagAddShort": "Etiqueta",
+  "itemOpenLink": "Abrir",
+  "itemWatch": "Ver",
+  "fileOpenFailed": "Ninguna app puede abrir este archivo",
+  "linkOpenFailed": "No se pudo abrir el enlace",
+  "photoCounter": "{index} de {count}",
+  "photoToGallery": "A la galería",
+  "photoSaved": "Guardado en la galería",
+  "photoSaveFailed": "No se guardó: sin acceso a la galería",
+  "photoClose": "Cerrar",
+  "voiceSpeed": "Velocidad"
 }

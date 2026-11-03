@@ -1,15 +1,15 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/format/duration_format.dart';
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/pressable.dart';
+import '../../core/widgets/voice_player.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
@@ -140,6 +140,21 @@ class _VideoCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(host, style: text.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: Tokens.onAccent)),
                           ],
+                        ),
+                      ),
+                    ),
+                  if (card.durationSeconds != null)
+                    Positioned(
+                      left: 12,
+                      bottom: 12,
+                      child: Container(
+                        height: 26,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: Tokens.background.withValues(alpha: 0.78), borderRadius: BorderRadius.circular(13)),
+                        child: Text(
+                          formatClock(Duration(seconds: card.durationSeconds!)),
+                          style: text.labelSmall!.copyWith(fontSize: 12.5, fontWeight: FontWeight.w700, color: Tokens.onSurface),
                         ),
                       ),
                     ),
@@ -322,7 +337,7 @@ class _RowCard extends StatelessWidget {
 }
 
 /// Голосовое: кнопка, волна с бегущим прогрессом, длина и расшифровка.
-class _VoiceCard extends StatefulWidget {
+class _VoiceCard extends StatelessWidget {
   const _VoiceCard({required this.card, required this.filesRoot, required this.onTap});
 
   final ItemCard card;
@@ -330,65 +345,13 @@ class _VoiceCard extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_VoiceCard> createState() => _VoiceCardState();
-}
-
-class _VoiceCardState extends State<_VoiceCard> {
-  AudioPlayer? _player;
-  Duration? _length;
-  double _progress = 0;
-  bool _playing = false;
-  final _subscriptions = <StreamSubscription<Object?>>[];
-
-  @override
-  void dispose() {
-    for (final subscription in _subscriptions) {
-      subscription.cancel();
-    }
-    _player?.dispose();
-    super.dispose();
-  }
-
-  Future<void> _toggle() async {
-    final path = widget.card.filePath;
-    if (path == null) return;
-    var player = _player;
-    if (player == null) {
-      player = _player = AudioPlayer();
-      _subscriptions
-        ..add(
-          player.playerStateStream.listen((state) {
-            if (!mounted) return;
-            final ended = state.processingState == ProcessingState.completed;
-            setState(() => _playing = state.playing && !ended);
-            if (ended) {
-              player!.pause();
-              player.seek(Duration.zero);
-            }
-          }),
-        )
-        ..add(
-          player.positionStream.listen((position) {
-            final length = _length?.inMilliseconds ?? 0;
-            if (mounted && length > 0) setState(() => _progress = (position.inMilliseconds / length).clamp(0.0, 1.0));
-          }),
-        );
-      final length = await player.setFilePath(p.join(widget.filesRoot.path, path));
-      if (mounted) setState(() => _length = length);
-    }
-    _playing ? await player.pause() : await player.play();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    final transcript = widget.card.transcript;
-    final length = _length;
-    // волна одна и та же у одного голосового: высоты из его id
-    final seed = widget.card.id.codeUnits.fold(7, (sum, unit) => (sum * 31 + unit) & 0x7fffffff);
+    final transcript = card.transcript;
+    final path = card.filePath;
     return Pressable(
-      onTap: widget.onTap,
+      onTap: onTap,
       pressedScale: 0.98,
       child: Container(
         padding: const EdgeInsets.all(Space.tile),
@@ -396,51 +359,7 @@ class _VoiceCardState extends State<_VoiceCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Tooltip(
-                  message: _playing ? l.voicePause : l.voicePlay,
-                  child: Pressable(
-                    pressedScale: 0.9,
-                    onTap: _toggle,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
-                      child: Icon(symbolIcon(_playing ? 'pause' : 'play_arrow', filled: true), color: Tokens.onAccent),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SizedBox(
-                    height: 32,
-                    child: Row(
-                      children: [
-                        for (var bar = 0; bar < 32; bar++)
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 1),
-                              child: Container(
-                                height: 6 + ((seed >> (bar % 24)) & 7) * 3.0 + (bar % 5) * 1.5,
-                                decoration: BoxDecoration(
-                                  color: bar / 32 < _progress ? Tokens.accent : Tokens.onSurfaceVariant.withValues(alpha: 0.75),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  length == null ? '' : '${length.inMinutes}:${(length.inSeconds % 60).toString().padLeft(2, '0')}',
-                  style: text.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted),
-                ),
-              ],
-            ),
+            if (path != null) VoicePlayer(path: p.join(filesRoot.path, path), seedId: card.id),
             const SizedBox(height: 10),
             if (transcript != null && transcript.isNotEmpty) ...[
               Text(l.voiceTranscribed, style: text.labelSmall!.copyWith(fontSize: 12, color: Tokens.muted)),

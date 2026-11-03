@@ -5,5 +5,15 @@
   "itemShare": "Поділитися",
   "itemAutosave": "Зберігається саме",
   "itemPhotos": "{count, plural, one{{count} фото} few{{count} фото} many{{count} фото} other{{count} фото}}",
-  "tagAddShort": "Тег"
+  "tagAddShort": "Тег",
+  "itemOpenLink": "Відкрити",
+  "itemWatch": "Дивитися",
+  "fileOpenFailed": "Немає чим відкрити такий файл",
+  "linkOpenFailed": "Не вдалося відкрити посилання",
+  "photoCounter": "{index} з {count}",
+  "photoToGallery": "У галерею",
+  "photoSaved": "Зберіг у галерею",
+  "photoSaveFailed": "Не вдалося зберегти: немає доступу до галереї",
+  "photoClose": "Закрити",
+  "voiceSpeed": "Швидкість"
 }

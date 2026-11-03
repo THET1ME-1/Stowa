@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/folder_guess.dart';
 import '../services/capture_service.dart';
+import '../services/link_preview_service.dart';
 import '../services/reminder_service.dart';
 import 'db/database.dart';
 import 'repositories/folders_repository.dart';
@@ -30,6 +31,16 @@ final captureServiceProvider = Provider(
     clock: ref.watch(clockProvider),
   ),
 );
+
+/// Сеть для превью. Тесты подставляют свою, без интернета.
+final linkFetchProvider = Provider<Fetch>((ref) => httpFetch);
+
+final linkPreviewServiceProvider = Provider(
+  (ref) => LinkPreviewService(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider), clock: ref.watch(clockProvider), fetch: ref.watch(linkFetchProvider)),
+);
+
+/// Ссылки и ролики без превью: их разбирает фоновая очередь главной.
+final pendingPreviewsProvider = StreamProvider((ref) => watchPendingPreviews(ref.watch(databaseProvider)));
 
 final recentItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchRecent());
 

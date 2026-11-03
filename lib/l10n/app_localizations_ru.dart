@@ -900,4 +900,37 @@ class LRu extends L {
 
   @override
   String get tagAddShort => 'Тег';
+
+  @override
+  String get itemOpenLink => 'Открыть';
+
+  @override
+  String get itemWatch => 'Смотреть';
+
+  @override
+  String get fileOpenFailed => 'Нечем открыть такой файл';
+
+  @override
+  String get linkOpenFailed => 'Не получилось открыть ссылку';
+
+  @override
+  String photoCounter(Object count, Object index) {
+    return '$index из $count';
+  }
+
+  @override
+  String get photoToGallery => 'В галерею';
+
+  @override
+  String get photoSaved => 'Сохранил в галерею';
+
+  @override
+  String get photoSaveFailed =>
+      'Не получилось сохранить: нет доступа к галерее';
+
+  @override
+  String get photoClose => 'Закрыть';
+
+  @override
+  String get voiceSpeed => 'Скорость';
 }

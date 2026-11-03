@@ -898,4 +898,36 @@ class LPl extends L {
 
   @override
   String get tagAddShort => 'Tag';
+
+  @override
+  String get itemOpenLink => 'Otwórz';
+
+  @override
+  String get itemWatch => 'Oglądaj';
+
+  @override
+  String get fileOpenFailed => 'Brak aplikacji do otwarcia pliku';
+
+  @override
+  String get linkOpenFailed => 'Nie udało się otworzyć linku';
+
+  @override
+  String photoCounter(Object count, Object index) {
+    return '$index z $count';
+  }
+
+  @override
+  String get photoToGallery => 'Do galerii';
+
+  @override
+  String get photoSaved => 'Zapisano w galerii';
+
+  @override
+  String get photoSaveFailed => 'Nie zapisano: brak dostępu do galerii';
+
+  @override
+  String get photoClose => 'Zamknij';
+
+  @override
+  String get voiceSpeed => 'Prędkość';
 }

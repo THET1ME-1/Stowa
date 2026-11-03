@@ -256,5 +256,15 @@
   "itemShare": "Поделиться",
   "itemAutosave": "Сохраняется само",
   "itemPhotos": "{count, plural, one{{count} фото} few{{count} фото} many{{count} фото} other{{count} фото}}",
-  "tagAddShort": "Тег"
+  "tagAddShort": "Тег",
+  "itemOpenLink": "Открыть",
+  "itemWatch": "Смотреть",
+  "fileOpenFailed": "Нечем открыть такой файл",
+  "linkOpenFailed": "Не получилось открыть ссылку",
+  "photoCounter": "{index} из {count}",
+  "photoToGallery": "В галерею",
+  "photoSaved": "Сохранил в галерею",
+  "photoSaveFailed": "Не получилось сохранить: нет доступа к галерее",
+  "photoClose": "Закрыть",
+  "voiceSpeed": "Скорость"
 }

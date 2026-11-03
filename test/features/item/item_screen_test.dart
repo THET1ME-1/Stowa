@@ -4,7 +4,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/core/widgets/voice_player.dart';
+import 'package:stowa/features/item/item_media.dart';
 import 'package:stowa/features/item/item_screen.dart';
+import 'package:stowa/features/item/photo_viewer.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -205,5 +208,91 @@ void main() {
     await tester.tap(find.byTooltip('Править'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  group('вещи разных видов', () {
+    Future<void> show(WidgetTester tester, ItemsCompanion item, {List<AttachmentsCompanion> files = const []}) async {
+      await world.db.into(world.db.items).insert(item);
+      for (final file in files) {
+        await world.db.into(world.db.attachments).insert(file);
+      }
+      addTearDown(() => tester.pumpWidget(const SizedBox()));
+      await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('ссылка: превью с сайтом и описанием, адрес не повторяется текстом, главная кнопка «Открыть»', (tester) async {
+      await show(
+        tester,
+        ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.link,
+          title: 'Сборщик мусора в Dart',
+          body: const Value('https://habr.com/ru/articles/1/'),
+          url: const Value('https://habr.com/ru/articles/1/'),
+          previewSite: const Value('Хабр'),
+          previewText: const Value('Разбираем поколения'),
+          previewAt: Value(world.now),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ),
+      );
+      expect(find.byType(LinkPreviewCard), findsOneWidget);
+      expect(find.text('Хабр'), findsOneWidget);
+      expect(find.text('Разбираем поколения'), findsOneWidget);
+      expect(find.text('Открыть'), findsOneWidget);
+      expect(find.byKey(const ValueKey('item-body-card')), findsNothing);
+    });
+
+    testWidgets('ролик по ссылке: обложка с сервисом и длиной, автор, «Смотреть»', (tester) async {
+      await show(
+        tester,
+        ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.video,
+          title: 'Never Gonna Give You Up',
+          url: const Value('https://youtu.be/dQw4w9WgXcQ'),
+          previewAuthor: const Value('Rick Astley'),
+          durationSeconds: const Value(213),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ),
+      );
+      expect(find.byType(VideoCover), findsOneWidget);
+      expect(find.text('YouTube'), findsOneWidget);
+      expect(find.text('3:33'), findsOneWidget);
+      expect(find.text('Rick Astley'), findsOneWidget);
+      expect(find.text('Смотреть'), findsOneWidget);
+    });
+
+    testWidgets('фото: касание открывает просмотр во весь экран', (tester) async {
+      await show(
+        tester,
+        ItemsCompanion.insert(id: 'a', kind: ItemKind.image, title: 'Лампа', createdAt: world.now, updatedAt: world.now),
+        files: [AttachmentsCompanion.insert(id: 'f1', itemId: 'a', path: 'attachments/a/0_lampa.jpg', mime: 'image/jpeg', size: 1000, width: const Value(1200), height: const Value(1600))],
+      );
+      // центр высокого фото в тестовом окне уходит под плавающую панель
+      await tester.tapAt(tester.getTopLeft(find.byType(Hero).first) + const Offset(40, 40));
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewer), findsOneWidget);
+      expect(find.text('В галерею'), findsOneWidget);
+      await tester.tap(find.byTooltip('Закрыть'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewer), findsNothing);
+    });
+
+    testWidgets('файл строкой с именем и весом, голосовое — плеером', (tester) async {
+      await show(
+        tester,
+        ItemsCompanion.insert(id: 'a', kind: ItemKind.voice, title: 'Договор с хозяйкой', createdAt: world.now, updatedAt: world.now),
+        files: [
+          AttachmentsCompanion.insert(id: 'v', itemId: 'a', path: 'attachments/a/0_voice.m4a', mime: 'audio/mp4', size: 40000),
+          AttachmentsCompanion.insert(id: 'd', itemId: 'a', path: 'attachments/a/1_Договор.pdf', mime: 'application/pdf', size: 1258291, position: const Value(1)),
+        ],
+      );
+      expect(find.byType(VoicePlayer), findsOneWidget);
+      expect(find.text('Договор.pdf'), findsOneWidget);
+      expect(find.text('PDF · 1.2 MB'), findsOneWidget);
+    });
   });
 }

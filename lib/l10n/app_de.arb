@@ -5,5 +5,15 @@
   "itemShare": "Teilen",
   "itemAutosave": "Speichert automatisch",
   "itemPhotos": "{count, plural, one{{count} Foto} other{{count} Fotos}}",
-  "tagAddShort": "Tag"
+  "tagAddShort": "Tag",
+  "itemOpenLink": "Öffnen",
+  "itemWatch": "Ansehen",
+  "fileOpenFailed": "Keine App kann diese Datei öffnen",
+  "linkOpenFailed": "Link ließ sich nicht öffnen",
+  "photoCounter": "{index} von {count}",
+  "photoToGallery": "In Galerie",
+  "photoSaved": "In Galerie gespeichert",
+  "photoSaveFailed": "Nicht gespeichert: kein Zugriff auf die Galerie",
+  "photoClose": "Schließen",
+  "voiceSpeed": "Tempo"
 }

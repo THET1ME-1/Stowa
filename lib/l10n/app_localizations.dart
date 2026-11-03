@@ -1648,6 +1648,66 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Tag'**
   String get tagAddShort;
+
+  /// Главная кнопка у ссылки: открыть страницу
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get itemOpenLink;
+
+  /// Главная кнопка у ролика
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get itemWatch;
+
+  /// Плашка, если в системе нет приложения для файла
+  ///
+  /// In en, this message translates to:
+  /// **'No app can open this file'**
+  String get fileOpenFailed;
+
+  /// Плашка, если ссылка не открылась
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link'**
+  String get linkOpenFailed;
+
+  /// Номер фото в просмотре
+  ///
+  /// In en, this message translates to:
+  /// **'{index} of {count}'**
+  String photoCounter(Object count, Object index);
+
+  /// Сохранить фото в галерею телефона
+  ///
+  /// In en, this message translates to:
+  /// **'To gallery'**
+  String get photoToGallery;
+
+  /// Плашка после сохранения фото
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to gallery'**
+  String get photoSaved;
+
+  /// Плашка, если галерея не дала сохранить
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: no access to the gallery'**
+  String get photoSaveFailed;
+
+  /// Закрыть просмотр фото
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get photoClose;
+
+  /// Подсказка кнопки скорости голосового
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get voiceSpeed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

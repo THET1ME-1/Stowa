@@ -25,3 +25,18 @@ void showUndo(
       ),
     );
 }
+
+/// Короткое сообщение без кнопки. Прежняя плашка снимается, как у [showUndo].
+/// [overDock] — над плавающей панелью внизу экрана.
+void showNote(ScaffoldMessengerState messenger, String message, {bool overDock = false}) {
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        persist: false,
+        duration: const Duration(seconds: 3),
+        margin: overDock ? const EdgeInsets.fromLTRB(16, 0, 16, 112) : null,
+        content: Text(message),
+      ),
+    );
+}

@@ -21,6 +21,7 @@ dependencies:
   intl: ^0.20.3
   just_audio: ^0.10.6
   mime: ^2.1.0
+  open_filex: ^5.0.0
   path: ^1.9.1
   path_provider: ^2.1.6
   photo_manager: ^3.12.0
@@ -39,6 +40,7 @@ dev_dependencies:
   drift_dev: ^2.35.2
   build_runner: ^2.17.1
   material_symbols_icons: ^4.2960.0
+  sqlite3: ^3.8.0
 
 flutter:
   uses-material-design: true

@@ -21,6 +21,8 @@ class TestWorld {
         databaseProvider.overrideWithValue(db),
         filesRootProvider.overrideWithValue(files),
         clockProvider.overrideWithValue(() => now),
+        // превью ссылок в тестах без интернета: сеть «молчит», вещь остаётся как есть
+        linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
       ];
 
   Widget app({Locale locale = const Locale('ru')}) => ProviderScope(overrides: overrides, child: StowaApp(locale: locale));

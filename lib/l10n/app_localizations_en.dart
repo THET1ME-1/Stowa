@@ -896,4 +896,36 @@ class LEn extends L {
 
   @override
   String get tagAddShort => 'Tag';
+
+  @override
+  String get itemOpenLink => 'Open';
+
+  @override
+  String get itemWatch => 'Watch';
+
+  @override
+  String get fileOpenFailed => 'No app can open this file';
+
+  @override
+  String get linkOpenFailed => 'Couldn\'t open the link';
+
+  @override
+  String photoCounter(Object count, Object index) {
+    return '$index of $count';
+  }
+
+  @override
+  String get photoToGallery => 'To gallery';
+
+  @override
+  String get photoSaved => 'Saved to gallery';
+
+  @override
+  String get photoSaveFailed => 'Couldn\'t save: no access to the gallery';
+
+  @override
+  String get photoClose => 'Close';
+
+  @override
+  String get voiceSpeed => 'Speed';
 }

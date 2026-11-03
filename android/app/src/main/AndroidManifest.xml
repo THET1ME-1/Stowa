@@ -1,4 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- open_filex просит чужое аудио, а Stowa открывает только свои файлы из папки приложения -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
+    <!-- превью ссылок и роликов; в отладочной сборке разрешение есть само, в релизе без этой строки сети нет -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- голосовое из строки -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- галерея прямо над строкой и подсказка свежего скриншота -->

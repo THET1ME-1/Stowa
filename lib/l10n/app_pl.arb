@@ -5,5 +5,15 @@
   "itemShare": "Udostępnij",
   "itemAutosave": "Zapisuje się samo",
   "itemPhotos": "{count, plural, one{{count} zdjęcie} few{{count} zdjęcia} many{{count} zdjęć} other{{count} zdjęcia}}",
-  "tagAddShort": "Tag"
+  "tagAddShort": "Tag",
+  "itemOpenLink": "Otwórz",
+  "itemWatch": "Oglądaj",
+  "fileOpenFailed": "Brak aplikacji do otwarcia pliku",
+  "linkOpenFailed": "Nie udało się otworzyć linku",
+  "photoCounter": "{index} z {count}",
+  "photoToGallery": "Do galerii",
+  "photoSaved": "Zapisano w galerii",
+  "photoSaveFailed": "Nie zapisano: brak dostępu do galerii",
+  "photoClose": "Zamknij",
+  "voiceSpeed": "Prędkość"
 }

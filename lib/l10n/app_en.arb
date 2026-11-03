@@ -1191,5 +1191,45 @@
   "tagAddShort": "Tag",
   "@tagAddShort": {
     "description": "Короткая подпись на пилюле «добавить тег»"
+  },
+  "itemOpenLink": "Open",
+  "@itemOpenLink": {
+    "description": "Главная кнопка у ссылки: открыть страницу"
+  },
+  "itemWatch": "Watch",
+  "@itemWatch": {
+    "description": "Главная кнопка у ролика"
+  },
+  "fileOpenFailed": "No app can open this file",
+  "@fileOpenFailed": {
+    "description": "Плашка, если в системе нет приложения для файла"
+  },
+  "linkOpenFailed": "Couldn't open the link",
+  "@linkOpenFailed": {
+    "description": "Плашка, если ссылка не открылась"
+  },
+  "photoCounter": "{index} of {count}",
+  "@photoCounter": {
+    "description": "Номер фото в просмотре"
+  },
+  "photoToGallery": "To gallery",
+  "@photoToGallery": {
+    "description": "Сохранить фото в галерею телефона"
+  },
+  "photoSaved": "Saved to gallery",
+  "@photoSaved": {
+    "description": "Плашка после сохранения фото"
+  },
+  "photoSaveFailed": "Couldn't save: no access to the gallery",
+  "@photoSaveFailed": {
+    "description": "Плашка, если галерея не дала сохранить"
+  },
+  "photoClose": "Close",
+  "@photoClose": {
+    "description": "Закрыть просмотр фото"
+  },
+  "voiceSpeed": "Speed",
+  "@voiceSpeed": {
+    "description": "Подсказка кнопки скорости голосового"
   }
 }

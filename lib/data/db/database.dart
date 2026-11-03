@@ -31,13 +31,21 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) async {
       await migrator.createAll();
       await _createSearch();
+    },
+    onUpgrade: (migrator, from, to) async {
+      // 2: превью ссылок и роликов
+      if (from < 2) {
+        for (final column in [items.coverPath, items.previewText, items.previewSite, items.previewAuthor, items.durationSeconds, items.previewAt]) {
+          await migrator.addColumn(items, column);
+        }
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

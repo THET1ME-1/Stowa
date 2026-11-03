@@ -38,6 +38,7 @@ class ItemCard {
     this.fileMime,
     this.fileSize = 0,
     this.transcript,
+    this.durationSeconds,
   });
 
   final String id;
@@ -64,6 +65,9 @@ class ItemCard {
   final String? fileMime;
   final int fileSize;
   final String? transcript;
+
+  /// Длина ролика по ссылке, если страница её назвала.
+  final int? durationSeconds;
 }
 
 /// Найденная вещь: карточка и что в ней совпало.
@@ -77,9 +81,10 @@ class SearchResult {
 // карточка целиком: вещь, её папка, первая картинка и теги одним запросом
 const _cardSelect = '''
 SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon,
-  (SELECT attachments.path FROM attachments
+  -- своя картинка главнее, у ссылки и ролика без неё — обложка превью
+  coalesce((SELECT attachments.path FROM attachments
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%'
-    ORDER BY attachments.position LIMIT 1) AS thumb_path,
+    ORDER BY attachments.position LIMIT 1), items.cover_path) AS thumb_path,
   (SELECT CAST(attachments.height AS REAL) / attachments.width FROM attachments
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%' AND attachments.width > 0
     ORDER BY attachments.position LIMIT 1) AS thumb_ratio,
@@ -335,6 +340,7 @@ WHERE items.deleted_at IS NULL''';
       reminderAt: item.reminderAt,
       thumbPath: row.readNullable<String>('thumb_path'),
       thumbRatio: row.readNullable<double>('thumb_ratio'),
+      durationSeconds: item.durationSeconds,
     );
   }
 }

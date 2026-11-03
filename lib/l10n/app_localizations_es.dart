@@ -896,4 +896,36 @@ class LEs extends L {
 
   @override
   String get tagAddShort => 'Etiqueta';
+
+  @override
+  String get itemOpenLink => 'Abrir';
+
+  @override
+  String get itemWatch => 'Ver';
+
+  @override
+  String get fileOpenFailed => 'Ninguna app puede abrir este archivo';
+
+  @override
+  String get linkOpenFailed => 'No se pudo abrir el enlace';
+
+  @override
+  String photoCounter(Object count, Object index) {
+    return '$index de $count';
+  }
+
+  @override
+  String get photoToGallery => 'A la galería';
+
+  @override
+  String get photoSaved => 'Guardado en la galería';
+
+  @override
+  String get photoSaveFailed => 'No se guardó: sin acceso a la galería';
+
+  @override
+  String get photoClose => 'Cerrar';
+
+  @override
+  String get voiceSpeed => 'Velocidad';
 }

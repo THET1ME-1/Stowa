@@ -896,4 +896,37 @@ class LDe extends L {
 
   @override
   String get tagAddShort => 'Tag';
+
+  @override
+  String get itemOpenLink => 'Öffnen';
+
+  @override
+  String get itemWatch => 'Ansehen';
+
+  @override
+  String get fileOpenFailed => 'Keine App kann diese Datei öffnen';
+
+  @override
+  String get linkOpenFailed => 'Link ließ sich nicht öffnen';
+
+  @override
+  String photoCounter(Object count, Object index) {
+    return '$index von $count';
+  }
+
+  @override
+  String get photoToGallery => 'In Galerie';
+
+  @override
+  String get photoSaved => 'In Galerie gespeichert';
+
+  @override
+  String get photoSaveFailed =>
+      'Nicht gespeichert: kein Zugriff auf die Galerie';
+
+  @override
+  String get photoClose => 'Schließen';
+
+  @override
+  String get voiceSpeed => 'Tempo';
 }

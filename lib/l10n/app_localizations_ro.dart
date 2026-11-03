@@ -897,4 +897,36 @@ class LRo extends L {
 
   @override
   String get tagAddShort => 'Etichetă';
+
+  @override
+  String get itemOpenLink => 'Deschide';
+
+  @override
+  String get itemWatch => 'Vizionează';
+
+  @override
+  String get fileOpenFailed => 'Nicio aplicație nu poate deschide fișierul';
+
+  @override
+  String get linkOpenFailed => 'Linkul nu s-a deschis';
+
+  @override
+  String photoCounter(Object count, Object index) {
+    return '$index din $count';
+  }
+
+  @override
+  String get photoToGallery => 'În galerie';
+
+  @override
+  String get photoSaved => 'Salvat în galerie';
+
+  @override
+  String get photoSaveFailed => 'Nu s-a salvat: fără acces la galerie';
+
+  @override
+  String get photoClose => 'Închide';
+
+  @override
+  String get voiceSpeed => 'Viteză';
 }
