@@ -130,19 +130,31 @@ class AiWorker {
       var sorted = 0;
       var failed = 0;
       for (final job in jobs) {
-        final item = await (_db.select(_db.items)..where((t) => t.id.equals(job.itemId))).getSingleOrNull();
-        if (item == null || item.deletedAt != null) {
+        final found = await (_db.select(_db.items)..where((t) => t.id.equals(job.itemId))).getSingleOrNull();
+        if (found == null || found.deletedAt != null) {
           await _dropJob(job.itemId);
           continue;
         }
+        var item = found;
         if (await _notReady(item)) {
-          await (_db.update(_db.aiJobs)..where((t) => t.itemId.equals(item.id))).write(AiJobsCompanion(nextTryAt: Value(_clock().add(const Duration(seconds: 20)))));
+          await (_db.update(_db.aiJobs)..where((t) => t.itemId.equals(job.itemId))).write(AiJobsCompanion(nextTryAt: Value(_clock().add(const Duration(seconds: 20)))));
           continue;
         }
-        final context = await _context(item);
-        final messages = buildSortMessages(context);
+        final speechModel = _settings.ai.speechModel;
+        final voice = item.kind == ItemKind.voice && item.transcript == null;
+        // голосовое без слов, уже разложенное: модели нечего описать, а расшифровать нечем
+        if (voice && speechModel == null && (item.folderId != null || item.sortedBy == SortedBy.user)) {
+          await _dropJob(item.id);
+          continue;
+        }
+        var messages = const <Map<String, Object?>>[];
+        SortContext context;
         String content;
         try {
+          // сперва слова голосового: по ним модель и разложит, и найдёт потом поиск
+          if (voice && speechModel != null) item = await _transcribe(client, item, speechModel);
+          context = await _context(item);
+          messages = buildSortMessages(context);
           content = await client.chat(model: _settings.ai.sortModel, messages: messages, responseFormat: sortResponseFormat());
           await _log(item.id, messages, content, null);
         } on AiFailure catch (failure) {
@@ -345,13 +357,26 @@ class AiWorker {
     if (folderName != null) _sorted.add(AiSorted(itemId: asked.id, folderId: folderId!, folderName: folderName!));
   }
 
+  /// Расшифровка голосового моделью речи. Текст ложится в transcript и сразу ищется.
+  Future<Item> _transcribe(AiClient client, Item item, String model) async {
+    final audio = await (_db.select(_db.attachments)
+          ..where((t) => t.itemId.equals(item.id) & t.mime.like('audio/%'))
+          ..limit(1))
+        .getSingleOrNull();
+    final root = _filesRoot;
+    if (audio == null || root == null) return item;
+    final text = (await client.transcribe(model: model, audioPath: p.join(root.path, audio.path))).trim();
+    await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(ItemsCompanion(transcript: Value(text)));
+    return item.copyWith(transcript: Value(text));
+  }
+
   /// Ссылка ещё ждёт превью, фото ещё копируется: подождать, иначе модель увидит голый адрес или имя файла.
   Future<bool> _notReady(Item item) async {
     if (_clock().difference(item.createdAt) > _readyWait) return false;
     if (item.url != null && item.previewAt == null) return true;
-    if (item.kind != ItemKind.image) return false;
-    final pictures = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(item.id))).get();
-    return pictures.isEmpty;
+    if (item.kind != ItemKind.image && item.kind != ItemKind.voice) return false;
+    final copied = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(item.id))).get();
+    return copied.isEmpty;
   }
 
   Future<String> _ensureTag(String rawName, String? icon) async {

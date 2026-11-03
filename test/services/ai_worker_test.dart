@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
@@ -189,6 +190,61 @@ void main() {
     await subscription.cancel();
     expect(events.single.itemId, id);
     expect(events.single.folderName, 'Еда');
+  });
+
+  group('голосовые', () {
+    late Directory files;
+    setUp(() => files = Directory.systemTemp.createTempSync('stowa_voice'));
+    tearDown(() => files.deleteSync(recursive: true));
+
+    Future<String> addVoice({String? folder, SortedBy by = SortedBy.none}) async {
+      final id = await add('', folder: folder, by: by);
+      await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(kind: Value(ItemKind.voice)));
+      File('${files.path}/voice.m4a').writeAsBytesSync([1, 2, 3]);
+      await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a$id', itemId: id, path: 'voice.m4a', mime: 'audio/mp4', size: 3));
+      return id;
+    }
+
+    AiWorker voiceWorker(List<String> paths) => AiWorker(
+      db,
+      settings: settings,
+      http: MockClient((request) async {
+        calls++;
+        paths.add(request.url.path);
+        if (request.url.path.endsWith('/audio/transcriptions')) {
+          return http.Response(jsonEncode({'text': 'купить рассаду томатов'}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+        }
+        return reply(jsonDecode(request.body) as Map<String, Object?>);
+      }),
+      clock: () => now,
+      timeZone: 'Europe/Chisinau',
+      filesRoot: files,
+    );
+
+    test('с моделью речи голосовое сперва расшифровывается, потом раскладывается по тексту', () async {
+      await settings.setSpeechModel('openai/whisper-1');
+      String? sent;
+      reply = (body) {
+        sent = jsonEncode(body);
+        return answer({'folder_id': 'food'});
+      };
+      final id = await addVoice();
+      final paths = <String>[];
+      await voiceWorker(paths).runOnce();
+      expect(paths.first, endsWith('/audio/transcriptions'));
+      final saved = await item(id);
+      expect(saved.transcript, 'купить рассаду томатов');
+      expect(saved.folderId, 'food');
+      expect(sent, contains('рассаду томатов'));
+    });
+
+    test('без модели речи разложенное голосовое не тратит запрос', () async {
+      reply = (_) => answer({});
+      await addVoice(folder: 'mine', by: SortedBy.similar);
+      await voiceWorker([]).runOnce();
+      expect(calls, 0);
+      expect(await db.select(db.aiJobs).get(), isEmpty);
+    });
   });
 
   test('без ключа очередь не идёт вовсе', () async {

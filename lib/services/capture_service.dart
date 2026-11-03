@@ -144,8 +144,9 @@ class CaptureService {
       for (final name in rules.tags) {
         await _linkTag(id, name, TagSource.rule);
       }
-      // папки так и нет — вещь ждёт ключ ИИ; без ключа или сети задача просто лежит
-      if (!sorted) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
+      // папки так и нет — вещь ждёт ключ ИИ; без ключа или сети задача просто лежит.
+      // голосовое ждёт всегда: его расшифрует модель речи, если она выбрана
+      if (!sorted || kind == ItemKind.voice) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
     });
 
     if (input.files.isNotEmpty) _copies.add(_copyFiles(id, input.files));

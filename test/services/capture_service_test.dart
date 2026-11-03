@@ -169,6 +169,12 @@ void main() {
     expect(jobs.single.kind, 'sort');
   });
 
+  test('голосовое встаёт в очередь даже разложенным: его ждёт расшифровка', () async {
+    final voice = File('${home.path}/in.m4a')..writeAsBytesSync([1, 2, 3]);
+    final id = await capture.capture(CaptureInput(text: '', forcedFolderId: 'ideas', files: [PickedFile(path: voice.path, mime: 'audio/mp4', size: 3)]));
+    expect((await db.select(db.aiJobs).getSingle()).itemId, id);
+  });
+
   test('дата в тексте ставит напоминание и уходит из заголовка', () async {
     final id = await capture.capture(const CaptureInput(text: '23 декабря 13:00 зубной'));
     final saved = await items.get(id);
