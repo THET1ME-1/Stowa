@@ -781,7 +781,8 @@ class LRu extends L {
   String get sortDone => 'Всё разобрано';
 
   @override
-  String get sortHint => 'Касание папки кладёт туда, свайп вниз пропускает';
+  String get sortHint =>
+      'Касание папки кладёт туда. Вниз — пропустить, вверх — в корзину';
 
   @override
   String get iconSearch => 'Найти иконку: car, home, food';

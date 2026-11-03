@@ -64,4 +64,46 @@ void main() {
     expect(find.text('Всё разобрано'), findsOneWidget);
     expect((await world.db.select(world.db.items).getSingle()).folderId, isNull);
   });
+
+  testWidgets('нажал не ту папку — «Отменить» возвращает вещь в разбор', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'squircle'));
+    await note('a', 'Мысль');
+    await open(tester);
+    await tester.tap(find.text('Дом'));
+    await tester.pumpAndSettle();
+    expect(find.text('Переложил в «Дом»'), findsOneWidget);
+
+    await tester.tap(find.text('Отменить'));
+    await tester.pumpAndSettle();
+    expect(find.text('Мысль'), findsOneWidget);
+    expect((await world.db.select(world.db.items).getSingle()).folderId, isNull);
+  });
+
+  testWidgets('новая папка прямо из разбора', (tester) async {
+    await note('a', 'Рецепт сырников');
+    await open(tester);
+    await tester.tap(find.text('Новая'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'рецепты');
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    final item = await world.db.select(world.db.items).getSingle();
+    final folder = await world.db.select(world.db.folders).getSingle();
+    expect(folder.name, 'Рецепты');
+    expect(item.folderId, folder.id);
+  });
+
+  testWidgets('смахнул вверх — в корзину, «Отменить» возвращает', (tester) async {
+    await note('a', 'Мусор');
+    await open(tester);
+    await tester.fling(find.text('Мусор'), const Offset(0, -400), 2000);
+    await tester.pumpAndSettle();
+    expect(find.text('Всё разобрано'), findsOneWidget);
+    expect((await world.db.select(world.db.items).getSingle()).deletedAt, isNotNull);
+
+    await tester.tap(find.text('Отменить'));
+    await tester.pumpAndSettle();
+    expect(find.text('Мусор'), findsOneWidget);
+  });
 }

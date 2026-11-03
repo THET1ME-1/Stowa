@@ -1454,7 +1454,7 @@ abstract class L {
   /// Sort mode hint
   ///
   /// In en, this message translates to:
-  /// **'Tap a folder to put it there, swipe down to skip'**
+  /// **'Tap a folder to put it there. Down to skip, up to delete'**
   String get sortHint;
 
   /// Icon search hint; names are English Material Symbols names

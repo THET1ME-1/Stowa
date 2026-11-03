@@ -780,7 +780,8 @@ class LRo extends L {
   String get sortDone => 'All sorted';
 
   @override
-  String get sortHint => 'Tap a folder to put it there, swipe down to skip';
+  String get sortHint =>
+      'Tap a folder to put it there. Down to skip, up to delete';
 
   @override
   String get iconSearch => 'Find an icon: car, home, food';

@@ -12,6 +12,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_cards.dart';
+import '../folder/folder_sheets.dart';
 import '../item/item_screen.dart';
 
 Route<void> sortRoute() => PageRouteBuilder(
@@ -35,6 +36,35 @@ class SortScreen extends ConsumerStatefulWidget {
 
 class _SortScreenState extends ConsumerState<SortScreen> {
   final _skipped = <String>{};
+
+  DateTime get _now => ref.read(clockProvider)();
+
+  // каждое действие можно отменить: в разборе пальцы торопятся
+  void _undoable(String message, VoidCallback undo) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message), action: SnackBarAction(label: L.of(context).undo, onPressed: undo)));
+  }
+
+  Future<void> _put(String id, FolderCard folder) async {
+    final items = ref.read(itemsRepositoryProvider);
+    await items.moveToFolder(id, folder.id, _now);
+    if (!mounted) return;
+    _undoable(L.of(context).itemMoved(folder.name), () => items.moveToFolder(id, null, _now));
+  }
+
+  Future<void> _newFolder(String id) async {
+    final name = await showRenameSheet(context, '');
+    if (name == null || !mounted) return;
+    await _put(id, await ref.read(foldersRepositoryProvider).create(name));
+  }
+
+  Future<void> _delete(String id) async {
+    final items = ref.read(itemsRepositoryProvider);
+    await items.softDelete(id, _now);
+    if (!mounted) return;
+    _undoable(L.of(context).itemDeleted, () => items.restore(id));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +119,14 @@ class _SortScreenState extends ConsumerState<SortScreen> {
                         transitionBuilder: riseTransition,
                         child: Dismissible(
                           key: ValueKey(card.id),
-                          direction: DismissDirection.down,
-                          onDismissed: (_) => setState(() => _skipped.add(card.id)),
+                          direction: DismissDirection.vertical,
+                          onDismissed: (direction) {
+                            if (direction == DismissDirection.up) {
+                              _delete(card.id);
+                            } else {
+                              setState(() => _skipped.add(card.id));
+                            }
+                          },
                           child: Center(
                             child: SingleChildScrollView(
                               child: FolderItemCard(card: card, filesRoot: filesRoot, now: now, onTap: () => Navigator.of(context).push(itemRoute(card.id))),
@@ -108,13 +144,17 @@ class _SortScreenState extends ConsumerState<SortScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: Space.screen),
-                  itemCount: ordered.length,
+                  itemCount: ordered.length + 1,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (context, position) => _FolderButton(
-                    folder: ordered[position],
-                    hinted: position < hints.length,
-                    onTap: () => ref.read(itemsRepositoryProvider).moveToFolder(card.id, ordered[position].id, ref.read(clockProvider)()),
-                  ),
+                  itemBuilder: (context, position) => position == ordered.length
+                      ? _FolderButton(label: l.shareNewFolder, icon: 'add', shape: BadgeShape.squircle, hinted: false, onTap: () => _newFolder(card.id))
+                      : _FolderButton(
+                          label: ordered[position].name,
+                          icon: ordered[position].icon,
+                          shape: BadgeShape.values.asNameMap()[ordered[position].shape] ?? BadgeShape.squircle,
+                          hinted: position < hints.length,
+                          onTap: () => _put(card.id, ordered[position]),
+                        ),
                 ),
               ),
               TextButton(onPressed: () => setState(() => _skipped.add(card.id)), child: Text(l.sortSkip)),
@@ -128,9 +168,11 @@ class _SortScreenState extends ConsumerState<SortScreen> {
 
 /// Кнопка папки внизу: значок и имя; подсказка — белая.
 class _FolderButton extends StatelessWidget {
-  const _FolderButton({required this.folder, required this.hinted, required this.onTap});
+  const _FolderButton({required this.label, required this.icon, required this.shape, required this.hinted, required this.onTap});
 
-  final FolderCard folder;
+  final String label;
+  final String icon;
+  final BadgeShape shape;
   final bool hinted;
   final VoidCallback onTap;
 
@@ -148,13 +190,13 @@ class _FolderButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ShapeBadge(
-              shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
+              shape: shape,
               size: 36,
               color: hinted ? Tokens.graphite : Tokens.containerHighest,
-              child: Icon(symbolIcon(folder.icon), size: 18, color: Tokens.onSurface),
+              child: Icon(symbolIcon(icon), size: 18, color: Tokens.onSurface),
             ),
             const SizedBox(height: 6),
-            Text(folder.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: color)),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: color)),
           ],
         ),
       ),

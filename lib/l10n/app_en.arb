@@ -1035,7 +1035,7 @@
   "@sortDone": {
     "description": "Sort mode finished"
   },
-  "sortHint": "Tap a folder to put it there, swipe down to skip",
+  "sortHint": "Tap a folder to put it there. Down to skip, up to delete",
   "@sortHint": {
     "description": "Sort mode hint"
   },
