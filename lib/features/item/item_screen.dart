@@ -470,7 +470,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           ),
                         ],
                         if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
-                        if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
+                        // описание от ИИ нужно поиску; читать его стоит только у картинки, у заметки оно пересказ её же текста
+                        if (images.isNotEmpty && item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
                         for (final file in files) FileTile(file: file, filesRoot: filesRoot),
                         if (!_editing) RelatedBlock(itemId: _id, onOpen: (id) => Navigator.of(context).push(itemRoute(id))),
                       ],

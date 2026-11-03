@@ -29,6 +29,14 @@ Route<void> mapRoute({String? focusItemId}) => PageRouteBuilder(
   ),
 );
 
+/// Насыщенность карты 45 %: парки ещё зелёные, но улицы не спорят с метками.
+const _calm = ColorFilter.matrix([
+  0.567, 0.393, 0.040, 0, 0, //
+  0.117, 0.843, 0.040, 0, 0, //
+  0.117, 0.393, 0.490, 0, 0, //
+  0, 0, 0, 1, 0, //
+]);
+
 /// Где что сохранено. Вещи рядом склеены в одно место, снизу — вещи выбранного.
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key, this.focusItemId});
@@ -91,8 +99,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'app.stowa',
-                  // светлую карту OSM темним под графит приложения
-                  tileBuilder: darkModeTileBuilder,
+                  // светлую карту OSM темним под графит приложения и приглушаем: метки заметок важнее улиц
+                  tileBuilder: (context, tile, image) => ColorFiltered(colorFilter: _calm, child: darkModeTileBuilder(context, tile, image)),
                 ),
                 MarkerLayer(
                   markers: [
