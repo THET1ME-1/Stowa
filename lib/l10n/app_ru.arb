@@ -170,5 +170,6 @@
   "voiceNoTranscript": "Без расшифровки: её сделает твой ключ ИИ",
   "voiceTranscribed": "Голосовое, расшифровано",
   "voicePlay": "Слушать",
-  "voicePause": "Пауза"
+  "voicePause": "Пауза",
+  "reminderChannel": "Напоминания"
 }

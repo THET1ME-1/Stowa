@@ -1132,6 +1132,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Pause'**
   String get voicePause;
+
+  /// Android notification channel name
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminderChannel;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

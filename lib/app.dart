@@ -6,6 +6,9 @@ import 'features/home/home_screen.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 
+/// Навигатор приложения: через него тап по уведомлению открывает вещь.
+final appNavigator = GlobalKey<NavigatorState>();
+
 class StowaApp extends StatelessWidget {
   const StowaApp({super.key, this.locale});
 
@@ -15,6 +18,7 @@ class StowaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: appNavigator,
       debugShowCheckedModeBanner: false,
       onGenerateTitle: (context) => L.of(context).appName,
       theme: buildAppTheme(),

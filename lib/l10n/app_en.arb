@@ -799,5 +799,9 @@
   "voicePause": "Pause",
   "@voicePause": {
     "description": "Tooltip"
+  },
+  "reminderChannel": "Reminders",
+  "@reminderChannel": {
+    "description": "Android notification channel name"
   }
 }

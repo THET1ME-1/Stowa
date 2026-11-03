@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/folder_guess.dart';
 import '../services/capture_service.dart';
+import '../services/reminder_service.dart';
 import 'db/database.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
@@ -48,6 +49,11 @@ final rulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider)
 
 /// Одна вещь целиком для её страницы, обновляется вместе с базой.
 final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchItem(id));
+
+/// Система уведомлений: настоящая подставляется в main, в тестах — тишина.
+final notificationPortProvider = Provider<NotificationPort>((ref) => const SilentNotificationPort());
+final reminderServiceProvider = Provider((ref) => ReminderService(ref.watch(notificationPortProvider)));
+final remindersProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchReminders());
 
 /// Вещи папки; null — всё, что лежит без папки.
 final folderItemsProvider = StreamProvider.family<List<ItemCard>, String?>((ref, folderId) => ref.watch(itemsRepositoryProvider).watchFolder(folderId));

@@ -603,4 +603,7 @@ class LUk extends L {
 
   @override
   String get voicePause => 'Pause';
+
+  @override
+  String get reminderChannel => 'Reminders';
 }

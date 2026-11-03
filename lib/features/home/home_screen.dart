@@ -33,6 +33,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // любая правка напоминаний в базе переставляет будильники системы
+    ref.listenManual(remindersProvider, (previous, next) {
+      final reminders = next.value;
+      if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
+    }, fireImmediately: true);
   }
 
   @override

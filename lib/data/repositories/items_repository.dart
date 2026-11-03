@@ -144,6 +144,13 @@ WHERE items.deleted_at IS NULL''';
       .watch()
       .map((rows) => [for (final row in rows) _folderDoc(row)]);
 
+  /// Все живые напоминания: по ним ставятся будильники системы.
+  Stream<List<({String id, String title, DateTime at})>> watchReminders() {
+    return (_db.select(_db.items)..where((t) => t.reminderAt.isNotNull() & t.deletedAt.isNull()))
+        .watch()
+        .map((rows) => [for (final row in rows) (id: row.id, title: row.title, at: row.reminderAt!)]);
+  }
+
   /// Вещи папки, новые первыми; без id — всё, что лежит без папки.
   Stream<List<ItemCard>> watchFolder(String? folderId) {
     return _db

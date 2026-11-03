@@ -602,4 +602,7 @@ class LRu extends L {
 
   @override
   String get voicePause => 'Пауза';
+
+  @override
+  String get reminderChannel => 'Напоминания';
 }
