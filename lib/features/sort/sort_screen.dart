@@ -46,7 +46,10 @@ class _SortScreenState extends ConsumerState<SortScreen> {
   void _undoable(String message, VoidCallback undo) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message), action: SnackBarAction(label: L.of(context).undo, onPressed: undo)));
+      // короче обычного: плашка закрывает «Пропустить», а в разборе руки быстрые
+      ..showSnackBar(
+        SnackBar(duration: const Duration(seconds: 3), content: Text(message), action: SnackBarAction(label: L.of(context).undo, onPressed: undo)),
+      );
   }
 
   Future<void> _put(String id, FolderCard folder) async {
