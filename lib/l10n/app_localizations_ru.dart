@@ -628,4 +628,161 @@ class LRu extends L {
 
   @override
   String get shareDone => 'Готово';
+
+  @override
+  String get tagsTitle => 'Теги и папки';
+
+  @override
+  String get tagsTab => 'Теги';
+
+  @override
+  String get foldersTab => 'Папки';
+
+  @override
+  String get tagsPinned => 'На главной';
+
+  @override
+  String get tagsPinnedHint => 'Зажми и перетащи, чтобы поменять порядок';
+
+  @override
+  String get tagsAll => 'Все теги';
+
+  @override
+  String get tagsNone =>
+      'Тегов пока нет. Напиши #тег в строке или создай здесь.';
+
+  @override
+  String get rulesTitle => 'Правила';
+
+  @override
+  String get rulesNone =>
+      'Правил пока нет: строка раскладывает по словам, которые уже лежат в папках.';
+
+  @override
+  String get ruleNew => 'Новое правило';
+
+  @override
+  String get ruleStays => 'остаётся, где лежит';
+
+  @override
+  String get tagNew => 'Новый тег';
+
+  @override
+  String get tagEdit => 'Тег';
+
+  @override
+  String get tagNameHint => 'имя тега';
+
+  @override
+  String get iconSymbols => 'Иконки';
+
+  @override
+  String get iconEmoji => 'Эмодзи';
+
+  @override
+  String get iconImage => 'Своя картинка';
+
+  @override
+  String get iconPickImage => 'Выбрать картинку';
+
+  @override
+  String get emojiHint => 'Одно эмодзи';
+
+  @override
+  String get tagToFolder => 'Класть в папку';
+
+  @override
+  String get tagPin => 'Закрепить на главной';
+
+  @override
+  String get tagCreateButton => 'Создать тег';
+
+  @override
+  String get tagDelete => 'Удалить тег';
+
+  @override
+  String tagDeleteAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вещи',
+      many: '$count вещей',
+      few: '$count вещей',
+      one: '$count вещи',
+    );
+    return 'Убрать тег #$name у $_temp0? Сами вещи останутся.';
+  }
+
+  @override
+  String tagDeleted(String name) {
+    return 'Тег #$name удалён';
+  }
+
+  @override
+  String get ruleSheetTitle => 'Правило';
+
+  @override
+  String get ruleIf => 'Если';
+
+  @override
+  String get ruleThen => 'То';
+
+  @override
+  String get ruleIfTag => 'есть тег';
+
+  @override
+  String get ruleIfDomain => 'ссылка на сайт';
+
+  @override
+  String get ruleIfWord => 'есть слово';
+
+  @override
+  String get ruleIfKind => 'вид вещи';
+
+  @override
+  String get ruleThenFolder => 'в папку';
+
+  @override
+  String get ruleThenTag => 'поставить тег';
+
+  @override
+  String get ruleValueTag => 'тег без решётки';
+
+  @override
+  String get ruleValueDomain => 'tiktok.com';
+
+  @override
+  String get ruleValueWord => 'слово';
+
+  @override
+  String get ruleEnabled => 'Включено';
+
+  @override
+  String get ruleDelete => 'Удалить правило';
+
+  @override
+  String get settingsTooltip => 'Теги, папки и правила';
+
+  @override
+  String get tagAdd => 'Добавить тег';
+
+  @override
+  String get sortMode => 'Разобрать';
+
+  @override
+  String get sortSkip => 'Пропустить';
+
+  @override
+  String sortLeft(int count) {
+    return 'Осталось $count';
+  }
+
+  @override
+  String get sortDone => 'Всё разобрано';
+
+  @override
+  String get sortHint => 'Касание папки кладёт туда, свайп вниз пропускает';
+
+  @override
+  String get iconSearch => 'Найти иконку: car, home, food';
 }

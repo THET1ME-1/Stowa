@@ -137,7 +137,7 @@ class _LookSheetState extends State<_LookSheet> {
             Text(l.lookIcon, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
             const SizedBox(height: 8),
             TextField(
-              decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.folderSearch),
+              decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.iconSearch),
               onChanged: (value) => setState(() => _query = value),
             ),
             const SizedBox(height: 8),

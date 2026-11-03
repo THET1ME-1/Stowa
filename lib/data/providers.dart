@@ -47,6 +47,9 @@ final folderIndexProvider = StreamProvider((ref) => ref.watch(itemsRepositoryPro
 final rulesRepositoryProvider = Provider((ref) => RulesRepository(ref.watch(databaseProvider)));
 final rulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider).watchEnabled());
 
+/// Все правила вместе с выключенными: экран правил.
+final allRulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider).watchAll());
+
 /// Одна вещь целиком для её страницы, обновляется вместе с базой.
 final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchItem(id));
 

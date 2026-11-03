@@ -629,4 +629,159 @@ class LEn extends L {
 
   @override
   String get shareDone => 'Done';
+
+  @override
+  String get tagsTitle => 'Tags and folders';
+
+  @override
+  String get tagsTab => 'Tags';
+
+  @override
+  String get foldersTab => 'Folders';
+
+  @override
+  String get tagsPinned => 'On the home screen';
+
+  @override
+  String get tagsPinnedHint => 'Hold and drag to reorder';
+
+  @override
+  String get tagsAll => 'All tags';
+
+  @override
+  String get tagsNone =>
+      'No tags yet. Type #tag in the line or create one here.';
+
+  @override
+  String get rulesTitle => 'Rules';
+
+  @override
+  String get rulesNone =>
+      'No rules yet: the line sorts by words already in your folders.';
+
+  @override
+  String get ruleNew => 'New rule';
+
+  @override
+  String get ruleStays => 'stays where it is';
+
+  @override
+  String get tagNew => 'New tag';
+
+  @override
+  String get tagEdit => 'Tag';
+
+  @override
+  String get tagNameHint => 'tag name';
+
+  @override
+  String get iconSymbols => 'Icons';
+
+  @override
+  String get iconEmoji => 'Emoji';
+
+  @override
+  String get iconImage => 'Own picture';
+
+  @override
+  String get iconPickImage => 'Pick a picture';
+
+  @override
+  String get emojiHint => 'One emoji';
+
+  @override
+  String get tagToFolder => 'Put into folder';
+
+  @override
+  String get tagPin => 'Pin to home';
+
+  @override
+  String get tagCreateButton => 'Create tag';
+
+  @override
+  String get tagDelete => 'Delete tag';
+
+  @override
+  String tagDeleteAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Remove #$name from $_temp0? The items stay.';
+  }
+
+  @override
+  String tagDeleted(String name) {
+    return 'Tag #$name deleted';
+  }
+
+  @override
+  String get ruleSheetTitle => 'Rule';
+
+  @override
+  String get ruleIf => 'If';
+
+  @override
+  String get ruleThen => 'Then';
+
+  @override
+  String get ruleIfTag => 'has tag';
+
+  @override
+  String get ruleIfDomain => 'link to site';
+
+  @override
+  String get ruleIfWord => 'has word';
+
+  @override
+  String get ruleIfKind => 'item type';
+
+  @override
+  String get ruleThenFolder => 'into folder';
+
+  @override
+  String get ruleThenTag => 'add tag';
+
+  @override
+  String get ruleValueTag => 'tag without #';
+
+  @override
+  String get ruleValueDomain => 'tiktok.com';
+
+  @override
+  String get ruleValueWord => 'word';
+
+  @override
+  String get ruleEnabled => 'On';
+
+  @override
+  String get ruleDelete => 'Delete rule';
+
+  @override
+  String get settingsTooltip => 'Tags, folders and rules';
+
+  @override
+  String get tagAdd => 'Add tag';
+
+  @override
+  String get sortMode => 'Sort';
+
+  @override
+  String get sortSkip => 'Skip';
+
+  @override
+  String sortLeft(int count) {
+    return '$count left';
+  }
+
+  @override
+  String get sortDone => 'All sorted';
+
+  @override
+  String get sortHint => 'Tap a folder to put it there, swipe down to skip';
+
+  @override
+  String get iconSearch => 'Find an icon: car, home, food';
 }

@@ -43,6 +43,11 @@ void main() {
     expect(guess?.byName ?? false, isFalse);
   });
 
+  test('подсказки для «Разобрать»: папки по похожести, даже когда уверенности нет', () {
+    expect(index.rank('мальчик пошёл гулять').take(2), ['wireless', 'novel']);
+    expect(index.rank('купить хлеб'), isEmpty);
+  });
+
   test('пустая база ничего не угадывает', () {
     expect(FolderIndex(const []).guess('Милтон'), isNull);
   });

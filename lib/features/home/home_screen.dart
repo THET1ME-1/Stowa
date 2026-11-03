@@ -11,6 +11,8 @@ import '../composer/line_dock.dart';
 import '../folder/folder_screen.dart';
 import '../item/item_screen.dart';
 import '../share/share_receiver.dart';
+import '../tags/tag_sheet.dart';
+import '../tags/tags_screen.dart';
 import 'folders_grid.dart';
 import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
@@ -106,8 +108,19 @@ class _Feed extends ConsumerWidget {
           bottom: false,
           sliver: SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 16),
-              child: Text(l.appName, style: text.headlineSmall),
+              padding: const EdgeInsets.fromLTRB(Space.screen, 10, Space.screen - 4, 10),
+              child: Row(
+                children: [
+                  Expanded(child: Text(l.appName, style: text.headlineSmall)),
+                  // теги, папки и правила, как кнопка tune на главной в макете
+                  IconButton(
+                    tooltip: l.settingsTooltip,
+                    onPressed: () => Navigator.of(context).push(tagsRoute()),
+                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
+                    icon: Icon(symbolIcon('tune'), size: 20, color: Tokens.onSurface),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -115,7 +128,13 @@ class _Feed extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: PinnedTagsRow(tags: pinned, filesRoot: filesRoot, onTap: (tag) => onTag(tag.name)),
+              child: PinnedTagsRow(
+                tags: pinned,
+                filesRoot: filesRoot,
+                onTap: (tag) => onTag(tag.name),
+                onAdd: () => showTagSheet(context, pin: true),
+                addTooltip: l.tagAdd,
+              ),
             ),
           ),
         if (upcoming.isNotEmpty)

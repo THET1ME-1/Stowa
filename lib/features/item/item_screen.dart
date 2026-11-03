@@ -140,7 +140,16 @@ class ItemScreen extends ConsumerWidget {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      for (final tag in full.tags.keys) _MetaChip(label: '#$tag'),
+                      for (final tag in full.tags.keys)
+                        _MetaChip(label: '#$tag', removeTooltip: l.removeChip, onRemove: () => ref.read(tagsRepositoryProvider).unlink(id, tag)),
+                      _MetaChip(
+                        label: l.tagAdd,
+                        icon: 'add',
+                        onTap: () async {
+                          final name = await _askTag(context);
+                          if (name != null) await ref.read(tagsRepositoryProvider).link(id, name);
+                        },
+                      ),
                       _MetaChip(label: shortDate(l, item.createdAt, now)),
                       if (item.reminderAt != null) _MetaChip(label: formatReminder(l, item.reminderAt!, now), icon: 'alarm'),
                     ],
@@ -190,26 +199,78 @@ class ItemScreen extends ConsumerWidget {
 }
 
 class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.label, this.icon});
+  const _MetaChip({required this.label, this.icon, this.onRemove, this.removeTooltip, this.onTap});
 
   final String label;
   final String? icon;
 
+  /// Крестик: снять тег только у этой вещи.
+  final VoidCallback? onRemove;
+  final String? removeTooltip;
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(14)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[Icon(symbolIcon(icon), size: 15, color: Tokens.onSurfaceVariant), const SizedBox(width: 4)],
-          Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: Tokens.onSurface)),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 28,
+        padding: EdgeInsets.only(left: 10, right: onRemove == null ? 10 : 2),
+        decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(14)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[Icon(symbolIcon(icon), size: 15, color: Tokens.onSurfaceVariant), const SizedBox(width: 4)],
+            Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: Tokens.onSurface)),
+            if (onRemove != null)
+              IconButton(
+                tooltip: removeTooltip,
+                onPressed: onRemove,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(width: 26, height: 26),
+                iconSize: 15,
+                icon: Icon(symbolIcon('close'), color: Tokens.muted),
+              ),
+          ],
+        ),
       ),
     );
   }
+}
+
+/// Тег одной вещи руками: имя без решётки.
+Future<String?> _askTag(BuildContext context) {
+  final l = L.of(context);
+  final field = TextEditingController();
+  return showModalBottomSheet<String>(
+    context: context,
+    showDragHandle: true,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: field,
+                autofocus: true,
+                decoration: InputDecoration(prefixText: '#', hintText: l.tagNameHint),
+                onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value),
+              ),
+              const SizedBox(height: 16),
+              FilledButton(onPressed: () => Navigator.pop(context, field.text.trim().isEmpty ? null : field.text), child: Text(l.save)),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// Строка текста: галочка, заголовок, цитата, пункт или обычный абзац.

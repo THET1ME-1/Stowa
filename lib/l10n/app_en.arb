@@ -836,5 +836,211 @@
   "shareDone": "Done",
   "@shareDone": {
     "description": "Share sheet button"
+  },
+  "tagsTitle": "Tags and folders",
+  "@tagsTitle": {
+    "description": "Tags screen title"
+  },
+  "tagsTab": "Tags",
+  "@tagsTab": {
+    "description": "Segment"
+  },
+  "foldersTab": "Folders",
+  "@foldersTab": {
+    "description": "Segment"
+  },
+  "tagsPinned": "On the home screen",
+  "@tagsPinned": {
+    "description": "Section"
+  },
+  "tagsPinnedHint": "Hold and drag to reorder",
+  "@tagsPinnedHint": {
+    "description": "Hint"
+  },
+  "tagsAll": "All tags",
+  "@tagsAll": {
+    "description": "Section"
+  },
+  "tagsNone": "No tags yet. Type #tag in the line or create one here.",
+  "@tagsNone": {
+    "description": "Empty"
+  },
+  "rulesTitle": "Rules",
+  "@rulesTitle": {
+    "description": "Section"
+  },
+  "rulesNone": "No rules yet: the line sorts by words already in your folders.",
+  "@rulesNone": {
+    "description": "Empty"
+  },
+  "ruleNew": "New rule",
+  "@ruleNew": {
+    "description": "Button"
+  },
+  "ruleStays": "stays where it is",
+  "@ruleStays": {
+    "description": "Rule card without folder"
+  },
+  "tagNew": "New tag",
+  "@tagNew": {
+    "description": "Sheet title"
+  },
+  "tagEdit": "Tag",
+  "@tagEdit": {
+    "description": "Sheet title when editing"
+  },
+  "tagNameHint": "tag name",
+  "@tagNameHint": {
+    "description": "Field hint"
+  },
+  "iconSymbols": "Icons",
+  "@iconSymbols": {
+    "description": "Icon kind"
+  },
+  "iconEmoji": "Emoji",
+  "@iconEmoji": {
+    "description": "Icon kind"
+  },
+  "iconImage": "Own picture",
+  "@iconImage": {
+    "description": "Icon kind"
+  },
+  "iconPickImage": "Pick a picture",
+  "@iconPickImage": {
+    "description": "Button"
+  },
+  "emojiHint": "One emoji",
+  "@emojiHint": {
+    "description": "Field hint"
+  },
+  "tagToFolder": "Put into folder",
+  "@tagToFolder": {
+    "description": "Section in the tag sheet"
+  },
+  "tagPin": "Pin to home",
+  "@tagPin": {
+    "description": "Switch"
+  },
+  "tagCreateButton": "Create tag",
+  "@tagCreateButton": {
+    "description": "Button"
+  },
+  "tagDelete": "Delete tag",
+  "@tagDelete": {
+    "description": "Button"
+  },
+  "tagDeleteAsk": "Remove #{name} from {count, plural, one{{count} item} other{{count} items}}? The items stay.",
+  "@tagDeleteAsk": {
+    "description": "Confirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tagDeleted": "Tag #{name} deleted",
+  "@tagDeleted": {
+    "description": "Toast",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleSheetTitle": "Rule",
+  "@ruleSheetTitle": {
+    "description": "Sheet title"
+  },
+  "ruleIf": "If",
+  "@ruleIf": {
+    "description": "Rule sheet section"
+  },
+  "ruleThen": "Then",
+  "@ruleThen": {
+    "description": "Rule sheet section"
+  },
+  "ruleIfTag": "has tag",
+  "@ruleIfTag": {
+    "description": "Condition kind"
+  },
+  "ruleIfDomain": "link to site",
+  "@ruleIfDomain": {
+    "description": "Condition kind"
+  },
+  "ruleIfWord": "has word",
+  "@ruleIfWord": {
+    "description": "Condition kind"
+  },
+  "ruleIfKind": "item type",
+  "@ruleIfKind": {
+    "description": "Condition kind"
+  },
+  "ruleThenFolder": "into folder",
+  "@ruleThenFolder": {
+    "description": "Action kind"
+  },
+  "ruleThenTag": "add tag",
+  "@ruleThenTag": {
+    "description": "Action kind"
+  },
+  "ruleValueTag": "tag without #",
+  "@ruleValueTag": {
+    "description": "Field hint"
+  },
+  "ruleValueDomain": "tiktok.com",
+  "@ruleValueDomain": {
+    "description": "Field hint"
+  },
+  "ruleValueWord": "word",
+  "@ruleValueWord": {
+    "description": "Field hint"
+  },
+  "ruleEnabled": "On",
+  "@ruleEnabled": {
+    "description": "Switch"
+  },
+  "ruleDelete": "Delete rule",
+  "@ruleDelete": {
+    "description": "Button"
+  },
+  "settingsTooltip": "Tags, folders and rules",
+  "@settingsTooltip": {
+    "description": "Home bar button"
+  },
+  "tagAdd": "Add tag",
+  "@tagAdd": {
+    "description": "Tooltip / button"
+  },
+  "sortMode": "Sort",
+  "@sortMode": {
+    "description": "Button: sort unsorted items one by one"
+  },
+  "sortSkip": "Skip",
+  "@sortSkip": {
+    "description": "Sort mode"
+  },
+  "sortLeft": "{count} left",
+  "@sortLeft": {
+    "description": "Sort mode counter",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sortDone": "All sorted",
+  "@sortDone": {
+    "description": "Sort mode finished"
+  },
+  "sortHint": "Tap a folder to put it there, swipe down to skip",
+  "@sortHint": {
+    "description": "Sort mode hint"
+  },
+  "iconSearch": "Find an icon: car, home, food",
+  "@iconSearch": {
+    "description": "Icon search hint; names are English Material Symbols names"
   }
 }

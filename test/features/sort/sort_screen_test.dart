@@ -1,0 +1,67 @@
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/sort/sort_screen.dart';
+
+import '../../helpers/test_app.dart';
+
+void main() {
+  late TestWorld world;
+  setUp(() => world = TestWorld());
+  tearDown(() => world.dispose());
+
+  Future<void> note(String id, String title, {String? folder, int minutes = 0}) async {
+    final at = world.now.subtract(Duration(minutes: 30 - minutes));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: id,
+          kind: ItemKind.note,
+          title: title,
+          body: Value(title),
+          folderId: Value(folder),
+          createdAt: at,
+          updatedAt: at,
+        ));
+  }
+
+  Future<void> open(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(400, 880);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const SortScreen()));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('подсказка первой, касание кладёт в папку и показывает следующую', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'car', name: 'Машина', icon: 'directions_car', shape: 'pill'));
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'squircle'));
+    await note('c1', 'Замена масла и фильтра', folder: 'car');
+    await note('c2', 'Масло 5W-30', folder: 'car');
+    await note('h1', 'Пароль от вайфая', folder: 'home');
+    await note('a', 'Купить масло для машины', minutes: 1);
+    await note('b', 'Позвонить маме', minutes: 2);
+    await open(tester);
+
+    expect(find.text('Осталось 2'), findsOneWidget);
+    expect(find.text('Позвонить маме'), findsOneWidget);
+    await tester.tap(find.text('Дом'));
+    await tester.pumpAndSettle();
+    expect((await (world.db.select(world.db.items)..where((t) => t.id.equals('b'))).getSingle()).folderId, 'home');
+
+    expect(find.text('Купить масло для машины'), findsOneWidget);
+    // первая кнопка — подсказка по словам
+    final first = tester.getTopLeft(find.text('Машина')).dx;
+    expect(first, lessThan(tester.getTopLeft(find.text('Дом')).dx));
+  });
+
+  testWidgets('«Пропустить» оставляет вещь без папки', (tester) async {
+    await note('a', 'Мысль');
+    await open(tester);
+    await tester.tap(find.text('Пропустить'));
+    await tester.pumpAndSettle();
+    expect(find.text('Всё разобрано'), findsOneWidget);
+    expect((await world.db.select(world.db.items).getSingle()).folderId, isNull);
+  });
+}

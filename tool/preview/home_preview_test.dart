@@ -279,6 +279,24 @@ void main() {
     await _shot(tester, '14-папка-лента');
   });
 
+  testWidgets('теги и правила', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await tester.pumpAndSettle();
+    await _shot(tester, '15-теги');
+  });
+
+  testWidgets('лист тега', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await tester.tap(find.byTooltip('Добавить тег'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'кино');
+    await tester.pumpAndSettle();
+    await _shot(tester, '16-лист-тега');
+  });
+
   testWidgets('крупный шрифт на узком', (tester) async {
     await tester.runAsync(() => _seed(world));
     tester.view.physicalSize = const Size(320, 700);

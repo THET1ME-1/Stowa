@@ -16,6 +16,7 @@ import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
 import '../item/item_screen.dart';
+import '../sort/sort_screen.dart';
 import 'folder_cards.dart';
 import 'folder_sheets.dart';
 import 'folder_view.dart';
@@ -139,6 +140,18 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                   ),
                 ),
               ),
+              // «Без папки»: разложить по одной карточке
+              if (widget.folderId == null && cards.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
+                    child: FilledButton.icon(
+                      onPressed: () => Navigator.of(context).push(sortRoute()),
+                      icon: Icon(symbolIcon('swipe_down')),
+                      label: Text(l.sortMode),
+                    ),
+                  ),
+                ),
               if (folder != null && cards.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(

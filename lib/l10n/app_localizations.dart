@@ -1180,6 +1180,288 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Done'**
   String get shareDone;
+
+  /// Tags screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Tags and folders'**
+  String get tagsTitle;
+
+  /// Segment
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tagsTab;
+
+  /// Segment
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get foldersTab;
+
+  /// Section
+  ///
+  /// In en, this message translates to:
+  /// **'On the home screen'**
+  String get tagsPinned;
+
+  /// Hint
+  ///
+  /// In en, this message translates to:
+  /// **'Hold and drag to reorder'**
+  String get tagsPinnedHint;
+
+  /// Section
+  ///
+  /// In en, this message translates to:
+  /// **'All tags'**
+  String get tagsAll;
+
+  /// Empty
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet. Type #tag in the line or create one here.'**
+  String get tagsNone;
+
+  /// Section
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get rulesTitle;
+
+  /// Empty
+  ///
+  /// In en, this message translates to:
+  /// **'No rules yet: the line sorts by words already in your folders.'**
+  String get rulesNone;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'New rule'**
+  String get ruleNew;
+
+  /// Rule card without folder
+  ///
+  /// In en, this message translates to:
+  /// **'stays where it is'**
+  String get ruleStays;
+
+  /// Sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'New tag'**
+  String get tagNew;
+
+  /// Sheet title when editing
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get tagEdit;
+
+  /// Field hint
+  ///
+  /// In en, this message translates to:
+  /// **'tag name'**
+  String get tagNameHint;
+
+  /// Icon kind
+  ///
+  /// In en, this message translates to:
+  /// **'Icons'**
+  String get iconSymbols;
+
+  /// Icon kind
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji'**
+  String get iconEmoji;
+
+  /// Icon kind
+  ///
+  /// In en, this message translates to:
+  /// **'Own picture'**
+  String get iconImage;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a picture'**
+  String get iconPickImage;
+
+  /// Field hint
+  ///
+  /// In en, this message translates to:
+  /// **'One emoji'**
+  String get emojiHint;
+
+  /// Section in the tag sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Put into folder'**
+  String get tagToFolder;
+
+  /// Switch
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to home'**
+  String get tagPin;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'Create tag'**
+  String get tagCreateButton;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete tag'**
+  String get tagDelete;
+
+  /// Confirm
+  ///
+  /// In en, this message translates to:
+  /// **'Remove #{name} from {count, plural, one{{count} item} other{{count} items}}? The items stay.'**
+  String tagDeleteAsk(String name, int count);
+
+  /// Toast
+  ///
+  /// In en, this message translates to:
+  /// **'Tag #{name} deleted'**
+  String tagDeleted(String name);
+
+  /// Sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get ruleSheetTitle;
+
+  /// Rule sheet section
+  ///
+  /// In en, this message translates to:
+  /// **'If'**
+  String get ruleIf;
+
+  /// Rule sheet section
+  ///
+  /// In en, this message translates to:
+  /// **'Then'**
+  String get ruleThen;
+
+  /// Condition kind
+  ///
+  /// In en, this message translates to:
+  /// **'has tag'**
+  String get ruleIfTag;
+
+  /// Condition kind
+  ///
+  /// In en, this message translates to:
+  /// **'link to site'**
+  String get ruleIfDomain;
+
+  /// Condition kind
+  ///
+  /// In en, this message translates to:
+  /// **'has word'**
+  String get ruleIfWord;
+
+  /// Condition kind
+  ///
+  /// In en, this message translates to:
+  /// **'item type'**
+  String get ruleIfKind;
+
+  /// Action kind
+  ///
+  /// In en, this message translates to:
+  /// **'into folder'**
+  String get ruleThenFolder;
+
+  /// Action kind
+  ///
+  /// In en, this message translates to:
+  /// **'add tag'**
+  String get ruleThenTag;
+
+  /// Field hint
+  ///
+  /// In en, this message translates to:
+  /// **'tag without #'**
+  String get ruleValueTag;
+
+  /// Field hint
+  ///
+  /// In en, this message translates to:
+  /// **'tiktok.com'**
+  String get ruleValueDomain;
+
+  /// Field hint
+  ///
+  /// In en, this message translates to:
+  /// **'word'**
+  String get ruleValueWord;
+
+  /// Switch
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get ruleEnabled;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete rule'**
+  String get ruleDelete;
+
+  /// Home bar button
+  ///
+  /// In en, this message translates to:
+  /// **'Tags, folders and rules'**
+  String get settingsTooltip;
+
+  /// Tooltip / button
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get tagAdd;
+
+  /// Button: sort unsorted items one by one
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sortMode;
+
+  /// Sort mode
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get sortSkip;
+
+  /// Sort mode counter
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left'**
+  String sortLeft(int count);
+
+  /// Sort mode finished
+  ///
+  /// In en, this message translates to:
+  /// **'All sorted'**
+  String get sortDone;
+
+  /// Sort mode hint
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a folder to put it there, swipe down to skip'**
+  String get sortHint;
+
+  /// Icon search hint; names are English Material Symbols names
+  ///
+  /// In en, this message translates to:
+  /// **'Find an icon: car, home, food'**
+  String get iconSearch;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

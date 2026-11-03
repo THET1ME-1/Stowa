@@ -74,9 +74,26 @@ class FolderIndex {
   final _hits = <String, Map<String, int>>{};
 
   FolderGuess? guess(String text) {
-    if (_docs == 0) return null;
+    final (:scores, :evidence) = _score(text);
+    if (scores.isEmpty) return null;
+    final ranked = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final best = ranked.first;
+    final second = ranked.length > 1 ? ranked[1].value : 0.0;
+    if (best.value < _minScore || best.value < second * _lead) return null;
+    final proof = [...evidence[best.key]!]..sort((a, b) => b.$2.compareTo(a.$2));
+    return FolderGuess(folderId: best.key, words: [for (final (word, _, _) in proof.take(3)) word], byName: proof.first.$3, score: best.value);
+  }
+
+  /// Папки по похожести, лучшие первыми, даже без уверенности: подсказки «Разобрать».
+  List<String> rank(String text) {
+    final scores = _score(text).scores;
+    return [for (final entry in scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value))) entry.key];
+  }
+
+  ({Map<String, double> scores, Map<String, List<(String, double, bool)>> evidence}) _score(String text) {
     final scores = <String, double>{};
     final evidence = <String, List<(String, double, bool)>>{};
+    if (_docs == 0) return (scores: scores, evidence: evidence);
     final seen = <String>{};
     for (final word in _words(text)) {
       if (!seen.add(word.stem)) continue;
@@ -93,12 +110,6 @@ class FolderIndex {
         evidence.putIfAbsent(folder, () => []).add((word.original, weight, word.name));
       }
     }
-    if (scores.isEmpty) return null;
-    final ranked = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-    final best = ranked.first;
-    final second = ranked.length > 1 ? ranked[1].value : 0.0;
-    if (best.value < _minScore || best.value < second * _lead) return null;
-    final proof = [...evidence[best.key]!]..sort((a, b) => b.$2.compareTo(a.$2));
-    return FolderGuess(folderId: best.key, words: [for (final (word, _, _) in proof.take(3)) word], byName: proof.first.$3, score: best.value);
+    return (scores: scores, evidence: evidence);
   }
 }
