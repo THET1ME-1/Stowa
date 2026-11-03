@@ -61,5 +61,9 @@ ItemKind detectKind({String text = '', String? mime}) {
   }
   final url = firstUrl(text);
   if (url == null) return ItemKind.note;
+  // ссылка с подписью — ссылка; заметка, где ссылка лишь одна из строк, — заметка
+  final words = text.replaceAll(_url, ' ').split(RegExp(r'\s+')).where((word) => word.isNotEmpty).length;
+  final lines = text.split('\n').where((line) => line.trim().isNotEmpty).length;
+  if (words > 12 || lines > 2) return ItemKind.note;
   return _isVideoHost(url) ? ItemKind.video : ItemKind.link;
 }

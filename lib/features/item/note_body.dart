@@ -5,6 +5,8 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import 'note_blocks.dart';
 
+const _markWidth = 32.0;
+
 /// Текст заметки на странице вещи: абзацы, заголовки, списки, галочки, цитаты.
 /// Касание по тексту открывает правку, по галочке — отмечает дело, по ссылке — открывает её.
 class NoteBody extends StatelessWidget {
@@ -43,7 +45,8 @@ class NoteBody extends StatelessWidget {
     Widget marked(Widget mark, String value) => Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 26, child: mark),
+        // одна колонка для точки, номера и галочки: текст пунктов начинается ровно
+        SizedBox(width: _markWidth, child: mark),
         Expanded(child: line(value)),
       ],
     );
@@ -81,11 +84,16 @@ class NoteBody extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: Icon(symbolIcon(done ? 'check_box' : 'check_box_outline_blank', filled: done), size: 22, color: done ? Tokens.accent : Tokens.onSurfaceVariant),
+              SizedBox(
+                width: _markWidth,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Icon(symbolIcon(done ? 'check_box' : 'check_box_outline_blank', filled: done), size: 22, color: done ? Tokens.accent : Tokens.onSurfaceVariant),
+                  ),
+                ),
               ),
-              const SizedBox(width: 10),
               Expanded(
                 child: RichLine(
                   text: value,

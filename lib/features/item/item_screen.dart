@@ -25,6 +25,7 @@ import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
+import 'markdown_controller.dart';
 import 'note_blocks.dart';
 import 'note_body.dart';
 
@@ -56,7 +57,7 @@ class ItemScreen extends ConsumerStatefulWidget {
 
 class _ItemScreenState extends ConsumerState<ItemScreen> {
   final _title = TextEditingController();
-  final _body = TextEditingController();
+  final _body = MarkdownController();
   final _bodyFocus = FocusNode();
   bool _editing = false;
   Timer? _autosave;
@@ -245,167 +246,150 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       child: Scaffold(
         body: SafeArea(
           bottom: false,
-          child: Stack(
+          child: Column(
             children: [
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                          onPressed: () => Navigator.maybePop(context),
-                          icon: Icon(symbolIcon('arrow_back')),
-                        ),
-                        const SizedBox(width: 4),
-                        // чип занимает своё место целиком, а не половину ряда пополам с пустотой
-                        Expanded(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: ActionChip(
-                              onPressed: () => _move(item, folders),
-                              avatar: Icon(symbolIcon(folder?.icon ?? 'inbox'), size: 18),
-                              label: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(child: Text(folder?.name ?? l.folderNone, overflow: TextOverflow.ellipsis)),
-                                  Icon(symbolIcon('expand_more'), size: 18),
-                                ],
-                              ),
-                              backgroundColor: Tokens.containerHigh,
-                              side: BorderSide.none,
-                              shape: const StadiumBorder(),
-                            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+                child: Row(
+                  children: [
+                    IconButton(tooltip: MaterialLocalizations.of(context).backButtonTooltip, onPressed: () => Navigator.maybePop(context), icon: Icon(symbolIcon('arrow_back'))),
+                    const SizedBox(width: 4),
+                    // чип занимает своё место целиком, а не половину ряда пополам с пустотой
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: ActionChip(
+                          onPressed: () => _move(item, folders),
+                          avatar: Icon(symbolIcon(folder?.icon ?? 'inbox'), size: 18),
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(child: Text(folder?.name ?? l.folderNone, overflow: TextOverflow.ellipsis)),
+                              Icon(symbolIcon('expand_more'), size: 18),
+                            ],
                           ),
+                          backgroundColor: Tokens.containerHigh,
+                          side: BorderSide.none,
+                          shape: const StadiumBorder(),
                         ),
-                        if (!_editing)
-                          IconButton(tooltip: l.itemEdit, onPressed: () => _startEditing(item), icon: Icon(symbolIcon('edit'))),
-                        IconButton(
-                          tooltip: l.itemCopy,
-                          onPressed: () async {
-                            await Clipboard.setData(ClipboardData(text: item.body.isEmpty ? item.title : item.body));
-                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.itemCopied)));
-                          },
-                          icon: Icon(symbolIcon('content_copy')),
-                        ),
-                        IconButton(
-                          tooltip: l.itemDelete,
-                          onPressed: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            _autosave?.cancel();
-                            _editing = false;
-                            await _items.softDelete(_id, _clock());
-                            if (context.mounted) Navigator.pop(context);
-                            showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => _items.restore(_id));
-                          },
-                          icon: Icon(symbolIcon('delete')),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView(
-                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-                      // в правке снизу место под панель, чтобы последняя строка не пряталась
-                      padding: EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, (_editing ? 112 : 40) + bottom),
-                      children: [
-                        if (_editing)
-                          TextField(
-                            controller: _title,
-                            maxLines: null,
-                            textCapitalization: TextCapitalization.sentences,
-                            textInputAction: TextInputAction.next,
-                            onSubmitted: (_) => _bodyFocus.requestFocus(),
-                            style: titleStyle,
-                            decoration: _bare(l.itemTitleHint),
-                          )
-                        else
-                          GestureDetector(
-                            onTap: () => _startEditing(item),
-                            child: Text(item.title, style: titleStyle),
-                          ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: [
-                            for (final tag in full.tags.keys)
-                              _MetaChip(label: '#$tag', removeTooltip: l.removeChip, onRemove: () => ref.read(tagsRepositoryProvider).unlink(_id, tag)),
-                            _MetaChip(
-                              label: l.tagAdd,
-                              icon: 'add',
-                              onTap: () async {
-                                final name = await _askTag(context);
-                                if (name != null) await ref.read(tagsRepositoryProvider).link(_id, name);
-                              },
-                            ),
-                            if (item.reminderAt != null)
-                              _MetaChip(label: formatReminder(l, item.reminderAt!, now), icon: 'alarm', onTap: () => _reminderMenu(item.reminderAt!)),
-                            // когда сохранено — со значком истории, чтобы не путать с напоминанием «сегодня в 16:41»
-                            _MetaChip(label: shortDate(l, item.createdAt, now), icon: 'history'),
-                          ],
-                        ),
-                        const SizedBox(height: 18),
-                        if (_editing)
-                          TextField(
-                            controller: _body,
-                            focusNode: _bodyFocus,
-                            maxLines: null,
-                            minLines: 6,
-                            keyboardType: TextInputType.multiline,
-                            textCapitalization: TextCapitalization.sentences,
-                            style: bodyStyle,
-                            decoration: _bare(l.itemBodyHint),
-                          )
-                        else if (blocks.isNotEmpty)
-                          NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
-                        for (final image in images) ...[
-                          const SizedBox(height: 16),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(Radii.photo),
-                            child: Image.file(
-                              File(p.join(filesRoot.path, image.path)),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const SizedBox(height: 120, child: ColoredBox(color: Tokens.containerHigh)),
-                            ),
-                          ),
-                        ],
-                        if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
-                        if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
-                        if (files.isNotEmpty) ...[
-                          const SizedBox(height: 20),
-                          Text(l.itemFiles, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
-                          const SizedBox(height: 8),
-                          for (final file in files) _FileRow(file: file),
-                        ],
-                      ],
+                    if (!_editing) IconButton(tooltip: l.itemEdit, onPressed: () => _startEditing(item), icon: Icon(symbolIcon('edit'))),
+                    IconButton(
+                      tooltip: l.itemCopy,
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: item.body.isEmpty ? item.title : item.body));
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.itemCopied)));
+                      },
+                      icon: Icon(symbolIcon('content_copy')),
                     ),
-                  ),
-                ],
+                    IconButton(
+                      tooltip: l.itemDelete,
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        _autosave?.cancel();
+                        _editing = false;
+                        await _items.softDelete(_id, _clock());
+                        if (context.mounted) Navigator.pop(context);
+                        showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => _items.restore(_id));
+                      },
+                      icon: Icon(symbolIcon('delete')),
+                    ),
+                  ],
+                ),
               ),
-              // панель правки снизу, как на экране 7: список, чек-лист, фото, напоминание и «Готово»
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 380),
-                  reverseDuration: const Duration(milliseconds: 180),
-                  switchInCurve: Motion.spatial,
-                  switchOutCurve: Motion.emphasizedAccelerate.flipped,
-                  transitionBuilder: riseTransition,
-                  child: _editing
-                      ? _EditBar(
-                          key: const ValueKey('bar'),
+              Expanded(
+                child: ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+                  padding: EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, _editing ? 24 : 40 + bottom),
+                  children: [
+                    if (_editing)
+                      TextField(
+                        controller: _title,
+                        maxLines: null,
+                        textCapitalization: TextCapitalization.sentences,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) => _bodyFocus.requestFocus(),
+                        style: titleStyle,
+                        decoration: _bare(l.itemTitleHint),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: () => _startEditing(item),
+                        child: Text(item.title, style: titleStyle),
+                      ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final tag in full.tags.keys) _MetaChip(label: '#$tag', removeTooltip: l.removeChip, onRemove: () => ref.read(tagsRepositoryProvider).unlink(_id, tag)),
+                        _MetaChip(
+                          label: l.tagAdd,
+                          icon: 'add',
+                          onTap: () async {
+                            final name = await _askTag(context);
+                            if (name != null) await ref.read(tagsRepositoryProvider).link(_id, name);
+                          },
+                        ),
+                        if (item.reminderAt != null) _MetaChip(label: formatReminder(l, item.reminderAt!, now), icon: 'alarm', onTap: () => _reminderMenu(item.reminderAt!)),
+                        // когда сохранено — со значком истории, чтобы не путать с напоминанием «сегодня в 16:41»
+                        _MetaChip(label: shortDate(l, item.createdAt, now), icon: 'history'),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    if (_editing)
+                      TextField(
+                        controller: _body,
+                        focusNode: _bodyFocus,
+                        maxLines: null,
+                        minLines: 6,
+                        keyboardType: TextInputType.multiline,
+                        textCapitalization: TextCapitalization.sentences,
+                        style: bodyStyle,
+                        decoration: _bare(l.itemBodyHint),
+                      )
+                    else if (blocks.isNotEmpty)
+                      NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
+                    for (final image in images) ...[
+                      const SizedBox(height: 16),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(Radii.photo),
+                        child: Image.file(
+                          File(p.join(filesRoot.path, image.path)),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const SizedBox(height: 120, child: ColoredBox(color: Tokens.containerHigh)),
+                        ),
+                      ),
+                    ],
+                    if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
+                    if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
+                    if (files.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text(l.itemFiles, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
+                      const SizedBox(height: 8),
+                      for (final file in files) _FileRow(file: file),
+                    ],
+                  ],
+                ),
+              ),
+              // панель правки, как на экране 7: список, чек-лист, фото, напоминание и «Готово».
+              // Стоит под текстом, а не поверх: строка с курсором всегда видна над ней
+              AnimatedSize(
+                duration: const Duration(milliseconds: 380),
+                curve: Motion.spatial,
+                alignment: Alignment.topCenter,
+                child: _editing
+                    ? RiseIn(
+                        child: _EditBar(
                           onBullets: () => _markdown(MarkdownAction.bullets),
                           onChecklist: () => _markdown(MarkdownAction.checklist),
                           onPhoto: _addPhotos,
                           onRemind: () => _pickReminder(item.reminderAt),
                           onDone: _finish,
-                        )
-                      : const SizedBox.shrink(key: ValueKey('none')),
-                ),
+                        ),
+                      )
+                    : const SizedBox(width: double.infinity),
               ),
             ],
           ),
@@ -428,7 +412,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
 /// Плавающая панель правки: группа кнопок в пилюле и круглая «Готово» справа.
 class _EditBar extends StatelessWidget {
-  const _EditBar({super.key, required this.onBullets, required this.onChecklist, required this.onPhoto, required this.onRemind, required this.onDone});
+  const _EditBar({required this.onBullets, required this.onChecklist, required this.onPhoto, required this.onRemind, required this.onDone});
 
   final VoidCallback onBullets;
   final VoidCallback onChecklist;

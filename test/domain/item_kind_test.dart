@@ -26,6 +26,14 @@ void main() {
     expect(detectKind(text: 'версия 1.5 вышла'), ItemKind.note);
   });
 
+  test('длинная заметка со ссылкой внутри остаётся заметкой', () {
+    const note = 'Разработка архитектуры приложения\nДипломная работа\n\n- расширить до 40 страниц\n- 20–40 источников\n\nДокументация: flutter.dev/docs';
+    expect(detectKind(text: note), ItemKind.note);
+    // а короткая подпись к ссылке её не делает заметкой
+    expect(detectKind(text: 'Паста с креветками https://vt.tiktok.com/ZSpasta15/'), ItemKind.video);
+    expect(detectKind(text: 'Как варить кофе в турке, коротко и по делу https://coffee-guide.ru/turka'), ItemKind.link);
+  });
+
   test('файл узнаётся по типу', () {
     expect(detectKind(mime: 'image/jpeg'), ItemKind.image);
     expect(detectKind(mime: 'audio/mp4'), ItemKind.voice);

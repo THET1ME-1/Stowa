@@ -98,7 +98,8 @@ List<NoteBlock> parseNoteBlocks(String body, {String? skipTitle}) {
 typedef InlinePiece = ({String text, bool bold, bool italic, bool strike, bool code, String? url});
 
 // выделение только по краям слова: «snake_case» и «2*3» остаются как есть
-final _inline = RegExp(r'\*\*(.+?)\*\*|(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])|(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)|~~(.+?)~~|`(.+?)`');
+/// Строчная разметка: 1 — жирный, 2 и 3 — курсив, 4 — зачёркнутый, 5 — код.
+final inlineMarks = RegExp(r'\*\*(.+?)\*\*|(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])|(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)|~~(.+?)~~|`(.+?)`');
 
 /// Строка в куски: жирный, курсив, зачёркнутый, код, ссылки.
 List<InlinePiece> parseInline(String text) {
@@ -115,7 +116,7 @@ List<InlinePiece> parseInline(String text) {
   }
 
   var last = 0;
-  for (final match in _inline.allMatches(text)) {
+  for (final match in inlineMarks.allMatches(text)) {
     if (match.start > last) plain(text.substring(last, match.start));
     final bold = match.group(1);
     final italic = match.group(2) ?? match.group(3);
