@@ -1198,4 +1198,16 @@ class LEs extends L {
 
   @override
   String get folderNewBadge => 'nueva';
+
+  @override
+  String get aiSortingNow => 'Ordenando…';
+
+  @override
+  String get aiLog => 'Registro de peticiones';
+
+  @override
+  String get aiLogEmpty => 'Aún no hubo peticiones al proveedor';
+
+  @override
+  String get aiLogCluster => 'Carpetas nuevas de «Sin carpeta»';
 }

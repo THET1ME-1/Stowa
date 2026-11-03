@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:drift/drift.dart' show BaseAggregate;
+import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -78,6 +78,26 @@ final aiDrainProvider = Provider<Future<void> Function()>((ref) => ref.watch(aiW
 
 /// Вещи, которые ИИ только что положил в папку: плашка «Положил в …».
 final aiSortedProvider = StreamProvider((ref) => ref.watch(aiWorkerProvider).sorted);
+
+/// Последние 50 запросов к поставщику с названием вещи: экран журнала в настройках.
+final aiLogProvider = StreamProvider((ref) {
+  final db = ref.watch(databaseProvider);
+  return db
+      .customSelect(
+        'SELECT ai_log.at, ai_log.error, items.title FROM ai_log LEFT JOIN items ON items.id = ai_log.item_id ORDER BY ai_log.id DESC LIMIT 50',
+        readsFrom: {db.aiLog, db.items},
+      )
+      .watch()
+      .map(
+        (rows) => [
+          for (final row in rows)
+            (at: db.typeMapping.read(DriftSqlType.dateTime, row.data['at'])!, error: row.readNullable<String>('error'), title: row.readNullable<String>('title')),
+        ],
+      );
+});
+
+/// Разбор идёт прямо сейчас.
+final aiBusyProvider = StreamProvider((ref) => ref.watch(aiWorkerProvider).busy);
 
 /// Сколько вещей ждёт ИИ: в настройках рядом с «Разобрать сейчас».
 final aiQueueProvider = StreamProvider((ref) {

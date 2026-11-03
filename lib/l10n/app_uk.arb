@@ -86,5 +86,9 @@
   "backupNotStowa": "Це не копія Stowa",
   "backupTooNew": "Копію зробила новіша Stowa, онови застосунок",
   "backupFailed": "Копія не вийшла",
-  "folderNewBadge": "нова"
+  "folderNewBadge": "нова",
+  "aiSortingNow": "Розбираю…",
+  "aiLog": "Журнал запитів",
+  "aiLogEmpty": "Запитів до постачальника ще не було",
+  "aiLogCluster": "Нові папки з «Без папки»"
 }

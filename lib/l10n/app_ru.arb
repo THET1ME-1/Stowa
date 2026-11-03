@@ -334,5 +334,9 @@
   "backupNotStowa": "Это не копия Stowa",
   "backupTooNew": "Копию сделала более новая Stowa, обнови приложение",
   "backupFailed": "Копия не получилась",
-  "folderNewBadge": "новая"
+  "folderNewBadge": "новая",
+  "aiSortingNow": "Разбираю…",
+  "aiLog": "Журнал запросов",
+  "aiLogEmpty": "Запросов к поставщику ещё не было",
+  "aiLogCluster": "Новые папки из «Без папки»"
 }

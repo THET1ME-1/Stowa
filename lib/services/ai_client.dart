@@ -10,10 +10,11 @@ const defaultAiBaseUrl = 'https://openrouter.ai/api/v1';
 /// Модель разбора по умолчанию: бесплатная, видит картинки, держит строгий JSON.
 const defaultSortModel = 'nvidia/nemotron-3.5-super-vl:free';
 
-enum AiFailureKind { auth, payment, rateLimit, network, server, badResponse }
+enum AiFailureKind { auth, payment, rateLimit, network, timeout, server, badResponse }
 
 /// Почему поставщик не ответил. auth и payment ставят очередь на паузу до
-/// смены ключа, rateLimit — на [retryAfter].
+/// смены ключа, rateLimit — на [retryAfter]. timeout — сеть есть, но модель
+/// думала дольше срока: виновата вещь, а не связь, очередь идёт дальше.
 class AiFailure implements Exception {
   const AiFailure(this.kind, this.message, {this.retryAfter});
 
@@ -62,6 +63,8 @@ class AiClient {
         headers: _headers,
         body: jsonEncode({'model': model, 'messages': messages, 'response_format': ?responseFormat, 'temperature': 0}),
       ),
+      // бесплатные модели с размышлениями думают над картинкой минуту и дольше
+      wait: const Duration(seconds: 90),
     );
     try {
       final json = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, Object?>;
@@ -80,7 +83,7 @@ class AiClient {
       ..headers.addAll({'authorization': 'Bearer $_apiKey', 'x-title': 'Stowa'})
       ..fields['model'] = model
       ..files.add(await http.MultipartFile.fromPath('file', audioPath));
-    final response = await _send(() async => http.Response.fromStream(await _http.send(request)));
+    final response = await _send(() async => http.Response.fromStream(await _http.send(request)), wait: const Duration(seconds: 90));
     try {
       final text = (jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, Object?>)['text'];
       if (text is! String) throw const FormatException('нет текста');
@@ -122,12 +125,12 @@ class AiClient {
     }
   }
 
-  Future<http.Response> _send(Future<http.Response> Function() request) async {
+  Future<http.Response> _send(Future<http.Response> Function() request, {Duration wait = const Duration(seconds: 30)}) async {
     final http.Response response;
     try {
-      response = await request().timeout(const Duration(seconds: 30));
+      response = await request().timeout(wait);
     } on TimeoutException {
-      throw const AiFailure(AiFailureKind.network, 'нет ответа за 30 секунд');
+      throw AiFailure(AiFailureKind.timeout, 'нет ответа за ${wait.inSeconds} секунд');
     } on SocketException catch (error) {
       throw AiFailure(AiFailureKind.network, error.message);
     } on http.ClientException catch (error) {

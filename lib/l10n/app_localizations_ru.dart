@@ -1213,4 +1213,16 @@ class LRu extends L {
 
   @override
   String get folderNewBadge => 'новая';
+
+  @override
+  String get aiSortingNow => 'Разбираю…';
+
+  @override
+  String get aiLog => 'Журнал запросов';
+
+  @override
+  String get aiLogEmpty => 'Запросов к поставщику ещё не было';
+
+  @override
+  String get aiLogCluster => 'Новые папки из «Без папки»';
 }

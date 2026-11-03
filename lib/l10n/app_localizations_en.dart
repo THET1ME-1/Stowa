@@ -1197,4 +1197,16 @@ class LEn extends L {
 
   @override
   String get folderNewBadge => 'new';
+
+  @override
+  String get aiSortingNow => 'Sorting…';
+
+  @override
+  String get aiLog => 'Request log';
+
+  @override
+  String get aiLogEmpty => 'No requests to the provider yet';
+
+  @override
+  String get aiLogCluster => 'New folders from “No folder”';
 }

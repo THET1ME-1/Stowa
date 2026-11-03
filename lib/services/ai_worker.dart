@@ -168,7 +168,8 @@ class AiWorker {
               return WorkerReport(sorted: sorted, failed: failed, stopped: failure.kind);
             case AiFailureKind.network:
               return WorkerReport(sorted: sorted, failed: failed, stopped: failure.kind);
-            case AiFailureKind.server || AiFailureKind.badResponse:
+            // долгая вещь не держит очередь: она ждёт повтора, остальные идут
+            case AiFailureKind.timeout || AiFailureKind.server || AiFailureKind.badResponse:
               await _fail(job, failure.message);
               failed++;
               continue;
@@ -193,16 +194,31 @@ class AiWorker {
   /// Всё, что ждёт: забытые задачи, очередь до конца, потом новые папки из «Без папки».
   /// Зовут после сохранения, при открытии, при возврате сети и из фона раз в 15 минут.
   Future<void> drain() async {
-    // фоновая очередь могла поставить паузу, пока приложение спало
-    await _settings.reload();
-    await enqueueMissing();
-    while (true) {
-      final report = await runOnce();
-      if (report.stopped != null) return;
-      if (report.sorted + report.failed == 0) break;
+    // второй вызов, пока идёт первый, ничего не добавит: первый и так дойдёт до конца
+    if (_draining) return;
+    _draining = true;
+    _busy.add(true);
+    try {
+      // фоновая очередь могла поставить паузу, пока приложение спало
+      await _settings.reload();
+      await enqueueMissing();
+      while (true) {
+        final report = await runOnce();
+        if (report.stopped != null) return;
+        if (report.sorted + report.failed == 0) break;
+      }
+      await runCluster();
+    } finally {
+      _draining = false;
+      _busy.add(false);
     }
-    await runCluster();
   }
+
+  bool _draining = false;
+  final _busy = StreamController<bool>.broadcast();
+
+  /// Идёт ли сейчас разбор: настройки показывают «Разбираю…» вместо кнопки.
+  Stream<bool> get busy => _busy.stream;
 
   /// В «Без папки» набралось несколько вещей: спросить, не собрать ли их в новые папки.
   Future<int> runCluster() async {

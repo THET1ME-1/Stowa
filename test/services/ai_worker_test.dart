@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -132,6 +133,22 @@ void main() {
     expect(job.nextTryAt, now.add(const Duration(minutes: 2)));
     expect((await item(id)).sortState, SortState.failed);
     expect(nextTryDelay(20), const Duration(hours: 6));
+  });
+
+  test('модель думала слишком долго — вещь ждёт повтора, а очередь идёт дальше', () async {
+    reply = (body) {
+      if (jsonEncode(body).contains('долгая')) throw TimeoutException('думает');
+      return answer({'folder_id': 'food'});
+    };
+    final slow = await add('долгая мысль');
+    final quick = await add('Борщ');
+    final report = await worker().runOnce();
+    expect(report.stopped, isNull);
+    expect((await item(quick)).folderId, 'food');
+    final job = await db.select(db.aiJobs).getSingle();
+    expect(job.itemId, slow);
+    expect(job.attempts, 1);
+    expect(job.nextTryAt, now.add(const Duration(minutes: 2)));
   });
 
   test('новая папка от ИИ заводится с createdByAi', () async {

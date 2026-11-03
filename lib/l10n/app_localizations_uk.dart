@@ -1208,4 +1208,16 @@ class LUk extends L {
 
   @override
   String get folderNewBadge => 'нова';
+
+  @override
+  String get aiSortingNow => 'Розбираю…';
+
+  @override
+  String get aiLog => 'Журнал запитів';
+
+  @override
+  String get aiLogEmpty => 'Запитів до постачальника ще не було';
+
+  @override
+  String get aiLogCluster => 'Нові папки з «Без папки»';
 }

@@ -1202,4 +1202,16 @@ class LRo extends L {
 
   @override
   String get folderNewBadge => 'nou';
+
+  @override
+  String get aiSortingNow => 'Sortez…';
+
+  @override
+  String get aiLog => 'Jurnal cereri';
+
+  @override
+  String get aiLogEmpty => 'Încă nu au fost cereri către furnizor';
+
+  @override
+  String get aiLogCluster => 'Dosare noi din „Fără dosar”';
 }

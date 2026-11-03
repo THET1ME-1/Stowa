@@ -86,5 +86,9 @@
   "backupNotStowa": "To nie jest kopia Stowa",
   "backupTooNew": "Kopię zrobiła nowsza Stowa, zaktualizuj aplikację",
   "backupFailed": "Kopia się nie udała",
-  "folderNewBadge": "nowy"
+  "folderNewBadge": "nowy",
+  "aiSortingNow": "Sortuję…",
+  "aiLog": "Dziennik zapytań",
+  "aiLogEmpty": "Nie było jeszcze zapytań do dostawcy",
+  "aiLogCluster": "Nowe foldery z „Bez folderu”"
 }

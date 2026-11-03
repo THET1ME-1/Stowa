@@ -21,6 +21,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
 import '../../services/backup_service.dart';
 import '../tags/tags_screen.dart';
+import 'ai_log_screen.dart';
 import 'trash_screen.dart';
 
 Route<void> settingsRoute() => PageRouteBuilder(
@@ -38,7 +39,7 @@ String aiFailureText(L l, AiFailureKind kind) => switch (kind) {
   AiFailureKind.auth => l.aiCheckAuth,
   AiFailureKind.payment => l.aiCheckPayment,
   AiFailureKind.rateLimit => l.aiCheckRate,
-  AiFailureKind.network => l.aiCheckNetwork,
+  AiFailureKind.network || AiFailureKind.timeout => l.aiCheckNetwork,
   AiFailureKind.server || AiFailureKind.badResponse => l.aiCheckServer,
 };
 
@@ -68,7 +69,7 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 18),
-            _AiCard(settings: ai, queued: queued, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
+            _AiCard(settings: ai, queued: queued, busy: ref.watch(aiBusyProvider).value ?? false, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
             const SizedBox(height: 8),
             _Group(
               children: [
@@ -76,6 +77,7 @@ class SettingsScreen extends ConsumerWidget {
                 _Row(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => _showProviderSheet(context, ai.baseUrl)),
                 _Row(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => _showModelSheet(context, speech: false)),
                 _Row(icon: 'graphic_eq', title: l.aiSpeechModel, value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!), onTap: () => _showModelSheet(context, speech: true)),
+                _Row(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
               ],
             ),
             _Section(l.settingsOrder),
@@ -186,10 +188,11 @@ String _modelLabel(String id) => id.split('/').last.replaceFirst(RegExp(r':free$
 
 /// Состояние разбора: работает, выключен, на паузе или ждёт поставщика.
 class _AiCard extends StatelessWidget {
-  const _AiCard({required this.settings, required this.queued, required this.onSortNow});
+  const _AiCard({required this.settings, required this.queued, required this.busy, required this.onSortNow});
 
   final AiSettings settings;
   final int queued;
+  final bool busy;
   final VoidCallback onSortNow;
 
   @override
@@ -242,7 +245,13 @@ class _AiCard extends StatelessWidget {
           ],
           if (settings.active && !waiting && queued > 0) ...[
             const SizedBox(height: 12),
-            FilledButton.tonalIcon(onPressed: onSortNow, icon: Icon(symbolIcon('play_arrow', filled: true)), label: Text(l.aiSortNow)),
+            FilledButton.tonalIcon(
+              onPressed: busy ? null : onSortNow,
+              icon: busy
+                  ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Tokens.onSurfaceVariant))
+                  : Icon(symbolIcon('play_arrow', filled: true)),
+              label: Text(busy ? l.aiSortingNow : l.aiSortNow),
+            ),
           ],
         ],
       ),
@@ -338,7 +347,7 @@ class _KeySheetState extends ConsumerState<_KeySheet> {
       await AiClient(http: ref.read(aiHttpProvider), baseUrl: settings.ai.baseUrl, apiKey: key).check();
     } on AiFailure catch (failure) {
       // поставщик молчит — ключ всё равно сохраняется, проверится при разборе
-      if (failure.kind != AiFailureKind.network && failure.kind != AiFailureKind.server) {
+      if (!{AiFailureKind.network, AiFailureKind.timeout, AiFailureKind.server}.contains(failure.kind)) {
         if (mounted) {
           setState(() {
             _busy = false;

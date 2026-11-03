@@ -2116,6 +2116,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'new'**
   String get folderNewBadge;
+
+  /// aiSortingNow
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting…'**
+  String get aiSortingNow;
+
+  /// aiLog
+  ///
+  /// In en, this message translates to:
+  /// **'Request log'**
+  String get aiLog;
+
+  /// aiLogEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'No requests to the provider yet'**
+  String get aiLogEmpty;
+
+  /// aiLogCluster
+  ///
+  /// In en, this message translates to:
+  /// **'New folders from “No folder”'**
+  String get aiLogCluster;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

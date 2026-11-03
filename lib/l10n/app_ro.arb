@@ -86,5 +86,9 @@
   "backupNotStowa": "Nu e o copie Stowa",
   "backupTooNew": "Copia e făcută de un Stowa mai nou. Actualizează aplicația",
   "backupFailed": "Copia nu a reușit",
-  "folderNewBadge": "nou"
+  "folderNewBadge": "nou",
+  "aiSortingNow": "Sortez…",
+  "aiLog": "Jurnal cereri",
+  "aiLogEmpty": "Încă nu au fost cereri către furnizor",
+  "aiLogCluster": "Dosare noi din „Fără dosar”"
 }

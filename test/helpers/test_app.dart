@@ -28,6 +28,7 @@ class TestWorld {
         // очередь ИИ в тестах не ходит в сеть сама, плашек разбора не бывает
         aiDrainProvider.overrideWithValue(() async {}),
         aiSortedProvider.overrideWith((ref) => const Stream.empty()),
+        aiBusyProvider.overrideWith((ref) => const Stream.empty()),
         onlineProvider.overrideWith((ref) => const Stream.empty()),
         if (settings case final settings?)
           settingsRepositoryProvider.overrideWithValue(settings)

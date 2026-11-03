@@ -1202,4 +1202,16 @@ class LDe extends L {
 
   @override
   String get folderNewBadge => 'neu';
+
+  @override
+  String get aiSortingNow => 'Sortiere…';
+
+  @override
+  String get aiLog => 'Anfrageprotokoll';
+
+  @override
+  String get aiLogEmpty => 'Noch keine Anfragen an den Anbieter';
+
+  @override
+  String get aiLogCluster => 'Neue Ordner aus „Ohne Ordner“';
 }

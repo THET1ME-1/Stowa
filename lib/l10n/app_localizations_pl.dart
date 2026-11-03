@@ -1208,4 +1208,16 @@ class LPl extends L {
 
   @override
   String get folderNewBadge => 'nowy';
+
+  @override
+  String get aiSortingNow => 'Sortuję…';
+
+  @override
+  String get aiLog => 'Dziennik zapytań';
+
+  @override
+  String get aiLogEmpty => 'Nie było jeszcze zapytań do dostawcy';
+
+  @override
+  String get aiLogCluster => 'Nowe foldery z „Bez folderu”';
 }

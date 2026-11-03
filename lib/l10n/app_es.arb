@@ -86,5 +86,9 @@
   "backupNotStowa": "No es una copia de Stowa",
   "backupTooNew": "Una Stowa más nueva hizo esta copia. Actualiza la app",
   "backupFailed": "La copia falló",
-  "folderNewBadge": "nueva"
+  "folderNewBadge": "nueva",
+  "aiSortingNow": "Ordenando…",
+  "aiLog": "Registro de peticiones",
+  "aiLogEmpty": "Aún no hubo peticiones al proveedor",
+  "aiLogCluster": "Carpetas nuevas de «Sin carpeta»"
 }

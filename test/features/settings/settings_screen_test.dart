@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/models.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/l10n/app_language.dart';
 
@@ -98,6 +101,16 @@ void main() {
     // экран прокручен к языку: заголовок раздела уже по-английски
     expect(find.text('Language'), findsWidgets);
     expect(find.text('Язык'), findsNothing);
+  });
+
+  testWidgets('журнал показывает, какой запрос упал и почему', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Борщ', createdAt: world.now, updatedAt: world.now));
+    await world.db.into(world.db.aiLog).insert(AiLogCompanion.insert(at: world.now, itemId: const Value('a'), request: '{}', error: const Value('AiFailure(timeout): нет ответа за 90 секунд')));
+    await open(tester, keyStatus: 200);
+    await tester.tap(find.text('Журнал запросов'));
+    await tester.pumpAndSettle();
+    expect(find.text('Борщ'), findsOneWidget);
+    expect(find.textContaining('нет ответа за 90 секунд'), findsOneWidget);
   });
 
   testWidgets('пауза разбора видна на главной и ведёт в настройки', (tester) async {

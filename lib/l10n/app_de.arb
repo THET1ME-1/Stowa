@@ -86,5 +86,9 @@
   "backupNotStowa": "Das ist keine Stowa-Sicherung",
   "backupTooNew": "Eine neuere Stowa hat die Sicherung erstellt. Aktualisiere die App",
   "backupFailed": "Die Sicherung ist fehlgeschlagen",
-  "folderNewBadge": "neu"
+  "folderNewBadge": "neu",
+  "aiSortingNow": "Sortiere…",
+  "aiLog": "Anfrageprotokoll",
+  "aiLogEmpty": "Noch keine Anfragen an den Anbieter",
+  "aiLogCluster": "Neue Ordner aus „Ohne Ordner“"
 }

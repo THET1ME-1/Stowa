@@ -1556,5 +1556,21 @@
   "folderNewBadge": "new",
   "@folderNewBadge": {
     "description": "Badge on a folder the AI created"
+  },
+  "aiSortingNow": "Sorting…",
+  "@aiSortingNow": {
+    "description": "aiSortingNow"
+  },
+  "aiLog": "Request log",
+  "@aiLog": {
+    "description": "aiLog"
+  },
+  "aiLogEmpty": "No requests to the provider yet",
+  "@aiLogEmpty": {
+    "description": "aiLogEmpty"
+  },
+  "aiLogCluster": "New folders from “No folder”",
+  "@aiLogCluster": {
+    "description": "aiLogCluster"
   }
 }
