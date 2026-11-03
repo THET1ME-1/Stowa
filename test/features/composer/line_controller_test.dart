@@ -128,4 +128,20 @@ void main() {
     });
     expect(dotted, ['23 декабря 13:00']);
   });
+
+  testWidgets('день и время порознь подчёркнуты каждый, слова между ними — нет', (tester) async {
+    line.value = _typed('Завтра военная кафедра в 14:00');
+    late TextSpan span;
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
+      span = line.buildTextSpan(context: context, withComposing: false);
+      return const SizedBox();
+    })));
+    final dotted = <String>[];
+    span.visitChildren((child) {
+      final style = (child as TextSpan).style;
+      if (style?.decorationStyle == TextDecorationStyle.dotted) dotted.add(child.text!);
+      return true;
+    });
+    expect(dotted, ['Завтра', 'в 14:00']);
+  });
 }

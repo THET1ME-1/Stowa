@@ -175,10 +175,11 @@ class LineController extends TextEditingController {
       marks.add((0, command.end, const TextStyle(color: Tokens.onAccent, backgroundColor: Tokens.accent)));
     }
     final found = reminder;
-    if (found != null) {
+    // день и время могут стоять порознь: подчёркнут каждый кусок, слова между ними — нет
+    for (final (from, to) in found?.parts ?? const <(int, int)>[]) {
       marks.add((
-        found.start,
-        found.end,
+        from,
+        to,
         const TextStyle(
           decoration: TextDecoration.underline,
           decorationStyle: TextDecorationStyle.dotted,

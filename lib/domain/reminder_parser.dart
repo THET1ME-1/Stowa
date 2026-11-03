@@ -1,18 +1,26 @@
 /// Напоминание, найденное в тексте: где оно и на какой момент.
 class ReminderMatch {
-  const ReminderMatch({required this.start, required this.end, required this.at, required this.hasTime});
+  ReminderMatch({required this.start, required this.end, required this.at, required this.hasTime, List<(int, int)>? parts}) : parts = parts ?? [(start, end)];
 
-  /// Кусок текста с датой и временем, его подчёркивает строка и вырезает заголовок.
+  /// Весь охват напоминания: от первого куска до последнего.
   final int start;
   final int end;
   final DateTime at;
+
+  /// Куски текста с датой и временем, их подчёркивает строка и вырезает заголовок.
+  /// Обычно один, а в «завтра кафедра в 14:00» — два: день и время порознь.
+  final List<(int, int)> parts;
 
   /// Время названо. Без времени напоминание встаёт на 9 утра.
   final bool hasTime;
 
   /// Текст без даты и без «напомни» в начале: из него получается заголовок.
   String restOf(String text) {
-    final rest = '${text.substring(0, start)} ${text.substring(end)}';
+    var rest = text;
+    // с конца, чтобы места ещё не вырезанных кусков не сдвигались
+    for (final (from, to) in [...parts]..sort((a, b) => b.$1.compareTo(a.$1))) {
+      rest = '${rest.substring(0, from)} ${rest.substring(to)}';
+    }
     return rest
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim()
@@ -125,6 +133,12 @@ ReminderMatch? parseReminder(String text, DateTime now) {
         at: date.resolve(time.hour, time.minute),
         hasTime: true,
       );
+    }
+    // время в другом конце строки: «завтра военная кафедра в 14:00»
+    final apart = times.firstOrNull;
+    if (apart != null) {
+      final parts = [(date.start, date.end), (apart.start, apart.end)]..sort((a, b) => a.$1.compareTo(b.$1));
+      return ReminderMatch(start: parts.first.$1, end: parts.last.$2, parts: parts, at: date.resolve(apart.hour, apart.minute), hasTime: true);
     }
     return ReminderMatch(start: date.start, end: date.end, at: date.resolve(_morning, 0), hasTime: false);
   }

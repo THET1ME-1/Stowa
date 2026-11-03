@@ -71,6 +71,20 @@ void main() {
     expect(parseReminder('позвонить маме завтра в 10', now)!.restOf('позвонить маме завтра в 10'), 'позвонить маме');
   });
 
+  test('день и время в разных концах строки складываются', () {
+    const text = 'Завтра военная кафедра в 14:00';
+    final match = parseReminder(text, now)!;
+    expect(match.at, DateTime(2026, 11, 3, 14));
+    expect(match.hasTime, isTrue);
+    expect([for (final (start, end) in match.parts) text.substring(start, end)], ['Завтра', 'в 14:00']);
+    expect(match.restOf(text), 'военная кафедра');
+
+    expect(at('в 9:30 созвон с Саней в пятницу'), DateTime(2026, 11, 6, 9, 30));
+    expect(at('23 декабря зубной к 13:00'), DateTime(2026, 12, 23, 13));
+    // рядом стоящие, как и раньше, — один кусок
+    expect(parseReminder('военная кафедра в 14:00 завтра', now)!.parts, hasLength(1));
+  });
+
   test('регистр и ё не мешают', () {
     expect(at('Завтра В 10'), DateTime(2026, 11, 3, 10));
     expect(at('в субботу'), DateTime(2026, 11, 7, 9));
