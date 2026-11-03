@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/models.dart';
 import '../db/database.dart';
 
 /// Плитка папки на главной.
@@ -14,7 +15,11 @@ class FolderCard {
     required this.covers,
     required this.recentTitles,
     required this.createdByAi,
+    this.view = FolderView.auto,
   });
+
+  /// Как показывать: доска, список или сам по содержимому.
+  final FolderView view;
 
   final String id;
   final String name;
@@ -69,6 +74,7 @@ ORDER BY folders.sort_order, folders.name''',
                 covers: _split(row.readNullable<String>('covers')),
                 recentTitles: _split(row.readNullable<String>('recent_titles')),
                 createdByAi: row.read<bool>('created_by_ai'),
+                view: FolderView.values.asNameMap()[row.read<String>('view')] ?? FolderView.auto,
               ),
           ],
         );
@@ -84,6 +90,38 @@ ORDER BY folders.sort_order, folders.name''',
     final shape = shapes[count % shapes.length];
     await _db.into(_db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: shape, sortOrder: Value(count)));
     return FolderCard(id: id, name: name, icon: 'folder', shape: shape, count: 0, covers: const [], recentTitles: const [], createdByAi: false);
+  }
+
+  Future<void> rename(String id, String rawName) {
+    final trimmed = rawName.trim();
+    final name = trimmed[0].toUpperCase() + trimmed.substring(1);
+    return (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(name: Value(name)));
+  }
+
+  /// Иконка и форма значка папки.
+  Future<void> setLook(String id, {required String icon, required String shape}) {
+    return (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(icon: Value(icon), shape: Value(shape)));
+  }
+
+  Future<void> setView(String id, FolderView view) {
+    return (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(view: Value(view)));
+  }
+
+  /// Папка уходит, её вещи остаются «Без папки». Возвращает их id для «Вернуть».
+  Future<List<String>> delete(String id, DateTime at) {
+    return _db.transaction(() async {
+      final rows = await (_db.select(_db.items)..where((t) => t.folderId.equals(id))).get();
+      await (_db.update(_db.items)..where((t) => t.folderId.equals(id))).write(const ItemsCompanion(folderId: Value(null)));
+      await (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(deletedAt: Value(at)));
+      return [for (final row in rows) row.id];
+    });
+  }
+
+  Future<void> restore(String id, List<String> itemIds) {
+    return _db.transaction(() async {
+      await (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(const FoldersCompanion(deletedAt: Value(null)));
+      await (_db.update(_db.items)..where((t) => t.id.isIn(itemIds))).write(ItemsCompanion(folderId: Value(id)));
+    });
   }
 
   static List<String> _split(String? joined) => joined == null || joined.isEmpty ? const [] : joined.split(String.fromCharCode(31));

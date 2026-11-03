@@ -48,3 +48,6 @@ final rulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider)
 
 /// Одна вещь целиком для её страницы, обновляется вместе с базой.
 final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchItem(id));
+
+/// Вещи папки; null — всё, что лежит без папки.
+final folderItemsProvider = StreamProvider.family<List<ItemCard>, String?>((ref, folderId) => ref.watch(itemsRepositoryProvider).watchFolder(folderId));

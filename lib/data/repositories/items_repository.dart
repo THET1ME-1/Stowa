@@ -30,6 +30,11 @@ class ItemCard {
     this.folderIcon,
     this.reminderAt,
     this.thumbPath,
+    this.tags = const [],
+    this.filePath,
+    this.fileMime,
+    this.fileSize = 0,
+    this.transcript,
   });
 
   final String id;
@@ -46,6 +51,13 @@ class ItemCard {
 
   /// Первая картинка вещи, путь от папки приложения.
   final String? thumbPath;
+  final List<String> tags;
+
+  /// Первое вложение любого вида: голосовое, ролик, файл.
+  final String? filePath;
+  final String? fileMime;
+  final int fileSize;
+  final String? transcript;
 }
 
 /// Найденная вещь: карточка и что в ней совпало.
@@ -63,7 +75,9 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon,
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%'
     ORDER BY attachments.position LIMIT 1) AS thumb_path,
   (SELECT group_concat(tags.name, char(31)) FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
-    WHERE item_tags.item_id = items.id) AS tag_names
+    WHERE item_tags.item_id = items.id) AS tag_names,
+  (SELECT attachments.path || char(31) || attachments.mime || char(31) || attachments.size FROM attachments
+    WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS first_file
 FROM items LEFT JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
 WHERE items.deleted_at IS NULL''';
 
@@ -93,7 +107,7 @@ class ItemsRepository {
         .customSelect(
           '$_cardSelect ORDER BY items.created_at DESC, items.id DESC LIMIT ?',
           variables: [Variable.withInt(limit)],
-          readsFrom: {_db.items, _db.folders, _db.attachments},
+          readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags},
         )
         .watch()
         .map((rows) => [for (final row in rows) _card(row)]);
@@ -102,7 +116,10 @@ class ItemsRepository {
   /// Ближайшие напоминания с этого момента, по времени. Их мало, поэтому
   /// отбор идёт в Dart: время хранится текстом, сравнивать строки ненадёжно.
   Stream<List<ItemCard>> watchUpcoming(DateTime now, {int limit = 3}) {
-    return _db.customSelect('$_cardSelect AND items.reminder_at IS NOT NULL', readsFrom: {_db.items, _db.folders, _db.attachments}).watch().map((rows) {
+    return _db
+        .customSelect('$_cardSelect AND items.reminder_at IS NOT NULL', readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags})
+        .watch()
+        .map((rows) {
       final cards = [for (final row in rows) _card(row)].where((card) => !card.reminderAt!.isBefore(now)).toList()
         ..sort((a, b) => a.reminderAt!.compareTo(b.reminderAt!));
       return cards.take(limit).toList();
@@ -126,6 +143,18 @@ WHERE items.deleted_at IS NULL''';
       .customSelect(_folderDocsSql, readsFrom: {_db.items, _db.folders, _db.itemTags, _db.tags})
       .watch()
       .map((rows) => [for (final row in rows) _folderDoc(row)]);
+
+  /// Вещи папки, новые первыми; без id — всё, что лежит без папки.
+  Stream<List<ItemCard>> watchFolder(String? folderId) {
+    return _db
+        .customSelect(
+          '$_cardSelect AND ${folderId == null ? 'items.folder_id IS NULL' : 'items.folder_id = ?'} ORDER BY items.created_at DESC, items.id DESC',
+          variables: [if (folderId != null) Variable.withString(folderId)],
+          readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags},
+        )
+        .watch()
+        .map((rows) => [for (final row in rows) _card(row)]);
+  }
 
   /// Вещь целиком и дальше при каждой правке.
   Stream<ItemFull?> watchItem(String id) {
@@ -236,7 +265,14 @@ WHERE items.deleted_at IS NULL''';
 
   ItemCard _card(QueryRow row) {
     final item = _db.items.map(row.data);
+    final tagNames = row.readNullable<String>('tag_names');
+    final file = row.readNullable<String>('first_file')?.split('\x1f');
     return ItemCard(
+      tags: tagNames == null || tagNames.isEmpty ? const [] : tagNames.split('\x1f'),
+      filePath: file?[0],
+      fileMime: file != null && file.length > 1 ? file[1] : null,
+      fileSize: file != null && file.length > 2 ? int.tryParse(file[2]) ?? 0 : 0,
+      transcript: item.transcript,
       id: item.id,
       title: item.title,
       kind: item.kind,

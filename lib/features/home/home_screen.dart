@@ -8,6 +8,7 @@ import '../../core/widgets/shape_badge.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
+import '../folder/folder_screen.dart';
 import '../item/item_screen.dart';
 import 'folders_grid.dart';
 import 'next_reminder_card.dart';
@@ -115,7 +116,14 @@ class _Feed extends ConsumerWidget {
             ),
           ),
         if (recent.isNotEmpty) ...[
-          SliverToBoxAdapter(child: SectionHeader(title: l.homeRecent)),
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: l.homeRecent,
+              // всё, что ещё не разложено, одной лентой
+              action: recent.any((card) => card.folderId == null) ? l.folderNone : null,
+              onAction: () => Navigator.of(context).push(folderRoute(null)),
+            ),
+          ),
           SliverToBoxAdapter(
             child: RecentStrip(items: recent, filesRoot: filesRoot, now: now, onOpen: (card) => onOpen(card.id)),
           ),
@@ -123,7 +131,7 @@ class _Feed extends ConsumerWidget {
         if (folders.isNotEmpty) ...[
           SliverToBoxAdapter(child: SectionHeader(title: l.homeFolders)),
           SliverToBoxAdapter(
-            child: FoldersGrid(folders: folders, filesRoot: filesRoot),
+            child: FoldersGrid(folders: folders, filesRoot: filesRoot, onOpen: (folder) => Navigator.of(context).push(folderRoute(folder.id))),
           ),
         ],
         if (recent.isEmpty && folders.isEmpty)

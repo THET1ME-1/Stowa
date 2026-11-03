@@ -213,7 +213,14 @@ class LRu extends L {
 
   @override
   String saveWhatFiles(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count файла', many: '$count файлов', few: '$count файла', one: '$count файл');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла',
+      many: '$count файлов',
+      few: '$count файла',
+      one: '$count файл',
+    );
     return '$_temp0';
   }
 
@@ -312,7 +319,14 @@ class LRu extends L {
 
   @override
   String itemsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count вещи', many: '$count вещей', few: '$count вещи', one: '$count вещь');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вещи',
+      many: '$count вещей',
+      few: '$count вещи',
+      one: '$count вещь',
+    );
     return '$_temp0';
   }
 
@@ -522,4 +536,70 @@ class LRu extends L {
 
   @override
   String get folderCreateHint => 'иконку и форму поменяешь потом';
+
+  @override
+  String get folderBoard => 'Доска';
+
+  @override
+  String get folderList => 'Список';
+
+  @override
+  String get folderSearch => 'Искать в папке';
+
+  @override
+  String get folderMore => 'Ещё';
+
+  @override
+  String get folderRename => 'Переименовать';
+
+  @override
+  String get folderLook => 'Иконка и форма';
+
+  @override
+  String get folderDelete => 'Удалить папку';
+
+  @override
+  String get folderNameLabel => 'Имя папки';
+
+  @override
+  String get save => 'Сохранить';
+
+  @override
+  String get cancel => 'Отмена';
+
+  @override
+  String folderDeleteAsk(String name) {
+    return 'Удалить «$name»? Вещи из неё останутся без папки.';
+  }
+
+  @override
+  String get folderDeleted => 'Папка удалена';
+
+  @override
+  String get restoreAction => 'Вернуть';
+
+  @override
+  String get folderEmpty =>
+      'Здесь пока пусто. Закинь что-нибудь в строку снизу — ляжет сюда.';
+
+  @override
+  String get dropHere => 'Закинуть сюда';
+
+  @override
+  String get lookIcon => 'Иконка';
+
+  @override
+  String get lookShape => 'Форма';
+
+  @override
+  String get voiceNoTranscript => 'Без расшифровки: её сделает твой ключ ИИ';
+
+  @override
+  String get voiceTranscribed => 'Голосовое, расшифровано';
+
+  @override
+  String get voicePlay => 'Слушать';
+
+  @override
+  String get voicePause => 'Пауза';
 }

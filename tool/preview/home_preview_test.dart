@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/home/folders_grid.dart';
 
 import '../../test/helpers/test_app.dart';
 
@@ -88,8 +89,8 @@ Future<void> _seed(TestWorld world) async {
   await item('w1', 'Виджет погоды для пары', folder: 'work', body: 'Виджет погоды для пары\nвидеть погоду у второй половинки');
   await item('r1', 'Зубной', remind: now.add(const Duration(hours: 3)));
   await item('r2', 'Позвонить маме', remind: now.add(const Duration(days: 1)));
-  await item('l1', 'Как собрать стол из паллет', kind: ItemKind.video, url: 'https://www.youtube.com/watch?v=1');
-  await item('l2', 'Подборка шрифтов для интерфейса', kind: ItemKind.link, url: 'https://fonts.google.com');
+  await item('l1', 'Как собрать стол из паллет', kind: ItemKind.video, url: 'https://www.youtube.com/watch?v=1', folder: 'work');
+  await item('l2', 'Подборка шрифтов для интерфейса', kind: ItemKind.link, url: 'https://fonts.google.com', folder: 'work');
   await item('n1', 'Идея: Stowa понимает голосовые', body: 'Идея: Stowa понимает голосовые\nсказал в машине — легло в «Задачи»');
 
   final tags = [('рецепт', 'restaurant', 1), ('машина', 'directions_car', 2), ('идея', 'lightbulb', 3), ('фильм', 'movie', 4)];
@@ -257,6 +258,25 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
     }
     await _shot(tester, '11-галерея');
+  });
+
+  testWidgets('папка доской', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Рецепты')));
+    await tester.pumpAndSettle();
+    await _shot(tester, '13-папка-доска');
+  });
+
+  testWidgets('папка лентой', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    // плитка должна выйти из-под строки ввода
+    await tester.drag(find.byWidgetPredicate((widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down).first, const Offset(0, -800));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Togetherly')));
+    await tester.pumpAndSettle();
+    await _shot(tester, '14-папка-лента');
   });
 
   testWidgets('крупный шрифт на узком', (tester) async {

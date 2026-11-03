@@ -67,7 +67,8 @@ import 'app_localizations_uk.dart';
 /// be consistent with the languages listed in the L.supportedLocales
 /// property.
 abstract class L {
-  L(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  L(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,15 +88,24 @@ abstract class L {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('de'), Locale('en'), Locale('es'), Locale('pl'), Locale('ro'), Locale('ru'), Locale('uk')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
+    Locale('en'),
+    Locale('es'),
+    Locale('pl'),
+    Locale('ro'),
+    Locale('ru'),
+    Locale('uk'),
+  ];
 
   /// Название приложения
   ///
@@ -996,6 +1006,132 @@ abstract class L {
   /// In en, this message translates to:
   /// **'change the icon and shape later'**
   String get folderCreateHint;
+
+  /// Folder view: photo board
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get folderBoard;
+
+  /// Folder view: mixed list
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get folderList;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Search in folder'**
+  String get folderSearch;
+
+  /// Tooltip for the folder menu
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get folderMore;
+
+  /// Folder menu
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get folderRename;
+
+  /// Folder menu
+  ///
+  /// In en, this message translates to:
+  /// **'Icon and shape'**
+  String get folderLook;
+
+  /// Folder menu
+  ///
+  /// In en, this message translates to:
+  /// **'Delete folder'**
+  String get folderDelete;
+
+  /// Rename field label
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get folderNameLabel;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// Button
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// Delete confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”? Its items stay without a folder.'**
+  String folderDeleteAsk(String name);
+
+  /// Toast
+  ///
+  /// In en, this message translates to:
+  /// **'Folder deleted'**
+  String get folderDeleted;
+
+  /// Undo a deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreAction;
+
+  /// Empty folder
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet. Drop something into the line below and it lands here.'**
+  String get folderEmpty;
+
+  /// Line hint inside a folder
+  ///
+  /// In en, this message translates to:
+  /// **'Drop it here'**
+  String get dropHere;
+
+  /// Look sheet section
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get lookIcon;
+
+  /// Look sheet section
+  ///
+  /// In en, this message translates to:
+  /// **'Shape'**
+  String get lookShape;
+
+  /// Voice card without transcript
+  ///
+  /// In en, this message translates to:
+  /// **'No transcript yet: your AI key will make it'**
+  String get voiceNoTranscript;
+
+  /// Voice card caption
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note, transcribed'**
+  String get voiceTranscribed;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get voicePlay;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get voicePause;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
@@ -1007,7 +1143,15 @@ class _LDelegate extends LocalizationsDelegate<L> {
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'pl', 'ro', 'ru', 'uk'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'de',
+    'en',
+    'es',
+    'pl',
+    'ro',
+    'ru',
+    'uk',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_LDelegate old) => false;

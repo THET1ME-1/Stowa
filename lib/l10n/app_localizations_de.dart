@@ -22,7 +22,8 @@ class LDe extends L {
   String get homeFolders => 'Folders';
 
   @override
-  String get homeEmpty => 'Nothing here yet. Drop the first thing into the line below.';
+  String get homeEmpty =>
+      'Nothing here yet. Drop the first thing into the line below.';
 
   @override
   String get homeNext => 'Up next';
@@ -208,13 +209,23 @@ class LDe extends L {
 
   @override
   String saveWhatPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count photos', one: '$count photo');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '$count photo',
+    );
     return '$_temp0';
   }
 
   @override
   String saveWhatFiles(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count files', one: '$count file');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '$count file',
+    );
     return '$_temp0';
   }
 
@@ -223,7 +234,12 @@ class LDe extends L {
 
   @override
   String saveWhatList(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count-item list', one: '$count-item list');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count-item list',
+      one: '$count-item list',
+    );
     return '$_temp0';
   }
 
@@ -306,7 +322,12 @@ class LDe extends L {
 
   @override
   String itemsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count items', one: '$count item');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
     return '$_temp0';
   }
 
@@ -516,4 +537,70 @@ class LDe extends L {
 
   @override
   String get folderCreateHint => 'change the icon and shape later';
+
+  @override
+  String get folderBoard => 'Board';
+
+  @override
+  String get folderList => 'List';
+
+  @override
+  String get folderSearch => 'Search in folder';
+
+  @override
+  String get folderMore => 'More';
+
+  @override
+  String get folderRename => 'Rename';
+
+  @override
+  String get folderLook => 'Icon and shape';
+
+  @override
+  String get folderDelete => 'Delete folder';
+
+  @override
+  String get folderNameLabel => 'Folder name';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String folderDeleteAsk(String name) {
+    return 'Delete “$name”? Its items stay without a folder.';
+  }
+
+  @override
+  String get folderDeleted => 'Folder deleted';
+
+  @override
+  String get restoreAction => 'Restore';
+
+  @override
+  String get folderEmpty =>
+      'Nothing here yet. Drop something into the line below and it lands here.';
+
+  @override
+  String get dropHere => 'Drop it here';
+
+  @override
+  String get lookIcon => 'Icon';
+
+  @override
+  String get lookShape => 'Shape';
+
+  @override
+  String get voiceNoTranscript => 'No transcript yet: your AI key will make it';
+
+  @override
+  String get voiceTranscribed => 'Voice note, transcribed';
+
+  @override
+  String get voicePlay => 'Play';
+
+  @override
+  String get voicePause => 'Pause';
 }

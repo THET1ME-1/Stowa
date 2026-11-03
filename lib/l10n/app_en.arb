@@ -710,5 +710,94 @@
   "folderCreateHint": "change the icon and shape later",
   "@folderCreateHint": {
     "description": "New folder row subtitle"
+  },
+  "folderBoard": "Board",
+  "@folderBoard": {
+    "description": "Folder view: photo board"
+  },
+  "folderList": "List",
+  "@folderList": {
+    "description": "Folder view: mixed list"
+  },
+  "folderSearch": "Search in folder",
+  "@folderSearch": {
+    "description": "Tooltip"
+  },
+  "folderMore": "More",
+  "@folderMore": {
+    "description": "Tooltip for the folder menu"
+  },
+  "folderRename": "Rename",
+  "@folderRename": {
+    "description": "Folder menu"
+  },
+  "folderLook": "Icon and shape",
+  "@folderLook": {
+    "description": "Folder menu"
+  },
+  "folderDelete": "Delete folder",
+  "@folderDelete": {
+    "description": "Folder menu"
+  },
+  "folderNameLabel": "Folder name",
+  "@folderNameLabel": {
+    "description": "Rename field label"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Button"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Button"
+  },
+  "folderDeleteAsk": "Delete “{name}”? Its items stay without a folder.",
+  "@folderDeleteAsk": {
+    "description": "Delete confirmation",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "folderDeleted": "Folder deleted",
+  "@folderDeleted": {
+    "description": "Toast"
+  },
+  "restoreAction": "Restore",
+  "@restoreAction": {
+    "description": "Undo a deletion"
+  },
+  "folderEmpty": "Nothing here yet. Drop something into the line below and it lands here.",
+  "@folderEmpty": {
+    "description": "Empty folder"
+  },
+  "dropHere": "Drop it here",
+  "@dropHere": {
+    "description": "Line hint inside a folder"
+  },
+  "lookIcon": "Icon",
+  "@lookIcon": {
+    "description": "Look sheet section"
+  },
+  "lookShape": "Shape",
+  "@lookShape": {
+    "description": "Look sheet section"
+  },
+  "voiceNoTranscript": "No transcript yet: your AI key will make it",
+  "@voiceNoTranscript": {
+    "description": "Voice card without transcript"
+  },
+  "voiceTranscribed": "Voice note, transcribed",
+  "@voiceTranscribed": {
+    "description": "Voice card caption"
+  },
+  "voicePlay": "Play",
+  "@voicePlay": {
+    "description": "Tooltip"
+  },
+  "voicePause": "Pause",
+  "@voicePause": {
+    "description": "Tooltip"
   }
 }

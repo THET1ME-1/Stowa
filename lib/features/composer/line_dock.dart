@@ -64,9 +64,12 @@ class _Toast {
 /// Живая строка целиком: тень над лентой, плашка «Закинул», панель с поиском
 /// и подсказками, галерея, голосовое и редактор на весь экран.
 class LineDock extends ConsumerStatefulWidget {
-  const LineDock({super.key, required this.onOpenItem});
+  const LineDock({super.key, required this.onOpenItem, this.homeFolder});
 
   final ValueChanged<String> onOpenItem;
+
+  /// Строка внутри папки: кладёт сразу сюда, минуя разбор, и ищет только здесь.
+  final FolderCard? homeFolder;
 
   @override
   ConsumerState<LineDock> createState() => LineDockState();
@@ -116,6 +119,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   @override
   void initState() {
     super.initState();
+    _line.chooseFolder(widget.homeFolder);
     _line.addListener(_onLine);
     _focus.addListener(_onFocus);
     unawaited(cleanVoiceDrafts(_voiceFolder, DateTime.now()).catchError((_) {}));
@@ -232,6 +236,12 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   }
 
   /// Касание закреплённого тега: строка открывается с его чипом и сразу показывает вещи с ним.
+  /// Кнопка «Искать» на экране папки: строка просыпается с клавиатурой.
+  void focusLine() {
+    _activate();
+    _focus.requestFocus();
+  }
+
   void searchTag(String name) {
     _line.reset();
     _line.addTag(name);
@@ -387,6 +397,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   void _clearLine() {
     _line.reset();
+    // в папке строка и дальше кладёт сюда
+    _line.chooseFolder(widget.homeFolder);
     _undo.value = UndoHistoryValue.empty;
     _files.clear();
     _found = const [];
@@ -802,7 +814,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         cursorColor: Tokens.accent,
         style: fieldStyle,
         decoration: InputDecoration.collapsed(
-          hintText: _full ? l.fullHint : l.composerHint,
+          hintText: _full ? l.fullHint : (widget.homeFolder != null ? l.dropHere : l.composerHint),
           hintMaxLines: _full ? null : 1,
           hintStyle: fieldStyle.copyWith(color: Tokens.muted),
         ),
@@ -905,7 +917,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   List<Widget> _chips(L l, DateTime now) {
     final chips = <Widget>[];
-    final folder = _line.folder;
+    // своя папка экрана чипом не висит: и так видно, где находишься
+    final folder = _line.folder?.id == widget.homeFolder?.id ? null : _line.folder;
     final plan = _panel.plan;
     if (folder != null) {
       chips.add(
@@ -922,7 +935,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           onRemove: () => _line.chooseFolder(null),
         ),
       );
-    } else if (_full && !_morph.isAnimating) {
+    } else if (_full && !_morph.isAnimating && _line.folder == null) {
       // догадки редактора появляются, когда строка раскрылась: пока едет, им нет места
       final guess = plan?.folder;
       chips.add(_DestChip(key: const ValueKey('dest'), icon: guess?.icon ?? 'inbox', label: guess?.name ?? l.fullPickFolder, onTap: _pickFolder));
