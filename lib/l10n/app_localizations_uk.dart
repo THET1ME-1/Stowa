@@ -784,4 +784,19 @@ class LUk extends L {
 
   @override
   String get iconSearch => 'Find an icon: car, home, food';
+
+  @override
+  String get itemMove => 'Move to folder';
+
+  @override
+  String get sortNewest => 'Newest first';
+
+  @override
+  String get sortOldest => 'Oldest first';
+
+  @override
+  String get sortByName => 'By name';
+
+  @override
+  String get sortTooltip => 'Order';
 }

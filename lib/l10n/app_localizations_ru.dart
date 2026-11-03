@@ -785,4 +785,19 @@ class LRu extends L {
 
   @override
   String get iconSearch => 'Найти иконку: car, home, food';
+
+  @override
+  String get itemMove => 'Переложить в папку';
+
+  @override
+  String get sortNewest => 'Сначала новые';
+
+  @override
+  String get sortOldest => 'Сначала старые';
+
+  @override
+  String get sortByName => 'По имени';
+
+  @override
+  String get sortTooltip => 'Порядок';
 }

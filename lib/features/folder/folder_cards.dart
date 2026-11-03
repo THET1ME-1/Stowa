@@ -10,31 +10,41 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/repositories/items_repository.dart';
+import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Карточка вещи в ленте папки: у каждого вида своя, как на экране 6 макета.
 class FolderItemCard extends StatelessWidget {
-  const FolderItemCard({super.key, required this.card, required this.filesRoot, required this.now, required this.onTap});
+  const FolderItemCard({super.key, required this.card, required this.filesRoot, required this.now, required this.onTap, this.onLongPress});
 
   final ItemCard card;
   final Directory filesRoot;
   final DateTime now;
   final VoidCallback onTap;
 
+  /// Долгое нажатие: переложить, удалить.
+  final VoidCallback? onLongPress;
+
   @override
   Widget build(BuildContext context) {
-    return switch (card.kind) {
-      ItemKind.video => _VideoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
-      ItemKind.voice => _VoiceCard(card: card, filesRoot: filesRoot, onTap: onTap),
-      ItemKind.link || ItemKind.file => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
-      ItemKind.image => _PhotoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
-      ItemKind.note => _NoteCard(card: card, now: now, onTap: onTap),
-    };
+    return GestureDetector(
+      onLongPress: onLongPress,
+      child: switch (card.kind) {
+        ItemKind.video => _VideoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
+        ItemKind.voice => _VoiceCard(card: card, filesRoot: filesRoot, onTap: onTap),
+        ItemKind.link || ItemKind.file => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
+        ItemKind.image => _PhotoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
+        ItemKind.note => _NoteCard(card: card, now: now, onTap: onTap),
+      },
+    );
   }
 }
 
-String? _host(ItemCard card) => card.url == null ? null : Uri.tryParse(card.url!)?.host.replaceFirst('www.', '');
+String? _host(ItemCard card) {
+  final host = card.url == null ? null : Uri.tryParse(card.url!)?.host;
+  return host == null || host.isEmpty ? null : sourceName(host);
+}
 
 /// Напоминание и теги маленькими чипами под заголовком.
 class _Meta extends StatelessWidget {
@@ -436,12 +446,14 @@ class _VoiceCardState extends State<_VoiceCard> {
 
 /// Плитка доски: картинка в своих пропорциях, первый тег белой пилюлей; заметка — текстом.
 class BoardTile extends StatelessWidget {
-  const BoardTile({super.key, required this.card, required this.filesRoot, required this.width, required this.onTap});
+  const BoardTile({super.key, required this.card, required this.filesRoot, required this.width, required this.onTap, this.onLongPress, this.darkPill = false});
 
   final ItemCard card;
   final Directory filesRoot;
   final double width;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool darkPill;
 
   @override
   Widget build(BuildContext context) {
@@ -450,6 +462,7 @@ class BoardTile extends StatelessWidget {
     final thumb = card.thumbPath;
     return Pressable(
       onTap: onTap,
+      onLongPress: onLongPress,
       pressedScale: 0.97,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(Radii.photo),
@@ -478,8 +491,12 @@ class BoardTile extends StatelessWidget {
                         height: 26,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         alignment: Alignment.center,
-                        decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(13)),
-                        child: Text('#$tag', style: text.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: Tokens.onAccent)),
+                        // пилюля белая, а на светлых фото тёмная: в макете обе, чередуются
+                        decoration: BoxDecoration(color: darkPill ? Tokens.containerHighest : Tokens.accent, borderRadius: BorderRadius.circular(13)),
+                        child: Text(
+                          '#$tag',
+                          style: text.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: darkPill ? Tokens.onSurface : Tokens.onAccent),
+                        ),
                       ),
                     ),
                 ],

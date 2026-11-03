@@ -19,6 +19,28 @@ Uri? firstUrl(String text) {
   return null;
 }
 
+const _brands = {
+  'tiktok.com': 'TikTok',
+  'youtube.com': 'YouTube',
+  'youtu.be': 'YouTube',
+  'instagram.com': 'Instagram',
+  'rutube.ru': 'Rutube',
+  'vkvideo.ru': 'VK Видео',
+  'vk.com': 'VK',
+  'vimeo.com': 'Vimeo',
+  'pinterest.com': 'Pinterest',
+  't.me': 'Telegram',
+};
+
+/// Откуда вещь: известный сервис по имени, остальное — адрес без www.
+String sourceName(String host) {
+  final bare = host.toLowerCase().replaceFirst(RegExp(r'^www\.'), '');
+  for (final MapEntry(key: domain, value: brand) in _brands.entries) {
+    if (bare == domain || bare.endsWith('.$domain')) return brand;
+  }
+  return bare;
+}
+
 /// Ссылки в тексте по местам: строка ввода их подчёркивает.
 Iterable<Match> urlMatches(String text) => _url.allMatches(text);
 

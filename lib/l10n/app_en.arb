@@ -1042,5 +1042,25 @@
   "iconSearch": "Find an icon: car, home, food",
   "@iconSearch": {
     "description": "Icon search hint; names are English Material Symbols names"
+  },
+  "itemMove": "Move to folder",
+  "@itemMove": {
+    "description": "Item action"
+  },
+  "sortNewest": "Newest first",
+  "@sortNewest": {
+    "description": "Folder sort"
+  },
+  "sortOldest": "Oldest first",
+  "@sortOldest": {
+    "description": "Folder sort"
+  },
+  "sortByName": "By name",
+  "@sortByName": {
+    "description": "Folder sort"
+  },
+  "sortTooltip": "Order",
+  "@sortTooltip": {
+    "description": "Tooltip"
   }
 }

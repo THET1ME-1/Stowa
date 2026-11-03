@@ -3,6 +3,16 @@ import 'package:stowa/domain/item_kind.dart';
 import 'package:stowa/domain/models.dart';
 
 void main() {
+  test('плашка ролика называет сервис, как в макете, а не адрес', () {
+    expect(sourceName('vt.tiktok.com'), 'TikTok');
+    expect(sourceName('www.youtube.com'), 'YouTube');
+    expect(sourceName('youtu.be'), 'YouTube');
+    expect(sourceName('instagram.com'), 'Instagram');
+    expect(sourceName('rutube.ru'), 'Rutube');
+    expect(sourceName('vkvideo.ru'), 'VK Видео');
+    expect(sourceName('www.coffee-guide.ru'), 'coffee-guide.ru');
+  });
+
   test('ролики узнаются по адресу, даже без схемы', () {
     expect(detectKind(text: 'vm.tiktok.com/ZM8x'), ItemKind.video);
     expect(detectKind(text: 'смотри https://youtu.be/abc'), ItemKind.video);

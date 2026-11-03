@@ -52,7 +52,7 @@ void main() {
     expect(find.text('3'), findsOneWidget);
     expect(find.text('Борщ как у бабушки'), findsOneWidget);
     expect(find.text('Как варить кофе в турке'), findsOneWidget);
-    expect(find.text('tiktok.com'), findsOneWidget);
+    expect(find.text('TikTok'), findsOneWidget);
   });
 
   testWidgets('чип вида оставляет только ссылки', (tester) async {
@@ -109,6 +109,51 @@ void main() {
     await tester.tap(find.text('Вернуть'));
     await tester.pumpAndSettle();
     expect((await world.db.select(world.db.items).get()).every((item) => item.folderId == 'food'), isTrue);
+  });
+
+  testWidgets('долгое нажатие: удалить вещь, «Отменить» возвращает', (tester) async {
+    await seed();
+    await openFolder(tester);
+    await tester.longPress(find.text('Тарт с малиной'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Удалить'));
+    await tester.pumpAndSettle();
+    expect(find.text('Тарт с малиной'), findsNothing);
+    expect(find.text('2'), findsOneWidget);
+
+    await tester.tap(find.text('Отменить'));
+    await tester.pumpAndSettle();
+    expect(find.text('Тарт с малиной'), findsOneWidget);
+  });
+
+  testWidgets('долгое нажатие: переложить в другую папку', (tester) async {
+    await seed();
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'cookie9'));
+    await openFolder(tester);
+    await tester.longPress(find.text('Тарт с малиной'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Переложить в папку'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Дом').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Переложил в «Дом»'), findsOneWidget);
+    final moved = await (world.db.select(world.db.items)..where((t) => t.id.equals('v'))).getSingle();
+    expect(moved.folderId, 'home');
+  });
+
+  testWidgets('кнопка порядка ставит вещи по имени', (tester) async {
+    await seed();
+    await openFolder(tester);
+    double top(String title) => tester.getTopLeft(find.text(title)).dy;
+    expect(top('Тарт с малиной'), lessThan(top('Борщ как у бабушки')));
+
+    await tester.tap(find.byTooltip('Порядок'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('По имени'));
+    await tester.pumpAndSettle();
+    expect(top('Борщ как у бабушки'), lessThan(top('Как варить кофе в турке')));
+    expect(top('Как варить кофе в турке'), lessThan(top('Тарт с малиной')));
   });
 
   testWidgets('папка влезает в 320 точек при крупном шрифте', (tester) async {

@@ -15,6 +15,7 @@ import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
+import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../sort/sort_screen.dart';
 import 'folder_cards.dart';
@@ -51,7 +52,39 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
   ItemKind? _kind;
   String? _tag;
 
+  FolderOrder _order = FolderOrder.newest;
+
   void _open(String id) => Navigator.of(context).push(itemRoute(id));
+
+  void _act(ItemCard card) => showItemActions(context, ref, card);
+
+  Future<void> _pickOrder() async {
+    final l = L.of(context);
+    final picked = await showModalBottomSheet<FolderOrder>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (context) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (order, label) in [
+              (FolderOrder.newest, l.sortNewest),
+              (FolderOrder.oldest, l.sortOldest),
+              (FolderOrder.name, l.sortByName),
+            ])
+              ListTile(
+                title: Text(label),
+                trailing: order == _order ? Icon(symbolIcon('check'), color: Tokens.accent) : null,
+                onTap: () => Navigator.pop(context, order),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && mounted) setState(() => _order = picked);
+  }
 
   Future<void> _menu(FolderCard folder) async {
     final repository = ref.read(foldersRepositoryProvider);
@@ -93,7 +126,10 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
 
     final kinds = <ItemKind>[for (final kind in ItemKind.values) if (cards.any((card) => card.kind == kind)) kind];
     final tags = folderTags(cards);
-    final shown = cards.where((card) => board ? (_tag == null || card.tags.contains(_tag)) : (_kind == null || card.kind == _kind)).toList();
+    final shown = orderCards(
+      cards.where((card) => board ? (_tag == null || card.tags.contains(_tag)) : (_kind == null || card.kind == _kind)),
+      _order,
+    );
 
     return Scaffold(
       body: Stack(
@@ -110,6 +146,10 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                         _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
                         const Spacer(),
                         _RoundButton(icon: 'search', tooltip: l.folderSearch, onTap: () => _dock.currentState?.focusLine()),
+                        if (cards.length > 1) ...[
+                          const SizedBox(width: 8),
+                          _RoundButton(icon: 'sort', tooltip: l.sortTooltip, onTap: _pickOrder),
+                        ],
                         if (folder != null) ...[
                           const SizedBox(width: 8),
                           _RoundButton(icon: 'more_vert', tooltip: l.folderMore, onTap: () => _menu(folder)),
@@ -174,7 +214,9 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                       children: [
                         _FilterChip(label: l.filterAll, on: board ? _tag == null : _kind == null, onTap: () => setState(() => board ? _tag = null : _kind = null)),
                         if (board)
-                          for (final tag in tags) _FilterChip(label: '#$tag', on: _tag == tag, onTap: () => setState(() => _tag = tag))
+                          // теги над доской словами с заглавной, как «Интерьер · Двери» в макете
+                          for (final tag in tags)
+                            _FilterChip(label: tag[0].toUpperCase() + tag.substring(1), on: _tag == tag, onTap: () => setState(() => _tag = tag))
                         else
                           for (final kind in kinds)
                             _FilterChip(label: kindsLabel(l, kind), icon: kindIcon(kind), on: _kind == kind, onTap: () => setState(() => _kind = kind)),
@@ -194,7 +236,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                   ),
                 )
               else if (board)
-                SliverToBoxAdapter(child: _Board(cards: shown, filesRoot: filesRoot, onOpen: _open))
+                SliverToBoxAdapter(child: _Board(cards: shown, filesRoot: filesRoot, onOpen: _open, onAct: _act))
               else
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: Space.screen),
@@ -204,12 +246,37 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                     itemBuilder: (context, index) => RiseIn(
                       key: ValueKey(shown[index].id),
                       delay: index.clamp(0, 8),
-                      child: FolderItemCard(card: shown[index], filesRoot: filesRoot, now: now, onTap: () => _open(shown[index].id)),
+                      child: FolderItemCard(
+                        card: shown[index],
+                        filesRoot: filesRoot,
+                        now: now,
+                        onTap: () => _open(shown[index].id),
+                        onLongPress: () => _act(shown[index]),
+                      ),
                     ),
                   ),
                 ),
               if (cards.isNotEmpty) SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
             ],
+          ),
+          // лента уходит под строку в тень фона, как dock.float в макете
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: _dockSpace + bottom,
+            child: const IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x00000000), Tokens.background],
+                    stops: [0, 0.3],
+                  ),
+                ),
+              ),
+            ),
           ),
           Positioned.fill(
             child: LineDock(key: _dock, homeFolder: folder, onOpenItem: _open),
@@ -325,11 +392,12 @@ class _FilterChip extends StatelessWidget {
 
 /// Доска в две колонки: картинки в своих пропорциях, по очереди слева и справа.
 class _Board extends StatelessWidget {
-  const _Board({required this.cards, required this.filesRoot, required this.onOpen});
+  const _Board({required this.cards, required this.filesRoot, required this.onOpen, required this.onAct});
 
   final List<ItemCard> cards;
   final Directory filesRoot;
   final ValueChanged<String> onOpen;
+  final ValueChanged<ItemCard> onAct;
 
   @override
   Widget build(BuildContext context) {
@@ -348,7 +416,14 @@ class _Board extends StatelessWidget {
                       child: RiseIn(
                         key: ValueKey(card.id),
                         delay: index.clamp(0, 8),
-                        child: BoardTile(card: card, filesRoot: filesRoot, width: width, onTap: () => onOpen(card.id)),
+                        child: BoardTile(
+                          card: card,
+                          filesRoot: filesRoot,
+                          width: width,
+                          darkPill: index % 3 == 1,
+                          onTap: () => onOpen(card.id),
+                          onLongPress: () => onAct(card),
+                        ),
                       ),
                     ),
               ],

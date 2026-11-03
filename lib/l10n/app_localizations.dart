@@ -1462,6 +1462,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Find an icon: car, home, food'**
   String get iconSearch;
+
+  /// Item action
+  ///
+  /// In en, this message translates to:
+  /// **'Move to folder'**
+  String get itemMove;
+
+  /// Folder sort
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get sortNewest;
+
+  /// Folder sort
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get sortOldest;
+
+  /// Folder sort
+  ///
+  /// In en, this message translates to:
+  /// **'By name'**
+  String get sortByName;
+
+  /// Tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get sortTooltip;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

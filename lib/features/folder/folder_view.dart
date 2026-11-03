@@ -10,6 +10,22 @@ bool showAsBoard(List<ItemCard> cards, FolderView view) {
   return pictures / cards.length >= 0.6;
 }
 
+enum FolderOrder { newest, oldest, name }
+
+/// Порядок карточек по кнопке в шапке папки.
+List<ItemCard> orderCards(Iterable<ItemCard> cards, FolderOrder order) {
+  final list = cards.toList();
+  switch (order) {
+    case FolderOrder.newest:
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    case FolderOrder.oldest:
+      list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    case FolderOrder.name:
+      list.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+  }
+  return list;
+}
+
 /// Теги вещей папки для чипов над доской: частые первыми, пять штук.
 List<String> folderTags(List<ItemCard> cards) {
   final counts = <String, int>{};

@@ -225,5 +225,10 @@
   "sortLeft": "Осталось {count}",
   "sortDone": "Всё разобрано",
   "sortHint": "Касание папки кладёт туда, свайп вниз пропускает",
-  "iconSearch": "Найти иконку: car, home, food"
+  "iconSearch": "Найти иконку: car, home, food",
+  "itemMove": "Переложить в папку",
+  "sortNewest": "Сначала новые",
+  "sortOldest": "Сначала старые",
+  "sortByName": "По имени",
+  "sortTooltip": "Порядок"
 }

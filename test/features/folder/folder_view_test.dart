@@ -26,4 +26,14 @@ void main() {
     expect(folderTags(cards).take(2), ['двери', 'город']);
     expect(folderTags(cards), hasLength(5));
   });
+
+  test('порядок в папке: новые, старые, по имени без учёта регистра', () {
+    ItemCard at(String title, int day) =>
+        ItemCard(id: title, title: title, kind: ItemKind.note, folderId: 'f', sortState: SortState.sorted, createdAt: DateTime(2026, 1, day));
+    final cards = [at('банан', 2), at('Арбуз', 1), at('вишня', 3)];
+    List<String> titles(FolderOrder order) => [for (final card in orderCards(cards, order)) card.title];
+    expect(titles(FolderOrder.newest), ['вишня', 'банан', 'Арбуз']);
+    expect(titles(FolderOrder.oldest), ['Арбуз', 'банан', 'вишня']);
+    expect(titles(FolderOrder.name), ['Арбуз', 'банан', 'вишня']);
+  });
 }
