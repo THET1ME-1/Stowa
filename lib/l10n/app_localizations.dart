@@ -1612,6 +1612,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Saved'**
   String get itemSaved;
+
+  /// Кнопка «⋮» в шапке вещи
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get itemMore;
+
+  /// Кнопка внизу страницы: открыть правку с курсором в конце
+  ///
+  /// In en, this message translates to:
+  /// **'Add more'**
+  String get itemAppend;
+
+  /// Отправить вещь в другое приложение
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get itemShare;
+
+  /// Подпись в шапке, пока идёт правка
+  ///
+  /// In en, this message translates to:
+  /// **'Saves as you type'**
+  String get itemAutosave;
+
+  /// Сколько фото у вещи, в шапке
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo} other{{count} photos}}'**
+  String itemPhotos(num count);
+
+  /// Короткая подпись на пилюле «добавить тег»
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get tagAddShort;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

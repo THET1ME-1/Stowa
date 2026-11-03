@@ -167,7 +167,11 @@ void main() {
     await tester.tap(find.text('Шины на зиму'));
     await tester.pumpAndSettle();
     expect(find.text('#машина'), findsOneWidget);
-    await tester.tap(find.descendant(of: find.ancestor(of: find.text('#машина'), matching: find.byType(Row)).first, matching: find.byTooltip('Убрать')));
+    // в просмотре тег только называется, крестик у него появляется в правке
+    expect(find.byTooltip('Убрать'), findsNothing);
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.ancestor(of: find.text('#машина'), matching: find.byTooltip('Убрать')));
     await tester.pumpAndSettle();
     expect(find.text('#машина'), findsNothing);
     expect(find.text('#шины'), findsOneWidget);

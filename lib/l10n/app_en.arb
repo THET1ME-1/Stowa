@@ -1167,5 +1167,29 @@
   "itemSaved": "Saved",
   "@itemSaved": {
     "description": "Quiet hint after autosave"
+  },
+  "itemMore": "More",
+  "@itemMore": {
+    "description": "Кнопка «⋮» в шапке вещи"
+  },
+  "itemAppend": "Add more",
+  "@itemAppend": {
+    "description": "Кнопка внизу страницы: открыть правку с курсором в конце"
+  },
+  "itemShare": "Share",
+  "@itemShare": {
+    "description": "Отправить вещь в другое приложение"
+  },
+  "itemAutosave": "Saves as you type",
+  "@itemAutosave": {
+    "description": "Подпись в шапке, пока идёт правка"
+  },
+  "itemPhotos": "{count, plural, one{{count} photo} other{{count} photos}}",
+  "@itemPhotos": {
+    "description": "Сколько фото у вещи, в шапке"
+  },
+  "tagAddShort": "Tag",
+  "@tagAddShort": {
+    "description": "Короткая подпись на пилюле «добавить тег»"
   }
 }

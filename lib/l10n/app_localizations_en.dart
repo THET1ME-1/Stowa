@@ -870,4 +870,30 @@ class LEn extends L {
 
   @override
   String get itemSaved => 'Saved';
+
+  @override
+  String get itemMore => 'More';
+
+  @override
+  String get itemAppend => 'Add more';
+
+  @override
+  String get itemShare => 'Share';
+
+  @override
+  String get itemAutosave => 'Saves as you type';
+
+  @override
+  String itemPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '$count photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagAddShort => 'Tag';
 }

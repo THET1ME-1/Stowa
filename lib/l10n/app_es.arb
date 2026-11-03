@@ -1,3 +1,9 @@
 {
-  "@@locale": "es"
+  "@@locale": "es",
+  "itemMore": "Más",
+  "itemAppend": "Añadir",
+  "itemShare": "Compartir",
+  "itemAutosave": "Se guarda solo",
+  "itemPhotos": "{count, plural, one{{count} foto} other{{count} fotos}}",
+  "tagAddShort": "Etiqueta"
 }

@@ -870,4 +870,31 @@ class LRo extends L {
 
   @override
   String get itemSaved => 'Saved';
+
+  @override
+  String get itemMore => 'Mai mult';
+
+  @override
+  String get itemAppend => 'Adaugă';
+
+  @override
+  String get itemShare => 'Distribuie';
+
+  @override
+  String get itemAutosave => 'Se salvează singur';
+
+  @override
+  String itemPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de fotografii',
+      few: '$count fotografii',
+      one: '$count fotografie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagAddShort => 'Etichetă';
 }

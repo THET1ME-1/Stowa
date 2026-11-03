@@ -1,3 +1,9 @@
 {
-  "@@locale": "uk"
+  "@@locale": "uk",
+  "itemMore": "Ще",
+  "itemAppend": "Дописати",
+  "itemShare": "Поділитися",
+  "itemAutosave": "Зберігається саме",
+  "itemPhotos": "{count, plural, one{{count} фото} few{{count} фото} many{{count} фото} other{{count} фото}}",
+  "tagAddShort": "Тег"
 }

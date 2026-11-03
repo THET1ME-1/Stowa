@@ -46,7 +46,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'Архитектура приложения');
     await tester.enterText(find.byType(TextField).last, 'Ключевые слова оставить\nМинимум 20 источников');
-    await tester.tap(find.byTooltip('Готово'));
+    await tester.tap(find.text('Готово'));
     await tester.pumpAndSettle();
 
     expect(find.byType(TextField), findsNothing);
@@ -90,12 +90,120 @@ void main() {
     expect(find.textContaining('первое', findRichText: true), findsOneWidget);
   });
 
-  testWidgets('папка сверху видна целиком', (tester) async {
-    await open(tester, body: 'мысль', title: 'Мысль');
-    final chip = tester.getSize(find.byType(ActionChip));
-    expect(find.text('Без папки'), findsOneWidget);
-    final label = tester.renderObject<RenderParagraph>(find.text('Без папки'));
+  testWidgets('шапка: пилюля с папкой, днём и видом вещи', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'study', name: 'Учёба', icon: 'school', shape: 'cookie9'));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.note,
+          title: 'Военная кафедра',
+          body: const Value('взять военный билет'),
+          folderId: const Value('study'),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Учёба'), findsOneWidget);
+    expect(find.textContaining('заметка'), findsOneWidget);
+    // значок вложен в полукруглый край пилюли: круг с тем же центром, углы не выпирают
+    final badge = find.byKey(const ValueKey('item-folder-badge'));
+    expect((tester.widget<Container>(badge).decoration! as BoxDecoration).shape, BoxShape.circle);
+    final pill = tester.getRect(find.ancestor(of: badge, matching: find.byType(InkWell)).first);
+    final rect = tester.getRect(badge);
+    expect(rect.center.dx - pill.left, closeTo(pill.height / 2, 0.5));
+    expect(rect.center.dy, closeTo(pill.center.dy, 0.5));
+    final label = tester.renderObject<RenderParagraph>(find.text('Учёба'));
     expect(label.didExceedMaxLines, isFalse);
-    expect(chip.width, greaterThan(120));
+    // пустых кнопок без подложки в шапке нет: у каждой своя форма
+    expect(find.byType(IconButton), findsNothing);
+  });
+
+  testWidgets('без папки пилюля так и говорит', (tester) async {
+    await open(tester, body: 'мысль', title: 'Мысль');
+    expect(find.text('Без папки'), findsOneWidget);
+  });
+
+  testWidgets('текст лежит отдельной карточкой, не на фоне', (tester) async {
+    await open(tester, body: 'Мысль\nвторая строка мысли', title: 'Мысль');
+    final card = find.ancestor(of: find.textContaining('вторая строка', findRichText: true), matching: find.byKey(const ValueKey('item-body-card')));
+    expect(card, findsOneWidget);
+  });
+
+  testWidgets('«Дописать» открывает правку с курсором с новой строки в конце', (tester) async {
+    await open(tester, body: 'Мысль\nпервая', title: 'Мысль');
+    await tester.tap(find.text('Дописать'));
+    await tester.pumpAndSettle();
+    final body = tester.widget<TextField>(find.byType(TextField).last).controller!;
+    expect(body.text, 'первая\n');
+    expect(body.selection.baseOffset, body.text.length);
+
+    await tester.enterText(find.byType(TextField).last, 'первая\nвторая');
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect((await saved()).body, 'первая\nвторая');
+  });
+
+  testWidgets('«Дописать» и выход без набора ничего не меняют', (tester) async {
+    await open(tester, body: 'Мысль\nпервая', title: 'Мысль');
+    await tester.tap(find.text('Дописать'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect((await saved()).body, 'Мысль\nпервая');
+  });
+
+  testWidgets('напоминание стоит отдельной плашкой', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.note,
+          title: 'Кафедра',
+          body: const Value('Кафедра'),
+          reminderAt: Value(DateTime(2026, 11, 3, 14)),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('item-reminder')), findsOneWidget);
+    expect(find.textContaining('14:00'), findsOneWidget);
+  });
+
+  testWidgets('«⋮» открывает лист: копировать и удалить', (tester) async {
+    await open(tester, body: 'мысль', title: 'Мысль');
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    expect(find.text('Скопировать текст'), findsOneWidget);
+    await tester.tap(find.text('Удалить'));
+    await tester.pumpAndSettle();
+    expect((await saved()).deletedAt, isNotNull);
+  });
+
+  testWidgets('320 точек и шрифт 1,3: ничего не вылезает', (tester) async {
+    tester.view.physicalSize = const Size(640, 1400);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'r', name: 'Рецепты на каждый день', icon: 'restaurant', shape: 'pill'));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.note,
+          title: 'Очень длинный заголовок заметки про военную кафедру',
+          body: const Value('- [ ] первое\n- второе'),
+          folderId: const Value('r'),
+          reminderAt: Value(DateTime(2026, 11, 3, 14)),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 }

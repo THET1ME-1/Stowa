@@ -872,4 +872,32 @@ class LRu extends L {
 
   @override
   String get itemSaved => 'Сохранено';
+
+  @override
+  String get itemMore => 'Ещё';
+
+  @override
+  String get itemAppend => 'Дописать';
+
+  @override
+  String get itemShare => 'Поделиться';
+
+  @override
+  String get itemAutosave => 'Сохраняется само';
+
+  @override
+  String itemPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count фото',
+      many: '$count фото',
+      few: '$count фото',
+      one: '$count фото',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagAddShort => 'Тег';
 }

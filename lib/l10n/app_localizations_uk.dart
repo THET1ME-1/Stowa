@@ -870,4 +870,32 @@ class LUk extends L {
 
   @override
   String get itemSaved => 'Saved';
+
+  @override
+  String get itemMore => 'Ще';
+
+  @override
+  String get itemAppend => 'Дописати';
+
+  @override
+  String get itemShare => 'Поділитися';
+
+  @override
+  String get itemAutosave => 'Зберігається саме';
+
+  @override
+  String itemPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count фото',
+      many: '$count фото',
+      few: '$count фото',
+      one: '$count фото',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagAddShort => 'Тег';
 }

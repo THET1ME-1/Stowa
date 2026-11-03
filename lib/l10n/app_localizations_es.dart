@@ -870,4 +870,30 @@ class LEs extends L {
 
   @override
   String get itemSaved => 'Saved';
+
+  @override
+  String get itemMore => 'Más';
+
+  @override
+  String get itemAppend => 'Añadir';
+
+  @override
+  String get itemShare => 'Compartir';
+
+  @override
+  String get itemAutosave => 'Se guarda solo';
+
+  @override
+  String itemPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagAddShort => 'Etiqueta';
 }

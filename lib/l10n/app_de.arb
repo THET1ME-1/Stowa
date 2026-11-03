@@ -1,3 +1,9 @@
 {
-  "@@locale": "de"
+  "@@locale": "de",
+  "itemMore": "Mehr",
+  "itemAppend": "Ergänzen",
+  "itemShare": "Teilen",
+  "itemAutosave": "Speichert automatisch",
+  "itemPhotos": "{count, plural, one{{count} Foto} other{{count} Fotos}}",
+  "tagAddShort": "Tag"
 }

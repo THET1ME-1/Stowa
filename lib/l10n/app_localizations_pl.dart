@@ -870,4 +870,32 @@ class LPl extends L {
 
   @override
   String get itemSaved => 'Saved';
+
+  @override
+  String get itemMore => 'Więcej';
+
+  @override
+  String get itemAppend => 'Dopisz';
+
+  @override
+  String get itemShare => 'Udostępnij';
+
+  @override
+  String get itemAutosave => 'Zapisuje się samo';
+
+  @override
+  String itemPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zdjęcia',
+      many: '$count zdjęć',
+      few: '$count zdjęcia',
+      one: '$count zdjęcie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagAddShort => 'Tag';
 }

@@ -1,3 +1,9 @@
 {
-  "@@locale": "ro"
+  "@@locale": "ro",
+  "itemMore": "Mai mult",
+  "itemAppend": "Adaugă",
+  "itemShare": "Distribuie",
+  "itemAutosave": "Se salvează singur",
+  "itemPhotos": "{count, plural, one{{count} fotografie} few{{count} fotografii} other{{count} de fotografii}}",
+  "tagAddShort": "Etichetă"
 }

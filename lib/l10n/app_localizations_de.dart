@@ -870,4 +870,30 @@ class LDe extends L {
 
   @override
   String get itemSaved => 'Saved';
+
+  @override
+  String get itemMore => 'Mehr';
+
+  @override
+  String get itemAppend => 'Ergänzen';
+
+  @override
+  String get itemShare => 'Teilen';
+
+  @override
+  String get itemAutosave => 'Speichert automatisch';
+
+  @override
+  String itemPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos',
+      one: '$count Foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tagAddShort => 'Tag';
 }

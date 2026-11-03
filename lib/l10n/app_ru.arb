@@ -250,5 +250,11 @@
   "itemRemind": "Напомнить",
   "itemReminderChange": "Другое время",
   "itemReminderRemove": "Убрать напоминание",
-  "itemSaved": "Сохранено"
+  "itemSaved": "Сохранено",
+  "itemMore": "Ещё",
+  "itemAppend": "Дописать",
+  "itemShare": "Поделиться",
+  "itemAutosave": "Сохраняется само",
+  "itemPhotos": "{count, plural, one{{count} фото} few{{count} фото} many{{count} фото} other{{count} фото}}",
+  "tagAddShort": "Тег"
 }

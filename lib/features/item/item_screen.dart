@@ -5,14 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart' show ImagePicker;
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -43,9 +44,20 @@ Route<void> itemRoute(String id) => PageRouteBuilder(
 /// Пауза в наборе, после которой правка сохраняется сама.
 const _autosaveDelay = Duration(milliseconds: 700);
 
-/// Вещь целиком, как страница в Notion (экран 7 макета): папка сверху меняется
-/// касанием, теги, напоминание, картинки, текст с галочками, расшифровка и файлы.
-/// Карандаш или касание по тексту открывают правку на месте, снизу встаёт панель.
+/// Высота плавающей панели внизу и её отступ от края.
+const _dockHeight = 72.0;
+const _dockGap = 16.0;
+
+/// Пробелы и переносы в конце текста: «Дописать» ставит курсор с новой строки,
+/// а пустая строка в конце сохраняться не должна.
+final _trailingSpace = RegExp(r'\s+$');
+
+enum _MenuAction { copy, delete }
+
+/// Вещь целиком, по образцу поста Togetherly: шапка с пилюлей папки, заголовок,
+/// теги и напоминание отдельными блоками, текст своей карточкой, внизу плавающая
+/// панель действий и «Дописать». Карандаш или касание по тексту открывают правку
+/// на месте, тогда панель становится панелью разметки.
 class ItemScreen extends ConsumerStatefulWidget {
   const ItemScreen({super.key, required this.id});
 
@@ -63,6 +75,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   Timer? _autosave;
   String? _savedTitle;
   String? _savedBody;
+
+  /// Какой снимок стоит крупно, когда их несколько.
+  int _cover = 0;
 
   // берутся в initState: сохранять приходится и в dispose, когда ref уже нельзя трогать
   late final ItemsRepository _items;
@@ -99,12 +114,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     return lines.join('\n').replaceFirst(RegExp(r'^\n+'), '');
   }
 
-  void _startEditing(Item item) {
+  /// Правка на месте. С `append` курсор встаёт с новой строки в конце текста.
+  void _startEditing(Item item, {bool append = false}) {
     if (_editing) return;
+    final body = _editableBody(item);
     _savedTitle = item.title;
-    _savedBody = _editableBody(item);
+    _savedBody = body.replaceFirst(_trailingSpace, '');
     _title.text = _savedTitle!;
-    _body.text = _savedBody!;
+    _body.text = append && body.trim().isNotEmpty && !body.endsWith('\n') ? '$body\n' : body;
     _body.selection = TextSelection.collapsed(offset: _body.text.length);
     setState(() => _editing = true);
     _bodyFocus.requestFocus();
@@ -117,7 +134,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   Future<void> _save() async {
-    final body = _body.text;
+    final body = _body.text.replaceFirst(_trailingSpace, '');
     final typed = _title.text.trim();
     // заголовок стёрли — берётся из текста, как при сохранении из строки
     final title = typed.isNotEmpty ? typed : titleFor(body);
@@ -203,6 +220,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     }
   }
 
+  Future<void> _addTag() async {
+    final name = await _askTag(context);
+    if (name != null) await ref.read(tagsRepositoryProvider).link(_id, name);
+  }
+
   Future<void> _addPhotos() async {
     // клавиатура под системным окном выбора только мешает
     FocusScope.of(context).unfocus();
@@ -221,6 +243,50 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
+  /// Текст вещи как есть, а если его нет — заголовок.
+  String _plainText(Item item) => item.body.trim().isEmpty ? item.title : item.body;
+
+  Future<void> _share(Item item, List<Attachment> attachments, Directory filesRoot) async {
+    final box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(ShareParams(
+      text: _plainText(item),
+      subject: item.title,
+      files: [for (final file in attachments) XFile(p.join(filesRoot.path, file.path), mimeType: file.mime)],
+      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+    ));
+  }
+
+  Future<void> _copy(Item item) async {
+    await Clipboard.setData(ClipboardData(text: _plainText(item)));
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(L.of(context).itemCopied)));
+  }
+
+  Future<void> _delete() async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    _autosave?.cancel();
+    _editing = false;
+    await _items.softDelete(_id, _clock());
+    if (mounted) Navigator.pop(context);
+    showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => _items.restore(_id));
+  }
+
+  Future<void> _menu(Item item) async {
+    final action = await showModalBottomSheet<_MenuAction>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => _ItemMenu(title: item.title),
+    );
+    if (action == null || !mounted) return;
+    switch (action) {
+      case _MenuAction.copy:
+        await _copy(item);
+      case _MenuAction.delete:
+        await _delete();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -235,9 +301,15 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final images = full.attachments.where((file) => file.mime.startsWith('image/')).toList();
     final files = full.attachments.where((file) => !file.mime.startsWith('image/')).toList();
     final blocks = parseNoteBlocks(item.body, skipTitle: item.title);
-    final titleStyle = text.headlineSmall!.copyWith(fontSize: 26, height: 1.2, letterSpacing: -0.4);
-    final bodyStyle = text.bodyLarge!.copyWith(fontSize: 16, height: 1.55, color: Tokens.onSurface);
+    final titleStyle = text.headlineSmall!.copyWith(fontSize: 25, height: 1.2, letterSpacing: -0.4);
+    final bodyStyle = text.bodyLarge!.copyWith(fontSize: 16, height: 1.5, color: Tokens.onSurface);
     final bottom = MediaQuery.paddingOf(context).bottom;
+    final cover = images.isEmpty ? null : images[_cover.clamp(0, images.length - 1)];
+
+    // в шапке: «Сегодня, 14:20 · заметка» или «… · 3 фото», пока правка — что всё сохраняется
+    final when = '${_capitalized(shortDate(l, item.createdAt, now))}, ${DateFormat.jm(l.localeName).format(item.createdAt)}';
+    final what = images.isNotEmpty ? l.itemPhotos(images.length) : kindLabel(l, item.kind);
+    final subtitle = _editing ? l.itemAutosave : '$when · $what';
 
     return PopScope(
       // «назад» посреди правки сначала закрывает правку, сохранив текст
@@ -250,149 +322,158 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
           bottom: false,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-                child: Row(
-                  children: [
-                    IconButton(tooltip: MaterialLocalizations.of(context).backButtonTooltip, onPressed: () => Navigator.maybePop(context), icon: Icon(symbolIcon('arrow_back'))),
-                    const SizedBox(width: 4),
-                    // чип занимает своё место целиком, а не половину ряда пополам с пустотой
-                    Expanded(
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: ActionChip(
-                          onPressed: () => _move(item, folders),
-                          avatar: Icon(symbolIcon(folder?.icon ?? 'inbox'), size: 18),
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(child: Text(folder?.name ?? l.folderNone, overflow: TextOverflow.ellipsis)),
-                              Icon(symbolIcon('expand_more'), size: 18),
-                            ],
-                          ),
-                          backgroundColor: Tokens.containerHigh,
-                          side: BorderSide.none,
-                          shape: const StadiumBorder(),
-                        ),
-                      ),
-                    ),
-                    if (!_editing) IconButton(tooltip: l.itemEdit, onPressed: () => _startEditing(item), icon: Icon(symbolIcon('edit'))),
-                    IconButton(
-                      tooltip: l.itemCopy,
-                      onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: item.body.isEmpty ? item.title : item.body));
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.itemCopied)));
-                      },
-                      icon: Icon(symbolIcon('content_copy')),
-                    ),
-                    IconButton(
-                      tooltip: l.itemDelete,
-                      onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        _autosave?.cancel();
-                        _editing = false;
-                        await _items.softDelete(_id, _clock());
-                        if (context.mounted) Navigator.pop(context);
-                        showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => _items.restore(_id));
-                      },
-                      icon: Icon(symbolIcon('delete')),
-                    ),
-                  ],
-                ),
+              _Header(
+                folder: folder,
+                folderName: folder?.name ?? l.folderNone,
+                subtitle: subtitle,
+                editing: _editing,
+                onBack: () => Navigator.maybePop(context),
+                onFolder: () => _move(item, folders),
+                onEdit: () => _startEditing(item),
+                onMore: () => _menu(item),
               ),
               Expanded(
-                child: ListView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-                  padding: EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, _editing ? 24 : 40 + bottom),
+                child: Stack(
                   children: [
-                    if (_editing)
-                      TextField(
-                        controller: _title,
-                        maxLines: null,
-                        textCapitalization: TextCapitalization.sentences,
-                        textInputAction: TextInputAction.next,
-                        onSubmitted: (_) => _bodyFocus.requestFocus(),
-                        style: titleStyle,
-                        decoration: _bare(l.itemTitleHint),
-                      )
-                    else
-                      GestureDetector(
-                        onTap: () => _startEditing(item),
-                        child: Text(item.title, style: titleStyle),
-                      ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
+                    ListView(
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+                      padding: EdgeInsets.fromLTRB(12, 6, 12, _dockHeight + _dockGap * 2 + bottom),
                       children: [
-                        for (final tag in full.tags.keys) _MetaChip(label: '#$tag', removeTooltip: l.removeChip, onRemove: () => ref.read(tagsRepositoryProvider).unlink(_id, tag)),
-                        _MetaChip(
-                          label: l.tagAdd,
-                          icon: 'add',
-                          onTap: () async {
-                            final name = await _askTag(context);
-                            if (name != null) await ref.read(tagsRepositoryProvider).link(_id, name);
-                          },
+                        if (cover != null) ...[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(Radii.card),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 420),
+                              child: Image.file(
+                                File(p.join(filesRoot.path, cover.path)),
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const SizedBox(height: 160, child: ColoredBox(color: Tokens.containerHigh)),
+                              ),
+                            ),
+                          ),
+                          if (images.length > 1) ...[
+                            const SizedBox(height: 8),
+                            _Thumbs(images: images, filesRoot: filesRoot, selected: _cover, onPick: (index) => setState(() => _cover = index)),
+                          ],
+                          const SizedBox(height: 18),
+                        ] else
+                          const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: _editing
+                              ? TextField(
+                                  controller: _title,
+                                  maxLines: null,
+                                  textCapitalization: TextCapitalization.sentences,
+                                  textInputAction: TextInputAction.next,
+                                  onSubmitted: (_) => _bodyFocus.requestFocus(),
+                                  style: titleStyle,
+                                  decoration: _bare(l.itemTitleHint),
+                                )
+                              : GestureDetector(onTap: () => _startEditing(item), child: Text(item.title, style: titleStyle)),
                         ),
-                        if (item.reminderAt != null) _MetaChip(label: formatReminder(l, item.reminderAt!, now), icon: 'alarm', onTap: () => _reminderMenu(item.reminderAt!)),
-                        // когда сохранено — со значком истории, чтобы не путать с напоминанием «сегодня в 16:41»
-                        _MetaChip(label: shortDate(l, item.createdAt, now), icon: 'history'),
+                        const SizedBox(height: 14),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final tag in full.tags.keys)
+                                _TagPill(
+                                  label: '#$tag',
+                                  removeTooltip: l.removeChip,
+                                  // снять тег можно в правке, в просмотре пилюля просто называет его
+                                  onRemove: _editing ? () => ref.read(tagsRepositoryProvider).unlink(_id, tag) : null,
+                                ),
+                              _TagPill(label: l.tagAdd, short: l.tagAddShort, add: true, onTap: _addTag),
+                            ],
+                          ),
+                        ),
+                        if (item.reminderAt != null) ...[
+                          const SizedBox(height: 18),
+                          _ReminderBlock(
+                            at: item.reminderAt!,
+                            now: now,
+                            onTap: () => _reminderMenu(item.reminderAt!),
+                            onChange: () => _pickReminder(item.reminderAt),
+                          ),
+                        ],
+                        if (_editing || blocks.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          AnimatedContainer(
+                            key: const ValueKey('item-body-card'),
+                            duration: Motion.medium,
+                            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                            decoration: BoxDecoration(color: _editing ? Tokens.containerHigh : Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
+                            child: _editing
+                                ? TextField(
+                                    controller: _body,
+                                    focusNode: _bodyFocus,
+                                    maxLines: null,
+                                    minLines: 5,
+                                    keyboardType: TextInputType.multiline,
+                                    inputFormatters: [TextInputFormatter.withFunction(continueLists)],
+                                    textCapitalization: TextCapitalization.sentences,
+                                    // строка с курсором не прячется под плавающую панель
+                                    scrollPadding: const EdgeInsets.only(bottom: _dockHeight + _dockGap * 2 + 24),
+                                    style: bodyStyle,
+                                    decoration: _bare(l.itemBodyHint),
+                                  )
+                                : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
+                          ),
+                        ],
+                        if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
+                        if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
+                        if (files.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          for (final file in files) _FileRow(file: file),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 18),
-                    if (_editing)
-                      TextField(
-                        controller: _body,
-                        focusNode: _bodyFocus,
-                        maxLines: null,
-                        minLines: 6,
-                        keyboardType: TextInputType.multiline,
-                        inputFormatters: [TextInputFormatter.withFunction(continueLists)],
-                        textCapitalization: TextCapitalization.sentences,
-                        style: bodyStyle,
-                        decoration: _bare(l.itemBodyHint),
-                      )
-                    else if (blocks.isNotEmpty)
-                      NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
-                    for (final image in images) ...[
-                      const SizedBox(height: 16),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(Radii.photo),
-                        child: Image.file(
-                          File(p.join(filesRoot.path, image.path)),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const SizedBox(height: 120, child: ColoredBox(color: Tokens.containerHigh)),
-                        ),
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      bottom: _dockGap + bottom,
+                      child: AnimatedSwitcher(
+                        duration: Motion.medium,
+                        child: _editing
+                            ? _Dock(
+                                key: const ValueKey('edit-dock'),
+                                height: 64,
+                                buttons: [
+                                  _DockButton(icon: 'format_list_bulleted', tooltip: l.mdBullets, onTap: () => _markdown(MarkdownAction.bullets)),
+                                  _DockButton(icon: 'checklist', tooltip: l.mdChecklist, onTap: () => _markdown(MarkdownAction.checklist)),
+                                  _DockButton(icon: 'format_bold', tooltip: l.mdBold, onTap: () => _markdown(MarkdownAction.bold)),
+                                  _DockButton(icon: 'add_photo_alternate', tooltip: l.itemAddPhoto, onTap: _addPhotos),
+                                ],
+                                accentIcon: 'check',
+                                accentLabel: l.itemEditDone,
+                                onAccent: _finish,
+                              )
+                            : _Dock(
+                                key: const ValueKey('view-dock'),
+                                height: _dockHeight,
+                                buttons: [
+                                  _DockButton(
+                                    icon: item.reminderAt != null ? 'alarm' : 'add_alarm',
+                                    tooltip: l.itemRemind,
+                                    active: item.reminderAt != null,
+                                    onTap: () => item.reminderAt != null ? _reminderMenu(item.reminderAt!) : _pickReminder(null),
+                                  ),
+                                  _DockButton(icon: 'tag', tooltip: l.tagAdd, onTap: _addTag),
+                                  _DockButton(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
+                                  _DockButton(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
+                                ],
+                                accentIcon: 'add',
+                                accentLabel: l.itemAppend,
+                                onAccent: () => _startEditing(item, append: true),
+                              ),
                       ),
-                    ],
-                    if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
-                    if (item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
-                    if (files.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      Text(l.itemFiles, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
-                      const SizedBox(height: 8),
-                      for (final file in files) _FileRow(file: file),
-                    ],
+                    ),
                   ],
                 ),
-              ),
-              // панель правки, как на экране 7: список, чек-лист, фото, напоминание и «Готово».
-              // Стоит под текстом, а не поверх: строка с курсором всегда видна над ней
-              AnimatedSize(
-                duration: const Duration(milliseconds: 380),
-                curve: Motion.spatial,
-                alignment: Alignment.topCenter,
-                child: _editing
-                    ? RiseIn(
-                        child: _EditBar(
-                          onBullets: () => _markdown(MarkdownAction.bullets),
-                          onChecklist: () => _markdown(MarkdownAction.checklist),
-                          onPhoto: _addPhotos,
-                          onRemind: () => _pickReminder(item.reminderAt),
-                          onDone: _finish,
-                        ),
-                      )
-                    : const SizedBox(width: double.infinity),
               ),
             ],
           ),
@@ -413,97 +494,426 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   );
 }
 
-/// Плавающая панель правки: группа кнопок в пилюле и круглая «Готово» справа.
-class _EditBar extends StatelessWidget {
-  const _EditBar({required this.onBullets, required this.onChecklist, required this.onPhoto, required this.onRemind, required this.onDone});
+String _capitalized(String text) => text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
 
-  final VoidCallback onBullets;
-  final VoidCallback onChecklist;
-  final VoidCallback onPhoto;
-  final VoidCallback onRemind;
-  final VoidCallback onDone;
+/// Круглая кнопка на подложке. Связанная группа задаёт свои углы.
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({required this.icon, required this.tooltip, required this.onTap, this.radius = const BorderRadius.all(Radius.circular(24))});
+
+  final String icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final BorderRadius radius;
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
-    Widget button(String icon, String tooltip, VoidCallback onTap) => IconButton(
-      tooltip: tooltip,
-      onPressed: onTap,
-      style: IconButton.styleFrom(fixedSize: const Size.square(48)),
-      icon: Icon(symbolIcon(icon), color: Tokens.onSurface),
-    );
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 12),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(32)),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  button('format_list_bulleted', l.mdBullets, onBullets),
-                  button('check_box', l.mdChecklist, onChecklist),
-                  button('image', l.itemAddPhoto, onPhoto),
-                  button('alarm', l.itemRemind, onRemind),
-                ],
-              ),
-            ),
-            const Spacer(),
-            Tooltip(
-              message: l.itemEditDone,
-              child: Material(
-                color: Tokens.accent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: InkWell(
-                  onTap: onDone,
-                  borderRadius: BorderRadius.circular(20),
-                  child: SizedBox.square(dimension: 60, child: Icon(symbolIcon('done'), size: 28, color: Tokens.onAccent)),
-                ),
-              ),
-            ),
-          ],
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Tokens.containerHigh,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox.square(dimension: 48, child: Icon(symbolIcon(icon), size: 22, color: Tokens.onSurface)),
         ),
       ),
     );
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.label, this.icon, this.onRemove, this.removeTooltip, this.onTap});
+/// Шапка как у поста Togetherly: «назад», пилюля с папкой и днём, справа
+/// сцепленные «править» и «ещё». Касание по пилюле перекладывает вещь.
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.folder,
+    required this.folderName,
+    required this.subtitle,
+    required this.editing,
+    required this.onBack,
+    required this.onFolder,
+    required this.onEdit,
+    required this.onMore,
+  });
+
+  final FolderCard? folder;
+  final String folderName;
+  final String subtitle;
+  final bool editing;
+  final VoidCallback onBack;
+  final VoidCallback onFolder;
+  final VoidCallback onEdit;
+  final VoidCallback onMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+      child: Row(
+        children: [
+          _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: onBack),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Tooltip(
+              message: l.itemMove,
+              child: Material(
+                color: Tokens.containerHigh,
+                borderRadius: BorderRadius.circular(24),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onFolder,
+                  child: SizedBox(
+                    height: 48,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4, right: 14),
+                      child: Row(
+                        children: [
+                          // круг с тем же центром, что полукруглый край пилюли: фигура папки
+                          // с углами (квадрат, пилюля) выпирала бы из него
+                          Container(
+                            key: const ValueKey('item-folder-badge'),
+                            width: 40,
+                            height: 40,
+                            decoration: const BoxDecoration(color: Tokens.graphite, shape: BoxShape.circle),
+                            child: Icon(symbolIcon(folder?.icon ?? 'inbox', filled: true), size: 20, color: Tokens.onSurface),
+                          ),
+                          const SizedBox(width: 9),
+                          Expanded(
+                            // подписи шапки растут не больше чем на четверть: иначе на крупном шрифте не влезут в 48 точек
+                            child: MediaQuery.withClampedTextScaling(
+                              maxScaleFactor: 1.25,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(folderName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.2, color: Tokens.onSurface)),
+                                  Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, height: 1.2, color: Tokens.onSurfaceVariant)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (editing)
+            _RoundButton(icon: 'more_vert', tooltip: l.itemMore, onTap: onMore)
+          else ...[
+            _RoundButton(
+              icon: 'edit',
+              tooltip: l.itemEdit,
+              onTap: onEdit,
+              radius: const BorderRadius.horizontal(left: Radius.circular(24), right: Radius.circular(8)),
+            ),
+            const SizedBox(width: 2),
+            _RoundButton(
+              icon: 'more_vert',
+              tooltip: l.itemMore,
+              onTap: onMore,
+              radius: const BorderRadius.horizontal(left: Radius.circular(8), right: Radius.circular(24)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Пилюля тега. У «добавить» значок плюса и приглушённая подложка.
+class _TagPill extends StatelessWidget {
+  const _TagPill({required this.label, this.short, this.add = false, this.onTap, this.onRemove, this.removeTooltip});
 
   final String label;
-  final String? icon;
+
+  /// Подпись «добавить» на пилюле, полное имя уходит в подсказку.
+  final String? short;
+  final bool add;
+  final VoidCallback? onTap;
 
   /// Крестик: снять тег только у этой вещи.
   final VoidCallback? onRemove;
   final String? removeTooltip;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 32,
-        padding: EdgeInsets.only(left: 12, right: onRemove == null ? 12 : 2),
-        decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(16)),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[Icon(symbolIcon(icon), size: 16, color: Tokens.onSurfaceVariant), const SizedBox(width: 5)],
-            Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: Tokens.onSurface)),
-            if (onRemove != null)
-              IconButton(
-                tooltip: removeTooltip,
-                onPressed: onRemove,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(width: 28, height: 28),
-                iconSize: 15,
-                icon: Icon(symbolIcon('close'), color: Tokens.muted),
+    final style = TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: add ? Tokens.muted : Tokens.onSurfaceVariant);
+    final pill = Material(
+      color: add ? Tokens.containerLow : Tokens.containerHigh,
+      borderRadius: BorderRadius.circular(17),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap ?? onRemove,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 34),
+          padding: EdgeInsets.only(left: add ? 8 : 14, right: onRemove != null ? 6 : (add ? 12 : 14)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (add) ...[Icon(symbolIcon('add'), size: 18, color: Tokens.muted), const SizedBox(width: 4)],
+              Flexible(child: Text(short ?? label, overflow: TextOverflow.ellipsis, style: style)),
+              if (onRemove != null) ...[const SizedBox(width: 2), Icon(symbolIcon('close'), size: 18, color: Tokens.muted)],
+            ],
+          ),
+        ),
+      ),
+    );
+    final tip = onRemove != null ? removeTooltip : (add ? label : null);
+    return tip == null ? pill : Tooltip(message: tip, child: pill);
+  }
+}
+
+/// Напоминание светлой плашкой: заметно сразу и не путается с тегами.
+class _ReminderBlock extends StatelessWidget {
+  const _ReminderBlock({required this.at, required this.now, required this.onTap, required this.onChange});
+
+  final DateTime at;
+  final DateTime now;
+  final VoidCallback onTap;
+  final VoidCallback onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final date = _capitalized(DateFormat('EEEE, d MMMM', l.localeName).format(at));
+    return Material(
+      key: const ValueKey('item-reminder'),
+      color: Tokens.accent,
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+          child: Row(
+            children: [
+              Icon(symbolIcon('alarm', filled: true), size: 24, color: Tokens.onAccent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_capitalized(formatReminder(l, at, now)), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                    Text(date, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.onAccentVariant)),
+                  ],
+                ),
               ),
+              Tooltip(
+                message: l.itemReminderChange,
+                child: Material(
+                  color: Tokens.onAccent.withValues(alpha: 0.08),
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: onChange,
+                    child: SizedBox.square(dimension: 44, child: Icon(symbolIcon('edit_calendar'), size: 20, color: Tokens.onAccent)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Остальные снимки рядом под крупным: касание ставит снимок крупно.
+class _Thumbs extends StatelessWidget {
+  const _Thumbs({required this.images, required this.filesRoot, required this.selected, required this.onPick});
+
+  final List<Attachment> images;
+  final Directory filesRoot;
+  final int selected;
+  final ValueChanged<int> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: images.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (context, index) => GestureDetector(
+          onTap: () => onPick(index),
+          child: AnimatedOpacity(
+            duration: Motion.short,
+            opacity: index == selected ? 1 : 0.5,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Radii.photo),
+              child: Image.file(
+                File(p.join(filesRoot.path, images[index].path)),
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                cacheWidth: 168,
+                errorBuilder: (_, _, _) => const SizedBox.square(dimension: 56, child: ColoredBox(color: Tokens.containerHigh)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DockButton {
+  const _DockButton({required this.icon, required this.tooltip, required this.onTap, this.active = false});
+
+  final String icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool active;
+}
+
+/// Плавающая панель внизу: пилюля с действиями и светлая кнопка главного шага.
+/// На узком экране главная кнопка остаётся значком, подпись уходит в подсказку.
+class _Dock extends StatelessWidget {
+  const _Dock({super.key, required this.height, required this.buttons, required this.accentIcon, required this.accentLabel, required this.onAccent});
+
+  final double height;
+  final List<_DockButton> buttons;
+  final String accentIcon;
+  final String accentLabel;
+  final VoidCallback onAccent;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) {
+        final wide = box.maxWidth >= 340;
+        final radius = BorderRadius.circular(height / 2);
+        return Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: height,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: radius),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    for (final button in buttons)
+                      Flexible(
+                        child: Tooltip(
+                          message: button.tooltip,
+                          child: Material(
+                            color: button.active ? Tokens.onSurface.withValues(alpha: 0.12) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(28),
+                            clipBehavior: Clip.antiAlias,
+                            child: InkWell(
+                              onTap: button.onTap,
+                              child: SizedBox(
+                                width: 52,
+                                height: height - 16,
+                                child: Icon(symbolIcon(button.icon, filled: button.active), size: 24, color: Tokens.onSurface),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Tooltip(
+              message: accentLabel,
+              excludeFromSemantics: wide,
+              child: Material(
+                color: Tokens.accent,
+                borderRadius: radius,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onAccent,
+                  child: SizedBox(
+                    height: height,
+                    width: wide ? null : height,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: wide ? 20 : 0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(symbolIcon(accentIcon), size: 22, color: Tokens.onAccent),
+                          if (wide) ...[
+                            const SizedBox(width: 8),
+                            MediaQuery.withClampedTextScaling(
+                              maxScaleFactor: 1.2,
+                              child: Text(accentLabel, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Лист «⋮»: скопировать текст и удалить. Блоки сцеплены, как в настройках.
+class _ItemMenu extends StatelessWidget {
+  const _ItemMenu({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    Widget row(_MenuAction action, String icon, String label, BorderRadius radius, {bool danger = false}) {
+      final color = danger ? Tokens.error : Tokens.onSurface;
+      return Material(
+        color: Tokens.containerHigh,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Navigator.pop(context, action),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(color: danger ? Tokens.error.withValues(alpha: 0.14) : Tokens.graphite, shape: BoxShape.circle),
+                  child: Icon(symbolIcon(icon), size: 20, color: color),
+                ),
+                const SizedBox(width: 14),
+                Expanded(child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color))),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
+            ),
+            row(_MenuAction.copy, 'content_copy', l.itemCopy, const BorderRadius.vertical(top: Radius.circular(24), bottom: Radius.circular(8))),
+            const SizedBox(height: 4),
+            row(_MenuAction.delete, 'delete', l.itemDelete, const BorderRadius.vertical(top: Radius.circular(8), bottom: Radius.circular(24)), danger: true),
           ],
         ),
       ),
@@ -556,9 +966,9 @@ class _DeepBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme;
     return Container(
-      margin: const EdgeInsets.only(top: 14),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+      decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
