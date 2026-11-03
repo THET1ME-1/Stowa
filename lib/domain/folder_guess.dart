@@ -35,13 +35,31 @@ const _nameWeight = 2.0;
 
 typedef _Word = ({String stem, String original, bool name});
 
+// когда, а не про что: «сегодня в 16:41» есть у любой вещи с напоминанием и папку не решает.
+// Длинные основы ловят все формы («пятницу», «января»), короткие слова — только целиком,
+// иначе «час» съел бы «часы», а «сред» — «средство».
+const _timeStems = [
+  'сегодн', 'завтр', 'послезавтр', 'вчераш', 'минут', 'недел', 'месяц',
+  'понедельник', 'вторник', 'четверг', 'пятниц', 'суббот', 'воскресен', 'выходн',
+  'январ', 'феврал', 'апрел', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр',
+  'напомн',
+];
+const _timeWords = {
+  'вчера', 'утро', 'утра', 'утром', 'вечер', 'вечера', 'вечером', 'днем', 'днём', 'днями', 'ночь', 'ночи', 'ночью',
+  // «часов» нет: это и время, и наручные часы
+  'час', 'часа', 'часу', 'среда', 'среду', 'среды', 'март', 'марта', 'марте', 'май', 'мая', 'мае',
+  'июнь', 'июня', 'июне', 'июль', 'июля', 'июле', 'через', 'потом',
+};
+
+bool _isTimeWord(String lower) => _timeWords.contains(lower) || _timeStems.any(lower.startsWith);
+
 /// Слова текста без служебных; имя — слово с заглавной не в начале предложения.
 List<_Word> _words(String text) {
   final words = <_Word>[];
   for (final match in _token.allMatches(text)) {
     final original = match.group(0)!;
     final lower = normalizeQuery(original);
-    if (lower.length < 3 || isStopWord(lower) || RegExp(r'^\d+$').hasMatch(lower)) continue;
+    if (lower.length < 3 || isStopWord(lower) || _isTimeWord(lower) || RegExp(r'^\d+$').hasMatch(lower)) continue;
     final capital = original[0] != original[0].toLowerCase();
     final before = text.substring(0, match.start).trimRight();
     final startsSentence = before.isEmpty || _sentenceEnd.hasMatch(before[before.length - 1]);

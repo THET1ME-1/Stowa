@@ -104,7 +104,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         if (!await confirmFolderDelete(context, folder.name)) return;
         final moved = await repository.delete(folder.id, ref.read(clockProvider)());
         if (mounted) Navigator.pop(context);
-        showUndo(messenger, message: l.folderDeleted, label: l.restoreAction, onUndo: () => repository.restore(folder.id, moved));
+        showUndo(messenger, message: l.folderDeleted, label: l.restoreAction, onUndo: () => repository.restore(folder.id, moved), overDock: true);
     }
   }
 

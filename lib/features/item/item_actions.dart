@@ -33,7 +33,8 @@ Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) async 
   );
   if (picked == null) return;
   await items.moveToFolder(card.id, picked.id, clock());
-  showUndo(messenger, message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(card.id, card.folderId, clock()));
+  // перекладывают с главной и из папки, там внизу строка ввода
+  showUndo(messenger, message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(card.id, card.folderId, clock()), overDock: true);
 }
 
 /// Долгое нажатие на вещь в ленте: открыть, переложить в другую папку, удалить с «Вернуть».
@@ -79,6 +80,6 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
       await moveItem(context, ref, card);
     case _Action.delete:
       await items.softDelete(card.id, now);
-      showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(card.id));
+      showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(card.id), overDock: true);
   }
 }

@@ -93,6 +93,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byTooltip('Готово'), findsNothing);
 
+    // плашка над строкой ввода, а не поверх её кнопок
+    // видимая плашка — Material внутри SnackBar, вокруг неё отступы
+    final snack = tester.getRect(find.descendant(of: find.byType(SnackBar), matching: find.byType(Material)).first);
+    final composer = tester.getRect(find.byKey(const ValueKey('composer')));
+    expect(snack.bottom, lessThanOrEqualTo(composer.top));
+
     // случайный тап не стирает напоминание насовсем
     await tester.tap(find.text('Отменить'));
     await tester.pumpAndSettle();

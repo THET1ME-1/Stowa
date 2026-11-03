@@ -150,7 +150,8 @@ class ItemScreen extends ConsumerWidget {
                           if (name != null) await ref.read(tagsRepositoryProvider).link(id, name);
                         },
                       ),
-                      _MetaChip(label: shortDate(l, item.createdAt, now)),
+                      // когда сохранено — со значком истории, чтобы не путать с напоминанием «сегодня в 16:41»
+                      _MetaChip(label: shortDate(l, item.createdAt, now), icon: 'history'),
                       if (item.reminderAt != null) _MetaChip(label: formatReminder(l, item.reminderAt!, now), icon: 'alarm'),
                     ],
                   ),
