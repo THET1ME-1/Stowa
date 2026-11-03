@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_hint">Wirf irgendwas rein</string>
+    <string name="widget_mic">Sprachnotiz</string>
+    <string name="widget_description">Gedanken, Link oder Sprachnotiz speichern, ohne die App zu öffnen</string>
+</resources>

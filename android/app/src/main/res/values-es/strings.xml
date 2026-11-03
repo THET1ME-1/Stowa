@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_hint">Suelta lo que sea</string>
+    <string name="widget_mic">Nota de voz</string>
+    <string name="widget_description">Guarda una idea, un enlace o una nota de voz sin abrir la app</string>
+</resources>

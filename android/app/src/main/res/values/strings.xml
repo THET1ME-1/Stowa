@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_hint">Drop anything</string>
+    <string name="widget_mic">Voice note</string>
+    <string name="widget_description">Save a thought, link or voice note without opening the app</string>
+</resources>

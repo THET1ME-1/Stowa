@@ -243,6 +243,11 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _focus.requestFocus();
   }
 
+  /// Микрофон виджета: запись начинается сразу, без касания строки.
+  void startVoice() {
+    if (_voice == null) _startVoice();
+  }
+
   void searchTag(String name) {
     _line.reset();
     _line.addTag(name);

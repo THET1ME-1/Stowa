@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_hint">Закинь що завгодно</string>
+    <string name="widget_mic">Голосове</string>
+    <string name="widget_description">Закинути думку, посилання чи голосове, не відкриваючи головну</string>
+</resources>

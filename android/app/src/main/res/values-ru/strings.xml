@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_hint">Закинь что угодно</string>
+    <string name="widget_mic">Голосовое</string>
+    <string name="widget_description">Закинуть мысль, ссылку или голосовое, не открывая главную</string>
+</resources>

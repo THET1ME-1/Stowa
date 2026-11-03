@@ -68,6 +68,13 @@
             </intent-filter>
         </activity>
         <!-- будильники напоминаний: срабатывание и восстановление после перезагрузки -->
+        <!-- виджет-строка на рабочем столе (STOWA-1) -->
+        <receiver android:name=".ComposerWidgetProvider" android:exported="false" android:label="@string/widget_hint">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/composer_widget_info" />
+        </receiver>
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <!-- кнопки «Готово» и «Через час» на уведомлении -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />

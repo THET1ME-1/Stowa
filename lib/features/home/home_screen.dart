@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
@@ -8,6 +9,7 @@ import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/launch_actions.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
@@ -76,6 +78,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // старые вещи под нынешние правила: размеры картинок для доски и заголовки вместо имён файлов
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // открыли с виджета: строка с клавиатурой или сразу запись голоса
+      initialLaunchAction().then(_onLaunch).ignore();
+      listenLaunchActions(_onLaunch);
       // при открытии: всё, что накопилось без сети или без ключа, и что переслали боту
       ref.read(aiDrainProvider)().ignore();
       ref.read(telegramPullProvider)().ignore();
@@ -95,6 +100,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     super.dispose();
   }
 
+  LaunchAction? _pendingLaunch;
+
+  void _onLaunch(LaunchAction? action) {
+    if (action == null || !mounted) return;
+    // касание виджета приходит, пока окно ещё за рабочим столом: клавиатура тогда не встаёт.
+    // действие ждёт, пока приложение выйдет вперёд
+    final state = WidgetsBinding.instance.lifecycleState;
+    if (state != null && state != AppLifecycleState.resumed) {
+      _pendingLaunch = action;
+      return;
+    }
+    // виджет нажали поверх другого экрана: сперва назад на главную
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      switch (action) {
+        case LaunchAction.compose:
+          _dock.currentState?.focusLine();
+          // на холодном старте окно получает фокус позже первого кадра, и первый
+          // запрос клавиатуры Android молча пропускает: просим ещё раз
+          Future.delayed(const Duration(milliseconds: 450), () => SystemChannels.textInput.invokeMethod<void>('TextInput.show')).ignore();
+        case LaunchAction.voice:
+          _dock.currentState?.startVoice();
+      }
+    });
+  }
+
   /// Разобрать «Без папки» заново и сказать, сколько разложено, с «Отменить».
   Future<void> _sortInbox() async {
     final sorter = ref.read(autoSorterProvider);
@@ -108,6 +139,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // «ближайшее» считается от момента подписки, после паузы его надо пересчитать
     if (state != AppLifecycleState.resumed) return;
+    final launch = _pendingLaunch;
+    _pendingLaunch = null;
+    _onLaunch(launch);
     ref.invalidate(upcomingProvider);
     // вернулся в приложение: то, что фон не успел, разбирается сейчас
     ref.read(aiDrainProvider)().ignore();
