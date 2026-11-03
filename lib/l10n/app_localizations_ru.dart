@@ -1109,4 +1109,62 @@ class LRu extends L {
   String settingsVersion(String version) {
     return 'Stowa $version';
   }
+
+  @override
+  String get trashTitle => 'Корзина';
+
+  @override
+  String get trashEmpty => 'Корзина пуста';
+
+  @override
+  String get trashHint =>
+      'Удалённое лежит здесь 30 дней, потом стирается вместе с файлами.';
+
+  @override
+  String trashDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'сотрётся через $count дня',
+      many: 'сотрётся через $count дней',
+      few: 'сотрётся через $count дня',
+      one: 'сотрётся через $count день',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashFrom(String folder) {
+    return 'из «$folder»';
+  }
+
+  @override
+  String get trashPurge => 'Стереть насовсем';
+
+  @override
+  String get trashPurgeAll => 'Очистить корзину';
+
+  @override
+  String trashPurgeAllAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Стереть $count вещи насовсем? Вернуть их будет нельзя.',
+      many: 'Стереть $count вещей насовсем? Вернуть их будет нельзя.',
+      few: 'Стереть $count вещи насовсем? Вернуть их будет нельзя.',
+      one: 'Стереть $count вещь насовсем? Вернуть её будет нельзя.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashRestored(String title) {
+    return 'Вернул «$title»';
+  }
+
+  @override
+  String get trashPurged => 'Стёрто насовсем';
+
+  @override
+  String get settingsData => 'Данные';
 }

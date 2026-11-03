@@ -313,5 +313,16 @@
   "settingsOrder": "Порядок",
   "settingsLanguage": "Язык",
   "languageSystem": "Как в системе",
-  "settingsVersion": "Stowa {version}"
+  "settingsVersion": "Stowa {version}",
+  "trashTitle": "Корзина",
+  "trashEmpty": "Корзина пуста",
+  "trashHint": "Удалённое лежит здесь 30 дней, потом стирается вместе с файлами.",
+  "trashDaysLeft": "{count, plural, one{сотрётся через {count} день} few{сотрётся через {count} дня} many{сотрётся через {count} дней} other{сотрётся через {count} дня}}",
+  "trashFrom": "из «{folder}»",
+  "trashPurge": "Стереть насовсем",
+  "trashPurgeAll": "Очистить корзину",
+  "trashPurgeAllAsk": "{count, plural, one{Стереть {count} вещь насовсем? Вернуть её будет нельзя.} few{Стереть {count} вещи насовсем? Вернуть их будет нельзя.} many{Стереть {count} вещей насовсем? Вернуть их будет нельзя.} other{Стереть {count} вещи насовсем? Вернуть их будет нельзя.}}",
+  "trashRestored": "Вернул «{title}»",
+  "trashPurged": "Стёрто насовсем",
+  "settingsData": "Данные"
 }

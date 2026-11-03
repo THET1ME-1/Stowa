@@ -1106,4 +1106,62 @@ class LUk extends L {
   String settingsVersion(String version) {
     return 'Stowa $version';
   }
+
+  @override
+  String get trashTitle => 'Кошик';
+
+  @override
+  String get trashEmpty => 'Кошик порожній';
+
+  @override
+  String get trashHint =>
+      'Видалене лежить тут 30 днів, потім стирається разом із файлами.';
+
+  @override
+  String trashDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'зітреться через $count дня',
+      many: 'зітреться через $count днів',
+      few: 'зітреться через $count дні',
+      one: 'зітреться через $count день',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashFrom(String folder) {
+    return 'з «$folder»';
+  }
+
+  @override
+  String get trashPurge => 'Стерти назавжди';
+
+  @override
+  String get trashPurgeAll => 'Очистити кошик';
+
+  @override
+  String trashPurgeAllAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Стерти $count речі назавжди? Повернути їх не вийде.',
+      many: 'Стерти $count речей назавжди? Повернути їх не вийде.',
+      few: 'Стерти $count речі назавжди? Повернути їх не вийде.',
+      one: 'Стерти $count річ назавжди? Повернути її не вийде.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashRestored(String title) {
+    return 'Повернув «$title»';
+  }
+
+  @override
+  String get trashPurged => 'Стерто назавжди';
+
+  @override
+  String get settingsData => 'Дані';
 }

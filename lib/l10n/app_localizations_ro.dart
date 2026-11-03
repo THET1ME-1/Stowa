@@ -1104,4 +1104,60 @@ class LRo extends L {
   String settingsVersion(String version) {
     return 'Stowa $version';
   }
+
+  @override
+  String get trashTitle => 'Coș';
+
+  @override
+  String get trashEmpty => 'Coșul e gol';
+
+  @override
+  String get trashHint =>
+      'Ce ștergi stă aici 30 de zile, apoi se șterge cu tot cu fișiere.';
+
+  @override
+  String trashDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de zile rămase',
+      few: '$count zile rămase',
+      one: '$count zi rămasă',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashFrom(String folder) {
+    return 'din „$folder”';
+  }
+
+  @override
+  String get trashPurge => 'Șterge definitiv';
+
+  @override
+  String get trashPurgeAll => 'Golește coșul';
+
+  @override
+  String trashPurgeAllAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de elemente se șterg definitiv. Nu se poate anula.',
+      few: '$count elemente se șterg definitiv. Nu se poate anula.',
+      one: '$count element se șterge definitiv. Nu se poate anula.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashRestored(String title) {
+    return 'Am readus „$title”';
+  }
+
+  @override
+  String get trashPurged => 'Șters definitiv';
+
+  @override
+  String get settingsData => 'Date';
 }

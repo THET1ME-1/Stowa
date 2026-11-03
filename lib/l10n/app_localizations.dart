@@ -1990,6 +1990,72 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Stowa {version}'**
   String settingsVersion(String version);
+
+  /// trashTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trashTitle;
+
+  /// trashEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'Trash is empty'**
+  String get trashEmpty;
+
+  /// trashHint
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted items stay here for 30 days, then they are erased with their files.'**
+  String get trashHint;
+
+  /// trashDaysLeft
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} day left} other{{count} days left}}'**
+  String trashDaysLeft(int count);
+
+  /// trashFrom
+  ///
+  /// In en, this message translates to:
+  /// **'from “{folder}”'**
+  String trashFrom(String folder);
+
+  /// trashPurge
+  ///
+  /// In en, this message translates to:
+  /// **'Erase forever'**
+  String get trashPurge;
+
+  /// trashPurgeAll
+  ///
+  /// In en, this message translates to:
+  /// **'Empty trash'**
+  String get trashPurgeAll;
+
+  /// trashPurgeAllAsk
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item will be erased forever. This can’t be undone.} other{{count} items will be erased forever. This can’t be undone.}}'**
+  String trashPurgeAllAsk(int count);
+
+  /// trashRestored
+  ///
+  /// In en, this message translates to:
+  /// **'Restored “{title}”'**
+  String trashRestored(String title);
+
+  /// trashPurged
+  ///
+  /// In en, this message translates to:
+  /// **'Erased forever'**
+  String get trashPurged;
+
+  /// settingsData
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get settingsData;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

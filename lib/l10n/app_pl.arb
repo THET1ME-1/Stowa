@@ -65,5 +65,16 @@
   "aiModelOwn": "Własny: „{name}”",
   "settingsOrder": "Porządek",
   "settingsLanguage": "Język",
-  "languageSystem": "Jak w systemie"
+  "languageSystem": "Jak w systemie",
+  "trashTitle": "Kosz",
+  "trashEmpty": "Kosz jest pusty",
+  "trashHint": "Usunięte leży tu 30 dni, potem znika razem z plikami.",
+  "trashDaysLeft": "{count, plural, one{{count} dzień do usunięcia} few{{count} dni do usunięcia} many{{count} dni do usunięcia} other{{count} dnia do usunięcia}}",
+  "trashFrom": "z „{folder}”",
+  "trashPurge": "Usuń na zawsze",
+  "trashPurgeAll": "Opróżnij kosz",
+  "trashPurgeAllAsk": "{count, plural, one{{count} rzecz zniknie na zawsze. Nie da się tego cofnąć.} few{{count} rzeczy znikną na zawsze. Nie da się tego cofnąć.} many{{count} rzeczy zniknie na zawsze. Nie da się tego cofnąć.} other{{count} rzeczy zniknie na zawsze. Nie da się tego cofnąć.}}",
+  "trashRestored": "Przywrócono „{title}”",
+  "trashPurged": "Usunięto na zawsze",
+  "settingsData": "Dane"
 }

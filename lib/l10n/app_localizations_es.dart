@@ -1102,4 +1102,58 @@ class LEs extends L {
   String settingsVersion(String version) {
     return 'Stowa $version';
   }
+
+  @override
+  String get trashTitle => 'Papelera';
+
+  @override
+  String get trashEmpty => 'La papelera está vacía';
+
+  @override
+  String get trashHint =>
+      'Lo borrado se queda aquí 30 días y luego se elimina con sus archivos.';
+
+  @override
+  String trashDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count días restantes',
+      one: '$count día restante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashFrom(String folder) {
+    return 'de «$folder»';
+  }
+
+  @override
+  String get trashPurge => 'Borrar para siempre';
+
+  @override
+  String get trashPurgeAll => 'Vaciar papelera';
+
+  @override
+  String trashPurgeAllAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos se borrarán para siempre. No se puede deshacer.',
+      one: '$count elemento se borrará para siempre. No se puede deshacer.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashRestored(String title) {
+    return '«$title» restaurado';
+  }
+
+  @override
+  String get trashPurged => 'Borrado para siempre';
+
+  @override
+  String get settingsData => 'Datos';
 }

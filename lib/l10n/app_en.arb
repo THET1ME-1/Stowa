@@ -1444,5 +1444,69 @@
         "type": "String"
       }
     }
+  },
+  "trashTitle": "Trash",
+  "@trashTitle": {
+    "description": "trashTitle"
+  },
+  "trashEmpty": "Trash is empty",
+  "@trashEmpty": {
+    "description": "trashEmpty"
+  },
+  "trashHint": "Deleted items stay here for 30 days, then they are erased with their files.",
+  "@trashHint": {
+    "description": "trashHint"
+  },
+  "trashDaysLeft": "{count, plural, one{{count} day left} other{{count} days left}}",
+  "@trashDaysLeft": {
+    "description": "trashDaysLeft",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashFrom": "from “{folder}”",
+  "@trashFrom": {
+    "description": "trashFrom",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPurge": "Erase forever",
+  "@trashPurge": {
+    "description": "trashPurge"
+  },
+  "trashPurgeAll": "Empty trash",
+  "@trashPurgeAll": {
+    "description": "trashPurgeAll"
+  },
+  "trashPurgeAllAsk": "{count, plural, one{{count} item will be erased forever. This can’t be undone.} other{{count} items will be erased forever. This can’t be undone.}}",
+  "@trashPurgeAllAsk": {
+    "description": "trashPurgeAllAsk",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashRestored": "Restored “{title}”",
+  "@trashRestored": {
+    "description": "trashRestored",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPurged": "Erased forever",
+  "@trashPurged": {
+    "description": "trashPurged"
+  },
+  "settingsData": "Data",
+  "@settingsData": {
+    "description": "settingsData"
   }
 }

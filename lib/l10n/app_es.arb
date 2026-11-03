@@ -65,5 +65,16 @@
   "aiModelOwn": "Propio: «{name}»",
   "settingsOrder": "Orden",
   "settingsLanguage": "Idioma",
-  "languageSystem": "Como el sistema"
+  "languageSystem": "Como el sistema",
+  "trashTitle": "Papelera",
+  "trashEmpty": "La papelera está vacía",
+  "trashHint": "Lo borrado se queda aquí 30 días y luego se elimina con sus archivos.",
+  "trashDaysLeft": "{count, plural, one{{count} día restante} other{{count} días restantes}}",
+  "trashFrom": "de «{folder}»",
+  "trashPurge": "Borrar para siempre",
+  "trashPurgeAll": "Vaciar papelera",
+  "trashPurgeAllAsk": "{count, plural, one{{count} elemento se borrará para siempre. No se puede deshacer.} other{{count} elementos se borrarán para siempre. No se puede deshacer.}}",
+  "trashRestored": "«{title}» restaurado",
+  "trashPurged": "Borrado para siempre",
+  "settingsData": "Datos"
 }

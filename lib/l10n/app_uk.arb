@@ -65,5 +65,16 @@
   "aiModelOwn": "Своя: «{name}»",
   "settingsOrder": "Порядок",
   "settingsLanguage": "Мова",
-  "languageSystem": "Як у системі"
+  "languageSystem": "Як у системі",
+  "trashTitle": "Кошик",
+  "trashEmpty": "Кошик порожній",
+  "trashHint": "Видалене лежить тут 30 днів, потім стирається разом із файлами.",
+  "trashDaysLeft": "{count, plural, one{зітреться через {count} день} few{зітреться через {count} дні} many{зітреться через {count} днів} other{зітреться через {count} дня}}",
+  "trashFrom": "з «{folder}»",
+  "trashPurge": "Стерти назавжди",
+  "trashPurgeAll": "Очистити кошик",
+  "trashPurgeAllAsk": "{count, plural, one{Стерти {count} річ назавжди? Повернути її не вийде.} few{Стерти {count} речі назавжди? Повернути їх не вийде.} many{Стерти {count} речей назавжди? Повернути їх не вийде.} other{Стерти {count} речі назавжди? Повернути їх не вийде.}}",
+  "trashRestored": "Повернув «{title}»",
+  "trashPurged": "Стерто назавжди",
+  "settingsData": "Дані"
 }

@@ -15,6 +15,7 @@ import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
 import '../tags/tags_screen.dart';
+import 'trash_screen.dart';
 
 Route<void> settingsRoute() => PageRouteBuilder(
   transitionDuration: const Duration(milliseconds: 500),
@@ -46,6 +47,7 @@ class SettingsScreen extends ConsumerWidget {
     final ai = ref.watch(aiSettingsProvider).value ?? const AiSettings();
     final queued = ref.watch(aiQueueProvider).value ?? 0;
     final language = ref.watch(languageProvider).value;
+    final trashed = ref.watch(trashProvider).value?.length ?? 0;
 
     return Scaffold(
       body: SafeArea(
@@ -73,6 +75,12 @@ class SettingsScreen extends ConsumerWidget {
             _Section(l.settingsOrder),
             _Group(
               children: [_Row(icon: 'label', title: l.settingsTooltip, onTap: () => Navigator.of(context).push(tagsRoute()))],
+            ),
+            _Section(l.settingsData),
+            _Group(
+              children: [
+                _Row(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
+              ],
             ),
             _Section(l.settingsLanguage),
             _Group(

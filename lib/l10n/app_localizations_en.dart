@@ -1101,4 +1101,58 @@ class LEn extends L {
   String settingsVersion(String version) {
     return 'Stowa $version';
   }
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get trashEmpty => 'Trash is empty';
+
+  @override
+  String get trashHint =>
+      'Deleted items stay here for 30 days, then they are erased with their files.';
+
+  @override
+  String trashDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '$count day left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashFrom(String folder) {
+    return 'from “$folder”';
+  }
+
+  @override
+  String get trashPurge => 'Erase forever';
+
+  @override
+  String get trashPurgeAll => 'Empty trash';
+
+  @override
+  String trashPurgeAllAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items will be erased forever. This can’t be undone.',
+      one: '$count item will be erased forever. This can’t be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashRestored(String title) {
+    return 'Restored “$title”';
+  }
+
+  @override
+  String get trashPurged => 'Erased forever';
+
+  @override
+  String get settingsData => 'Data';
 }

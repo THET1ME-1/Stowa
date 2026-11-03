@@ -1108,4 +1108,62 @@ class LPl extends L {
   String settingsVersion(String version) {
     return 'Stowa $version';
   }
+
+  @override
+  String get trashTitle => 'Kosz';
+
+  @override
+  String get trashEmpty => 'Kosz jest pusty';
+
+  @override
+  String get trashHint =>
+      'Usunięte leży tu 30 dni, potem znika razem z plikami.';
+
+  @override
+  String trashDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dnia do usunięcia',
+      many: '$count dni do usunięcia',
+      few: '$count dni do usunięcia',
+      one: '$count dzień do usunięcia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashFrom(String folder) {
+    return 'z „$folder”';
+  }
+
+  @override
+  String get trashPurge => 'Usuń na zawsze';
+
+  @override
+  String get trashPurgeAll => 'Opróżnij kosz';
+
+  @override
+  String trashPurgeAllAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rzeczy zniknie na zawsze. Nie da się tego cofnąć.',
+      many: '$count rzeczy zniknie na zawsze. Nie da się tego cofnąć.',
+      few: '$count rzeczy znikną na zawsze. Nie da się tego cofnąć.',
+      one: '$count rzecz zniknie na zawsze. Nie da się tego cofnąć.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashRestored(String title) {
+    return 'Przywrócono „$title”';
+  }
+
+  @override
+  String get trashPurged => 'Usunięto na zawsze';
+
+  @override
+  String get settingsData => 'Dane';
 }

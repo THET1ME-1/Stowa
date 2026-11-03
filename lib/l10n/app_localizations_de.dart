@@ -1104,4 +1104,60 @@ class LDe extends L {
   String settingsVersion(String version) {
     return 'Stowa $version';
   }
+
+  @override
+  String get trashTitle => 'Papierkorb';
+
+  @override
+  String get trashEmpty => 'Der Papierkorb ist leer';
+
+  @override
+  String get trashHint =>
+      'Gelöschtes bleibt 30 Tage hier und wird dann samt Dateien gelöscht.';
+
+  @override
+  String trashDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tage übrig',
+      one: '$count Tag übrig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashFrom(String folder) {
+    return 'aus „$folder“';
+  }
+
+  @override
+  String get trashPurge => 'Endgültig löschen';
+
+  @override
+  String get trashPurgeAll => 'Papierkorb leeren';
+
+  @override
+  String trashPurgeAllAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Elemente werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.',
+      one:
+          '$count Element wird endgültig gelöscht. Das lässt sich nicht rückgängig machen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashRestored(String title) {
+    return '„$title“ wiederhergestellt';
+  }
+
+  @override
+  String get trashPurged => 'Endgültig gelöscht';
+
+  @override
+  String get settingsData => 'Daten';
 }

@@ -65,5 +65,16 @@
   "aiModelOwn": "Eigenes: „{name}“",
   "settingsOrder": "Ordnung",
   "settingsLanguage": "Sprache",
-  "languageSystem": "Wie im System"
+  "languageSystem": "Wie im System",
+  "trashTitle": "Papierkorb",
+  "trashEmpty": "Der Papierkorb ist leer",
+  "trashHint": "Gelöschtes bleibt 30 Tage hier und wird dann samt Dateien gelöscht.",
+  "trashDaysLeft": "{count, plural, one{{count} Tag übrig} other{{count} Tage übrig}}",
+  "trashFrom": "aus „{folder}“",
+  "trashPurge": "Endgültig löschen",
+  "trashPurgeAll": "Papierkorb leeren",
+  "trashPurgeAllAsk": "{count, plural, one{{count} Element wird endgültig gelöscht. Das lässt sich nicht rückgängig machen.} other{{count} Elemente werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.}}",
+  "trashRestored": "„{title}“ wiederhergestellt",
+  "trashPurged": "Endgültig gelöscht",
+  "settingsData": "Daten"
 }

@@ -65,5 +65,16 @@
   "aiModelOwn": "Proprie: „{name}”",
   "settingsOrder": "Organizare",
   "settingsLanguage": "Limbă",
-  "languageSystem": "Ca în sistem"
+  "languageSystem": "Ca în sistem",
+  "trashTitle": "Coș",
+  "trashEmpty": "Coșul e gol",
+  "trashHint": "Ce ștergi stă aici 30 de zile, apoi se șterge cu tot cu fișiere.",
+  "trashDaysLeft": "{count, plural, one{{count} zi rămasă} few{{count} zile rămase} other{{count} de zile rămase}}",
+  "trashFrom": "din „{folder}”",
+  "trashPurge": "Șterge definitiv",
+  "trashPurgeAll": "Golește coșul",
+  "trashPurgeAllAsk": "{count, plural, one{{count} element se șterge definitiv. Nu se poate anula.} few{{count} elemente se șterg definitiv. Nu se poate anula.} other{{count} de elemente se șterg definitiv. Nu se poate anula.}}",
+  "trashRestored": "Am readus „{title}”",
+  "trashPurged": "Șters definitiv",
+  "settingsData": "Date"
 }

@@ -19,6 +19,7 @@ import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
 import 'repositories/rules_repository.dart';
 import 'repositories/tags_repository.dart';
+import 'repositories/trash_repository.dart';
 import 'settings_repository.dart';
 
 /// База и папка файлов открываются в main и подставляются сюда.
@@ -88,6 +89,10 @@ final aiQueueProvider = StreamProvider((ref) {
 final onlineProvider = StreamProvider<bool>(
   (ref) => Connectivity().onConnectivityChanged.map((kinds) => kinds.any((kind) => kind != ConnectivityResult.none)).distinct(),
 );
+
+/// Удалённое: лежит 30 дней, потом стирается вместе с файлами.
+final trashRepositoryProvider = Provider((ref) => TrashRepository(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider)));
+final trashProvider = StreamProvider((ref) => ref.watch(trashRepositoryProvider).watch());
 
 /// Язык, выбранный в настройках; null — язык устройства.
 final languageProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchLanguage());

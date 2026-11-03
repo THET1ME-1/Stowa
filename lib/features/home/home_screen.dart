@@ -76,6 +76,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       if (!mounted) return;
       // при открытии: всё, что накопилось без сети или без ключа
       ref.read(aiDrainProvider)().ignore();
+      // корзина держит удалённое 30 дней, дальше стирает вместе с файлами
+      ref.read(trashRepositoryProvider).purgeExpired(ref.read(clockProvider)()).ignore();
       final l = L.of(context);
       final capture = ref.read(captureServiceProvider);
       capture.fillImageSizes().ignore();
