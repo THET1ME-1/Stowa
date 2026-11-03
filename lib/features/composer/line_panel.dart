@@ -375,7 +375,9 @@ class _RowView extends StatelessWidget {
                 style: subStyle,
                 markColor: markColor,
               );
-        final address = card.url == null ? null : Uri.tryParse(card.url!)?.host;
+        // сервис в подписи только у ссылок и роликов; у заметки со ссылкой внутри — «заметка»
+        final web = card.kind == ItemKind.link || card.kind == ItemKind.video;
+        final address = !web || card.url == null ? null : Uri.tryParse(card.url!)?.host;
         final host = address == null || address.isEmpty ? null : sourceName(address);
         final found = whereField == SearchField.deep ? deepLabel(l, card.kind) : (host ?? kindLabel(l, card.kind));
         where = _where(kindIcon(card.kind), '$found · ${card.folderName ?? l.folderNone} · ${shortDate(l, card.createdAt, now)}', whereStyle, faint);
@@ -488,7 +490,8 @@ int _snippetStart(String text, List<TextMark>? marks) {
   if (marks == null || marks.isEmpty) return 0;
   final first = marks.map((mark) => mark.$1).reduce((a, b) => a < b ? a : b);
   if (first < 30) return 0;
-  return text.lastIndexOf(' ', first - 14) + 1;
+  // одно слово перед найденным: строка узкая, рядом бывает кнопка «Дописать»
+  return text.lastIndexOf(RegExp(r'\s'), first - 2) + 1;
 }
 
 /// Оформление для подсказки: сдвигается, как отметки, а начатое до обреза обрезается вместе с текстом.

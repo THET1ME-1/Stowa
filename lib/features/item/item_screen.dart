@@ -204,6 +204,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   Future<void> _addPhotos() async {
+    // клавиатура под системным окном выбора только мешает
+    FocusScope.of(context).unfocus();
     try {
       final picked = await ImagePicker().pickMultiImage();
       if (picked.isEmpty) return;
