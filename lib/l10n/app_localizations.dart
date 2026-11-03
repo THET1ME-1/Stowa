@@ -2140,6 +2140,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'New folders from “No folder”'**
   String get aiLogCluster;
+
+  /// aiCheckTimeout
+  ///
+  /// In en, this message translates to:
+  /// **'The model didn’t answer in time'**
+  String get aiCheckTimeout;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

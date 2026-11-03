@@ -90,5 +90,6 @@
   "aiSortingNow": "Ordenando…",
   "aiLog": "Registro de peticiones",
   "aiLogEmpty": "Aún no hubo peticiones al proveedor",
-  "aiLogCluster": "Carpetas nuevas de «Sin carpeta»"
+  "aiLogCluster": "Carpetas nuevas de «Sin carpeta»",
+  "aiCheckTimeout": "El modelo no respondió a tiempo"
 }

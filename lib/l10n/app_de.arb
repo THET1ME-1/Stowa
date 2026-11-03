@@ -90,5 +90,6 @@
   "aiSortingNow": "Sortiere…",
   "aiLog": "Anfrageprotokoll",
   "aiLogEmpty": "Noch keine Anfragen an den Anbieter",
-  "aiLogCluster": "Neue Ordner aus „Ohne Ordner“"
+  "aiLogCluster": "Neue Ordner aus „Ohne Ordner“",
+  "aiCheckTimeout": "Das Modell hat nicht rechtzeitig geantwortet"
 }

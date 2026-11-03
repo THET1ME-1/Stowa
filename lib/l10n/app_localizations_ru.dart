@@ -1225,4 +1225,7 @@ class LRu extends L {
 
   @override
   String get aiLogCluster => 'Новые папки из «Без папки»';
+
+  @override
+  String get aiCheckTimeout => 'Модель не ответила вовремя';
 }

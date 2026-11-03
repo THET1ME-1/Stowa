@@ -1214,4 +1214,7 @@ class LDe extends L {
 
   @override
   String get aiLogCluster => 'Neue Ordner aus „Ohne Ordner“';
+
+  @override
+  String get aiCheckTimeout => 'Das Modell hat nicht rechtzeitig geantwortet';
 }

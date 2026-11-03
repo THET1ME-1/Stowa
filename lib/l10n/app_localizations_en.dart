@@ -1209,4 +1209,7 @@ class LEn extends L {
 
   @override
   String get aiLogCluster => 'New folders from “No folder”';
+
+  @override
+  String get aiCheckTimeout => 'The model didn’t answer in time';
 }

@@ -1214,4 +1214,7 @@ class LRo extends L {
 
   @override
   String get aiLogCluster => 'Dosare noi din „Fără dosar”';
+
+  @override
+  String get aiCheckTimeout => 'Modelul nu a răspuns la timp';
 }

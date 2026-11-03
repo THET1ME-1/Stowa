@@ -39,7 +39,8 @@ String aiFailureText(L l, AiFailureKind kind) => switch (kind) {
   AiFailureKind.auth => l.aiCheckAuth,
   AiFailureKind.payment => l.aiCheckPayment,
   AiFailureKind.rateLimit => l.aiCheckRate,
-  AiFailureKind.network || AiFailureKind.timeout => l.aiCheckNetwork,
+  AiFailureKind.network => l.aiCheckNetwork,
+  AiFailureKind.timeout => l.aiCheckTimeout,
   AiFailureKind.server || AiFailureKind.badResponse => l.aiCheckServer,
 };
 

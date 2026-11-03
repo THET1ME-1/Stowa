@@ -8,6 +8,8 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/ai_client.dart';
+import 'settings_screen.dart' show aiFailureText;
 
 Route<void> aiLogRoute() => PageRouteBuilder(
   transitionDuration: const Duration(milliseconds: 500),
@@ -18,6 +20,15 @@ Route<void> aiLogRoute() => PageRouteBuilder(
     child: child,
   ),
 );
+
+/// «AiFailure(timeout): нет ответа за 90 секунд» → «Модель не ответила вовремя · нет ответа за 90 секунд».
+String _errorText(L l, String error) {
+  final match = RegExp(r'^AiFailure\((\w+)\): ?(.*)$', dotAll: true).firstMatch(error);
+  final kind = match == null ? null : AiFailureKind.values.asNameMap()[match.group(1)];
+  if (kind == null) return error;
+  final detail = match!.group(2)!.trim();
+  return detail.isEmpty ? aiFailureText(l, kind) : '${aiFailureText(l, kind)} · $detail';
+}
 
 /// Последние запросы к поставщику: что разложено, что упало и почему.
 /// Ключ свой, поэтому и разбираться, почему не работает, человеку самому.
@@ -80,7 +91,7 @@ class AiLogScreen extends ConsumerWidget {
                           Text(time.format(row.at), style: text.bodySmall!.copyWith(color: Tokens.muted)),
                           if (row.error != null) ...[
                             const SizedBox(height: 6),
-                            Text(row.error!, maxLines: 4, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(color: Tokens.onSurfaceVariant)),
+                            Text(_errorText(l, row.error!), maxLines: 4, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(color: Tokens.onSurfaceVariant)),
                           ],
                         ],
                       ),

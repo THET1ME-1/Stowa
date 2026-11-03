@@ -1220,4 +1220,7 @@ class LPl extends L {
 
   @override
   String get aiLogCluster => 'Nowe foldery z „Bez folderu”';
+
+  @override
+  String get aiCheckTimeout => 'Model nie odpowiedział na czas';
 }

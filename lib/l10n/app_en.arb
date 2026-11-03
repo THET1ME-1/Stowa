@@ -1572,5 +1572,9 @@
   "aiLogCluster": "New folders from “No folder”",
   "@aiLogCluster": {
     "description": "aiLogCluster"
+  },
+  "aiCheckTimeout": "The model didn’t answer in time",
+  "@aiCheckTimeout": {
+    "description": "aiCheckTimeout"
   }
 }

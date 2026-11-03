@@ -1220,4 +1220,7 @@ class LUk extends L {
 
   @override
   String get aiLogCluster => 'Нові папки з «Без папки»';
+
+  @override
+  String get aiCheckTimeout => 'Модель не відповіла вчасно';
 }

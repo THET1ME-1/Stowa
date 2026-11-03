@@ -1210,4 +1210,7 @@ class LEs extends L {
 
   @override
   String get aiLogCluster => 'Carpetas nuevas de «Sin carpeta»';
+
+  @override
+  String get aiCheckTimeout => 'El modelo no respondió a tiempo';
 }

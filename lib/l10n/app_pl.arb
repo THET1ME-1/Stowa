@@ -90,5 +90,6 @@
   "aiSortingNow": "Sortuję…",
   "aiLog": "Dziennik zapytań",
   "aiLogEmpty": "Nie było jeszcze zapytań do dostawcy",
-  "aiLogCluster": "Nowe foldery z „Bez folderu”"
+  "aiLogCluster": "Nowe foldery z „Bez folderu”",
+  "aiCheckTimeout": "Model nie odpowiedział na czas"
 }

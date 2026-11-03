@@ -90,5 +90,6 @@
   "aiSortingNow": "Sortez…",
   "aiLog": "Jurnal cereri",
   "aiLogEmpty": "Încă nu au fost cereri către furnizor",
-  "aiLogCluster": "Dosare noi din „Fără dosar”"
+  "aiLogCluster": "Dosare noi din „Fără dosar”",
+  "aiCheckTimeout": "Modelul nu a răspuns la timp"
 }

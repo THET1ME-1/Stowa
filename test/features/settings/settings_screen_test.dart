@@ -110,7 +110,7 @@ void main() {
     await tester.tap(find.text('Журнал запросов'));
     await tester.pumpAndSettle();
     expect(find.text('Борщ'), findsOneWidget);
-    expect(find.textContaining('нет ответа за 90 секунд'), findsOneWidget);
+    expect(find.textContaining('Модель не ответила вовремя · нет ответа за 90 секунд'), findsOneWidget);
   });
 
   testWidgets('пауза разбора видна на главной и ведёт в настройки', (tester) async {
