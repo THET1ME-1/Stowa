@@ -34,11 +34,14 @@ double canvasHeight(ItemCard card, double width) => width * (card.thumbPath != n
 /// угол — меняет размер, двойное касание открывает, щипок приближает.
 /// Положение пишется в базу, когда палец отпущен.
 class CanvasView extends ConsumerStatefulWidget {
-  const CanvasView({super.key, required this.folderId, required this.cards, required this.onOpen});
+  const CanvasView({super.key, required this.folderId, required this.cards, required this.onOpen, this.bottomInset = 0});
 
   final String folderId;
   final List<ItemCard> cards;
   final ValueChanged<String> onOpen;
+
+  /// Низ холста закрыт строкой ввода: «уместить» показывает вещи выше неё.
+  final double bottomInset;
 
   @override
   ConsumerState<CanvasView> createState() => _CanvasViewState();
@@ -86,10 +89,12 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
       return;
     }
     final bounds = canvasBounds(boxes, margin: 24);
-    final scale = min(_viewport.width / bounds.width, _viewport.height / bounds.height).clamp(0.1, 1.2);
-    final dx = (_viewport.width - bounds.width * scale) / 2 - (_origin + bounds.left) * scale;
-    final dy = (_viewport.height - bounds.height * scale) / 2 - (_origin + bounds.top) * scale;
-    _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, 1);
+    final visible = Size(_viewport.width, max(120, _viewport.height - widget.bottomInset));
+    final scale = min(visible.width / bounds.width, visible.height / bounds.height).clamp(0.1, 1.2);
+    final dx = (visible.width - bounds.width * scale) / 2 - (_origin + bounds.left) * scale;
+    final dy = (visible.height - bounds.height * scale) / 2 - (_origin + bounds.top) * scale;
+    // масштаб по всем трём осям, как у InteractiveViewer: иначе getMaxScaleOnAxis видит 1
+    _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, scale);
   }
 
   /// Записка прямо на холсте: заметка в этой папке там, куда сейчас смотрит экран.
@@ -101,12 +106,24 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     await ref.read(canvasRepositoryProvider).save(widget.folderId, id, (x: center.dx - _origin - 110, y: center.dy - _origin - 88, width: 220));
   }
 
+  /// Тронутые вещи по порядку: последняя рисуется поверх остальных.
+  final _front = <String>[];
+
+  void _raise(String id) {
+    if (_front.lastOrNull == id) return;
+    _front
+      ..remove(id)
+      ..add(id);
+  }
+
   void _move(ItemCard card, CanvasSpot from, Offset delta) {
+    _raise(card.id);
     final current = _moving[card.id] ?? from;
     setState(() => _moving[card.id] = (x: current.x + delta.dx / _scale, y: current.y + delta.dy / _scale, width: current.width));
   }
 
   void _resize(ItemCard card, CanvasSpot from, Offset delta) {
+    _raise(card.id);
     final current = _moving[card.id] ?? from;
     setState(() => _moving[card.id] = (x: current.x, y: current.y, width: (current.width + delta.dx / _scale).clamp(80.0, 1600.0)));
   }
@@ -127,13 +144,17 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _placeMissing(saved);
-      if (!_fitted && !_viewport.isEmpty) {
+      // первый показ — всё целиком, но только когда места есть у всех вещей
+      final boxes = _boxes(saved);
+      if (!_fitted && !_viewport.isEmpty && boxes.length == widget.cards.length) {
         _fitted = true;
-        _fit(_boxes(saved));
+        _fit(boxes);
       }
     });
     final boxes = _boxes(saved);
     final cards = {for (final card in widget.cards) card.id: card};
+    // нетронутые снизу в своём порядке, тронутые сверху — последняя выше всех
+    final layered = [...boxes.where((box) => !_front.contains(box.itemId)), for (final id in _front) ...boxes.where((box) => box.itemId == id)];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -154,7 +175,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    for (final box in boxes)
+                    for (final box in layered)
                       if (cards[box.itemId] case final card?)
                         Positioned(
                           key: ValueKey(box.itemId),

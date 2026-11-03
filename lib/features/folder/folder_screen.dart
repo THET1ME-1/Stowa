@@ -318,7 +318,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                   ?viewSwitch,
                   const SizedBox(height: 12),
                   Expanded(
-                    child: CanvasView(folderId: folder.id, cards: cards, onOpen: _open),
+                    child: CanvasView(folderId: folder.id, cards: cards, onOpen: _open, bottomInset: _dockSpace + bottom),
                   ),
                 ],
               )
