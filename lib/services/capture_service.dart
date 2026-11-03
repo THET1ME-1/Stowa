@@ -199,7 +199,8 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
     final rows = await (_db.select(_db.items)..where((t) => t.kind.isIn([ItemKind.link.name, ItemKind.video.name]) & t.deletedAt.isNull())).get();
     for (final item in rows) {
       final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(item.id))).get();
-      if (files.isNotEmpty || detectKind(text: item.body) != ItemKind.note) continue;
+      // адрес только в своём поле, а в тексте подпись: это ссылка, судить по тексту нечего
+      if (files.isNotEmpty || firstUrl(item.body) == null || detectKind(text: item.body) != ItemKind.note) continue;
       await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(const ItemsCompanion(kind: Value(ItemKind.note)));
     }
   }

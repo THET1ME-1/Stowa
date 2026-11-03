@@ -7,6 +7,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
@@ -363,11 +364,17 @@ class _RowView extends StatelessWidget {
             ];
           }
         }
-        // в подсказке текст как на странице, без «**» и «- [ ]»
-        final (plain, plainMarks) = stripMarkup(source, marks);
-        sub = plain.trim().isEmpty
+        // в подсказке оформление как на странице: жирное жирным, галочки значками, без «**» и «- [ ]»
+        final shown = renderMarkup(source, marks);
+        sub = shown.text.trim().isEmpty
             ? null
-            : MarkedText(text: snippetOf(plain, plainMarks), marks: snippetMarks(plain, plainMarks), style: subStyle, markColor: markColor);
+            : MarkedText(
+                text: snippetOf(shown.text, shown.marks),
+                marks: snippetMarks(shown.text, shown.marks),
+                styles: snippetStyles(shown.text, shown.marks, shown.styles),
+                style: subStyle,
+                markColor: markColor,
+              );
         final address = card.url == null ? null : Uri.tryParse(card.url!)?.host;
         final host = address == null || address.isEmpty ? null : sourceName(address);
         final found = whereField == SearchField.deep ? deepLabel(l, card.kind) : (host ?? kindLabel(l, card.kind));
@@ -484,6 +491,17 @@ int _snippetStart(String text, List<TextMark>? marks) {
   return text.lastIndexOf(' ', first - 14) + 1;
 }
 
+/// Оформление для подсказки: сдвигается, как отметки, а начатое до обреза обрезается вместе с текстом.
+List<(int, int, MarkupStyle)> snippetStyles(String text, List<TextMark>? marks, List<(int, int, MarkupStyle)> styles) {
+  final start = _snippetStart(text, marks);
+  // «…» в начале подсказки занимает один знак
+  final shift = start == 0 ? 0 : start - 1;
+  return [
+    for (final (from, length, kind) in styles)
+      if (from + length > start) (from < start ? start - shift : from - shift, from < start ? from + length - start : length, kind),
+  ];
+}
+
 String snippetOf(String text, List<TextMark>? marks) {
   final start = _snippetStart(text, marks);
   final flat = text.substring(start).replaceAll('\n', ' ');
@@ -498,39 +516,4 @@ List<TextMark> snippetMarks(String text, List<TextMark>? marks) {
     for (final mark in marks)
       if (mark.$1 >= start) (mark.$1 - shift, mark.$2),
   ];
-}
-
-/// Текст с подсвеченными совпадениями: фон, ширина букв та же.
-class MarkedText extends StatelessWidget {
-  const MarkedText({super.key, required this.text, required this.marks, required this.style, required this.markColor});
-
-  final String text;
-  final List<TextMark> marks;
-  final TextStyle style;
-  final Color markColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final sorted = [...marks]..sort((a, b) => a.$1.compareTo(b.$1));
-    final spans = <TextSpan>[];
-    var at = 0;
-    for (final (start, length) in sorted) {
-      if (start < at || start >= text.length) continue;
-      final end = (start + length).clamp(start, text.length);
-      if (start > at) spans.add(TextSpan(text: text.substring(at, start)));
-      spans.add(
-        TextSpan(
-          text: text.substring(start, end),
-          style: TextStyle(backgroundColor: markColor),
-        ),
-      );
-      at = end;
-    }
-    if (at < text.length) spans.add(TextSpan(text: text.substring(at)));
-    return Text.rich(
-      TextSpan(style: style, children: spans),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
 }

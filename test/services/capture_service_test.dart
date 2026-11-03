@@ -107,10 +107,13 @@ void main() {
         db.into(db.items).insert(ItemsCompanion.insert(id: id, kind: kind, title: id, body: Value(body), createdAt: DateTime(2026), updatedAt: DateTime(2026)));
     await old('long', ItemKind.link, 'Дипломная\n- 40 страниц\n- 20 источников\nflutter.dev/docs');
     await old('short', ItemKind.video, 'Паста https://vt.tiktok.com/x');
+    // адрес лежит в своём поле, а в тексте только заголовок: это ссылка, не трогать
+    await old('apart', ItemKind.link, 'Как варить кофе в турке');
 
     await capture.reclassifyNotes();
     expect((await items.get('long'))!.item.kind, ItemKind.note);
     expect((await items.get('short'))!.item.kind, ItemKind.video);
+    expect((await items.get('apart'))!.item.kind, ItemKind.link);
   });
 
   test('фото с камеры без текста: вместо IMG_… подпись от экрана', () async {

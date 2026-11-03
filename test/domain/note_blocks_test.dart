@@ -43,11 +43,21 @@ void main() {
     expect(pieces.map((piece) => piece.text).join(), 'Это важно, тихо, было, код и coffee.ru/turka');
   });
 
-  test('для подсказок разметка снимается, отметки совпадений едут следом', () {
-    const text = 'Приложение **Togetherly**.\n- [ ] Источники';
-    final (plain, marks) = stripMarkup(text, [(13, 10), (33, 9)]);
-    expect(plain, 'Приложение Togetherly.\nИсточники');
-    expect([for (final (start, length) in marks) plain.substring(start, start + length)], ['Togetherly', 'Источники']);
+  test('подсказка показывает разметку: жирное — жирным, галочка значком, пункт точкой', () {
+    const text = 'Приложение **Togetherly**.\n- [ ] Источники\n- [x] Книги\n- пункт';
+    final shown = renderMarkup(text, [(13, 10), (33, 9)]);
+    expect(shown.text, 'Приложение Togetherly.\n☐ Источники\n☑ Книги\n• пункт');
+    // отметки совпадений едут следом за текстом
+    expect([for (final (start, length) in shown.marks) shown.text.substring(start, start + length)], ['Togetherly', 'Источники']);
+    String styled(MarkupStyle style) => [for (final (start, length, kind) in shown.styles) if (kind == style) shown.text.substring(start, start + length)].join('|');
+    expect(styled(MarkupStyle.bold), 'Togetherly');
+    expect(styled(MarkupStyle.done), 'Книги');
+  });
+
+  test('курсив, зачёркнутый и код тоже приходят стилем', () {
+    final shown = renderMarkup('_тихо_ ~~было~~ `код`', const []);
+    expect(shown.text, 'тихо было код');
+    expect([for (final (_, _, kind) in shown.styles) kind], [MarkupStyle.italic, MarkupStyle.strike, MarkupStyle.code]);
   });
 
   test('одиночная звёздочка или подчёркивание в слове — не разметка', () {

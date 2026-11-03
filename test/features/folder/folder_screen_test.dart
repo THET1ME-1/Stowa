@@ -64,6 +64,15 @@ void main() {
     expect(find.text('TikTok'), findsOneWidget);
   });
 
+  testWidgets('в карточке заметки оформление, а не значки разметки', (tester) async {
+    await seed();
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('n'))).write(const ItemsCompanion(body: Value('Борщ как у бабушки\nСвёкла **обязательно**\n- [ ] купить сметану')));
+    await openFolder(tester);
+    expect(find.textContaining('**', findRichText: true), findsNothing);
+    expect(find.textContaining('[ ]', findRichText: true), findsNothing);
+    expect(find.textContaining('☐ купить сметану', findRichText: true), findsOneWidget);
+  });
+
   testWidgets('чип вида оставляет только ссылки', (tester) async {
     await seed();
     await openFolder(tester);

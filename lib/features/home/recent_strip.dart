@@ -7,6 +7,7 @@ import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/repositories/items_repository.dart';
@@ -231,12 +232,7 @@ class RecentCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(Space.tile, 10, Space.tile, 8),
         child: iconName == null
-            ? Text(
-                preview,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: text.bodySmall!.copyWith(fontSize: 13, height: 1.3, color: Tokens.onSurfaceVariant),
-              )
+            ? MarkedText.note(preview, maxLines: 2, style: text.bodySmall!.copyWith(fontSize: 13, height: 1.3, color: Tokens.onSurfaceVariant))
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

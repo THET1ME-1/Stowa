@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
@@ -244,7 +245,8 @@ class _NoteCard extends StatelessWidget {
             Text(card.title, style: text.titleMedium!.copyWith(fontSize: 16, height: 1.3)),
             if (rest.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text(rest, maxLines: 4, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(height: 1.4, color: Tokens.onSurfaceVariant)),
+              // оформление из разметки: жирное жирным, галочки значками
+              MarkedText.note(rest, maxLines: 4, style: text.bodyMedium!.copyWith(height: 1.4, color: Tokens.onSurfaceVariant)),
             ],
             _Meta(card: card, now: now),
           ],

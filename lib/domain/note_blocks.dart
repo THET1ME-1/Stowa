@@ -94,28 +94,88 @@ List<NoteBlock> parseNoteBlocks(String body, {String? skipTitle}) {
   return blocks;
 }
 
-final _lineLead = RegExp(r'^(#{1,3} |\s*[-*] \[[ xX]\] |\s*[-*•] |> ?)', multiLine: true);
+/// Оформление, которое разметка даёт тексту: значков нет, есть стиль куска.
+enum MarkupStyle { bold, italic, strike, code, heading, done }
 
-/// Текст без значков разметки для подсказок поиска; отметки совпадений сдвигаются следом.
-(String, List<(int, int)>) stripMarkup(String text, List<(int, int)> marks) {
-  // какие куски убрать: значки в начале строк и по краям выделения
-  final cuts = <(int, int)>[
-    for (final match in _lineLead.allMatches(text)) (match.start, match.end - match.start),
-    for (final match in inlineMarks.allMatches(text)) ...() {
-      final width = match.group(1) != null || match.group(4) != null ? 2 : 1;
-      return [(match.start, width), (match.end - width, width)];
-    }(),
-  ]..sort((a, b) => a.$1.compareTo(b.$1));
-  int moved(int offset) => offset - cuts.where((cut) => cut.$1 < offset).fold(0, (sum, cut) => sum + cut.$2);
-  final plain = StringBuffer();
-  var last = 0;
-  for (final (start, length) in cuts) {
-    if (start < last) continue;
-    plain.write(text.substring(last, start));
-    last = start + length;
+final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
+
+/// Разметка в оформление для коротких подсказок: текст без значков, рядом — где какой
+/// стиль. Галочка становится ☐ или ☑, пункт — точкой, как на странице вещи.
+/// Отметки совпадений поиска сдвигаются следом за текстом.
+({String text, List<(int, int)> marks, List<(int, int, MarkupStyle)> styles}) renderMarkup(String text, List<(int, int)> marks) {
+  final out = StringBuffer();
+  final styles = <(int, int, MarkupStyle)>[];
+  // где в новом тексте оказался каждый знак старого: по этому едут отметки
+  final moved = List<int>.filled(text.length + 1, 0);
+  var from = 0;
+  void keep(int start, int end) {
+    for (var index = start; index < end; index++) {
+      moved[index] = out.length;
+      out.write(text[index]);
+    }
   }
-  plain.write(text.substring(last));
-  return (plain.toString(), [for (final (start, length) in marks) (moved(start), length)]);
+
+  void drop(int start, int end) {
+    for (var index = start; index < end; index++) {
+      moved[index] = out.length;
+    }
+  }
+
+  for (final line in text.split('\n')) {
+    final lineEnd = from + line.length;
+    final lead = _leadKinds.firstMatch(line);
+    var at = from;
+    MarkupStyle? lineStyle;
+    if (lead != null) {
+      final sign = lead.group(0)!;
+      drop(from, from + sign.length);
+      if (sign.startsWith('#')) {
+        lineStyle = MarkupStyle.heading;
+      } else if (lead.group(2) != null) {
+        final done = lead.group(2) != ' ';
+        out.write(done ? '☑ ' : '☐ ');
+        if (done) lineStyle = MarkupStyle.done;
+      } else if (!sign.startsWith('>')) {
+        out.write('• ');
+      }
+      at = from + sign.length;
+    }
+    final lineStart = out.length;
+    for (final match in inlineMarks.allMatches(line, at - from)) {
+      keep(at, from + match.start);
+      final width = match.group(1) != null || match.group(4) != null ? 2 : 1;
+      final style = match.group(1) != null
+          ? MarkupStyle.bold
+          : match.group(4) != null
+          ? MarkupStyle.strike
+          : match.group(5) != null
+          ? MarkupStyle.code
+          : MarkupStyle.italic;
+      drop(from + match.start, from + match.start + width);
+      final innerStart = out.length;
+      keep(from + match.start + width, from + match.end - width);
+      styles.add((innerStart, out.length - innerStart, style));
+      drop(from + match.end - width, from + match.end);
+      at = from + match.end;
+    }
+    keep(at, lineEnd);
+    if (lineStyle != null && out.length > lineStart) styles.add((lineStart, out.length - lineStart, lineStyle));
+    if (lineEnd < text.length) {
+      moved[lineEnd] = out.length;
+      out.write('\n');
+    }
+    from = lineEnd + 1;
+  }
+  moved[text.length] = out.length;
+  styles.sort((a, b) => a.$1.compareTo(b.$1));
+  return (
+    text: out.toString(),
+    marks: [
+      for (final (start, length) in marks)
+        if (start >= 0 && start + length <= text.length) (moved[start], moved[start + length] - moved[start]),
+    ],
+    styles: styles,
+  );
 }
 
 /// Кусок строки с его выделением.
