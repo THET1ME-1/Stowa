@@ -66,6 +66,51 @@
 
 Сейчас ИИ работает только по ключу человека, своего сервера и общего ключа нет. У всех конкурентов с подпиской ИИ встроен, и именно он — главная причина платить. Если подписка ИИ не включает, её держат только синхронизация и веб. Это работает (так живёт Obsidian), но аудитория уже: люди, которым важно, где хранятся их данные.
 
+## Отзывы: на что жалуются
+
+Отзывов мало и они разрозненные: App Store, Product Hunt, Capterra, блоги, Reddit. Часть обзоров партнёрская. Ниже то, что повторяется у разных людей.
+
+| Сервис | Жалобы |
+|---|---|
+| mymind | Поиск промахивается мимо очевидного, нет подсказок при вводе. ИИ не размечает видео. Длинные посты X обрезаются. Расширение для браузера отваливается через несколько часов. Нет папок — кому-то это свобода, кому-то потеря контроля |
+| Mem | Нет приложения для Android. Без сети почти не работает. Теги и поиск ненадёжны. Поддержка молчит. Цены менялись несколько раз за год. Бесплатно 25 заметок. При выгрузке теряются связи. «ИИ вместо структуры» восхищает в первую неделю и бесит к третьей |
+| Saner.ai | Лимиты ИИ кончаются, пока разбираешься. После оплаты непонятно, за что платил. Подозрения на накрутку отзывов |
+| Raindrop | Расширение выкидывает из аккаунта. Закладки не хранятся на устройстве, без сети их нет. Слабые импорт и восстановление. Просят ИИ-теги |
+| Milanote | Нет работы без сети. Телефонное приложение — урезанный спутник компьютера. Нет истории правок. Бесплатно только 100 карточек |
+| PureRef, Eagle | Нет облака и синхронизации, нет телефона. Тормозят на больших подборках |
+| Google Keep | 13 лет не было поиска внутри заметки. Нет вложенных папок, форматирования, ссылок между заметками, картинок между абзацами. Не видно даты заметки |
+| Cosmos | Вылетает, не пускает в аккаунт, поддержка не отвечает |
+| «Избранное» Telegram | Поиск не прыгает к найденному. Ролики находятся только по подписи |
+
+### Общие уроки
+
+1. **Поиск — главная боль у всех**, даже у mymind, который продаёт именно его.
+2. **Работа без сети** — чего не хватает почти всем облачным.
+3. **Телефон — второй сорт** у Milanote, Mem и mymind на Android.
+4. **Лимиты и скачущие цены** злят сильнее, чем просто высокая цена.
+5. **Запертость:** выгрузка теряет связи и разметку.
+6. **Падения и молчащая поддержка** убивают даже любимое приложение.
+
+## Чего у нас нет, а у них есть
+
+| Чего нет | У кого есть | Нужно ли нам |
+|---|---|---|
+| Расширение для браузера | mymind, Raindrop, Fabric, Karakeep | Да, вместе с вебом. Иначе с компьютера не сохранить |
+| Копия страницы навсегда (ссылка умерла — текст остался) | Raindrop Pro, Karakeep | Да: читалка без сети и защита от удалённых страниц |
+| Режим чтения статьи без рекламы | Raindrop, Karakeep, Readwise | Да, вместе с копией страницы |
+| Выделения и пометки в статьях | Raindrop, Karakeep, Readwise | Да, после читалки |
+| Поиск битых ссылок | Raindrop | Да, дёшево |
+| Сохранение письмом (переслал на адрес — легло) | Raindrop, Mem | Позже: нужен свой почтовый адрес, то есть сервер |
+| Общие папки и доски по ссылке | Milanote, Raindrop, Cosmos | Да, в подписке вместе с синхронизацией |
+| Работа вдвоём на доске | Milanote, Kosmik | Позже |
+| Вложенные папки | Raindrop, Milanote | Да: просят даже в Keep |
+| История правок заметки | Notion, Obsidian | Да: просят в Milanote |
+| Таблицы и картинки между абзацами | Notion, Milanote | Картинки — да, таблицы — позже |
+| Шаблоны | Milanote, Notion | Позже |
+| Похожие картинки, поиск по цвету | mymind, Cosmos, Eagle | Цвет — в плане, похожие — отпечаток картинки |
+| Импорт из закладок, RSS | Raindrop, Karakeep | Закладки — в плане, RSS — позже |
+| Приложение для компьютера | Все, кроме Keep на Linux | Веб закрывает |
+
 ## Источники
 
 - [mymind — Capterra](https://www.capterra.com/p/10015233/mymind/)
@@ -78,4 +123,5 @@
 - [Milanote — Capterra](https://www.capterra.com/p/165790/Milanote/reviews/Capterra___3862281/), [Kosmik — toolradar](https://toolradar.com/tools/kosmik/pricing)
 - [Excalidraw+ — цены](https://plus.excalidraw.com/pricing)
 - [Obsidian Sync — eesel](https://www.eesel.ai/blog/obsidian-pricing)
+- Отзывы: [mymind в App Store](https://apps.apple.com/us/app/id1532801185), [обзор mymind (Арслан)](https://arslan.io/2023/01/30/a-review-of-my-mind-a-second-brain-tool/), [Mem на Product Hunt](https://www.producthunt.com/products/mem-2-0/reviews), [обзор Mem](https://blog.saner.ai/mem-ai-reviews/), [Saner на Product Hunt](https://www.producthunt.com/products/saner-ai/reviews), [Raindrop в Firefox](https://addons.mozilla.org/en-US/firefox/addon/raindropio/reviews/?score=1), [Milanote на Capterra](https://www.capterra.com/p/165790/Milanote/reviews/), [Eagle на Product Hunt](https://www.producthunt.com/posts/eagle-5/reviews), [PureRef — SaaSHub](https://www.saashub.com/compare-eagle-app-vs-pureref), [Google Keep — Tom's Guide](https://www.tomsguide.com/computing/mobile-apps/google-keep-is-finally-adding-a-feature-thats-been-missing-for-13-years), [Cosmos — отзывы](https://justuseapp.com/en/app/1577975475/cosmos-curate-your-universe/reviews)
 - [Боты Telegram: zeroInbox](https://github.com/SimulatorML/zeroInbox), [Obsidian Telegram AI](https://github.com/realm74/obsidian-telegram-ai), [n8n](https://community.n8n.io/t/second-brain-on-telegram-save-and-search-your-links-google-sheets-supabase-rag/304330)
