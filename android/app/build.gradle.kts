@@ -15,7 +15,8 @@ val releaseKey = rootProject.file("stowa-release.jks")
 
 android {
     namespace = "app.stowa"
-    compileSdk = flutter.compileSdkVersion
+    // receive_sharing_intent собран под 37 и не даёт собрать приложение под 36
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
