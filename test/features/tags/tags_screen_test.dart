@@ -96,6 +96,32 @@ void main() {
     expect((folder.name, rule.actionKind, rule.actionValue), ('Кухня', RuleActionKind.toFolder, folder.id));
   });
 
+  testWidgets('свайп удаляет тег: пустой сразу, с вещами — после вопроса; «Вернуть» возвращает', (tester) async {
+    final tags = TagsRepository(world.db, clock: () => world.now);
+    await tags.ensure('пусто');
+    final capture = CaptureService(world.db, tags: tags, filesRoot: world.files, clock: () => world.now);
+    await capture.capture(const CaptureInput(text: 'Шины на зиму #машина'));
+    await open(tester);
+    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('пусто'), const Offset(-500, 0));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Убрать тег'), findsNothing);
+    expect(find.text('пусто'), findsNothing);
+
+    await tester.drag(find.text('машина').last, const Offset(-500, 0));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Убрать тег #машина'), findsOneWidget);
+    await tester.tap(find.text('Удалить тег'));
+    await tester.pumpAndSettle();
+    expect(find.text('машина'), findsNothing);
+
+    await tester.tap(find.text('Вернуть'));
+    await tester.pumpAndSettle();
+    expect(find.text('машина'), findsWidgets);
+  });
+
   testWidgets('крестик снимает тег только у этой вещи', (tester) async {
     final capture = CaptureService(world.db, tags: TagsRepository(world.db), filesRoot: world.files, clock: () => world.now);
     final id = await capture.capture(const CaptureInput(text: 'Шины на зиму #машина #шины'));

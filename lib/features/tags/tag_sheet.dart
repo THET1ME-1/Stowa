@@ -10,6 +10,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pill_segments.dart';
+import '../../core/icons/icon_words.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
@@ -107,7 +108,7 @@ class _TagSheetState extends ConsumerState<TagSheet> {
     final tags = ref.read(tagsRepositoryProvider);
     final snapshot = await tags.delete(tag.id);
     if (mounted) Navigator.pop(context);
-    messenger.showSnackBar(undoSnackBar(message: l.tagDeleted(tag.name), label: l.restoreAction, onUndo: () => tags.restore(snapshot)));
+    showUndo(messenger, message: l.tagDeleted(tag.name), label: l.restoreAction, onUndo: () => tags.restore(snapshot));
   }
 
   Future<void> _newFolder() async {
@@ -123,8 +124,8 @@ class _TagSheetState extends ConsumerState<TagSheet> {
     final text = Theme.of(context).textTheme;
     final folders = ref.watch(foldersProvider).value ?? const [];
     final filesRoot = ref.watch(filesRootProvider);
-    final query = _query.trim().toLowerCase().replaceAll(' ', '_');
-    final icons = query.isEmpty ? pickableSymbols : symbolNames.where((name) => name.contains(query)).take(60).toList();
+    // по-русски («машина», «кофе») и по английским именам
+    final icons = _query.trim().isEmpty ? pickableSymbols : searchIcons(_query);
 
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * 0.85,

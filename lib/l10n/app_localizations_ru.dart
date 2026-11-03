@@ -785,7 +785,7 @@ class LRu extends L {
       'Касание папки кладёт туда. Вниз — пропустить, вверх — в корзину';
 
   @override
-  String get iconSearch => 'Найти иконку: car, home, food';
+  String get iconSearch => 'Найти иконку: машина, кофе, дом';
 
   @override
   String get itemMove => 'Переложить в папку';

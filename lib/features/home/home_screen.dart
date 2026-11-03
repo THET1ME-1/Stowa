@@ -151,9 +151,7 @@ class _Feed extends ConsumerWidget {
                 final messenger = ScaffoldMessenger.of(context);
                 await items.clearReminder(next.id);
                 // случайный тап не стирает напоминание насовсем
-                messenger
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(undoSnackBar(message: l.reminderCleared, label: l.undo, onUndo: () => items.snoozeReminder(next.id, next.reminderAt!)));
+                showUndo(messenger, message: l.reminderCleared, label: l.undo, onUndo: () => items.snoozeReminder(next.id, next.reminderAt!));
               },
               onTap: () => onOpen(upcoming.first.id),
             ),

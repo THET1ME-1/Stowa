@@ -56,7 +56,7 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final tags = ref.read(tagsRepositoryProvider);
     final snapshot = await tags.delete(tag.id);
-    messenger.showSnackBar(undoSnackBar(message: l.tagDeleted(tag.name), label: l.restoreAction, onUndo: () => tags.restore(snapshot)));
+    showUndo(messenger, message: l.tagDeleted(tag.name), label: l.restoreAction, onUndo: () => tags.restore(snapshot));
   }
 
   @override
@@ -103,7 +103,8 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
                 Dismissible(
                   key: ValueKey('tag-${tag.id}'),
                   direction: DismissDirection.endToStart,
-                  confirmDismiss: (_) => _confirmDelete(tag),
+                  // пустой тег ничего не держит: спрашивать незачем, «Вернуть» всё равно есть
+                  confirmDismiss: (_) async => tag.count == 0 || await _confirmDelete(tag),
                   onDismissed: (_) => _delete(tag),
                   background: Container(
                     alignment: Alignment.centerRight,

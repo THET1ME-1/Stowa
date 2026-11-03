@@ -33,7 +33,7 @@ Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) async 
   );
   if (picked == null) return;
   await items.moveToFolder(card.id, picked.id, clock());
-  messenger.showSnackBar(undoSnackBar(message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(card.id, card.folderId, clock())));
+  showUndo(messenger, message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(card.id, card.folderId, clock()));
 }
 
 /// Долгое нажатие на вещь в ленте: открыть, переложить в другую папку, удалить с «Вернуть».
@@ -79,6 +79,6 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
       await moveItem(context, ref, card);
     case _Action.delete:
       await items.softDelete(card.id, now);
-      messenger.showSnackBar(undoSnackBar(message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(card.id)));
+      showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(card.id));
   }
 }

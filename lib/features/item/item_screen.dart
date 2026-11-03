@@ -67,7 +67,7 @@ class ItemScreen extends ConsumerWidget {
       final from = item.folderId;
       await items.moveToFolder(id, target.id, clock());
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(undoSnackBar(message: l.itemMoved(target.name), label: l.undo, onUndo: () => items.moveToFolder(id, from, clock())));
+      showUndo(ScaffoldMessenger.of(context), message: l.itemMoved(target.name), label: l.undo, onUndo: () => items.moveToFolder(id, from, clock()));
     }
 
     Future<void> toggle(int index) async {
@@ -123,7 +123,7 @@ class ItemScreen extends ConsumerWidget {
                       final messenger = ScaffoldMessenger.of(context);
                       await repository.softDelete(id, ref.read(clockProvider)());
                       if (context.mounted) Navigator.pop(context);
-                      messenger.showSnackBar(undoSnackBar(message: l.itemDeleted, label: l.undo, onUndo: () => repository.restore(id)));
+                      showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => repository.restore(id));
                     },
                     icon: Icon(symbolIcon('delete')),
                   ),
