@@ -58,6 +58,13 @@ void main() {
     expect(find.text('Рецепты'), findsWidgets);
   });
 
+  testWidgets('короткая заметка в ленте во всю ширину, как была до выбора', (tester) async {
+    await seed();
+    await openFolder(tester);
+    final card = find.ancestor(of: find.text('Плов').last, matching: find.byType(Container)).first;
+    expect(tester.getSize(card).width, greaterThan(300));
+  });
+
   testWidgets('пачкой в другую папку и «Отменить» возвращает всё', (tester) async {
     await seed();
     await openFolder(tester);

@@ -445,6 +445,8 @@ class _Selectable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      // ширина от ленты как есть: иначе короткие заметки сжимаются до текста
+      fit: StackFit.passthrough,
       children: [
         AnimatedScale(scale: selected ? 0.95 : 1, duration: Motion.short, curve: Motion.emphasized, child: child),
         Positioned(
