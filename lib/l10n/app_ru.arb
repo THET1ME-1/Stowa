@@ -351,5 +351,17 @@
   "tgBadToken": "Telegram не принял токен",
   "tgOffline": "Нет связи с Telegram",
   "tgPulled": "{count, plural, one{Забрал {count} сообщение} few{Забрал {count} сообщения} many{Забрал {count} сообщений} other{Забрал {count} сообщения}}",
-  "settingsOutside": "Снаружи"
+  "settingsOutside": "Снаружи",
+  "selCount": "Выбрано: {count}",
+  "selClear": "Снять выбор",
+  "selAll": "Выбрать все",
+  "selMove": "В папку",
+  "selTag": "Тег",
+  "selUntag": "Снять тег",
+  "selDelete": "Удалить",
+  "selMoved": "{count, plural, one{Переложил {count} вещь в «{folder}»} few{Переложил {count} вещи в «{folder}»} many{Переложил {count} вещей в «{folder}»} other{Переложил {count} вещи в «{folder}»}}",
+  "selDeleted": "{count, plural, one{Удалил {count} вещь} few{Удалил {count} вещи} many{Удалил {count} вещей} other{Удалил {count} вещи}}",
+  "selTagged": "Поставил #{tag}",
+  "selUntagged": "Снял #{tag}",
+  "tagPickTitle": "Какой тег"
 }

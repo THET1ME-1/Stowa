@@ -1272,4 +1272,66 @@ class LPl extends L {
 
   @override
   String get settingsOutside => 'Z zewnątrz';
+
+  @override
+  String selCount(int count) {
+    return 'Zaznaczono: $count';
+  }
+
+  @override
+  String get selClear => 'Odznacz';
+
+  @override
+  String get selAll => 'Zaznacz wszystko';
+
+  @override
+  String get selMove => 'Przenieś';
+
+  @override
+  String get selTag => 'Tag';
+
+  @override
+  String get selUntag => 'Usuń tag';
+
+  @override
+  String get selDelete => 'Usuń';
+
+  @override
+  String selMoved(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rzeczy przeniesionej do „$folder”',
+      many: '$count rzeczy przeniesionych do „$folder”',
+      few: '$count rzeczy przeniesione do „$folder”',
+      one: '$count rzecz przeniesiona do „$folder”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rzeczy usuniętej',
+      many: '$count rzeczy usuniętych',
+      few: '$count rzeczy usunięte',
+      one: '$count rzecz usunięta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selTagged(String tag) {
+    return 'Dodano #$tag';
+  }
+
+  @override
+  String selUntagged(String tag) {
+    return 'Usunięto #$tag';
+  }
+
+  @override
+  String get tagPickTitle => 'Jaki tag';
 }

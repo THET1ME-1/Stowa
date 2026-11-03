@@ -103,5 +103,17 @@
   "tgBadToken": "Telegram hat das Token abgelehnt",
   "tgOffline": "Telegram nicht erreichbar",
   "tgPulled": "{count, plural, one{{count} Nachricht abgeholt} other{{count} Nachrichten abgeholt}}",
-  "settingsOutside": "Von außen"
+  "settingsOutside": "Von außen",
+  "selCount": "Ausgewählt: {count}",
+  "selClear": "Auswahl aufheben",
+  "selAll": "Alle auswählen",
+  "selMove": "Verschieben",
+  "selTag": "Tag",
+  "selUntag": "Tag entfernen",
+  "selDelete": "Löschen",
+  "selMoved": "{count, plural, one{{count} Element nach „{folder}“ verschoben} other{{count} Elemente nach „{folder}“ verschoben}}",
+  "selDeleted": "{count, plural, one{{count} Element gelöscht} other{{count} Elemente gelöscht}}",
+  "selTagged": "#{tag} gesetzt",
+  "selUntagged": "#{tag} entfernt",
+  "tagPickTitle": "Welcher Tag"
 }

@@ -1264,4 +1264,62 @@ class LDe extends L {
 
   @override
   String get settingsOutside => 'Von außen';
+
+  @override
+  String selCount(int count) {
+    return 'Ausgewählt: $count';
+  }
+
+  @override
+  String get selClear => 'Auswahl aufheben';
+
+  @override
+  String get selAll => 'Alle auswählen';
+
+  @override
+  String get selMove => 'Verschieben';
+
+  @override
+  String get selTag => 'Tag';
+
+  @override
+  String get selUntag => 'Tag entfernen';
+
+  @override
+  String get selDelete => 'Löschen';
+
+  @override
+  String selMoved(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente nach „$folder“ verschoben',
+      one: '$count Element nach „$folder“ verschoben',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente gelöscht',
+      one: '$count Element gelöscht',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selTagged(String tag) {
+    return '#$tag gesetzt';
+  }
+
+  @override
+  String selUntagged(String tag) {
+    return '#$tag entfernt';
+  }
+
+  @override
+  String get tagPickTitle => 'Welcher Tag';
 }

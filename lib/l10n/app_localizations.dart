@@ -2218,6 +2218,78 @@ abstract class L {
   /// In en, this message translates to:
   /// **'From outside'**
   String get settingsOutside;
+
+  /// selCount
+  ///
+  /// In en, this message translates to:
+  /// **'Selected: {count}'**
+  String selCount(int count);
+
+  /// selClear
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get selClear;
+
+  /// selAll
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get selAll;
+
+  /// selMove
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get selMove;
+
+  /// selTag
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get selTag;
+
+  /// selUntag
+  ///
+  /// In en, this message translates to:
+  /// **'Untag'**
+  String get selUntag;
+
+  /// selDelete
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get selDelete;
+
+  /// selMoved
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item moved to “{folder}”} other{{count} items moved to “{folder}”}}'**
+  String selMoved(int count, String folder);
+
+  /// selDeleted
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item deleted} other{{count} items deleted}}'**
+  String selDeleted(int count);
+
+  /// selTagged
+  ///
+  /// In en, this message translates to:
+  /// **'Tagged #{tag}'**
+  String selTagged(String tag);
+
+  /// selUntagged
+  ///
+  /// In en, this message translates to:
+  /// **'Removed #{tag}'**
+  String selUntagged(String tag);
+
+  /// tagPickTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Which tag'**
+  String get tagPickTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

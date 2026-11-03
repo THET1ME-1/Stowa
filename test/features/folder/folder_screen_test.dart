@@ -157,18 +157,18 @@ void main() {
     expect(find.text('Отменить'), findsNothing);
   });
 
-  testWidgets('долгое нажатие: переложить в другую папку', (tester) async {
+  testWidgets('долгое нажатие выбирает, «В папку» перекладывает', (tester) async {
     await seed();
     await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'cookie9'));
     await openFolder(tester);
     await tester.longPress(find.text('Тарт с малиной'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Переложить в папку'));
+    await tester.tap(find.text('В папку'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Дом').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Переложил в «Дом»'), findsOneWidget);
+    expect(find.text('Переложил 1 вещь в «Дом»'), findsOneWidget);
     final moved = await (world.db.select(world.db.items)..where((t) => t.id.equals('v'))).getSingle();
     expect(moved.folderId, 'home');
 
@@ -183,7 +183,7 @@ void main() {
     await openFolder(tester);
     await tester.longPress(find.text('Тарт с малиной'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Переложить в папку'));
+    await tester.tap(find.text('В папку'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Новая папка'));
     await tester.pumpAndSettle();

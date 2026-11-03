@@ -103,5 +103,17 @@
   "tgBadToken": "Telegram rechazó el token",
   "tgOffline": "No hay conexión con Telegram",
   "tgPulled": "{count, plural, one{{count} mensaje recogido} other{{count} mensajes recogidos}}",
-  "settingsOutside": "Desde fuera"
+  "settingsOutside": "Desde fuera",
+  "selCount": "Seleccionados: {count}",
+  "selClear": "Quitar selección",
+  "selAll": "Seleccionar todo",
+  "selMove": "Mover",
+  "selTag": "Etiqueta",
+  "selUntag": "Quitar etiqueta",
+  "selDelete": "Borrar",
+  "selMoved": "{count, plural, one{{count} elemento movido a «{folder}»} other{{count} elementos movidos a «{folder}»}}",
+  "selDeleted": "{count, plural, one{{count} elemento borrado} other{{count} elementos borrados}}",
+  "selTagged": "Etiquetado #{tag}",
+  "selUntagged": "Quitado #{tag}",
+  "tagPickTitle": "Qué etiqueta"
 }

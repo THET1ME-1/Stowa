@@ -1634,5 +1634,81 @@
   "settingsOutside": "From outside",
   "@settingsOutside": {
     "description": "settingsOutside"
+  },
+  "selCount": "Selected: {count}",
+  "@selCount": {
+    "description": "selCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selClear": "Clear selection",
+  "@selClear": {
+    "description": "selClear"
+  },
+  "selAll": "Select all",
+  "@selAll": {
+    "description": "selAll"
+  },
+  "selMove": "Move",
+  "@selMove": {
+    "description": "selMove"
+  },
+  "selTag": "Tag",
+  "@selTag": {
+    "description": "selTag"
+  },
+  "selUntag": "Untag",
+  "@selUntag": {
+    "description": "selUntag"
+  },
+  "selDelete": "Delete",
+  "@selDelete": {
+    "description": "selDelete"
+  },
+  "selMoved": "{count, plural, one{{count} item moved to “{folder}”} other{{count} items moved to “{folder}”}}",
+  "@selMoved": {
+    "description": "selMoved",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "selDeleted": "{count, plural, one{{count} item deleted} other{{count} items deleted}}",
+  "@selDeleted": {
+    "description": "selDeleted",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selTagged": "Tagged #{tag}",
+  "@selTagged": {
+    "description": "selTagged",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "selUntagged": "Removed #{tag}",
+  "@selUntagged": {
+    "description": "selUntagged",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "tagPickTitle": "Which tag",
+  "@tagPickTitle": {
+    "description": "tagPickTitle"
   }
 }

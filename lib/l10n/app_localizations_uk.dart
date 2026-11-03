@@ -1272,4 +1272,66 @@ class LUk extends L {
 
   @override
   String get settingsOutside => 'Ззовні';
+
+  @override
+  String selCount(int count) {
+    return 'Вибрано: $count';
+  }
+
+  @override
+  String get selClear => 'Зняти вибір';
+
+  @override
+  String get selAll => 'Вибрати всі';
+
+  @override
+  String get selMove => 'У папку';
+
+  @override
+  String get selTag => 'Тег';
+
+  @override
+  String get selUntag => 'Зняти тег';
+
+  @override
+  String get selDelete => 'Видалити';
+
+  @override
+  String selMoved(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Переклав $count речі у «$folder»',
+      many: 'Переклав $count речей у «$folder»',
+      few: 'Переклав $count речі у «$folder»',
+      one: 'Переклав $count річ у «$folder»',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Видалив $count речі',
+      many: 'Видалив $count речей',
+      few: 'Видалив $count речі',
+      one: 'Видалив $count річ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selTagged(String tag) {
+    return 'Поставив #$tag';
+  }
+
+  @override
+  String selUntagged(String tag) {
+    return 'Зняв #$tag';
+  }
+
+  @override
+  String get tagPickTitle => 'Який тег';
 }

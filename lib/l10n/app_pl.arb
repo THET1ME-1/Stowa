@@ -103,5 +103,17 @@
   "tgBadToken": "Telegram odrzucił token",
   "tgOffline": "Brak połączenia z Telegramem",
   "tgPulled": "{count, plural, one{{count} wiadomość odebrana} few{{count} wiadomości odebrane} many{{count} wiadomości odebranych} other{{count} wiadomości odebranej}}",
-  "settingsOutside": "Z zewnątrz"
+  "settingsOutside": "Z zewnątrz",
+  "selCount": "Zaznaczono: {count}",
+  "selClear": "Odznacz",
+  "selAll": "Zaznacz wszystko",
+  "selMove": "Przenieś",
+  "selTag": "Tag",
+  "selUntag": "Usuń tag",
+  "selDelete": "Usuń",
+  "selMoved": "{count, plural, one{{count} rzecz przeniesiona do „{folder}”} few{{count} rzeczy przeniesione do „{folder}”} many{{count} rzeczy przeniesionych do „{folder}”} other{{count} rzeczy przeniesionej do „{folder}”}}",
+  "selDeleted": "{count, plural, one{{count} rzecz usunięta} few{{count} rzeczy usunięte} many{{count} rzeczy usuniętych} other{{count} rzeczy usuniętej}}",
+  "selTagged": "Dodano #{tag}",
+  "selUntagged": "Usunięto #{tag}",
+  "tagPickTitle": "Jaki tag"
 }

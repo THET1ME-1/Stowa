@@ -1259,4 +1259,62 @@ class LEn extends L {
 
   @override
   String get settingsOutside => 'From outside';
+
+  @override
+  String selCount(int count) {
+    return 'Selected: $count';
+  }
+
+  @override
+  String get selClear => 'Clear selection';
+
+  @override
+  String get selAll => 'Select all';
+
+  @override
+  String get selMove => 'Move';
+
+  @override
+  String get selTag => 'Tag';
+
+  @override
+  String get selUntag => 'Untag';
+
+  @override
+  String get selDelete => 'Delete';
+
+  @override
+  String selMoved(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items moved to “$folder”',
+      one: '$count item moved to “$folder”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items deleted',
+      one: '$count item deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selTagged(String tag) {
+    return 'Tagged #$tag';
+  }
+
+  @override
+  String selUntagged(String tag) {
+    return 'Removed #$tag';
+  }
+
+  @override
+  String get tagPickTitle => 'Which tag';
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
@@ -12,13 +13,14 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
+import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
-import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../sort/sort_screen.dart';
+import '../tags/tag_picker.dart';
 import 'folder_cards.dart';
 import 'folder_sheets.dart';
 import 'folder_view.dart';
@@ -62,9 +64,116 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     if (id != null) ref.read(foldersRepositoryProvider).markSeen(id).ignore();
   }
 
+  /// Выбранные вещи. Пусто — обычный режим: касание открывает, долгое нажатие начинает выбор.
+  final _selected = <String>{};
+  bool get _selecting => _selected.isNotEmpty;
+
   void _open(String id) => Navigator.of(context).push(itemRoute(id));
 
-  void _act(ItemCard card) => showItemActions(context, ref, card);
+  void _tap(ItemCard card) => _selecting ? _toggle(card) : _open(card.id);
+
+  void _act(ItemCard card) {
+    if (!_selecting) HapticFeedback.mediumImpact();
+    _toggle(card);
+  }
+
+  void _toggle(ItemCard card) => setState(() => _selected.contains(card.id) ? _selected.remove(card.id) : _selected.add(card.id));
+
+  void _clear() => setState(_selected.clear);
+
+  Future<void> _moveSelected(List<ItemCard> cards) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final items = ref.read(itemsRepositoryProvider);
+    final clock = ref.read(clockProvider);
+    final folders = ref.read(foldersProvider).value ?? const <FolderCard>[];
+    final picked = await showModalBottomSheet<FolderCard>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => FolderPickerSheet(
+        title: l.folderPickTitle,
+        folders: [
+          for (final folder in folders)
+            if (folder.id != widget.folderId) folder,
+        ],
+        onNew: () => askNewFolder(sheet, ref),
+      ),
+    );
+    if (picked == null) return;
+    final chosen = [
+      for (final card in cards)
+        if (_selected.contains(card.id)) card,
+    ];
+    for (final card in chosen) {
+      await items.moveToFolder(card.id, picked.id, clock());
+    }
+    _clear();
+    showUndo(
+      messenger,
+      message: l.selMoved(chosen.length, picked.name),
+      label: l.undo,
+      onUndo: () async {
+        for (final card in chosen) {
+          await items.moveToFolder(card.id, card.folderId, clock());
+        }
+      },
+    );
+  }
+
+  Future<void> _tagSelected(List<ItemCard> cards, {required bool remove}) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final tags = ref.read(tagsRepositoryProvider);
+    final chosen = [
+      for (final card in cards)
+        if (_selected.contains(card.id)) card,
+    ];
+    final all = ref.read(allTagsProvider).value ?? const <TagCard>[];
+    // снимать есть смысл только те теги, что стоят хоть у одной выбранной вещи
+    final present = {for (final card in chosen) ...card.tags};
+    final name = await showTagPicker(
+      context,
+      tags: remove
+          ? [
+              for (final tag in all)
+                if (present.contains(tag.name)) tag,
+            ]
+          : all,
+      filesRoot: ref.read(filesRootProvider),
+      allowNew: !remove,
+    );
+    if (name == null) return;
+    for (final card in chosen) {
+      remove ? await tags.unlink(card.id, name) : await tags.link(card.id, name);
+    }
+    _clear();
+    showNote(messenger, remove ? l.selUntagged(name) : l.selTagged(name));
+  }
+
+  Future<void> _deleteSelected(List<ItemCard> cards) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final items = ref.read(itemsRepositoryProvider);
+    final ids = [
+      for (final card in cards)
+        if (_selected.contains(card.id)) card.id,
+    ];
+    for (final id in ids) {
+      await items.softDelete(id, ref.read(clockProvider)());
+    }
+    _clear();
+    showUndo(
+      messenger,
+      message: l.selDeleted(ids.length),
+      label: l.undo,
+      onUndo: () async {
+        for (final id in ids) {
+          await items.restore(id);
+        }
+      },
+    );
+  }
 
   Future<void> _pickOrder() async {
     final l = L.of(context);
@@ -77,11 +186,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final (order, label) in [
-              (FolderOrder.newest, l.sortNewest),
-              (FolderOrder.oldest, l.sortOldest),
-              (FolderOrder.name, l.sortByName),
-            ])
+            for (final (order, label) in [(FolderOrder.newest, l.sortNewest), (FolderOrder.oldest, l.sortOldest), (FolderOrder.name, l.sortByName)])
               ListTile(
                 title: Text(label),
                 trailing: order == _order ? Icon(symbolIcon('check'), color: Tokens.accent) : null,
@@ -129,164 +234,268 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
 
     // порядок чипов как на экране 6 макета: сначала то, что смотрят, потом читают
     const kindOrder = [ItemKind.video, ItemKind.voice, ItemKind.link, ItemKind.note, ItemKind.image, ItemKind.file];
-    final kinds = <ItemKind>[for (final kind in kindOrder) if (cards.any((card) => card.kind == kind)) kind];
+    final kinds = <ItemKind>[
+      for (final kind in kindOrder)
+        if (cards.any((card) => card.kind == kind)) kind,
+    ];
     final tags = folderTags(cards);
-    final shown = orderCards(
-      cards.where((card) => board ? (_tag == null || card.tags.contains(_tag)) : (_kind == null || card.kind == _kind)),
-      _order,
-    );
+    final shown = orderCards(cards.where((card) => board ? (_tag == null || card.tags.contains(_tag)) : (_kind == null || card.kind == _kind)), _order);
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverSafeArea(
-                bottom: false,
-                sliver: SliverToBoxAdapter(
+    // вещь могла уйти из папки, пока была выбрана
+    _selected.removeWhere((id) => !cards.any((card) => card.id == id));
+
+    return PopScope(
+      // «Назад» сперва снимает выбор, а не закрывает папку
+      canPop: !_selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _clear();
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverSafeArea(
+                  bottom: false,
+                  sliver: SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 0),
+                      child: _selecting
+                          ? Row(
+                              children: [
+                                _RoundButton(icon: 'close', tooltip: l.selClear, onTap: _clear),
+                                const SizedBox(width: 12),
+                                Expanded(child: Text(l.selCount(_selected.length), style: text.titleLarge!.copyWith(fontSize: 18))),
+                                if (_selected.length < shown.length) TextButton(onPressed: () => setState(() => _selected.addAll(shown.map((card) => card.id))), child: Text(l.selAll)),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
+                                const Spacer(),
+                                _RoundButton(icon: 'search', tooltip: l.folderSearch, onTap: () => _dock.currentState?.focusLine()),
+                                if (cards.length > 1) ...[const SizedBox(width: 8), _RoundButton(icon: 'sort', tooltip: l.sortTooltip, onTap: _pickOrder)],
+                                if (folder != null) ...[const SizedBox(width: 8), _RoundButton(icon: 'more_vert', tooltip: l.folderMore, onTap: () => _menu(folder))],
+                              ],
+                            ),
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 0),
+                    padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 0),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
-                        const Spacer(),
-                        _RoundButton(icon: 'search', tooltip: l.folderSearch, onTap: () => _dock.currentState?.focusLine()),
-                        if (cards.length > 1) ...[
-                          const SizedBox(width: 8),
-                          _RoundButton(icon: 'sort', tooltip: l.sortTooltip, onTap: _pickOrder),
-                        ],
-                        if (folder != null) ...[
-                          const SizedBox(width: 8),
-                          _RoundButton(icon: 'more_vert', tooltip: l.folderMore, onTap: () => _menu(folder)),
-                        ],
+                        Expanded(child: Text(folder?.name ?? l.folderNone, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6))),
+                        const SizedBox(width: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: Text(
+                            '${cards.length}',
+                            style: text.titleSmall!.copyWith(fontFamily: 'Unbounded', fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.muted),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Text(folder?.name ?? l.folderNone, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6)),
+                // «Без папки»: разложить по одной карточке
+                if (widget.folderId == null && cards.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
+                      child: FilledButton.icon(onPressed: () => Navigator.of(context).push(sortRoute()), icon: Icon(symbolIcon('swipe_down')), label: Text(l.sortMode)),
+                    ),
+                  ),
+                if (folder != null && cards.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
+                      child: _Segments(
+                        board: board,
+                        boardLabel: l.folderBoard,
+                        listLabel: l.folderList,
+                        onChanged: (toBoard) => ref.read(foldersRepositoryProvider).setView(folder.id, toBoard ? FolderView.board : FolderView.list),
                       ),
-                      const SizedBox(width: 12),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
+                    ),
+                  ),
+                if (board ? tags.isNotEmpty : kinds.length > 1)
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 48,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, 0),
+                        children: [
+                          _FilterChip(label: l.filterAll, on: board ? _tag == null : _kind == null, onTap: () => setState(() => board ? _tag = null : _kind = null)),
+                          if (board)
+                            // теги над доской словами с заглавной, как «Интерьер · Двери» в макете
+                            for (final tag in tags) _FilterChip(label: tag[0].toUpperCase() + tag.substring(1), on: _tag == tag, onTap: () => setState(() => _tag = tag))
+                          else
+                            for (final kind in kinds) _FilterChip(label: kindsLabel(l, kind), icon: kindIcon(kind), on: _kind == kind, onTap: () => setState(() => _kind = kind)),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                if (cards.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(40, 0, 40, _dockSpace + bottom),
+                      child: Center(
                         child: Text(
-                          '${cards.length}',
-                          style: text.titleSmall!.copyWith(fontFamily: 'Unbounded', fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.muted),
+                          l.folderEmpty,
+                          textAlign: TextAlign.center,
+                          style: text.bodyLarge!.copyWith(color: Tokens.muted),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              // «Без папки»: разложить по одной карточке
-              if (widget.folderId == null && cards.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
-                    child: FilledButton.icon(
-                      onPressed: () => Navigator.of(context).push(sortRoute()),
-                      icon: Icon(symbolIcon('swipe_down')),
-                      label: Text(l.sortMode),
                     ),
-                  ),
-                ),
-              if (folder != null && cards.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
-                    child: _Segments(
-                      board: board,
-                      boardLabel: l.folderBoard,
-                      listLabel: l.folderList,
-                      onChanged: (toBoard) => ref.read(foldersRepositoryProvider).setView(folder.id, toBoard ? FolderView.board : FolderView.list),
-                    ),
-                  ),
-                ),
-              if (board ? tags.isNotEmpty : kinds.length > 1)
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 48,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, 0),
-                      children: [
-                        _FilterChip(label: l.filterAll, on: board ? _tag == null : _kind == null, onTap: () => setState(() => board ? _tag = null : _kind = null)),
-                        if (board)
-                          // теги над доской словами с заглавной, как «Интерьер · Двери» в макете
-                          for (final tag in tags)
-                            _FilterChip(label: tag[0].toUpperCase() + tag.substring(1), on: _tag == tag, onTap: () => setState(() => _tag = tag))
-                        else
-                          for (final kind in kinds)
-                            _FilterChip(label: kindsLabel(l, kind), icon: kindIcon(kind), on: _kind == kind, onTap: () => setState(() => _kind = kind)),
-                      ],
-                    ),
-                  ),
-                ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-              if (cards.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(40, 0, 40, _dockSpace + bottom),
-                    child: Center(
-                      child: Text(l.folderEmpty, textAlign: TextAlign.center, style: text.bodyLarge!.copyWith(color: Tokens.muted)),
-                    ),
-                  ),
-                )
-              else if (board)
-                SliverToBoxAdapter(child: _Board(cards: shown, filesRoot: filesRoot, onOpen: _open, onAct: _act))
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: Space.screen),
-                  sliver: SliverList.separated(
-                    itemCount: shown.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) => RiseIn(
-                      key: ValueKey(shown[index].id),
-                      delay: index.clamp(0, 8),
-                      child: FolderItemCard(
-                        card: shown[index],
-                        filesRoot: filesRoot,
-                        now: now,
-                        onTap: () => _open(shown[index].id),
-                        onLongPress: () => _act(shown[index]),
+                  )
+                else if (board)
+                  SliverToBoxAdapter(
+                    child: _Board(cards: shown, filesRoot: filesRoot, selected: _selected, onTap: _tap, onAct: _act),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: Space.screen),
+                    sliver: SliverList.separated(
+                      itemCount: shown.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) => RiseIn(
+                        key: ValueKey(shown[index].id),
+                        delay: index.clamp(0, 8),
+                        child: _Selectable(
+                          selecting: _selecting,
+                          selected: _selected.contains(shown[index].id),
+                          child: FolderItemCard(card: shown[index], filesRoot: filesRoot, now: now, onTap: () => _tap(shown[index]), onLongPress: () => _act(shown[index])),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              if (cards.isNotEmpty) SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
-            ],
-          ),
-          // лента уходит под строку в тень фона, как dock.float в макете
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: _dockSpace + bottom,
-            child: const IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0x00000000), Tokens.background],
-                    stops: [0, 0.3],
+                if (cards.isNotEmpty) SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
+              ],
+            ),
+            // лента уходит под строку в тень фона, как dock.float в макете
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: _dockSpace + bottom,
+              child: const IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x00000000), Tokens.background], stops: [0, 0.3]),
                   ),
                 ),
               ),
             ),
+            // при выборе вместо строки — действия над выбранным
+            if (_selecting)
+              Positioned(
+                left: Space.screen,
+                right: Space.screen,
+                bottom: bottom + 16,
+                child: _SelectionBar(
+                  onMove: () => _moveSelected(cards),
+                  onTag: () => _tagSelected(cards, remove: false),
+                  onUntag: cards.any((card) => _selected.contains(card.id) && card.tags.isNotEmpty) ? () => _tagSelected(cards, remove: true) : null,
+                  onDelete: () => _deleteSelected(cards),
+                ),
+              )
+            else
+              Positioned.fill(
+                child: LineDock(key: _dock, homeFolder: folder, onOpenItem: _open),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Отметка выбора поверх карточки: белый круг с галочкой, пустой — у невыбранных.
+class _Selectable extends StatelessWidget {
+  const _Selectable({required this.selecting, required this.selected, required this.child});
+
+  final bool selecting;
+  final bool selected;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        AnimatedScale(scale: selected ? 0.95 : 1, duration: Motion.short, curve: Motion.emphasized, child: child),
+        Positioned(
+          top: 10,
+          right: 10,
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              opacity: selecting ? 1 : 0,
+              duration: Motion.short,
+              child: AnimatedContainer(
+                duration: Motion.short,
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: selected ? Tokens.accent : Tokens.background.withValues(alpha: 0.55),
+                  shape: BoxShape.circle,
+                  border: selected ? null : Border.all(color: Tokens.onSurfaceVariant, width: 2),
+                ),
+                child: selected ? Icon(symbolIcon('check'), size: 18, color: Tokens.onAccent) : null,
+              ),
+            ),
           ),
-          Positioned.fill(
-            child: LineDock(key: _dock, homeFolder: folder, onOpenItem: _open),
+        ),
+      ],
+    );
+  }
+}
+
+/// Плавающая пилюля действий над выбранным, как панель на странице вещи.
+class _SelectionBar extends StatelessWidget {
+  const _SelectionBar({required this.onMove, required this.onTag, required this.onUntag, required this.onDelete});
+
+  final VoidCallback onMove;
+  final VoidCallback onTag;
+  final VoidCallback? onUntag;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    Widget action(String icon, String label, VoidCallback? onTap, {bool danger = false}) {
+      final color = onTap == null ? Tokens.muted : (danger ? Tokens.error : Tokens.onSurface);
+      return Expanded(
+        child: Pressable(
+          onTap: onTap,
+          child: SizedBox(
+            height: 64,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(symbolIcon(icon), size: 22, color: color),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 12, color: color),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(100)),
+      child: Row(
+        children: [action('drive_file_move', l.selMove, onMove), action('sell', l.selTag, onTag), action('label_off', l.selUntag, onUntag), action('delete', l.selDelete, onDelete, danger: true)],
       ),
     );
   }
@@ -386,7 +595,10 @@ class _FilterChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[Icon(symbolIcon(icon), size: 18, color: color), const SizedBox(width: 6)],
-              Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: color)),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: color),
+              ),
             ],
           ),
         ),
@@ -397,11 +609,12 @@ class _FilterChip extends StatelessWidget {
 
 /// Доска в две колонки: картинки в своих пропорциях, по очереди слева и справа.
 class _Board extends StatelessWidget {
-  const _Board({required this.cards, required this.filesRoot, required this.onOpen, required this.onAct});
+  const _Board({required this.cards, required this.filesRoot, required this.selected, required this.onTap, required this.onAct});
 
   final List<ItemCard> cards;
   final Directory filesRoot;
-  final ValueChanged<String> onOpen;
+  final Set<String> selected;
+  final ValueChanged<ItemCard> onTap;
   final ValueChanged<ItemCard> onAct;
 
   @override
@@ -422,13 +635,10 @@ class _Board extends StatelessWidget {
                       child: RiseIn(
                         key: ValueKey(card.id),
                         delay: index.clamp(0, 8),
-                        child: BoardTile(
-                          card: card,
-                          filesRoot: filesRoot,
-                          width: width,
-                          darkPill: index % 3 == 1,
-                          onTap: () => onOpen(card.id),
-                          onLongPress: () => onAct(card),
+                        child: _Selectable(
+                          selecting: selected.isNotEmpty,
+                          selected: selected.contains(card.id),
+                          child: BoardTile(card: card, filesRoot: filesRoot, width: width, darkPill: index % 3 == 1, onTap: () => onTap(card), onLongPress: () => onAct(card)),
                         ),
                       ),
                     ),

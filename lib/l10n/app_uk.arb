@@ -103,5 +103,17 @@
   "tgBadToken": "Telegram не прийняв токен",
   "tgOffline": "Немає зв’язку з Telegram",
   "tgPulled": "{count, plural, one{Забрав {count} повідомлення} few{Забрав {count} повідомлення} many{Забрав {count} повідомлень} other{Забрав {count} повідомлення}}",
-  "settingsOutside": "Ззовні"
+  "settingsOutside": "Ззовні",
+  "selCount": "Вибрано: {count}",
+  "selClear": "Зняти вибір",
+  "selAll": "Вибрати всі",
+  "selMove": "У папку",
+  "selTag": "Тег",
+  "selUntag": "Зняти тег",
+  "selDelete": "Видалити",
+  "selMoved": "{count, plural, one{Переклав {count} річ у «{folder}»} few{Переклав {count} речі у «{folder}»} many{Переклав {count} речей у «{folder}»} other{Переклав {count} речі у «{folder}»}}",
+  "selDeleted": "{count, plural, one{Видалив {count} річ} few{Видалив {count} речі} many{Видалив {count} речей} other{Видалив {count} речі}}",
+  "selTagged": "Поставив #{tag}",
+  "selUntagged": "Зняв #{tag}",
+  "tagPickTitle": "Який тег"
 }

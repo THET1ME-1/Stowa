@@ -1265,4 +1265,64 @@ class LRo extends L {
 
   @override
   String get settingsOutside => 'Din afară';
+
+  @override
+  String selCount(int count) {
+    return 'Selectate: $count';
+  }
+
+  @override
+  String get selClear => 'Anulează selecția';
+
+  @override
+  String get selAll => 'Selectează tot';
+
+  @override
+  String get selMove => 'Mută';
+
+  @override
+  String get selTag => 'Etichetă';
+
+  @override
+  String get selUntag => 'Scoate eticheta';
+
+  @override
+  String get selDelete => 'Șterge';
+
+  @override
+  String selMoved(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de elemente mutate în „$folder”',
+      few: '$count elemente mutate în „$folder”',
+      one: '$count element mutat în „$folder”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de elemente șterse',
+      few: '$count elemente șterse',
+      one: '$count element șters',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selTagged(String tag) {
+    return 'Etichetat #$tag';
+  }
+
+  @override
+  String selUntagged(String tag) {
+    return 'Scos #$tag';
+  }
+
+  @override
+  String get tagPickTitle => 'Ce etichetă';
 }

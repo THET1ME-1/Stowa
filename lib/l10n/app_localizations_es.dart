@@ -1260,4 +1260,62 @@ class LEs extends L {
 
   @override
   String get settingsOutside => 'Desde fuera';
+
+  @override
+  String selCount(int count) {
+    return 'Seleccionados: $count';
+  }
+
+  @override
+  String get selClear => 'Quitar selección';
+
+  @override
+  String get selAll => 'Seleccionar todo';
+
+  @override
+  String get selMove => 'Mover';
+
+  @override
+  String get selTag => 'Etiqueta';
+
+  @override
+  String get selUntag => 'Quitar etiqueta';
+
+  @override
+  String get selDelete => 'Borrar';
+
+  @override
+  String selMoved(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos movidos a «$folder»',
+      one: '$count elemento movido a «$folder»',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos borrados',
+      one: '$count elemento borrado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selTagged(String tag) {
+    return 'Etiquetado #$tag';
+  }
+
+  @override
+  String selUntagged(String tag) {
+    return 'Quitado #$tag';
+  }
+
+  @override
+  String get tagPickTitle => 'Qué etiqueta';
 }

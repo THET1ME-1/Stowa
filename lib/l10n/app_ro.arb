@@ -103,5 +103,17 @@
   "tgBadToken": "Telegram a respins tokenul",
   "tgOffline": "Telegram nu răspunde",
   "tgPulled": "{count, plural, one{{count} mesaj preluat} few{{count} mesaje preluate} other{{count} de mesaje preluate}}",
-  "settingsOutside": "Din afară"
+  "settingsOutside": "Din afară",
+  "selCount": "Selectate: {count}",
+  "selClear": "Anulează selecția",
+  "selAll": "Selectează tot",
+  "selMove": "Mută",
+  "selTag": "Etichetă",
+  "selUntag": "Scoate eticheta",
+  "selDelete": "Șterge",
+  "selMoved": "{count, plural, one{{count} element mutat în „{folder}”} few{{count} elemente mutate în „{folder}”} other{{count} de elemente mutate în „{folder}”}}",
+  "selDeleted": "{count, plural, one{{count} element șters} few{{count} elemente șterse} other{{count} de elemente șterse}}",
+  "selTagged": "Etichetat #{tag}",
+  "selUntagged": "Scos #{tag}",
+  "tagPickTitle": "Ce etichetă"
 }

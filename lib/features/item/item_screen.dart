@@ -30,6 +30,7 @@ import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
+import '../tags/tag_picker.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
@@ -227,7 +228,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   Future<void> _addTag() async {
-    final name = await _askTag(context);
+    final own = ref.read(itemProvider(_id)).value?.tags.keys.toSet() ?? const <String>{};
+    final all = ref.read(allTagsProvider).value ?? const [];
+    final name = await showTagPicker(context, tags: [for (final tag in all) if (!own.contains(tag.name)) tag], filesRoot: ref.read(filesRootProvider));
     if (name != null) await ref.read(tagsRepositoryProvider).link(_id, name);
   }
 
@@ -993,40 +996,6 @@ class _ItemMenu extends StatelessWidget {
 }
 
 /// Тег одной вещи руками: имя без решётки.
-Future<String?> _askTag(BuildContext context) {
-  final l = L.of(context);
-  final field = TextEditingController();
-  return showModalBottomSheet<String>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    isScrollControlled: true,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: field,
-                autofocus: true,
-                decoration: InputDecoration(prefixText: '#', hintText: l.tagNameHint),
-                onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(onPressed: () => Navigator.pop(context, field.text.trim().isEmpty ? null : field.text), child: Text(l.save)),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
 class _DeepBlock extends StatelessWidget {
   const _DeepBlock({required this.title, required this.text});
 

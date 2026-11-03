@@ -1277,4 +1277,66 @@ class LRu extends L {
 
   @override
   String get settingsOutside => 'Снаружи';
+
+  @override
+  String selCount(int count) {
+    return 'Выбрано: $count';
+  }
+
+  @override
+  String get selClear => 'Снять выбор';
+
+  @override
+  String get selAll => 'Выбрать все';
+
+  @override
+  String get selMove => 'В папку';
+
+  @override
+  String get selTag => 'Тег';
+
+  @override
+  String get selUntag => 'Снять тег';
+
+  @override
+  String get selDelete => 'Удалить';
+
+  @override
+  String selMoved(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Переложил $count вещи в «$folder»',
+      many: 'Переложил $count вещей в «$folder»',
+      few: 'Переложил $count вещи в «$folder»',
+      one: 'Переложил $count вещь в «$folder»',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Удалил $count вещи',
+      many: 'Удалил $count вещей',
+      few: 'Удалил $count вещи',
+      one: 'Удалил $count вещь',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selTagged(String tag) {
+    return 'Поставил #$tag';
+  }
+
+  @override
+  String selUntagged(String tag) {
+    return 'Снял #$tag';
+  }
+
+  @override
+  String get tagPickTitle => 'Какой тег';
 }
