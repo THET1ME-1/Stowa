@@ -1,5 +1,5 @@
-import '../../domain/item_kind.dart';
-import '../../domain/item_title.dart';
+import 'item_kind.dart';
+import 'item_title.dart';
 
 /// Кусок текста заметки, как его рисует страница вещи.
 sealed class NoteBlock {
@@ -92,6 +92,30 @@ List<NoteBlock> parseNoteBlocks(String body, {String? skipTitle}) {
   }
   flush();
   return blocks;
+}
+
+final _lineLead = RegExp(r'^(#{1,3} |\s*[-*] \[[ xX]\] |\s*[-*•] |> ?)', multiLine: true);
+
+/// Текст без значков разметки для подсказок поиска; отметки совпадений сдвигаются следом.
+(String, List<(int, int)>) stripMarkup(String text, List<(int, int)> marks) {
+  // какие куски убрать: значки в начале строк и по краям выделения
+  final cuts = <(int, int)>[
+    for (final match in _lineLead.allMatches(text)) (match.start, match.end - match.start),
+    for (final match in inlineMarks.allMatches(text)) ...() {
+      final width = match.group(1) != null || match.group(4) != null ? 2 : 1;
+      return [(match.start, width), (match.end - width, width)];
+    }(),
+  ]..sort((a, b) => a.$1.compareTo(b.$1));
+  int moved(int offset) => offset - cuts.where((cut) => cut.$1 < offset).fold(0, (sum, cut) => sum + cut.$2);
+  final plain = StringBuffer();
+  var last = 0;
+  for (final (start, length) in cuts) {
+    if (start < last) continue;
+    plain.write(text.substring(last, start));
+    last = start + length;
+  }
+  plain.write(text.substring(last));
+  return (plain.toString(), [for (final (start, length) in marks) (moved(start), length)]);
 }
 
 /// Кусок строки с его выделением.

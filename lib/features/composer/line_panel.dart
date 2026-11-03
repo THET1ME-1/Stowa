@@ -12,6 +12,7 @@ import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
+import '../../domain/note_blocks.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
 import '../../l10n/app_localizations.dart';
@@ -362,9 +363,11 @@ class _RowView extends StatelessWidget {
             ];
           }
         }
-        sub = source.trim().isEmpty
+        // в подсказке текст как на странице, без «**» и «- [ ]»
+        final (plain, plainMarks) = stripMarkup(source, marks);
+        sub = plain.trim().isEmpty
             ? null
-            : MarkedText(text: snippetOf(source, marks), marks: snippetMarks(source, marks), style: subStyle, markColor: markColor);
+            : MarkedText(text: snippetOf(plain, plainMarks), marks: snippetMarks(plain, plainMarks), style: subStyle, markColor: markColor);
         final address = card.url == null ? null : Uri.tryParse(card.url!)?.host;
         final host = address == null || address.isEmpty ? null : sourceName(address);
         final found = whereField == SearchField.deep ? deepLabel(l, card.kind) : (host ?? kindLabel(l, card.kind));

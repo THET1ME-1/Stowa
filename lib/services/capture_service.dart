@@ -194,6 +194,16 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
     }
   }
 
+  /// Заметки, которые раньше записались ссылкой из-за адреса внутри текста, — снова заметки.
+  Future<void> reclassifyNotes() async {
+    final rows = await (_db.select(_db.items)..where((t) => t.kind.isIn([ItemKind.link.name, ItemKind.video.name]) & t.deletedAt.isNull())).get();
+    for (final item in rows) {
+      final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(item.id))).get();
+      if (files.isNotEmpty || detectKind(text: item.body) != ItemKind.note) continue;
+      await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(const ItemsCompanion(kind: Value(ItemKind.note)));
+    }
+  }
+
   /// Картинкам, сохранённым до учёта размеров, дописать размер. Пропавший файл пропускается.
   Future<void> fillImageSizes() async {
     final missing = await (_db.select(_db.attachments)..where((t) => t.mime.like('image/%') & t.width.isNull())).get();

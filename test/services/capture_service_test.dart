@@ -102,6 +102,17 @@ void main() {
     expect(await title('text'), 'IMG_2.jpg');
   });
 
+  test('старые заметки, записанные ссылкой из-за адреса внутри, снова заметки', () async {
+    Future<void> old(String id, ItemKind kind, String body) =>
+        db.into(db.items).insert(ItemsCompanion.insert(id: id, kind: kind, title: id, body: Value(body), createdAt: DateTime(2026), updatedAt: DateTime(2026)));
+    await old('long', ItemKind.link, 'Дипломная\n- 40 страниц\n- 20 источников\nflutter.dev/docs');
+    await old('short', ItemKind.video, 'Паста https://vt.tiktok.com/x');
+
+    await capture.reclassifyNotes();
+    expect((await items.get('long'))!.item.kind, ItemKind.note);
+    expect((await items.get('short'))!.item.kind, ItemKind.video);
+  });
+
   test('фото с камеры без текста: вместо IMG_… подпись от экрана', () async {
     final source = await bigFile();
     final camera = await source.copy(p.join(source.parent.path, 'IMG_20261103_154512.jpg'));

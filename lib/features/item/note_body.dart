@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
-import 'note_blocks.dart';
+import '../../domain/note_blocks.dart';
 
 const _markWidth = 32.0;
 

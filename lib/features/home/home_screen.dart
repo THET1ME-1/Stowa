@@ -49,6 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final l = L.of(context);
       final capture = ref.read(captureServiceProvider);
       capture.fillImageSizes().ignore();
+      capture.reclassifyNotes().ignore();
       capture.retitleFileNames(({required mime, required fileName, required at}) => untitledFor(l, mime: mime, fileName: fileName, at: at)).ignore();
     });
   }

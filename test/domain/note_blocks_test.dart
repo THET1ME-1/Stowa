@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stowa/features/item/note_blocks.dart';
+import 'package:stowa/domain/note_blocks.dart';
 
 void main() {
   test('строки подряд — один абзац, пустая строка начинает новый', () {
@@ -41,6 +41,13 @@ void main() {
     expect([for (final piece in pieces) if (piece.code) piece.text], ['код']);
     expect([for (final piece in pieces) if (piece.url != null) piece.url], ['https://coffee.ru/turka']);
     expect(pieces.map((piece) => piece.text).join(), 'Это важно, тихо, было, код и coffee.ru/turka');
+  });
+
+  test('для подсказок разметка снимается, отметки совпадений едут следом', () {
+    const text = 'Приложение **Togetherly**.\n- [ ] Источники';
+    final (plain, marks) = stripMarkup(text, [(13, 10), (33, 9)]);
+    expect(plain, 'Приложение Togetherly.\nИсточники');
+    expect([for (final (start, length) in marks) plain.substring(start, start + length)], ['Togetherly', 'Источники']);
   });
 
   test('одиночная звёздочка или подчёркивание в слове — не разметка', () {

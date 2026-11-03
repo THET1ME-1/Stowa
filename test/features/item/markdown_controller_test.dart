@@ -27,6 +27,32 @@ void main() {
     return result;
   }
 
+  TextEditingValue enter(String before) {
+    final old = TextEditingValue(text: before, selection: TextSelection.collapsed(offset: before.length));
+    final typed = TextEditingValue(text: '$before\n', selection: TextSelection.collapsed(offset: before.length + 1));
+    return continueLists(old, typed);
+  }
+
+  test('Enter в конце пункта начинает следующий такой же', () {
+    expect(enter('- [ ] паспорт').text, '- [ ] паспорт\n- [ ] ');
+    expect(enter('- [x] билеты').text, '- [x] билеты\n- [ ] ');
+    expect(enter('- хлеб').text, '- хлеб\n- ');
+    expect(enter('1. первое').text, '1. первое\n2. ');
+    expect(enter('- [ ] паспорт').selection.baseOffset, '- [ ] паспорт\n- [ ] '.length);
+  });
+
+  test('Enter на пустом пункте выходит из списка', () {
+    expect(enter('- хлеб\n- ').text, '- хлеб\n');
+    expect(enter('- [ ] ').text, '');
+  });
+
+  test('обычная строка и вставка текста не трогаются', () {
+    expect(enter('просто строка').text, 'просто строка\n');
+    const old = TextEditingValue(text: '- а', selection: TextSelection.collapsed(offset: 3));
+    const pasted = TextEditingValue(text: '- а\nб\nв', selection: TextSelection.collapsed(offset: 7));
+    expect(continueLists(old, pasted).text, '- а\nб\nв');
+  });
+
   testWidgets('текст в поле тот же до буквы, меняется только вид', (tester) async {
     expect((await spans(tester)).map((span) => span.text).join(), source);
   });

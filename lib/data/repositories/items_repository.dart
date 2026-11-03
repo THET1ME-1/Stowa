@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../domain/folder_guess.dart';
+import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
@@ -204,9 +205,21 @@ WHERE items.deleted_at IS NULL''';
     });
   }
 
-  /// Правка на странице вещи: заголовок и текст разом.
-  Future<void> setTitleBody(String id, {required String title, required String body, required DateTime at}) {
-    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(title: Value(title), body: Value(body), updatedAt: Value(at)));
+  /// Правка на странице вещи: заголовок и текст разом. Без файлов вид и адрес
+  /// считаются по новому тексту: дописал к ссылке заметку — стала заметкой.
+  Future<void> setTitleBody(String id, {required String title, required String body, required DateTime at}) async {
+    final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get();
+    final text = '$title\n$body';
+    final url = firstUrl(text);
+    await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
+      ItemsCompanion(
+        title: Value(title),
+        body: Value(body),
+        updatedAt: Value(at),
+        kind: files.isEmpty ? Value(detectKind(text: text)) : const Value.absent(),
+        url: files.isEmpty ? Value(url?.toString()) : const Value.absent(),
+      ),
+    );
   }
 
   /// Напоминание руками со страницы вещи; null снимает.

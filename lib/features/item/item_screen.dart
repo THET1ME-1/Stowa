@@ -19,6 +19,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_title.dart';
+import '../../domain/note_blocks.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/markdown_edit.dart';
@@ -26,7 +27,6 @@ import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
 import 'markdown_controller.dart';
-import 'note_blocks.dart';
 import 'note_body.dart';
 
 /// Страница въезжает справа, как в макете.
@@ -345,6 +345,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                         maxLines: null,
                         minLines: 6,
                         keyboardType: TextInputType.multiline,
+                        inputFormatters: [TextInputFormatter.withFunction(continueLists)],
                         textCapitalization: TextCapitalization.sentences,
                         style: bodyStyle,
                         decoration: _bare(l.itemBodyHint),

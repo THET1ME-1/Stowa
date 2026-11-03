@@ -1,9 +1,34 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/tokens.dart';
-import 'note_blocks.dart';
+import '../../domain/note_blocks.dart';
 
 final _lineMark = RegExp(r'^(#{1,3} |\s*[-*] \[[ xX]\] |\s*[-*•] |\s*\d{1,3}[.)] |> ?)');
+
+final _listLead = RegExp(r'^(\s*)([-*•] \[[ xX]\] |[-*•] |(\d{1,3})([.)]) )');
+
+/// Enter в конце пункта, галочки или номера начинает следующий такой же; Enter на
+/// пустом пункте снимает значок и выходит из списка. Срабатывает только на один
+/// набранный перенос, вставку текста не трогает.
+TextEditingValue continueLists(TextEditingValue old, TextEditingValue next) {
+  final caret = next.selection.baseOffset;
+  final typedNewline = next.text.length == old.text.length + 1 && caret > 0 && next.selection.isCollapsed && next.text[caret - 1] == '\n';
+  if (!typedNewline) return next;
+  final lineStart = next.text.lastIndexOf('\n', caret - 2) + 1;
+  final line = next.text.substring(lineStart, caret - 1);
+  final lead = _listLead.firstMatch(line);
+  if (lead == null) return next;
+  // пустой пункт: значок уходит вместе с переносом
+  if (line.trim() == lead.group(0)!.trim()) {
+    final text = next.text.replaceRange(lineStart, caret, '');
+    return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: lineStart));
+  }
+  final number = lead.group(3);
+  // следующая галочка всегда пустая: сделанной она станет сама
+  final prefix = '${lead.group(1)}${number != null ? '${int.parse(number) + 1}${lead.group(4)} ' : lead.group(2)!.replaceFirst(RegExp('[xX]'), ' ')}';
+  final text = next.text.replaceRange(caret, caret, prefix);
+  return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: caret + prefix.length));
+}
 
 /// Поле правки с живой разметкой: значки приглушены, жирное жирным, заголовок
 /// крупнее, сделанное зачёркнуто. Текст в поле тот же до буквы, меняется только вид.

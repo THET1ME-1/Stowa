@@ -47,6 +47,17 @@ void main() {
     expect(cards.firstWhere((card) => card.id == 'b').thumbRatio, isNull);
   });
 
+  test('правка текста пересчитывает вид и адрес, если файлов нет', () async {
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'x', kind: ItemKind.link, title: 'Дипломная', url: const Value('https://flutter.dev/docs'), createdAt: at, updatedAt: at));
+    await items.setTitleBody('x', title: 'Дипломная', body: 'Дипломная\nрасширить до 40 страниц\n20 источников\nДокументация: flutter.dev/docs', at: at);
+    var item = (await items.get('x'))!.item;
+    expect((item.kind, item.url), (ItemKind.note, 'https://flutter.dev/docs'));
+
+    await items.setTitleBody('x', title: 'Кофе', body: 'Кофе https://coffee.ru/turka', at: at);
+    item = (await items.get('x'))!.item;
+    expect((item.kind, item.url), (ItemKind.link, 'https://coffee.ru/turka'));
+  });
+
   test('«Без папки» — отдельный список', () async {
     await item('a', folder: 'food');
     await item('b');
