@@ -1138,6 +1138,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Reminders'**
   String get reminderChannel;
+
+  /// Share sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get shareSaved;
+
+  /// Share sheet subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'in “{folder}”'**
+  String shareInFolder(String folder);
+
+  /// Share sheet subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'no folder yet'**
+  String get shareNoFolder;
+
+  /// Share sheet label above folders
+  ///
+  /// In en, this message translates to:
+  /// **'Or somewhere else'**
+  String get shareOther;
+
+  /// Chip: create a folder
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get shareNewFolder;
+
+  /// Share sheet field
+  ///
+  /// In en, this message translates to:
+  /// **'Add a few words'**
+  String get shareAddWords;
+
+  /// Share sheet button
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get shareDone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -605,4 +605,27 @@ class LRu extends L {
 
   @override
   String get reminderChannel => 'Напоминания';
+
+  @override
+  String get shareSaved => 'Сохранено';
+
+  @override
+  String shareInFolder(String folder) {
+    return 'в папке «$folder»';
+  }
+
+  @override
+  String get shareNoFolder => 'пока без папки';
+
+  @override
+  String get shareOther => 'Или в другую';
+
+  @override
+  String get shareNewFolder => 'Новая';
+
+  @override
+  String get shareAddWords => 'Добавить пару слов';
+
+  @override
+  String get shareDone => 'Готово';
 }

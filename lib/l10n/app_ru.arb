@@ -171,5 +171,12 @@
   "voiceTranscribed": "Голосовое, расшифровано",
   "voicePlay": "Слушать",
   "voicePause": "Пауза",
-  "reminderChannel": "Напоминания"
+  "reminderChannel": "Напоминания",
+  "shareSaved": "Сохранено",
+  "shareInFolder": "в папке «{folder}»",
+  "shareNoFolder": "пока без папки",
+  "shareOther": "Или в другую",
+  "shareNewFolder": "Новая",
+  "shareAddWords": "Добавить пару слов",
+  "shareDone": "Готово"
 }

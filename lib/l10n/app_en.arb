@@ -803,5 +803,38 @@
   "reminderChannel": "Reminders",
   "@reminderChannel": {
     "description": "Android notification channel name"
+  },
+  "shareSaved": "Saved",
+  "@shareSaved": {
+    "description": "Share sheet title"
+  },
+  "shareInFolder": "in “{folder}”",
+  "@shareInFolder": {
+    "description": "Share sheet subtitle",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "shareNoFolder": "no folder yet",
+  "@shareNoFolder": {
+    "description": "Share sheet subtitle"
+  },
+  "shareOther": "Or somewhere else",
+  "@shareOther": {
+    "description": "Share sheet label above folders"
+  },
+  "shareNewFolder": "New",
+  "@shareNewFolder": {
+    "description": "Chip: create a folder"
+  },
+  "shareAddWords": "Add a few words",
+  "@shareAddWords": {
+    "description": "Share sheet field"
+  },
+  "shareDone": "Done",
+  "@shareDone": {
+    "description": "Share sheet button"
   }
 }

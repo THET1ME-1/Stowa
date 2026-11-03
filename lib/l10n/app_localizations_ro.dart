@@ -606,4 +606,27 @@ class LRo extends L {
 
   @override
   String get reminderChannel => 'Reminders';
+
+  @override
+  String get shareSaved => 'Saved';
+
+  @override
+  String shareInFolder(String folder) {
+    return 'in “$folder”';
+  }
+
+  @override
+  String get shareNoFolder => 'no folder yet';
+
+  @override
+  String get shareOther => 'Or somewhere else';
+
+  @override
+  String get shareNewFolder => 'New';
+
+  @override
+  String get shareAddWords => 'Add a few words';
+
+  @override
+  String get shareDone => 'Done';
 }

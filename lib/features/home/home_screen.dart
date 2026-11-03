@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../folder/folder_screen.dart';
 import '../item/item_screen.dart';
+import '../share/share_receiver.dart';
 import 'folders_grid.dart';
 import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
@@ -38,11 +39,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final reminders = next.value;
       if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
     }, fireImmediately: true);
+    // «Поделиться» из любого приложения: слушаем после первого кадра, когда навигатор готов
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) shares.start();
+    });
   }
+
+  /// Приём «Поделиться»; открыт для тестов.
+  late final shares = ShareReceiver(ref, () => context);
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    shares.stop();
     super.dispose();
   }
 
