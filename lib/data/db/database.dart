@@ -23,7 +23,8 @@ String normalizeSearchText(String text) => text.replaceAll('ё', 'е').replaceAl
 
 @DriftDatabase(tables: [Items, Attachments, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa'));
+  // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa', native: const DriftNativeOptions(shareAcrossIsolates: true)));
 
   /// База в памяти для тестов. Стримы закрываются сразу: иначе drift ждёт
   /// оборот цикла событий, а часы теста поддельные, и закрытие виснет.

@@ -230,5 +230,7 @@
   "sortNewest": "Сначала новые",
   "sortOldest": "Сначала старые",
   "sortByName": "По имени",
-  "sortTooltip": "Порядок"
+  "sortTooltip": "Порядок",
+  "reminderDoneAction": "Готово",
+  "reminderSnoozeAction": "Через час"
 }

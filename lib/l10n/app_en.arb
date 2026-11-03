@@ -1062,5 +1062,13 @@
   "sortTooltip": "Order",
   "@sortTooltip": {
     "description": "Tooltip"
+  },
+  "reminderDoneAction": "Done",
+  "@reminderDoneAction": {
+    "description": "Notification button"
+  },
+  "reminderSnoozeAction": "In an hour",
+  "@reminderSnoozeAction": {
+    "description": "Notification button"
   }
 }

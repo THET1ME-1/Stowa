@@ -799,4 +799,10 @@ class LEn extends L {
 
   @override
   String get sortTooltip => 'Order';
+
+  @override
+  String get reminderDoneAction => 'Done';
+
+  @override
+  String get reminderSnoozeAction => 'In an hour';
 }

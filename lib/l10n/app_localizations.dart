@@ -1492,6 +1492,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Order'**
   String get sortTooltip;
+
+  /// Notification button
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get reminderDoneAction;
+
+  /// Notification button
+  ///
+  /// In en, this message translates to:
+  /// **'In an hour'**
+  String get reminderSnoozeAction;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

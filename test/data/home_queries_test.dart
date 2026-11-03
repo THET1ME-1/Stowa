@@ -5,6 +5,7 @@ import 'package:stowa/data/repositories/folders_repository.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/reminder_actions.dart';
 
 final _day = DateTime(2026, 11, 2, 12);
 
@@ -94,5 +95,18 @@ void main() {
     await items.clearReminder('1');
     expect(await items.watchUpcoming(_day).first, isEmpty);
     expect(await items.watchRecent().first, hasLength(1));
+  });
+
+  test('кнопки уведомления: «Через час» переносит, «Готово» снимает', () async {
+    await _item(db, '1');
+    await db.update(db.items).write(ItemsCompanion(body: const Value('Вещь 1\nвзять паспорт'), reminderAt: Value(_day)));
+    final items = ItemsRepository(db);
+
+    final again = await handleReminderAction(items, actionId: reminderSnooze, itemId: '1', now: _day);
+    expect(again, (id: '1', title: 'Вещь 1', body: 'взять паспорт', at: _day.add(const Duration(hours: 1))));
+    expect((await items.watchReminders().first).single.at, _day.add(const Duration(hours: 1)));
+
+    expect(await handleReminderAction(items, actionId: reminderDone, itemId: '1', now: _day), isNull);
+    expect(await items.watchReminders().first, isEmpty);
   });
 }

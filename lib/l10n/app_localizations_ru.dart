@@ -800,4 +800,10 @@ class LRu extends L {
 
   @override
   String get sortTooltip => 'Порядок';
+
+  @override
+  String get reminderDoneAction => 'Готово';
+
+  @override
+  String get reminderSnoozeAction => 'Через час';
 }

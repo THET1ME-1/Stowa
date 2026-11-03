@@ -5,10 +5,28 @@ import 'package:timezone/data/latest.dart' as zones;
 import 'package:timezone/timezone.dart' as tz;
 
 /// Напоминание вещи: что показать и когда.
-typedef Reminder = ({String id, String title, DateTime at});
+typedef Reminder = ({String id, String title, String body, DateTime at});
 
 /// Сколько будильников держать в системе разом: ближайшие, остальные встанут потом.
 const _limit = 50;
+
+/// Кнопки на уведомлении.
+const reminderDone = 'done';
+const reminderSnooze = 'snooze';
+
+// значки разметки в начале строки и выделение внутри
+final _lineMarks = RegExp(r'^(#{1,6}\s+|[-*+]\s+\[[ xX]\]\s+|[-*+]\s+|>\s+|\d+[.)]\s+)');
+final _inlineMarks = RegExp(r'\*\*|__|`|~~');
+
+/// Строка под заголовком уведомления: первая живая строка текста после заголовка, без разметки.
+String reminderText(String title, String body) {
+  for (final raw in body.split('\n')) {
+    final line = raw.trim().replaceFirst(_lineMarks, '').replaceAll(_inlineMarks, '').trim();
+    if (line.isEmpty || line == title.trim()) continue;
+    return line.length > 120 ? '${line.substring(0, 119)}…' : line;
+  }
+  return '';
+}
 
 /// Номер уведомления вещи: один и тот же при каждом пересчёте.
 int notificationId(String itemId) => itemId.codeUnits.fold(17, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
@@ -24,7 +42,7 @@ class SilentNotificationPort implements NotificationPort {
   Future<void> cancelAll() async {}
 
   @override
-  Future<void> schedule({required int id, required String title, required DateTime at, required String payload}) async {}
+  Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
 }
 
 /// Система уведомлений за тонкой стенкой: в тестах её подменяют.
@@ -34,7 +52,7 @@ abstract interface class NotificationPort {
 
   Future<void> cancelAll();
 
-  Future<void> schedule({required int id, required String title, required DateTime at, required String payload});
+  Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload});
 }
 
 /// Держит будильники системы в согласии с базой. Любая правка напоминаний —
@@ -50,7 +68,7 @@ class ReminderService {
     final coming = reminders.where((one) => one.at.isAfter(now)).toList()..sort((a, b) => a.at.compareTo(b.at));
     final planned = coming.take(_limit).toList();
     // тот же список — системе ничего не говорим
-    final key = planned.map((one) => '${one.id}|${one.at.toIso8601String()}|${one.title}').join('\n');
+    final key = planned.map((one) => '${one.id}|${one.at.toIso8601String()}|${one.title}|${one.body}').join('\n');
     if (key == _last) return;
     _last = key;
     if (planned.isNotEmpty && !_asked) {
@@ -59,19 +77,25 @@ class ReminderService {
     }
     await _port.cancelAll();
     for (final one in planned) {
-      await _port.schedule(id: notificationId(one.id), title: one.title, at: one.at, payload: one.id);
+      await _port.schedule(id: notificationId(one.id), title: one.title, body: one.body, at: one.at, payload: one.id);
     }
   }
 }
 
 /// Настоящие уведомления Android: канал «Напоминания», точные будильники, если разрешены.
 class LocalNotificationPort implements NotificationPort {
-  LocalNotificationPort({required this.channelName, required this.onOpen});
+  LocalNotificationPort({required this.channelName, required this.doneLabel, required this.snoozeLabel, this.onOpen, this.onAction});
 
   final String channelName;
+  final String doneLabel;
+  final String snoozeLabel;
 
   /// Тап по уведомлению: открыть вещь.
-  final ValueChanged<String> onOpen;
+  final ValueChanged<String>? onOpen;
+
+  /// Кнопки «Готово» и «Через час»: система зовёт её в отдельном фоновом процессе Dart,
+  /// приложение может быть закрыто. Функция верхнего уровня с `vm:entry-point`.
+  final DidReceiveBackgroundNotificationResponseCallback? onAction;
 
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
@@ -89,15 +113,16 @@ class LocalNotificationPort implements NotificationPort {
       // незнакомый пояс: остаётся UTC, время всё равно считается от абсолютного момента
     }
     await _plugin.initialize(
-      settings: const InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')),
+      settings: const InitializationSettings(android: AndroidInitializationSettings('ic_stat_reminder')),
       onDidReceiveNotificationResponse: (response) {
         final id = response.payload;
-        if (id != null) onOpen(id);
+        if (id != null && response.actionId == null) onOpen?.call(id);
       },
+      onDidReceiveBackgroundNotificationResponse: onAction,
     );
     final launch = await _plugin.getNotificationAppLaunchDetails();
     final payload = launch?.notificationResponse?.payload;
-    if (launch?.didNotificationLaunchApp == true && payload != null) onOpen(payload);
+    if (launch?.didNotificationLaunchApp == true && payload != null) onOpen?.call(payload);
     _ready = true;
   }
 
@@ -115,14 +140,26 @@ class LocalNotificationPort implements NotificationPort {
   }
 
   @override
-  Future<void> schedule({required int id, required String title, required DateTime at, required String payload}) async {
+  Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload}) async {
     await start();
     await _plugin.zonedSchedule(
       id: id,
       title: title,
+      body: body.isEmpty ? null : body,
       scheduledDate: tz.TZDateTime.from(at, tz.local),
       notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails('reminders', channelName, importance: Importance.high, priority: Priority.high, category: AndroidNotificationCategory.reminder),
+        android: AndroidNotificationDetails(
+          'reminders',
+          channelName,
+          importance: Importance.high,
+          priority: Priority.high,
+          category: AndroidNotificationCategory.reminder,
+          styleInformation: body.isEmpty ? null : BigTextStyleInformation(body),
+          actions: [
+            AndroidNotificationAction(reminderDone, doneLabel, cancelNotification: true),
+            AndroidNotificationAction(reminderSnooze, snoozeLabel, cancelNotification: true),
+          ],
+        ),
       ),
       // без разрешения на точные будильники система может сдвинуть на несколько минут
       androidScheduleMode: _exact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,

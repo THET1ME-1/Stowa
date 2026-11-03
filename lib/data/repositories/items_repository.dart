@@ -4,6 +4,7 @@ import '../../domain/folder_guess.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
+import '../../services/reminder_service.dart' show Reminder, reminderText;
 import '../db/database.dart';
 
 /// Вещь целиком: запись, теги с источником и вложения по порядку.
@@ -145,10 +146,19 @@ WHERE items.deleted_at IS NULL''';
       .map((rows) => [for (final row in rows) _folderDoc(row)]);
 
   /// Все живые напоминания: по ним ставятся будильники системы.
-  Stream<List<({String id, String title, DateTime at})>> watchReminders() {
+  Stream<List<Reminder>> watchReminders() {
     return (_db.select(_db.items)..where((t) => t.reminderAt.isNotNull() & t.deletedAt.isNull()))
         .watch()
-        .map((rows) => [for (final row in rows) (id: row.id, title: row.title, at: row.reminderAt!)]);
+        .map((rows) => [for (final row in rows) _reminder(row)]);
+  }
+
+  Reminder _reminder(Item row) => (id: row.id, title: row.title, body: reminderText(row.title, row.body), at: row.reminderAt!);
+
+  /// «Через час» на уведомлении: то же напоминание позже. Вернёт его, чтобы сразу поставить будильник.
+  Future<Reminder?> snoozeReminder(String id, DateTime at) async {
+    await (_db.update(_db.items)..where((t) => t.id.equals(id) & t.deletedAt.isNull())).write(ItemsCompanion(reminderAt: Value(at)));
+    final row = await (_db.select(_db.items)..where((t) => t.id.equals(id) & t.deletedAt.isNull())).getSingleOrNull();
+    return row == null ? null : _reminder(row);
   }
 
   /// Вещи папки, новые первыми; без id — всё, что лежит без папки.
