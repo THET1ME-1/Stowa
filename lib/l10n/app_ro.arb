@@ -122,5 +122,6 @@
   "canvasNoteHint": "Ce să scrii pe pânză",
   "graphTitle": "Graful legăturilor",
   "graphEmpty": "Încă nu sunt legături. Apar când elementele au cuvinte comune sau AI le leagă.",
-  "graphFailed": "Graful nu s-a construit"
+  "graphFailed": "Graful nu s-a construit",
+  "copyPartlyFailed": "{count, plural, one{{count} fișier nu s-a salvat: aplicația nu a dat acces} few{{count} fișiere nu s-au salvat: aplicația nu a dat acces} other{{count} de fișiere nu s-au salvat: aplicația nu a dat acces}}"
 }

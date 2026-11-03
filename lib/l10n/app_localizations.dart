@@ -2332,6 +2332,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The graph didn’t build'**
   String get graphFailed;
+
+  /// copyPartlyFailed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file wasn’t saved: the app didn’t give access} other{{count} files weren’t saved: the app didn’t give access}}'**
+  String copyPartlyFailed(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

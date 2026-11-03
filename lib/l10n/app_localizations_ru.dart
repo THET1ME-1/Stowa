@@ -1361,4 +1361,17 @@ class LRu extends L {
 
   @override
   String get graphFailed => 'Граф не построился';
+
+  @override
+  String copyPartlyFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла не сохранились: приложение не дало доступ',
+      many: '$count файлов не сохранились: приложение не дало доступ',
+      few: '$count файла не сохранились: приложение не дало доступ',
+      one: '$count файл не сохранился: приложение не дало доступ',
+    );
+    return '$_temp0';
+  }
 }

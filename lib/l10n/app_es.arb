@@ -122,5 +122,6 @@
   "canvasNoteHint": "Qué escribir en el lienzo",
   "graphTitle": "Grafo de enlaces",
   "graphEmpty": "Aún no hay enlaces. Aparecen cuando los elementos comparten palabras o la IA los une.",
-  "graphFailed": "El grafo no se generó"
+  "graphFailed": "El grafo no se generó",
+  "copyPartlyFailed": "{count, plural, one{{count} archivo no se guardó: la app no dio acceso} other{{count} archivos no se guardaron: la app no dio acceso}}"
 }

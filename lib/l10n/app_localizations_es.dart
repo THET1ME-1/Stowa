@@ -1340,4 +1340,15 @@ class LEs extends L {
 
   @override
   String get graphFailed => 'El grafo no se generó';
+
+  @override
+  String copyPartlyFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos no se guardaron: la app no dio acceso',
+      one: '$count archivo no se guardó: la app no dio acceso',
+    );
+    return '$_temp0';
+  }
 }

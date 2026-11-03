@@ -236,10 +236,17 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
   Future<void> _copyFiles(String itemId, List<PickedFile> files, {int from = 0}) async {
     final folder = p.join('attachments', itemId);
     await Directory(p.join(_filesRoot.path, folder)).create(recursive: true);
+    var failed = 0;
     for (final (offset, file) in files.indexed) {
       final index = from + offset;
       final relative = p.join(folder, '${index}_${p.basename(file.path)}');
-      await File(file.path).copy(p.join(_filesRoot.path, relative));
+      try {
+        await File(file.path).copy(p.join(_filesRoot.path, relative));
+      } on FileSystemException {
+        // источник не дал прочитать файл: остальные всё равно копируем
+        failed++;
+        continue;
+      }
       final size = file.mime.startsWith('image/') ? await _imageSize(file.path) : null;
       await _db
           .into(_db.attachments)
@@ -256,5 +263,31 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
             ),
           );
     }
+    if (failed == 0) return;
+    // ни файла, ни слов: пустая вещь в ленте только путала бы
+    final item = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingleOrNull();
+    final empty = failed == files.length && from == 0 && (item?.body.trim().isEmpty ?? true);
+    if (empty) {
+      await _db.transaction(() async {
+        await (_db.delete(_db.aiJobs)..where((t) => t.itemId.equals(itemId))).go();
+        await (_db.delete(_db.itemTags)..where((t) => t.itemId.equals(itemId))).go();
+        await (_db.delete(_db.items)..where((t) => t.id.equals(itemId))).go();
+      });
+    }
+    _failures.add(CopyFailure(itemId: itemId, failed: failed, removed: empty));
   }
+
+  final _failures = StreamController<CopyFailure>.broadcast();
+
+  /// Файлы, которые не удалось скопировать: окно «Поделиться» и главная говорят об этом.
+  Stream<CopyFailure> get copyFailures => _failures.stream;
+}
+
+/// Сколько файлов вещи не скопировалось и удалена ли из-за этого пустая вещь.
+class CopyFailure {
+  const CopyFailure({required this.itemId, required this.failed, required this.removed});
+
+  final String itemId;
+  final int failed;
+  final bool removed;
 }

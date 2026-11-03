@@ -169,6 +169,29 @@ void main() {
     expect(jobs.single.kind, 'sort');
   });
 
+  test('файл не скопировался, а текста нет — пустая вещь не остаётся, сбой сообщается', () async {
+    final failures = <CopyFailure>[];
+    final subscription = capture.copyFailures.listen(failures.add);
+    final id = await capture.capture(CaptureInput(files: [PickedFile(path: '${home.path}/нет_такого.pdf', mime: 'application/pdf', size: 10)]));
+    await capture.settled();
+    await Future<void>.delayed(Duration.zero);
+    await subscription.cancel();
+    expect(await items.get(id), isNull);
+    expect(failures.single.itemId, id);
+    expect(failures.single.removed, isTrue);
+  });
+
+  test('файл не скопировался, но текст есть — вещь остаётся с текстом', () async {
+    final failures = <CopyFailure>[];
+    final subscription = capture.copyFailures.listen(failures.add);
+    final id = await capture.capture(CaptureInput(text: 'договор аренды', files: [PickedFile(path: '${home.path}/нет_такого.pdf', mime: 'application/pdf', size: 10)]));
+    await capture.settled();
+    await Future<void>.delayed(Duration.zero);
+    await subscription.cancel();
+    expect((await items.get(id))!.item.body, 'договор аренды');
+    expect(failures.single.removed, isFalse);
+  });
+
   test('голосовое встаёт в очередь даже разложенным: его ждёт расшифровка', () async {
     final voice = File('${home.path}/in.m4a')..writeAsBytesSync([1, 2, 3]);
     final id = await capture.capture(CaptureInput(text: '', forcedFolderId: 'ideas', files: [PickedFile(path: voice.path, mime: 'audio/mp4', size: 3)]));

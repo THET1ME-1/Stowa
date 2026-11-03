@@ -1347,4 +1347,16 @@ class LRo extends L {
 
   @override
   String get graphFailed => 'Graful nu s-a construit';
+
+  @override
+  String copyPartlyFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de fișiere nu s-au salvat: aplicația nu a dat acces',
+      few: '$count fișiere nu s-au salvat: aplicația nu a dat acces',
+      one: '$count fișier nu s-a salvat: aplicația nu a dat acces',
+    );
+    return '$_temp0';
+  }
 }

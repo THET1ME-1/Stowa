@@ -53,6 +53,9 @@ final captureServiceProvider = Provider((ref) {
     };
 });
 
+/// Файлы, которые не скопировались при сохранении.
+final copyFailuresProvider = StreamProvider((ref) => ref.watch(captureServiceProvider).copyFailures);
+
 /// Настройки и ключ ИИ. SharedPreferences открываются в main.
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('настройки открываются в main'));
 final aiSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchAi());

@@ -1738,5 +1738,14 @@
   "graphFailed": "The graph didn’t build",
   "@graphFailed": {
     "description": "graphFailed"
+  },
+  "copyPartlyFailed": "{count, plural, one{{count} file wasn’t saved: the app didn’t give access} other{{count} files weren’t saved: the app didn’t give access}}",
+  "@copyPartlyFailed": {
+    "description": "copyPartlyFailed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

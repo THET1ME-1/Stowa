@@ -122,5 +122,6 @@
   "canvasNoteHint": "Co napisać na płótnie",
   "graphTitle": "Graf powiązań",
   "graphEmpty": "Nie ma jeszcze powiązań. Pojawią się, gdy rzeczy zaczną mieć wspólne słowa albo AI je połączy.",
-  "graphFailed": "Graf się nie zbudował"
+  "graphFailed": "Graf się nie zbudował",
+  "copyPartlyFailed": "{count, plural, one{{count} plik się nie zapisał: aplikacja nie dała dostępu} few{{count} pliki się nie zapisały: aplikacja nie dała dostępu} many{{count} plików się nie zapisało: aplikacja nie dała dostępu} other{{count} pliku się nie zapisało: aplikacja nie dała dostępu}}"
 }

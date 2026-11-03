@@ -1344,4 +1344,15 @@ class LDe extends L {
 
   @override
   String get graphFailed => 'Der Graph wurde nicht erstellt';
+
+  @override
+  String copyPartlyFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien nicht gespeichert: Die App gab keinen Zugriff',
+      one: '$count Datei nicht gespeichert: Die App gab keinen Zugriff',
+    );
+    return '$_temp0';
+  }
 }

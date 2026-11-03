@@ -1339,4 +1339,15 @@ class LEn extends L {
 
   @override
   String get graphFailed => 'The graph didn’t build';
+
+  @override
+  String copyPartlyFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files weren’t saved: the app didn’t give access',
+      one: '$count file wasn’t saved: the app didn’t give access',
+    );
+    return '$_temp0';
+  }
 }

@@ -69,6 +69,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
         overDock: true,
       );
     });
+    // файл не скопировался: человек должен узнать сразу, а не найти пустую вещь потом
+    ref.listenManual(copyFailuresProvider, (previous, next) {
+      final failure = next.value;
+      if (failure == null || !mounted) return;
+      final l = L.of(context);
+      showNote(ScaffoldMessenger.of(context), failure.removed ? l.shareFailed : l.copyPartlyFailed(failure.failed), overDock: true);
+    });
     // сеть вернулась: всё, что ждало ИИ без связи, уходит сразу
     ref.listenManual(onlineProvider, (previous, next) {
       if (next.value != true || previous?.value == true) return;

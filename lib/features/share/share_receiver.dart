@@ -44,11 +44,28 @@ class _ShareHostState extends ConsumerState<ShareHost> {
   Future<void> _run() async {
     try {
       final l = L.of(context);
+      final capture = ref.read(captureServiceProvider);
+      final failures = <CopyFailure>[];
+      final listening = capture.copyFailures.listen((failure) {
+        failures.add(failure);
+        // файл так и не скопировался, а слов нет: лист про пустую вещь только врал бы
+        if (failure.removed && mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+      });
       final id = await saveShared(ref, await widget.load(), l: l);
       if (!mounted) return;
       if (id != null) {
         await showShareSheet(context, id);
+        // окно закрывается вместе с движком: файлы должны успеть скопироваться
+        await capture.settled();
+        // отписку не ждём: ей нечего дожидаться, а ожидание сдвигает плашку на кадр
+        unawaited(listening.cancel());
+        final failure = failures.where((one) => one.itemId == id).firstOrNull;
+        if (failure != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.removed ? l.shareFailed : l.copyPartlyFailed(failure.failed))));
+          await Future<void>.delayed(const Duration(milliseconds: 2500));
+        }
       } else {
+        unawaited(listening.cancel());
         // источник не дал прочитать файл: молча закрыться — значит оставить человека гадать
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.shareFailed)));
         await Future<void>.delayed(const Duration(milliseconds: 2500));

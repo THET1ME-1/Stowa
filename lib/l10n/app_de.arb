@@ -122,5 +122,6 @@
   "canvasNoteHint": "Was auf die Leinwand soll",
   "graphTitle": "Verknüpfungsgraph",
   "graphEmpty": "Noch keine Verknüpfungen. Sie entstehen, wenn Elemente gemeinsame Wörter haben oder die KI sie verbindet.",
-  "graphFailed": "Der Graph wurde nicht erstellt"
+  "graphFailed": "Der Graph wurde nicht erstellt",
+  "copyPartlyFailed": "{count, plural, one{{count} Datei nicht gespeichert: Die App gab keinen Zugriff} other{{count} Dateien nicht gespeichert: Die App gab keinen Zugriff}}"
 }

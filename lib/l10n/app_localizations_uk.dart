@@ -1356,4 +1356,17 @@ class LUk extends L {
 
   @override
   String get graphFailed => 'Граф не побудувався';
+
+  @override
+  String copyPartlyFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файлу не збережено: застосунок не дав доступу',
+      many: '$count файлів не збережено: застосунок не дав доступу',
+      few: '$count файли не збережено: застосунок не дав доступу',
+      one: '$count файл не збережено: застосунок не дав доступу',
+    );
+    return '$_temp0';
+  }
 }

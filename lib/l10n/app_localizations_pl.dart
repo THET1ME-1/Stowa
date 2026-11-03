@@ -1356,4 +1356,17 @@ class LPl extends L {
 
   @override
   String get graphFailed => 'Graf się nie zbudował';
+
+  @override
+  String copyPartlyFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pliku się nie zapisało: aplikacja nie dała dostępu',
+      many: '$count plików się nie zapisało: aplikacja nie dała dostępu',
+      few: '$count pliki się nie zapisały: aplikacja nie dała dostępu',
+      one: '$count plik się nie zapisał: aplikacja nie dała dostępu',
+    );
+    return '$_temp0';
+  }
 }
