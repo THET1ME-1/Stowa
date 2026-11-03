@@ -19,6 +19,7 @@ import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_sheets.dart';
+import '../graph/graph_screen.dart';
 
 /// Лист тега, как экран 11 макета: новый или правка старого.
 Future<void> showTagSheet(BuildContext context, {TagCard? tag, bool pin = false}) {
@@ -235,6 +236,18 @@ class _TagSheetState extends ConsumerState<TagSheet> {
             onPressed: normalizeTagName(_name.text).isEmpty ? null : _save,
             child: Text(widget.tag == null ? l.tagCreateButton : l.save),
           ),
+          if (widget.tag case final tag? when tag.count > 1) ...[
+            const SizedBox(height: 8),
+            // все вещи с тегом и как они связаны
+            OutlinedButton.icon(
+              onPressed: () {
+                final navigator = Navigator.of(context)..pop();
+                navigator.push(graphRoute(tag: tag.name, title: '#${tag.name}'));
+              },
+              icon: Icon(symbolIcon('hub')),
+              label: Text(l.graphTitle),
+            ),
+          ],
           if (widget.tag != null) ...[
             const SizedBox(height: 8),
             TextButton(

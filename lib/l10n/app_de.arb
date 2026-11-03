@@ -119,5 +119,8 @@
   "folderCanvas": "Leinwand",
   "canvasFit": "Alles einpassen",
   "canvasNote": "Notiz",
-  "canvasNoteHint": "Was auf die Leinwand soll"
+  "canvasNoteHint": "Was auf die Leinwand soll",
+  "graphTitle": "Verknüpfungsgraph",
+  "graphEmpty": "Noch keine Verknüpfungen. Sie entstehen, wenn Elemente gemeinsame Wörter haben oder die KI sie verbindet.",
+  "graphFailed": "Der Graph wurde nicht erstellt"
 }

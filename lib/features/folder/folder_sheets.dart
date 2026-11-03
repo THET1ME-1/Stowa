@@ -10,7 +10,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
 
-enum FolderAction { rename, look, delete }
+enum FolderAction { graph, rename, look, delete }
 
 /// Спросить имя и завести папку. Отказался — null.
 Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref) async {
@@ -46,6 +46,7 @@ Future<FolderAction?> showFolderMenu(BuildContext context) {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          row('hub', l.graphTitle, FolderAction.graph),
           row('edit', l.folderRename, FolderAction.rename),
           row('palette', l.folderLook, FolderAction.look),
           row('delete', l.folderDelete, FolderAction.delete, danger: true),

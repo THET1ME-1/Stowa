@@ -1726,5 +1726,17 @@
   "canvasNoteHint": "What to write on the canvas",
   "@canvasNoteHint": {
     "description": "canvasNoteHint"
+  },
+  "graphTitle": "Link graph",
+  "@graphTitle": {
+    "description": "graphTitle"
+  },
+  "graphEmpty": "No links yet. They appear when items start sharing words or the AI links them.",
+  "@graphEmpty": {
+    "description": "graphEmpty"
+  },
+  "graphFailed": "The graph didn’t build",
+  "@graphFailed": {
+    "description": "graphFailed"
   }
 }

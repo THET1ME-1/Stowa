@@ -1330,4 +1330,14 @@ class LEs extends L {
 
   @override
   String get canvasNoteHint => 'Qué escribir en el lienzo';
+
+  @override
+  String get graphTitle => 'Grafo de enlaces';
+
+  @override
+  String get graphEmpty =>
+      'Aún no hay enlaces. Aparecen cuando los elementos comparten palabras o la IA los une.';
+
+  @override
+  String get graphFailed => 'El grafo no se generó';
 }

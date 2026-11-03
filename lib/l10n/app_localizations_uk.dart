@@ -1346,4 +1346,14 @@ class LUk extends L {
 
   @override
   String get canvasNoteHint => 'Що написати на полотні';
+
+  @override
+  String get graphTitle => 'Граф зв’язків';
+
+  @override
+  String get graphEmpty =>
+      'Зв’язків поки немає. Вони з’являться, коли речі почнуть перегукуватися словами або ШІ зв’яже їх сам.';
+
+  @override
+  String get graphFailed => 'Граф не побудувався';
 }

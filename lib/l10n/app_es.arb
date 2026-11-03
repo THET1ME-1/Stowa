@@ -119,5 +119,8 @@
   "folderCanvas": "Lienzo",
   "canvasFit": "Encajar todo",
   "canvasNote": "Nota",
-  "canvasNoteHint": "Qué escribir en el lienzo"
+  "canvasNoteHint": "Qué escribir en el lienzo",
+  "graphTitle": "Grafo de enlaces",
+  "graphEmpty": "Aún no hay enlaces. Aparecen cuando los elementos comparten palabras o la IA los une.",
+  "graphFailed": "El grafo no se generó"
 }

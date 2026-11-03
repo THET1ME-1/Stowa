@@ -1334,4 +1334,14 @@ class LDe extends L {
 
   @override
   String get canvasNoteHint => 'Was auf die Leinwand soll';
+
+  @override
+  String get graphTitle => 'Verknüpfungsgraph';
+
+  @override
+  String get graphEmpty =>
+      'Noch keine Verknüpfungen. Sie entstehen, wenn Elemente gemeinsame Wörter haben oder die KI sie verbindet.';
+
+  @override
+  String get graphFailed => 'Der Graph wurde nicht erstellt';
 }

@@ -119,5 +119,8 @@
   "folderCanvas": "Płótno",
   "canvasFit": "Pokaż wszystko",
   "canvasNote": "Notatka",
-  "canvasNoteHint": "Co napisać na płótnie"
+  "canvasNoteHint": "Co napisać na płótnie",
+  "graphTitle": "Graf powiązań",
+  "graphEmpty": "Nie ma jeszcze powiązań. Pojawią się, gdy rzeczy zaczną mieć wspólne słowa albo AI je połączy.",
+  "graphFailed": "Graf się nie zbudował"
 }

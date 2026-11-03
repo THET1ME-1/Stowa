@@ -71,6 +71,14 @@ class ItemCard {
   final int? durationSeconds;
 }
 
+/// Вещи и связи между ними для графа.
+class GraphData {
+  const GraphData({required this.nodes, required this.edges});
+
+  final List<ItemCard> nodes;
+  final List<(String, String)> edges;
+}
+
 /// Найденная вещь: карточка и что в ней совпало.
 class SearchResult {
   const SearchResult({required this.card, required this.hit});
@@ -202,6 +210,63 @@ WHERE items.deleted_at IS NULL''';
       ];
     });
   }
+
+  /// Граф папки или тега: вещи точками, связи — от ИИ, ручные и похожие по словам,
+  /// как в «Связано». Отклонённые человеком не рисуются.
+  Future<GraphData> graph({String? folderId, String? tag}) async {
+    final scope = await _db
+        .customSelect(
+          folderId != null
+              ? '$_cardSelect AND items.folder_id = ?'
+              : '$_cardSelect AND items.id IN (SELECT item_tags.item_id FROM item_tags JOIN tags ON tags.id = item_tags.tag_id WHERE tags.name = ?)',
+          variables: [Variable.withString(folderId ?? tag!)],
+        )
+        .get();
+    final cards = [for (final row in scope) _card(row)];
+    final inside = {for (final card in cards) card.id};
+
+    final links = await (_db.select(_db.links)..where((t) => t.fromId.isIn(inside) | t.toId.isIn(inside))).get();
+    final refused = {for (final link in links) if (link.rejected) _pair(link.fromId, link.toId)};
+    final edges = <String>{
+      for (final link in links)
+        if (!link.rejected && inside.contains(link.fromId) && inside.contains(link.toId)) _pair(link.fromId, link.toId),
+    };
+
+    // похожие считаются по всей базе: редкость слова меряется на всех вещах
+    final rows = await _db
+        .customSelect(
+          "SELECT items.id, items.url, items.title || ' ' || items.body || ' ' || coalesce(items.transcript, '') || ' ' || "
+          "coalesce(items.preview_text, '') AS text FROM items WHERE items.deleted_at IS NULL",
+        )
+        .get();
+    final docs = [
+      for (final row in rows)
+        RelatedDoc(
+          id: row.read<String>('id'),
+          text: row.read<String>('text'),
+          site: switch (row.readNullable<String>('url')) {
+            final url? => Uri.tryParse(url)?.host.replaceFirst(RegExp(r'^www\.'), ''),
+            null => null,
+          },
+        ),
+    ];
+    for (final card in cards) {
+      for (final one in findRelated(card.id, docs, limit: 3)) {
+        final pair = _pair(card.id, one.id);
+        if (inside.contains(one.id) && !refused.contains(pair)) edges.add(pair);
+      }
+    }
+    return GraphData(
+      nodes: cards,
+      edges: [
+        for (final pair in edges)
+          if (pair.split('|') case [final a, final b]) (a, b),
+      ],
+    );
+  }
+
+  /// Связь без направления: A—B и B—A одна и та же.
+  String _pair(String a, String b) => a.compareTo(b) < 0 ? '$a|$b' : '$b|$a';
 
   /// Человек сказал, что вещи не связаны: больше не предлагать.
   Future<void> rejectRelated(String id, String otherId) {

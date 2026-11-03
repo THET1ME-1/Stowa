@@ -2314,6 +2314,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'What to write on the canvas'**
   String get canvasNoteHint;
+
+  /// graphTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Link graph'**
+  String get graphTitle;
+
+  /// graphEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'No links yet. They appear when items start sharing words or the AI links them.'**
+  String get graphEmpty;
+
+  /// graphFailed
+  ///
+  /// In en, this message translates to:
+  /// **'The graph didn’t build'**
+  String get graphFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

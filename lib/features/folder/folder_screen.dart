@@ -18,6 +18,7 @@ import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
+import '../graph/graph_screen.dart';
 import '../item/item_screen.dart';
 import '../sort/sort_screen.dart';
 import '../tags/tag_picker.dart';
@@ -205,6 +206,8 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     final action = await showFolderMenu(context);
     if (!mounted || action == null) return;
     switch (action) {
+      case FolderAction.graph:
+        await Navigator.of(context).push(graphRoute(folderId: folder.id, title: folder.name));
       case FolderAction.rename:
         final name = await showRenameSheet(context, folder.name);
         if (name != null) await repository.rename(folder.id, name);

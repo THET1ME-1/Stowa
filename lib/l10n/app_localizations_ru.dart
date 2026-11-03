@@ -1351,4 +1351,14 @@ class LRu extends L {
 
   @override
   String get canvasNoteHint => 'Что написать на холсте';
+
+  @override
+  String get graphTitle => 'Граф связей';
+
+  @override
+  String get graphEmpty =>
+      'Связей пока нет. Они появятся, когда вещи начнут перекликаться словами или ИИ свяжет их сам.';
+
+  @override
+  String get graphFailed => 'Граф не построился';
 }

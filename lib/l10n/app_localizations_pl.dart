@@ -1346,4 +1346,14 @@ class LPl extends L {
 
   @override
   String get canvasNoteHint => 'Co napisać na płótnie';
+
+  @override
+  String get graphTitle => 'Graf powiązań';
+
+  @override
+  String get graphEmpty =>
+      'Nie ma jeszcze powiązań. Pojawią się, gdy rzeczy zaczną mieć wspólne słowa albo AI je połączy.';
+
+  @override
+  String get graphFailed => 'Graf się nie zbudował';
 }

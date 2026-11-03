@@ -1329,4 +1329,14 @@ class LEn extends L {
 
   @override
   String get canvasNoteHint => 'What to write on the canvas';
+
+  @override
+  String get graphTitle => 'Link graph';
+
+  @override
+  String get graphEmpty =>
+      'No links yet. They appear when items start sharing words or the AI links them.';
+
+  @override
+  String get graphFailed => 'The graph didn’t build';
 }

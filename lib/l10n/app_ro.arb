@@ -119,5 +119,8 @@
   "folderCanvas": "Pânză",
   "canvasFit": "Încadrează tot",
   "canvasNote": "Notiță",
-  "canvasNoteHint": "Ce să scrii pe pânză"
+  "canvasNoteHint": "Ce să scrii pe pânză",
+  "graphTitle": "Graful legăturilor",
+  "graphEmpty": "Încă nu sunt legături. Apar când elementele au cuvinte comune sau AI le leagă.",
+  "graphFailed": "Graful nu s-a construit"
 }

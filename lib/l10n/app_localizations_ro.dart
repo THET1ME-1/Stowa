@@ -1337,4 +1337,14 @@ class LRo extends L {
 
   @override
   String get canvasNoteHint => 'Ce să scrii pe pânză';
+
+  @override
+  String get graphTitle => 'Graful legăturilor';
+
+  @override
+  String get graphEmpty =>
+      'Încă nu sunt legături. Apar când elementele au cuvinte comune sau AI le leagă.';
+
+  @override
+  String get graphFailed => 'Graful nu s-a construit';
 }
