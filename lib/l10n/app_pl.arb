@@ -115,5 +115,9 @@
   "selDeleted": "{count, plural, one{{count} rzecz usunięta} few{{count} rzeczy usunięte} many{{count} rzeczy usuniętych} other{{count} rzeczy usuniętej}}",
   "selTagged": "Dodano #{tag}",
   "selUntagged": "Usunięto #{tag}",
-  "tagPickTitle": "Jaki tag"
+  "tagPickTitle": "Jaki tag",
+  "folderCanvas": "Płótno",
+  "canvasFit": "Pokaż wszystko",
+  "canvasNote": "Notatka",
+  "canvasNoteHint": "Co napisać na płótnie"
 }

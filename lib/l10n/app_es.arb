@@ -115,5 +115,9 @@
   "selDeleted": "{count, plural, one{{count} elemento borrado} other{{count} elementos borrados}}",
   "selTagged": "Etiquetado #{tag}",
   "selUntagged": "Quitado #{tag}",
-  "tagPickTitle": "Qué etiqueta"
+  "tagPickTitle": "Qué etiqueta",
+  "folderCanvas": "Lienzo",
+  "canvasFit": "Encajar todo",
+  "canvasNote": "Nota",
+  "canvasNoteHint": "Qué escribir en el lienzo"
 }

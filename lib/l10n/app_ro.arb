@@ -115,5 +115,9 @@
   "selDeleted": "{count, plural, one{{count} element șters} few{{count} elemente șterse} other{{count} de elemente șterse}}",
   "selTagged": "Etichetat #{tag}",
   "selUntagged": "Scos #{tag}",
-  "tagPickTitle": "Ce etichetă"
+  "tagPickTitle": "Ce etichetă",
+  "folderCanvas": "Pânză",
+  "canvasFit": "Încadrează tot",
+  "canvasNote": "Notiță",
+  "canvasNoteHint": "Ce să scrii pe pânză"
 }

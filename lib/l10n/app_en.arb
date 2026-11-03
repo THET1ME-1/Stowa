@@ -1710,5 +1710,21 @@
   "tagPickTitle": "Which tag",
   "@tagPickTitle": {
     "description": "tagPickTitle"
+  },
+  "folderCanvas": "Canvas",
+  "@folderCanvas": {
+    "description": "folderCanvas"
+  },
+  "canvasFit": "Fit everything",
+  "@canvasFit": {
+    "description": "canvasFit"
+  },
+  "canvasNote": "Note",
+  "@canvasNote": {
+    "description": "canvasNote"
+  },
+  "canvasNoteHint": "What to write on the canvas",
+  "@canvasNoteHint": {
+    "description": "canvasNoteHint"
   }
 }

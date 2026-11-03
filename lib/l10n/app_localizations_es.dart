@@ -1318,4 +1318,16 @@ class LEs extends L {
 
   @override
   String get tagPickTitle => 'Qué etiqueta';
+
+  @override
+  String get folderCanvas => 'Lienzo';
+
+  @override
+  String get canvasFit => 'Encajar todo';
+
+  @override
+  String get canvasNote => 'Nota';
+
+  @override
+  String get canvasNoteHint => 'Qué escribir en el lienzo';
 }

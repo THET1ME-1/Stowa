@@ -2290,6 +2290,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Which tag'**
   String get tagPickTitle;
+
+  /// folderCanvas
+  ///
+  /// In en, this message translates to:
+  /// **'Canvas'**
+  String get folderCanvas;
+
+  /// canvasFit
+  ///
+  /// In en, this message translates to:
+  /// **'Fit everything'**
+  String get canvasFit;
+
+  /// canvasNote
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get canvasNote;
+
+  /// canvasNoteHint
+  ///
+  /// In en, this message translates to:
+  /// **'What to write on the canvas'**
+  String get canvasNoteHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

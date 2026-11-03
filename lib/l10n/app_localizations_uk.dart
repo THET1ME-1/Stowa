@@ -1334,4 +1334,16 @@ class LUk extends L {
 
   @override
   String get tagPickTitle => 'Який тег';
+
+  @override
+  String get folderCanvas => 'Полотно';
+
+  @override
+  String get canvasFit => 'Вмістити все';
+
+  @override
+  String get canvasNote => 'Записка';
+
+  @override
+  String get canvasNoteHint => 'Що написати на полотні';
 }

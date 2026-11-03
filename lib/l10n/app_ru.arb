@@ -363,5 +363,9 @@
   "selDeleted": "{count, plural, one{Удалил {count} вещь} few{Удалил {count} вещи} many{Удалил {count} вещей} other{Удалил {count} вещи}}",
   "selTagged": "Поставил #{tag}",
   "selUntagged": "Снял #{tag}",
-  "tagPickTitle": "Какой тег"
+  "tagPickTitle": "Какой тег",
+  "folderCanvas": "Холст",
+  "canvasFit": "Уместить всё",
+  "canvasNote": "Записка",
+  "canvasNoteHint": "Что написать на холсте"
 }

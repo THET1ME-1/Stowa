@@ -115,5 +115,9 @@
   "selDeleted": "{count, plural, one{Видалив {count} річ} few{Видалив {count} речі} many{Видалив {count} речей} other{Видалив {count} речі}}",
   "selTagged": "Поставив #{tag}",
   "selUntagged": "Зняв #{tag}",
-  "tagPickTitle": "Який тег"
+  "tagPickTitle": "Який тег",
+  "folderCanvas": "Полотно",
+  "canvasFit": "Вмістити все",
+  "canvasNote": "Записка",
+  "canvasNoteHint": "Що написати на полотні"
 }

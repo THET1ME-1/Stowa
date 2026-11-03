@@ -1322,4 +1322,16 @@ class LDe extends L {
 
   @override
   String get tagPickTitle => 'Welcher Tag';
+
+  @override
+  String get folderCanvas => 'Leinwand';
+
+  @override
+  String get canvasFit => 'Alles einpassen';
+
+  @override
+  String get canvasNote => 'Notiz';
+
+  @override
+  String get canvasNoteHint => 'Was auf die Leinwand soll';
 }

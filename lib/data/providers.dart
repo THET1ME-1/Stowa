@@ -18,6 +18,7 @@ import '../services/link_preview_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
 import 'db/database.dart';
+import 'repositories/canvas_repository.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
 import 'repositories/rules_repository.dart';
@@ -202,6 +203,11 @@ final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.w
 final notificationPortProvider = Provider<NotificationPort>((ref) => const SilentNotificationPort());
 final reminderServiceProvider = Provider((ref) => ReminderService(ref.watch(notificationPortProvider)));
 final remindersProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchReminders());
+
+final canvasRepositoryProvider = Provider((ref) => CanvasRepository(ref.watch(databaseProvider)));
+
+/// Раскладка холста папки.
+final canvasSpotsProvider = StreamProvider.family<Map<String, CanvasSpot>, String>((ref, folderId) => ref.watch(canvasRepositoryProvider).watch(folderId));
 
 /// Вещи папки; null — всё, что лежит без папки.
 final folderItemsProvider = StreamProvider.family<List<ItemCard>, String?>((ref, folderId) => ref.watch(itemsRepositoryProvider).watchFolder(folderId));

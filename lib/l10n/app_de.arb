@@ -115,5 +115,9 @@
   "selDeleted": "{count, plural, one{{count} Element gelöscht} other{{count} Elemente gelöscht}}",
   "selTagged": "#{tag} gesetzt",
   "selUntagged": "#{tag} entfernt",
-  "tagPickTitle": "Welcher Tag"
+  "tagPickTitle": "Welcher Tag",
+  "folderCanvas": "Leinwand",
+  "canvasFit": "Alles einpassen",
+  "canvasNote": "Notiz",
+  "canvasNoteHint": "Was auf die Leinwand soll"
 }

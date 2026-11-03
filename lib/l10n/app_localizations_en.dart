@@ -1317,4 +1317,16 @@ class LEn extends L {
 
   @override
   String get tagPickTitle => 'Which tag';
+
+  @override
+  String get folderCanvas => 'Canvas';
+
+  @override
+  String get canvasFit => 'Fit everything';
+
+  @override
+  String get canvasNote => 'Note';
+
+  @override
+  String get canvasNoteHint => 'What to write on the canvas';
 }

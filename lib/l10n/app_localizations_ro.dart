@@ -1325,4 +1325,16 @@ class LRo extends L {
 
   @override
   String get tagPickTitle => 'Ce etichetă';
+
+  @override
+  String get folderCanvas => 'Pânză';
+
+  @override
+  String get canvasFit => 'Încadrează tot';
+
+  @override
+  String get canvasNote => 'Notiță';
+
+  @override
+  String get canvasNoteHint => 'Ce să scrii pe pânză';
 }

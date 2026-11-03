@@ -1339,4 +1339,16 @@ class LRu extends L {
 
   @override
   String get tagPickTitle => 'Какой тег';
+
+  @override
+  String get folderCanvas => 'Холст';
+
+  @override
+  String get canvasFit => 'Уместить всё';
+
+  @override
+  String get canvasNote => 'Записка';
+
+  @override
+  String get canvasNoteHint => 'Что написать на холсте';
 }

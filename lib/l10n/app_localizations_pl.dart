@@ -1334,4 +1334,16 @@ class LPl extends L {
 
   @override
   String get tagPickTitle => 'Jaki tag';
+
+  @override
+  String get folderCanvas => 'Płótno';
+
+  @override
+  String get canvasFit => 'Pokaż wszystko';
+
+  @override
+  String get canvasNote => 'Notatka';
+
+  @override
+  String get canvasNoteHint => 'Co napisać na płótnie';
 }
