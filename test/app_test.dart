@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/home/recent_strip.dart';
 
 import 'helpers/test_app.dart';
 
@@ -46,6 +47,22 @@ void main() {
     expect(find.text('Только что'), findsNothing);
     expect(find.text('Закинул'), findsNothing);
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'Купить батарейки для пульта');
+  });
+
+  testWidgets('«Только что»: касание подписи перекладывает, долгое нажатие — лист действий', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'squircle'));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Лампочки в коридор', createdAt: world.now, updatedAt: world.now));
+    await open(tester);
+
+    await tester.tap(find.descendant(of: find.byType(RecentCard), matching: find.text('Без папки')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Дом').last);
+    await tester.pumpAndSettle();
+    expect((await world.db.select(world.db.items).getSingle()).folderId, 'home');
+
+    await tester.longPress(find.descendant(of: find.byType(RecentCard), matching: find.text('Лампочки в коридор')));
+    await tester.pumpAndSettle();
+    expect(find.text('Переложить в папку'), findsOneWidget);
   });
 
   testWidgets('плашка «Закинул» уходит сама', (tester) async {

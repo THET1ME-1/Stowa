@@ -8,7 +8,9 @@ import '../../core/widgets/shape_badge.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
+import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
+import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
 import '../tags/tags_screen.dart';
@@ -40,9 +42,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final reminders = next.value;
       if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
     }, fireImmediately: true);
-    // размеры старых картинок для доски: в фоне, после первого кадра
+    // старые вещи под нынешние правила: размеры картинок для доски и заголовки вместо имён файлов
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.read(captureServiceProvider).fillImageSizes().ignore();
+      if (!mounted) return;
+      final l = L.of(context);
+      final capture = ref.read(captureServiceProvider);
+      capture.fillImageSizes().ignore();
+      capture.retitleFileNames(({required mime, required fileName, required at}) => untitledFor(l, mime: mime, fileName: fileName, at: at)).ignore();
     });
   }
 
@@ -166,7 +172,14 @@ class _Feed extends ConsumerWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: RecentStrip(items: recent, filesRoot: filesRoot, now: now, onOpen: (card) => onOpen(card.id)),
+            child: RecentStrip(
+              items: recent,
+              filesRoot: filesRoot,
+              now: now,
+              onOpen: (card) => onOpen(card.id),
+              onMove: (card) => moveItem(context, ref, card),
+              onAct: (card) => showItemActions(context, ref, card),
+            ),
           ),
         ],
         if (folders.isNotEmpty) ...[

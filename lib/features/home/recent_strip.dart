@@ -32,12 +32,18 @@ double recentCardHeight(TextScaler scaler) {
 
 /// «Только что»: последние вещи вбок. Новая вещь въезжает, а не появляется скачком.
 class RecentStrip extends StatefulWidget {
-  const RecentStrip({super.key, required this.items, required this.filesRoot, required this.now, this.onOpen});
+  const RecentStrip({super.key, required this.items, required this.filesRoot, required this.now, this.onOpen, this.onMove, this.onAct});
 
   final List<ItemCard> items;
   final Directory filesRoot;
   final DateTime now;
   final ValueChanged<ItemCard>? onOpen;
+
+  /// Касание подписи: переложить в папку.
+  final ValueChanged<ItemCard>? onMove;
+
+  /// Долгое нажатие: открыть, переложить, удалить.
+  final ValueChanged<ItemCard>? onAct;
 
   @override
   State<RecentStrip> createState() => _RecentStripState();
@@ -63,7 +69,14 @@ class _RecentStripState extends State<RecentStrip> {
           return _Arrive(
             key: ValueKey(item.id),
             play: fresh,
-            child: RecentCard(item: item, filesRoot: widget.filesRoot, now: widget.now, onTap: widget.onOpen == null ? null : () => widget.onOpen!(item)),
+            child: RecentCard(
+              item: item,
+              filesRoot: widget.filesRoot,
+              now: widget.now,
+              onTap: widget.onOpen == null ? null : () => widget.onOpen!(item),
+              onMove: widget.onMove == null ? null : () => widget.onMove!(item),
+              onLongPress: widget.onAct == null ? null : () => widget.onAct!(item),
+            ),
           );
         },
       ),
@@ -126,18 +139,23 @@ class _ArriveState extends State<_Arrive> with SingleTickerProviderStateMixin {
 }
 
 class RecentCard extends StatelessWidget {
-  const RecentCard({super.key, required this.item, required this.filesRoot, required this.now, this.onTap});
+  const RecentCard({super.key, required this.item, required this.filesRoot, required this.now, this.onTap, this.onMove, this.onLongPress});
 
   final ItemCard item;
   final Directory filesRoot;
   final DateTime now;
   final VoidCallback? onTap;
 
+  /// Касание подписи с папкой: переложить.
+  final VoidCallback? onMove;
+  final VoidCallback? onLongPress;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Pressable(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         width: recentCardWidth,
         decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
@@ -160,8 +178,15 @@ class RecentCard extends StatelessWidget {
                         style: text.bodyMedium!.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w500),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    _Where(item: item, now: now),
+                    // подпись ловит касание на всю ширину и с запасом сверху: палец крупнее строки
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onMove,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _Where(item: item, now: now),
+                      ),
+                    ),
                   ],
                 ),
               ),

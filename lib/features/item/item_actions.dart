@@ -13,6 +13,33 @@ import 'item_screen.dart';
 
 enum _Action { open, move, delete }
 
+/// Переложить вещь в другую папку или новую, с «Отменить».
+Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final items = ref.read(itemsRepositoryProvider);
+  final clock = ref.read(clockProvider);
+  final folders = ref.read(foldersProvider).value ?? const <FolderCard>[];
+  final picked = await showModalBottomSheet<FolderCard>(
+    context: context,
+    showDragHandle: true,
+    useSafeArea: true,
+    builder: (sheet) => FolderPickerSheet(
+      title: l.folderPickTitle,
+      folders: [for (final folder in folders) if (folder.id != card.folderId) folder],
+      onNew: () => askNewFolder(sheet, ref),
+    ),
+  );
+  if (picked == null) return;
+  await items.moveToFolder(card.id, picked.id, clock());
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(l.itemMoved(picked.name)),
+      action: SnackBarAction(label: l.undo, onPressed: () => items.moveToFolder(card.id, card.folderId, clock())),
+    ),
+  );
+}
+
 /// Долгое нажатие на вещь в ленте: открыть, переложить в другую папку, удалить с «Вернуть».
 Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card) async {
   final l = L.of(context);
@@ -53,25 +80,7 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
     case _Action.open:
       await navigator.push(itemRoute(card.id));
     case _Action.move:
-      final folders = ref.read(foldersProvider).value ?? const <FolderCard>[];
-      final picked = await showModalBottomSheet<FolderCard>(
-        context: context,
-        showDragHandle: true,
-        useSafeArea: true,
-        builder: (sheet) => FolderPickerSheet(
-          title: l.folderPickTitle,
-          folders: [for (final folder in folders) if (folder.id != card.folderId) folder],
-          onNew: () => askNewFolder(sheet, ref),
-        ),
-      );
-      if (picked == null) return;
-      await items.moveToFolder(card.id, picked.id, now);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l.itemMoved(picked.name)),
-          action: SnackBarAction(label: l.undo, onPressed: () => items.moveToFolder(card.id, card.folderId, now)),
-        ),
-      );
+      await moveItem(context, ref, card);
     case _Action.delete:
       await items.softDelete(card.id, now);
       messenger.showSnackBar(

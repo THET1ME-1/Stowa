@@ -54,9 +54,11 @@ class _SortScreenState extends ConsumerState<SortScreen> {
 
   Future<void> _put(String id, FolderCard folder) async {
     final items = ref.read(itemsRepositoryProvider);
-    await items.moveToFolder(id, folder.id, _now);
+    // часы берём сейчас: «Отменить» могут нажать, когда экрана уже нет
+    final clock = ref.read(clockProvider);
+    await items.moveToFolder(id, folder.id, clock());
     if (!mounted) return;
-    _undoable(L.of(context).itemMoved(folder.name), () => items.moveToFolder(id, null, _now));
+    _undoable(L.of(context).itemMoved(folder.name), () => items.moveToFolder(id, null, clock()));
   }
 
   Future<void> _newFolder(String id) async {

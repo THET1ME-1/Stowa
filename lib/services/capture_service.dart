@@ -167,6 +167,27 @@ class CaptureService {
         );
   }
 
+  /// Вещам без текста, которым раньше в заголовок шло имя файла, дать заголовок по
+  /// нынешнему правилу: человеческое имя без расширения, машинное — подпись [untitled].
+  /// Заголовок, который человек поменял, не трогается: он уже не совпадает с именем.
+  Future<void> retitleFileNames(String Function({required String mime, required String fileName, required DateTime at}) untitled) async {
+    final rows = await _db.customSelect('''
+SELECT items.id AS id, items.title AS title, items.created_at AS created_at, attachments.path AS path, attachments.mime AS mime
+FROM items JOIN attachments ON attachments.item_id = items.id AND attachments.position = 0
+WHERE items.deleted_at IS NULL AND trim(items.body) = ''
+''', readsFrom: {_db.items, _db.attachments}).get();
+    for (final row in rows) {
+      // файл хранится как «номер_имя»: имя — то, что было в заголовке
+      final stored = p.basename(row.read<String>('path'));
+      final fileName = stored.substring(stored.indexOf('_') + 1);
+      if (row.read<String>('title') != fileName) continue;
+      final fromName = titleFor('', fileName: fileName);
+      final createdAt = _db.typeMapping.read(DriftSqlType.dateTime, row.data['created_at'])!;
+      final title = fromName.isNotEmpty ? fromName : untitled(mime: row.read<String>('mime'), fileName: fileName, at: createdAt);
+      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(title)));
+    }
+  }
+
   /// Картинкам, сохранённым до учёта размеров, дописать размер. Пропавший файл пропускается.
   Future<void> fillImageSizes() async {
     final missing = await (_db.select(_db.attachments)..where((t) => t.mime.like('image/%') & t.width.isNull())).get();

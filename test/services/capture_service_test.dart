@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' show Value;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
@@ -79,6 +81,25 @@ void main() {
     await capture.fillImageSizes();
     final file = (await items.get('old'))!.attachments.firstWhere((one) => one.id == 'fa');
     expect((file.width, file.height), (30, 20));
+  });
+
+  test('старые заголовки-имена файлов переписываются, свои заголовки не трогаются', () async {
+    Future<void> old(String id, String title, String file, {String body = ''}) async {
+      await db.into(db.items).insert(ItemsCompanion.insert(id: id, kind: ItemKind.image, title: title, body: Value(body), createdAt: DateTime(2026, 11, 1), updatedAt: DateTime(2026, 11, 1)));
+      await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'f$id', itemId: id, path: 'attachments/$id/0_$file', mime: 'image/jpeg', size: 1));
+    }
+
+    await old('cam', 'IMG_20261101_101010.jpg', 'IMG_20261101_101010.jpg');
+    await old('human', 'dver2.jpg', 'dver2.jpg');
+    await old('mine', 'Дверь в Тбилиси', 'IMG_1.jpg');
+    await old('text', 'IMG_2.jpg', 'IMG_2.jpg', body: 'подпись');
+
+    await capture.retitleFileNames(({required mime, required fileName, required at}) => 'Фото от 1 ноября');
+    Future<String> title(String id) async => (await items.get(id))!.item.title;
+    expect(await title('cam'), 'Фото от 1 ноября');
+    expect(await title('human'), 'Dver2');
+    expect(await title('mine'), 'Дверь в Тбилиси');
+    expect(await title('text'), 'IMG_2.jpg');
   });
 
   test('фото с камеры без текста: вместо IMG_… подпись от экрана', () async {
