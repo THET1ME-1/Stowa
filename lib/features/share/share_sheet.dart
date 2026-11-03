@@ -8,6 +8,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../composer/panel_text.dart';
 import '../folder/folder_sheets.dart';
 
 const _countdown = Duration(seconds: 3);
@@ -111,7 +112,10 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
                     dimension: 64,
                     child: image != null
                         ? Image.file(File(p.join(filesRoot.path, image.path)), fit: BoxFit.cover, errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh))
-                        : ColoredBox(color: Tokens.containerHigh, child: Icon(symbolIcon('check', filled: true), color: Tokens.onSurface)),
+                        : ColoredBox(
+                            color: Tokens.containerHigh,
+                            child: Icon(symbolIcon(item == null ? 'check' : kindIcon(item.item.kind), filled: true), size: 28, color: Tokens.onSurface),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 14),

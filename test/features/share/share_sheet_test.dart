@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/app.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/features/home/home_screen.dart';
+import 'package:stowa/features/share/share_receiver.dart';
 import 'package:stowa/features/share/share_sheet.dart';
 import 'package:stowa/services/share_intake.dart';
 
@@ -12,26 +15,47 @@ void main() {
   setUp(() => world = TestWorld());
   tearDown(() => world.dispose());
 
+  var finished = 0;
+
+  // окно «Поделиться»: только лист поверх чужого приложения, без главной Stowa
   Future<void> share(WidgetTester tester, List<SharedPiece> pieces) async {
     tester.view.physicalSize = const Size(400, 880);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     addTearDown(() => tester.pumpWidget(const SizedBox()));
-    await tester.pumpWidget(world.app());
-    await tester.pumpAndSettle();
-    final home = tester.state(find.byType(HomeScreen)) as dynamic;
-    // ждать конца нельзя: лист живёт, пока его не закроют
-    home.shares.receive(pieces, cold: false);
+    finished = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: world.overrides,
+        child: StowaApp(
+          locale: const Locale('ru'),
+          home: ShareHost(load: () async => pieces, onFinish: () async => finished++),
+        ),
+      ),
+    );
     // сохранение и выезд листа, но меньше трёх секунд отсчёта
     for (var step = 0; step < 8; step++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
   }
 
+
   const link = [
     SharedPiece(value: 'Паста с креветками', kind: SharedKind.text),
     SharedPiece(value: 'https://vt.tiktok.com/ZSpasta15/', kind: SharedKind.url),
   ];
+
+  testWidgets('окно «Поделиться» прозрачное и без главной', (tester) async {
+    await share(tester, link);
+    expect(find.byType(HomeScreen), findsNothing);
+    expect(tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor, Colors.transparent);
+  });
+
+  testWidgets('ничего не прислали — окно сразу закрывается', (tester) async {
+    await share(tester, const []);
+    expect(find.text('Сохранено'), findsNothing);
+    expect(finished, 1);
+  });
 
   testWidgets('присланное уже сохранено, лист закрывается сам через три секунды', (tester) async {
     await share(tester, link);
@@ -42,6 +66,7 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
     expect(find.text('Сохранено'), findsNothing);
+    expect(finished, 1);
   });
 
   testWidgets('выбрал папку и дописал пару слов — легло туда с этими словами', (tester) async {

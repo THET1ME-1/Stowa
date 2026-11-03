@@ -11,66 +11,82 @@ import '../../services/share_intake.dart';
 import '../composer/picked_files.dart';
 import 'share_sheet.dart';
 
-/// Приём из меню «Поделиться»: вещь сохраняется сразу, потом всплывает лист.
-/// Открыли Stowa ради «Поделиться» — после листа телефон возвращается туда, откуда делились.
-class ShareReceiver {
-  ShareReceiver(this._ref, this._context);
+/// Окно «Поделиться»: прозрачное, поверх приложения, из которого делятся.
+/// Сохраняет присланное, показывает лист и закрывается, телефон возвращается обратно.
+class ShareHost extends ConsumerStatefulWidget {
+  const ShareHost({super.key, this.load = loadSharedPieces, this.onFinish = SystemNavigator.pop});
 
-  final WidgetRef _ref;
-  final BuildContext Function() _context;
-  StreamSubscription<List<SharedMediaFile>>? _subscription;
+  /// Что прислали. В тестах подменяется.
+  final Future<List<SharedPiece>> Function() load;
 
-  void start() {
+  /// Закрыть окно.
+  final Future<void> Function() onFinish;
+
+  @override
+  ConsumerState<ShareHost> createState() => _ShareHostState();
+}
+
+class _ShareHostState extends ConsumerState<ShareHost> {
+  @override
+  void initState() {
+    super.initState();
+    // напоминание из присланного текста встаёт сразу, не дожидаясь главного окна
+    ref.listenManual(remindersProvider, (previous, next) {
+      final reminders = next.value;
+      if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _run());
+  }
+
+  Future<void> _run() async {
     try {
-      ReceiveSharingIntent.instance.getInitialMedia().then((media) {
-        if (media.isNotEmpty) receive(_pieces(media), cold: true);
-        ReceiveSharingIntent.instance.reset();
-      }).catchError((Object _) {});
-      _subscription = ReceiveSharingIntent.instance.getMediaStream().listen(
-        (media) {
-          if (media.isNotEmpty) receive(_pieces(media), cold: false);
-        },
-        onError: (Object _) {},
-      );
-    } on MissingPluginException {
-      // нет плагина (тесты): «Поделиться» просто не слушаем
+      final id = await saveShared(ref, await widget.load());
+      if (id != null && mounted) await showShareSheet(context, id);
+    } finally {
+      await widget.onFinish();
     }
   }
 
-  void stop() => _subscription?.cancel();
+  @override
+  Widget build(BuildContext context) => const Scaffold(backgroundColor: Colors.transparent);
+}
 
-  static List<SharedPiece> _pieces(List<SharedMediaFile> media) => [
-    for (final one in media)
-      SharedPiece(
-        value: one.path,
-        mime: one.mimeType,
-        kind: switch (one.type) {
-          SharedMediaType.text => SharedKind.text,
-          SharedMediaType.url => SharedKind.url,
-          SharedMediaType.image => SharedKind.image,
-          SharedMediaType.video => SharedKind.video,
-          SharedMediaType.file => SharedKind.file,
-        },
-      ),
-  ];
-
-  /// Сохранить присланное и показать лист.
-  Future<void> receive(List<SharedPiece> pieces, {required bool cold}) async {
-    final shared = sharedToCapture(pieces);
-    if (shared.isEmpty) return;
-    final files = <PickedFile>[];
-    for (final file in shared.files) {
-      try {
-        files.add(await pickedFrom(file.path, hint: file.mime));
-      } catch (_) {
-        // файл не прочитался: остальное всё равно сохраняем
-      }
-    }
-    if (shared.text.isEmpty && files.isEmpty) return;
-    final id = await _ref.read(captureServiceProvider).capture(CaptureInput(text: shared.text, files: files));
-    final context = _context();
-    if (!context.mounted) return;
-    await showShareSheet(context, id);
-    if (cold) await SystemNavigator.pop();
+/// Присланное системой. Нет плагина (тесты) — пусто.
+Future<List<SharedPiece>> loadSharedPieces() async {
+  try {
+    final media = await ReceiveSharingIntent.instance.getInitialMedia();
+    unawaited(ReceiveSharingIntent.instance.reset());
+    return [
+      for (final one in media)
+        SharedPiece(
+          value: one.path,
+          mime: one.mimeType,
+          kind: switch (one.type) {
+            SharedMediaType.text => SharedKind.text,
+            SharedMediaType.url => SharedKind.url,
+            SharedMediaType.image => SharedKind.image,
+            SharedMediaType.video => SharedKind.video,
+            SharedMediaType.file => SharedKind.file,
+          },
+        ),
+    ];
+  } on MissingPluginException {
+    return const [];
   }
+}
+
+/// Сохранить присланное одной вещью. Вернёт её id или null, если сохранять нечего.
+Future<String?> saveShared(WidgetRef ref, List<SharedPiece> pieces) async {
+  final shared = sharedToCapture(pieces);
+  if (shared.isEmpty) return null;
+  final files = <PickedFile>[];
+  for (final file in shared.files) {
+    try {
+      files.add(await pickedFrom(file.path, hint: file.mime));
+    } catch (_) {
+      // файл не прочитался: остальное всё равно сохраняем
+    }
+  }
+  if (shared.text.isEmpty && files.isEmpty) return null;
+  return ref.read(captureServiceProvider).capture(CaptureInput(text: shared.text, files: files));
 }

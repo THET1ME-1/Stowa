@@ -10,10 +10,13 @@ import 'l10n/app_localizations.dart';
 final appNavigator = GlobalKey<NavigatorState>();
 
 class StowaApp extends StatelessWidget {
-  const StowaApp({super.key, this.locale});
+  const StowaApp({super.key, this.locale, this.home = const HomeScreen()});
 
   /// Язык, выбранный в настройках. Пусто — язык устройства.
   final Locale? locale;
+
+  /// Первый экран: главная или окно «Поделиться».
+  final Widget home;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,7 @@ class StowaApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       localeListResolutionCallback: (deviceLocales, _) => AppLanguage.resolve(deviceLocales ?? const []).locale,
-      home: const HomeScreen(),
+      home: home,
     );
   }
 }
