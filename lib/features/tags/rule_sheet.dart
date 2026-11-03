@@ -9,6 +9,7 @@ import '../../data/providers.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
+import '../folder/folder_sheets.dart';
 
 /// Лист правила «если — то»: новое или правка старого.
 Future<void> showRuleSheet(BuildContext context, {Rule? rule}) {
@@ -20,7 +21,8 @@ Future<void> showRuleSheet(BuildContext context, {Rule? rule}) {
     backgroundColor: Tokens.containerLow,
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: RuleSheet(rule: rule),
+      // кнопка внизу не ложится на полоску жестов
+      child: SafeArea(top: false, child: RuleSheet(rule: rule)),
     ),
   );
 }
@@ -137,6 +139,15 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
             children: [
               for (final folder in folders)
                 _Choice(icon: folder.icon, label: folder.name, on: _folderId == folder.id, onTap: () => setState(() => _folderId = folder.id)),
+              _Choice(
+                icon: 'add',
+                label: l.shareNewFolder,
+                on: false,
+                onTap: () async {
+                  final created = await askNewFolder(context, ref);
+                  if (created != null && mounted) setState(() => _folderId = created.id);
+                },
+              ),
             ],
           )
         else

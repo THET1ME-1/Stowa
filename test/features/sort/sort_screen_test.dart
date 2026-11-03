@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/folder/folder_cards.dart';
 import 'package:stowa/features/sort/sort_screen.dart';
 
 import '../../helpers/test_app.dart';
@@ -54,6 +55,20 @@ void main() {
     // первая кнопка — подсказка по словам
     final first = tester.getTopLeft(find.text('Машина')).dx;
     expect(first, lessThan(tester.getTopLeft(find.text('Дом')).dx));
+  });
+
+  testWidgets('карточка во всю ширину, полоса показывает, сколько разобрано', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'squircle'));
+    await note('a', 'Мысль', minutes: 1);
+    await note('b', 'Ещё мысль', minutes: 2);
+    await open(tester);
+    final card = find.ancestor(of: find.text('Ещё мысль'), matching: find.byType(FolderItemCard));
+    expect(tester.getSize(card).width, greaterThan(400 - 2 * 24 - 1));
+    expect(tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).value, 0);
+
+    await tester.tap(find.text('Дом'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).value, 0.5);
   });
 
   testWidgets('«Пропустить» оставляет вещь без папки', (tester) async {

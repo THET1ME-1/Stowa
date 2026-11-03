@@ -28,7 +28,8 @@ Future<void> showTagSheet(BuildContext context, {TagCard? tag, bool pin = false}
     backgroundColor: Tokens.containerLow,
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: TagSheet(tag: tag, pin: pin),
+      // кнопка внизу не ложится на полоску жестов
+      child: SafeArea(top: false, child: TagSheet(tag: tag, pin: pin)),
     ),
   );
 }

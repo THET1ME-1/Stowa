@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,6 +38,7 @@ class SortScreen extends ConsumerStatefulWidget {
 
 class _SortScreenState extends ConsumerState<SortScreen> {
   final _skipped = <String>{};
+  int _total = 0;
 
   DateTime get _now => ref.read(clockProvider)();
 
@@ -76,6 +79,9 @@ class _SortScreenState extends ConsumerState<SortScreen> {
     final filesRoot = ref.watch(filesRootProvider);
     final now = ref.read(clockProvider)();
     final card = cards.firstOrNull;
+    // сколько было в начале разбора: полоса растёт с каждой разобранной вещью
+    _total = max(_total, cards.length);
+    final progress = _total == 0 ? 1.0 : 1 - cards.length / _total;
 
     // подсказки первыми, потом остальные папки
     final hints = card == null || index == null ? const <String>[] : index.rank('${card.title} ${card.body} ${card.tags.join(' ')}').take(3).toList();
@@ -106,6 +112,21 @@ class _SortScreenState extends ConsumerState<SortScreen> {
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(end: progress),
+                duration: Motion.medium,
+                curve: Motion.emphasized,
+                builder: (context, value, _) => LinearProgressIndicator(
+                  value: value,
+                  minHeight: 6,
+                  borderRadius: BorderRadius.circular(3),
+                  color: Tokens.accent,
+                  backgroundColor: Tokens.containerHigh,
+                ),
+              ),
+            ),
             Expanded(
               child: card == null
                   ? Center(child: Icon(symbolIcon('task_alt'), size: 64, color: Tokens.muted))
@@ -129,7 +150,31 @@ class _SortScreenState extends ConsumerState<SortScreen> {
                           },
                           child: Center(
                             child: SingleChildScrollView(
-                              child: FolderItemCard(card: card, filesRoot: filesRoot, now: now, onTap: () => Navigator.of(context).push(itemRoute(card.id))),
+                              clipBehavior: Clip.none,
+                              // колода: из-под карточки выглядывают края следующих
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  for (var layer = (cards.length - 1).clamp(0, 2); layer > 0; layer--)
+                                    Positioned(
+                                      left: 14.0 * layer,
+                                      right: 14.0 * layer,
+                                      top: 0,
+                                      bottom: -10.0 * layer,
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          // каждая следующая ближе к фону
+                                          color: layer == 1 ? Tokens.containerLow : Tokens.containerLow.withValues(alpha: 0.5),
+                                          borderRadius: BorderRadius.circular(Radii.tile),
+                                        ),
+                                      ),
+                                    ),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: FolderItemCard(card: card, filesRoot: filesRoot, now: now, onTap: () => Navigator.of(context).push(itemRoute(card.id))),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -137,7 +182,10 @@ class _SortScreenState extends ConsumerState<SortScreen> {
                     ),
             ),
             if (card != null) ...[
-              Text(l.sortHint, textAlign: TextAlign.center, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Space.screen * 2),
+                child: Text(l.sortHint, textAlign: TextAlign.center, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+              ),
               const SizedBox(height: 10),
               SizedBox(
                 height: 96,

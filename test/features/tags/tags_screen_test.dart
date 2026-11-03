@@ -74,6 +74,28 @@ void main() {
     expect(find.text('tiktok.com'), findsOneWidget);
   });
 
+  testWidgets('правило в новую папку, когда папок ещё нет', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Новое правило'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('есть слово'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'рецепт');
+    await tester.tap(find.text('Новая'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'кухня');
+    await tester.tap(find.text('Сохранить').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    final folder = await world.db.select(world.db.folders).getSingle();
+    final rule = await world.db.select(world.db.rules).getSingle();
+    expect((folder.name, rule.actionKind, rule.actionValue), ('Кухня', RuleActionKind.toFolder, folder.id));
+  });
+
   testWidgets('крестик снимает тег только у этой вещи', (tester) async {
     final capture = CaptureService(world.db, tags: TagsRepository(world.db), filesRoot: world.files, clock: () => world.now);
     final id = await capture.capture(const CaptureInput(text: 'Шины на зиму #машина #шины'));
