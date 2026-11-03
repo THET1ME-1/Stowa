@@ -240,5 +240,6 @@
   "untitledVideo": "Видео от {date}",
   "untitledAudio": "Запись от {date}",
   "untitledFile": "Файл от {date}",
-  "shareFailed": "Не получилось сохранить: приложение не дало доступ"
+  "shareFailed": "Не получилось сохранить: приложение не дало доступ",
+  "ruleDeleted": "Правило удалено"
 }

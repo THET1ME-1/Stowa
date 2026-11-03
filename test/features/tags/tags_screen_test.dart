@@ -122,6 +122,43 @@ void main() {
     expect(find.text('машина'), findsWidgets);
   });
 
+  testWidgets('поле тега в правиле подсказывает существующие теги', (tester) async {
+    final tags = TagsRepository(world.db, clock: () => world.now);
+    await tags.ensure('машина');
+    await tags.ensure('рецепт');
+    await open(tester);
+    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Новое правило'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'ма');
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    expect(find.descendant(of: sheet, matching: find.text('#машина')), findsOneWidget);
+    expect(find.descendant(of: sheet, matching: find.text('#рецепт')), findsNothing);
+    await tester.tap(find.descendant(of: sheet, matching: find.text('#машина')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField).first).controller!.text, 'машина');
+  });
+
+  testWidgets('удалил правило — «Вернуть» возвращает его как было', (tester) async {
+    await RulesRepository(world.db).save(condition: RuleConditionKind.domain, conditionValue: 'tiktok.com', action: RuleActionKind.addTag, actionValue: 'видео');
+    await open(tester);
+    await tester.tap(find.byTooltip('Теги, папки и правила'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('tiktok.com'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Удалить правило'));
+    await tester.pumpAndSettle();
+    expect(await world.db.select(world.db.rules).get(), isEmpty);
+
+    await tester.tap(find.text('Вернуть'));
+    await tester.pumpAndSettle();
+    final rule = await world.db.select(world.db.rules).getSingle();
+    expect((rule.conditionValue, rule.actionValue), ('tiktok.com', 'видео'));
+  });
+
   testWidgets('крестик снимает тег только у этой вещи', (tester) async {
     final capture = CaptureService(world.db, tags: TagsRepository(world.db), filesRoot: world.files, clock: () => world.now);
     final id = await capture.capture(const CaptureInput(text: 'Шины на зиму #машина #шины'));

@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
+import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
@@ -71,14 +73,20 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
   }
 
   Future<void> _delete() async {
-    await ref.read(rulesRepositoryProvider).remove(widget.rule!.id);
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final rules = ref.read(rulesRepositoryProvider);
+    final rule = widget.rule!;
+    await rules.remove(rule.id);
     if (mounted) Navigator.pop(context);
+    showUndo(messenger, message: l.ruleDeleted, label: l.restoreAction, onUndo: () => rules.restore(rule));
   }
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final folders = ref.watch(foldersProvider).value ?? const [];
+    final tags = [for (final tag in ref.watch(allTagsProvider).value ?? const <TagCard>[]) tag.name];
     final conditions = {
       RuleConditionKind.hasTag: ('tag', l.ruleIfTag),
       RuleConditionKind.domain: ('link', l.ruleIfDomain),
@@ -110,7 +118,7 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
                 _Choice(icon: kindIcon(kind), label: kindsLabel(l, kind), on: _kind == kind, onTap: () => setState(() => _kind = kind)),
             ],
           )
-        else
+        else ...[
           TextField(
             controller: _value,
             onChanged: (_) => setState(() {}),
@@ -122,6 +130,8 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
               },
             ),
           ),
+          if (_condition == RuleConditionKind.hasTag) _TagHints(controller: _value, tags: tags, onPick: () => setState(() {})),
+        ],
         const SizedBox(height: 18),
         _Label(l.ruleThen),
         Wrap(
@@ -150,8 +160,10 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
               ),
             ],
           )
-        else
+        else ...[
           TextField(controller: _tag, onChanged: (_) => setState(() {}), decoration: InputDecoration(hintText: l.ruleValueTag)),
+          _TagHints(controller: _tag, tags: tags, onPick: () => setState(() {})),
+        ],
         if (widget.rule != null)
           SwitchListTile(contentPadding: EdgeInsets.zero, title: Text(l.ruleEnabled), value: _enabled, onChanged: (value) => setState(() => _enabled = value)),
         const SizedBox(height: 12),
@@ -175,6 +187,40 @@ class _Label extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.muted)),
+    );
+  }
+}
+
+/// Теги, которые уже есть, чипами под полем: имя не надо помнить и печатать без ошибки.
+class _TagHints extends StatelessWidget {
+  const _TagHints({required this.controller, required this.tags, required this.onPick});
+
+  final TextEditingController controller;
+  final List<String> tags;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final typed = controller.text.trim().replaceFirst('#', '').toLowerCase();
+    final shown = [for (final tag in tags) if (tag != typed && tag.contains(typed)) tag].take(8).toList();
+    if (shown.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final tag in shown)
+            _Choice(
+              label: '#$tag',
+              on: false,
+              onTap: () {
+                controller.text = tag;
+                onPick();
+              },
+            ),
+        ],
+      ),
     );
   }
 }

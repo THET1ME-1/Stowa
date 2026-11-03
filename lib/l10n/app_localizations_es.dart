@@ -840,4 +840,7 @@ class LEs extends L {
 
   @override
   String get shareFailed => 'Couldn\'t save: the app didn\'t give access';
+
+  @override
+  String get ruleDeleted => 'Rule deleted';
 }

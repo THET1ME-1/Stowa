@@ -67,6 +67,9 @@ class RulesRepository {
 
   Future<void> remove(String id) => (_db.delete(_db.rules)..where((t) => t.id.equals(id))).go();
 
+  /// «Вернуть» после удаления: правило встаёт как было, с тем же номером и местом.
+  Future<void> restore(Rule rule) => _db.into(_db.rules).insert(rule, mode: InsertMode.insertOrReplace);
+
   SimpleSelectStatement<$RulesTable, Rule> _tagFolderRules(String tagName) => _db.select(_db.rules)
     ..where((t) => t.conditionKind.equalsValue(RuleConditionKind.hasTag) & t.conditionValue.equals(normalizeTagName(tagName)) & t.actionKind.equalsValue(RuleActionKind.toFolder));
 

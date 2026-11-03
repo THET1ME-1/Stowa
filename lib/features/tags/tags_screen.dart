@@ -372,10 +372,16 @@ class _RuleCard extends StatelessWidget {
           decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
           child: Row(
             children: [
-              // условие и действие делят ширину поровну, стрелка между ними
-              Expanded(child: Align(alignment: Alignment.centerLeft, child: condition)),
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Icon(symbolIcon('arrow_right_alt'), color: Tokens.muted)),
-              Expanded(child: Align(alignment: Alignment.centerLeft, child: action)),
+              // как в макете: условие, стрелка и действие подряд, длинное сокращается
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(child: condition),
+                    Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Icon(symbolIcon('arrow_right_alt'), color: Tokens.muted)),
+                    Flexible(child: action),
+                  ],
+                ),
+              ),
               Icon(symbolIcon('chevron_right'), color: Tokens.muted),
             ],
           ),

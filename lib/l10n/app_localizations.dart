@@ -1552,6 +1552,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Couldn\'t save: the app didn\'t give access'**
   String get shareFailed;
+
+  /// Snackbar after deleting a rule
+  ///
+  /// In en, this message translates to:
+  /// **'Rule deleted'**
+  String get ruleDeleted;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

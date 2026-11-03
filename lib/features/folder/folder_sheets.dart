@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/icons/icon_words.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -107,8 +108,8 @@ class _LookSheetState extends State<_LookSheet> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    final query = _query.trim().toLowerCase().replaceAll(' ', '_');
-    final icons = query.isEmpty ? pickableSymbols : symbolNames.where((name) => name.contains(query)).take(60).toList();
+    // по-русски («машина», «кофе») и по английским именам
+    final icons = _query.trim().isEmpty ? pickableSymbols : searchIcons(_query);
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * 0.7,
       child: Padding(

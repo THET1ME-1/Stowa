@@ -842,4 +842,7 @@ class LRu extends L {
   @override
   String get shareFailed =>
       'Не получилось сохранить: приложение не дало доступ';
+
+  @override
+  String get ruleDeleted => 'Правило удалено';
 }
