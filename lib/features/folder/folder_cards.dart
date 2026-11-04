@@ -16,6 +16,7 @@ import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart' show shortDate;
+import '../item/copying_bar.dart';
 
 /// Карточка вещи в ленте папки: у каждого вида своя, как на экране 6 макета.
 class FolderItemCard extends StatelessWidget {
@@ -33,15 +34,19 @@ class FolderItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: onLongPress,
-      child: switch (card.kind) {
-        // без обложки большая плитка пустая: такой ролик идёт строкой, как ссылка
-        ItemKind.video when card.thumbPath == null => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
-        ItemKind.video => _VideoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
-        ItemKind.voice => _VoiceCard(card: card, filesRoot: filesRoot, onTap: onTap),
-        ItemKind.link || ItemKind.file => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
-        ItemKind.image => _PhotoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
-        ItemKind.note => _NoteCard(card: card, now: now, onTap: onTap),
-      },
+      child: WithCopyingBar(
+        itemId: card.id,
+        copying: card.copying > 0,
+        child: switch (card.kind) {
+          // без обложки большая плитка пустая: такой ролик идёт строкой, как ссылка
+          ItemKind.video when card.thumbPath == null => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
+          ItemKind.video => _VideoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
+          ItemKind.voice => _VoiceCard(card: card, filesRoot: filesRoot, onTap: onTap),
+          ItemKind.link || ItemKind.file => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
+          ItemKind.image => _PhotoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
+          ItemKind.note => _NoteCard(card: card, now: now, onTap: onTap),
+        },
+      ),
     );
   }
 }

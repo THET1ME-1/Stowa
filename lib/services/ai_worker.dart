@@ -388,6 +388,9 @@ class AiWorker {
 
   /// Ссылка ещё ждёт превью, фото ещё копируется: подождать, иначе модель увидит голый адрес или имя файла.
   Future<bool> _notReady(Item item) async {
+    // файл ещё копируется: большой ролик может лечь и через сутки, если телефон выключали
+    final copying = await (_db.select(_db.fileJobs)..where((t) => t.itemId.equals(item.id))).get();
+    if (copying.isNotEmpty) return true;
     if (_clock().difference(item.createdAt) > _readyWait) return false;
     if (item.url != null && item.previewAt == null) return true;
     if (item.kind != ItemKind.image && item.kind != ItemKind.voice) return false;

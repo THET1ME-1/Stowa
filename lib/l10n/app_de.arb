@@ -131,5 +131,7 @@
   "placeSetting": "Merken, wo gespeichert wurde",
   "placeSettingHint": "Der Ort wird nach dem Speichern ergänzt und erscheint auf der Seite und auf der Karte. Koordinaten bleiben auf dem Handy, nur die Straßenname-Abfrage geht raus.",
   "panelLooking": "Suche: {what}",
-  "foundAtPlace": "nach Ort"
+  "foundAtPlace": "nach Ort",
+  "fileSaving": "{count, plural, one{{count} Datei wird gespeichert} other{{count} Dateien werden gespeichert}}",
+  "fileSavingHint": "Du kannst die App schließen, die Datei wird von selbst fertig. Ist der Balken weg, kann das Original gelöscht werden."
 }

@@ -1378,4 +1378,19 @@ class LEn extends L {
 
   @override
   String get foundAtPlace => 'by place';
+
+  @override
+  String fileSaving(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files are being saved',
+      one: '$count file is being saved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileSavingHint =>
+      'You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.';
 }

@@ -89,7 +89,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       // открыли с виджета: строка с клавиатурой или сразу запись голоса
       initialLaunchAction().then(_onLaunch).ignore();
       listenLaunchActions(_onLaunch);
-      // при открытии: всё, что накопилось без сети или без ключа, и что переслали боту
+      // при открытии: файлы, которые не успели лечь до закрытия или выключения телефона
+      ref.read(captureServiceProvider).files.drain().ignore();
+      // всё, что накопилось без сети или без ключа, и что переслали боту
       ref.read(aiDrainProvider)().ignore();
       ref.read(telegramPullProvider)().ignore();
       // корзина держит удалённое 30 дней, дальше стирает вместе с файлами
@@ -134,6 +136,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     });
   }
 
+  Future<void> _handOverFiles() async {
+    final db = ref.read(databaseProvider);
+    final waiting = await db.select(db.fileJobs).get();
+    if (waiting.isNotEmpty) await ref.read(fileWorkProvider)();
+  }
+
   /// Разобрать «Без папки» заново и сказать, сколько разложено, с «Отменить».
   Future<void> _sortInbox() async {
     final sorter = ref.read(autoSorterProvider);
@@ -145,8 +153,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // ушёл из приложения, а файл ещё ложится: система доделает, даже если Stowa выгрузят
+    if (state == AppLifecycleState.paused) {
+      _handOverFiles().ignore();
+      return;
+    }
     // «ближайшее» считается от момента подписки, после паузы его надо пересчитать
     if (state != AppLifecycleState.resumed) return;
+    ref.read(captureServiceProvider).files.drain().ignore();
     final launch = _pendingLaunch;
     _pendingLaunch = null;
     _onLaunch(launch);

@@ -25,7 +25,7 @@ final _ftsOld = _ftsValues('old');
 /// Запрос к индексу с теми же заменами, что и в самом индексе.
 String normalizeSearchText(String text) => _ftsSwaps.fold(text, (value, swap) => value.replaceAll(swap.$1, swap.$2));
 
-@DriftDatabase(tables: [Items, Attachments, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
+@DriftDatabase(tables: [Items, Attachments, FileJobs, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
 class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
   AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa', native: const DriftNativeOptions(shareAcrossIsolates: true)));
@@ -35,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -65,6 +65,8 @@ class AppDatabase extends _$AppDatabase {
         await _createSearch();
         await customStatement('INSERT INTO items_fts(rowid, $_ftsColumns) SELECT rowid, ${_ftsValues('items')} FROM items');
       }
+      // 5: очередь файлов, которые ещё копируются
+      if (from < 5) await migrator.createTable(fileJobs);
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

@@ -1779,5 +1779,13 @@
   "foundAtPlace": "by place",
   "@foundAtPlace": {
     "description": "Подпись у найденного: слово нашлось в названии места, где вещь сохранена"
+  },
+  "fileSaving": "{count, plural, one{{count} file is being saved} other{{count} files are being saved}}",
+  "@fileSaving": {
+    "description": "На странице вещи, пока её файл копируется во вложения"
+  },
+  "fileSavingHint": "You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.",
+  "@fileSavingHint": {
+    "description": "Пояснение под «Сохраняю файл»"
   }
 }

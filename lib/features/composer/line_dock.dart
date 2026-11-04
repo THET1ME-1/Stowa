@@ -124,7 +124,13 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _line.chooseFolder(widget.homeFolder);
     _line.addListener(_onLine);
     _focus.addListener(_onFocus);
-    unawaited(cleanVoiceDrafts(_voiceFolder, DateTime.now()).catchError((_) {}));
+    unawaited(_cleanVoiceDrafts().catchError((_) {}));
+  }
+
+  Future<void> _cleanVoiceDrafts() async {
+    final db = ref.read(databaseProvider);
+    final waiting = {for (final job in await db.select(db.fileJobs).get()) job.source};
+    await cleanVoiceDrafts(_voiceFolder, DateTime.now(), waiting: waiting);
   }
 
   @override

@@ -1383,4 +1383,19 @@ class LDe extends L {
 
   @override
   String get foundAtPlace => 'nach Ort';
+
+  @override
+  String fileSaving(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien werden gespeichert',
+      one: '$count Datei wird gespeichert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileSavingHint =>
+      'Du kannst die App schließen, die Datei wird von selbst fertig. Ist der Balken weg, kann das Original gelöscht werden.';
 }

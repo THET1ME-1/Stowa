@@ -1846,6 +1846,662 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
   }
 }
 
+class $FileJobsTable extends FileJobs with TableInfo<$FileJobsTable, FileJob> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FileJobsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetMeta = const VerificationMeta('target');
+  @override
+  late final GeneratedColumn<String> target = GeneratedColumn<String>(
+    'target',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mimeMeta = const VerificationMeta('mime');
+  @override
+  late final GeneratedColumn<String> mime = GeneratedColumn<String>(
+    'mime',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  @override
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _claimedByMeta = const VerificationMeta(
+    'claimedBy',
+  );
+  @override
+  late final GeneratedColumn<String> claimedBy = GeneratedColumn<String>(
+    'claimed_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _claimedUntilMeta = const VerificationMeta(
+    'claimedUntil',
+  );
+  @override
+  late final GeneratedColumn<int> claimedUntil = GeneratedColumn<int>(
+    'claimed_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemId,
+    position,
+    source,
+    target,
+    mime,
+    size,
+    attempts,
+    claimedBy,
+    claimedUntil,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'file_jobs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FileJob> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('target')) {
+      context.handle(
+        _targetMeta,
+        target.isAcceptableOrUnknown(data['target']!, _targetMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetMeta);
+    }
+    if (data.containsKey('mime')) {
+      context.handle(
+        _mimeMeta,
+        mime.isAcceptableOrUnknown(data['mime']!, _mimeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mimeMeta);
+    }
+    if (data.containsKey('size')) {
+      context.handle(
+        _sizeMeta,
+        size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sizeMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('claimed_by')) {
+      context.handle(
+        _claimedByMeta,
+        claimedBy.isAcceptableOrUnknown(data['claimed_by']!, _claimedByMeta),
+      );
+    }
+    if (data.containsKey('claimed_until')) {
+      context.handle(
+        _claimedUntilMeta,
+        claimedUntil.isAcceptableOrUnknown(
+          data['claimed_until']!,
+          _claimedUntilMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FileJob map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FileJob(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      target: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target'],
+      )!,
+      mime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime'],
+      )!,
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size'],
+      )!,
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      claimedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}claimed_by'],
+      ),
+      claimedUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}claimed_until'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FileJobsTable createAlias(String alias) {
+    return $FileJobsTable(attachedDatabase, alias);
+  }
+}
+
+class FileJob extends DataClass implements Insertable<FileJob> {
+  final String id;
+  final String itemId;
+  final int position;
+
+  /// Откуда брать: полный путь на телефоне.
+  final String source;
+
+  /// Куда класть: путь от папки приложения, как у вложения.
+  final String target;
+  final String mime;
+  final int size;
+  final int attempts;
+  final String? claimedBy;
+
+  /// До какого времени задача занята, миллисекунды от 1970 года.
+  final int? claimedUntil;
+  final DateTime createdAt;
+  const FileJob({
+    required this.id,
+    required this.itemId,
+    required this.position,
+    required this.source,
+    required this.target,
+    required this.mime,
+    required this.size,
+    required this.attempts,
+    this.claimedBy,
+    this.claimedUntil,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['item_id'] = Variable<String>(itemId);
+    map['position'] = Variable<int>(position);
+    map['source'] = Variable<String>(source);
+    map['target'] = Variable<String>(target);
+    map['mime'] = Variable<String>(mime);
+    map['size'] = Variable<int>(size);
+    map['attempts'] = Variable<int>(attempts);
+    if (!nullToAbsent || claimedBy != null) {
+      map['claimed_by'] = Variable<String>(claimedBy);
+    }
+    if (!nullToAbsent || claimedUntil != null) {
+      map['claimed_until'] = Variable<int>(claimedUntil);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FileJobsCompanion toCompanion(bool nullToAbsent) {
+    return FileJobsCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      position: Value(position),
+      source: Value(source),
+      target: Value(target),
+      mime: Value(mime),
+      size: Value(size),
+      attempts: Value(attempts),
+      claimedBy: claimedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(claimedBy),
+      claimedUntil: claimedUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(claimedUntil),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory FileJob.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FileJob(
+      id: serializer.fromJson<String>(json['id']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      position: serializer.fromJson<int>(json['position']),
+      source: serializer.fromJson<String>(json['source']),
+      target: serializer.fromJson<String>(json['target']),
+      mime: serializer.fromJson<String>(json['mime']),
+      size: serializer.fromJson<int>(json['size']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      claimedBy: serializer.fromJson<String?>(json['claimedBy']),
+      claimedUntil: serializer.fromJson<int?>(json['claimedUntil']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'itemId': serializer.toJson<String>(itemId),
+      'position': serializer.toJson<int>(position),
+      'source': serializer.toJson<String>(source),
+      'target': serializer.toJson<String>(target),
+      'mime': serializer.toJson<String>(mime),
+      'size': serializer.toJson<int>(size),
+      'attempts': serializer.toJson<int>(attempts),
+      'claimedBy': serializer.toJson<String?>(claimedBy),
+      'claimedUntil': serializer.toJson<int?>(claimedUntil),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  FileJob copyWith({
+    String? id,
+    String? itemId,
+    int? position,
+    String? source,
+    String? target,
+    String? mime,
+    int? size,
+    int? attempts,
+    Value<String?> claimedBy = const Value.absent(),
+    Value<int?> claimedUntil = const Value.absent(),
+    DateTime? createdAt,
+  }) => FileJob(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    position: position ?? this.position,
+    source: source ?? this.source,
+    target: target ?? this.target,
+    mime: mime ?? this.mime,
+    size: size ?? this.size,
+    attempts: attempts ?? this.attempts,
+    claimedBy: claimedBy.present ? claimedBy.value : this.claimedBy,
+    claimedUntil: claimedUntil.present ? claimedUntil.value : this.claimedUntil,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  FileJob copyWithCompanion(FileJobsCompanion data) {
+    return FileJob(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      position: data.position.present ? data.position.value : this.position,
+      source: data.source.present ? data.source.value : this.source,
+      target: data.target.present ? data.target.value : this.target,
+      mime: data.mime.present ? data.mime.value : this.mime,
+      size: data.size.present ? data.size.value : this.size,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      claimedBy: data.claimedBy.present ? data.claimedBy.value : this.claimedBy,
+      claimedUntil: data.claimedUntil.present
+          ? data.claimedUntil.value
+          : this.claimedUntil,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FileJob(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('position: $position, ')
+          ..write('source: $source, ')
+          ..write('target: $target, ')
+          ..write('mime: $mime, ')
+          ..write('size: $size, ')
+          ..write('attempts: $attempts, ')
+          ..write('claimedBy: $claimedBy, ')
+          ..write('claimedUntil: $claimedUntil, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    itemId,
+    position,
+    source,
+    target,
+    mime,
+    size,
+    attempts,
+    claimedBy,
+    claimedUntil,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FileJob &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.position == this.position &&
+          other.source == this.source &&
+          other.target == this.target &&
+          other.mime == this.mime &&
+          other.size == this.size &&
+          other.attempts == this.attempts &&
+          other.claimedBy == this.claimedBy &&
+          other.claimedUntil == this.claimedUntil &&
+          other.createdAt == this.createdAt);
+}
+
+class FileJobsCompanion extends UpdateCompanion<FileJob> {
+  final Value<String> id;
+  final Value<String> itemId;
+  final Value<int> position;
+  final Value<String> source;
+  final Value<String> target;
+  final Value<String> mime;
+  final Value<int> size;
+  final Value<int> attempts;
+  final Value<String?> claimedBy;
+  final Value<int?> claimedUntil;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const FileJobsCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.source = const Value.absent(),
+    this.target = const Value.absent(),
+    this.mime = const Value.absent(),
+    this.size = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.claimedBy = const Value.absent(),
+    this.claimedUntil = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FileJobsCompanion.insert({
+    required String id,
+    required String itemId,
+    required int position,
+    required String source,
+    required String target,
+    required String mime,
+    required int size,
+    this.attempts = const Value.absent(),
+    this.claimedBy = const Value.absent(),
+    this.claimedUntil = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       itemId = Value(itemId),
+       position = Value(position),
+       source = Value(source),
+       target = Value(target),
+       mime = Value(mime),
+       size = Value(size),
+       createdAt = Value(createdAt);
+  static Insertable<FileJob> custom({
+    Expression<String>? id,
+    Expression<String>? itemId,
+    Expression<int>? position,
+    Expression<String>? source,
+    Expression<String>? target,
+    Expression<String>? mime,
+    Expression<int>? size,
+    Expression<int>? attempts,
+    Expression<String>? claimedBy,
+    Expression<int>? claimedUntil,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (position != null) 'position': position,
+      if (source != null) 'source': source,
+      if (target != null) 'target': target,
+      if (mime != null) 'mime': mime,
+      if (size != null) 'size': size,
+      if (attempts != null) 'attempts': attempts,
+      if (claimedBy != null) 'claimed_by': claimedBy,
+      if (claimedUntil != null) 'claimed_until': claimedUntil,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FileJobsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? itemId,
+    Value<int>? position,
+    Value<String>? source,
+    Value<String>? target,
+    Value<String>? mime,
+    Value<int>? size,
+    Value<int>? attempts,
+    Value<String?>? claimedBy,
+    Value<int?>? claimedUntil,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return FileJobsCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      position: position ?? this.position,
+      source: source ?? this.source,
+      target: target ?? this.target,
+      mime: mime ?? this.mime,
+      size: size ?? this.size,
+      attempts: attempts ?? this.attempts,
+      claimedBy: claimedBy ?? this.claimedBy,
+      claimedUntil: claimedUntil ?? this.claimedUntil,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (target.present) {
+      map['target'] = Variable<String>(target.value);
+    }
+    if (mime.present) {
+      map['mime'] = Variable<String>(mime.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (claimedBy.present) {
+      map['claimed_by'] = Variable<String>(claimedBy.value);
+    }
+    if (claimedUntil.present) {
+      map['claimed_until'] = Variable<int>(claimedUntil.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FileJobsCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('position: $position, ')
+          ..write('source: $source, ')
+          ..write('target: $target, ')
+          ..write('mime: $mime, ')
+          ..write('size: $size, ')
+          ..write('attempts: $attempts, ')
+          ..write('claimedBy: $claimedBy, ')
+          ..write('claimedUntil: $claimedUntil, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -5724,6 +6380,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ItemsTable items = $ItemsTable(this);
   late final $AttachmentsTable attachments = $AttachmentsTable(this);
+  late final $FileJobsTable fileJobs = $FileJobsTable(this);
   late final $FoldersTable folders = $FoldersTable(this);
   late final $TagsTable tags = $TagsTable(this);
   late final $ItemTagsTable itemTags = $ItemTagsTable(this);
@@ -5743,6 +6400,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     items,
     attachments,
+    fileJobs,
     folders,
     tags,
     itemTags,
@@ -6601,6 +7259,323 @@ typedef $$AttachmentsTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $AttachmentsTable, Attachment>,
       ),
       Attachment,
+      PrefetchHooks Function()
+    >;
+typedef $$FileJobsTableCreateCompanionBuilder = FileJobsCompanion Function({
+  required String id,
+  required String itemId,
+  required int position,
+  required String source,
+  required String target,
+  required String mime,
+  required int size,
+  Value<int> attempts,
+  Value<String?> claimedBy,
+  Value<int?> claimedUntil,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$FileJobsTableUpdateCompanionBuilder = FileJobsCompanion Function({
+  Value<String> id,
+  Value<String> itemId,
+  Value<int> position,
+  Value<String> source,
+  Value<String> target,
+  Value<String> mime,
+  Value<int> size,
+  Value<int> attempts,
+  Value<String?> claimedBy,
+  Value<int?> claimedUntil,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$FileJobsTableFilterComposer
+    extends Composer<_$AppDatabase, $FileJobsTable> {
+  $$FileJobsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get target => $composableBuilder(
+    column: $table.target,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mime => $composableBuilder(
+    column: $table.mime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get claimedBy => $composableBuilder(
+    column: $table.claimedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get claimedUntil => $composableBuilder(
+    column: $table.claimedUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FileJobsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FileJobsTable> {
+  $$FileJobsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get target => $composableBuilder(
+    column: $table.target,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mime => $composableBuilder(
+    column: $table.mime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get claimedBy => $composableBuilder(
+    column: $table.claimedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get claimedUntil => $composableBuilder(
+    column: $table.claimedUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FileJobsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FileJobsTable> {
+  $$FileJobsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get target =>
+      $composableBuilder(column: $table.target, builder: (column) => column);
+
+  GeneratedColumn<String> get mime =>
+      $composableBuilder(column: $table.mime, builder: (column) => column);
+
+  GeneratedColumn<int> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<String> get claimedBy =>
+      $composableBuilder(column: $table.claimedBy, builder: (column) => column);
+
+  GeneratedColumn<int> get claimedUntil => $composableBuilder(
+    column: $table.claimedUntil,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$FileJobsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FileJobsTable,
+          FileJob,
+          $$FileJobsTableFilterComposer,
+          $$FileJobsTableOrderingComposer,
+          $$FileJobsTableAnnotationComposer,
+          $$FileJobsTableCreateCompanionBuilder,
+          $$FileJobsTableUpdateCompanionBuilder,
+          (FileJob, BaseReferences<_$AppDatabase, $FileJobsTable, FileJob>),
+          FileJob,
+          PrefetchHooks Function()
+        > {
+  $$FileJobsTableTableManager(_$AppDatabase db, $FileJobsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FileJobsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FileJobsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FileJobsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String> target = const Value.absent(),
+                Value<String> mime = const Value.absent(),
+                Value<int> size = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String?> claimedBy = const Value.absent(),
+                Value<int?> claimedUntil = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FileJobsCompanion(
+                id: id,
+                itemId: itemId,
+                position: position,
+                source: source,
+                target: target,
+                mime: mime,
+                size: size,
+                attempts: attempts,
+                claimedBy: claimedBy,
+                claimedUntil: claimedUntil,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String itemId,
+                required int position,
+                required String source,
+                required String target,
+                required String mime,
+                required int size,
+                Value<int> attempts = const Value.absent(),
+                Value<String?> claimedBy = const Value.absent(),
+                Value<int?> claimedUntil = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FileJobsCompanion.insert(
+                id: id,
+                itemId: itemId,
+                position: position,
+                source: source,
+                target: target,
+                mime: mime,
+                size: size,
+                attempts: attempts,
+                claimedBy: claimedBy,
+                claimedUntil: claimedUntil,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FileJobsTable, FileJob>(table),
+                  BaseReferences<_$AppDatabase, $FileJobsTable, FileJob>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FileJobsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FileJobsTable,
+      FileJob,
+      $$FileJobsTableFilterComposer,
+      $$FileJobsTableOrderingComposer,
+      $$FileJobsTableAnnotationComposer,
+      $$FileJobsTableCreateCompanionBuilder,
+      $$FileJobsTableUpdateCompanionBuilder,
+      (FileJob, BaseReferences<_$AppDatabase, $FileJobsTable, FileJob>),
+      FileJob,
       PrefetchHooks Function()
     >;
 typedef $$FoldersTableCreateCompanionBuilder = FoldersCompanion Function({
@@ -8747,6 +9722,8 @@ class $AppDatabaseManager {
       $$ItemsTableTableManager(_db, _db.items);
   $$AttachmentsTableTableManager get attachments =>
       $$AttachmentsTableTableManager(_db, _db.attachments);
+  $$FileJobsTableTableManager get fileJobs =>
+      $$FileJobsTableTableManager(_db, _db.fileJobs);
   $$FoldersTableTableManager get folders =>
       $$FoldersTableTableManager(_db, _db.folders);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);

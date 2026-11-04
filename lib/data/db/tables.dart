@@ -42,6 +42,32 @@ class Items extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Файл, который ещё не лёг во вложения: пишется вместе с вещью одной транзакцией,
+/// поэтому не теряется, даже если приложение закрыли или телефон выключился.
+/// Задачу держит один исполнитель (главное окно, «Поделиться» или фон) до [claimedUntil].
+class FileJobs extends Table {
+  TextColumn get id => text()();
+  TextColumn get itemId => text()();
+  IntColumn get position => integer()();
+
+  /// Откуда брать: полный путь на телефоне.
+  TextColumn get source => text()();
+
+  /// Куда класть: путь от папки приложения, как у вложения.
+  TextColumn get target => text()();
+  TextColumn get mime => text()();
+  IntColumn get size => integer()();
+  IntColumn get attempts => integer().withDefault(const Constant(0))();
+  TextColumn get claimedBy => text().nullable()();
+
+  /// До какого времени задача занята, миллисекунды от 1970 года.
+  IntColumn get claimedUntil => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class Attachments extends Table {
   TextColumn get id => text()();
   TextColumn get itemId => text()();

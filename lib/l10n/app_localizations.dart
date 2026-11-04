@@ -2386,6 +2386,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'by place'**
   String get foundAtPlace;
+
+  /// На странице вещи, пока её файл копируется во вложения
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file is being saved} other{{count} files are being saved}}'**
+  String fileSaving(num count);
+
+  /// Пояснение под «Сохраняю файл»
+  ///
+  /// In en, this message translates to:
+  /// **'You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.'**
+  String get fileSavingHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

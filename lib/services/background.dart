@@ -15,9 +15,34 @@ import '../data/settings_repository.dart';
 import 'ai_image.dart';
 import 'ai_worker.dart';
 import 'capture_service.dart';
+import 'file_keeper.dart';
 import 'telegram_service.dart';
 
 const _aiTask = 'stowa-ai-queue';
+const _fileTask = 'stowa-files';
+
+/// Чужая задача держится столько после последнего знака жизни: фон ждёт её и забирает.
+const _abandoned = Duration(seconds: 16);
+
+/// Файлы ещё копируются, а приложение уходит: система доделает сама, без сети,
+/// даже если Stowa выгрузят или телефон перезагрузят.
+Future<void> scheduleFileWork() async {
+  await Workmanager().initialize(backgroundDispatcher);
+  await Workmanager().registerOneOffTask(_fileTask, _fileTask, existingWorkPolicy: ExistingWorkPolicy.keep, backoffPolicy: BackoffPolicy.linear, backoffPolicyDelay: const Duration(minutes: 1));
+}
+
+/// Разобрать очередь файлов в фоне. Задачу, брошенную закрытым окном, фон дожидается
+/// и забирает; не вышло — система повторит позже.
+Future<bool> keepFilesInBackground(AppDatabase db, Directory filesRoot) async {
+  final files = FileKeeper(db, filesRoot: filesRoot, movable: ownTemporaryFolders(filesRoot, await getTemporaryDirectory()), clock: DateTime.now, runner: 'background');
+  for (var round = 0; round < 4; round++) {
+    await files.drain();
+    final waiting = await db.select(db.fileJobs).get();
+    if (waiting.isEmpty) return true;
+    await Future<void>.delayed(_abandoned);
+  }
+  return false;
+}
 
 /// Раз в 15 минут при наличии сети система будит приложение: забирает сообщения бота и разбирает очередь ИИ,
 /// даже если его давно не открывали.
@@ -43,6 +68,9 @@ void backgroundDispatcher() {
     final client = http.Client();
     final filesRoot = await getApplicationSupportDirectory();
     try {
+      // файлы — прежде всего: без сети и без ключа, просто положить на место
+      final filesDone = await keepFilesInBackground(db, filesRoot);
+      if (task == _fileTask) return filesDone;
       // сперва то, что переслали боту, потом разбор: новое сразу разложится
       final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: filesRoot, clock: DateTime.now);
       await TelegramService(capture: capture, prefs: prefs, tokens: const SecureKeyStore('tg_token'), http: client, inbox: Directory(p.join(filesRoot.path, 'telegram_inbox')))

@@ -68,10 +68,12 @@ class VoiceSession extends ChangeNotifier {
   }
 }
 
-/// Старые записи, которые уже скопированы во вложения, удаляются при запуске.
-Future<void> cleanVoiceDrafts(Directory folder, DateTime now) async {
+/// Брошенные записи старше суток удаляются при запуске. Запись из [waiting] ещё
+/// ждёт переноса во вложения (телефон выключили до того): её не трогаем.
+Future<void> cleanVoiceDrafts(Directory folder, DateTime now, {Set<String> waiting = const {}}) async {
   if (!folder.existsSync()) return;
   await for (final entity in folder.list()) {
+    if (waiting.contains(entity.path)) continue;
     if (entity is File && now.difference(entity.statSync().modified) > const Duration(days: 1)) {
       await entity.delete();
     }

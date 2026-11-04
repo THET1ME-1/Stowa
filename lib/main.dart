@@ -35,6 +35,8 @@ Future<void> shareMain() async {
 Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
   // вложения лежат рядом с базой, в базе — пути от этой папки
   final filesRoot = await getApplicationSupportDirectory();
+  // сюда выбор файлов, камера и «Поделиться» кладут свои копии: их можно переносить, а не копировать
+  final cache = await getTemporaryDirectory();
   final prefs = await SharedPreferences.getInstance();
   final settings = SettingsRepository(prefs, const SecureKeyStore());
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
@@ -43,6 +45,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
       overrides: [
         databaseProvider.overrideWithValue(AppDatabase()),
         filesRootProvider.overrideWithValue(filesRoot),
+        cacheRootProvider.overrideWithValue(cache),
         notificationPortProvider.overrideWithValue(notifications),
         settingsRepositoryProvider.overrideWithValue(settings),
         preferencesProvider.overrideWithValue(prefs),

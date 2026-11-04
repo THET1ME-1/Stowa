@@ -20,6 +20,9 @@ class TestWorld {
   final db = AppDatabase.memory();
   final files = Directory.systemTemp.createTempSync('stowa_test');
 
+  /// Сколько раз приложение просило систему доделать файлы в фоне.
+  var fileWorkAsked = 0;
+
   List<Override> get overrides => [
         databaseProvider.overrideWithValue(db),
         filesRootProvider.overrideWithValue(files),
@@ -37,6 +40,8 @@ class TestWorld {
         telegramPullProvider.overrideWithValue(() async => 0),
         telegramStateProvider.overrideWith((ref) => Stream.value(const TelegramState())),
         onlineProvider.overrideWith((ref) => const Stream.empty()),
+        // фоновой работы системы в тестах нет: сколько раз её просили, видно по счётчику
+        fileWorkProvider.overrideWithValue(() async => fileWorkAsked++),
         if (settings case final settings?)
           settingsRepositoryProvider.overrideWithValue(settings)
         else ...[

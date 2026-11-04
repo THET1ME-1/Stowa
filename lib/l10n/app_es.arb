@@ -131,5 +131,7 @@
   "placeSetting": "Recordar dónde se guardó",
   "placeSettingHint": "El lugar se añade tras guardar y aparece en la página y en el mapa. Las coordenadas se quedan en el teléfono; solo sale la consulta del nombre de la calle.",
   "panelLooking": "Busco: {what}",
-  "foundAtPlace": "por lugar"
+  "foundAtPlace": "por lugar",
+  "fileSaving": "{count, plural, one{{count} archivo se está guardando} other{{count} archivos se están guardando}}",
+  "fileSavingHint": "Puedes cerrar la app, el archivo terminará solo. Cuando desaparezca la barra, puedes borrar el original."
 }

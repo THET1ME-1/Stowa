@@ -15,7 +15,9 @@ import '../services/ai_image.dart';
 import '../services/ai_worker.dart';
 import '../services/auto_sorter.dart';
 import '../services/backup_service.dart';
+import '../services/background.dart';
 import '../services/capture_service.dart';
+import '../services/file_keeper.dart';
 import '../services/link_preview_service.dart';
 import '../services/place_service.dart';
 import '../services/reminder_service.dart';
@@ -40,16 +42,27 @@ final itemsRepositoryProvider = Provider((ref) => ItemsRepository(ref.watch(data
 final foldersRepositoryProvider = Provider((ref) => FoldersRepository(ref.watch(databaseProvider)));
 final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 
+/// Кэш приложения: туда кладут файлы выбор файлов, камера и «Поделиться». Задаётся в main.
+final cacheRootProvider = Provider<Directory?>((ref) => null);
+
+/// Попросить систему доделать копирование файлов в фоне. Тесты подменяют.
+final fileWorkProvider = Provider<Future<void> Function()>((ref) => () => scheduleFileWork().catchError((_) {}));
+
 final captureServiceProvider = Provider((ref) {
   final sorter = ref.watch(autoSorterProvider);
   final drain = ref.watch(aiDrainProvider);
   final stamp = ref.watch(placeStampProvider);
-  return CaptureService(
-    ref.watch(databaseProvider),
-    tags: ref.watch(tagsRepositoryProvider),
-    filesRoot: ref.watch(filesRootProvider),
-    clock: ref.watch(clockProvider),
-  )
+  final db = ref.watch(databaseProvider);
+  final filesRoot = ref.watch(filesRootProvider);
+  final clock = ref.watch(clockProvider);
+  final files = FileKeeper(
+    db,
+    filesRoot: filesRoot,
+    movable: ownTemporaryFolders(filesRoot, ref.watch(cacheRootProvider)),
+    clock: clock,
+    onLeftover: ref.watch(fileWorkProvider),
+  );
+  return CaptureService(db, tags: ref.watch(tagsRepositoryProvider), filesRoot: filesRoot, clock: clock, files: files)
     // теги соседей и разбор ИИ идут после сохранения: строка не ждёт ни того, ни другого
     ..afterCapture = (id) {
       sorter.tagItem(id).ignore();
@@ -109,6 +122,9 @@ final placeEnabledProvider = StreamProvider((ref) => ref.watch(settingsRepositor
 
 /// Файлы, которые не скопировались при сохранении.
 final copyFailuresProvider = StreamProvider((ref) => ref.watch(captureServiceProvider).copyFailures);
+
+/// Сколько скопировано у вещей, чьи файлы ещё ложатся: от 0 до 1.
+final fileProgressProvider = StreamProvider<Map<String, double>>((ref) => ref.watch(captureServiceProvider).files.progress);
 
 /// Настройки и ключ ИИ. SharedPreferences открываются в main.
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('настройки открываются в main'));

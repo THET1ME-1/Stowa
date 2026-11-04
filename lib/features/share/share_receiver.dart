@@ -14,6 +14,9 @@ import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
 import 'share_sheet.dart';
 
+/// Сколько окно ждёт файлы после листа, прежде чем отдать их фону.
+const _shareWait = Duration(seconds: 3);
+
 /// Окно «Поделиться»: прозрачное, поверх приложения, из которого делятся.
 /// Сохраняет присланное, показывает лист и закрывается, телефон возвращается обратно.
 class ShareHost extends ConsumerStatefulWidget {
@@ -55,8 +58,8 @@ class _ShareHostState extends ConsumerState<ShareHost> {
       if (!mounted) return;
       if (id != null) {
         await showShareSheet(context, id);
-        // окно закрывается вместе с движком: файлы должны успеть скопироваться
-        await capture.settled();
+        // окно закрывается вместе с движком: большой ролик окно не держит, его доделает фон
+        await capture.settled().timeout(_shareWait, onTimeout: () => ref.read(fileWorkProvider)());
         // отписку не ждём: ей нечего дожидаться, а ожидание сдвигает плашку на кадр
         unawaited(listening.cancel());
         final failure = failures.where((one) => one.itemId == id).firstOrNull;

@@ -131,5 +131,7 @@
   "placeSetting": "Ține minte unde a fost salvat",
   "placeSettingHint": "Locul se adaugă după salvare și apare pe pagina elementului și pe hartă. Coordonatele rămân pe telefon, iese doar cererea numelui străzii.",
   "panelLooking": "Caut: {what}",
-  "foundAtPlace": "după loc"
+  "foundAtPlace": "după loc",
+  "fileSaving": "{count, plural, one{{count} fișier se salvează} other{{count} fișiere se salvează}}",
+  "fileSavingHint": "Poți închide aplicația, fișierul se termină singur. Când bara dispare, originalul poate fi șters."
 }

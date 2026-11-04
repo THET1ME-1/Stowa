@@ -1387,4 +1387,19 @@ class LRo extends L {
 
   @override
   String get foundAtPlace => 'după loc';
+
+  @override
+  String fileSaving(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fișiere se salvează',
+      one: '$count fișier se salvează',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileSavingHint =>
+      'Poți închide aplicația, fișierul se termină singur. Când bara dispare, originalul poate fi șters.';
 }

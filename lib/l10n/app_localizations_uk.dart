@@ -1397,4 +1397,20 @@ class LUk extends L {
 
   @override
   String get foundAtPlace => 'за місцем';
+
+  @override
+  String fileSaving(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Зберігаю $count файлів',
+      few: 'Зберігаю $count файли',
+      one: 'Зберігаю файл',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileSavingHint =>
+      'Застосунок можна закрити: файл доляже сам. Коли смужка зникне, оригінал можна видалити.';
 }

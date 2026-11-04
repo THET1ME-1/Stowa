@@ -1397,4 +1397,20 @@ class LPl extends L {
 
   @override
   String get foundAtPlace => 'po miejscu';
+
+  @override
+  String fileSaving(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plików się zapisuje',
+      few: '$count pliki się zapisują',
+      one: '$count plik się zapisuje',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileSavingHint =>
+      'Możesz zamknąć aplikację, plik zapisze się sam. Gdy pasek zniknie, oryginał można usunąć.';
 }

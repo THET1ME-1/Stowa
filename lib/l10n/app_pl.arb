@@ -131,5 +131,7 @@
   "placeSetting": "Zapamiętuj, gdzie zapisano",
   "placeSettingHint": "Miejsce dodaje się po zapisaniu i widać je na stronie rzeczy i na mapie. Współrzędne zostają w telefonie, na zewnątrz idzie tylko zapytanie o nazwę ulicy.",
   "panelLooking": "Szukam: {what}",
-  "foundAtPlace": "po miejscu"
+  "foundAtPlace": "po miejscu",
+  "fileSaving": "{count, plural, one{{count} plik się zapisuje} few{{count} pliki się zapisują} other{{count} plików się zapisuje}}",
+  "fileSavingHint": "Możesz zamknąć aplikację, plik zapisze się sam. Gdy pasek zniknie, oryginał można usunąć."
 }

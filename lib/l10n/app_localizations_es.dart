@@ -1379,4 +1379,19 @@ class LEs extends L {
 
   @override
   String get foundAtPlace => 'por lugar';
+
+  @override
+  String fileSaving(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos se están guardando',
+      one: '$count archivo se está guardando',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileSavingHint =>
+      'Puedes cerrar la app, el archivo terminará solo. Cuando desaparezca la barra, puedes borrar el original.';
 }

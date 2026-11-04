@@ -32,6 +32,7 @@ import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
 import '../map/map_screen.dart';
 import '../tags/tag_picker.dart';
+import 'copying_bar.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
@@ -362,6 +363,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
                       padding: EdgeInsets.fromLTRB(12, 6, 12, _dockHeight + _dockGap * 2 + bottom),
                       children: [
+                        // файл ещё ложится: вещь уже правится, а показать его пока нечем
+                        if (full.copying > 0) ...[
+                          _Copying(itemId: item.id, count: full.copying),
+                          const SizedBox(height: 18),
+                        ],
                         if (videoLink || videoFile != null) ...[
                           VideoCover(coverPath: item.coverPath ?? cover?.path, filesRoot: filesRoot, onPlay: openMain, source: videoLink ? source : null, duration: duration),
                           const SizedBox(height: 18),
@@ -545,6 +551,42 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 String _capitalized(String text) => text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
 
 /// Круглая кнопка на подложке. Связанная группа задаёт свои углы.
+/// «Сохраняю файл · 40 %» с полоской: пока не пропадёт, оригинал удалять рано.
+class _Copying extends ConsumerWidget {
+  const _Copying({required this.itemId, required this.count});
+
+  final String itemId;
+  final int count;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L.of(context);
+    final text = Theme.of(context).textTheme;
+    final fraction = ref.watch(fileProgressProvider).value?[itemId];
+    final label = fraction == null ? l.fileSaving(count) : '${l.fileSaving(count)} · ${(fraction * 100).floor()} %';
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(symbolIcon('downloading'), size: 20, color: Tokens.onSurface),
+              const SizedBox(width: 8),
+              Expanded(child: Text(label, style: text.bodyMedium!.copyWith(fontWeight: FontWeight.w600))),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(l.fileSavingHint, style: text.bodySmall!.copyWith(color: Tokens.onSurfaceVariant)),
+          const SizedBox(height: 12),
+          CopyingBar(itemId: itemId),
+        ],
+      ),
+    );
+  }
+}
+
 class _RoundButton extends StatelessWidget {
   const _RoundButton({required this.icon, required this.tooltip, required this.onTap, this.radius = const BorderRadius.all(Radius.circular(24))});
 

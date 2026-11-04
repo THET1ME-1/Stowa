@@ -14,6 +14,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../item/copying_bar.dart';
 
 const recentCardWidth = 132.0;
 const _artHeight = 64.0;
@@ -169,7 +170,10 @@ class RecentCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: _artHeight, child: _art(context)),
+            SizedBox(
+              height: _artHeight,
+              child: WithCopyingBar(itemId: item.id, copying: item.copying > 0, child: SizedBox.expand(child: _art(context))),
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(Space.tile, 10, Space.tile, 12),

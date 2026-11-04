@@ -13,11 +13,14 @@ import '../db/database.dart';
 
 /// Вещь целиком: запись, теги с источником и вложения по порядку.
 class ItemFull {
-  const ItemFull({required this.item, required this.tags, required this.attachments});
+  const ItemFull({required this.item, required this.tags, required this.attachments, this.copying = 0});
 
   final Item item;
   final Map<String, TagSource> tags;
   final List<Attachment> attachments;
+
+  /// Сколько файлов ещё ложится во вложения.
+  final int copying;
 }
 
 /// Карточка для лент: то, что нужно, чтобы нарисовать вещь в списке.
@@ -45,7 +48,11 @@ class ItemCard {
     this.latitude,
     this.longitude,
     this.placeName,
+    this.copying = 0,
   });
+
+  /// Сколько файлов вещи ещё ложится во вложения.
+  final int copying;
 
   /// Где вещь сохранена. Пусто — место не снималось.
   final double? latitude;
@@ -123,7 +130,8 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon,
   (SELECT group_concat(tags.name, char(31)) FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
     WHERE item_tags.item_id = items.id) AS tag_names,
   (SELECT attachments.path || char(31) || attachments.mime || char(31) || attachments.size FROM attachments
-    WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS first_file
+    WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS first_file,
+  (SELECT count(*) FROM file_jobs WHERE file_jobs.item_id = items.id) AS copying
 FROM items LEFT JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
 WHERE items.deleted_at IS NULL''';
 
@@ -131,6 +139,9 @@ class ItemsRepository {
   ItemsRepository(this._db);
 
   final AppDatabase _db;
+
+  // таблицы карточки: лента перерисуется, когда изменится любая
+  Set<ResultSetImplementation<dynamic, dynamic>> get _cardTables => {_db.items, _db.folders, _db.attachments, _db.fileJobs, _db.itemTags, _db.tags};
 
   Future<ItemFull?> get(String id) async {
     final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
@@ -143,7 +154,13 @@ class ItemsRepository {
               ..where((t) => t.itemId.equals(id))
               ..orderBy([(t) => OrderingTerm.asc(t.position)]))
             .get();
-    return ItemFull(item: item, tags: {for (final row in tagRows) row.readTable(_db.tags).name: row.readTable(_db.itemTags).source}, attachments: attachments);
+    final copying = await (_db.select(_db.fileJobs)..where((t) => t.itemId.equals(id))).get();
+    return ItemFull(
+      item: item,
+      tags: {for (final row in tagRows) row.readTable(_db.tags).name: row.readTable(_db.itemTags).source},
+      attachments: attachments,
+      copying: copying.length,
+    );
   }
 
   /// Последние живые вещи, новые первыми. Ничья разрешается по id, иначе
@@ -153,7 +170,7 @@ class ItemsRepository {
         .customSelect(
           '$_cardSelect ORDER BY items.created_at DESC, items.id DESC LIMIT ?',
           variables: [Variable.withInt(limit)],
-          readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags},
+          readsFrom: _cardTables,
         )
         .watch()
         .map((rows) => [for (final row in rows) _card(row)]);
@@ -163,7 +180,7 @@ class ItemsRepository {
   /// отбор идёт в Dart: время хранится текстом, сравнивать строки ненадёжно.
   Stream<List<ItemCard>> watchUpcoming(DateTime now, {int limit = 3}) {
     return _db
-        .customSelect('$_cardSelect AND items.reminder_at IS NOT NULL', readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags})
+        .customSelect('$_cardSelect AND items.reminder_at IS NOT NULL', readsFrom: _cardTables)
         .watch()
         .map((rows) {
       final cards = [for (final row in rows) _card(row)].where((card) => !card.reminderAt!.isBefore(now)).toList()
@@ -325,7 +342,7 @@ WHERE items.deleted_at IS NULL''';
         .customSelect(
           '$_cardSelect AND ${folderId == null ? 'items.folder_id IS NULL' : 'items.folder_id = ?'} ORDER BY items.created_at DESC, items.id DESC',
           variables: [if (folderId != null) Variable.withString(folderId)],
-          readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags},
+          readsFrom: _cardTables,
         )
         .watch()
         .map((rows) => [for (final row in rows) _card(row)]);
@@ -333,7 +350,7 @@ WHERE items.deleted_at IS NULL''';
 
   /// Вещь целиком и дальше при каждой правке.
   Stream<ItemFull?> watchItem(String id) {
-    return _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.itemTags, _db.tags, _db.attachments}).watch().asyncMap((_) => get(id));
+    return _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.itemTags, _db.tags, _db.attachments, _db.fileJobs}).watch().asyncMap((_) => get(id));
   }
 
   /// Человек переложил вещь сам: ИИ её больше не трогает, а пример запоминается.
@@ -452,7 +469,7 @@ WHERE items.deleted_at IS NULL''';
         .customSelect(
           '$_cardSelect AND items.id IN (${List.filled(ids.length, '?').join(',')})',
           variables: [for (final id in ids) Variable.withString(id)],
-          readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags},
+          readsFrom: _cardTables,
         )
         .get();
     final cards = <String, ItemCard>{};
@@ -550,12 +567,13 @@ WHERE items.deleted_at IS NULL''';
       latitude: item.latitude,
       longitude: item.longitude,
       placeName: item.placeName,
+      copying: row.readNullable<int>('copying') ?? 0,
     );
   }
 
   /// Всё, у чего есть место: точки карты заметок.
   Stream<List<ItemCard>> watchPlaced() => _db
-      .customSelect('$_cardSelect AND items.latitude IS NOT NULL ORDER BY items.created_at DESC', readsFrom: {_db.items, _db.folders, _db.attachments, _db.itemTags, _db.tags})
+      .customSelect('$_cardSelect AND items.latitude IS NOT NULL ORDER BY items.created_at DESC', readsFrom: _cardTables)
       .watch()
       .map((rows) => [for (final row in rows) _card(row)]);
 }

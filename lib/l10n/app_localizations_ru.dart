@@ -1402,4 +1402,20 @@ class LRu extends L {
 
   @override
   String get foundAtPlace => 'по месту';
+
+  @override
+  String fileSaving(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Сохраняю $count файлов',
+      few: 'Сохраняю $count файла',
+      one: 'Сохраняю файл',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileSavingHint =>
+      'Можно закрыть приложение: файл доляжет сам. Когда полоска пропадёт, оригинал можно удалить.';
 }

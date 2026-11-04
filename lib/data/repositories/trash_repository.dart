@@ -77,6 +77,7 @@ ORDER BY items.deleted_at DESC''',
     final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get();
     await _db.transaction(() async {
       await (_db.delete(_db.attachments)..where((t) => t.itemId.equals(id))).go();
+      await (_db.delete(_db.fileJobs)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.itemTags)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.links)..where((t) => t.fromId.equals(id) | t.toId.equals(id))).go();
       await (_db.delete(_db.aiJobs)..where((t) => t.itemId.equals(id))).go();

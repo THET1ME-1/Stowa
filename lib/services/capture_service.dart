@@ -10,7 +10,6 @@ import '../data/repositories/items_repository.dart';
 import '../data/repositories/rules_repository.dart';
 import '../data/repositories/tags_repository.dart';
 import '../domain/folder_guess.dart';
-import '../domain/image_size.dart';
 import '../domain/inline_tags.dart';
 import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
@@ -19,6 +18,17 @@ import '../domain/reminder_parser.dart';
 import '../domain/sort_rules.dart';
 import '../domain/tag_name.dart';
 import 'ai_worker.dart' show aiSortJob;
+import 'file_keeper.dart';
+
+export 'file_keeper.dart' show CopyFailure;
+
+/// Временные папки самого приложения: файл оттуда переносится во вложения, а не копируется.
+/// Голосовые пишутся в `tmp`, файлы бота — в `telegram_inbox`; кэш выбора и «Поделиться» добавляет main.
+List<Directory> ownTemporaryFolders(Directory filesRoot, [Directory? cache]) => [
+  Directory(p.join(filesRoot.path, 'tmp')),
+  Directory(p.join(filesRoot.path, 'telegram_inbox')),
+  ?cache,
+];
 
 class PickedFile {
   const PickedFile({required this.path, required this.mime, required this.size, this.seconds});
@@ -72,20 +82,24 @@ class CaptureInput {
 }
 
 /// Единая точка «сохранить вещь». Запись идёт одной транзакцией без сети,
-/// файлы докладываются после возврата: вещь видна сразу, вложение дорисуется.
+/// файлы становятся задачами [FileKeeper] в той же транзакции и докладываются
+/// после возврата: вещь видна сразу, вложение дорисуется и не потеряется.
 class CaptureService {
-  CaptureService(this._db, {required TagsRepository tags, required Directory filesRoot, DateTime Function()? clock, Uuid? uuid})
+  CaptureService(this._db, {required TagsRepository tags, required Directory filesRoot, DateTime Function()? clock, Uuid? uuid, FileKeeper? files})
     : _tags = tags, // ignore: prefer_initializing_formals
       _filesRoot = filesRoot, // ignore: prefer_initializing_formals
       _clock = clock ?? DateTime.now,
-      _uuid = uuid ?? const Uuid();
+      _uuid = uuid ?? const Uuid(),
+      files = files ?? FileKeeper(_db, filesRoot: filesRoot, movable: ownTemporaryFolders(filesRoot), clock: clock ?? DateTime.now);
 
   final AppDatabase _db;
   final TagsRepository _tags;
   final Directory _filesRoot;
   final DateTime Function() _clock;
   final Uuid _uuid;
-  final _copies = <Future<void>>[];
+
+  /// Очередь файлов: её же разбирают окно «Поделиться» и фон.
+  final FileKeeper files;
 
   /// Что сделать после сохранения: правила, напоминание, очередь ИИ.
   void Function(String itemId)? afterCapture;
@@ -159,22 +173,21 @@ class CaptureService {
       // папки так и нет — вещь ждёт ключ ИИ; без ключа или сети задача просто лежит.
       // голосовое ждёт всегда: его расшифрует модель речи, если она выбрана
       if (!sorted || kind == ItemKind.voice) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
+      // файлы — задачами в той же транзакции: вещь без своего файла не останется
+      await files.enqueue(id, input.files);
     });
 
-    if (input.files.isNotEmpty) _copies.add(_copyFiles(id, input.files));
+    if (input.files.isNotEmpty) files.drain().ignore();
     afterCapture?.call(id);
     if (input.here) stampPlace?.call(id);
     return id;
   }
 
-  /// Все начатые копирования файлов закончились.
-  Future<void> settled() async {
-    while (_copies.isNotEmpty) {
-      final batch = List.of(_copies);
-      _copies.clear();
-      await Future.wait(batch);
-    }
-  }
+  /// Очередь файлов разобрана: всё, что можно было положить, лежит.
+  Future<void> settled() => files.drain();
+
+  /// Файлы, которые не удалось сохранить.
+  Stream<CopyFailure> get copyFailures => files.failures;
 
   Future<void> _linkTag(String itemId, String raw, TagSource source) async {
     final tag = await _tags.ensure(raw);
@@ -189,7 +202,9 @@ class CaptureService {
   /// Дописать файлы к готовой вещи со страницы правки: встают после уже приложенных.
   Future<void> attach(String itemId, List<PickedFile> files) async {
     final count = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(itemId))).get().then((rows) => rows.length);
-    await _copyFiles(itemId, files, from: count);
+    final waiting = await (_db.select(_db.fileJobs)..where((t) => t.itemId.equals(itemId))).get().then((rows) => rows.length);
+    await this.files.enqueue(itemId, files, from: count + waiting);
+    await this.files.drain();
   }
 
   /// Вещам без текста, которым раньше в заголовок шло имя файла, дать заголовок по
@@ -230,77 +245,9 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
     for (final file in missing) {
       final full = p.join(_filesRoot.path, file.path);
       if (!await File(full).exists()) continue;
-      final size = await _imageSize(full);
+      final size = await imageSizeOfFile(full);
       if (size == null) continue;
       await (_db.update(_db.attachments)..where((t) => t.id.equals(file.id))).write(AttachmentsCompanion(width: Value(size.width), height: Value(size.height)));
     }
   }
-
-  // хватает начала файла: EXIF с миниатюрой занимает до 64 КБ
-  Future<({int width, int height})?> _imageSize(String path) async {
-    final file = await File(path).open();
-    try {
-      return imageSizeOf(await file.read(256 * 1024));
-    } finally {
-      await file.close();
-    }
-  }
-
-  Future<void> _copyFiles(String itemId, List<PickedFile> files, {int from = 0}) async {
-    final folder = p.join('attachments', itemId);
-    await Directory(p.join(_filesRoot.path, folder)).create(recursive: true);
-    var failed = 0;
-    for (final (offset, file) in files.indexed) {
-      final index = from + offset;
-      final relative = p.join(folder, '${index}_${p.basename(file.path)}');
-      try {
-        await File(file.path).copy(p.join(_filesRoot.path, relative));
-      } on FileSystemException {
-        // источник не дал прочитать файл: остальные всё равно копируем
-        failed++;
-        continue;
-      }
-      final size = file.mime.startsWith('image/') ? await _imageSize(file.path) : null;
-      await _db
-          .into(_db.attachments)
-          .insert(
-            AttachmentsCompanion.insert(
-              id: _uuid.v4(),
-              itemId: itemId,
-              path: relative,
-              mime: file.mime,
-              size: file.size,
-              position: Value(index),
-              width: Value(size?.width),
-              height: Value(size?.height),
-            ),
-          );
-    }
-    if (failed == 0) return;
-    // ни файла, ни слов: пустая вещь в ленте только путала бы
-    final item = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingleOrNull();
-    final empty = failed == files.length && from == 0 && (item?.body.trim().isEmpty ?? true);
-    if (empty) {
-      await _db.transaction(() async {
-        await (_db.delete(_db.aiJobs)..where((t) => t.itemId.equals(itemId))).go();
-        await (_db.delete(_db.itemTags)..where((t) => t.itemId.equals(itemId))).go();
-        await (_db.delete(_db.items)..where((t) => t.id.equals(itemId))).go();
-      });
-    }
-    _failures.add(CopyFailure(itemId: itemId, failed: failed, removed: empty));
-  }
-
-  final _failures = StreamController<CopyFailure>.broadcast();
-
-  /// Файлы, которые не удалось скопировать: окно «Поделиться» и главная говорят об этом.
-  Stream<CopyFailure> get copyFailures => _failures.stream;
-}
-
-/// Сколько файлов вещи не скопировалось и удалена ли из-за этого пустая вещь.
-class CopyFailure {
-  const CopyFailure({required this.itemId, required this.failed, required this.removed});
-
-  final String itemId;
-  final int failed;
-  final bool removed;
 }
