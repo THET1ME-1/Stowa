@@ -562,7 +562,7 @@ class _Copying extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    final fraction = ref.watch(fileProgressProvider).value?[itemId];
+    final fraction = ref.watch(copyFractionProvider(itemId)).value;
     final label = fraction == null ? l.fileSaving(count) : '${l.fileSaving(count)} · ${(fraction * 100).floor()} %';
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),

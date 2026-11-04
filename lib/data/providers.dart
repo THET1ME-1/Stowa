@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
 
@@ -48,21 +49,31 @@ final cacheRootProvider = Provider<Directory?>((ref) => null);
 /// Попросить систему доделать копирование файлов в фоне. Тесты подменяют.
 final fileWorkProvider = Provider<Future<void> Function()>((ref) => () => scheduleFileWork().catchError((_) {}));
 
+/// Хранитель файлов — один на окно и зависит только от неизменного. Сервис сохранения
+/// пересоздаётся вместе с ИИ и местом; заведи он своего хранителя, старый копировал бы
+/// дальше, а лента слушала бы новый, молчащий.
+final fileKeeperProvider = Provider((ref) {
+  final filesRoot = ref.watch(filesRootProvider);
+  return FileKeeper(
+    ref.watch(databaseProvider),
+    filesRoot: filesRoot,
+    movable: ownTemporaryFolders(filesRoot, ref.watch(cacheRootProvider)),
+    clock: ref.watch(clockProvider),
+    onLeftover: ref.watch(fileWorkProvider),
+  );
+});
+
 final captureServiceProvider = Provider((ref) {
   final sorter = ref.watch(autoSorterProvider);
   final drain = ref.watch(aiDrainProvider);
   final stamp = ref.watch(placeStampProvider);
-  final db = ref.watch(databaseProvider);
-  final filesRoot = ref.watch(filesRootProvider);
-  final clock = ref.watch(clockProvider);
-  final files = FileKeeper(
-    db,
-    filesRoot: filesRoot,
-    movable: ownTemporaryFolders(filesRoot, ref.watch(cacheRootProvider)),
-    clock: clock,
-    onLeftover: ref.watch(fileWorkProvider),
-  );
-  return CaptureService(db, tags: ref.watch(tagsRepositoryProvider), filesRoot: filesRoot, clock: clock, files: files)
+  return CaptureService(
+    ref.watch(databaseProvider),
+    tags: ref.watch(tagsRepositoryProvider),
+    filesRoot: ref.watch(filesRootProvider),
+    clock: ref.watch(clockProvider),
+    files: ref.watch(fileKeeperProvider),
+  )
     // теги соседей и разбор ИИ идут после сохранения: строка не ждёт ни того, ни другого
     ..afterCapture = (id) {
       sorter.tagItem(id).ignore();
@@ -121,10 +132,39 @@ final searchHereProvider = Provider<Future<(double, double)?> Function()>((ref) 
 final placeEnabledProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchPlaceEnabled());
 
 /// Файлы, которые не скопировались при сохранении.
-final copyFailuresProvider = StreamProvider((ref) => ref.watch(captureServiceProvider).copyFailures);
+final copyFailuresProvider = StreamProvider((ref) => ref.watch(fileKeeperProvider).failures);
 
 /// Сколько скопировано у вещей, чьи файлы ещё ложатся: от 0 до 1.
-final fileProgressProvider = StreamProvider<Map<String, double>>((ref) => ref.watch(captureServiceProvider).files.progress);
+/// Ход одной вещи для полоски: свой — сразу по событиям, чужой — раз в секунду по
+/// недописанному файлу. Живёт, только пока полоска на экране.
+final copyFractionProvider = StreamProvider.autoDispose.family<double?, String>((ref, itemId) {
+  final files = ref.watch(fileKeeperProvider);
+  final controller = StreamController<double?>();
+  Future<void> poll() async {
+    final fraction = await files.fractionOf(itemId);
+    if (!controller.isClosed) controller.add(fraction);
+  }
+
+  final own = files.progress.listen((all) {
+    final fraction = all[itemId];
+    if (fraction != null && !controller.isClosed) controller.add(fraction);
+  });
+  final timer = Timer.periodic(const Duration(seconds: 1), (_) => poll().ignore());
+  poll().ignore();
+  ref.onDispose(() {
+    own.cancel();
+    timer.cancel();
+    controller.close();
+  });
+  return controller.stream;
+});
+
+/// Новый подписчик сразу получает то, что уже скопировано, а не ждёт следующего процента.
+final fileProgressProvider = StreamProvider<Map<String, double>>((ref) async* {
+  final files = ref.watch(fileKeeperProvider);
+  yield files.current;
+  yield* files.progress;
+});
 
 /// Настройки и ключ ИИ. SharedPreferences открываются в main.
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('настройки открываются в main'));

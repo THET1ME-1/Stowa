@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,9 +48,21 @@ void main() {
   testWidgets('страница вещи говорит, что файл сохраняется, и когда можно удалить оригинал', (tester) async {
     await copyingVideo();
     addTearDown(() => tester.pumpWidget(const SizedBox()));
+    // фон уже докопировал половину ролика
+    final part = File('${world.files.path}/attachments/v/0_otpusk.mp4.part');
+    await tester.runAsync(() async {
+      await part.parent.create(recursive: true);
+      await part.writeAsBytes(List.filled(450 * 1024 * 1024 ~/ 1024, 0));
+      await (await part.open(mode: FileMode.append)).truncate(450 * 1024 * 1024);
+    });
     await tester.pumpWidget(world.wrap(const ItemScreen(id: 'v')));
     await tester.pumpAndSettle();
-    expect(find.text('Сохраняю файл'), findsOneWidget);
+    // база и диск отвечают в настоящем времени, кадры просим между ожиданиями
+    for (var round = 0; round < 6; round++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump();
+    }
+    expect(find.text('Сохраняю файл · 50 %'), findsOneWidget);
     expect(find.textContaining('оригинал можно удалить'), findsOneWidget);
   });
 }

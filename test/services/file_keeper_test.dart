@@ -169,6 +169,20 @@ void main() {
     await listening.cancel();
   });
 
+  test('чужой ход виден по недописанному файлу', () async {
+    final id = await item();
+    final files = keeper();
+    expect(await files.fractionOf(id), isNull);
+    await files.enqueue(id, [await source(gallery, 'clip.mp4', bytes: 4 * 1024 * 1024)]);
+    expect(await files.fractionOf(id), 0);
+    // фон докопировал четверть
+    final job = (await jobs()).single;
+    final part = File(p.join(home.path, '${job.target}.part'));
+    await part.parent.create(recursive: true);
+    await part.writeAsBytes(List.filled(1024 * 1024, 1));
+    expect(await files.fractionOf(id), closeTo(0.25, 0.001));
+  });
+
   test('после прохода остались задачи — просит систему доделать в фоне', () async {
     final id = await item();
     var asked = 0;
@@ -176,6 +190,29 @@ void main() {
     await files.enqueue(id, [await source(gallery, 'clip.mp4')]);
     await (db.update(db.fileJobs)).write(FileJobsCompanion(claimedBy: const Value('share'), claimedUntil: Value(now.add(const Duration(seconds: 10)).millisecondsSinceEpoch)));
     await files.drain();
+    // до прохода — страховка, после — ещё раз: задача так и не легла
+    expect(asked, 2);
+  });
+
+  test('страховка заказывается до копирования, а пустая очередь систему не беспокоит', () async {
+    final id = await item();
+    var asked = 0;
+    var copiedWhenAsked = true;
+    final files = FileKeeper(
+      db,
+      filesRoot: home,
+      movable: [cache],
+      clock: () => now,
+      onLeftover: () async {
+        asked++;
+        copiedWhenAsked = (await attachments()).isNotEmpty;
+      },
+    );
+    await files.drain();
+    expect(asked, 0);
+    await files.enqueue(id, [await source(gallery, 'clip.mp4')]);
+    await files.drain();
     expect(asked, 1);
+    expect(copiedWhenAsked, isFalse);
   });
 }

@@ -108,6 +108,28 @@ class FileKeeper {
   Stream<Map<String, double>> get progress => _progress.stream;
   Map<String, double> get current => _current;
 
+  /// Сколько скопировано у вещи, кто бы ни копировал: свой ход из памяти, чужой
+  /// (фон, окно «Поделиться») — по длине недописанного файла. Задач нет — null.
+  Future<double?> fractionOf(String itemId) async {
+    final own = _current[itemId];
+    if (own != null) return own;
+    final jobs = await (_db.select(_db.fileJobs)..where((t) => t.itemId.equals(itemId))).get();
+    if (jobs.isEmpty) return null;
+    var done = 0;
+    var all = 0;
+    for (final job in jobs) {
+      final target = File(p.join(_filesRoot.path, job.target));
+      final part = File('${target.path}.part');
+      all += job.size;
+      if (await target.exists()) {
+        done += job.size;
+      } else if (await part.exists()) {
+        done += await part.length();
+      }
+    }
+    return all <= 0 ? 0 : (done / all).clamp(0.0, 1.0);
+  }
+
   /// Записать файлы вещи задачами. Зовётся внутри транзакции сохранения.
   Future<void> enqueue(String itemId, List<PickedFile> files, {int from = 0}) async {
     final now = _clock();
@@ -135,6 +157,9 @@ class FileKeeper {
   Future<void> drain() => _running ??= _drainAll().whenComplete(() => _running = null);
 
   Future<void> _drainAll() async {
+    // страховка до начала: убьют на середине — система доделает сама, не дожидаясь открытия
+    final queued = await _db.select(_db.fileJobs).get();
+    if (queued.isNotEmpty) await onLeftover?.call();
     // задачи, которые в этот проход не вышли: держит другой исполнитель или нет места
     final skipped = <String>{};
     final failed = <String, int>{};

@@ -5,8 +5,8 @@ import '../../core/theme/tokens.dart';
 import '../../data/providers.dart';
 
 /// Полоска на карточке, пока файл вещи ложится во вложения. Пропала — файл на
-/// месте целиком, оригинал можно удалять. Копирует фон или другое окно — хода
-/// не видно, полоска стоит пустой, но вещь всё равно помечена.
+/// месте целиком, оригинал можно удалять. Ход виден, кто бы ни копировал: это
+/// окно, фон или окно «Поделиться».
 class CopyingBar extends ConsumerWidget {
   const CopyingBar({super.key, required this.itemId});
 
@@ -14,7 +14,7 @@ class CopyingBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fraction = ref.watch(fileProgressProvider).value?[itemId] ?? 0;
+    final fraction = ref.watch(copyFractionProvider(itemId)).value ?? 0;
     return ClipRRect(
       borderRadius: BorderRadius.circular(2),
       child: SizedBox(
