@@ -43,6 +43,91 @@ void main() {
     expect(find.text('Кухня'), findsWidgets);
   });
 
+  // большая папка: целиком она видна только мельче 100 %
+  Future<void> openBig(WidgetTester tester) async {
+    final db = world.db;
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'big', name: 'Большая', icon: 'folder', shape: 'pill'));
+    for (var index = 0; index < 14; index++) {
+      await db.into(db.items).insert(
+        ItemsCompanion.insert(id: 'b$index', kind: ItemKind.note, title: 'Вещь $index', folderId: const Value('big'), sortState: const Value(SortState.sorted), createdAt: world.now, updatedAt: world.now),
+      );
+    }
+    tester.view.physicalSize = const Size(400, 880);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Большая')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Холст'));
+    await tester.pumpAndSettle();
+  }
+
+  int percent(WidgetTester tester) => int.parse(tester.widget<Text>(find.textContaining('%')).data!.replaceAll('%', ''));
+
+  testWidgets('на отдалённом холсте карточка идёт ровно за пальцем, а не быстрее', (tester) async {
+    await openBig(tester);
+    expect(percent(tester), lessThan(100));
+    final card = find.text('Вещь 0').last;
+    final before = tester.getTopLeft(card);
+    // палец как на телефоне: кадры идут между движениями
+    final finger = await tester.startGesture(tester.getCenter(card));
+    for (var step = 0; step < 10; step++) {
+      await finger.moveBy(const Offset(6, 4));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await finger.up();
+    await tester.pumpAndSettle();
+    final moved = tester.getTopLeft(find.text('Вещь 0').last) - before;
+    expect(moved.dx, closeTo(60, 1.5));
+    expect(moved.dy, closeTo(40, 1.5));
+  });
+
+  testWidgets('щипок двумя пальцами, один на карточке, — масштаб, а карточка на месте', (tester) async {
+    await openBig(tester);
+    final start = percent(tester);
+    final card = find.text('Вещь 0').last;
+    final spotBefore = (await spots()).firstWhere((spot) => spot.itemId == 'b0');
+    final onCard = tester.getCenter(card);
+    // карточка у нижнего края: второй палец ставим выше, внутри экрана
+    final aside = onCard - const Offset(0, 160);
+    final first = await tester.startGesture(onCard, pointer: 1);
+    await tester.pump(const Duration(milliseconds: 20));
+    final second = await tester.startGesture(aside, pointer: 2);
+    for (var step = 1; step <= 10; step++) {
+      await first.moveTo(onCard + Offset(0, step * 4.0));
+      await second.moveTo(aside - Offset(0, step * 12.0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await first.up();
+    await second.up();
+    await tester.pumpAndSettle();
+    expect(percent(tester), greaterThan(start));
+    final spotAfter = (await spots()).firstWhere((spot) => spot.itemId == 'b0');
+    expect(spotAfter.x, spotBefore.x);
+    expect(spotAfter.y, spotBefore.y);
+  });
+
+  testWidgets('угол карточки на отдалённом холсте растит её ровно на сдвиг пальца', (tester) async {
+    await openBig(tester);
+    final scale = percent(tester) / 100;
+    final before = (await spots()).firstWhere((spot) => spot.itemId == 'b0');
+    final card = tester.getRect(find.byKey(const ValueKey('b0')));
+    // угол сидит за правым нижним краем карточки
+    final finger = await tester.startGesture(card.bottomRight - Offset(8 * scale, 8 * scale));
+    for (var step = 0; step < 10; step++) {
+      await finger.moveBy(const Offset(4, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await finger.up();
+    await tester.pumpAndSettle();
+    final after = (await spots()).firstWhere((spot) => spot.itemId == 'b0');
+    // 40 точек экрана на холсте в масштабе scale — это 40 / scale единиц холста
+    expect(after.width - before.width, closeTo(40 / scale, 40 / scale * 0.05));
+    expect(after.x, before.x);
+  });
+
   testWidgets('первый показ умещает всё, масштаб в пилюле честный', (tester) async {
     final db = world.db;
     // много вещей: целиком они помещаются только мельче 100 %
