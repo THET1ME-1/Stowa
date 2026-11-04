@@ -90,6 +90,20 @@ final whereAmIProvider = Provider<Future<(double, double)?> Function()>(
   },
 );
 
+/// Где телефон для «рядом» в поиске: последнее известное место сразу, без него — свежее.
+final searchHereProvider = Provider<Future<(double, double)?> Function()>((ref) {
+  final whereAmI = ref.watch(whereAmIProvider);
+  return () async {
+    try {
+      final known = await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);
+      if (known != null) return (known.latitude, known.longitude);
+    } catch (_) {
+      // нет разрешения или плагина: спросит whereAmI
+    }
+    return whereAmI();
+  };
+});
+
 /// Запоминать ли место: переключатель в настройках.
 final placeEnabledProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchPlaceEnabled());
 

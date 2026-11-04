@@ -129,5 +129,7 @@
   "mapWhereAmI": "Unde sunt",
   "mapPlaceUnnamed": "Loc fără nume",
   "placeSetting": "Ține minte unde a fost salvat",
-  "placeSettingHint": "Locul se adaugă după salvare și apare pe pagina elementului și pe hartă. Coordonatele rămân pe telefon, iese doar cererea numelui străzii."
+  "placeSettingHint": "Locul se adaugă după salvare și apare pe pagina elementului și pe hartă. Coordonatele rămân pe telefon, iese doar cererea numelui străzii.",
+  "panelLooking": "Caut: {what}",
+  "foundAtPlace": "după loc"
 }

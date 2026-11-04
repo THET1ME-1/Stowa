@@ -1371,4 +1371,12 @@ class LEs extends L {
   @override
   String get placeSettingHint =>
       'El lugar se añade tras guardar y aparece en la página y en el mapa. Las coordenadas se quedan en el teléfono; solo sale la consulta del nombre de la calle.';
+
+  @override
+  String panelLooking(Object what) {
+    return 'Busco: $what';
+  }
+
+  @override
+  String get foundAtPlace => 'por lugar';
 }

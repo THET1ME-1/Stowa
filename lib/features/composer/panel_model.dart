@@ -123,7 +123,7 @@ class CommandRow extends PanelRow {
 enum PanelHeader { none, tags, folders, commands, found, nothingFound, similar, fresh }
 
 class PanelState {
-  const PanelState({this.rows = const [], this.pick = 0, this.header = PanelHeader.none, this.count = 0, this.kinds = const [], this.plan});
+  const PanelState({this.rows = const [], this.pick = 0, this.header = PanelHeader.none, this.count = 0, this.kinds = const [], this.understood = const [], this.plan});
 
   static const empty = PanelState();
 
@@ -137,6 +137,9 @@ class PanelState {
 
   /// Виды среди найденного: фильтр над панелью.
   final List<ItemKind> kinds;
+
+  /// Что поиск понял из запроса и чем отобрал найденное: «видео», «вчера».
+  final List<String> understood;
   final SavePlan? plan;
 }
 
@@ -161,10 +164,14 @@ class PanelInput {
     this.folders = const [],
     this.rules = const [],
     this.found = const [],
+    this.understood = const [],
     this.filter,
     this.remindAt,
     this.folderIndex,
   });
+
+  /// Фразы запроса, которыми поиск отобрал [found]. Пусто — искал просто словами.
+  final List<String> understood;
 
   /// Что уже лежит по папкам: угадыватель без сети.
   final FolderIndex? folderIndex;
@@ -185,11 +192,11 @@ class PanelInput {
   final DateTime? remindAt;
 }
 
-/// Что ищет поиск: слова без команды, тегов и папок, чипы фильтром.
-({List<String> words, LineCommand? command, String rest}) queryOf(String text, Map<LineCommand, List<String>> keys) {
+/// Что ищет поиск: текст без команды, тегов, папок и ссылок, его слова; чипы — фильтром.
+({List<String> words, String free, LineCommand? command, String rest}) queryOf(String text, Map<LineCommand, List<String>> keys) {
   final parsed = parseCommand(text, keys);
   final free = parsed.rest.replaceAll(RegExp(r'(^|\s)[#@][^\s#@]*'), ' ').replaceAll(RegExp(r'https?://\S+'), ' ');
-  return (words: searchWords(free), command: parsed.command, rest: parsed.rest);
+  return (words: searchWords(free), free: free.trim(), command: parsed.command, rest: parsed.rest);
 }
 
 SavePlan planSave(PanelInput input, {required LineCommand? command, required String rest}) {
@@ -293,6 +300,7 @@ PanelState buildPanel(PanelInput input) {
     header: header,
     count: shown.length,
     kinds: kinds.length > 1 && input.found.length > 2 ? kinds.take(3).toList() : const [],
+    understood: input.understood,
     plan: plan,
   );
 }

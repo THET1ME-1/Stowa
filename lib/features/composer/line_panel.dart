@@ -177,6 +177,8 @@ class _LinePanelState extends State<LinePanel> {
     };
     if (label == null && state.kinds.isEmpty) return null;
     final text = Theme.of(context).textTheme;
+    // что поиск понял из запроса: «Ищу: видео · вчера»
+    final looking = state.understood.isEmpty || state.header == PanelHeader.fresh ? null : l.panelLooking(state.understood.join(' · '));
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 6, 4, 8),
       child: SingleChildScrollView(
@@ -190,6 +192,11 @@ class _LinePanelState extends State<LinePanel> {
                   label,
                   style: text.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant),
                 ),
+              ),
+            if (looking != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Text(looking, style: text.labelMedium!.copyWith(fontSize: 13, color: Tokens.onSurfaceVariant)),
               ),
             if (state.kinds.isNotEmpty) ...[
               _FilterChip(label: l.filterAll, on: widget.filter == null, onTap: () => widget.onFilter(null)),
@@ -350,9 +357,13 @@ class _RowView extends StatelessWidget {
             : _badge('squircle', kindIcon(card.kind), selected);
         title = MarkedText(text: card.title, marks: hit.marks[SearchField.title] ?? const [], style: titleStyle, markColor: markColor);
         final whereField = hit.where;
-        var source = whereField == SearchField.deep ? hit.doc.deep : card.body;
+        var source = switch (whereField) {
+          SearchField.deep => hit.doc.deep,
+          SearchField.place => hit.doc.place,
+          _ => card.body,
+        };
         var marks = hit.marks[whereField ?? SearchField.body] ?? const <TextMark>[];
-        if (whereField != SearchField.deep) {
+        if (whereField != SearchField.deep && whereField != SearchField.place) {
           // первая строка заметки уже стоит заголовком, подпись берёт текст после неё
           final lineEnd = card.body.indexOf('\n');
           if (isTitleLine(lineEnd < 0 ? card.body : card.body.substring(0, lineEnd), card.title)) {
@@ -379,7 +390,11 @@ class _RowView extends StatelessWidget {
         final web = card.kind == ItemKind.link || card.kind == ItemKind.video;
         final address = !web || card.url == null ? null : Uri.tryParse(card.url!)?.host;
         final host = address == null || address.isEmpty ? null : sourceName(address);
-        final found = whereField == SearchField.deep ? deepLabel(l, card.kind) : (host ?? kindLabel(l, card.kind));
+        final found = switch (whereField) {
+          SearchField.deep => deepLabel(l, card.kind),
+          SearchField.place => l.foundAtPlace,
+          _ => host ?? kindLabel(l, card.kind),
+        };
         where = _where(kindIcon(card.kind), '$found · ${card.folderName ?? l.folderNone} · ${shortDate(l, card.createdAt, now)}', whereStyle, faint);
       case TagRow(:final tag):
         thumb = TagTile(kind: tag.iconKind, value: tag.iconValue, filesRoot: filesRoot, size: 44, inverted: selected);

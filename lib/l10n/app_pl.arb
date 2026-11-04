@@ -129,5 +129,7 @@
   "mapWhereAmI": "Gdzie jestem",
   "mapPlaceUnnamed": "Miejsce bez nazwy",
   "placeSetting": "Zapamiętuj, gdzie zapisano",
-  "placeSettingHint": "Miejsce dodaje się po zapisaniu i widać je na stronie rzeczy i na mapie. Współrzędne zostają w telefonie, na zewnątrz idzie tylko zapytanie o nazwę ulicy."
+  "placeSettingHint": "Miejsce dodaje się po zapisaniu i widać je na stronie rzeczy i na mapie. Współrzędne zostają w telefonie, na zewnątrz idzie tylko zapytanie o nazwę ulicy.",
+  "panelLooking": "Szukam: {what}",
+  "foundAtPlace": "po miejscu"
 }

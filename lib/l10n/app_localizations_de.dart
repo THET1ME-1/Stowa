@@ -1375,4 +1375,12 @@ class LDe extends L {
   @override
   String get placeSettingHint =>
       'Der Ort wird nach dem Speichern ergänzt und erscheint auf der Seite und auf der Karte. Koordinaten bleiben auf dem Handy, nur die Straßenname-Abfrage geht raus.';
+
+  @override
+  String panelLooking(Object what) {
+    return 'Suche: $what';
+  }
+
+  @override
+  String get foundAtPlace => 'nach Ort';
 }

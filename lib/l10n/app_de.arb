@@ -129,5 +129,7 @@
   "mapWhereAmI": "Wo bin ich",
   "mapPlaceUnnamed": "Ort ohne Namen",
   "placeSetting": "Merken, wo gespeichert wurde",
-  "placeSettingHint": "Der Ort wird nach dem Speichern ergänzt und erscheint auf der Seite und auf der Karte. Koordinaten bleiben auf dem Handy, nur die Straßenname-Abfrage geht raus."
+  "placeSettingHint": "Der Ort wird nach dem Speichern ergänzt und erscheint auf der Seite und auf der Karte. Koordinaten bleiben auf dem Handy, nur die Straßenname-Abfrage geht raus.",
+  "panelLooking": "Suche: {what}",
+  "foundAtPlace": "nach Ort"
 }

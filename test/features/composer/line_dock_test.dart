@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/composer/line_panel.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -64,6 +65,25 @@ void main() {
     await tester.tap(find.text('Открыть'));
     await tester.pumpAndSettle();
     expect(find.text('Сеть Keenetic, пароль zelenyi-chai-77'), findsOneWidget);
+  });
+
+  testWidgets('время в запросе отбирает найденное, над ним — что поиск понял', (tester) async {
+    await note('old', 'Пароль от Wi-Fi', daysAgo: 3);
+    await note('new', 'Пароль от почты', daysAgo: 1);
+    await open(tester);
+    Finder inPanel(String text) => find.descendant(of: find.byType(LinePanel), matching: find.text(text));
+    await type(tester, 'пароль вчера');
+    expect(inPanel('Ищу: вчера'), findsOneWidget);
+    expect(inPanel('Пароль от почты'), findsOneWidget);
+    expect(inPanel('Пароль от Wi-Fi'), findsNothing);
+
+    // латиницей и в чужой раскладке находит то же
+    await type(tester, 'parol');
+    expect(inPanel('Пароль от почты'), findsOneWidget);
+    expect(inPanel('Пароль от Wi-Fi'), findsOneWidget);
+    expect(find.textContaining('Ищу:'), findsNothing);
+    await type(tester, 'gfhjkm');
+    expect(inPanel('Пароль от Wi-Fi'), findsOneWidget);
   });
 
   testWidgets('# показывает теги, «Вставить» делает чип', (tester) async {

@@ -1379,4 +1379,12 @@ class LRo extends L {
   @override
   String get placeSettingHint =>
       'Locul se adaugă după salvare și apare pe pagina elementului și pe hartă. Coordonatele rămân pe telefon, iese doar cererea numelui străzii.';
+
+  @override
+  String panelLooking(Object what) {
+    return 'Caut: $what';
+  }
+
+  @override
+  String get foundAtPlace => 'după loc';
 }

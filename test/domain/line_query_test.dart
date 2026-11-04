@@ -72,7 +72,8 @@ void main() {
       expect(stem('рецепты'), 'рецепт');
       expect(stem('машину'), 'машин');
       expect(stem('кот'), 'кот');
-      expect(stem('wifi'), 'wifi');
+      expect('wifi'.startsWith(stem('wifi')), isTrue);
+      expect(stem('recipes'), stem('recipe'));
     });
 
     test('одна опечатка прощается', () {

@@ -1771,5 +1771,13 @@
   "placeSettingHint": "The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.",
   "@placeSettingHint": {
     "description": "placeSettingHint"
+  },
+  "panelLooking": "Looking for: {what}",
+  "@panelLooking": {
+    "description": "Над найденным: что поиск понял из запроса, например «видео · вчера»"
+  },
+  "foundAtPlace": "by place",
+  "@foundAtPlace": {
+    "description": "Подпись у найденного: слово нашлось в названии места, где вещь сохранена"
   }
 }

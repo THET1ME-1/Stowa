@@ -25,4 +25,29 @@ void main() {
   test('пусто — пусто', () {
     expect(groupPlaces(const []), isEmpty);
   });
+
+  test('километр — это километр', () {
+    expect(metersBetween(47.0, 28.0, 47.009, 28.0), closeTo(1000, 10));
+  });
+
+  group('дом и работа', () {
+    // ночью дома, в будни днём на работе, в выходные днём где попало
+    List<({double latitude, double longitude, DateTime at})> life() => [
+      for (var day = 1; day <= 6; day++) (latitude: 47.0245, longitude: 28.8323, at: DateTime(2026, 10, day, 23)),
+      for (var day = 5; day <= 9; day++) (latitude: 47.0400, longitude: 28.8100, at: DateTime(2026, 10, day, 11)),
+      for (var day = 10; day <= 11; day++) (latitude: 47.0600, longitude: 28.8600, at: DateTime(2026, 10, day, 14)),
+    ];
+
+    test('дом — где сохраняют ночью, работа — где в будни днём', () {
+      final places = homeAndWork(life());
+      expect(places.home!.latitude, closeTo(47.0245, 0.001));
+      expect(places.work!.latitude, closeTo(47.0400, 0.001));
+    });
+
+    test('мало точек — не угадывает', () {
+      final places = homeAndWork(life().take(2).toList());
+      expect(places.home, isNull);
+      expect(places.work, isNull);
+    });
+  });
 }

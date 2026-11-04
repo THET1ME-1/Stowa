@@ -42,11 +42,12 @@ class VoiceSession extends ChangeNotifier {
 
   Future<PickedFile?> stop() async {
     _stopTicking();
+    final seconds = elapsed.inSeconds;
     final path = await _recorder.stop();
     if (path == null) return null;
     final file = File(path);
     if (!file.existsSync()) return null;
-    return PickedFile(path: path, mime: 'audio/mp4', size: file.lengthSync());
+    return PickedFile(path: path, mime: 'audio/mp4', size: file.lengthSync(), seconds: seconds);
   }
 
   Future<void> cancel() async {

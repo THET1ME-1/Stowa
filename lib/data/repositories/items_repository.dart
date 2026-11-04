@@ -2,10 +2,12 @@ import 'package:drift/drift.dart';
 
 import '../../domain/folder_guess.dart';
 import '../../domain/item_kind.dart';
-import '../../domain/line_query.dart';
 import '../../domain/models.dart';
+import '../../domain/place_groups.dart';
 import '../../domain/related.dart';
+import '../../domain/search_query.dart';
 import '../../domain/search_rank.dart';
+import '../../domain/word_forms.dart';
 import '../../services/reminder_service.dart' show Reminder, reminderText;
 import '../db/database.dart';
 
@@ -85,6 +87,19 @@ class GraphData {
 
   final List<ItemCard> nodes;
   final List<(String, String)> edges;
+}
+
+/// Вещь сохранена дома или на работе, если не дальше этого от их середины: двор и офисное здание.
+const _markMeters = 250.0;
+
+/// Что нашёл поиск и каким запросом: с фильтрами или, если они ничего не дали, простыми словами.
+class SearchFound {
+  const SearchFound(this.results, this.query);
+
+  static const none = SearchFound([], SearchQuery());
+
+  final List<SearchResult> results;
+  final SearchQuery query;
 }
 
 /// Найденная вещь: карточка и что в ней совпало.
@@ -388,19 +403,38 @@ WHERE items.deleted_at IS NULL''';
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(deletedAt: Value(null)));
   }
 
-  /// Поиск строки ввода. Кандидаты — из индекса по основам слов и последние вещи
-  /// (там ловятся опечатки и имена папок), порядок решает [rankSearch].
-  Future<List<SearchResult>> search({required List<String> words, List<String> tags = const [], String? folderId, required DateTime now, int limit = 6}) async {
-    if (words.isEmpty && tags.isEmpty && folderId == null) return const [];
-    final ids = <String>{};
-    if (words.isNotEmpty) {
-      ids.addAll(await _db.searchIds(words.map((word) => '"${stem(word)}"*').join(' OR ')));
+  /// Поиск строки ввода. Фильтры запроса (дата, вид, сайт, длина, «рядом»)
+  /// отбирают вещи сами; не нашли ничего — запрос ищется простыми словами.
+  /// [here] — где сейчас телефон, для «рядом».
+  Future<SearchFound> search({required SearchQuery query, List<String> tags = const [], String? folderId, required DateTime now, (double, double)? here, int limit = 6}) async {
+    if (query.hasFilters) {
+      final results = await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit);
+      if (results.isNotEmpty) return SearchFound(results, query);
+      final plain = query.withoutFilters();
+      return SearchFound(await _searchOnce(plain, tags: tags, folderId: folderId, now: now, here: here, limit: limit), plain);
     }
-    final recent = await _db
-        .customSelect('SELECT items.id FROM items WHERE items.deleted_at IS NULL ORDER BY items.created_at DESC LIMIT 500', readsFrom: {_db.items})
-        .get();
-    ids.addAll(recent.map((row) => row.read<String>('id')));
-    if (tags.isNotEmpty || folderId != null) {
+    return SearchFound(await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit), query);
+  }
+
+  // кандидаты: с фильтрами — все подходящие под них, без фильтров — из индекса по основам
+  // всех вариантов слов и последние вещи (там ловятся опечатки и имена папок); порядок решает [rankSearch]
+  Future<List<SearchResult>> _searchOnce(SearchQuery query, {required List<String> tags, String? folderId, required DateTime now, (double, double)? here, required int limit}) async {
+    final words = query.words;
+    if (query.isEmpty && tags.isEmpty && folderId == null) return const [];
+    final ids = <String>{};
+    if (query.hasFilters) {
+      ids.addAll(await _admitted(query, here));
+    } else {
+      if (words.isNotEmpty) {
+        final stems = {for (final word in words) for (final variant in word.variants) stemOf(variant.text)};
+        ids.addAll(await _db.searchIds(stems.map((stem) => '"$stem"*').join(' OR ')));
+      }
+      final recent = await _db
+          .customSelect('SELECT items.id FROM items WHERE items.deleted_at IS NULL ORDER BY items.created_at DESC LIMIT 500', readsFrom: {_db.items})
+          .get();
+      ids.addAll(recent.map((row) => row.read<String>('id')));
+    }
+    if (!query.hasFilters && (tags.isNotEmpty || folderId != null)) {
       final filtered = await _db
           .customSelect(
             'SELECT DISTINCT items.id FROM items LEFT JOIN item_tags ON item_tags.item_id = items.id '
@@ -437,14 +471,56 @@ WHERE items.deleted_at IS NULL''';
           folderName: card.folderName,
           folderId: card.folderId,
           deep: [item.aiDescription, item.transcript].nonNulls.join('\n'),
+          place: card.placeName ?? '',
           url: card.url ?? '',
           ageDays: now.difference(item.updatedAt).inDays,
         ),
       );
     }
     return [
-      for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, limit: limit)) SearchResult(card: cards[hit.doc.id]!, hit: hit),
+      for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit))
+        SearchResult(card: cards[hit.doc.id]!, hit: hit),
     ];
+  }
+
+  // вещи под фильтры запроса, свежие первыми; полей мало, поэтому проход по всем дешёвый
+  Future<List<String>> _admitted(SearchQuery query, (double, double)? here) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT items.*, (SELECT attachments.path FROM attachments WHERE attachments.item_id = items.id '
+          'ORDER BY attachments.position LIMIT 1) AS first_path FROM items WHERE items.deleted_at IS NULL ORDER BY items.created_at DESC',
+          readsFrom: {_db.items, _db.attachments},
+        )
+        .get();
+    final items = [for (final row in rows) (item: _db.items.map(row.data), file: row.readNullable<String>('first_path'))];
+    // дом и работа — по тому, где человек сохраняет ночью и в будни днём
+    final places = query.at == null
+        ? (home: null, work: null)
+        : homeAndWork([
+            for (final (:item, file: _) in items)
+              if (item.latitude != null && item.longitude != null) (latitude: item.latitude!, longitude: item.longitude!, at: item.createdAt),
+          ]);
+    final ids = <String>[];
+    for (final (:item, :file) in items) {
+      final placed = item.latitude != null && item.longitude != null;
+      final away = here == null || !placed ? null : metersBetween(here.$1, here.$2, item.latitude!, item.longitude!);
+      final marks = {
+        for (final (mark, place) in [(PlaceMark.home, places.home), (PlaceMark.work, places.work)])
+          if (place != null && placed && metersBetween(place.latitude, place.longitude, item.latitude!, item.longitude!) <= _markMeters) mark,
+      };
+      final admitted = query.admits(
+        createdAt: item.createdAt,
+        kind: item.kind,
+        url: item.url ?? '',
+        fileName: '${item.title} ${file ?? ''}',
+        durationSeconds: item.durationSeconds,
+        metersAway: away,
+        marks: marks,
+      );
+      if (admitted) ids.add(item.id);
+      if (ids.length >= 500) break;
+    }
+    return ids;
   }
 
   ItemCard _card(QueryRow row) {

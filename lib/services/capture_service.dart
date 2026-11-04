@@ -21,11 +21,14 @@ import '../domain/tag_name.dart';
 import 'ai_worker.dart' show aiSortJob;
 
 class PickedFile {
-  const PickedFile({required this.path, required this.mime, required this.size});
+  const PickedFile({required this.path, required this.mime, required this.size, this.seconds});
 
   final String path;
   final String mime;
   final int size;
+
+  /// Длина записи, если её знает тот, кто записывал: голосовое строки.
+  final int? seconds;
 }
 
 /// Что закинули в строку.
@@ -138,6 +141,7 @@ class CaptureService {
               ),
               sortState: Value(sorted ? SortState.sorted : SortState.pending),
               reminderAt: Value(input.forcedReminder ?? found?.at),
+              durationSeconds: Value(input.files.map((file) => file.seconds).nonNulls.firstOrNull),
               createdAt: now,
               updatedAt: now,
             ),

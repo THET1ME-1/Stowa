@@ -1370,4 +1370,12 @@ class LEn extends L {
   @override
   String get placeSettingHint =>
       'The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.';
+
+  @override
+  String panelLooking(Object what) {
+    return 'Looking for: $what';
+  }
+
+  @override
+  String get foundAtPlace => 'by place';
 }

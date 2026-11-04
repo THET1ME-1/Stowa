@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/search_query.dart';
 import 'package:stowa/services/backup_service.dart';
 
 void main() {
@@ -65,8 +66,8 @@ void main() {
     expect((await target.select(target.links).getSingle()).reason, 'к борщу');
     expect(File('${targetFiles.path}/attachments/a/0_borsch.jpg').readAsBytesSync(), [7, 7, 7]);
     // поиск видит восстановленное
-    final found = await ItemsRepository(target).search(words: ['свёкла'], now: now);
-    expect(found.single.card.id, 'a');
+    final found = await ItemsRepository(target).search(query: parseSearch('свёкла', now), now: now);
+    expect(found.results.single.card.id, 'a');
   });
 
   test('в копии нет ключа ИИ и настроек: только база и файлы', () async {

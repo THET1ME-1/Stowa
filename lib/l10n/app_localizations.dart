@@ -2374,6 +2374,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.'**
   String get placeSettingHint;
+
+  /// Над найденным: что поиск понял из запроса, например «видео · вчера»
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for: {what}'**
+  String panelLooking(Object what);
+
+  /// Подпись у найденного: слово нашлось в названии места, где вещь сохранена
+  ///
+  /// In en, this message translates to:
+  /// **'by place'**
+  String get foundAtPlace;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

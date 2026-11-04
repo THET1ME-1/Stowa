@@ -2,6 +2,8 @@
 /// слова запроса. Без Flutter, чтобы тестировалось быстро.
 library;
 
+import 'word_forms.dart';
+
 /// Встроенные команды строки. Плагины встанут рядом с ними.
 enum LineCommand { remind, task, list, find, inbox }
 
@@ -21,7 +23,8 @@ class CaretToken {
   final int end;
 }
 
-String normalizeQuery(String text) => text.toLowerCase().replaceAll('ё', 'е');
+/// Нижний регистр, «ё» как «е», латиница без знаков над буквами.
+String normalizeQuery(String text) => foldText(text);
 
 final _markBefore = RegExp(r'(^|\s)([#@])([^\s#@]*)$');
 // имя папки бывает из нескольких слов: «@Беспроводные возможности», до четырёх слов
@@ -141,21 +144,14 @@ const _stopWords = {
 /// Служебное слово: ни искать, ни раскладывать по нему нечего.
 bool isStopWord(String word) => _stopWords.contains(word);
 
-final _wordSplit = RegExp(r'[^a-zа-я0-9]+');
-final _latinOrDigit = RegExp(r'[0-9a-z]');
-final _ending = RegExp(r'(ами|ями|ого|его|ому|ему|ыми|ими|ая|яя|ое|ее|ые|ие|ой|ей|ий|ый|ом|ем|ам|ям|ах|ях|ую|юю|ов|ев|у|ю|а|я|ы|и|е|о|ь)$');
-
-/// Основа русского слова: окончание срезается, короткие и латинские слова как есть.
-String stem(String word) {
-  if (word.length < 5 || _latinOrDigit.hasMatch(word)) return word;
-  return word.replaceFirst(_ending, '');
-}
+/// Основа слова на любом из семи языков: окончание срезано.
+String stem(String word) => stemOf(word);
 
 /// Слова запроса: без служебных и без повторов по основе.
 List<String> searchWords(String text) {
   final seen = <String>{};
   return [
-    for (final word in normalizeQuery(text).split(_wordSplit))
+    for (final word in wordsOf(text).map(foldText))
       if (word.length >= 2 && !_stopWords.contains(word) && seen.add(stem(word))) word,
   ];
 }

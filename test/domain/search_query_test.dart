@@ -130,6 +130,22 @@ void main() {
     }
   });
 
+  test('дома и на работе на всех языках', () {
+    for (final phrase in ['дома', 'вдома', 'at home', 'zu Hause', 'daheim', 'en casa', 'acasă', 'w domu']) {
+      final query = parseSearch('рецепт $phrase', now);
+      expect(query.at, PlaceMark.home, reason: phrase);
+      expect(free(query), ['рецепт'], reason: phrase);
+    }
+    for (final phrase in ['на работе', 'на роботі', 'at work', 'auf der Arbeit', 'im Büro', 'en el trabajo', 'la serviciu', 'w pracy']) {
+      expect(parseSearch('пароль $phrase', now).at, PlaceMark.work, reason: phrase);
+    }
+    final created = DateTime(2026, 11, 3, 19);
+    final home = parseSearch('дома', now);
+    expect(home.admits(createdAt: created, kind: ItemKind.note, marks: {PlaceMark.home}), isTrue);
+    expect(home.admits(createdAt: created, kind: ItemKind.note, marks: {PlaceMark.work}), isFalse);
+    expect(home.admits(createdAt: created, kind: ItemKind.note), isFalse);
+  });
+
   test('слова запроса несут варианты: транслит и раскладку', () {
     final query = parseSearch('rjat', now);
     expect(query.words.single.variants.map((variant) => variant.text), contains('кофе'));

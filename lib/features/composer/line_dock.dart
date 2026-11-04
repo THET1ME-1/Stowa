@@ -22,6 +22,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
+import '../../domain/search_query.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
 import '../folder/folder_sheets.dart';
@@ -89,7 +90,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   bool _sending = false;
   VoiceSession? _voice;
 
-  List<SearchResult> _found = const [];
+  SearchFound _found = SearchFound.none;
   String _searchKey = '';
   Timer? _searchTimer;
   int _searchRun = 0;
@@ -176,17 +177,21 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     final caret = _line.selection.isValid ? _line.selection.extentOffset : _line.text.length;
     if (caretToken(_line.text, caret) != null) return;
     final query = queryOf(_line.text, commandKeys(L.of(context)));
-    final key = '${query.words.join(' ')}|${_line.tags.join(' ')}|${_line.folder?.id}';
+    final search = parseSearch(query.free, _now);
+    final key = '${query.free.toLowerCase()}|${_line.tags.join(' ')}|${_line.folder?.id}';
     if (key == _searchKey) return;
     _searchKey = key;
     _searchTimer?.cancel();
-    if (query.words.isEmpty && _line.tags.isEmpty && _line.folder == null) {
-      _found = const [];
+    if (search.isEmpty && _line.tags.isEmpty && _line.folder == null) {
+      _found = SearchFound.none;
       return;
     }
     final run = ++_searchRun;
     _searchTimer = Timer(_searchDelay, () async {
-      final found = await ref.read(itemsRepositoryProvider).search(words: query.words, tags: _line.tags, folderId: _line.folder?.id, now: _now);
+      // «рядом» спрашивает, где телефон, только когда его попросили
+      final here = search.near ? await ref.read(searchHereProvider)() : null;
+      if (!mounted || run != _searchRun) return;
+      final found = await ref.read(itemsRepositoryProvider).search(query: search, tags: _line.tags, folderId: _line.folder?.id, now: _now, here: here);
       if (mounted && run == _searchRun) setState(() => _found = found);
     });
   }
@@ -407,7 +412,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _line.chooseFolder(widget.homeFolder);
     _undo.value = UndoHistoryValue.empty;
     _files.clear();
-    _found = const [];
+    _found = SearchFound.none;
     _searchKey = '';
     _filter = null;
   }
@@ -657,7 +662,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         tags: ref.watch(allTagsProvider).value ?? const [],
         folders: ref.watch(foldersProvider).value ?? const [],
         rules: ref.watch(rulesProvider).value ?? const [],
-        found: _found,
+        found: _found.results,
+        understood: _found.query.hasFilters ? _found.query.understood : const [],
         filter: _filter,
         remindAt: _line.reminder?.at,
         folderIndex: ref.watch(folderIndexProvider).value,

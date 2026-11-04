@@ -1,11 +1,21 @@
 import 'dart:math';
 
 import 'line_query.dart';
+import 'search_query.dart';
+import 'word_forms.dart';
 
 /// Где в вещи нашлось слово. Глубже — описание от ИИ, текст с картинки и расшифровка.
-enum SearchField { title, tags, folder, body, deep, url }
+enum SearchField { title, tags, folder, body, deep, place, url }
 
-const _weights = {SearchField.title: 3.0, SearchField.tags: 2.4, SearchField.folder: 1.4, SearchField.body: 1.2, SearchField.deep: 1.1, SearchField.url: 1.0};
+const _weights = {
+  SearchField.title: 3.0,
+  SearchField.tags: 2.4,
+  SearchField.folder: 1.4,
+  SearchField.body: 1.2,
+  SearchField.deep: 1.1,
+  SearchField.place: 1.1,
+  SearchField.url: 1.0,
+};
 
 /// Вещь глазами поиска: все поля, по которым ищется.
 class SearchDoc {
@@ -17,6 +27,7 @@ class SearchDoc {
     this.folderName,
     this.folderId,
     this.deep = '',
+    this.place = '',
     this.url = '',
     this.ageDays = 0,
   });
@@ -28,6 +39,9 @@ class SearchDoc {
   final String? folderName;
   final String? folderId;
   final String deep;
+
+  /// Где сохранено: «Кишинёв, улица Пушкина».
+  final String place;
   final String url;
   final int ageDays;
 
@@ -37,6 +51,7 @@ class SearchDoc {
     SearchField.folder => folderName ?? '',
     SearchField.body => body,
     SearchField.deep => deep,
+    SearchField.place => place,
     SearchField.url => url,
   };
 }
@@ -58,47 +73,87 @@ class SearchHit {
   /// Найденные куски по полям, чтобы подсветить.
   final Map<SearchField, List<TextMark>> marks;
 
-  /// Что показать под заголовком: глубокий текст, если нашлось там, иначе текст вещи.
+  /// Что показать под заголовком: глубокий текст, если нашлось там, потом текст вещи, потом место.
   SearchField? get where => marks.containsKey(SearchField.deep)
       ? SearchField.deep
       : marks.containsKey(SearchField.body)
       ? SearchField.body
+      : marks.containsKey(SearchField.place)
+      ? SearchField.place
       : null;
 }
 
-final _word = RegExp(r'[a-zа-я0-9]+');
+/// Насколько слово текста похоже на вариант запроса: само слово, его форма,
+/// набранное начало, общее начало основы, опечатка. Ноль — не похоже.
+const _exact = 1.0;
+const _form = 0.95;
+const _typed = 0.9;
+const _stemStart = 0.75;
+const _typo = 0.6;
 
-// куски текста, где слово начинается так же или отличается одной буквой
-({double strength, List<TextMark> marks}) _hitsIn(String text, String query) {
-  final base = stem(query);
+/// Короче основа формой не считается: «паро» — это начало «пароля», а не форма «пары».
+const _formStem = 4;
+
+// куски текста, где нашлось слово запроса в любом из его вариантов
+({double strength, List<TextMark> marks}) _hitsIn(String text, QueryWord query) {
   var strength = 0.0;
   final marks = <TextMark>[];
-  for (final match in _word.allMatches(normalizeQuery(text))) {
+  final folded = foldText(text);
+  for (final match in wordMatches(folded)) {
     final word = match.group(0)!;
-    var hit = 0.0;
+    var best = 0.0;
     var length = 0;
-    if (word.startsWith(base)) {
-      hit = word == query || word == base ? 1 : 0.9;
-      length = base.length;
-      while (length < word.length && length < query.length && word[length] == query[length]) {
-        length++;
+    for (final (index, variant) in query.variants.indexed) {
+      final wanted = variant.text;
+      final base = stemOf(wanted);
+      var hit = 0.0;
+      var span = 0;
+      if (word == wanted) {
+        hit = _exact;
+        span = word.length;
+      } else if (word.startsWith(base)) {
+        final form = base.length >= _formStem && stemOf(word) == base;
+        final typed = word.startsWith(wanted);
+        hit = form ? _form : (typed ? _typed : _stemStart);
+        span = typed ? wanted.length : base.length;
+        while (span < word.length && span < wanted.length && word[span] == wanted[span]) {
+          span++;
+        }
+      } else if (index == 0 &&
+          wanted.length >= 4 &&
+          (nearWords(word.substring(0, min(word.length, wanted.length)), wanted) || nearWords(word.substring(0, min(word.length, wanted.length + 1)), wanted))) {
+        // опечатку ищем только у самого слова: у транслита и раскладки она даёт шум
+        hit = _typo;
+        span = min(word.length, wanted.length);
       }
-    } else if (query.length >= 4 &&
-        (nearWords(word.substring(0, min(word.length, query.length)), query) || nearWords(word.substring(0, min(word.length, query.length + 1)), query))) {
-      hit = 0.6;
-      length = min(word.length, query.length);
+      hit *= variant.weight;
+      if (hit > best) {
+        best = hit;
+        length = span;
+      }
     }
-    if (hit > 0) {
+    if (best > 0) {
       marks.add((match.start, length));
-      strength = max(strength, hit);
+      strength = max(strength, best);
     }
   }
   return (strength: strength, marks: marks);
 }
 
+/// Свежесть: прибавка, которая разводит равные совпадения в пользу новых.
+double _freshness(SearchDoc doc) => 0.5 / (1 + doc.ageDays / 14);
+
 /// Лучшие вещи по словам запроса. Чипы тегов и папки — строгий фильтр.
-List<SearchHit> rankSearch(List<SearchDoc> docs, List<String> words, {List<String> tagFilters = const [], String? folderFilter, int limit = 6}) {
-  if (words.isEmpty && tagFilters.isEmpty && folderFilter == null) return const [];
+/// Без слов, но с [filtered] (вещи уже отобраны по дате, виду, месту) — свежие первыми.
+List<SearchHit> rankSearch(
+  List<SearchDoc> docs,
+  List<QueryWord> words, {
+  List<String> tagFilters = const [],
+  String? folderFilter,
+  bool filtered = false,
+  int limit = 6,
+}) {
+  if (words.isEmpty && tagFilters.isEmpty && folderFilter == null && !filtered) return const [];
   final hits = <SearchHit>[];
   final need = words.length <= 2 ? words.length : max(1, (words.length / 3).ceil());
   for (final doc in docs) {
@@ -132,7 +187,7 @@ List<SearchHit> rankSearch(List<SearchDoc> docs, List<String> words, {List<Strin
       if (bestField != SearchField.title || bestStrength < 0.9) strong = false;
     }
     if (matched < need) continue;
-    hits.add(SearchHit(doc: doc, score: total / max(1, words.length) + 0.5 / (1 + doc.ageDays / 14), matched: matched, strong: strong, marks: marks));
+    hits.add(SearchHit(doc: doc, score: total / max(1, words.length) + _freshness(doc), matched: matched, strong: strong, marks: marks));
   }
   hits.sort((a, b) => b.score.compareTo(a.score));
   return hits.take(limit).toList();

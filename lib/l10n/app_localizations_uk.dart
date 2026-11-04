@@ -1389,4 +1389,12 @@ class LUk extends L {
   @override
   String get placeSettingHint =>
       'Місце ставиться після збереження і видно на сторінці речі та на мапі. Координати лишаються на телефоні, назовні йде тільки запит назви вулиці.';
+
+  @override
+  String panelLooking(Object what) {
+    return 'Шукаю: $what';
+  }
+
+  @override
+  String get foundAtPlace => 'за місцем';
 }

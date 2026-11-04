@@ -1389,4 +1389,12 @@ class LPl extends L {
   @override
   String get placeSettingHint =>
       'Miejsce dodaje się po zapisaniu i widać je na stronie rzeczy i na mapie. Współrzędne zostają w telefonie, na zewnątrz idzie tylko zapytanie o nazwę ulicy.';
+
+  @override
+  String panelLooking(Object what) {
+    return 'Szukam: $what';
+  }
+
+  @override
+  String get foundAtPlace => 'po miejscu';
 }

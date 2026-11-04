@@ -1394,4 +1394,12 @@ class LRu extends L {
   @override
   String get placeSettingHint =>
       'Место ставится после сохранения и видно на странице вещи и на карте. Координаты остаются на телефоне, наружу уходит только запрос названия улицы.';
+
+  @override
+  String panelLooking(Object what) {
+    return 'Ищу: $what';
+  }
+
+  @override
+  String get foundAtPlace => 'по месту';
 }

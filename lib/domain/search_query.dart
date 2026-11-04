@@ -16,6 +16,9 @@ import 'word_variants.dart';
 /// «Рядом» — не дальше километра от того места, где сейчас телефон.
 const nearMeters = 1000.0;
 
+/// Отметка места, которую телефон угадывает сам: дом и работа.
+enum PlaceMark { home, work }
+
 /// Слово запроса и как ещё его могли написать.
 class QueryWord {
   const QueryWord(this.word, this.variants);
@@ -39,9 +42,13 @@ class SearchQuery {
     this.minSeconds,
     this.maxSeconds,
     this.near = false,
+    this.at,
     this.understood = const [],
     this.plainWords = const [],
   });
+
+  /// «дома», «на работе».
+  final PlaceMark? at;
 
   final List<QueryWord> words;
 
@@ -81,7 +88,8 @@ class SearchQuery {
       hosts.isNotEmpty ||
       minSeconds != null ||
       maxSeconds != null ||
-      near;
+      near ||
+      at != null;
 
   bool get isEmpty => words.isEmpty && !hasFilters;
 
@@ -89,7 +97,17 @@ class SearchQuery {
   SearchQuery withoutFilters() => SearchQuery(words: plainWords, plainWords: plainWords);
 
   /// Подходит ли вещь под фильтры. Слова проверяет ранжирование.
-  bool admits({required DateTime createdAt, required ItemKind kind, String url = '', String fileName = '', int? durationSeconds, double? metersAway}) {
+  /// [marks] — где вещь сохранена: дома, на работе.
+  bool admits({
+    required DateTime createdAt,
+    required ItemKind kind,
+    String url = '',
+    String fileName = '',
+    int? durationSeconds,
+    double? metersAway,
+    Set<PlaceMark> marks = const {},
+  }) {
+    if (at != null && !marks.contains(at)) return false;
     if (from != null && createdAt.isBefore(from!)) return false;
     if (to != null && !createdAt.isBefore(to!)) return false;
     if (fromHour != null && toHour != null) {
@@ -264,6 +282,14 @@ final _nearPhrases = [
     [for (final word in phrase.split(' ')) _clean(word)],
 ];
 
+// дом и работа, длинные фразы первыми
+List<List<String>> _placePhrases(List<String> phrases) => [for (final phrase in phrases) [for (final word in phrase.split(' ')) _clean(word)]]..sort((a, b) => b.length.compareTo(a.length));
+final _homePhrases = _placePhrases(['дома', 'у себя дома', 'вдома', 'удома', 'at home', 'zu hause', 'zuhause', 'daheim', 'en casa', 'acasă', 'w domu']);
+final _workPhrases = _placePhrases([
+  'на работе', 'в офисе', 'на роботі', 'в офісі', 'at work', 'at the office', 'in the office', 'auf der arbeit', 'bei der arbeit', 'im büro',
+  'en el trabajo', 'en la oficina', 'la serviciu', 'la birou', 'w pracy', 'w biurze',
+]);
+
 // длина ролика: «до 5 минут», «больше 10 минут», «от 2 до 5 минут»
 final _shorterThan = _phrases(
   'до|меньше|менее|короче|не больше|не дольше|не длиннее|максимум|менше|коротше|не більше|under|below|less than|shorter than|up to|max|maximum|at most|'
@@ -396,6 +422,7 @@ class _Parser {
   int? minSeconds;
   int? maxSeconds;
   var near = false;
+  PlaceMark? at;
 
   DateTime get _day => DateTime(now.year, now.month, now.day);
 
@@ -416,7 +443,7 @@ class _Parser {
 
     final plain = _wordsOf(List.generate(tokens.length, (index) => index));
     var free = _wordsOf([for (var index = 0; index < tokens.length; index++) if (!used[index]) index]);
-    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near;
+    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near || at != null;
     // запрос из одних служебных слов ищется как есть
     if (free.isEmpty && !filtered) free = _wordsOf(List.generate(tokens.length, (index) => index), keepStop: true);
     _understood.sort((a, b) => a.$1.compareTo(b.$1));
@@ -432,6 +459,7 @@ class _Parser {
       minSeconds: minSeconds,
       maxSeconds: maxSeconds,
       near: near,
+      at: at,
       understood: [for (final entry in _understood) entry.$2],
       plainWords: plain.isEmpty ? free : plain,
     );
@@ -455,7 +483,7 @@ class _Parser {
   }
 
   int _match(int index) {
-    for (final matcher in [_duration, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _site, _kind, _shortLong]) {
+    for (final matcher in [_duration, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _kind, _shortLong]) {
       final taken = matcher(index);
       if (taken > 0) return taken;
     }
@@ -813,6 +841,18 @@ class _Parser {
     used[index] = true;
     _pending.add(('year', _Pending(index, index + 1, () => _takeDate(index, index + 1, DateTime(year), DateTime(year + 1)))));
     return 1;
+  }
+
+  // «дома», «at work», «im Büro», «la serviciu»
+  int _placeMark(int index) {
+    for (final (mark, phrases) in [(PlaceMark.home, _homePhrases), (PlaceMark.work, _workPhrases)]) {
+      for (final phrase in phrases) {
+        if (!_seq(index, phrase)) continue;
+        at = mark;
+        return _take(index, index + phrase.length);
+      }
+    }
+    return 0;
   }
 
   int _near(int index) {

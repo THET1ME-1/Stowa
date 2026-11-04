@@ -8,18 +8,22 @@ import 'tables.dart';
 part 'database.g.dart';
 
 // поля, которые ищутся
-const _ftsColumns = 'title, body, ai_description, transcript, url';
-const _ftsSource = ['title', 'body', 'ai_description', 'transcript', 'url'];
+const _ftsColumns = 'title, body, ai_description, transcript, url, place_name';
+const _ftsSource = ['title', 'body', 'ai_description', 'transcript', 'url', 'place_name'];
 
-// unicode61 не снимает точки с «ё», поэтому индекс получает «е»; NULL — пустая
-// строка, одинаково при записи и при удалении из индекса
-String _ftsValues(String row) => _ftsSource.map((column) => "replace(replace(coalesce($row.$column, ''), 'ё', 'е'), 'Ё', 'Е')").join(', ');
+// unicode61 снимает знаки с латиницы, но не трогает «ё» и польскую «ł»: их индекс
+// получает уже заменёнными; NULL — пустая строка, одинаково при записи и при удалении
+const _ftsSwaps = [('ё', 'е'), ('Ё', 'Е'), ('ł', 'l'), ('Ł', 'L')];
+
+String _ftsValue(String expression) => _ftsSwaps.fold("coalesce($expression, '')", (value, swap) => "replace($value, '${swap.$1}', '${swap.$2}')");
+
+String _ftsValues(String row) => _ftsSource.map((column) => _ftsValue('$row.$column')).join(', ');
 
 final _ftsNew = _ftsValues('new');
 final _ftsOld = _ftsValues('old');
 
-/// Запрос к индексу с той же заменой «ё», что и в самом индексе.
-String normalizeSearchText(String text) => text.replaceAll('ё', 'е').replaceAll('Ё', 'Е');
+/// Запрос к индексу с теми же заменами, что и в самом индексе.
+String normalizeSearchText(String text) => _ftsSwaps.fold(text, (value, swap) => value.replaceAll(swap.$1, swap.$2));
 
 @DriftDatabase(tables: [Items, Attachments, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
 class AppDatabase extends _$AppDatabase {
@@ -31,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -51,6 +55,15 @@ class AppDatabase extends _$AppDatabase {
         for (final column in [items.latitude, items.longitude, items.placeName]) {
           await migrator.addColumn(items, column);
         }
+      }
+      // 4: место в индексе и «ł» как «l» — индекс строится заново
+      if (from < 4) {
+        for (final trigger in ['items_fts_insert', 'items_fts_delete', 'items_fts_update']) {
+          await customStatement('DROP TRIGGER IF EXISTS $trigger');
+        }
+        await customStatement('DROP TABLE IF EXISTS items_fts');
+        await _createSearch();
+        await customStatement('INSERT INTO items_fts(rowid, $_ftsColumns) SELECT rowid, ${_ftsValues('items')} FROM items');
       }
     },
     beforeOpen: (details) async {

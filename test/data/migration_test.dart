@@ -19,6 +19,7 @@ void main() {
     await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.link, title: 'Старая', url: const Value('https://a.b'), createdAt: now, updatedAt: now));
     await fresh.close();
     final raw = sqlite3.open(file.path);
+    _dropSearch(raw);
     for (final column in ['cover_path', 'preview_text', 'preview_site', 'preview_author', 'duration_seconds', 'preview_at']) {
       raw.execute('ALTER TABLE items DROP COLUMN $column');
     }
@@ -47,6 +48,7 @@ void main() {
     await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'Старая', createdAt: now, updatedAt: now));
     await fresh.close();
     final raw = sqlite3.open(file.path);
+    _dropSearch(raw);
     for (final column in ['latitude', 'longitude', 'place_name']) {
       raw.execute('ALTER TABLE items DROP COLUMN $column');
     }
@@ -62,4 +64,41 @@ void main() {
     expect(old.title, 'Старая');
     expect(old.placeName, 'Кишинёв');
   });
+
+  test('база версии 3: индекс строится заново, ищется по месту и по «ł»', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 3);
+
+    // индекс версии 3: без места и без замены «ł»
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.customSelect('SELECT 1').get();
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropSearch(raw);
+    const columns = 'title, body, ai_description, transcript, url';
+    String values(String row) => columns.split(', ').map((column) => "replace(replace(coalesce($row.$column, ''), 'ё', 'е'), 'Ё', 'Е')").join(', ');
+    raw.execute("CREATE VIRTUAL TABLE items_fts USING fts5($columns, content='items', content_rowid='rowid', tokenize='unicode61 remove_diacritics 2')");
+    raw.execute('CREATE TRIGGER items_fts_insert AFTER INSERT ON items BEGIN INSERT INTO items_fts(rowid, $columns) VALUES (new.rowid, ${values('new')}); END');
+    raw.execute(
+      "INSERT INTO items (id, kind, title, body, place_name, sort_state, sorted_by, created_at, updated_at) VALUES "
+      "('old', 'note', 'Łódź', '', 'Кишинёв', 'pending', 'none', '${now.toIso8601String()}', '${now.toIso8601String()}')",
+    );
+    raw.execute('PRAGMA user_version = 3');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    expect(await upgraded.searchIds('"кишинев"*'), ['old']);
+    expect(await upgraded.searchIds('"lodz"*'), ['old']);
+  });
+}
+
+// триггеры индекса ссылаются на поля: без них поля можно убрать, а миграция строит индекс заново
+void _dropSearch(Database raw) {
+  for (final trigger in ['items_fts_insert', 'items_fts_delete', 'items_fts_update']) {
+    raw.execute('DROP TRIGGER IF EXISTS $trigger');
+  }
+  raw.execute('DROP TABLE IF EXISTS items_fts');
 }

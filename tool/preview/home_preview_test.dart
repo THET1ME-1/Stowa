@@ -199,6 +199,13 @@ void main() {
     await _shot(tester, '4-нашлось');
   });
 
+  testWidgets('поиск понял запрос', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    await open(tester);
+    await type(tester, 'паста на этой неделе');
+    await _shot(tester, '4б-понял');
+  });
+
   testWidgets('похожее и дописать', (tester) async {
     await tester.runAsync(() => _seed(world));
     await open(tester);
