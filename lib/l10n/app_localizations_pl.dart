@@ -1542,4 +1542,21 @@ class LPl extends L {
 
   @override
   String get authorTags => 'Tagi autora';
+
+  @override
+  String get pageSeries => 'serial';
+
+  @override
+  String get pageComic => 'komiks';
+
+  @override
+  String get adultSetting => 'Pokazuj 18+';
+
+  @override
+  String get adultSettingHint =>
+      'Strony, które same oznaczają się jako 18+, i znane serwisy dla dorosłych. Dopóki to wyłączone, ich okładki są rozmyte, a opisy ukryte. Element i wyszukiwanie zostają.';
+
+  @override
+  String get adultHidden =>
+      'Opis ukryty: 18+. Pokazywanie włączysz w ustawieniach.';
 }

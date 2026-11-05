@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import '../../data/db/database.dart';
 import '../../domain/link_preview.dart' show decodePage;
 import '../../domain/models.dart';
+import '../../domain/site_sources.dart' show adultSite;
 import '../../domain/structured_page.dart';
 import '../../domain/video_text.dart';
 import '../link_preview_service.dart' show Fetch, Post;
@@ -20,6 +21,8 @@ const pageTypeWords = {
   PageType.event: 'событие подія event Veranstaltung evento eveniment wydarzenie',
   PageType.place: 'место місце заведение заклад place Ort lugar loc miejsce',
   PageType.movie: 'фильм фільм movie film Film película',
+  PageType.series: 'сериал серіал аниме аніме series anime Serie serie serial',
+  PageType.comic: 'манга манхва маньхуа комикс комікс manga manhwa manhua comic Comic cómic komiks',
   PageType.book: 'книга book Buch libro carte książka',
   PageType.video: 'видео відео video Video vídeo wideo',
   PageType.article: 'статья стаття article Artikel artículo articol artykuł',
@@ -74,6 +77,10 @@ List<FactDraft> pageFacts(StructuredPage page) {
   for (final chapter in page.chapters) {
     facts.add(FactDraft(FactKind.chapter, chapter.title, number: chapter.seconds.toDouble()));
   }
+  // жанры — те же теги автора: «драма», «научная_фантастика»
+  for (final genre in page.genres) {
+    facts.add(FactDraft(FactKind.hashtag, genre.toLowerCase().trim().replaceAll(RegExp(r'\s+'), '_')));
+  }
   return facts;
 }
 
@@ -87,9 +94,10 @@ class PageExtractor extends Extractor {
   @override
   String get name => 'page';
 
-  // 2: адрес без повторов города и региона; 3: и без города, повторённого в улице
+  // 2: адрес без повторов города и региона; 3: и без города, повторённого в улице;
+  // 4: сериал и манга отдельно от фильма и книги, жанры, страницы 18+; 5: и сайты 18+ по адресу
   @override
-  int get version => 3;
+  int get version => 5;
   @override
   String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
   @override
@@ -98,9 +106,15 @@ class PageExtractor extends Extractor {
   @override
   Future<List<FactDraft>> extract(ExtractInput input) async {
     final html = await readPage(input.filesRoot, input.item.id);
-    if (html == null) return const [];
-    final page = structuredPage(html);
-    return page == null ? const [] : pageFacts(page);
+    final url = Uri.tryParse(input.item.url ?? '');
+    // для взрослых по словам самой страницы, даже если вида у неё нет, или по сайту:
+    // страница за проверкой возраста не сохраняется вовсе
+    final adult = (html != null && adultPage(html)) || (url != null && adultSite(url));
+    final page = html == null ? null : structuredPage(html);
+    return [
+      if (page != null) ...pageFacts(page),
+      if (adult) const FactDraft(FactKind.adult, '18+'),
+    ];
   }
 
   @override

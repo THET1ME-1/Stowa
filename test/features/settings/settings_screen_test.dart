@@ -87,6 +87,16 @@ void main() {
     expect(settings.ai.sortModel, 'google/gemma-4:free');
   });
 
+  testWidgets('показ 18+ выключен с начала и включается переключателем', (tester) async {
+    await open(tester, keyStatus: 200);
+    expect(settings.showAdult, isFalse);
+    await tester.scrollUntilVisible(find.text('Показывать 18+'), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Показывать 18+'));
+    await tester.pumpAndSettle();
+    expect(settings.showAdult, isTrue);
+  });
+
   testWidgets('язык меняется сразу, без перезапуска', (tester) async {
     await settings.setLanguage(AppLanguage.ru);
     await open(tester, keyStatus: 200, ownLanguage: true);

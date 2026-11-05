@@ -154,6 +154,17 @@ void main() {
     expect(find.byKey(const ValueKey('item-suggested-tags')), findsNothing);
   });
 
+  testWidgets('автор из превью и со страницы — в карточке один раз', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'm', kind: ItemKind.link, title: 'Человек-бензопила', url: const Value('https://mangalib.me/ru/manga/7965--chainsaw-man'), createdAt: world.now, updatedAt: world.now));
+    await fact('m', FactKind.pageType, 'манга', detail: 'comic');
+    await fact('m', FactKind.author, 'Tatsuki Fujimoto', position: 1);
+    await fact('m', FactKind.author, 'Tatsuki Fujimoto', position: 2);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'm')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tatsuki Fujimoto'), findsOneWidget);
+  });
+
   testWidgets('найденное в документе подписано листом', (tester) async {
     await world.db
         .into(world.db.items)

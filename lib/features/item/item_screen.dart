@@ -383,7 +383,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           const SizedBox(height: 18),
                         ],
                         if (videoLink || videoFile != null) ...[
-                          VideoCover(coverPath: item.coverPath ?? cover?.path, filesRoot: filesRoot, onPlay: openMain, source: videoLink ? source : null, duration: duration),
+                          VideoCover(
+                            itemId: item.id,
+                            coverPath: item.coverPath ?? cover?.path,
+                            filesRoot: filesRoot,
+                            onPlay: openMain,
+                            source: videoLink ? source : null,
+                            duration: duration,
+                          ),
                           const SizedBox(height: 18),
                         ] else if (linkLike) ...[
                           LinkPreviewCard(item: item, filesRoot: filesRoot, onOpen: openMain),

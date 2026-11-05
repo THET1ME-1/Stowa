@@ -39,7 +39,8 @@ class PageCard extends StatelessWidget {
     final l = L.of(context);
     final type = pageTypeOf(facts)!;
     final ingredients = [for (final fact in _of(facts, FactKind.ingredient)) fact.value];
-    final authors = [for (final fact in _of(facts, FactKind.author)) fact.value];
+    // автора пишут и превью, и разметка страницы: одно имя показываем один раз
+    final authors = {for (final fact in _of(facts, FactKind.author)) fact.value}.toList();
     final rating = _first(facts, FactKind.rating)?.number;
     final price = _first(facts, FactKind.price);
     final stock = _first(facts, FactKind.inStock)?.number;
@@ -66,7 +67,7 @@ class PageCard extends StatelessWidget {
         if (_first(facts, FactKind.readingTime)?.number case final minutes?) _line('schedule', l.readingMinutes(minutes.round())),
         if (_first(facts, FactKind.published)?.at case final published?) _line('calendar_today', _day(l, published)),
       ],
-      if (type == PageType.movie || type == PageType.book)
+      if (const {PageType.movie, PageType.series, PageType.comic, PageType.book}.contains(type))
         if (_first(facts, FactKind.year)?.number case final year?) _line('calendar_today', '${year.round()}'),
       if (authors.isNotEmpty && type != PageType.product) _line('person', authors.join(', ')),
       if (rating != null) _line('star', rating.toStringAsFixed(rating == rating.roundToDouble() ? 0 : 1)),
@@ -121,6 +122,8 @@ class PageCard extends StatelessWidget {
     PageType.event => l.pageEvent,
     PageType.place => l.pagePlace,
     PageType.movie => l.pageMovie,
+    PageType.series => l.pageSeries,
+    PageType.comic => l.pageComic,
     PageType.book => l.pageBook,
     PageType.video => l.pageVideo,
     PageType.article => l.pageArticle,

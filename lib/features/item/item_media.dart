@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
 
@@ -12,6 +13,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../domain/item_kind.dart';
 import '../../l10n/app_localizations.dart';
+import 'adult_veil.dart';
 
 /// «PDF · 1.2 MB»: расширение и размер, как в карточках папки.
 String fileCaption(String path, int size) {
@@ -46,7 +48,8 @@ Future<void> openLocalFile(BuildContext context, String path, String mime) async
 }
 
 /// Превью ссылки: картинка страницы, сайт и описание. Касание открывает страницу.
-class LinkPreviewCard extends StatelessWidget {
+/// Страница 18+, а показ не включён — картинка размыта, описание спрятано.
+class LinkPreviewCard extends ConsumerWidget {
   const LinkPreviewCard({super.key, required this.item, required this.filesRoot, required this.onOpen});
 
   final Item item;
@@ -54,10 +57,11 @@ class LinkPreviewCard extends StatelessWidget {
   final VoidCallback onOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final host = Uri.tryParse(item.url ?? '')?.host ?? '';
     final site = item.previewSite ?? sourceName(host);
-    final description = item.previewText;
+    final hidden = adultHidden(ref, item.id);
+    final description = hidden && item.previewText != null ? L.of(context).adultHidden : item.previewText;
     final cover = item.coverPath;
     return Pressable(
       onTap: onOpen,
@@ -71,11 +75,15 @@ class LinkPreviewCard extends StatelessWidget {
             if (cover != null)
               SizedBox(
                 height: 190,
-                child: Image.file(
-                  File(p.join(filesRoot.path, cover)),
-                  fit: BoxFit.cover,
-                  cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
-                  errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+                child: AdultVeil(
+                  itemId: item.id,
+                  child: Image.file(
+                    File(p.join(filesRoot.path, cover)),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
+                    errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+                  ),
                 ),
               ),
             Padding(
@@ -132,13 +140,17 @@ class _SiteMark extends StatelessWidget {
 
 /// Обложка ролика: сервис в углу, длина, круглая кнопка посередине. Касание запускает.
 class VideoCover extends StatelessWidget {
-  const VideoCover({super.key, required this.coverPath, required this.filesRoot, required this.onPlay, this.source, this.duration});
+  const VideoCover({super.key, required this.coverPath, required this.filesRoot, required this.onPlay, this.source, this.duration, this.itemId});
 
+  /// Чья обложка: у ролика 18+ она размыта, пока показ не включён.
+  final String? itemId;
   final String? coverPath;
   final Directory filesRoot;
   final VoidCallback onPlay;
   final String? source;
   final Duration? duration;
+
+  Widget _veiled(Widget image) => itemId == null ? image : AdultVeil(itemId: itemId!, child: image);
 
   @override
   Widget build(BuildContext context) {
@@ -160,11 +172,13 @@ class VideoCover extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               if (cover != null)
-                Image.file(
-                  File(p.join(filesRoot.path, cover)),
-                  fit: BoxFit.cover,
-                  cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
-                  errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+                _veiled(
+                  Image.file(
+                    File(p.join(filesRoot.path, cover)),
+                    fit: BoxFit.cover,
+                    cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
+                    errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+                  ),
                 )
               else
                 const ColoredBox(color: Tokens.containerHigh),

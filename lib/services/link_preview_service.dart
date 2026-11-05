@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../data/db/database.dart';
 import '../domain/link_preview.dart';
 import '../domain/models.dart';
+import '../domain/site_sources.dart';
 import 'page_cache.dart';
 
 /// Ответ сети: код, байты и тип содержимого.
@@ -49,8 +50,14 @@ Future<FetchReply> httpPost(Uri uri, String json) async {
 const _maxPageBytes = 1536 * 1024;
 const _maxImageBytes = 6 * 1024 * 1024;
 
+/// Запрос со своими заголовками: API сайтов Lib ждёт номер сайта.
+typedef FetchWith = Future<FetchReply> Function(Uri uri, Map<String, String> headers);
+
 /// Скачать адрес по-настоящему: с переходами, сроком и пределом размера.
-Future<FetchReply> httpFetch(Uri uri) async {
+Future<FetchReply> httpFetch(Uri uri) => httpFetchWith(uri, const {});
+
+/// То же со своими заголовками.
+Future<FetchReply> httpFetchWith(Uri uri, Map<String, String> headers) async {
   final client = HttpClient()
     ..connectionTimeout = const Duration(seconds: 8)
     // мобильный браузер: часть сайтов без него отдаёт заглушку вместо страницы
@@ -58,6 +65,7 @@ Future<FetchReply> httpFetch(Uri uri) async {
   try {
     final request = await client.getUrl(uri).timeout(const Duration(seconds: 10));
     request.headers.set(HttpHeaders.acceptLanguageHeader, 'ru,en;q=0.8');
+    headers.forEach(request.headers.set);
     final response = await request.close().timeout(const Duration(seconds: 15));
     final limit = (response.headers.contentType?.primaryType == 'image') ? _maxImageBytes : _maxPageBytes;
     final bytes = <int>[];
@@ -74,15 +82,17 @@ Future<FetchReply> httpFetch(Uri uri) async {
 /// Превью ссылок и роликов: заголовок, описание, обложка. Сеть только здесь и
 /// только в фоне — сохранение вещи её не ждёт.
 class LinkPreviewService {
-  LinkPreviewService(this._db, {required Directory filesRoot, required DateTime Function() clock, Fetch fetch = httpFetch, this.onPreviewed})
+  LinkPreviewService(this._db, {required Directory filesRoot, required DateTime Function() clock, Fetch fetch = httpFetch, FetchWith? fetchWith, this.onPreviewed})
     : _filesRoot = filesRoot, // ignore: prefer_initializing_formals
       _clock = clock, // ignore: prefer_initializing_formals
-      _fetch = fetch; // ignore: prefer_initializing_formals
+      _fetch = fetch, // ignore: prefer_initializing_formals
+      _fetchWith = fetchWith ?? ((uri, headers) => fetch(uri));
 
   final AppDatabase _db;
   final Directory _filesRoot;
   final DateTime Function() _clock;
   final Fetch _fetch;
+  final FetchWith _fetchWith;
 
   /// Превью записано: у вещи появились заголовок и описание страницы.
   final Future<void> Function(String itemId)? onPreviewed;
@@ -114,6 +124,10 @@ class LinkPreviewService {
     final page = Uri.tryParse(url);
     if (page == null || !page.hasScheme) return _done(item, null);
 
+    // сайты Lib: страница — пустая оболочка, тайтл отдаёт их API
+    final lib = libRequest(page);
+    if (lib != null) return _fromLib(item, lib);
+
     LinkPreview? fromOembed;
     final endpoint = oembedEndpoint(page);
     if (endpoint != null) {
@@ -128,8 +142,11 @@ class LinkPreviewService {
     var gone = false;
     try {
       final reply = await _fetch(page);
-      if (reply.ok) {
-        final html = decodePage(reply.bytes, reply.contentType);
+      final html = reply.ok ? decodePage(reply.bytes, reply.contentType) : '';
+      if (reply.ok && isBotCheck(html)) {
+        // проверка на бота — не страница: её заголовок вещи не нужен, а ждать, что она пройдёт сама, нечего
+        gone = true;
+      } else if (reply.ok) {
         fromPage = parseHtmlPreview(html, page);
         // копия страницы для извлекателей: рецепт, товар, событие читаются из неё без второго похода в сеть
         if ((reply.contentType ?? 'text/html').contains('html')) await savePage(_filesRoot, id, html).catchError((_) {});
@@ -139,13 +156,46 @@ class LinkPreviewService {
     } catch (_) {
       // нет сети или сайт молчит
     }
+    // HDrezka закрыта проверкой на бота, но название и год сама пишет в адрес
+    final rezka = fromPage == null ? rezkaFromUrl(page) : null;
+    if (rezka != null && (gone || fromOembed == null)) {
+      await savePage(_filesRoot, id, rezkaPage(rezka)).catchError((_) {});
+      // год — в карточке фильма, заголовку он не нужен
+      return _done(item, LinkPreview(title: rezka.title, siteName: 'HDrezka'));
+    }
     final preview = fromOembed != null && fromPage != null ? fromOembed.merge(fromPage) : fromOembed ?? fromPage;
     if (preview == null) return gone ? _done(item, null) : false;
     return _done(item, preview);
   }
 
+  // тайтл Lib из их API: название, описание, обложка, автор; закрытый для гостей — имя из адреса
+  Future<bool> _fromLib(Item item, LibRequest lib) async {
+    final FetchReply reply;
+    try {
+      reply = await _fetchWith(lib.api, lib.headers);
+    } catch (_) {
+      return false;
+    }
+    LibTitle? title;
+    if (reply.ok) {
+      try {
+        title = parseLibTitle(jsonDecode(utf8.decode(reply.bytes)) as Map<String, Object?>, lib.site);
+      } on FormatException {
+        title = null;
+      }
+    } else if (reply.status >= 500) {
+      return false;
+    }
+    title ??= libTitleFromSlug(lib);
+    await savePage(_filesRoot, item.id, libPage(title)).catchError((_) {});
+    return _done(
+      item,
+      LinkPreview(title: title.name, description: title.summary, imageUrl: title.cover, siteName: lib.site.name, author: title.authors.isEmpty ? null : title.authors.join(', ')),
+    );
+  }
+
   Future<bool> _done(Item item, LinkPreview? preview) async {
-    final cover = preview?.imageUrl == null ? null : await _saveCover(item.id, preview!.imageUrl!);
+    final cover = preview?.imageUrl == null ? null : await _saveCover(item.id, preview!.imageUrl!, page: Uri.tryParse(item.url ?? ''));
     final title = preview?.title;
     await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(
       ItemsCompanion(
@@ -170,14 +220,16 @@ class LinkPreviewService {
   }
 
   /// Обложка в папку приложения. У YouTube сперва крупная: в oEmbed она с чёрными полосами.
-  Future<String?> _saveCover(String id, Uri image) async {
+  /// Адрес страницы идёт в Referer, как у браузера: сервер картинок Lib без него отвечает 403.
+  Future<String?> _saveCover(String id, Uri image, {Uri? page}) async {
     final candidates = [
       if (image.host == 'i.ytimg.com' && image.path.endsWith('/hqdefault.jpg')) image.replace(path: image.path.replaceFirst('hqdefault.jpg', 'maxresdefault.jpg')),
       image,
     ];
+    final referer = page == null || page.host.isEmpty ? const <String, String>{} : {'Referer': '${page.scheme}://${page.host}/'};
     for (final candidate in candidates) {
       try {
-        final reply = await _fetch(candidate);
+        final reply = await _fetchWith(candidate, referer);
         if (!reply.ok || reply.bytes.isEmpty || !(reply.contentType ?? 'image/').startsWith('image/')) continue;
         final extension = switch (reply.contentType?.split(';').first.trim()) {
           'image/png' => 'png',

@@ -1530,4 +1530,21 @@ class LRo extends L {
 
   @override
   String get authorTags => 'Etichetele autorului';
+
+  @override
+  String get pageSeries => 'serial';
+
+  @override
+  String get pageComic => 'bandă desenată';
+
+  @override
+  String get adultSetting => 'Arată 18+';
+
+  @override
+  String get adultSettingHint =>
+      'Paginile care se marchează singure ca 18+ și site-urile cunoscute pentru adulți. Cât timp e dezactivat, copertele lor sunt estompate, iar descrierile ascunse. Elementul și căutarea rămân.';
+
+  @override
+  String get adultHidden =>
+      'Descriere ascunsă: 18+. Se poate activa în setări.';
 }

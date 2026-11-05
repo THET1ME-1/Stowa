@@ -16,6 +16,7 @@ import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart' show shortDate;
+import '../item/adult_veil.dart';
 import '../item/copying_bar.dart';
 
 /// Карточка вещи в ленте папки: у каждого вида своя, как на экране 6 макета.
@@ -106,13 +107,18 @@ class _Meta extends StatelessWidget {
   }
 }
 
-Widget _photo(Directory root, String path, {double? height, int? cacheWidth}) => Image.file(
-  File(p.join(root.path, path)),
-  fit: BoxFit.cover,
-  width: double.infinity,
-  height: height,
-  cacheWidth: cacheWidth,
-  errorBuilder: (_, _, _) => SizedBox(height: height ?? 120, child: const ColoredBox(color: Tokens.containerHigh)),
+// картинка карточки; у вещи 18+ без разрешённого показа — размытая
+Widget _photo(Directory root, String path, {required String id, double? height, int? cacheWidth, bool compact = false}) => AdultVeil(
+  itemId: id,
+  compact: compact,
+  child: Image.file(
+    File(p.join(root.path, path)),
+    fit: BoxFit.cover,
+    width: double.infinity,
+    height: height,
+    cacheWidth: cacheWidth,
+    errorBuilder: (_, _, _) => SizedBox(height: height ?? 120, child: const ColoredBox(color: Tokens.containerHigh)),
+  ),
 );
 
 class _VideoCard extends StatelessWidget {
@@ -142,7 +148,7 @@ class _VideoCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  card.thumbPath != null ? _photo(filesRoot, card.thumbPath!, cacheWidth: width) : const ColoredBox(color: Tokens.containerHigh),
+                  card.thumbPath != null ? _photo(filesRoot, card.thumbPath!, id: card.id, cacheWidth: width) : const ColoredBox(color: Tokens.containerHigh),
                   if (host != null)
                     Positioned(
                       left: 12,
@@ -233,7 +239,7 @@ class _PhotoCard extends StatelessWidget {
             if (card.thumbPath != null)
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 340),
-                child: _photo(filesRoot, card.thumbPath!, cacheWidth: width),
+                child: _photo(filesRoot, card.thumbPath!, id: card.id, cacheWidth: width),
               ),
             if (captioned || card.tags.isNotEmpty || card.reminderAt != null)
               Padding(
@@ -318,7 +324,7 @@ class _RowCard extends StatelessWidget {
               child: SizedBox.square(
                 dimension: 56,
                 child: card.thumbPath != null
-                    ? _photo(filesRoot, card.thumbPath!, cacheWidth: (56 * MediaQuery.devicePixelRatioOf(context)).round())
+                    ? _photo(filesRoot, card.thumbPath!, id: card.id, compact: true, cacheWidth: (56 * MediaQuery.devicePixelRatioOf(context)).round())
                     : ColoredBox(
                         color: Tokens.containerHighest,
                         child: Icon(symbolIcon(icon, filled: video), color: Tokens.onSurface),
@@ -422,17 +428,20 @@ class BoardTile extends StatelessWidget {
               )
             : Stack(
                 children: [
-                  Image.file(
-                    File(p.join(filesRoot.path, thumb)),
-                    width: width,
-                    // размер известен заранее: место под картинку не меняется, когда она прочиталась
-                    height: card.thumbRatio == null ? null : width * card.thumbRatio!,
-                    fit: card.thumbRatio == null ? BoxFit.fitWidth : BoxFit.cover,
-                    cacheWidth: (width * MediaQuery.devicePixelRatioOf(context)).round(),
-                    frameBuilder: (context, child, frame, sync) => frame == null && !sync
-                        ? SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh))
-                        : child,
-                    errorBuilder: (_, _, _) => SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh)),
+                  AdultVeil(
+                    itemId: card.id,
+                    child: Image.file(
+                      File(p.join(filesRoot.path, thumb)),
+                      width: width,
+                      // размер известен заранее: место под картинку не меняется, когда она прочиталась
+                      height: card.thumbRatio == null ? null : width * card.thumbRatio!,
+                      fit: card.thumbRatio == null ? BoxFit.fitWidth : BoxFit.cover,
+                      cacheWidth: (width * MediaQuery.devicePixelRatioOf(context)).round(),
+                      frameBuilder: (context, child, frame, sync) => frame == null && !sync
+                          ? SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh))
+                          : child,
+                      errorBuilder: (_, _, _) => SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh)),
+                    ),
                   ),
                   if (tag != null)
                     Positioned(

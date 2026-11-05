@@ -123,6 +123,20 @@ void main() {
     expect(asked, isEmpty);
   });
 
+  test('18+ — по пометке самой страницы или по известному сайту, даже без копии', () async {
+    await link('m', 'https://comics.example/title');
+    await savePage(home, 'm', '<html><head><meta name="rating" content="RTA-5042-1996-1400-1577-RTA"><title>Тайтл</title></head></html>');
+    await link('c', 'https://food.md/soup');
+    await savePage(home, 'c', '<html><head><meta name="rating" content="general"><title>Суп</title></head></html>');
+    // страница закрыта проверкой возраста, копии нет
+    await link('s', 'https://www.xvideos.com/video1/x');
+    await pipeline().sweep();
+    expect((await factsOf('m', FactKind.adult)).single.value, '18+');
+    expect(await factsOf('c', FactKind.adult), isEmpty);
+    expect((await factsOf('s', FactKind.adult)).single.value, '18+');
+    expect(asked, isEmpty);
+  });
+
   test('прошедшее событие напоминания не ставит', () async {
     await link('e', 'https://afisha.md/old');
     await savePage(home, 'e', '<script type="application/ld+json">{"@type":"Event","name":"Было","startDate":"2026-10-01T19:00:00"}</script>');

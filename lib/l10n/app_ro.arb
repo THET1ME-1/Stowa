@@ -167,5 +167,10 @@
   "shoppingFor": "De cumpărat: {name}",
   "shoppingReady": "Lista de cumpărături e gata",
   "chaptersTitle": "Capitole",
-  "authorTags": "Etichetele autorului"
+  "authorTags": "Etichetele autorului",
+  "pageSeries": "serial",
+  "pageComic": "bandă desenată",
+  "adultSetting": "Arată 18+",
+  "adultSettingHint": "Paginile care se marchează singure ca 18+ și site-urile cunoscute pentru adulți. Cât timp e dezactivat, copertele lor sunt estompate, iar descrierile ascunse. Elementul și căutarea rămân.",
+  "adultHidden": "Descriere ascunsă: 18+. Se poate activa în setări."
 }

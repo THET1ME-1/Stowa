@@ -167,5 +167,10 @@
   "shoppingFor": "Kupić: {name}",
   "shoppingReady": "Lista zakupów gotowa",
   "chaptersTitle": "Rozdziały",
-  "authorTags": "Tagi autora"
+  "authorTags": "Tagi autora",
+  "pageSeries": "serial",
+  "pageComic": "komiks",
+  "adultSetting": "Pokazuj 18+",
+  "adultSettingHint": "Strony, które same oznaczają się jako 18+, i znane serwisy dla dorosłych. Dopóki to wyłączone, ich okładki są rozmyte, a opisy ukryte. Element i wyszukiwanie zostają.",
+  "adultHidden": "Opis ukryty: 18+. Pokazywanie włączysz w ustawieniach."
 }

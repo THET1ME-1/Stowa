@@ -1542,4 +1542,21 @@ class LUk extends L {
 
   @override
   String get authorTags => 'Теги автора';
+
+  @override
+  String get pageSeries => 'серіал';
+
+  @override
+  String get pageComic => 'манга';
+
+  @override
+  String get adultSetting => 'Показувати 18+';
+
+  @override
+  String get adultSettingHint =>
+      'Сторінки, які самі позначають себе як 18+, і відомі сайти для дорослих. Поки вимкнено, їхні обкладинки розмиті, а описи приховані. Річ і пошук по ній лишаються.';
+
+  @override
+  String get adultHidden =>
+      'Опис приховано: 18+. Показ вмикається в налаштуваннях.';
 }

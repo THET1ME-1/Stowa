@@ -1547,4 +1547,21 @@ class LRu extends L {
 
   @override
   String get authorTags => 'Теги автора';
+
+  @override
+  String get pageSeries => 'сериал';
+
+  @override
+  String get pageComic => 'манга';
+
+  @override
+  String get adultSetting => 'Показывать 18+';
+
+  @override
+  String get adultSettingHint =>
+      'Страницы, которые сами помечают себя как 18+, и известные сайты для взрослых. Пока выключено, их обложки размыты, а описания скрыты. Вещь и поиск по ней остаются.';
+
+  @override
+  String get adultHidden =>
+      'Описание скрыто: 18+. Показ включается в настройках.';
 }

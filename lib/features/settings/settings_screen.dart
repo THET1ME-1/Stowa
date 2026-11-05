@@ -111,6 +111,20 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Group(
               children: [
+                _SwitchRow(
+                  icon: 'explicit',
+                  title: l.adultSetting,
+                  value: ref.watch(showAdultProvider).value ?? false,
+                  onChanged: (on) => ref.read(settingsRepositoryProvider).setShowAdult(on),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+              child: Text(l.adultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
+            _Group(
+              children: [
                 _Row(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
                 _Row(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
                 _Row(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),

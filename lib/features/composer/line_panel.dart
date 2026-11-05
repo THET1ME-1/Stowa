@@ -19,6 +19,7 @@ import '../../domain/note_blocks.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
 import '../../domain/video_text.dart' show videoAt;
+import '../item/adult_veil.dart';
 import '../../l10n/app_localizations.dart';
 import 'panel_model.dart';
 import 'panel_text.dart';
@@ -353,13 +354,17 @@ class _RowView extends StatelessWidget {
         thumb = card.thumbPath != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(p.join(filesRoot.path, card.thumbPath!)),
-                  width: 44,
-                  height: 44,
-                  fit: BoxFit.cover,
-                  cacheWidth: (44 * MediaQuery.devicePixelRatioOf(context)).round(),
-                  errorBuilder: (_, _, _) => _badge('squircle', kindIcon(card.kind), selected),
+                child: AdultVeil(
+                  itemId: card.id,
+                  compact: true,
+                  child: Image.file(
+                    File(p.join(filesRoot.path, card.thumbPath!)),
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.cover,
+                    cacheWidth: (44 * MediaQuery.devicePixelRatioOf(context)).round(),
+                    errorBuilder: (_, _, _) => _badge('squircle', kindIcon(card.kind), selected),
+                  ),
                 ),
               )
             : _badge('squircle', kindIcon(card.kind), selected);

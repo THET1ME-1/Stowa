@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
 import '../domain/folder_guess.dart';
+import '../domain/models.dart' show FactKind;
 import '../domain/related.dart';
 import '../services/ai_image.dart';
 import '../services/ai_worker.dart';
@@ -45,6 +46,15 @@ final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 final itemsRepositoryProvider = Provider((ref) {
   final facts = ref.watch(factsPipelineProvider);
   return ItemsRepository(ref.watch(databaseProvider))..onEdited = (id) => facts.runItem(id).ignore();
+});
+
+/// Показывать ли обложки и описания 18+: решает человек в настройках.
+final showAdultProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchShowAdult());
+
+/// Вещи, страницы которых сказали о себе «18+».
+final adultItemsProvider = StreamProvider<Set<String>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return (db.select(db.facts)..where((t) => t.kind.equals(FactKind.adult.name))).watch().map((rows) => {for (final row in rows) row.itemId});
 });
 
 /// Факты одной вещи по порядку: для страницы вещи.
@@ -294,6 +304,9 @@ final languageProvider = StreamProvider((ref) => ref.watch(settingsRepositoryPro
 /// Сеть для превью. Тесты подставляют свою, без интернета.
 final linkFetchProvider = Provider<Fetch>((ref) => httpFetch);
 
+/// Запрос со своими заголовками: API сайтов Lib. Тесты подставляют свой.
+final linkFetchWithProvider = Provider<FetchWith>((ref) => httpFetchWith);
+
 /// Запрос с телом: плеер YouTube за дорожками субтитров. Тесты подставляют свой.
 final linkPostProvider = Provider<Post>((ref) => httpPost);
 
@@ -307,6 +320,7 @@ final linkPreviewServiceProvider = Provider((ref) {
     filesRoot: ref.watch(filesRootProvider),
     clock: ref.watch(clockProvider),
     fetch: ref.watch(linkFetchProvider),
+    fetchWith: ref.watch(linkFetchWithProvider),
     // у ссылки появились заголовок и описание страницы — по ним уже есть что угадывать
     onPreviewed: (id) async {
       // автор и описание сразу ищутся; рецепт, товар, событие — из только что сохранённой копии страницы,

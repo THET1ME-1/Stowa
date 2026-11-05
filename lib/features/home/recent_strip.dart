@@ -14,6 +14,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../item/adult_veil.dart';
 import '../item/copying_bar.dart';
 
 const recentCardWidth = 132.0;
@@ -212,11 +213,14 @@ class RecentCard extends StatelessWidget {
     final thumb = item.thumbPath;
     if (thumb != null) {
       final width = (recentCardWidth * MediaQuery.devicePixelRatioOf(context)).round();
-      return Image.file(
-        File(p.join(filesRoot.path, thumb)),
-        fit: BoxFit.cover,
-        cacheWidth: width,
-        errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+      return AdultVeil(
+        itemId: item.id,
+        child: Image.file(
+          File(p.join(filesRoot.path, thumb)),
+          fit: BoxFit.cover,
+          cacheWidth: width,
+          errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+        ),
       );
     }
     final String? label = switch (item.kind) {

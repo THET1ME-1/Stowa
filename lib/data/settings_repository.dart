@@ -83,6 +83,7 @@ class SettingsRepository {
   static const _retryAt = 'ai_retry_at';
   static const _language = 'language';
   static const _placeEnabled = 'place_enabled';
+  static const _showAdult = 'show_adult';
 
   AiSettings get ai {
     final retry = _prefs.getInt(_retryAt);
@@ -141,6 +142,17 @@ class SettingsRepository {
   }
 
   Future<void> setPlaceEnabled(bool on) => _set(() => _prefs.setBool(_placeEnabled, on));
+
+  /// Показывать обложки и описания страниц 18+. Решает человек; по умолчанию нет — так
+  /// хотят магазины. Скачивается всё в любом случае: включил — видно сразу.
+  bool get showAdult => _prefs.getBool(_showAdult) ?? false;
+
+  Stream<bool> watchShowAdult() async* {
+    yield showAdult;
+    yield* _changes.stream.map((_) => showAdult).distinct();
+  }
+
+  Future<void> setShowAdult(bool on) => _set(() => _prefs.setBool(_showAdult, on));
 
   /// Язык, выбранный руками. Пусто — язык устройства.
   AppLanguage? get language => switch (_prefs.getString(_language)) {

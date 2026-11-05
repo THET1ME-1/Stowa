@@ -12,6 +12,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/models.dart';
 import '../../domain/related.dart';
 import '../../l10n/app_localizations.dart';
+import 'adult_veil.dart';
 
 /// Значок вещи без картинки по её виду.
 String kindIcon(ItemKind kind) => switch (kind) {
@@ -103,11 +104,15 @@ class _RelatedRow extends StatelessWidget {
                 child: SizedBox.square(
                   dimension: 44,
                   child: thumb != null
-                      ? Image.file(
-                          File(p.join(filesRoot.path, thumb)),
-                          fit: BoxFit.cover,
-                          cacheWidth: (44 * MediaQuery.devicePixelRatioOf(context)).round(),
-                          errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHighest),
+                      ? AdultVeil(
+                          itemId: card.id,
+                          compact: true,
+                          child: Image.file(
+                            File(p.join(filesRoot.path, thumb)),
+                            fit: BoxFit.cover,
+                            cacheWidth: (44 * MediaQuery.devicePixelRatioOf(context)).round(),
+                            errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHighest),
+                          ),
                         )
                       : ColoredBox(color: Tokens.containerHighest, child: Icon(symbolIcon(kindIcon(card.kind)), size: 22, color: Tokens.onSurface)),
                 ),

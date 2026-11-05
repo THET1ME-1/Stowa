@@ -5,7 +5,10 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/site_sources.dart';
+import 'package:stowa/domain/structured_page.dart';
 import 'package:stowa/services/link_preview_service.dart';
+import 'package:stowa/services/page_cache.dart';
 
 void main() {
   late AppDatabase db;
@@ -49,6 +52,100 @@ void main() {
 
   FetchReply page(String html) => FetchReply(200, utf8.encode(html), 'text/html; charset=utf-8');
   final png = FetchReply(200, base64.decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='), 'image/png');
+
+  group('известные сайты', () {
+    final headersSent = <String, Map<String, String>>{};
+    LinkPreviewService known(Map<String, FetchReply> replies) => LinkPreviewService(
+      db,
+      filesRoot: home,
+      clock: () => now,
+      fetch: (uri) async {
+        requests.add(uri);
+        final reply = replies[uri.toString()];
+        if (reply == null) throw const SocketException('нет сети');
+        return reply;
+      },
+      fetchWith: (uri, headers) async {
+        requests.add(uri);
+        headersSent[uri.toString()] = headers;
+        final reply = replies[uri.toString()];
+        if (reply == null) throw const SocketException('нет сети');
+        return reply;
+      },
+    );
+    FetchReply json(Object body) => FetchReply(200, utf8.encode(jsonEncode(body)), 'application/json');
+
+    test('MangaLib: тайтл из API с номером сайта — русское имя, описание, обложка, страница для извлекателей', () async {
+      const url = 'https://mangalib.me/ru/manga/7965--chainsaw-man';
+      await addLink(url);
+      final api = libRequest(Uri.parse(url))!.api.toString();
+      await known({
+        api: json({
+          'data': {
+            'rus_name': 'Человек-бензопила',
+            'eng_name': 'Chainsaw Man',
+            'cover': {'default': 'https://cover.imglib.info/c.jpg'},
+            'summary': 'Денджи охотится на демонов.',
+            'releaseDate': '2018',
+            'authors': [{'name': 'Tatsuki Fujimoto'}],
+            'genres': [{'name': 'Боевик'}],
+          },
+        }),
+        'https://cover.imglib.info/c.jpg': png,
+      }).fetchFor('a');
+      final saved = await item();
+      expect(saved.title, 'Человек-бензопила');
+      expect(saved.previewText, 'Денджи охотится на демонов.');
+      expect(saved.previewSite, 'MangaLib');
+      expect(saved.previewAuthor, 'Tatsuki Fujimoto');
+      expect(saved.coverPath, isNotNull);
+      expect(headersSent[api], {'Site-Id': '1'});
+      // сервер обложек без адреса страницы отвечает 403, как на чужую вставку картинки
+      expect(headersSent['https://cover.imglib.info/c.jpg'], {'Referer': 'https://mangalib.me/'});
+      // саму страницу-оболочку не скачивали: в ней только общее описание сайта
+      expect(requests.map((uri) => uri.toString()), isNot(contains(url)));
+      expect(structuredPage((await readPage(home, 'a'))!)!.type, PageType.comic);
+    });
+
+    test('YaoiLib, закрытый тайтл: название из адреса, вид — манга', () async {
+      const url = 'https://v2.shlib.life/ru/manga/23435--secret-alliance';
+      await addLink(url);
+      final api = libRequest(Uri.parse(url))!.api.toString();
+      await known({api: FetchReply(404, utf8.encode('{"data":{"toast":{"message":"Not Found"}}}'), 'application/json')}).fetchFor('a');
+      final saved = await item();
+      expect(saved.title, 'Secret alliance');
+      expect(saved.previewSite, 'YaoiLib');
+      expect(structuredPage((await readPage(home, 'a'))!)!.type, PageType.comic);
+    });
+
+    test('Lib без сети — попробовать позже, ничего не портить', () async {
+      await addLink('https://animelib.org/ru/anime/21371--sousou-no-frieren-anime');
+      expect(await known({}).fetchFor('a'), isFalse);
+      expect((await item()).previewAt, isNull);
+    });
+
+    test('HDrezka за проверкой на бота: название и год из адреса, а не «Проверяем, что вы не бот!»', () async {
+      const url = 'https://rezka.ag/films/fiction/1171-interstellar-2014.html';
+      await addLink(url);
+      await known({url: page('<html><head><title>Проверяем, что вы не бот!</title><link href="/.within.website/x/xess/xess.min.css"></head></html>')}).fetchFor('a');
+      final saved = await item();
+      expect(saved.title, 'Интерстеллар');
+      expect(saved.previewSite, 'HDrezka');
+      final parsed = structuredPage((await readPage(home, 'a'))!)!;
+      expect(parsed.type, PageType.movie);
+      expect(parsed.year, 2014);
+    });
+
+    test('любой сайт за проверкой на бота: заголовок не трогается, копия не сохраняется', () async {
+      const url = 'https://shop.example.com/item/1';
+      await addLink(url);
+      await known({url: page('<html><head><title>Just a moment...</title></head><body>cf-browser-verification</body></html>')}).fetchFor('a');
+      final saved = await item();
+      expect(saved.title, url);
+      expect(await readPage(home, 'a'), isNull);
+      expect(saved.previewAt, now, reason: 'второй раз без толку: проверка никуда не денется');
+    });
+  });
 
   test('ссылка получает заголовок страницы, описание, сайт и обложку', () async {
     await addLink('https://habr.com/ru/articles/845872/');

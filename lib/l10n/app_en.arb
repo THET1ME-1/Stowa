@@ -1923,5 +1923,25 @@
   "authorTags": "Author’s tags",
   "@authorTags": {
     "description": "Подпись перед хэштегами автора ролика или поста, которые можно поставить тегами"
+  },
+  "pageSeries": "series",
+  "@pageSeries": {
+    "description": "Вид страницы ссылки: сериал или аниме-сериал"
+  },
+  "pageComic": "comic",
+  "@pageComic": {
+    "description": "Вид страницы ссылки: манга, манхва, комикс"
+  },
+  "adultSetting": "Show 18+",
+  "@adultSetting": {
+    "description": "Переключатель в настройках: показывать ли обложки и описания страниц для взрослых"
+  },
+  "adultSettingHint": "Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The item and its search stay.",
+  "@adultSettingHint": {
+    "description": "Пояснение под переключателем 18+"
+  },
+  "adultHidden": "Description hidden: 18+. You can turn it on in settings.",
+  "@adultHidden": {
+    "description": "Вместо описания страницы 18+, пока показ выключен"
   }
 }

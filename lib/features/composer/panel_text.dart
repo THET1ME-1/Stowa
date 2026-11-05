@@ -126,6 +126,8 @@ String pageTypeLabel(L l, String keywords) {
     PageType.event => l.pageEvent,
     PageType.place => l.pagePlace,
     PageType.movie => l.pageMovie,
+    PageType.series => l.pageSeries,
+    PageType.comic => l.pageComic,
     PageType.book => l.pageBook,
     PageType.video => l.pageVideo,
     PageType.article => l.pageArticle,

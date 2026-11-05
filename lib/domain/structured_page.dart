@@ -5,7 +5,8 @@ library;
 
 import 'dart:convert';
 
-enum PageType { recipe, product, event, place, movie, book, video, article }
+/// series — сериал и аниме-сериал; comic — манга, манхва, комикс.
+enum PageType { recipe, product, event, place, movie, series, comic, book, video, article }
 
 class Chapter {
   const Chapter(this.seconds, this.title);
@@ -43,7 +44,11 @@ class StructuredPage {
     this.rating,
     this.duration,
     this.chapters = const [],
+    this.genres = const [],
   });
+
+  /// Жанры: «Драма», «Фэнтези» — теги автора на странице вещи.
+  final List<String> genres;
 
   final PageType type;
   final String? name;
@@ -88,7 +93,18 @@ const _wordsPerMinute = 200;
 const _articleWords = 300;
 
 // вид важнее, чем ниже в списке: рецепт в блоге — рецепт, а не статья
-const _priority = [PageType.recipe, PageType.product, PageType.event, PageType.place, PageType.movie, PageType.book, PageType.video, PageType.article];
+const _priority = [
+  PageType.recipe,
+  PageType.product,
+  PageType.event,
+  PageType.place,
+  PageType.movie,
+  PageType.series,
+  PageType.comic,
+  PageType.book,
+  PageType.video,
+  PageType.article,
+];
 
 const _eventTypes = {'event', 'musicevent', 'theaterevent', 'sportsevent', 'festival', 'comedyevent', 'danceevent', 'educationevent', 'exhibitionevent', 'foodevent', 'literaryevent', 'screeningevent', 'socialevent', 'businessevent', 'childrensevent', 'saleevent'};
 const _placeTypes = {
@@ -96,7 +112,9 @@ const _placeTypes = {
   'touristattraction', 'museum', 'park', 'movietheater', 'nightclub', 'healthandbeautybusiness', 'sportsactivitylocation', 'shoppingcenter',
 };
 const _articleTypes = {'article', 'newsarticle', 'blogposting', 'report', 'techarticle', 'scholarlyarticle', 'posting', 'socialmediaposting'};
-const _movieTypes = {'movie', 'tvseries', 'tvseason', 'episode', 'tvepisode', 'musicalbum', 'musicrecording'};
+const _movieTypes = {'movie', 'musicalbum', 'musicrecording'};
+const _seriesTypes = {'tvseries', 'tvseason', 'episode', 'tvepisode', 'radioseries'};
+const _comicTypes = {'comicseries', 'comicstory', 'comicissue', 'comiccoverart'};
 
 PageType? _typeOf(Set<String> types) {
   if (types.contains('recipe')) return PageType.recipe;
@@ -104,10 +122,33 @@ PageType? _typeOf(Set<String> types) {
   if (types.any(_eventTypes.contains)) return PageType.event;
   if (types.any(_placeTypes.contains)) return PageType.place;
   if (types.any(_movieTypes.contains)) return PageType.movie;
+  if (types.any(_seriesTypes.contains)) return PageType.series;
+  if (types.any(_comicTypes.contains)) return PageType.comic;
   if (types.contains('book')) return PageType.book;
   if (types.contains('videoobject')) return PageType.video;
   if (types.any(_articleTypes.contains)) return PageType.article;
   return null;
+}
+
+final _ratingMeta = RegExp(r'''<meta[^>]+name\s*=\s*["']rating["'][^>]*content\s*=\s*["']([^"']*)["']|<meta[^>]+content\s*=\s*["']([^"']*)["'][^>]*name\s*=\s*["']rating["']''', caseSensitive: false);
+final _adultRating = RegExp(r'18|adult|mature|explicit|nc-17|r18|rta-5042', caseSensitive: false);
+
+/// Страница для взрослых по её же словам: метатег rating (adult, ярлык RTA), в разметке
+/// возрастной рейтинг 18+ или `isFamilyFriendly: false`. Слова «18+» в тексте не в счёт.
+bool adultPage(String html) {
+  for (final match in _ratingMeta.allMatches(html)) {
+    if (_adultRating.hasMatch(match.group(1) ?? match.group(2) ?? '')) return true;
+  }
+  for (final script in RegExp(r'<script[^>]*type\s*=\s*"?\x27?application/ld\+json[^>]*>(.*?)</script>', caseSensitive: false, dotAll: true).allMatches(html)) {
+    final nodes = <Map<String, Object?>>[];
+    _collect(_lenientJson(script.group(1)!), nodes);
+    for (final node in nodes) {
+      final family = node['isFamilyFriendly'];
+      if (family == false || '$family'.toLowerCase() == 'false') return true;
+      if (_adultRating.hasMatch(_string(node['contentRating']) ?? '')) return true;
+    }
+  }
+  return false;
 }
 
 /// Разметка страницы. Ни разметки, ни метатегов — null.
@@ -317,7 +358,7 @@ StructuredPage _fromNode(PageType type, Map<String, Object?> node, String html, 
   // у фильма и книги dateCreated — когда завели запись в базе сайта, а не когда вышло
   final releasedEvent = node['releasedEvent'] is List ? (node['releasedEvent'] as List).firstOrNull : node['releasedEvent'];
   final released = releasedEvent is Map ? releasedEvent['startDate'] : null;
-  final work = type == PageType.movie || type == PageType.book;
+  final work = type == PageType.movie || type == PageType.series || type == PageType.comic || type == PageType.book;
   final published = _date(node['datePublished'] ?? released ?? node['copyrightYear'] ?? (work ? null : node['dateCreated']) ?? node['startDate']);
   final words = RegExp(r'[\p{L}\p{N}]+', unicode: true).allMatches(text).length;
   final total = isoDuration(node['totalTime']);
@@ -345,13 +386,14 @@ StructuredPage _fromNode(PageType type, Map<String, Object?> node, String html, 
     authors: authors.isEmpty ? _metaAuthors(html) : authors,
     published: published,
     readingMinutes: type == PageType.article && words >= _articleWords ? (words / _wordsPerMinute).ceil() : null,
-    year: type == PageType.movie || type == PageType.book ? published?.year : null,
+    year: work ? published?.year : null,
     rating: _number(node['aggregateRating'] is Map ? (node['aggregateRating'] as Map)['ratingValue'] : null),
     duration: isoDuration(node['duration']),
     chapters: [
       for (final part in (node['hasPart'] is List ? node['hasPart'] as List : const []))
         if (part is Map && _string(part['name']) != null) Chapter(_number(part['startOffset'])?.round() ?? 0, _string(part['name'])!),
     ],
+    genres: _names(node['genre']).take(8).toList(),
   );
 }
 

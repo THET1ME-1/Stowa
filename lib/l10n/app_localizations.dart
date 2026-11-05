@@ -2602,6 +2602,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Author’s tags'**
   String get authorTags;
+
+  /// Вид страницы ссылки: сериал или аниме-сериал
+  ///
+  /// In en, this message translates to:
+  /// **'series'**
+  String get pageSeries;
+
+  /// Вид страницы ссылки: манга, манхва, комикс
+  ///
+  /// In en, this message translates to:
+  /// **'comic'**
+  String get pageComic;
+
+  /// Переключатель в настройках: показывать ли обложки и описания страниц для взрослых
+  ///
+  /// In en, this message translates to:
+  /// **'Show 18+'**
+  String get adultSetting;
+
+  /// Пояснение под переключателем 18+
+  ///
+  /// In en, this message translates to:
+  /// **'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The item and its search stay.'**
+  String get adultSettingHint;
+
+  /// Вместо описания страницы 18+, пока показ выключен
+  ///
+  /// In en, this message translates to:
+  /// **'Description hidden: 18+. You can turn it on in settings.'**
+  String get adultHidden;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

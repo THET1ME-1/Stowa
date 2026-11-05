@@ -1521,4 +1521,21 @@ class LEn extends L {
 
   @override
   String get authorTags => 'Author’s tags';
+
+  @override
+  String get pageSeries => 'series';
+
+  @override
+  String get pageComic => 'comic';
+
+  @override
+  String get adultSetting => 'Show 18+';
+
+  @override
+  String get adultSettingHint =>
+      'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The item and its search stay.';
+
+  @override
+  String get adultHidden =>
+      'Description hidden: 18+. You can turn it on in settings.';
 }

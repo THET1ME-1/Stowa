@@ -270,6 +270,37 @@ void main() {
       expect(find.byKey(const ValueKey('item-body-card')), findsNothing);
     });
 
+    ItemsCompanion adultLink() => ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.link,
+          title: 'Тайтл',
+          url: const Value('https://hentailib.me/ru/manga/x'),
+          coverPath: const Value('covers/a.jpg'),
+          previewSite: const Value('HentaiLib'),
+          previewText: const Value('Откровенное описание'),
+          previewAt: Value(world.now),
+          createdAt: world.now,
+          updatedAt: world.now,
+        );
+    Future<void> markAdult() => world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'a-adult', itemId: 'a', extractor: 'page', kind: FactKind.adult, value: '18+'));
+
+    testWidgets('страница 18+ при выключенном показе: обложка размыта, описание спрятано', (tester) async {
+      await markAdult();
+      await show(tester, adultLink());
+      expect(find.byKey(const ValueKey('adult-veil-a')), findsOneWidget);
+      expect(find.text('18+'), findsOneWidget);
+      expect(find.text('Откровенное описание'), findsNothing);
+      expect(find.textContaining('Описание скрыто'), findsOneWidget);
+    });
+
+    testWidgets('показ 18+ включён — обложка и описание как есть', (tester) async {
+      world.showAdult = true;
+      await markAdult();
+      await show(tester, adultLink());
+      expect(find.byKey(const ValueKey('adult-veil-a')), findsNothing);
+      expect(find.text('Откровенное описание'), findsOneWidget);
+    });
+
     testWidgets('ролик по ссылке: обложка с сервисом и длиной, автор, «Смотреть»', (tester) async {
       await show(
         tester,

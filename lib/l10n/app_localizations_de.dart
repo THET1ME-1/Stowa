@@ -1526,4 +1526,21 @@ class LDe extends L {
 
   @override
   String get authorTags => 'Tags des Autors';
+
+  @override
+  String get pageSeries => 'Serie';
+
+  @override
+  String get pageComic => 'Comic';
+
+  @override
+  String get adultSetting => '18+ anzeigen';
+
+  @override
+  String get adultSettingHint =>
+      'Seiten, die sich selbst als 18+ kennzeichnen, und bekannte Seiten für Erwachsene. Solange das aus ist, sind ihre Cover unscharf und die Beschreibungen verborgen. Eintrag und Suche bleiben.';
+
+  @override
+  String get adultHidden =>
+      'Beschreibung verborgen: 18+. In den Einstellungen einschaltbar.';
 }

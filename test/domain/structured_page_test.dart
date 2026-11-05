@@ -130,6 +130,16 @@ void main() {
     expect(listed.year, 2019);
   });
 
+  test('страница 18+ узнаётся по тому, что она сама о себе говорит', () {
+    expect(adultPage('<meta name="rating" content="adult">'), isTrue);
+    expect(adultPage('<meta name="RATING" content="RTA-5042-1996-1400-1577-RTA">'), isTrue);
+    expect(adultPage(page('{"@type":"ComicSeries","name":"X","contentRating":"18+"}')), isTrue);
+    expect(adultPage(page('{"@type":"Movie","name":"X","isFamilyFriendly":false}')), isTrue);
+    expect(adultPage(page('{"@type":"Movie","name":"X","contentRating":"PG-13"}')), isFalse);
+    expect(adultPage('<meta name="rating" content="general">'), isFalse);
+    expect(adultPage('<html><body>статья про фильмы 18+</body></html>'), isFalse);
+  });
+
   test('разметка в CDATA с пробелами', () {
     expect(structuredPage(page('/* <![CDATA[ */ {"@type":"Movie","name":"Паразиты","datePublished":"2019-05-30"} /* ]]> */'))!.year, 2019);
   });

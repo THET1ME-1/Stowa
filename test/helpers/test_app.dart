@@ -23,6 +23,9 @@ class TestWorld {
   /// Сколько раз приложение просило систему доделать файлы в фоне.
   var fileWorkAsked = 0;
 
+  /// Включён ли показ 18+ в настройках.
+  var showAdult = false;
+
   List<Override> get overrides => [
         databaseProvider.overrideWithValue(db),
         filesRootProvider.overrideWithValue(files),
@@ -30,6 +33,7 @@ class TestWorld {
         // превью ссылок в тестах без интернета: сеть «молчит», вещь остаётся как есть
         linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
         linkPostProvider.overrideWithValue((uri, body) async => throw const SocketException('тест без сети')),
+        linkFetchWithProvider.overrideWithValue((uri, headers) async => throw const SocketException('тест без сети')),
         // очередь ИИ в тестах не ходит в сеть сама, плашек разбора не бывает
         aiDrainProvider.overrideWithValue(() async {}),
         aiSortedProvider.overrideWith((ref) => const Stream.empty()),
@@ -49,6 +53,7 @@ class TestWorld {
           aiSettingsProvider.overrideWith((ref) => Stream.value(aiSettings)),
           languageProvider.overrideWith((ref) => Stream.value(null)),
           placeEnabledProvider.overrideWith((ref) => Stream.value(true)),
+          showAdultProvider.overrideWith((ref) => Stream.value(showAdult)),
         ],
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
       ];

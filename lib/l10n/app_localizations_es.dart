@@ -1522,4 +1522,21 @@ class LEs extends L {
 
   @override
   String get authorTags => 'Etiquetas del autor';
+
+  @override
+  String get pageSeries => 'serie';
+
+  @override
+  String get pageComic => 'cómic';
+
+  @override
+  String get adultSetting => 'Mostrar 18+';
+
+  @override
+  String get adultSettingHint =>
+      'Páginas que se marcan a sí mismas como 18+ y sitios para adultos conocidos. Mientras esté desactivado, sus portadas se difuminan y las descripciones se ocultan. El elemento y su búsqueda se quedan.';
+
+  @override
+  String get adultHidden =>
+      'Descripción oculta: 18+. Puedes activarla en los ajustes.';
 }
