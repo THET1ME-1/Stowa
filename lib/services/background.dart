@@ -15,6 +15,7 @@ import '../data/settings_repository.dart';
 import 'ai_image.dart';
 import 'ai_worker.dart';
 import 'capture_service.dart';
+import 'facts/facts_pipeline.dart';
 import 'file_keeper.dart';
 import 'telegram_service.dart';
 
@@ -70,6 +71,8 @@ void backgroundDispatcher() {
     try {
       // файлы — прежде всего: без сети и без ключа, просто положить на место
       final filesDone = await keepFilesInBackground(db, filesRoot);
+      // легли файлы или вышла новая версия извлекателей: разобрать, пока приложение закрыто
+      await FactsPipeline(db, filesRoot: filesRoot, clock: DateTime.now).sweep().catchError((_) {});
       if (task == _fileTask) return filesDone;
       // сперва то, что переслали боту, потом разбор: новое сразу разложится
       final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: filesRoot, clock: DateTime.now);

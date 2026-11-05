@@ -92,13 +92,21 @@ void main() {
     addTearDown(upgraded.close);
     expect(await upgraded.searchIds('"кишинев"*'), ['old']);
     expect(await upgraded.searchIds('"lodz"*'), ['old']);
+    // текст фактов ищется вместе с вещью
+    await upgraded.customStatement("UPDATE items SET facts_text = 'договор аренды квартиры' WHERE id = 'old'");
+    expect(await upgraded.searchIds('"аренд"*'), ['old']);
+    expect(await upgraded.select(upgraded.facts).get(), isEmpty);
   });
 }
 
-// триггеры индекса ссылаются на поля: без них поля можно убрать, а миграция строит индекс заново
+// триггеры индекса ссылаются на поля: без них поля можно убрать, а миграция строит индекс заново.
+// Заодно убирается то, чего до версии 6 не было: факты и их текст
 void _dropSearch(Database raw) {
   for (final trigger in ['items_fts_insert', 'items_fts_delete', 'items_fts_update']) {
     raw.execute('DROP TRIGGER IF EXISTS $trigger');
   }
   raw.execute('DROP TABLE IF EXISTS items_fts');
+  raw.execute('DROP TABLE IF EXISTS facts');
+  raw.execute('DROP TABLE IF EXISTS extractor_runs');
+  raw.execute('ALTER TABLE items DROP COLUMN facts_text');
 }

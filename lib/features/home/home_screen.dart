@@ -91,6 +91,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       listenLaunchActions(_onLaunch);
       // при открытии: файлы, которые не успели лечь до закрытия или выключения телефона
       ref.read(captureServiceProvider).files.drain().ignore();
+      // вещи, которые ещё не разобраны извлекателями или разобраны старой их версией
+      _sweepFacts().ignore();
       // всё, что накопилось без сети или без ключа, и что переслали боту
       ref.read(aiDrainProvider)().ignore();
       ref.read(telegramPullProvider)().ignore();
@@ -136,6 +138,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     });
   }
 
+  Future<void> _sweepFacts() async {
+    final facts = ref.read(factsPipelineProvider);
+    await facts.sweep();
+    await facts.sweepNetwork();
+  }
+
   Future<void> _handOverFiles() async {
     final db = ref.read(databaseProvider);
     final waiting = await db.select(db.fileJobs).get();
@@ -161,6 +169,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // «ближайшее» считается от момента подписки, после паузы его надо пересчитать
     if (state != AppLifecycleState.resumed) return;
     ref.read(captureServiceProvider).files.drain().ignore();
+    _sweepFacts().ignore();
     final launch = _pendingLaunch;
     _pendingLaunch = null;
     _onLaunch(launch);

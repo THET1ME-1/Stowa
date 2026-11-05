@@ -18,6 +18,7 @@ import '../services/auto_sorter.dart';
 import '../services/backup_service.dart';
 import '../services/background.dart';
 import '../services/capture_service.dart';
+import '../services/facts/facts_pipeline.dart';
 import '../services/file_keeper.dart';
 import '../services/link_preview_service.dart';
 import '../services/place_service.dart';
@@ -39,7 +40,21 @@ final filesRootProvider = Provider<Directory>((ref) => throw UnimplementedError(
 /// Часы: в тестах подменяются, чтобы «завтра» было предсказуемым.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
-final itemsRepositoryProvider = Provider((ref) => ItemsRepository(ref.watch(databaseProvider)));
+final itemsRepositoryProvider = Provider((ref) {
+  final facts = ref.watch(factsPipelineProvider);
+  return ItemsRepository(ref.watch(databaseProvider))..onEdited = (id) => facts.runItem(id).ignore();
+});
+
+/// Конвейер извлекателей: деньги, контакты, текст документов, EXIF, автор и сайт ссылки.
+/// Один на окно и зависит только от неизменного, как хранитель файлов.
+final factsPipelineProvider = Provider(
+  (ref) => FactsPipeline(
+    ref.watch(databaseProvider),
+    filesRoot: ref.watch(filesRootProvider),
+    clock: ref.watch(clockProvider),
+    online: () async => ref.read(onlineProvider).value ?? true,
+  ),
+);
 final foldersRepositoryProvider = Provider((ref) => FoldersRepository(ref.watch(databaseProvider)));
 final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 
@@ -54,19 +69,21 @@ final fileWorkProvider = Provider<Future<void> Function()>((ref) => () => schedu
 /// дальше, а лента слушала бы новый, молчащий.
 final fileKeeperProvider = Provider((ref) {
   final filesRoot = ref.watch(filesRootProvider);
+  final facts = ref.watch(factsPipelineProvider);
   return FileKeeper(
     ref.watch(databaseProvider),
     filesRoot: filesRoot,
     movable: ownTemporaryFolders(filesRoot, ref.watch(cacheRootProvider)),
     clock: ref.watch(clockProvider),
     onLeftover: ref.watch(fileWorkProvider),
-  );
+  )..onKept = (id) => facts.runItem(id).ignore();
 });
 
 final captureServiceProvider = Provider((ref) {
   final sorter = ref.watch(autoSorterProvider);
   final drain = ref.watch(aiDrainProvider);
   final stamp = ref.watch(placeStampProvider);
+  final facts = ref.watch(factsPipelineProvider);
   return CaptureService(
     ref.watch(databaseProvider),
     tags: ref.watch(tagsRepositoryProvider),
@@ -78,6 +95,8 @@ final captureServiceProvider = Provider((ref) {
     ..afterCapture = (id) {
       sorter.tagItem(id).ignore();
       drain().ignore();
+      // деньги, телефоны и ссылки из текста — сразу; из файлов — когда они лягут
+      facts.runItem(id).ignore();
     }
     ..stampPlace = (id) => stamp(id).ignore();
 });
@@ -269,6 +288,8 @@ final linkPreviewServiceProvider = Provider((ref) {
     fetch: ref.watch(linkFetchProvider),
     // у ссылки появились заголовок и описание страницы — по ним уже есть что угадывать
     onPreviewed: (id) async {
+      // автор, сайт и описание страницы сразу ищутся
+      await ref.read(factsPipelineProvider).runItem(id);
       await sorter.sortInbox(onlyId: id);
       await sorter.tagItem(id);
       // ссылку, ждавшую превью, ИИ теперь видит с заголовком страницы

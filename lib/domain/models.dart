@@ -23,6 +23,12 @@ enum RuleActionKind { toFolder, addTag }
 /// similar — алгоритм на телефоне поставил тег, который есть у похожих вещей.
 enum TagSource { user, inline, rule, ai, similar }
 
+/// Что извлекатель узнал о вещи.
+/// price — сумма с валютой; phone, email, link — из текста; fileText — текст
+/// документа; author, site, description — со страницы ссылки; takenAt, camera,
+/// takenPlace — из EXIF фото; screenshot — картинка оказалась скриншотом.
+enum FactKind { price, phone, email, link, fileText, author, site, description, takenAt, camera, takenPlace, screenshot }
+
 /// similar — связь по общим словам или сайту, её считает телефон; в базе
 /// хранится только отклонённая, чтобы больше её не предлагать.
 enum LinkSource { manual, ai, similar }

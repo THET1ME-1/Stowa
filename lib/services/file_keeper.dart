@@ -95,6 +95,9 @@ class FileKeeper {
   /// Проход кончился, а задачи остались: попросить систему доделать в фоне.
   Future<void> Function()? onLeftover;
 
+  /// Файл вещи лёг во вложения целиком.
+  void Function(String itemId)? onKept;
+
   Future<void>? _running;
   final _failures = StreamController<CopyFailure>.broadcast();
   final _progress = StreamController<Map<String, double>>.broadcast();
@@ -300,6 +303,8 @@ class FileKeeper {
     // вещь стёрли, пока копировалось: файл никому не нужен
     if (!kept) await target.delete().catchError((_) => target);
     _report(job, length, length);
+    // файл на месте: из него уже можно достать текст, дату съёмки, камеру
+    if (kept) onKept?.call(job.itemId);
   }
 
   // ход по вещи: доля скопированного из всех её файлов в этом проходе

@@ -8,8 +8,8 @@ import 'tables.dart';
 part 'database.g.dart';
 
 // поля, которые ищутся
-const _ftsColumns = 'title, body, ai_description, transcript, url, place_name';
-const _ftsSource = ['title', 'body', 'ai_description', 'transcript', 'url', 'place_name'];
+const _ftsColumns = 'title, body, ai_description, transcript, url, place_name, facts_text';
+const _ftsSource = ['title', 'body', 'ai_description', 'transcript', 'url', 'place_name', 'facts_text'];
 
 // unicode61 снимает знаки с латиницы, но не трогает «ё» и польскую «ł»: их индекс
 // получает уже заменёнными; NULL — пустая строка, одинаково при записи и при удалении
@@ -25,7 +25,7 @@ final _ftsOld = _ftsValues('old');
 /// Запрос к индексу с теми же заменами, что и в самом индексе.
 String normalizeSearchText(String text) => _ftsSwaps.fold(text, (value, swap) => value.replaceAll(swap.$1, swap.$2));
 
-@DriftDatabase(tables: [Items, Attachments, FileJobs, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
+@DriftDatabase(tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
 class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
   AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa', native: const DriftNativeOptions(shareAcrossIsolates: true)));
@@ -35,13 +35,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) async {
       await migrator.createAll();
       await _createSearch();
+      await _createFactIndexes();
     },
     onUpgrade: (migrator, from, to) async {
       // 2: превью ссылок и роликов
@@ -56,8 +57,17 @@ class AppDatabase extends _$AppDatabase {
           await migrator.addColumn(items, column);
         }
       }
-      // 4: место в индексе и «ł» как «l» — индекс строится заново
-      if (from < 4) {
+      // 5: очередь файлов, которые ещё копируются
+      if (from < 5) await migrator.createTable(fileJobs);
+      // 6: факты извлекателей; их текст ищется вместе с вещью
+      if (from < 6) {
+        await migrator.addColumn(items, items.factsText);
+        await migrator.createTable(facts);
+        await migrator.createTable(extractorRuns);
+        await _createFactIndexes();
+      }
+      // 4 и 6: индекс поиска строится заново — место, «ł» как «l», текст фактов
+      if (from < 6) {
         for (final trigger in ['items_fts_insert', 'items_fts_delete', 'items_fts_update']) {
           await customStatement('DROP TRIGGER IF EXISTS $trigger');
         }
@@ -65,13 +75,17 @@ class AppDatabase extends _$AppDatabase {
         await _createSearch();
         await customStatement('INSERT INTO items_fts(rowid, $_ftsColumns) SELECT rowid, ${_ftsValues('items')} FROM items');
       }
-      // 5: очередь файлов, которые ещё копируются
-      if (from < 5) await migrator.createTable(fileJobs);
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  // факты вещи — по вещи; суммы для «до 500 лей» — по виду и числу
+  Future<void> _createFactIndexes() async {
+    await customStatement('CREATE INDEX IF NOT EXISTS facts_item ON facts (item_id, extractor)');
+    await customStatement('CREATE INDEX IF NOT EXISTS facts_kind ON facts (kind, number)');
+  }
 
   Future<void> _createSearch() async {
     // remove_diacritics 2 делает «ё» и «е» одной буквой

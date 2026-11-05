@@ -140,6 +140,9 @@ class ItemsRepository {
 
   final AppDatabase _db;
 
+  /// Текст вещи поправили: факты из него пересчитываются, не дожидаясь запуска.
+  void Function(String itemId)? onEdited;
+
   // таблицы карточки: лента перерисуется, когда изменится любая
   Set<ResultSetImplementation<dynamic, dynamic>> get _cardTables => {_db.items, _db.folders, _db.attachments, _db.fileJobs, _db.itemTags, _db.tags};
 
@@ -387,6 +390,7 @@ WHERE items.deleted_at IS NULL''';
         url: files.isEmpty ? Value(url?.toString()) : const Value.absent(),
       ),
     );
+    onEdited?.call(id);
   }
 
   /// Напоминание руками со страницы вещи; null снимает.
@@ -394,8 +398,9 @@ WHERE items.deleted_at IS NULL''';
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(reminderAt: Value(at)));
   }
 
-  Future<void> setBody(String id, String body, DateTime at) {
-    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(body), updatedAt: Value(at)));
+  Future<void> setBody(String id, String body, DateTime at) async {
+    await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(body), updatedAt: Value(at)));
+    onEdited?.call(id);
   }
 
   /// «Дописать»: новая мысль ложится в конец старой заметки, второй заметки нет.
@@ -403,6 +408,7 @@ WHERE items.deleted_at IS NULL''';
     final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingle();
     final body = item.body.trim().isEmpty ? text : '${item.body.trimRight()}\n\n$text';
     await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(body), updatedAt: Value(at)));
+    onEdited?.call(id);
   }
 
   /// «Готово» у напоминания: вещь остаётся, напоминание снимается.

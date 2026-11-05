@@ -217,6 +217,18 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _factsTextMeta = const VerificationMeta(
+    'factsText',
+  );
+  @override
+  late final GeneratedColumn<String> factsText = GeneratedColumn<String>(
+    'facts_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -272,6 +284,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     longitude,
     placeName,
     reminderAt,
+    factsText,
     createdAt,
     updatedAt,
     deletedAt,
@@ -406,6 +419,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         reminderAt.isAcceptableOrUnknown(data['reminder_at']!, _reminderAtMeta),
       );
     }
+    if (data.containsKey('facts_text')) {
+      context.handle(
+        _factsTextMeta,
+        factsText.isAcceptableOrUnknown(data['facts_text']!, _factsTextMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -523,6 +542,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}reminder_at'],
       ),
+      factsText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}facts_text'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -582,6 +605,9 @@ class Item extends DataClass implements Insertable<Item> {
   final double? longitude;
   final String? placeName;
   final DateTime? reminderAt;
+
+  /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
+  final String factsText;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -606,6 +632,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.longitude,
     this.placeName,
     this.reminderAt,
+    required this.factsText,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -671,6 +698,7 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || reminderAt != null) {
       map['reminder_at'] = Variable<DateTime>(reminderAt);
     }
+    map['facts_text'] = Variable<String>(factsText);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
@@ -727,6 +755,7 @@ class Item extends DataClass implements Insertable<Item> {
       reminderAt: reminderAt == null && nullToAbsent
           ? const Value.absent()
           : Value(reminderAt),
+      factsText: Value(factsText),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -767,6 +796,7 @@ class Item extends DataClass implements Insertable<Item> {
       longitude: serializer.fromJson<double?>(json['longitude']),
       placeName: serializer.fromJson<String?>(json['placeName']),
       reminderAt: serializer.fromJson<DateTime?>(json['reminderAt']),
+      factsText: serializer.fromJson<String>(json['factsText']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -802,6 +832,7 @@ class Item extends DataClass implements Insertable<Item> {
       'longitude': serializer.toJson<double?>(longitude),
       'placeName': serializer.toJson<String?>(placeName),
       'reminderAt': serializer.toJson<DateTime?>(reminderAt),
+      'factsText': serializer.toJson<String>(factsText),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -829,6 +860,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<double?> longitude = const Value.absent(),
     Value<String?> placeName = const Value.absent(),
     Value<DateTime?> reminderAt = const Value.absent(),
+    String? factsText,
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -859,6 +891,7 @@ class Item extends DataClass implements Insertable<Item> {
     longitude: longitude.present ? longitude.value : this.longitude,
     placeName: placeName.present ? placeName.value : this.placeName,
     reminderAt: reminderAt.present ? reminderAt.value : this.reminderAt,
+    factsText: factsText ?? this.factsText,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -899,6 +932,7 @@ class Item extends DataClass implements Insertable<Item> {
       reminderAt: data.reminderAt.present
           ? data.reminderAt.value
           : this.reminderAt,
+      factsText: data.factsText.present ? data.factsText.value : this.factsText,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -928,6 +962,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('longitude: $longitude, ')
           ..write('placeName: $placeName, ')
           ..write('reminderAt: $reminderAt, ')
+          ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
@@ -957,6 +992,7 @@ class Item extends DataClass implements Insertable<Item> {
     longitude,
     placeName,
     reminderAt,
+    factsText,
     createdAt,
     updatedAt,
     deletedAt,
@@ -985,6 +1021,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.longitude == this.longitude &&
           other.placeName == this.placeName &&
           other.reminderAt == this.reminderAt &&
+          other.factsText == this.factsText &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
@@ -1011,6 +1048,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<double?> longitude;
   final Value<String?> placeName;
   final Value<DateTime?> reminderAt;
+  final Value<String> factsText;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -1036,6 +1074,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.longitude = const Value.absent(),
     this.placeName = const Value.absent(),
     this.reminderAt = const Value.absent(),
+    this.factsText = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -1062,6 +1101,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.longitude = const Value.absent(),
     this.placeName = const Value.absent(),
     this.reminderAt = const Value.absent(),
+    this.factsText = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
@@ -1092,6 +1132,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<double>? longitude,
     Expression<String>? placeName,
     Expression<DateTime>? reminderAt,
+    Expression<String>? factsText,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -1118,6 +1159,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (longitude != null) 'longitude': longitude,
       if (placeName != null) 'place_name': placeName,
       if (reminderAt != null) 'reminder_at': reminderAt,
+      if (factsText != null) 'facts_text': factsText,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -1146,6 +1188,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<double?>? longitude,
     Value<String?>? placeName,
     Value<DateTime?>? reminderAt,
+    Value<String>? factsText,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -1172,6 +1215,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       longitude: longitude ?? this.longitude,
       placeName: placeName ?? this.placeName,
       reminderAt: reminderAt ?? this.reminderAt,
+      factsText: factsText ?? this.factsText,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -1248,6 +1292,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (reminderAt.present) {
       map['reminder_at'] = Variable<DateTime>(reminderAt.value);
     }
+    if (factsText.present) {
+      map['facts_text'] = Variable<String>(factsText.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1286,6 +1333,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('longitude: $longitude, ')
           ..write('placeName: $placeName, ')
           ..write('reminderAt: $reminderAt, ')
+          ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -2496,6 +2544,1030 @@ class FileJobsCompanion extends UpdateCompanion<FileJob> {
           ..write('claimedBy: $claimedBy, ')
           ..write('claimedUntil: $claimedUntil, ')
           ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FactsTable extends Facts with TableInfo<$FactsTable, Fact> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FactsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _extractorMeta = const VerificationMeta(
+    'extractor',
+  );
+  @override
+  late final GeneratedColumn<String> extractor = GeneratedColumn<String>(
+    'extractor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<FactKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<FactKind>($FactsTable.$converterkind);
+  static const VerificationMeta _detailMeta = const VerificationMeta('detail');
+  @override
+  late final GeneratedColumn<String> detail = GeneratedColumn<String>(
+    'detail',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _numberMeta = const VerificationMeta('number');
+  @override
+  late final GeneratedColumn<double> number = GeneratedColumn<double>(
+    'number',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemId,
+    extractor,
+    kind,
+    detail,
+    value,
+    number,
+    at,
+    position,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'facts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Fact> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('extractor')) {
+      context.handle(
+        _extractorMeta,
+        extractor.isAcceptableOrUnknown(data['extractor']!, _extractorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_extractorMeta);
+    }
+    if (data.containsKey('detail')) {
+      context.handle(
+        _detailMeta,
+        detail.isAcceptableOrUnknown(data['detail']!, _detailMeta),
+      );
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('number')) {
+      context.handle(
+        _numberMeta,
+        number.isAcceptableOrUnknown(data['number']!, _numberMeta),
+      );
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Fact map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Fact(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      extractor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}extractor'],
+      )!,
+      kind: $FactsTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      detail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}detail'],
+      ),
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      number: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}number'],
+      ),
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+    );
+  }
+
+  @override
+  $FactsTable createAlias(String alias) {
+    return $FactsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<FactKind, String, String> $converterkind =
+      const EnumNameConverter<FactKind>(FactKind.values);
+}
+
+class Fact extends DataClass implements Insertable<Fact> {
+  final String id;
+  final String itemId;
+  final String extractor;
+  final FactKind kind;
+
+  /// Уточнение: валюта, номер для набора, лист или слайд документа, долгота места.
+  final String? detail;
+
+  /// Как показать и искать: «35 лей», «+373 69 123 456», текст листа.
+  final String value;
+
+  /// Число для фильтров: сумма, широта места.
+  final double? number;
+  final DateTime? at;
+  final int position;
+  const Fact({
+    required this.id,
+    required this.itemId,
+    required this.extractor,
+    required this.kind,
+    this.detail,
+    required this.value,
+    this.number,
+    this.at,
+    required this.position,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['item_id'] = Variable<String>(itemId);
+    map['extractor'] = Variable<String>(extractor);
+    {
+      map['kind'] = Variable<String>($FactsTable.$converterkind.toSql(kind));
+    }
+    if (!nullToAbsent || detail != null) {
+      map['detail'] = Variable<String>(detail);
+    }
+    map['value'] = Variable<String>(value);
+    if (!nullToAbsent || number != null) {
+      map['number'] = Variable<double>(number);
+    }
+    if (!nullToAbsent || at != null) {
+      map['at'] = Variable<DateTime>(at);
+    }
+    map['position'] = Variable<int>(position);
+    return map;
+  }
+
+  FactsCompanion toCompanion(bool nullToAbsent) {
+    return FactsCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      extractor: Value(extractor),
+      kind: Value(kind),
+      detail: detail == null && nullToAbsent
+          ? const Value.absent()
+          : Value(detail),
+      value: Value(value),
+      number: number == null && nullToAbsent
+          ? const Value.absent()
+          : Value(number),
+      at: at == null && nullToAbsent ? const Value.absent() : Value(at),
+      position: Value(position),
+    );
+  }
+
+  factory Fact.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Fact(
+      id: serializer.fromJson<String>(json['id']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      extractor: serializer.fromJson<String>(json['extractor']),
+      kind: $FactsTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      detail: serializer.fromJson<String?>(json['detail']),
+      value: serializer.fromJson<String>(json['value']),
+      number: serializer.fromJson<double?>(json['number']),
+      at: serializer.fromJson<DateTime?>(json['at']),
+      position: serializer.fromJson<int>(json['position']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'itemId': serializer.toJson<String>(itemId),
+      'extractor': serializer.toJson<String>(extractor),
+      'kind': serializer.toJson<String>(
+        $FactsTable.$converterkind.toJson(kind),
+      ),
+      'detail': serializer.toJson<String?>(detail),
+      'value': serializer.toJson<String>(value),
+      'number': serializer.toJson<double?>(number),
+      'at': serializer.toJson<DateTime?>(at),
+      'position': serializer.toJson<int>(position),
+    };
+  }
+
+  Fact copyWith({
+    String? id,
+    String? itemId,
+    String? extractor,
+    FactKind? kind,
+    Value<String?> detail = const Value.absent(),
+    String? value,
+    Value<double?> number = const Value.absent(),
+    Value<DateTime?> at = const Value.absent(),
+    int? position,
+  }) => Fact(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    extractor: extractor ?? this.extractor,
+    kind: kind ?? this.kind,
+    detail: detail.present ? detail.value : this.detail,
+    value: value ?? this.value,
+    number: number.present ? number.value : this.number,
+    at: at.present ? at.value : this.at,
+    position: position ?? this.position,
+  );
+  Fact copyWithCompanion(FactsCompanion data) {
+    return Fact(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      extractor: data.extractor.present ? data.extractor.value : this.extractor,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      detail: data.detail.present ? data.detail.value : this.detail,
+      value: data.value.present ? data.value.value : this.value,
+      number: data.number.present ? data.number.value : this.number,
+      at: data.at.present ? data.at.value : this.at,
+      position: data.position.present ? data.position.value : this.position,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Fact(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('extractor: $extractor, ')
+          ..write('kind: $kind, ')
+          ..write('detail: $detail, ')
+          ..write('value: $value, ')
+          ..write('number: $number, ')
+          ..write('at: $at, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    itemId,
+    extractor,
+    kind,
+    detail,
+    value,
+    number,
+    at,
+    position,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Fact &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.extractor == this.extractor &&
+          other.kind == this.kind &&
+          other.detail == this.detail &&
+          other.value == this.value &&
+          other.number == this.number &&
+          other.at == this.at &&
+          other.position == this.position);
+}
+
+class FactsCompanion extends UpdateCompanion<Fact> {
+  final Value<String> id;
+  final Value<String> itemId;
+  final Value<String> extractor;
+  final Value<FactKind> kind;
+  final Value<String?> detail;
+  final Value<String> value;
+  final Value<double?> number;
+  final Value<DateTime?> at;
+  final Value<int> position;
+  final Value<int> rowid;
+  const FactsCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.extractor = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.detail = const Value.absent(),
+    this.value = const Value.absent(),
+    this.number = const Value.absent(),
+    this.at = const Value.absent(),
+    this.position = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FactsCompanion.insert({
+    required String id,
+    required String itemId,
+    required String extractor,
+    required FactKind kind,
+    this.detail = const Value.absent(),
+    required String value,
+    this.number = const Value.absent(),
+    this.at = const Value.absent(),
+    this.position = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       itemId = Value(itemId),
+       extractor = Value(extractor),
+       kind = Value(kind),
+       value = Value(value);
+  static Insertable<Fact> custom({
+    Expression<String>? id,
+    Expression<String>? itemId,
+    Expression<String>? extractor,
+    Expression<String>? kind,
+    Expression<String>? detail,
+    Expression<String>? value,
+    Expression<double>? number,
+    Expression<DateTime>? at,
+    Expression<int>? position,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (extractor != null) 'extractor': extractor,
+      if (kind != null) 'kind': kind,
+      if (detail != null) 'detail': detail,
+      if (value != null) 'value': value,
+      if (number != null) 'number': number,
+      if (at != null) 'at': at,
+      if (position != null) 'position': position,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FactsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? itemId,
+    Value<String>? extractor,
+    Value<FactKind>? kind,
+    Value<String?>? detail,
+    Value<String>? value,
+    Value<double?>? number,
+    Value<DateTime?>? at,
+    Value<int>? position,
+    Value<int>? rowid,
+  }) {
+    return FactsCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      extractor: extractor ?? this.extractor,
+      kind: kind ?? this.kind,
+      detail: detail ?? this.detail,
+      value: value ?? this.value,
+      number: number ?? this.number,
+      at: at ?? this.at,
+      position: position ?? this.position,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (extractor.present) {
+      map['extractor'] = Variable<String>(extractor.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $FactsTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (detail.present) {
+      map['detail'] = Variable<String>(detail.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (number.present) {
+      map['number'] = Variable<double>(number.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FactsCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('extractor: $extractor, ')
+          ..write('kind: $kind, ')
+          ..write('detail: $detail, ')
+          ..write('value: $value, ')
+          ..write('number: $number, ')
+          ..write('at: $at, ')
+          ..write('position: $position, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExtractorRunsTable extends ExtractorRuns
+    with TableInfo<$ExtractorRunsTable, ExtractorRun> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExtractorRunsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _extractorMeta = const VerificationMeta(
+    'extractor',
+  );
+  @override
+  late final GeneratedColumn<String> extractor = GeneratedColumn<String>(
+    'extractor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemStampMeta = const VerificationMeta(
+    'itemStamp',
+  );
+  @override
+  late final GeneratedColumn<String> itemStamp = GeneratedColumn<String>(
+    'item_stamp',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _nextTryMeta = const VerificationMeta(
+    'nextTry',
+  );
+  @override
+  late final GeneratedColumn<int> nextTry = GeneratedColumn<int>(
+    'next_try',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _errorMeta = const VerificationMeta('error');
+  @override
+  late final GeneratedColumn<String> error = GeneratedColumn<String>(
+    'error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    itemId,
+    extractor,
+    version,
+    itemStamp,
+    attempts,
+    nextTry,
+    error,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'extractor_runs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExtractorRun> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('extractor')) {
+      context.handle(
+        _extractorMeta,
+        extractor.isAcceptableOrUnknown(data['extractor']!, _extractorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_extractorMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_versionMeta);
+    }
+    if (data.containsKey('item_stamp')) {
+      context.handle(
+        _itemStampMeta,
+        itemStamp.isAcceptableOrUnknown(data['item_stamp']!, _itemStampMeta),
+      );
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('next_try')) {
+      context.handle(
+        _nextTryMeta,
+        nextTry.isAcceptableOrUnknown(data['next_try']!, _nextTryMeta),
+      );
+    }
+    if (data.containsKey('error')) {
+      context.handle(
+        _errorMeta,
+        error.isAcceptableOrUnknown(data['error']!, _errorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {itemId, extractor};
+  @override
+  ExtractorRun map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExtractorRun(
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      extractor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}extractor'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      itemStamp: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_stamp'],
+      ),
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      nextTry: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}next_try'],
+      ),
+      error: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error'],
+      ),
+    );
+  }
+
+  @override
+  $ExtractorRunsTable createAlias(String alias) {
+    return $ExtractorRunsTable(attachedDatabase, alias);
+  }
+}
+
+class ExtractorRun extends DataClass implements Insertable<ExtractorRun> {
+  final String itemId;
+  final String extractor;
+  final int version;
+
+  /// Отпечаток того, от чего зависят факты: правка, набор вложений, превью.
+  final String? itemStamp;
+  final int attempts;
+
+  /// Сетевому: когда пробовать снова, миллисекунды от 1970 года.
+  final int? nextTry;
+  final String? error;
+  const ExtractorRun({
+    required this.itemId,
+    required this.extractor,
+    required this.version,
+    this.itemStamp,
+    required this.attempts,
+    this.nextTry,
+    this.error,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['item_id'] = Variable<String>(itemId);
+    map['extractor'] = Variable<String>(extractor);
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || itemStamp != null) {
+      map['item_stamp'] = Variable<String>(itemStamp);
+    }
+    map['attempts'] = Variable<int>(attempts);
+    if (!nullToAbsent || nextTry != null) {
+      map['next_try'] = Variable<int>(nextTry);
+    }
+    if (!nullToAbsent || error != null) {
+      map['error'] = Variable<String>(error);
+    }
+    return map;
+  }
+
+  ExtractorRunsCompanion toCompanion(bool nullToAbsent) {
+    return ExtractorRunsCompanion(
+      itemId: Value(itemId),
+      extractor: Value(extractor),
+      version: Value(version),
+      itemStamp: itemStamp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(itemStamp),
+      attempts: Value(attempts),
+      nextTry: nextTry == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextTry),
+      error: error == null && nullToAbsent
+          ? const Value.absent()
+          : Value(error),
+    );
+  }
+
+  factory ExtractorRun.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExtractorRun(
+      itemId: serializer.fromJson<String>(json['itemId']),
+      extractor: serializer.fromJson<String>(json['extractor']),
+      version: serializer.fromJson<int>(json['version']),
+      itemStamp: serializer.fromJson<String?>(json['itemStamp']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      nextTry: serializer.fromJson<int?>(json['nextTry']),
+      error: serializer.fromJson<String?>(json['error']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'itemId': serializer.toJson<String>(itemId),
+      'extractor': serializer.toJson<String>(extractor),
+      'version': serializer.toJson<int>(version),
+      'itemStamp': serializer.toJson<String?>(itemStamp),
+      'attempts': serializer.toJson<int>(attempts),
+      'nextTry': serializer.toJson<int?>(nextTry),
+      'error': serializer.toJson<String?>(error),
+    };
+  }
+
+  ExtractorRun copyWith({
+    String? itemId,
+    String? extractor,
+    int? version,
+    Value<String?> itemStamp = const Value.absent(),
+    int? attempts,
+    Value<int?> nextTry = const Value.absent(),
+    Value<String?> error = const Value.absent(),
+  }) => ExtractorRun(
+    itemId: itemId ?? this.itemId,
+    extractor: extractor ?? this.extractor,
+    version: version ?? this.version,
+    itemStamp: itemStamp.present ? itemStamp.value : this.itemStamp,
+    attempts: attempts ?? this.attempts,
+    nextTry: nextTry.present ? nextTry.value : this.nextTry,
+    error: error.present ? error.value : this.error,
+  );
+  ExtractorRun copyWithCompanion(ExtractorRunsCompanion data) {
+    return ExtractorRun(
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      extractor: data.extractor.present ? data.extractor.value : this.extractor,
+      version: data.version.present ? data.version.value : this.version,
+      itemStamp: data.itemStamp.present ? data.itemStamp.value : this.itemStamp,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      nextTry: data.nextTry.present ? data.nextTry.value : this.nextTry,
+      error: data.error.present ? data.error.value : this.error,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExtractorRun(')
+          ..write('itemId: $itemId, ')
+          ..write('extractor: $extractor, ')
+          ..write('version: $version, ')
+          ..write('itemStamp: $itemStamp, ')
+          ..write('attempts: $attempts, ')
+          ..write('nextTry: $nextTry, ')
+          ..write('error: $error')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    itemId,
+    extractor,
+    version,
+    itemStamp,
+    attempts,
+    nextTry,
+    error,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExtractorRun &&
+          other.itemId == this.itemId &&
+          other.extractor == this.extractor &&
+          other.version == this.version &&
+          other.itemStamp == this.itemStamp &&
+          other.attempts == this.attempts &&
+          other.nextTry == this.nextTry &&
+          other.error == this.error);
+}
+
+class ExtractorRunsCompanion extends UpdateCompanion<ExtractorRun> {
+  final Value<String> itemId;
+  final Value<String> extractor;
+  final Value<int> version;
+  final Value<String?> itemStamp;
+  final Value<int> attempts;
+  final Value<int?> nextTry;
+  final Value<String?> error;
+  final Value<int> rowid;
+  const ExtractorRunsCompanion({
+    this.itemId = const Value.absent(),
+    this.extractor = const Value.absent(),
+    this.version = const Value.absent(),
+    this.itemStamp = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.nextTry = const Value.absent(),
+    this.error = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExtractorRunsCompanion.insert({
+    required String itemId,
+    required String extractor,
+    required int version,
+    this.itemStamp = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.nextTry = const Value.absent(),
+    this.error = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : itemId = Value(itemId),
+       extractor = Value(extractor),
+       version = Value(version);
+  static Insertable<ExtractorRun> custom({
+    Expression<String>? itemId,
+    Expression<String>? extractor,
+    Expression<int>? version,
+    Expression<String>? itemStamp,
+    Expression<int>? attempts,
+    Expression<int>? nextTry,
+    Expression<String>? error,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (itemId != null) 'item_id': itemId,
+      if (extractor != null) 'extractor': extractor,
+      if (version != null) 'version': version,
+      if (itemStamp != null) 'item_stamp': itemStamp,
+      if (attempts != null) 'attempts': attempts,
+      if (nextTry != null) 'next_try': nextTry,
+      if (error != null) 'error': error,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExtractorRunsCompanion copyWith({
+    Value<String>? itemId,
+    Value<String>? extractor,
+    Value<int>? version,
+    Value<String?>? itemStamp,
+    Value<int>? attempts,
+    Value<int?>? nextTry,
+    Value<String?>? error,
+    Value<int>? rowid,
+  }) {
+    return ExtractorRunsCompanion(
+      itemId: itemId ?? this.itemId,
+      extractor: extractor ?? this.extractor,
+      version: version ?? this.version,
+      itemStamp: itemStamp ?? this.itemStamp,
+      attempts: attempts ?? this.attempts,
+      nextTry: nextTry ?? this.nextTry,
+      error: error ?? this.error,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (extractor.present) {
+      map['extractor'] = Variable<String>(extractor.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (itemStamp.present) {
+      map['item_stamp'] = Variable<String>(itemStamp.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (nextTry.present) {
+      map['next_try'] = Variable<int>(nextTry.value);
+    }
+    if (error.present) {
+      map['error'] = Variable<String>(error.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExtractorRunsCompanion(')
+          ..write('itemId: $itemId, ')
+          ..write('extractor: $extractor, ')
+          ..write('version: $version, ')
+          ..write('itemStamp: $itemStamp, ')
+          ..write('attempts: $attempts, ')
+          ..write('nextTry: $nextTry, ')
+          ..write('error: $error, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6381,6 +7453,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ItemsTable items = $ItemsTable(this);
   late final $AttachmentsTable attachments = $AttachmentsTable(this);
   late final $FileJobsTable fileJobs = $FileJobsTable(this);
+  late final $FactsTable facts = $FactsTable(this);
+  late final $ExtractorRunsTable extractorRuns = $ExtractorRunsTable(this);
   late final $FoldersTable folders = $FoldersTable(this);
   late final $TagsTable tags = $TagsTable(this);
   late final $ItemTagsTable itemTags = $ItemTagsTable(this);
@@ -6401,6 +7475,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     items,
     attachments,
     fileJobs,
+    facts,
+    extractorRuns,
     folders,
     tags,
     itemTags,
@@ -6438,6 +7514,7 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<double?> longitude,
   Value<String?> placeName,
   Value<DateTime?> reminderAt,
+  Value<String> factsText,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<DateTime?> deletedAt,
@@ -6464,6 +7541,7 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<double?> longitude,
   Value<String?> placeName,
   Value<DateTime?> reminderAt,
+  Value<String> factsText,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
@@ -6578,6 +7656,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get reminderAt => $composableBuilder(
     column: $table.reminderAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get factsText => $composableBuilder(
+    column: $table.factsText,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6706,6 +7789,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get factsText => $composableBuilder(
+    column: $table.factsText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6805,6 +7893,9 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get factsText =>
+      $composableBuilder(column: $table.factsText, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -6863,6 +7954,7 @@ class $$ItemsTableTableManager
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> placeName = const Value.absent(),
                 Value<DateTime?> reminderAt = const Value.absent(),
+                Value<String> factsText = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -6888,6 +7980,7 @@ class $$ItemsTableTableManager
                 longitude: longitude,
                 placeName: placeName,
                 reminderAt: reminderAt,
+                factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -6915,6 +8008,7 @@ class $$ItemsTableTableManager
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> placeName = const Value.absent(),
                 Value<DateTime?> reminderAt = const Value.absent(),
+                Value<String> factsText = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -6940,6 +8034,7 @@ class $$ItemsTableTableManager
                 longitude: longitude,
                 placeName: placeName,
                 reminderAt: reminderAt,
+                factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -7576,6 +8671,530 @@ typedef $$FileJobsTableProcessedTableManager =
       $$FileJobsTableUpdateCompanionBuilder,
       (FileJob, BaseReferences<_$AppDatabase, $FileJobsTable, FileJob>),
       FileJob,
+      PrefetchHooks Function()
+    >;
+typedef $$FactsTableCreateCompanionBuilder = FactsCompanion Function({
+  required String id,
+  required String itemId,
+  required String extractor,
+  required FactKind kind,
+  Value<String?> detail,
+  required String value,
+  Value<double?> number,
+  Value<DateTime?> at,
+  Value<int> position,
+  Value<int> rowid,
+});
+typedef $$FactsTableUpdateCompanionBuilder = FactsCompanion Function({
+  Value<String> id,
+  Value<String> itemId,
+  Value<String> extractor,
+  Value<FactKind> kind,
+  Value<String?> detail,
+  Value<String> value,
+  Value<double?> number,
+  Value<DateTime?> at,
+  Value<int> position,
+  Value<int> rowid,
+});
+
+class $$FactsTableFilterComposer extends Composer<_$AppDatabase, $FactsTable> {
+  $$FactsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get extractor => $composableBuilder(
+    column: $table.extractor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<FactKind, FactKind, String> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get detail => $composableBuilder(
+    column: $table.detail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get number => $composableBuilder(
+    column: $table.number,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FactsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FactsTable> {
+  $$FactsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get extractor => $composableBuilder(
+    column: $table.extractor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get detail => $composableBuilder(
+    column: $table.detail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get number => $composableBuilder(
+    column: $table.number,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FactsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FactsTable> {
+  $$FactsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get extractor =>
+      $composableBuilder(column: $table.extractor, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<FactKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get detail =>
+      $composableBuilder(column: $table.detail, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<double> get number =>
+      $composableBuilder(column: $table.number, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+}
+
+class $$FactsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FactsTable,
+          Fact,
+          $$FactsTableFilterComposer,
+          $$FactsTableOrderingComposer,
+          $$FactsTableAnnotationComposer,
+          $$FactsTableCreateCompanionBuilder,
+          $$FactsTableUpdateCompanionBuilder,
+          (Fact, BaseReferences<_$AppDatabase, $FactsTable, Fact>),
+          Fact,
+          PrefetchHooks Function()
+        > {
+  $$FactsTableTableManager(_$AppDatabase db, $FactsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FactsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FactsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FactsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> extractor = const Value.absent(),
+                Value<FactKind> kind = const Value.absent(),
+                Value<String?> detail = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<double?> number = const Value.absent(),
+                Value<DateTime?> at = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FactsCompanion(
+                id: id,
+                itemId: itemId,
+                extractor: extractor,
+                kind: kind,
+                detail: detail,
+                value: value,
+                number: number,
+                at: at,
+                position: position,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String itemId,
+                required String extractor,
+                required FactKind kind,
+                Value<String?> detail = const Value.absent(),
+                required String value,
+                Value<double?> number = const Value.absent(),
+                Value<DateTime?> at = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FactsCompanion.insert(
+                id: id,
+                itemId: itemId,
+                extractor: extractor,
+                kind: kind,
+                detail: detail,
+                value: value,
+                number: number,
+                at: at,
+                position: position,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FactsTable, Fact>(table),
+                  BaseReferences<_$AppDatabase, $FactsTable, Fact>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FactsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FactsTable,
+      Fact,
+      $$FactsTableFilterComposer,
+      $$FactsTableOrderingComposer,
+      $$FactsTableAnnotationComposer,
+      $$FactsTableCreateCompanionBuilder,
+      $$FactsTableUpdateCompanionBuilder,
+      (Fact, BaseReferences<_$AppDatabase, $FactsTable, Fact>),
+      Fact,
+      PrefetchHooks Function()
+    >;
+typedef $$ExtractorRunsTableCreateCompanionBuilder =
+    ExtractorRunsCompanion Function({
+      required String itemId,
+      required String extractor,
+      required int version,
+      Value<String?> itemStamp,
+      Value<int> attempts,
+      Value<int?> nextTry,
+      Value<String?> error,
+      Value<int> rowid,
+    });
+typedef $$ExtractorRunsTableUpdateCompanionBuilder =
+    ExtractorRunsCompanion Function({
+      Value<String> itemId,
+      Value<String> extractor,
+      Value<int> version,
+      Value<String?> itemStamp,
+      Value<int> attempts,
+      Value<int?> nextTry,
+      Value<String?> error,
+      Value<int> rowid,
+    });
+
+class $$ExtractorRunsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExtractorRunsTable> {
+  $$ExtractorRunsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get extractor => $composableBuilder(
+    column: $table.extractor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemStamp => $composableBuilder(
+    column: $table.itemStamp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nextTry => $composableBuilder(
+    column: $table.nextTry,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExtractorRunsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExtractorRunsTable> {
+  $$ExtractorRunsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get extractor => $composableBuilder(
+    column: $table.extractor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemStamp => $composableBuilder(
+    column: $table.itemStamp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get nextTry => $composableBuilder(
+    column: $table.nextTry,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExtractorRunsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExtractorRunsTable> {
+  $$ExtractorRunsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get extractor =>
+      $composableBuilder(column: $table.extractor, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<String> get itemStamp =>
+      $composableBuilder(column: $table.itemStamp, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<int> get nextTry =>
+      $composableBuilder(column: $table.nextTry, builder: (column) => column);
+
+  GeneratedColumn<String> get error =>
+      $composableBuilder(column: $table.error, builder: (column) => column);
+}
+
+class $$ExtractorRunsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExtractorRunsTable,
+          ExtractorRun,
+          $$ExtractorRunsTableFilterComposer,
+          $$ExtractorRunsTableOrderingComposer,
+          $$ExtractorRunsTableAnnotationComposer,
+          $$ExtractorRunsTableCreateCompanionBuilder,
+          $$ExtractorRunsTableUpdateCompanionBuilder,
+          (
+            ExtractorRun,
+            BaseReferences<_$AppDatabase, $ExtractorRunsTable, ExtractorRun>,
+          ),
+          ExtractorRun,
+          PrefetchHooks Function()
+        > {
+  $$ExtractorRunsTableTableManager(_$AppDatabase db, $ExtractorRunsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExtractorRunsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExtractorRunsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExtractorRunsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> itemId = const Value.absent(),
+                Value<String> extractor = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<String?> itemStamp = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<int?> nextTry = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExtractorRunsCompanion(
+                itemId: itemId,
+                extractor: extractor,
+                version: version,
+                itemStamp: itemStamp,
+                attempts: attempts,
+                nextTry: nextTry,
+                error: error,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String itemId,
+                required String extractor,
+                required int version,
+                Value<String?> itemStamp = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<int?> nextTry = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExtractorRunsCompanion.insert(
+                itemId: itemId,
+                extractor: extractor,
+                version: version,
+                itemStamp: itemStamp,
+                attempts: attempts,
+                nextTry: nextTry,
+                error: error,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ExtractorRunsTable, ExtractorRun>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ExtractorRunsTable,
+                    ExtractorRun
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExtractorRunsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExtractorRunsTable,
+      ExtractorRun,
+      $$ExtractorRunsTableFilterComposer,
+      $$ExtractorRunsTableOrderingComposer,
+      $$ExtractorRunsTableAnnotationComposer,
+      $$ExtractorRunsTableCreateCompanionBuilder,
+      $$ExtractorRunsTableUpdateCompanionBuilder,
+      (
+        ExtractorRun,
+        BaseReferences<_$AppDatabase, $ExtractorRunsTable, ExtractorRun>,
+      ),
+      ExtractorRun,
       PrefetchHooks Function()
     >;
 typedef $$FoldersTableCreateCompanionBuilder = FoldersCompanion Function({
@@ -9724,6 +11343,10 @@ class $AppDatabaseManager {
       $$AttachmentsTableTableManager(_db, _db.attachments);
   $$FileJobsTableTableManager get fileJobs =>
       $$FileJobsTableTableManager(_db, _db.fileJobs);
+  $$FactsTableTableManager get facts =>
+      $$FactsTableTableManager(_db, _db.facts);
+  $$ExtractorRunsTableTableManager get extractorRuns =>
+      $$ExtractorRunsTableTableManager(_db, _db.extractorRuns);
   $$FoldersTableTableManager get folders =>
       $$FoldersTableTableManager(_db, _db.folders);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);

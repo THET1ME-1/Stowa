@@ -34,12 +34,57 @@ class Items extends Table {
   RealColumn get longitude => real().nullable()();
   TextColumn get placeName => text().nullable()();
   DateTimeColumn get reminderAt => dateTime().nullable()();
+
+  /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
+  TextColumn get factsText => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Что извлекатель узнал о вещи: сумма, телефон, текст документа, дата съёмки.
+/// Факты одного извлекателя заменяются целиком при каждом его прогоне.
+class Facts extends Table {
+  TextColumn get id => text()();
+  TextColumn get itemId => text()();
+  TextColumn get extractor => text()();
+  TextColumn get kind => textEnum<FactKind>()();
+
+  /// Уточнение: валюта, номер для набора, лист или слайд документа, долгота места.
+  TextColumn get detail => text().nullable()();
+
+  /// Как показать и искать: «35 лей», «+373 69 123 456», текст листа.
+  TextColumn get value => text()();
+
+  /// Число для фильтров: сумма, широта места.
+  RealColumn get number => real().nullable()();
+  DateTimeColumn get at => dateTime().nullable()();
+  IntColumn get position => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Какой извлекатель какой версией разобрал вещь и в каком её состоянии.
+/// Версия выросла или отпечаток вещи сменился — вещь разбирается заново.
+class ExtractorRuns extends Table {
+  TextColumn get itemId => text()();
+  TextColumn get extractor => text()();
+  IntColumn get version => integer()();
+
+  /// Отпечаток того, от чего зависят факты: правка, набор вложений, превью.
+  TextColumn get itemStamp => text().nullable()();
+  IntColumn get attempts => integer().withDefault(const Constant(0))();
+
+  /// Сетевому: когда пробовать снова, миллисекунды от 1970 года.
+  IntColumn get nextTry => integer().nullable()();
+  TextColumn get error => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {itemId, extractor};
 }
 
 /// Файл, который ещё не лёг во вложения: пишется вместе с вещью одной транзакцией,
