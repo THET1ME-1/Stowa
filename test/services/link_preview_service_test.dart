@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/link_preview.dart' show oembedEndpoint;
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/site_sources.dart';
 import 'package:stowa/domain/structured_page.dart';
@@ -52,6 +53,46 @@ void main() {
 
   FetchReply page(String html) => FetchReply(200, utf8.encode(html), 'text/html; charset=utf-8');
   final png = FetchReply(200, base64.decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='), 'image/png');
+
+  group('TikTok', () {
+    String tiktokPage(Map<String, Object?> item) =>
+        '<html><head><title>TikTok - Make Your Day</title></head><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">${jsonEncode({
+          '__DEFAULT_SCOPE__': {
+            'webapp.reflow.video.detail': {'itemInfo': {'itemStruct': item}},
+          },
+        })}</script></html>';
+
+    test('короткая ссылка: oEmbed пустой, название, автор, обложка и длина — со страницы ролика', () async {
+      const url = 'https://vm.tiktok.com/ZMh3Qe4Bk/';
+      await addLink(url, kind: ItemKind.video);
+      await service({
+        // oEmbed TikTok теперь отдаёт только размеры, а короткие ссылки не принимает вовсе
+        oembedEndpoint(Uri.parse(url)).toString(): FetchReply(400, utf8.encode('{"message":"Something went wrong","code":400}'), 'application/json'),
+        url: page(tiktokPage({
+          'desc': 'Сдаю на права с первого раза #автошкола',
+          'author': {'nickname': 'Автошкола Майстер'},
+          'video': {'duration': 7, 'cover': 'https://p16.tiktokcdn.com/cover.jpg'},
+        })),
+        'https://p16.tiktokcdn.com/cover.jpg': png,
+      }).fetchFor('a');
+      final saved = await item();
+      expect(saved.title, 'Сдаю на права с первого раза');
+      expect(saved.previewSite, 'TikTok');
+      expect(saved.previewAuthor, 'Автошкола Майстер');
+      expect(saved.previewText, 'Сдаю на права с первого раза #автошкола');
+      expect(saved.durationSeconds, 7);
+      expect(saved.coverPath, isNotNull);
+    });
+
+    test('страница без данных ролика: заглушка «TikTok - Make Your Day» заголовком не становится', () async {
+      const url = 'https://vm.tiktok.com/ZMh3Qe4Bk/';
+      await addLink(url, kind: ItemKind.video);
+      await service({url: page('<html><head><title>TikTok - Make Your Day</title></head></html>')}).fetchFor('a');
+      final saved = await item();
+      expect(saved.title, url);
+      expect(saved.previewSite, 'TikTok');
+    });
+  });
 
   group('известные сайты', () {
     final headersSent = <String, Map<String, String>>{};

@@ -169,13 +169,21 @@ YoutubePlayer? parseYoutubePlayer(Map<String, Object?> json) {
 
 /// Что TikTok положил в страницу ролика.
 class TiktokVideo {
-  const TiktokVideo({required this.caption, this.author, this.hashtags = const [], this.seconds, this.tracks = const []});
+  const TiktokVideo({required this.caption, this.author, this.hashtags = const [], this.seconds, this.cover, this.tracks = const []});
 
   final String caption;
   final String? author;
   final List<String> hashtags;
   final int? seconds;
+  final String? cover;
   final List<CaptionTrack> tracks;
+
+  /// Заголовок вещи: подпись без хэштегов, а из одних хэштегов — автор.
+  String get title {
+    final words = caption.replaceAll(RegExp(r'#[^\s#]+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (words.isNotEmpty) return words;
+    return author ?? caption.trim();
+  }
 }
 
 /// Данные страницы TikTok (`__UNIVERSAL_DATA_FOR_REHYDRATION__`). Нет ролика — null.
@@ -184,7 +192,9 @@ TiktokVideo? parseTiktokPage(String html) {
   if (script == null) return null;
   try {
     final data = jsonDecode(script.group(1)!) as Map<String, Object?>;
-    final detail = ((data['__DEFAULT_SCOPE__'] as Map?)?['webapp.video-detail'] as Map?) ?? const {};
+    final scope = data['__DEFAULT_SCOPE__'] as Map? ?? const {};
+    // браузеру с компьютера ролик лежит под video-detail, телефону — под reflow.video.detail
+    final detail = (scope['webapp.video-detail'] ?? scope['webapp.reflow.video.detail']) as Map? ?? const {};
     final item = ((detail['itemInfo'] as Map?)?['itemStruct'] as Map?) ?? const {};
     if (item.isEmpty) return null;
     final caption = item['desc'] as String? ?? '';
@@ -199,6 +209,7 @@ TiktokVideo? parseTiktokPage(String html) {
       author: (author?['nickname'] ?? author?['uniqueId']) as String?,
       hashtags: challenges.isEmpty ? hashtagsIn(caption) : challenges,
       seconds: video['duration'] is num ? (video['duration'] as num).round() : null,
+      cover: [video['cover'], video['originCover'], video['dynamicCover']].whereType<String>().where((url) => url.isNotEmpty).firstOrNull,
       tracks: [
         for (final track in (video['subtitleInfos'] as List? ?? const []))
           if (track is Map && track['Url'] is String && (track['Format'] == null || '${track['Format']}'.toLowerCase().contains('vtt')))

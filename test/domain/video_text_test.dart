@@ -112,4 +112,33 @@ void main() {
     expect(pickTrack(tiktok.tracks, ['ru'])!.url, 'https://tt/ru.vtt');
     expect(parseTiktokPage('<html>нет данных</html>'), isNull);
   });
+
+  test('TikTok для телефона кладёт ролик под webapp.reflow.video.detail, обложка из video.cover', () {
+    final data = {
+      '__DEFAULT_SCOPE__': {
+        'webapp.reflow.video.detail': {
+          'statusCode': 0,
+          'itemInfo': {
+            'itemStruct': {
+              'desc': 'Сдаю на права с первого раза #автошкола',
+              'author': {'nickname': 'Автошкола Майстер', 'uniqueId': 'mayster'},
+              'video': {'duration': 7, 'cover': 'https://p16.tiktokcdn.com/cover.jpg'},
+            },
+          },
+        },
+      },
+    };
+    final tiktok = parseTiktokPage('<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">${jsonEncode(data)}</script>')!;
+    expect(tiktok.caption, 'Сдаю на права с первого раза #автошкола');
+    expect(tiktok.author, 'Автошкола Майстер');
+    expect(tiktok.seconds, 7);
+    expect(tiktok.cover, 'https://p16.tiktokcdn.com/cover.jpg');
+    expect(tiktok.title, 'Сдаю на права с первого раза');
+  });
+
+  test('подпись из одних хэштегов — заголовком автор', () {
+    const tiktok = TiktokVideo(caption: '#права #авто', author: 'Автошкола Майстер');
+    expect(tiktok.title, 'Автошкола Майстер');
+    expect(const TiktokVideo(caption: '#права #авто').title, '#права #авто');
+  });
 }

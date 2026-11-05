@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import '../data/db/database.dart';
 import '../domain/link_preview.dart';
+import '../domain/video_text.dart' show parseTiktokPage;
 import '../domain/models.dart';
 import '../domain/site_sources.dart';
 import 'page_cache.dart';
@@ -148,6 +149,9 @@ class LinkPreviewService {
         gone = true;
       } else if (reply.ok) {
         fromPage = parseHtmlPreview(html, page);
+        // TikTok: oEmbed больше не знает ни названия, ни обложки, а заголовок страницы —
+        // заглушка «TikTok - Make Your Day»; сам ролик лежит в данных страницы
+        if (page.host == 'tiktok.com' || page.host.endsWith('.tiktok.com')) fromPage = _fromTiktok(html);
         // копия страницы для извлекателей: рецепт, товар, событие читаются из неё без второго похода в сеть
         if ((reply.contentType ?? 'text/html').contains('html')) await savePage(_filesRoot, id, html).catchError((_) {});
       } else if (reply.status >= 400 && reply.status < 500) {
@@ -191,6 +195,19 @@ class LinkPreviewService {
     return _done(
       item,
       LinkPreview(title: title.name, description: title.summary, imageUrl: title.cover, siteName: lib.site.name, author: title.authors.isEmpty ? null : title.authors.join(', ')),
+    );
+  }
+
+  LinkPreview _fromTiktok(String html) {
+    final video = parseTiktokPage(html);
+    if (video == null) return const LinkPreview(siteName: 'TikTok');
+    return LinkPreview(
+      title: video.title.isEmpty ? null : video.title,
+      description: video.caption.trim().isEmpty ? null : video.caption.trim(),
+      imageUrl: video.cover == null ? null : Uri.tryParse(video.cover!),
+      siteName: 'TikTok',
+      author: video.author,
+      duration: video.seconds == null ? null : Duration(seconds: video.seconds!),
     );
   }
 
