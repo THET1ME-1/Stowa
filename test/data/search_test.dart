@@ -3,7 +3,10 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/structured_page.dart';
 import 'package:stowa/services/facts/facts_pipeline.dart';
+import 'package:stowa/services/facts/web_extractors.dart';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
@@ -157,6 +160,37 @@ void main() {
       expect((await find('диван до 5000 лей')).single.card.title, 'Диван на OLX 4 500 лей');
       expect((await find('дороже 10000 лей')).single.card.title, 'Кресло 12 000 лей');
       expect((await find('скрины')), hasLength(1));
+    });
+
+    test('статьи по времени чтения, рецепт по ингредиенту и по слову «рецепт»', () async {
+      Future<String> link(String title, String url) => capture.capture(CaptureInput(text: '$title\n$url'));
+      final short = await link('Короткая заметка о поиске', 'https://habr.com/a/1');
+      final long = await link('Длинный разбор поиска', 'https://habr.com/a/2');
+      final recipe = await link('Ужин', 'https://food.md/carbonara');
+      Future<void> fact(String itemId, FactKind kind, String value, {double? number, String? detail}) => db
+          .into(db.facts)
+          .insert(FactsCompanion.insert(id: '$itemId-$kind-$value', itemId: itemId, extractor: 'page', kind: kind, value: value, number: Value(number), detail: Value(detail)));
+      await fact(short, FactKind.readingTime, '4', number: 4);
+      await fact(long, FactKind.readingTime, '25', number: 25);
+      await fact(recipe, FactKind.ingredient, 'гуанчиале');
+      await fact(recipe, FactKind.pageType, pageTypeWords[PageType.recipe]!, detail: 'recipe');
+      await db.customStatement("UPDATE items SET facts_text = 'гуанчиале\n${pageTypeWords[PageType.recipe]}' WHERE id = '$recipe'");
+
+      expect((await find('статьи до 10 минут')).map((found) => found.card.id), [short]);
+      final byIngredient = (await find('гуанчиале')).single;
+      expect(byIngredient.card.id, recipe);
+      expect(byIngredient.hit.foundFact!.part.kind, FactKind.ingredient);
+      expect((await find('рецепт')).map((found) => found.card.id), contains(recipe));
+    });
+
+    test('на карте событие стоит там, где оно, а не где ссылку сохранили', () async {
+      final concert = await capture.capture(const CaptureInput(text: 'Концерт\nhttps://afisha.md/concert'));
+      await (db.update(db.items)..where((t) => t.id.equals(concert))).write(const ItemsCompanion(latitude: Value(46.0), longitude: Value(30.0), placeName: Value('Дом')));
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'v1', itemId: concert, extractor: 'page', kind: FactKind.venue, value: 'Palatul Național'));
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'v2', itemId: concert, extractor: 'page', kind: FactKind.venuePlace, value: 'x', number: const Value(47.02), detail: const Value('28.83')));
+      final placed = await items.watchPlaced().first;
+      final card = placed.firstWhere((card) => card.id == concert);
+      expect((card.latitude, card.longitude, card.placeName), (47.02, 28.83, 'Palatul Național'));
     });
 
     test('слово находит по месту и по транслиту', () async {

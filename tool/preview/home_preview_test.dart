@@ -14,6 +14,7 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/features/home/folders_grid.dart';
+import 'package:stowa/features/item/item_screen.dart';
 import 'package:stowa/services/capture_service.dart';
 import 'package:stowa/services/facts/facts_pipeline.dart';
 
@@ -318,6 +319,57 @@ void main() {
     await tester.tap(find.text('Мастер по диванам').first);
     await tester.pumpAndSettle();
     await _shot(tester, '17-факты');
+  });
+
+  testWidgets('страница рецепта и событие', (tester) async {
+    await tester.runAsync(() async {
+      await _seed(world);
+      Future<void> fact(String id, FactKind kind, String value, {double? number, String? detail, DateTime? at, required int position}) => world.db
+          .into(world.db.facts)
+          .insert(
+            FactsCompanion.insert(
+              id: '$id-$position',
+              itemId: id,
+              extractor: 'page',
+              kind: kind,
+              value: value,
+              number: Value(number),
+              detail: Value(detail),
+              at: Value(at),
+              position: Value(position),
+            ),
+          );
+      await world.db
+          .into(world.db.items)
+          .insert(
+            ItemsCompanion.insert(
+              id: 'carbonara',
+              kind: ItemKind.link,
+              title: 'Ultimate spaghetti carbonara',
+              url: const Value('https://www.bbcgoodfood.com/recipes/ultimate-spaghetti-carbonara-recipe'),
+              previewSite: const Value('BBC Good Food'),
+              previewText: const Value('Discover how to make traditional spaghetti carbonara #pasta #italian'),
+              previewAt: Value(world.now),
+              createdAt: world.now,
+              updatedAt: world.now,
+            ),
+          );
+      var position = 0;
+      await fact('carbonara', FactKind.pageType, 'рецепт recipe', detail: 'recipe', position: position++);
+      for (final ingredient in ['100 г панчетты', '50 г пекорино', '50 г пармезана', '3 крупных яйца', '350 г спагетти', '2 зубчика чеснока', '50 г сливочного масла']) {
+        await fact('carbonara', FactKind.ingredient, ingredient, position: position++);
+      }
+      await fact('carbonara', FactKind.timeNeeded, '35', number: 35, position: position++);
+      await fact('carbonara', FactKind.servings, '4', number: 4, position: position++);
+      await fact('carbonara', FactKind.author, 'Angela Nilsen', position: position++);
+      await fact('carbonara', FactKind.rating, '4.8', number: 4.8, position: position++);
+      await fact('carbonara', FactKind.hashtag, 'pasta', position: position++);
+      await fact('carbonara', FactKind.hashtag, 'italian', position: position++);
+    });
+    await open(tester);
+    await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: world.wrap(const ItemScreen(id: 'carbonara'))));
+    await tester.pumpAndSettle();
+    await _shot(tester, '18-рецепт');
   });
 
   testWidgets('крупный шрифт на узком', (tester) async {

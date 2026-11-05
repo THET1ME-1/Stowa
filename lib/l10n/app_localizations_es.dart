@@ -1432,4 +1432,94 @@ class LEs extends L {
   String photoTaken(Object date) {
     return 'Tomada el $date';
   }
+
+  @override
+  String foundInSubtitles(Object time) {
+    return 'en los subtítulos · $time';
+  }
+
+  @override
+  String foundInChapters(Object time) {
+    return 'en los capítulos · $time';
+  }
+
+  @override
+  String get foundInIngredients => 'en los ingredientes';
+
+  @override
+  String get foundAtAddress => 'por dirección';
+
+  @override
+  String get foundInHashtags => 'en los hashtags';
+
+  @override
+  String get watchFromHere => 'Ver desde aquí';
+
+  @override
+  String get pageRecipe => 'receta';
+
+  @override
+  String get pageProduct => 'producto';
+
+  @override
+  String get pageEvent => 'evento';
+
+  @override
+  String get pagePlace => 'lugar';
+
+  @override
+  String get pageMovie => 'película';
+
+  @override
+  String get pageBook => 'libro';
+
+  @override
+  String get pageVideo => 'vídeo';
+
+  @override
+  String get pageArticle => 'artículo';
+
+  @override
+  String minutesShort(Object count) {
+    return '$count min';
+  }
+
+  @override
+  String servings(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count raciones',
+      one: '$count ración',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String readingMinutes(Object count) {
+    return '$count min de lectura';
+  }
+
+  @override
+  String get inStock => 'En stock';
+
+  @override
+  String get outOfStock => 'Agotado';
+
+  @override
+  String get toShoppingList => 'A la lista de la compra';
+
+  @override
+  String shoppingFor(Object name) {
+    return 'Comprar: $name';
+  }
+
+  @override
+  String get shoppingReady => 'La lista de la compra está lista';
+
+  @override
+  String get chaptersTitle => 'Capítulos';
+
+  @override
+  String get authorTags => 'Etiquetas del autor';
 }

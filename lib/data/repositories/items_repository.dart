@@ -54,6 +54,33 @@ class ItemCard {
   /// Сколько файлов вещи ещё ложится во вложения.
   final int copying;
 
+  /// Та же карточка в другом месте: событие и заведение стоят на карте там, где они есть.
+  ItemCard placedAt(double latitude, double longitude, String? name) => ItemCard(
+    id: id,
+    title: title,
+    kind: kind,
+    folderId: folderId,
+    sortState: sortState,
+    createdAt: createdAt,
+    body: body,
+    url: url,
+    folderName: folderName,
+    folderIcon: folderIcon,
+    reminderAt: reminderAt,
+    thumbPath: thumbPath,
+    thumbRatio: thumbRatio,
+    tags: tags,
+    filePath: filePath,
+    fileMime: fileMime,
+    fileSize: fileSize,
+    transcript: transcript,
+    durationSeconds: durationSeconds,
+    latitude: latitude,
+    longitude: longitude,
+    placeName: name ?? placeName,
+    copying: copying,
+  );
+
   /// Где вещь сохранена. Пусто — место не снималось.
   final double? latitude;
   final double? longitude;
@@ -508,11 +535,26 @@ WHERE items.deleted_at IS NULL''';
     ];
   }
 
-  // факты, по которым ищут: текст документов, автор и описание страницы. Деньги, телефоны и
-  // ссылки и так лежат в тексте вещи — в поле фактов они продублировали бы совпадения
+  // факты, по которым ищут: текст документов, страница ссылки, субтитры и главы ролика. Деньги,
+  // телефоны и ссылки и так лежат в тексте вещи — в поле фактов они продублировали бы совпадения
   Future<Map<String, List<FactPart>>> _factParts(Set<String> ids) async {
     if (ids.isEmpty) return const {};
-    const kinds = [FactKind.fileText, FactKind.author, FactKind.site, FactKind.description, FactKind.camera];
+    const kinds = [
+      FactKind.fileText,
+      FactKind.ingredient,
+      FactKind.subtitle,
+      FactKind.chapter,
+      FactKind.venue,
+      FactKind.address,
+      FactKind.shop,
+      FactKind.author,
+      FactKind.site,
+      FactKind.description,
+      FactKind.hashtag,
+      FactKind.year,
+      FactKind.camera,
+      FactKind.pageType,
+    ];
     final rows =
         await (_db.select(_db.facts)
               ..where((t) => t.itemId.isIn(ids) & t.kind.isIn([for (final kind in kinds) kind.name]))
@@ -520,7 +562,8 @@ WHERE items.deleted_at IS NULL''';
             .get();
     final parts = <String, List<FactPart>>{};
     for (final fact in rows) {
-      parts.putIfAbsent(fact.itemId, () => []).add(FactPart(fact.kind, fact.value, place: fact.kind == FactKind.fileText ? fact.detail : null));
+      final timed = fact.kind == FactKind.subtitle || fact.kind == FactKind.chapter;
+      parts.putIfAbsent(fact.itemId, () => []).add(FactPart(fact.kind, fact.value, place: fact.kind == FactKind.fileText ? fact.detail : null, seconds: timed ? fact.number : null));
     }
     return parts;
   }
@@ -542,14 +585,19 @@ WHERE items.deleted_at IS NULL''';
             for (final (:item, file: _) in items)
               if (item.latitude != null && item.longitude != null) (latitude: item.latitude!, longitude: item.longitude!, at: item.createdAt),
           ]);
-    // суммы и скриншоты знают извлекатели: читаются, только когда о них спросили
+    // суммы, скриншоты и время чтения знают извлекатели: читаются, только когда о них спросили
     final prices = <String, List<(double, String)>>{};
     final screenshots = <String>{};
-    if (query.minPrice != null || query.maxPrice != null || query.screenshots) {
-      final facts = await (_db.select(_db.facts)..where((t) => t.kind.isIn([FactKind.price.name, FactKind.screenshot.name]))).get();
+    final reading = <String, int>{};
+    final byLength = query.minSeconds != null || query.maxSeconds != null;
+    if (query.minPrice != null || query.maxPrice != null || query.screenshots || byLength) {
+      final kinds = [FactKind.price, FactKind.screenshot, if (byLength) FactKind.readingTime];
+      final facts = await (_db.select(_db.facts)..where((t) => t.kind.isIn([for (final kind in kinds) kind.name]))).get();
       for (final fact in facts) {
         if (fact.kind == FactKind.screenshot) {
           screenshots.add(fact.itemId);
+        } else if (fact.kind == FactKind.readingTime && fact.number != null) {
+          reading[fact.itemId] = (fact.number! * 60).round();
         } else if (fact.number != null) {
           prices.putIfAbsent(fact.itemId, () => []).add((fact.number!, fact.detail ?? ''));
         }
@@ -568,7 +616,8 @@ WHERE items.deleted_at IS NULL''';
         kind: item.kind,
         url: item.url ?? '',
         fileName: '${item.title} ${file ?? ''}',
-        durationSeconds: item.durationSeconds,
+        // у статьи длина — сколько её читать: «статьи до 10 минут»
+        durationSeconds: item.durationSeconds ?? reading[item.id],
         metersAway: away,
         marks: marks,
         prices: prices[item.id] ?? const [],
@@ -612,8 +661,29 @@ WHERE items.deleted_at IS NULL''';
   }
 
   /// Всё, у чего есть место: точки карты заметок.
+  /// Вещи на карте. Ссылка на событие или заведение стоит там, где оно, а не где её сохранили.
   Stream<List<ItemCard>> watchPlaced() => _db
-      .customSelect('$_cardSelect AND items.latitude IS NOT NULL ORDER BY items.created_at DESC', readsFrom: _cardTables)
+      .customSelect(
+        "$_cardSelect AND (items.latitude IS NOT NULL OR EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind = 'venuePlace')) "
+        'ORDER BY items.created_at DESC',
+        readsFrom: {..._cardTables, _db.facts},
+      )
       .watch()
-      .map((rows) => [for (final row in rows) _card(row)]);
+      .asyncMap((rows) async {
+        final cards = [for (final row in rows) _card(row)];
+        final ids = [for (final card in cards) card.id];
+        final venues =
+            await (_db.select(_db.facts)..where((t) => t.itemId.isIn(ids) & t.kind.isIn([FactKind.venuePlace.name, FactKind.venue.name]))).get();
+        final points = <String, (double, double)>{};
+        final names = <String, String>{};
+        for (final fact in venues) {
+          if (fact.kind == FactKind.venue) names[fact.itemId] = fact.value;
+          final longitude = double.tryParse(fact.detail ?? '');
+          if (fact.kind == FactKind.venuePlace && fact.number != null && longitude != null) points[fact.itemId] = (fact.number!, longitude);
+        }
+        return [
+          for (final card in cards)
+            if (points[card.id] case final point?) card.placedAt(point.$1, point.$2, names[card.id]) else card,
+        ];
+      });
 }

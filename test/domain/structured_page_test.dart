@@ -62,6 +62,11 @@ void main() {
     expect(parsed.longitude, closeTo(28.8323, 0.0001));
   });
 
+  test('одинаковые город и регион в адресе — один раз', () {
+    final parsed = structuredPage(page('{"@type":"Event","name":"Бег","startDate":"2026-11-07","location":{"@type":"Place","name":"Teatrul Verde","address":{"addressLocality":"Chisinau","addressRegion":"Chisinau","streetAddress":"Teatrul Verde"}}}'))!;
+    expect(parsed.address, 'Teatrul Verde, Chisinau');
+  });
+
   test('заведение: адрес, телефон, часы работы', () {
     final parsed = structuredPage(
       page('''{"@type":["Restaurant","LocalBusiness"],"name":"Gastrobar","telephone":"+373 22 123 456","address":"str. București 67, Chișinău",

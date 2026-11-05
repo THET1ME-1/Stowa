@@ -6,7 +6,10 @@ import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
+import '../../core/format/duration_format.dart';
 import '../../domain/search_rank.dart' show FactPart;
+import '../../domain/structured_page.dart' show PageType;
+import '../../services/facts/web_extractors.dart' show pageTypeWords;
 import '../../l10n/app_localizations.dart';
 import 'panel_model.dart';
 
@@ -88,11 +91,46 @@ String deepLabel(L l, ItemKind kind) => switch (kind) {
   _ => l.foundInDescription,
 };
 
-/// Где в фактах нашлось: «в файле, лист «Ремонт»», «в файле, слайд 3», «на странице».
+/// Где в фактах нашлось: «в файле, лист «Ремонт»», «в субтитрах · 0:42», «в ингредиентах».
 String factLabel(L l, FactPart part) {
-  if (part.kind != FactKind.fileText) return part.kind == FactKind.camera ? l.foundInPhotoInfo : l.foundOnPage;
-  final place = documentPlace(l, part.place);
-  return place == null ? l.foundInFile : '${l.foundInFile}, $place';
+  final at = part.seconds == null ? '' : formatClock(Duration(seconds: part.seconds!.floor()));
+  switch (part.kind) {
+    case FactKind.fileText:
+      final place = documentPlace(l, part.place);
+      return place == null ? l.foundInFile : '${l.foundInFile}, $place';
+    case FactKind.subtitle:
+      return l.foundInSubtitles(at);
+    case FactKind.chapter:
+      return l.foundInChapters(at);
+    case FactKind.ingredient:
+      return l.foundInIngredients;
+    case FactKind.venue || FactKind.address:
+      return l.foundAtAddress;
+    case FactKind.hashtag:
+      return l.foundInHashtags;
+    case FactKind.camera:
+      return l.foundInPhotoInfo;
+    case FactKind.pageType:
+      return pageTypeLabel(l, part.text);
+    default:
+      return l.foundOnPage;
+  }
+}
+
+/// Что за страница словами: «рецепт», «товар», «событие». По слову из факта вида страницы.
+String pageTypeLabel(L l, String keywords) {
+  final type = PageType.values.where((type) => pageTypeWords[type] == keywords).firstOrNull;
+  return switch (type) {
+    PageType.recipe => l.pageRecipe,
+    PageType.product => l.pageProduct,
+    PageType.event => l.pageEvent,
+    PageType.place => l.pagePlace,
+    PageType.movie => l.pageMovie,
+    PageType.book => l.pageBook,
+    PageType.video => l.pageVideo,
+    PageType.article => l.pageArticle,
+    null => l.foundOnPage,
+  };
 }
 
 /// Место в документе словами: `sheet:Ремонт` → «лист «Ремонт»», `slide:3` → «слайд 3».

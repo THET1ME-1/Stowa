@@ -1456,4 +1456,95 @@ class LRu extends L {
   String photoTaken(Object date) {
     return 'Снято $date';
   }
+
+  @override
+  String foundInSubtitles(Object time) {
+    return 'в субтитрах · $time';
+  }
+
+  @override
+  String foundInChapters(Object time) {
+    return 'в главах · $time';
+  }
+
+  @override
+  String get foundInIngredients => 'в ингредиентах';
+
+  @override
+  String get foundAtAddress => 'по адресу';
+
+  @override
+  String get foundInHashtags => 'в хэштегах';
+
+  @override
+  String get watchFromHere => 'Смотреть с этого места';
+
+  @override
+  String get pageRecipe => 'рецепт';
+
+  @override
+  String get pageProduct => 'товар';
+
+  @override
+  String get pageEvent => 'событие';
+
+  @override
+  String get pagePlace => 'место';
+
+  @override
+  String get pageMovie => 'фильм';
+
+  @override
+  String get pageBook => 'книга';
+
+  @override
+  String get pageVideo => 'видео';
+
+  @override
+  String get pageArticle => 'статья';
+
+  @override
+  String minutesShort(Object count) {
+    return '$count мин';
+  }
+
+  @override
+  String servings(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count порций',
+      few: '$count порции',
+      one: '$count порция',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String readingMinutes(Object count) {
+    return '$count мин чтения';
+  }
+
+  @override
+  String get inStock => 'В наличии';
+
+  @override
+  String get outOfStock => 'Нет в наличии';
+
+  @override
+  String get toShoppingList => 'В список покупок';
+
+  @override
+  String shoppingFor(Object name) {
+    return 'Купить: $name';
+  }
+
+  @override
+  String get shoppingReady => 'Список покупок готов';
+
+  @override
+  String get chaptersTitle => 'Главы';
+
+  @override
+  String get authorTags => 'Теги автора';
 }

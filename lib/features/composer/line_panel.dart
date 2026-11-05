@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/format/duration_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
@@ -16,6 +18,7 @@ import '../../domain/item_title.dart';
 import '../../domain/note_blocks.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
+import '../../domain/video_text.dart' show videoAt;
 import '../../l10n/app_localizations.dart';
 import 'panel_model.dart';
 import 'panel_text.dart';
@@ -146,6 +149,7 @@ class _LinePanelState extends State<LinePanel> {
                                   filesRoot: widget.filesRoot,
                                   onTap: () => widget.onTap(index),
                                   onAppend: row is ResultRow && row.canAppend ? () => widget.onAppend(row) : null,
+                                  jump: row is ResultRow ? _jumpOf(row) : null,
                                 ),
                               ),
                             ),
@@ -293,6 +297,7 @@ class _RowView extends StatelessWidget {
     required this.filesRoot,
     required this.onTap,
     this.onAppend,
+    this.jump,
   });
 
   final PanelRow row;
@@ -302,6 +307,9 @@ class _RowView extends StatelessWidget {
   final Directory filesRoot;
   final VoidCallback onTap;
   final VoidCallback? onAppend;
+
+  /// Нашлось во фразе ролика: открыть его с этой секунды.
+  final ({Uri url, int seconds})? jump;
 
   @override
   Widget build(BuildContext context) {
@@ -445,7 +453,18 @@ class _RowView extends StatelessWidget {
                   ],
                 ),
               ),
-              if (onAppend != null) ...[const SizedBox(width: 8), _AppendButton(label: l.actionAppend, selected: selected, onTap: onAppend!)],
+              if (onAppend != null) ...[const SizedBox(width: 8), _AppendButton(icon: 'edit_note', label: l.actionAppend, selected: selected, onTap: onAppend!)],
+              if (jump case final jump?) ...[
+                const SizedBox(width: 8),
+                _AppendButton(
+                  key: const ValueKey('result-jump'),
+                  icon: 'play_arrow',
+                  label: formatClock(Duration(seconds: jump.seconds)),
+                  tooltip: l.watchFromHere,
+                  selected: selected,
+                  onTap: () => launchUrl(videoAt(jump.url, jump.seconds), mode: LaunchMode.externalApplication).ignore(),
+                ),
+              ],
             ],
           ),
         ),
@@ -471,17 +490,20 @@ class _RowView extends StatelessWidget {
   );
 }
 
+/// Кнопка-пилюля в строке найденного: «Дописать», «▶ 0:42».
 class _AppendButton extends StatelessWidget {
-  const _AppendButton({required this.label, required this.selected, required this.onTap});
+  const _AppendButton({super.key, required this.icon, required this.label, required this.selected, required this.onTap, this.tooltip});
 
+  final String icon;
   final String label;
+  final String? tooltip;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final color = selected ? Tokens.onSurface : Tokens.onAccent;
-    return GestureDetector(
+    final button = GestureDetector(
       onTap: onTap,
       child: Container(
         height: 36,
@@ -490,7 +512,7 @@ class _AppendButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(symbolIcon('edit_note'), size: 18, color: color),
+            Icon(symbolIcon(icon), size: 18, color: color),
             const SizedBox(width: 5),
             Text(
               label,
@@ -500,7 +522,16 @@ class _AppendButton extends StatelessWidget {
         ),
       ),
     );
+    return tooltip == null ? button : Tooltip(message: tooltip!, child: button);
   }
+}
+
+/// Нашлось во фразе субтитров или в главе ролика — адрес и секунда, иначе null.
+({Uri url, int seconds})? _jumpOf(ResultRow row) {
+  final seconds = row.result.hit.foundFact?.part.seconds;
+  final url = Uri.tryParse(row.result.card.url ?? '');
+  if (seconds == null || url == null || !url.hasScheme || row.result.hit.where != SearchField.facts) return null;
+  return (url: url, seconds: seconds.floor());
 }
 
 // длинный текст начинается чуть раньше первого совпадения, чтобы оно было видно

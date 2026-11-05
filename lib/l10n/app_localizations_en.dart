@@ -1431,4 +1431,94 @@ class LEn extends L {
   String photoTaken(Object date) {
     return 'Taken $date';
   }
+
+  @override
+  String foundInSubtitles(Object time) {
+    return 'in subtitles · $time';
+  }
+
+  @override
+  String foundInChapters(Object time) {
+    return 'in chapters · $time';
+  }
+
+  @override
+  String get foundInIngredients => 'in ingredients';
+
+  @override
+  String get foundAtAddress => 'by address';
+
+  @override
+  String get foundInHashtags => 'in hashtags';
+
+  @override
+  String get watchFromHere => 'Watch from here';
+
+  @override
+  String get pageRecipe => 'recipe';
+
+  @override
+  String get pageProduct => 'product';
+
+  @override
+  String get pageEvent => 'event';
+
+  @override
+  String get pagePlace => 'place';
+
+  @override
+  String get pageMovie => 'movie';
+
+  @override
+  String get pageBook => 'book';
+
+  @override
+  String get pageVideo => 'video';
+
+  @override
+  String get pageArticle => 'article';
+
+  @override
+  String minutesShort(Object count) {
+    return '$count min';
+  }
+
+  @override
+  String servings(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count servings',
+      one: '$count serving',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String readingMinutes(Object count) {
+    return '$count min read';
+  }
+
+  @override
+  String get inStock => 'In stock';
+
+  @override
+  String get outOfStock => 'Out of stock';
+
+  @override
+  String get toShoppingList => 'To shopping list';
+
+  @override
+  String shoppingFor(Object name) {
+    return 'Buy: $name';
+  }
+
+  @override
+  String get shoppingReady => 'Shopping list is ready';
+
+  @override
+  String get chaptersTitle => 'Chapters';
+
+  @override
+  String get authorTags => 'Author’s tags';
 }

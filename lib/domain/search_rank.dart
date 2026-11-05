@@ -20,13 +20,15 @@ const _weights = {
   SearchField.url: 1.0,
 };
 
-/// Кусок фактов вещи для поиска: вид, место в документе (`sheet:Ремонт`) и текст.
+/// Кусок фактов вещи для поиска: вид, место в документе (`sheet:Ремонт`), текст и,
+/// у субтитров и глав, с какой секунды ролика это звучит.
 class FactPart {
-  const FactPart(this.kind, this.text, {this.place});
+  const FactPart(this.kind, this.text, {this.place, this.seconds});
 
   final FactKind kind;
   final String text;
   final String? place;
+  final double? seconds;
 }
 
 /// Вещь глазами поиска: все поля, по которым ищется.

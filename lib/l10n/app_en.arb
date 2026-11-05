@@ -1827,5 +1827,101 @@
   "photoTaken": "Taken {date}",
   "@photoTaken": {
     "description": "Под заголовком фото: дата съёмки из EXIF, например «Снято 3 мая 2024»"
+  },
+  "foundInSubtitles": "in subtitles · {time}",
+  "@foundInSubtitles": {
+    "description": "Подпись у найденного: слово прозвучало в ролике в это время"
+  },
+  "foundInChapters": "in chapters · {time}",
+  "@foundInChapters": {
+    "description": "Подпись у найденного: слово в названии главы ролика"
+  },
+  "foundInIngredients": "in ingredients",
+  "@foundInIngredients": {
+    "description": "Подпись у найденного: слово в ингредиентах рецепта"
+  },
+  "foundAtAddress": "by address",
+  "@foundAtAddress": {
+    "description": "Подпись у найденного: слово в месте или адресе события, заведения"
+  },
+  "foundInHashtags": "in hashtags",
+  "@foundInHashtags": {
+    "description": "Подпись у найденного: слово в хэштегах автора"
+  },
+  "watchFromHere": "Watch from here",
+  "@watchFromHere": {
+    "description": "Подсказка у кнопки с временем: открыть ролик с этой секунды"
+  },
+  "pageRecipe": "recipe",
+  "@pageRecipe": {
+    "description": "Вид страницы ссылки"
+  },
+  "pageProduct": "product",
+  "@pageProduct": {
+    "description": "Вид страницы ссылки"
+  },
+  "pageEvent": "event",
+  "@pageEvent": {
+    "description": "Вид страницы ссылки"
+  },
+  "pagePlace": "place",
+  "@pagePlace": {
+    "description": "Вид страницы ссылки: заведение, магазин, музей"
+  },
+  "pageMovie": "movie",
+  "@pageMovie": {
+    "description": "Вид страницы ссылки"
+  },
+  "pageBook": "book",
+  "@pageBook": {
+    "description": "Вид страницы ссылки"
+  },
+  "pageVideo": "video",
+  "@pageVideo": {
+    "description": "Вид страницы ссылки"
+  },
+  "pageArticle": "article",
+  "@pageArticle": {
+    "description": "Вид страницы ссылки"
+  },
+  "minutesShort": "{count} min",
+  "@minutesShort": {
+    "description": "Сколько готовить рецепт"
+  },
+  "servings": "{count, plural, one{{count} serving} other{{count} servings}}",
+  "@servings": {
+    "description": "Сколько порций в рецепте"
+  },
+  "readingMinutes": "{count} min read",
+  "@readingMinutes": {
+    "description": "Сколько читать статью"
+  },
+  "inStock": "In stock",
+  "@inStock": {
+    "description": "Товар есть"
+  },
+  "outOfStock": "Out of stock",
+  "@outOfStock": {
+    "description": "Товара нет"
+  },
+  "toShoppingList": "To shopping list",
+  "@toShoppingList": {
+    "description": "Кнопка под ингредиентами рецепта"
+  },
+  "shoppingFor": "Buy: {name}",
+  "@shoppingFor": {
+    "description": "Заголовок заметки-списка с ингредиентами рецепта"
+  },
+  "shoppingReady": "Shopping list is ready",
+  "@shoppingReady": {
+    "description": "Плашка после «В список покупок»"
+  },
+  "chaptersTitle": "Chapters",
+  "@chaptersTitle": {
+    "description": "Заголовок списка глав ролика"
+  },
+  "authorTags": "Author’s tags",
+  "@authorTags": {
+    "description": "Подпись перед хэштегами автора ролика или поста, которые можно поставить тегами"
   }
 }

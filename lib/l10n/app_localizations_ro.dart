@@ -1440,4 +1440,94 @@ class LRo extends L {
   String photoTaken(Object date) {
     return 'Făcută pe $date';
   }
+
+  @override
+  String foundInSubtitles(Object time) {
+    return 'în subtitrări · $time';
+  }
+
+  @override
+  String foundInChapters(Object time) {
+    return 'în capitole · $time';
+  }
+
+  @override
+  String get foundInIngredients => 'în ingrediente';
+
+  @override
+  String get foundAtAddress => 'după adresă';
+
+  @override
+  String get foundInHashtags => 'în hashtaguri';
+
+  @override
+  String get watchFromHere => 'Vezi de aici';
+
+  @override
+  String get pageRecipe => 'rețetă';
+
+  @override
+  String get pageProduct => 'produs';
+
+  @override
+  String get pageEvent => 'eveniment';
+
+  @override
+  String get pagePlace => 'loc';
+
+  @override
+  String get pageMovie => 'film';
+
+  @override
+  String get pageBook => 'carte';
+
+  @override
+  String get pageVideo => 'video';
+
+  @override
+  String get pageArticle => 'articol';
+
+  @override
+  String minutesShort(Object count) {
+    return '$count min';
+  }
+
+  @override
+  String servings(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count porții',
+      one: '$count porție',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String readingMinutes(Object count) {
+    return '$count min de citit';
+  }
+
+  @override
+  String get inStock => 'În stoc';
+
+  @override
+  String get outOfStock => 'Stoc epuizat';
+
+  @override
+  String get toShoppingList => 'În lista de cumpărături';
+
+  @override
+  String shoppingFor(Object name) {
+    return 'De cumpărat: $name';
+  }
+
+  @override
+  String get shoppingReady => 'Lista de cumpărături e gata';
+
+  @override
+  String get chaptersTitle => 'Capitole';
+
+  @override
+  String get authorTags => 'Etichetele autorului';
 }

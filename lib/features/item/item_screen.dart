@@ -25,6 +25,7 @@ import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/capture_service.dart' show CaptureInput;
 import '../composer/line_dock.dart';
 import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
@@ -34,6 +35,7 @@ import '../map/map_screen.dart';
 import '../tags/tag_picker.dart';
 import 'copying_bar.dart';
 import 'facts_block.dart';
+import 'page_card.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
@@ -237,6 +239,16 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     if (name != null) await ref.read(tagsRepositoryProvider).link(_id, name);
   }
 
+  /// Ингредиенты рецепта — отдельной заметкой-списком «Купить: …», с «Открыть» в плашке.
+  Future<void> _shoppingList(Item item, List<String> ingredients) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final text = '${l.shoppingFor(item.title)}\n${[for (final ingredient in ingredients) '- [ ] $ingredient'].join('\n')}';
+    final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text, detectReminder: false));
+    showUndo(messenger, message: l.shoppingReady, label: l.actionOpen, onUndo: () => navigator.push(itemRoute(id)), overDock: true);
+  }
+
   Future<void> _addPhotos() async {
     // клавиатура под системным окном выбора только мешает
     FocusScope.of(context).unfocus();
@@ -437,6 +449,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             ],
                           ),
                         ),
+                        // теги автора ролика или поста: касание ставит тег
+                        if (!_editing && SuggestedTags.of(facts, full.tags.keys.toSet()).isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: SuggestedTags(facts: facts, own: full.tags.keys.toSet(), onAdd: (tag) => ref.read(tagsRepositoryProvider).link(_id, tag)),
+                          ),
+                        ],
                         if (item.reminderAt != null) ...[
                           const SizedBox(height: 18),
                           _ReminderBlock(
@@ -445,6 +465,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             onTap: () => _reminderMenu(item.reminderAt!),
                             onChange: () => _pickReminder(item.reminderAt),
                           ),
+                        ],
+                        // что страница сказала о себе: рецепт, товар, событие, место, статья, фильм
+                        if (!_editing && PageCard.hasAny(facts)) ...[
+                          const SizedBox(height: 12),
+                          PageCard(facts: facts, now: now, onShopping: (ingredients) => _shoppingList(item, ingredients)),
                         ],
                         for (final voice in voices) ...[
                           const SizedBox(height: 12),
@@ -477,6 +502,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   )
                                 : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
                           ),
+                        ],
+                        if (!_editing && url != null && ChaptersBlock.hasAny(facts)) ...[
+                          const SizedBox(height: 12),
+                          ChaptersBlock(facts: facts, url: url),
                         ],
                         // телефон, почта, сумма и ссылки из текста — кнопками; в правке не мешают
                         if (!_editing && FactsChips.hasAny(facts)) ...[

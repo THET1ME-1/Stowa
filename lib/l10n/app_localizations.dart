@@ -2458,6 +2458,150 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Taken {date}'**
   String photoTaken(Object date);
+
+  /// Подпись у найденного: слово прозвучало в ролике в это время
+  ///
+  /// In en, this message translates to:
+  /// **'in subtitles · {time}'**
+  String foundInSubtitles(Object time);
+
+  /// Подпись у найденного: слово в названии главы ролика
+  ///
+  /// In en, this message translates to:
+  /// **'in chapters · {time}'**
+  String foundInChapters(Object time);
+
+  /// Подпись у найденного: слово в ингредиентах рецепта
+  ///
+  /// In en, this message translates to:
+  /// **'in ingredients'**
+  String get foundInIngredients;
+
+  /// Подпись у найденного: слово в месте или адресе события, заведения
+  ///
+  /// In en, this message translates to:
+  /// **'by address'**
+  String get foundAtAddress;
+
+  /// Подпись у найденного: слово в хэштегах автора
+  ///
+  /// In en, this message translates to:
+  /// **'in hashtags'**
+  String get foundInHashtags;
+
+  /// Подсказка у кнопки с временем: открыть ролик с этой секунды
+  ///
+  /// In en, this message translates to:
+  /// **'Watch from here'**
+  String get watchFromHere;
+
+  /// Вид страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'recipe'**
+  String get pageRecipe;
+
+  /// Вид страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'product'**
+  String get pageProduct;
+
+  /// Вид страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'event'**
+  String get pageEvent;
+
+  /// Вид страницы ссылки: заведение, магазин, музей
+  ///
+  /// In en, this message translates to:
+  /// **'place'**
+  String get pagePlace;
+
+  /// Вид страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'movie'**
+  String get pageMovie;
+
+  /// Вид страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'book'**
+  String get pageBook;
+
+  /// Вид страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'video'**
+  String get pageVideo;
+
+  /// Вид страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'article'**
+  String get pageArticle;
+
+  /// Сколько готовить рецепт
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String minutesShort(Object count);
+
+  /// Сколько порций в рецепте
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} serving} other{{count} servings}}'**
+  String servings(num count);
+
+  /// Сколько читать статью
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min read'**
+  String readingMinutes(Object count);
+
+  /// Товар есть
+  ///
+  /// In en, this message translates to:
+  /// **'In stock'**
+  String get inStock;
+
+  /// Товара нет
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get outOfStock;
+
+  /// Кнопка под ингредиентами рецепта
+  ///
+  /// In en, this message translates to:
+  /// **'To shopping list'**
+  String get toShoppingList;
+
+  /// Заголовок заметки-списка с ингредиентами рецепта
+  ///
+  /// In en, this message translates to:
+  /// **'Buy: {name}'**
+  String shoppingFor(Object name);
+
+  /// Плашка после «В список покупок»
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list is ready'**
+  String get shoppingReady;
+
+  /// Заголовок списка глав ролика
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters'**
+  String get chaptersTitle;
+
+  /// Подпись перед хэштегами автора ролика или поста, которые можно поставить тегами
+  ///
+  /// In en, this message translates to:
+  /// **'Author’s tags'**
+  String get authorTags;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
