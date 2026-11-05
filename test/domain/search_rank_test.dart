@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/search_query.dart';
 import 'package:stowa/domain/search_rank.dart';
 import 'package:stowa/domain/word_variants.dart';
@@ -92,6 +93,30 @@ void main() {
     final placed = [_doc('cafe', 'Список покупок', place: 'Кишинёв, улица Пушкина')];
     final hit = rankSearch(placed, _words(['кишиневе'])).single;
     expect(hit.where, SearchField.place);
+  });
+
+  test('трёхбуквенное слово текста опечаткой не считается', () {
+    final priced = [_doc('sofa', 'Диван 4 500 лей')];
+    expect(rankSearch(priced, _words(['клей'])), isEmpty);
+    expect(rankSearch(priced, _words(['дован'])).single.doc.id, 'sofa');
+  });
+
+  test('находит в документе и говорит, на каком листе', () {
+    final withFile = [
+      const SearchDoc(
+        id: 'xlsx',
+        title: 'Смета',
+        facts: [
+          FactPart(FactKind.fileText, 'Аренда 500', place: 'sheet:Январь'),
+          FactPart(FactKind.fileText, 'Плитка 1200\nКлей 300', place: 'sheet:Ремонт'),
+        ],
+      ),
+    ];
+    final hit = rankSearch(withFile, _words(['клей'])).single;
+    expect(hit.where, SearchField.facts);
+    final found = hit.foundFact!;
+    expect(found.part.place, 'sheet:Ремонт');
+    expect(found.part.text.substring(found.marks.single.$1, found.marks.single.$1 + found.marks.single.$2), 'Клей');
   });
 
   test('отобранное фильтрами без слов — свежие первыми', () {

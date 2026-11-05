@@ -480,6 +480,7 @@ WHERE items.deleted_at IS NULL''';
         .get();
     final cards = <String, ItemCard>{};
     final docs = <SearchDoc>[];
+    final factParts = await _factParts(ids);
     for (final row in rows) {
       final card = _card(row);
       final item = _db.items.map(row.data);
@@ -495,6 +496,7 @@ WHERE items.deleted_at IS NULL''';
           folderId: card.folderId,
           deep: [item.aiDescription, item.transcript].nonNulls.join('\n'),
           place: card.placeName ?? '',
+          facts: factParts[card.id] ?? const [],
           url: card.url ?? '',
           ageDays: now.difference(item.updatedAt).inDays,
         ),
@@ -504,6 +506,23 @@ WHERE items.deleted_at IS NULL''';
       for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit))
         SearchResult(card: cards[hit.doc.id]!, hit: hit),
     ];
+  }
+
+  // факты, по которым ищут: текст документов, автор и описание страницы. Деньги, телефоны и
+  // ссылки и так лежат в тексте вещи — в поле фактов они продублировали бы совпадения
+  Future<Map<String, List<FactPart>>> _factParts(Set<String> ids) async {
+    if (ids.isEmpty) return const {};
+    const kinds = [FactKind.fileText, FactKind.author, FactKind.site, FactKind.description, FactKind.camera];
+    final rows =
+        await (_db.select(_db.facts)
+              ..where((t) => t.itemId.isIn(ids) & t.kind.isIn([for (final kind in kinds) kind.name]))
+              ..orderBy([(t) => OrderingTerm.asc(t.extractor), (t) => OrderingTerm.asc(t.position)]))
+            .get();
+    final parts = <String, List<FactPart>>{};
+    for (final fact in rows) {
+      parts.putIfAbsent(fact.itemId, () => []).add(FactPart(fact.kind, fact.value, place: fact.kind == FactKind.fileText ? fact.detail : null));
+    }
+    return parts;
   }
 
   // вещи под фильтры запроса, свежие первыми; полей мало, поэтому проход по всем дешёвый
@@ -523,6 +542,19 @@ WHERE items.deleted_at IS NULL''';
             for (final (:item, file: _) in items)
               if (item.latitude != null && item.longitude != null) (latitude: item.latitude!, longitude: item.longitude!, at: item.createdAt),
           ]);
+    // суммы и скриншоты знают извлекатели: читаются, только когда о них спросили
+    final prices = <String, List<(double, String)>>{};
+    final screenshots = <String>{};
+    if (query.minPrice != null || query.maxPrice != null || query.screenshots) {
+      final facts = await (_db.select(_db.facts)..where((t) => t.kind.isIn([FactKind.price.name, FactKind.screenshot.name]))).get();
+      for (final fact in facts) {
+        if (fact.kind == FactKind.screenshot) {
+          screenshots.add(fact.itemId);
+        } else if (fact.number != null) {
+          prices.putIfAbsent(fact.itemId, () => []).add((fact.number!, fact.detail ?? ''));
+        }
+      }
+    }
     final ids = <String>[];
     for (final (:item, :file) in items) {
       final placed = item.latitude != null && item.longitude != null;
@@ -539,6 +571,8 @@ WHERE items.deleted_at IS NULL''';
         durationSeconds: item.durationSeconds,
         metersAway: away,
         marks: marks,
+        prices: prices[item.id] ?? const [],
+        screenshot: screenshots.contains(item.id),
       );
       if (admitted) ids.add(item.id);
       if (ids.length >= 500) break;

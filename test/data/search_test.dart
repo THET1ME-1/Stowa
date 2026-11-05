@@ -1,4 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:archive/archive.dart';
+import 'package:path/path.dart' as p;
+import 'package:stowa/services/facts/facts_pipeline.dart';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
@@ -119,6 +124,39 @@ void main() {
       clock = now;
       expect((await find('пароль дома')).single.card.title, 'Пароль от роутера');
       expect((await find('пароль на работе')).single.card.title, 'Пароль от почты');
+    });
+
+    test('факты: текст документа с листом, цена, скриншоты, автор ролика', () async {
+      // смета в Excel
+      final archive = Archive();
+      void add(String name, String text) {
+        final bytes = utf8.encode(text);
+        archive.addFile(ArchiveFile(name, bytes.length, bytes));
+      }
+
+      add('xl/workbook.xml', '<workbook><sheets><sheet name="Ремонт" sheetId="1"/></sheets></workbook>');
+      add('xl/sharedStrings.xml', '<sst><si><t>Плиточный клей</t></si></sst>');
+      add('xl/worksheets/sheet1.xml', '<worksheet><sheetData><row><c t="s"><v>0</v></c></row></sheetData></worksheet>');
+      final xlsx = File(p.join(home.path, 'smeta.xlsx'))..writeAsBytesSync(ZipEncoder().encode(archive));
+      await capture.capture(CaptureInput(files: [PickedFile(path: xlsx.path, mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', size: xlsx.lengthSync())]));
+      // скриншот и обычная картинка
+      final shot = File(p.join(home.path, 'Screenshot_20261101.png'))..writeAsBytesSync([0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 4, 56, 0, 0, 9, 96]);
+      await capture.capture(CaptureInput(files: [PickedFile(path: shot.path, mime: 'image/png', size: shot.lengthSync())]));
+      // заметки с ценой
+      await capture.capture(const CaptureInput(text: 'Диван на OLX 4 500 лей'));
+      await capture.capture(const CaptureInput(text: 'Кресло 12 000 лей'));
+      await capture.settled();
+      final facts = FactsPipeline(db, filesRoot: home, clock: () => now);
+      await facts.sweep();
+
+      // «лей» в заметках с ценой — не опечатка «клея»
+      final inFile = (await find('клей')).single;
+      expect(inFile.hit.where, SearchField.facts);
+      expect(inFile.hit.foundFact!.part.place, 'sheet:Ремонт');
+      expect((await find('мебель до 5000 лей')).map((found) => found.card.title), isEmpty, reason: 'слова «мебель» нет');
+      expect((await find('диван до 5000 лей')).single.card.title, 'Диван на OLX 4 500 лей');
+      expect((await find('дороже 10000 лей')).single.card.title, 'Кресло 12 000 лей');
+      expect((await find('скрины')), hasLength(1));
     });
 
     test('слово находит по месту и по транслиту', () async {

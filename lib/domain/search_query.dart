@@ -10,6 +10,7 @@ library;
 import 'dart:math';
 
 import 'models.dart';
+import 'money.dart';
 import 'word_forms.dart';
 import 'word_variants.dart';
 
@@ -42,6 +43,10 @@ class SearchQuery {
     this.minSeconds,
     this.maxSeconds,
     this.near = false,
+    this.minPrice,
+    this.maxPrice,
+    this.currency,
+    this.screenshots = false,
     this.at,
     this.understood = const [],
     this.plainWords = const [],
@@ -73,6 +78,14 @@ class SearchQuery {
   final int? maxSeconds;
   final bool near;
 
+  /// Сумма в вещи: «до 500 лей», «дороже 1000». [currency] — если валюту назвали.
+  final double? minPrice;
+  final double? maxPrice;
+  final String? currency;
+
+  /// Только скриншоты, а не все картинки.
+  final bool screenshots;
+
   /// Узнанные фразы, как набраны: для подписи «Ищу: видео · вчера».
   final List<String> understood;
 
@@ -89,6 +102,9 @@ class SearchQuery {
       minSeconds != null ||
       maxSeconds != null ||
       near ||
+      minPrice != null ||
+      maxPrice != null ||
+      screenshots ||
       at != null;
 
   bool get isEmpty => words.isEmpty && !hasFilters;
@@ -106,8 +122,17 @@ class SearchQuery {
     int? durationSeconds,
     double? metersAway,
     Set<PlaceMark> marks = const {},
+    List<(double, String)> prices = const [],
+    bool screenshot = false,
   }) {
     if (at != null && !marks.contains(at)) return false;
+    if (screenshots && !screenshot) return false;
+    if (minPrice != null || maxPrice != null) {
+      final fits = prices.any(
+        (price) => (currency == null || price.$2 == currency) && (minPrice == null || price.$1 >= minPrice!) && (maxPrice == null || price.$1 <= maxPrice!),
+      );
+      if (!fits) return false;
+    }
     if (from != null && createdAt.isBefore(from!)) return false;
     if (to != null && !createdAt.isBefore(to!)) return false;
     if (fromHour != null && toHour != null) {
@@ -304,6 +329,17 @@ final _longerThan = _phrases(
 final _rangeFrom = _Words('от від from von de din od');
 final _rangeTo = _Words('до to bis a la do');
 
+// цена без валюты понятна только по этим словам: «дешевле 500», «more expensive than 50»
+final _cheaperThan = _phrases('дешевле|дешевше|cheaper than|cheaper|billiger als|más barato que|más barato de|mai ieftin de|mai ieftine de|tańsze niż|taniej niż|tańszy niż');
+final _pricierThan = _phrases(
+  'дороже|дорожче|more expensive than|pricier than|teurer als|más caro que|más caro de|mai scump de|mai scumpe de|droższe niż|drożej niż|droższy niż',
+);
+final _amount = RegExp(r'\d+(?:[   ]\d{3})*(?:[.,]\d+)*');
+final _currencySign = RegExp(r'[$€£₽₴]');
+
+// скриншоты отдельно от фото: их отличает извлекатель
+final _screenshotWords = _Words('', 'скрин скрін screenshot bildschirmfoto captur zrzut');
+
 List<List<String>> _phrases(String list) {
   final phrases = [for (final phrase in list.split('|')) [for (final word in phrase.split(' ')) _clean(word)]];
   return phrases..sort((a, b) => b.length.compareTo(a.length));
@@ -408,6 +444,9 @@ class _Parser {
   final List<_Token> tokens;
   late final List<bool> used;
   final _dateTokens = <int>{};
+
+  // числа и единицы цены и длины: в запасной поиск словами они не идут, «5000 лей» как текст — шум
+  final _quantityTokens = <int>{};
   final _understood = <(int, String)>[];
   final _pending = <(String, _Pending)>[];
 
@@ -419,6 +458,10 @@ class _Parser {
   final kinds = <ItemKind>{};
   final extensions = <String>{};
   final hosts = <String>{};
+  double? minPrice;
+  double? maxPrice;
+  String? currency;
+  var screenshots = false;
   int? minSeconds;
   int? maxSeconds;
   var near = false;
@@ -441,9 +484,9 @@ class _Parser {
     }
     _settlePending();
 
-    final plain = _wordsOf(List.generate(tokens.length, (index) => index));
+    final plain = _wordsOf([for (var index = 0; index < tokens.length; index++) if (!_quantityTokens.contains(index)) index]);
     var free = _wordsOf([for (var index = 0; index < tokens.length; index++) if (!used[index]) index]);
-    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near || at != null;
+    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near || at != null || minPrice != null || maxPrice != null || screenshots;
     // запрос из одних служебных слов ищется как есть
     if (free.isEmpty && !filtered) free = _wordsOf(List.generate(tokens.length, (index) => index), keepStop: true);
     _understood.sort((a, b) => a.$1.compareTo(b.$1));
@@ -459,6 +502,10 @@ class _Parser {
       minSeconds: minSeconds,
       maxSeconds: maxSeconds,
       near: near,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      currency: currency,
+      screenshots: screenshots,
       at: at,
       understood: [for (final entry in _understood) entry.$2],
       plainWords: plain.isEmpty ? free : plain,
@@ -483,7 +530,7 @@ class _Parser {
   }
 
   int _match(int index) {
-    for (final matcher in [_duration, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _kind, _shortLong]) {
+    for (final matcher in [_duration, _price, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _screenshot, _kind, _shortLong]) {
       final taken = matcher(index);
       if (taken > 0) return taken;
     }
@@ -491,7 +538,8 @@ class _Parser {
   }
 
   /// Отметить фразу узнанной. С [lead] к ней пристают предлоги перед ней: «на прошлой неделе».
-  int _take(int start, int end, {bool lead = false, bool date = false}) {
+  /// [endChar] — где фраза кончается в тексте, если после последнего слова стоит знак: «under $300».
+  int _take(int start, int end, {bool lead = false, bool date = false, bool quantity = false, int? endChar}) {
     var first = start;
     if (lead) {
       while (first > 0 && start - first < 2 && !used[first - 1] && _leadWords.has(tokens[first - 1].word)) {
@@ -501,9 +549,89 @@ class _Parser {
     for (var index = first; index < end; index++) {
       used[index] = true;
       if (date) _dateTokens.add(index);
+      if (quantity) _quantityTokens.add(index);
     }
-    _understood.add((first, text.substring(tokens[first].start, tokens[end - 1].end)));
+    _understood.add((first, text.substring(tokens[first].start, endChar ?? tokens[end - 1].end)));
     return end - start;
+  }
+
+  /// Сумма с места слова [index]: «1 500», «19.99» — в тексте это несколько слов.
+  /// Сколько слов заняла, где кончилась и валюта рядом, если есть.
+  ({double amount, int words, int end, String? currency})? _amountAt(int index) {
+    if (index >= tokens.length || used[index] || int.tryParse(tokens[index].word) == null) return null;
+    final match = _amount.matchAsPrefix(text, tokens[index].start);
+    if (match == null) return null;
+    final amount = parseAmount(match.group(0)!);
+    if (amount == null) return null;
+    var words = 0;
+    while (index + words < tokens.length && tokens[index + words].start < match.end) {
+      words++;
+    }
+    var end = match.end;
+    String? currency;
+    // знак сразу после суммы или через пробел: «300 €», «300$»
+    final after = text.substring(end).trimLeft();
+    final gap = text.length - end - after.length;
+    if (after.isNotEmpty && _currencySign.hasMatch(after[0]) && gap <= 1) {
+      currency = currencyOf(after[0]);
+      end += gap + 1;
+    } else {
+      final next = index + words;
+      final word = next < tokens.length && !used[next] ? currencyOf(tokens[next].raw) : null;
+      if (word != null) {
+        currency = word;
+        end = tokens[next].end;
+        words++;
+      }
+    }
+    // знак перед суммой: «under $300»
+    if (currency == null && index > 0) {
+      final between = text.substring(tokens[index - 1].end, tokens[index].start);
+      final sign = _currencySign.firstMatch(between);
+      if (sign != null) currency = currencyOf(sign.group(0)!);
+    }
+    return (amount: amount, words: words, end: end, currency: currency);
+  }
+
+  // «до 500 лей», «дешевле 500», «under $300», «от 100 до 500 лей»
+  int _price(int index) {
+    if (_is(index, _rangeFrom)) {
+      final low = _amountAt(index + 1);
+      if (low != null && _is(index + 1 + low.words, _rangeTo)) {
+        final high = _amountAt(index + 2 + low.words);
+        final money = high?.currency ?? low.currency;
+        if (high != null && money != null) {
+          minPrice = low.amount;
+          maxPrice = high.amount;
+          currency = money;
+          return _take(index, index + 2 + low.words + high.words, endChar: high.end, quantity: true);
+        }
+      }
+    }
+    for (final (phrases, dearer, needsCurrency) in [(_cheaperThan, false, false), (_pricierThan, true, false), (_shorterThan, false, true), (_longerThan, true, true)]) {
+      for (final phrase in phrases) {
+        if (!_seq(index, phrase)) continue;
+        final found = _amountAt(index + phrase.length);
+        // «до 5» без валюты может быть чем угодно; «дешевле 5» — только ценой
+        if (found == null || (needsCurrency && found.currency == null)) continue;
+        if (dearer) {
+          minPrice = found.amount;
+        } else {
+          maxPrice = found.amount;
+        }
+        currency = found.currency;
+        return _take(index, index + phrase.length + found.words, endChar: found.end, quantity: true);
+      }
+    }
+    return 0;
+  }
+
+  // «скрины», «screenshots», «capturas»: картинки, которые извлекатель признал скриншотами
+  int _screenshot(int index) {
+    if (!_is(index, _screenshotWords)) return 0;
+    kinds.add(ItemKind.image);
+    screenshots = true;
+    return _take(index, index + 1);
   }
 
   /// Диапазон дат с предлогом перед ним: «с мая» — до сегодня, «до мая» — всё раньше.
@@ -581,7 +709,7 @@ class _Parser {
           if (unit != null) {
             minSeconds = low.$1 * unit;
             maxSeconds = high.$1 * unit;
-            return _take(index, highAt + high.$2 + 1);
+            return _take(index, highAt + high.$2 + 1, quantity: true);
           }
         }
       }
@@ -599,7 +727,7 @@ class _Parser {
         } else {
           maxSeconds = number.$1 * unit;
         }
-        return _take(index, unitAt + 1);
+        return _take(index, unitAt + 1, quantity: true);
       }
     }
     return 0;

@@ -146,6 +146,71 @@ void main() {
     expect(home.admits(createdAt: created, kind: ItemKind.note), isFalse);
   });
 
+  group('цена', () {
+    test('до суммы с валютой на семи языках', () {
+      for (final (phrase, amount, currency) in [
+        ('диван до 5000 лей', 5000.0, 'MDL'),
+        ('диван дешевле 5000', 5000.0, null),
+        ('sofa under \$300', 300.0, 'USD'),
+        ('Sofa unter 300 €', 300.0, 'EUR'),
+        ('sofá menos de 300 €', 300.0, 'EUR'),
+        ('canapea sub 5000 lei', 5000.0, 'MDL'),
+        ('sofa poniżej 1000 zł', 1000.0, 'PLN'),
+        ('диван дешевше 9000 грн', 9000.0, 'UAH'),
+      ]) {
+        final query = parseSearch(phrase, now);
+        expect(query.maxPrice, amount, reason: phrase);
+        expect(query.currency, currency, reason: phrase);
+        expect(query.words, hasLength(1), reason: phrase);
+      }
+    });
+
+    test('дороже и от — до', () {
+      expect(parseSearch('дороже 1000 лей', now).minPrice, 1000);
+      expect(parseSearch('more expensive than 50', now).minPrice, 50);
+      final range = parseSearch('от 100 до 500 лей', now);
+      expect(range.minPrice, 100);
+      expect(range.maxPrice, 500);
+      expect(range.currency, 'MDL');
+    });
+
+    test('запасной поиск словами без чисел и валюты цены', () {
+      final query = parseSearch('мебель до 5000 лей', now);
+      expect([for (final word in query.withoutFilters().words) word.word], ['мебель']);
+    });
+
+    test('«до 5» без валюты — не цена', () {
+      expect(parseSearch('глава до 5', now).maxPrice, isNull);
+    });
+
+    test('подпись включает знак валюты', () {
+      expect(parseSearch('sofa under \$300', now).understood, [r'under $300']);
+    });
+
+    test('подходит ли вещь по цене', () {
+      final created = DateTime(2026, 11, 3);
+      final query = parseSearch('до 500 лей', now);
+      expect(query.admits(createdAt: created, kind: ItemKind.note, prices: [(450, 'MDL')]), isTrue);
+      expect(query.admits(createdAt: created, kind: ItemKind.note, prices: [(600, 'MDL')]), isFalse);
+      expect(query.admits(createdAt: created, kind: ItemKind.note, prices: [(450, 'EUR')]), isFalse);
+      expect(query.admits(createdAt: created, kind: ItemKind.note), isFalse);
+      expect(parseSearch('дешевле 500', now).admits(createdAt: created, kind: ItemKind.note, prices: [(450, 'EUR')]), isTrue);
+    });
+  });
+
+  test('скрины — только скриншоты, а не все картинки', () {
+    for (final word in ['скрины', 'скриншоты', 'screenshots', 'Bildschirmfotos', 'capturas', 'zrzuty', 'скріни']) {
+      final query = parseSearch(word, now);
+      expect(query.screenshots, isTrue, reason: word);
+      expect(query.kinds, {ItemKind.image}, reason: word);
+    }
+    final created = DateTime(2026, 11, 3);
+    final query = parseSearch('скрины', now);
+    expect(query.admits(createdAt: created, kind: ItemKind.image, screenshot: true), isTrue);
+    expect(query.admits(createdAt: created, kind: ItemKind.image), isFalse);
+    expect(parseSearch('фото', now).screenshots, isFalse);
+  });
+
   test('слова запроса несут варианты: транслит и раскладку', () {
     final query = parseSearch('rjat', now);
     expect(query.words.single.variants.map((variant) => variant.text), contains('кофе'));

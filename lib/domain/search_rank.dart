@@ -1,11 +1,13 @@
 import 'dart:math';
 
 import 'line_query.dart';
+import 'models.dart';
 import 'search_query.dart';
 import 'word_forms.dart';
 
-/// Где в вещи нашлось слово. Глубже — описание от ИИ, текст с картинки и расшифровка.
-enum SearchField { title, tags, folder, body, deep, place, url }
+/// Где в вещи нашлось слово. Глубже — описание от ИИ, текст с картинки и расшифровка;
+/// факты — то, что достали извлекатели: текст документа, автор и описание страницы.
+enum SearchField { title, tags, folder, body, deep, place, facts, url }
 
 const _weights = {
   SearchField.title: 3.0,
@@ -14,8 +16,18 @@ const _weights = {
   SearchField.body: 1.2,
   SearchField.deep: 1.1,
   SearchField.place: 1.1,
+  SearchField.facts: 1.05,
   SearchField.url: 1.0,
 };
+
+/// Кусок фактов вещи для поиска: вид, место в документе (`sheet:Ремонт`) и текст.
+class FactPart {
+  const FactPart(this.kind, this.text, {this.place});
+
+  final FactKind kind;
+  final String text;
+  final String? place;
+}
 
 /// Вещь глазами поиска: все поля, по которым ищется.
 class SearchDoc {
@@ -28,9 +40,23 @@ class SearchDoc {
     this.folderId,
     this.deep = '',
     this.place = '',
+    this.facts = const [],
     this.url = '',
     this.ageDays = 0,
   });
+
+  /// Факты по порядку; в поле они идут через перевод строки.
+  final List<FactPart> facts;
+
+  /// Какой факт под меткой поля фактов: где нашлось и с какого места его текст.
+  ({FactPart part, int offset})? factAt(int position) {
+    var offset = 0;
+    for (final part in facts) {
+      if (position < offset + part.text.length) return (part: part, offset: offset);
+      offset += part.text.length + 1;
+    }
+    return null;
+  }
 
   final String id;
   final String title;
@@ -52,6 +78,7 @@ class SearchDoc {
     SearchField.body => body,
     SearchField.deep => deep,
     SearchField.place => place,
+    SearchField.facts => facts.map((part) => part.text).join('\n'),
     SearchField.url => url,
   };
 }
@@ -73,14 +100,33 @@ class SearchHit {
   /// Найденные куски по полям, чтобы подсветить.
   final Map<SearchField, List<TextMark>> marks;
 
-  /// Что показать под заголовком: глубокий текст, если нашлось там, потом текст вещи, потом место.
+  /// Что показать под заголовком: глубокий текст, если нашлось там, потом текст вещи,
+  /// потом документ и страница, потом место.
   SearchField? get where => marks.containsKey(SearchField.deep)
       ? SearchField.deep
       : marks.containsKey(SearchField.body)
       ? SearchField.body
+      : marks.containsKey(SearchField.facts)
+      ? SearchField.facts
       : marks.containsKey(SearchField.place)
       ? SearchField.place
       : null;
+
+  /// Нашлось в фактах: какой это факт, его текст и метки внутри него.
+  ({FactPart part, List<TextMark> marks})? get foundFact {
+    final all = marks[SearchField.facts];
+    if (all == null || all.isEmpty) return null;
+    final found = doc.factAt(all.first.$1);
+    if (found == null) return null;
+    final end = found.offset + found.part.text.length;
+    return (
+      part: found.part,
+      marks: [
+        for (final mark in all)
+          if (mark.$1 >= found.offset && mark.$1 < end) (mark.$1 - found.offset, mark.$2),
+      ],
+    );
+  }
 }
 
 /// Насколько слово текста похоже на вариант запроса: само слово, его форма,
@@ -121,6 +167,8 @@ const _formStem = 4;
         }
       } else if (index == 0 &&
           wanted.length >= 4 &&
+          // короткое слово текста — не опечатка длинного запроса: «лей» не «клей»
+          word.length >= 4 &&
           (nearWords(word.substring(0, min(word.length, wanted.length)), wanted) || nearWords(word.substring(0, min(word.length, wanted.length + 1)), wanted))) {
         // опечатку ищем только у самого слова: у транслита и раскладки она даёт шум
         hit = _typo;
