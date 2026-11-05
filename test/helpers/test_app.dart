@@ -29,6 +29,7 @@ class TestWorld {
         clockProvider.overrideWithValue(() => now),
         // превью ссылок в тестах без интернета: сеть «молчит», вещь остаётся как есть
         linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
+        linkPostProvider.overrideWithValue((uri, body) async => throw const SocketException('тест без сети')),
         // очередь ИИ в тестах не ходит в сеть сама, плашек разбора не бывает
         aiDrainProvider.overrideWithValue(() async {}),
         aiSortedProvider.overrideWith((ref) => const Stream.empty()),

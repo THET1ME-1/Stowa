@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../data/db/database.dart';
 import '../domain/link_preview.dart';
 import '../domain/models.dart';
+import 'page_cache.dart';
 
 /// Ответ сети: код, байты и тип содержимого.
 class FetchReply {
@@ -21,6 +22,28 @@ class FetchReply {
 }
 
 typedef Fetch = Future<FetchReply> Function(Uri uri);
+
+/// Запрос с телом: плеер YouTube отдаёт дорожки субтитров только на POST.
+typedef Post = Future<FetchReply> Function(Uri uri, String json);
+
+/// Отправить JSON по-настоящему: со сроком и пределом размера ответа.
+Future<FetchReply> httpPost(Uri uri, String json) async {
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 8);
+  try {
+    final request = await client.postUrl(uri).timeout(const Duration(seconds: 10));
+    request.headers.contentType = ContentType.json;
+    request.write(json);
+    final response = await request.close().timeout(const Duration(seconds: 15));
+    final bytes = <int>[];
+    await for (final chunk in response.timeout(const Duration(seconds: 15))) {
+      bytes.addAll(chunk);
+      if (bytes.length >= _maxImageBytes) break;
+    }
+    return FetchReply(response.statusCode, bytes, response.headers.value(HttpHeaders.contentTypeHeader));
+  } finally {
+    client.close(force: true);
+  }
+}
 
 /// Страницы тяжелее обрезаются: теги превью всегда в начале.
 const _maxPageBytes = 1536 * 1024;
@@ -106,7 +129,10 @@ class LinkPreviewService {
     try {
       final reply = await _fetch(page);
       if (reply.ok) {
-        fromPage = parseHtmlPreview(decodePage(reply.bytes, reply.contentType), page);
+        final html = decodePage(reply.bytes, reply.contentType);
+        fromPage = parseHtmlPreview(html, page);
+        // копия страницы для извлекателей: рецепт, товар, событие читаются из неё без второго похода в сеть
+        if ((reply.contentType ?? 'text/html').contains('html')) await savePage(_filesRoot, id, html).catchError((_) {});
       } else if (reply.status >= 400 && reply.status < 500) {
         gone = true;
       }

@@ -50,4 +50,8 @@ abstract class Extractor {
   String get appliesSql => '1';
 
   Future<List<FactDraft>> extract(ExtractInput input);
+
+  /// Что факты меняют в самой вещи: напоминание события, длина ролика. Идёт после записи фактов.
+  /// [firstRun] — правило разбирает вещь впервые: снятое человеком напоминание потом не возвращается.
+  Future<void> after(AppDatabase db, Item item, List<FactDraft> facts, {required bool firstRun, required DateTime now}) async {}
 }

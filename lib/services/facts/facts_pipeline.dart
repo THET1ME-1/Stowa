@@ -21,6 +21,15 @@ const searchableFacts = {
   FactKind.site,
   FactKind.description,
   FactKind.camera,
+  FactKind.pageType,
+  FactKind.ingredient,
+  FactKind.shop,
+  FactKind.venue,
+  FactKind.address,
+  FactKind.year,
+  FactKind.chapter,
+  FactKind.hashtag,
+  FactKind.subtitle,
 };
 
 /// За один проход разбирается не больше: остальное — в следующий, экран не ждёт.
@@ -52,8 +61,10 @@ class FactsPipeline {
   Future<void>? _sweeping;
 
   /// Разобрать одну вещь местными правилами: после сохранения, правки, когда легли файлы.
-  Future<void> runItem(String itemId) async {
-    for (final extractor in _extractors.where((one) => !one.needsNetwork)) {
+  /// С [network] — и сетевыми, если сеть есть: превью страницы только что пришло.
+  Future<void> runItem(String itemId, {bool network = false}) async {
+    final withNetwork = network && await _online();
+    for (final extractor in _extractors.where((one) => withNetwork || !one.needsNetwork)) {
       for (final stale in await _stale(extractor, itemId: itemId, limit: 1)) {
         await _run(extractor, stale.id, stale.stamp);
       }
@@ -120,6 +131,9 @@ class FactsPipeline {
           ..where((t) => t.itemId.equals(itemId))
           ..orderBy([(t) => OrderingTerm.asc(t.position)]))
         .get();
+    final previous = await (_db.select(_db.extractorRuns)..where((t) => t.itemId.equals(itemId) & t.extractor.equals(extractor.name))).getSingleOrNull();
+    // упавший прежде прогон фактов не дал: для последствий это тоже первый раз
+    final firstRun = previous == null || previous.error != null;
     final List<FactDraft> drafts;
     try {
       drafts = await extractor.extract(ExtractInput(item: item, files: files, filesRoot: _filesRoot));
@@ -127,10 +141,10 @@ class FactsPipeline {
       await _failed(extractor, itemId, stamp, error);
       return;
     }
-    await _db.transaction(() async {
+    final saved = await _db.transaction(() async {
       // вещь стёрли, пока правило работало: фактам негде жить
       final alive = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingleOrNull();
-      if (alive == null) return;
+      if (alive == null) return false;
       await (_db.delete(_db.facts)..where((t) => t.itemId.equals(itemId) & t.extractor.equals(extractor.name))).go();
       for (final (position, draft) in drafts.indexed) {
         await _db
@@ -153,7 +167,9 @@ class FactsPipeline {
         ExtractorRunsCompanion.insert(itemId: itemId, extractor: extractor.name, version: extractor.version, itemStamp: Value(stamp)),
       );
       await _refreshText(itemId);
+      return true;
     });
+    if (saved) await extractor.after(_db, item, drafts, firstRun: firstRun, now: _clock()).catchError((_) {});
   }
 
   // местное правило упало — не повторять, пока вещь не изменится; сетевое — повторить позже

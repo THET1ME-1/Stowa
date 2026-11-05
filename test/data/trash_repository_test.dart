@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/trash_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/page_cache.dart';
 
 void main() {
   late AppDatabase db;
@@ -59,6 +60,17 @@ void main() {
     expect(Directory('${home.path}/attachments/a').existsSync(), isFalse);
     expect(File('${home.path}/covers/a.jpg').existsSync(), isFalse);
     expect(File('${home.path}/attachments/live/0_a.jpg').existsSync(), isTrue);
+  });
+
+  test('стереть навсегда: факты, прогоны извлекателей и копия страницы тоже уходят', () async {
+    await add('a', deletedAt: now);
+    await db.into(db.facts).insert(FactsCompanion.insert(id: 'x', itemId: 'a', extractor: 'text', kind: FactKind.price, value: '5 лей'));
+    await db.into(db.extractorRuns).insert(ExtractorRunsCompanion.insert(itemId: 'a', extractor: 'text', version: 1));
+    await savePage(home, 'a', '<html></html>');
+    await trash.purge('a');
+    expect(await db.select(db.facts).get(), isEmpty);
+    expect(await db.select(db.extractorRuns).get(), isEmpty);
+    expect(pageFile(home, 'a').existsSync(), isFalse);
   });
 
   test('старше 30 дней стирается само, свежее остаётся', () async {

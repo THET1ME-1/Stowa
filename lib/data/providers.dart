@@ -18,7 +18,9 @@ import '../services/auto_sorter.dart';
 import '../services/backup_service.dart';
 import '../services/background.dart';
 import '../services/capture_service.dart';
+import '../services/facts/extractors.dart';
 import '../services/facts/facts_pipeline.dart';
+import '../services/facts/web_extractors.dart';
 import '../services/file_keeper.dart';
 import '../services/link_preview_service.dart';
 import '../services/place_service.dart';
@@ -56,14 +58,20 @@ final itemFactsProvider = StreamProvider.autoDispose.family<List<Fact>, String>(
 
 /// Конвейер извлекателей: деньги, контакты, текст документов, EXIF, автор и сайт ссылки.
 /// Один на окно и зависит только от неизменного, как хранитель файлов.
-final factsPipelineProvider = Provider(
-  (ref) => FactsPipeline(
+final factsPipelineProvider = Provider((ref) {
+  final fetch = ref.watch(linkFetchProvider);
+  return FactsPipeline(
     ref.watch(databaseProvider),
     filesRoot: ref.watch(filesRootProvider),
     clock: ref.watch(clockProvider),
     online: () async => ref.read(onlineProvider).value ?? true,
-  ),
-);
+    extractors: [
+      ...defaultExtractors(),
+      PageExtractor(fetch: fetch),
+      SubtitlesExtractor(fetch: fetch, post: ref.watch(linkPostProvider), languages: () => subtitleLanguages(ref.read(languageProvider).value?.code)),
+    ],
+  );
+});
 final foldersRepositoryProvider = Provider((ref) => FoldersRepository(ref.watch(databaseProvider)));
 final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 
@@ -285,6 +293,9 @@ final languageProvider = StreamProvider((ref) => ref.watch(settingsRepositoryPro
 /// Сеть для превью. Тесты подставляют свою, без интернета.
 final linkFetchProvider = Provider<Fetch>((ref) => httpFetch);
 
+/// Запрос с телом: плеер YouTube за дорожками субтитров. Тесты подставляют свой.
+final linkPostProvider = Provider<Post>((ref) => httpPost);
+
 /// Разбор без ИИ после сохранения: «Без папки» заново и теги соседей.
 final autoSorterProvider = Provider((ref) => AutoSorter(ref.watch(databaseProvider)));
 
@@ -297,8 +308,9 @@ final linkPreviewServiceProvider = Provider((ref) {
     fetch: ref.watch(linkFetchProvider),
     // у ссылки появились заголовок и описание страницы — по ним уже есть что угадывать
     onPreviewed: (id) async {
-      // автор, сайт и описание страницы сразу ищутся
-      await ref.read(factsPipelineProvider).runItem(id);
+      // автор и описание сразу ищутся; рецепт, товар, событие — из только что сохранённой копии страницы,
+      // субтитры ролика — пока сеть есть
+      await ref.read(factsPipelineProvider).runItem(id, network: true);
       await sorter.sortInbox(onlyId: id);
       await sorter.tagItem(id);
       // ссылку, ждавшую превью, ИИ теперь видит с заголовком страницы

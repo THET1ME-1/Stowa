@@ -15,7 +15,10 @@ import '../data/settings_repository.dart';
 import 'ai_image.dart';
 import 'ai_worker.dart';
 import 'capture_service.dart';
+import 'facts/extractors.dart';
 import 'facts/facts_pipeline.dart';
+import 'facts/web_extractors.dart';
+import 'link_preview_service.dart' show httpFetch, httpPost;
 import 'file_keeper.dart';
 import 'telegram_service.dart';
 
@@ -72,8 +75,20 @@ void backgroundDispatcher() {
       // файлы — прежде всего: без сети и без ключа, просто положить на место
       final filesDone = await keepFilesInBackground(db, filesRoot);
       // легли файлы или вышла новая версия извлекателей: разобрать, пока приложение закрыто
-      await FactsPipeline(db, filesRoot: filesRoot, clock: DateTime.now).sweep().catchError((_) {});
+      final facts = FactsPipeline(
+        db,
+        filesRoot: filesRoot,
+        clock: DateTime.now,
+        extractors: [
+          ...defaultExtractors(),
+          PageExtractor(fetch: httpFetch),
+          SubtitlesExtractor(fetch: httpFetch, post: httpPost, languages: () => subtitleLanguages(settings.language?.code)),
+        ],
+      );
+      await facts.sweep().catchError((_) {});
       if (task == _fileTask) return filesDone;
+      // страницы и субтитры — только при сети: периодическая задача её и требует
+      await facts.sweepNetwork().catchError((_) {});
       // сперва то, что переслали боту, потом разбор: новое сразу разложится
       final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: filesRoot, clock: DateTime.now);
       await TelegramService(capture: capture, prefs: prefs, tokens: const SecureKeyStore('tg_token'), http: client, inbox: Directory(p.join(filesRoot.path, 'telegram_inbox')))

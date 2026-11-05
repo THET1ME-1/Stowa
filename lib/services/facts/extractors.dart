@@ -7,9 +7,10 @@ import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../domain/money.dart';
 import '../../domain/photo_facts.dart';
+import '../../domain/video_text.dart' show hashtagsIn;
 import 'extractor.dart';
 
-/// Все извлекатели приложения. Порядок — порядок прогона.
+/// Местные извлекатели: работают без сети. Сетевые добавляет тот, кто знает, чем ходить в сеть.
 List<Extractor> defaultExtractors() => [TextExtractor(), FileTextExtractor(), PhotoExtractor(), LinkExtractor()];
 
 const _attachmentsStamp = "coalesce((SELECT group_concat(attachments.id) FROM attachments WHERE attachments.item_id = items.id), '')";
@@ -126,11 +127,12 @@ class PhotoExtractor extends Extractor {
 }
 
 /// Автор, сайт и описание страницы: превью уже их загрузило, искать по ним можно сразу.
+/// Хэштеги из описания (Instagram, TikTok) — предложенные теги.
 class LinkExtractor extends Extractor {
   @override
   String get name => 'link';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
   @override
@@ -145,6 +147,7 @@ class LinkExtractor extends Extractor {
       if (item.previewAuthor case final author? when author.trim().isNotEmpty) FactDraft(FactKind.author, author.trim()),
       if (site != null && site.trim().isNotEmpty) FactDraft(FactKind.site, site.trim()),
       if (item.previewText case final text? when text.trim().isNotEmpty) FactDraft(FactKind.description, text.trim()),
+      for (final tag in hashtagsIn('${item.title}\n${item.previewText ?? ''}')) FactDraft(FactKind.hashtag, tag),
     ];
   }
 }

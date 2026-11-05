@@ -27,7 +27,43 @@ enum TagSource { user, inline, rule, ai, similar }
 /// price — сумма с валютой; phone, email, link — из текста; fileText — текст
 /// документа; author, site, description — со страницы ссылки; takenAt, camera,
 /// takenPlace — из EXIF фото; screenshot — картинка оказалась скриншотом.
-enum FactKind { price, phone, email, link, fileText, author, site, description, takenAt, camera, takenPlace, screenshot }
+/// Со страницы ссылки (шаг 3): pageType — что это за страница; ingredient, timeNeeded,
+/// servings — рецепт; inStock, shop — товар; eventStart, eventEnd, venue, venuePlace,
+/// address, openingHours — событие и заведение; published, readingTime — статья;
+/// year, rating — фильм и книга; subtitle, chapter, hashtag — ролик.
+enum FactKind {
+  price,
+  phone,
+  email,
+  link,
+  fileText,
+  author,
+  site,
+  description,
+  takenAt,
+  camera,
+  takenPlace,
+  screenshot,
+  pageType,
+  ingredient,
+  timeNeeded,
+  servings,
+  inStock,
+  shop,
+  eventStart,
+  eventEnd,
+  venue,
+  venuePlace,
+  address,
+  openingHours,
+  published,
+  readingTime,
+  year,
+  rating,
+  subtitle,
+  chapter,
+  hashtag,
+}
 
 /// similar — связь по общим словам или сайту, её считает телефон; в базе
 /// хранится только отклонённая, чтобы больше её не предлагать.

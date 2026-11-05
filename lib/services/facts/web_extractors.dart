@@ -1,0 +1,238 @@
+import 'dart:convert';
+import 'dart:ui' show PlatformDispatcher;
+
+import 'package:drift/drift.dart';
+
+import '../../data/db/database.dart';
+import '../../domain/link_preview.dart' show decodePage;
+import '../../domain/models.dart';
+import '../../domain/structured_page.dart';
+import '../../domain/video_text.dart';
+import '../link_preview_service.dart' show Fetch, Post;
+import '../page_cache.dart';
+import 'extractor.dart';
+
+/// Слова, по которым находится вид страницы на любом из семи языков: «рецепт» найдёт
+/// рецепт, даже если самого слова на странице нет.
+const pageTypeWords = {
+  PageType.recipe: 'рецепт recipe Rezept receta rețetă przepis',
+  PageType.product: 'товар product Produkt producto produs produkt',
+  PageType.event: 'событие подія event Veranstaltung evento eveniment wydarzenie',
+  PageType.place: 'место місце заведение заклад place Ort lugar loc miejsce',
+  PageType.movie: 'фильм фільм movie film Film película',
+  PageType.book: 'книга book Buch libro carte książka',
+  PageType.video: 'видео відео video Video vídeo wideo',
+  PageType.article: 'статья стаття article Artikel artículo articol artykuł',
+};
+
+/// Субтитров на ролик больше не храним: двухчасовой подкаст и так найдётся.
+const _phraseLimit = 3000;
+
+/// Сумма для показа: «4 500», «19.99».
+String formatAmount(double amount) {
+  if (amount != amount.roundToDouble()) return amount.toStringAsFixed(2);
+  final digits = amount.round().toString();
+  final grouped = StringBuffer();
+  for (var index = 0; index < digits.length; index++) {
+    if (index > 0 && (digits.length - index) % 3 == 0) grouped.write(' ');
+    grouped.write(digits[index]);
+  }
+  return grouped.toString();
+}
+
+/// Факты разобранной страницы. Функция отдельно от извлекателя — её удобно проверять.
+List<FactDraft> pageFacts(StructuredPage page) {
+  final facts = <FactDraft>[FactDraft(FactKind.pageType, pageTypeWords[page.type]!, detail: page.type.name)];
+  for (final ingredient in page.ingredients) {
+    facts.add(FactDraft(FactKind.ingredient, ingredient));
+  }
+  if (page.time case final time?) facts.add(FactDraft(FactKind.timeNeeded, '${time.inMinutes}', number: time.inMinutes.toDouble()));
+  if (page.servings case final servings?) facts.add(FactDraft(FactKind.servings, '$servings', number: servings.toDouble()));
+  if (page.price case final price?) {
+    facts.add(FactDraft(FactKind.price, [formatAmount(price), ?page.currency].join(' '), number: price, detail: page.currency));
+  }
+  if (page.inStock case final inStock?) facts.add(FactDraft(FactKind.inStock, inStock ? 'yes' : 'no', number: inStock ? 1 : 0));
+  for (final shop in [?page.shop, ?page.brand]) {
+    facts.add(FactDraft(FactKind.shop, shop));
+  }
+  if (page.start case final start?) facts.add(FactDraft(FactKind.eventStart, start.toIso8601String(), at: start));
+  if (page.end case final end?) facts.add(FactDraft(FactKind.eventEnd, end.toIso8601String(), at: end));
+  if (page.venue case final venue?) facts.add(FactDraft(FactKind.venue, venue));
+  if (page.address case final address?) facts.add(FactDraft(FactKind.address, address));
+  if (page.latitude case final latitude?) {
+    facts.add(FactDraft(FactKind.venuePlace, '$latitude,${page.longitude}', number: latitude, detail: '${page.longitude}'));
+  }
+  if (page.phone case final phone?) facts.add(FactDraft(FactKind.phone, phone, detail: phone.replaceAll(RegExp(r'[^\d+]'), '')));
+  if (page.hours.isNotEmpty) facts.add(FactDraft(FactKind.openingHours, page.hours.join('\n')));
+  for (final author in page.authors.take(3)) {
+    facts.add(FactDraft(FactKind.author, author));
+  }
+  if (page.published case final published?) facts.add(FactDraft(FactKind.published, published.toIso8601String(), at: published));
+  if (page.readingMinutes case final minutes?) facts.add(FactDraft(FactKind.readingTime, '$minutes', number: minutes.toDouble()));
+  if (page.year case final year?) facts.add(FactDraft(FactKind.year, '$year', number: year.toDouble()));
+  if (page.rating case final rating?) facts.add(FactDraft(FactKind.rating, '$rating', number: rating));
+  for (final chapter in page.chapters) {
+    facts.add(FactDraft(FactKind.chapter, chapter.title, number: chapter.seconds.toDouble()));
+  }
+  return facts;
+}
+
+/// Напоминание о событии — за час до начала, если человек не ставил своего.
+const eventReminderLead = Duration(hours: 1);
+
+/// Что страница говорит о себе: рецепт, товар, событие, заведение, статья, фильм, книга.
+/// Читает копию страницы, которую сохранило превью; у старых ссылок без копии один раз
+/// скачивает её сам, поэтому правило сетевое.
+class PageExtractor extends Extractor {
+  PageExtractor({required this.fetch});
+
+  final Fetch fetch;
+
+  @override
+  String get name => 'page';
+  @override
+  int get version => 1;
+  @override
+  bool get needsNetwork => true;
+  @override
+  String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
+  @override
+  String get appliesSql => "items.url IS NOT NULL AND items.kind IN ('link', 'video')";
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    final html = await _page(input, fetch);
+    if (html == null) return const [];
+    final page = structuredPage(html);
+    return page == null ? const [] : pageFacts(page);
+  }
+
+  @override
+  Future<void> after(AppDatabase db, Item item, List<FactDraft> facts, {required bool firstRun, required DateTime now}) async {
+    final start = facts.where((fact) => fact.kind == FactKind.eventStart).map((fact) => fact.at).nonNulls.firstOrNull;
+    // напоминание ставится один раз: снял человек — больше не возвращается
+    if (firstRun && start != null && item.reminderAt == null && start.isAfter(now)) {
+      final lead = start.subtract(eventReminderLead);
+      await (db.update(db.items)..where((t) => t.id.equals(item.id))).write(ItemsCompanion(reminderAt: Value(lead.isAfter(now) ? lead : start)));
+    }
+  }
+}
+
+// копия страницы, а нет её — скачать и сохранить
+Future<String?> _page(ExtractInput input, Fetch fetch) async {
+  final cached = await readPage(input.filesRoot, input.item.id);
+  if (cached != null) return cached;
+  final url = Uri.tryParse(input.item.url ?? '');
+  if (url == null || !url.hasScheme) return null;
+  final reply = await fetch(url);
+  // сайт ответил ошибкой: страница не узнана, но и сеть цела — повторять незачем
+  if (!reply.ok) return null;
+  final html = decodePage(reply.bytes, reply.contentType);
+  await savePage(input.filesRoot, input.item.id, html);
+  return html;
+}
+
+/// Языки субтитров: выбранный в приложении или язык телефона, потом русский и английский.
+List<String> subtitleLanguages(String? chosen) {
+  final first = chosen ?? PlatformDispatcher.instance.locale.languageCode;
+  return {first, 'ru', 'en'}.toList();
+}
+
+const _youtubePlayer ='https://www.youtube.com/youtubei/v1/player?prettyPrint=false';
+
+/// Субтитры, главы и хэштеги роликов YouTube и TikTok. Фразы хранятся со временем:
+/// поиск находит фразу, касание открывает ролик с этой секунды.
+class SubtitlesExtractor extends Extractor {
+  SubtitlesExtractor({required this.fetch, required this.post, required this.languages});
+
+  final Fetch fetch;
+  final Post post;
+
+  /// Языки субтитров по порядку: язык приложения, потом русский и английский.
+  final List<String> Function() languages;
+
+  @override
+  String get name => 'subtitles';
+  @override
+  int get version => 1;
+  @override
+  bool get needsNetwork => true;
+  @override
+  String get stampSql => "coalesce(items.url, '')";
+  @override
+  String get appliesSql => "items.url IS NOT NULL AND (items.url LIKE '%youtu%' OR items.url LIKE '%tiktok.com%')";
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    final url = Uri.tryParse(input.item.url ?? '');
+    if (url == null) return const [];
+    final id = youtubeId(url);
+    if (id != null) return _youtube(id);
+    if (url.host.contains('tiktok.com')) return _tiktok(input);
+    return const [];
+  }
+
+  Future<List<FactDraft>> _youtube(String id) async {
+    final body = jsonEncode({
+      'videoId': id,
+      'context': {
+        'client': {'clientName': 'ANDROID', 'clientVersion': '20.10.38', 'androidSdkVersion': 34, 'hl': languages().first},
+      },
+    });
+    final reply = await post(Uri.parse(_youtubePlayer), body);
+    if (!reply.ok) throw HttpException('плеер YouTube ответил ${reply.status}');
+    final player = parseYoutubePlayer(jsonDecode(utf8.decode(reply.bytes)) as Map<String, Object?>);
+    if (player == null) return const [];
+    final track = pickTrack(player.tracks, languages());
+    final phrases = track == null ? const <Phrase>[] : parseYoutubeCaptions(await _text(track.url));
+    return [
+      ..._phrases(phrases, track),
+      for (final chapter in player.chapters) FactDraft(FactKind.chapter, chapter.title, number: chapter.seconds.toDouble()),
+      for (final tag in player.hashtags) FactDraft(FactKind.hashtag, tag),
+      if (player.seconds case final seconds?) FactDraft(FactKind.timeNeeded, '$seconds', number: seconds / 60, detail: 'video'),
+    ];
+  }
+
+  Future<List<FactDraft>> _tiktok(ExtractInput input) async {
+    final html = await _page(input, fetch);
+    final video = html == null ? null : parseTiktokPage(html);
+    if (video == null) return const [];
+    final track = pickTrack(video.tracks, languages());
+    final phrases = track == null ? const <Phrase>[] : parseWebVtt(await _text(track.url));
+    return [
+      ..._phrases(phrases, track),
+      for (final tag in video.hashtags) FactDraft(FactKind.hashtag, tag),
+      if (video.author case final author?) FactDraft(FactKind.author, author),
+      if (video.caption.trim().isNotEmpty && video.caption.trim() != input.item.previewText?.trim()) FactDraft(FactKind.description, video.caption.trim()),
+      if (video.seconds case final seconds?) FactDraft(FactKind.timeNeeded, '$seconds', number: seconds / 60, detail: 'video'),
+    ];
+  }
+
+  List<FactDraft> _phrases(List<Phrase> phrases, CaptionTrack? track) => [
+    for (final phrase in phrases.take(_phraseLimit)) FactDraft(FactKind.subtitle, phrase.text, number: phrase.seconds, detail: track?.language),
+  ];
+
+  Future<String> _text(String url) async {
+    final reply = await fetch(Uri.parse(url));
+    if (!reply.ok) throw HttpException('субтитры ответили ${reply.status}');
+    return utf8.decode(reply.bytes, allowMalformed: true);
+  }
+
+  @override
+  Future<void> after(AppDatabase db, Item item, List<FactDraft> facts, {required bool firstRun, required DateTime now}) async {
+    // длина ролика, которой не было в превью
+    final minutes = facts.where((fact) => fact.kind == FactKind.timeNeeded && fact.detail == 'video').map((fact) => fact.number).nonNulls.firstOrNull;
+    if (minutes != null && item.durationSeconds == null) {
+      await (db.update(db.items)..where((t) => t.id.equals(item.id))).write(ItemsCompanion(durationSeconds: Value((minutes * 60).round())));
+    }
+  }
+}
+
+class HttpException implements Exception {
+  const HttpException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}

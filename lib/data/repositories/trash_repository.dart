@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
 import '../../domain/models.dart';
+import '../../services/page_cache.dart';
 import '../db/database.dart';
 
 /// Сколько удалённое лежит в корзине, пока не сотрётся само.
@@ -78,6 +79,8 @@ ORDER BY items.deleted_at DESC''',
     await _db.transaction(() async {
       await (_db.delete(_db.attachments)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.fileJobs)..where((t) => t.itemId.equals(id))).go();
+      await (_db.delete(_db.facts)..where((t) => t.itemId.equals(id))).go();
+      await (_db.delete(_db.extractorRuns)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.itemTags)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.links)..where((t) => t.fromId.equals(id) | t.toId.equals(id))).go();
       await (_db.delete(_db.aiJobs)..where((t) => t.itemId.equals(id))).go();
@@ -93,6 +96,8 @@ ORDER BY items.deleted_at DESC''',
     }
     final folder = Directory(p.join(_filesRoot.path, 'attachments', id));
     if (await folder.exists()) await folder.delete(recursive: true).catchError((_) => folder);
+    // копия страницы ссылки тоже уходит
+    await _remove(pageFile(_filesRoot, id));
   }
 
   Future<void> _remove(File file) async {
