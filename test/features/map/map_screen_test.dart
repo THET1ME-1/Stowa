@@ -41,6 +41,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   }
 
+  testWidgets('метка ссылки 18+ с обложкой — размыта, пока показ выключен', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'x',
+          kind: ItemKind.link,
+          title: 'Ссылка',
+          url: const Value('https://www.xvideos.com/x'),
+          coverPath: const Value('covers/x.jpg'),
+          latitude: const Value(47.0245),
+          longitude: const Value(28.8323),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'x-adult', itemId: 'x', extractor: 'page', kind: FactKind.adult, value: '18+'));
+    await openMap(tester);
+    expect(find.byKey(const ValueKey('adult-veil-x')), findsOneWidget);
+  });
+
   testWidgets('вещи рядом — одна метка с числом, касание показывает их снизу', (tester) async {
     await add('a', 'Кофе', latitude: 47.02450, longitude: 28.83230, place: 'Ботаника, Кишинёв');
     await add('b', 'Круассаны', latitude: 47.02460, longitude: 28.83250, place: 'Ботаника, Кишинёв');

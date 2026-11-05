@@ -13,6 +13,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/trash_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
+import '../item/adult_veil.dart';
 
 Route<void> trashRoute() => PageRouteBuilder(
   transitionDuration: const Duration(milliseconds: 500),
@@ -170,7 +171,11 @@ class _TrashRow extends StatelessWidget {
             child: SizedBox.square(
               dimension: 52,
               child: thumb != null
-                  ? Image.file(File(p.join(filesRoot.path, thumb)), fit: BoxFit.cover, cacheWidth: 156, errorBuilder: (_, _, _) => _KindMark(entry: entry))
+                  ? AdultVeil(
+                      itemId: entry.id,
+                      compact: true,
+                      child: Image.file(File(p.join(filesRoot.path, thumb)), fit: BoxFit.cover, cacheWidth: 156, errorBuilder: (_, _, _) => _KindMark(entry: entry)),
+                    )
                   : _KindMark(entry: entry),
             ),
           ),

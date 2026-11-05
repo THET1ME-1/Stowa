@@ -40,6 +40,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('обложка удалённой ссылки 18+ в корзине размыта, пока показ выключен', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'x',
+          kind: ItemKind.link,
+          title: 'Ссылка',
+          url: const Value('https://www.xvideos.com/x'),
+          coverPath: const Value('covers/x.jpg'),
+          createdAt: world.now,
+          updatedAt: world.now,
+          deletedAt: Value(world.now),
+        ));
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'x-adult', itemId: 'x', extractor: 'page', kind: FactKind.adult, value: '18+'));
+    await openTrash(tester);
+    expect(find.byKey(const ValueKey('adult-veil-x')), findsOneWidget);
+  });
+
   testWidgets('удалённое лежит в корзине со сроком и возвращается одним касанием', (tester) async {
     await addDeleted('a', 'Список покупок', daysAgo: 2);
     await openTrash(tester);

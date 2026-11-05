@@ -16,6 +16,7 @@ import '../../domain/place_groups.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
 import '../home/recent_strip.dart';
+import '../item/adult_veil.dart';
 import '../item/item_screen.dart';
 
 /// Карта заметок. [focusItemId] — открыть сразу на этой вещи (касание места на её странице).
@@ -240,7 +241,8 @@ class _PlaceMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final photo = cards.where((card) => card.thumbPath != null).firstOrNull?.thumbPath;
+    final pictured = cards.where((card) => card.thumbPath != null).firstOrNull;
+    final photo = pictured?.thumbPath;
     final size = selected ? 52.0 : 44.0;
     return GestureDetector(
       onTap: onTap,
@@ -260,7 +262,11 @@ class _PlaceMark extends StatelessWidget {
               ),
               child: ClipOval(
                 child: photo != null
-                    ? Image.file(File(p.join(filesRoot.path, photo)), fit: BoxFit.cover, cacheWidth: 160, errorBuilder: (_, _, _) => const SizedBox())
+                    ? AdultVeil(
+                        itemId: pictured!.id,
+                        compact: true,
+                        child: Image.file(File(p.join(filesRoot.path, photo)), fit: BoxFit.cover, cacheWidth: 160, errorBuilder: (_, _, _) => const SizedBox()),
+                      )
                     : Icon(symbolIcon(kindIcon(cards.first.kind)), size: 20, color: Tokens.onSurface),
               ),
             ),

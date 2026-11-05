@@ -16,6 +16,7 @@ import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
 import '../composer/panel_text.dart';
+import '../item/adult_veil.dart';
 
 /// Мир холста: вещи лежат в нём со сдвигом, чтобы отрицательные координаты тоже помещались.
 const _origin = 10000.0;
@@ -287,11 +288,14 @@ class _CanvasItem extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final thumb = card.thumbPath;
     final Widget face = thumb != null
-        ? Image.file(
-            File(p.join(filesRoot.path, thumb)),
-            fit: BoxFit.cover,
-            cacheWidth: 900,
-            errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+        ? AdultVeil(
+            itemId: card.id,
+            child: Image.file(
+              File(p.join(filesRoot.path, thumb)),
+              fit: BoxFit.cover,
+              cacheWidth: 900,
+              errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+            ),
           )
         : Container(
             padding: const EdgeInsets.all(14),

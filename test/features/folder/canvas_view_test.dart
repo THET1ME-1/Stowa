@@ -43,6 +43,24 @@ void main() {
     expect(find.text('Кухня'), findsWidgets);
   });
 
+  testWidgets('обложка ссылки 18+ на холсте размыта, пока показ выключен', (tester) async {
+    final db = world.db;
+    await db.into(db.items).insert(ItemsCompanion.insert(
+          id: 'x',
+          kind: ItemKind.link,
+          title: 'Ссылка',
+          url: const Value('https://www.xvideos.com/x'),
+          coverPath: const Value('covers/x.jpg'),
+          folderId: const Value('ideas'),
+          sortState: const Value(SortState.sorted),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    await db.into(db.facts).insert(FactsCompanion.insert(id: 'x-adult', itemId: 'x', extractor: 'page', kind: FactKind.adult, value: '18+'));
+    await openCanvas(tester);
+    expect(find.byKey(const ValueKey('adult-veil-x')), findsOneWidget);
+  });
+
   // большая папка: целиком она видна только мельче 100 %
   Future<void> openBig(WidgetTester tester) async {
     final db = world.db;
