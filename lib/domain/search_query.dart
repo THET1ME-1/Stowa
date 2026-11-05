@@ -400,6 +400,9 @@ final _stopWords = {
               'который которая которые которое тот та те там тут был была было были бы еще ещё уже так вот тоже только чем его ее её их надо нужно найти найди найду покажи показать искать ищу '
               'і й та з із зі від під але чи або мені мій моє що щоб як де коли який яка які яке той був була було були би ще вже ось теж тільки знайди знайти '
               'the a an of in on at to for from with by and or but is are was were be been my me i you your it its this that these those all find show search some any about what where when which there here '
+              'how why who we they he she our their us them can will just so not no do does did have has had get got into out up '
+              // куски адресов: «www», «com» в тексте ссылки — не слова
+              'www com http https html '
               'der die das den dem des ein eine einen einem einer und oder aber im an am auf aus bei mit nach von vom zu zum zur für um ist sind war waren mein meine meinen mich mir ich du alle finde finden zeige zeig suche was wo wann '
               'el la los las lo un una unos unas de del al y e u en con por para que mi mis yo tu es son era todo todos todas busca buscar encuentra muestra donde cuando '
               'și si în pe cu pentru despre ale ai sau dar mea meu mele mei toate tot este sunt găsește gaseste arată arata caută cauta unde când cand ce '
@@ -407,6 +410,9 @@ final _stopWords = {
           .split(' '))
     if (word.isNotEmpty) word,
 };
+
+/// Служебное слово любого из семи языков: связи, угадыватель папки и поиск его не считают.
+bool isServiceWord(String word) => _stopWords.contains(word.toLowerCase());
 
 // ---------------------------------------------------------------------------
 

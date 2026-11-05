@@ -114,22 +114,38 @@ class SearchHit {
       ? SearchField.place
       : null;
 
-  /// Нашлось в фактах: какой это факт, его текст и метки внутри него.
+  /// Нашлось в фактах: какой это факт, его текст и метки внутри него. Из нескольких
+  /// найденных главнее тот, что ведёт к месту: фраза ролика с секундой, потом лист документа.
   ({FactPart part, List<TextMark> marks})? get foundFact {
     final all = marks[SearchField.facts];
     if (all == null || all.isEmpty) return null;
-    final found = doc.factAt(all.first.$1);
-    if (found == null) return null;
-    final end = found.offset + found.part.text.length;
+    ({FactPart part, int offset})? best;
+    for (final mark in all) {
+      final found = doc.factAt(mark.$1);
+      if (found == null) continue;
+      if (best == null || _factRank(found.part) < _factRank(best.part)) best = found;
+    }
+    if (best == null) return null;
+    final start = best.offset;
+    final end = start + best.part.text.length;
     return (
-      part: found.part,
+      part: best.part,
       marks: [
         for (final mark in all)
-          if (mark.$1 >= found.offset && mark.$1 < end) (mark.$1 - found.offset, mark.$2),
+          if (mark.$1 >= start && mark.$1 < end) (mark.$1 - start, mark.$2),
       ],
     );
   }
 }
+
+// чем меньше, тем полезнее подпись: секунда ролика, лист документа, ингредиент — точнее, чем «на странице»
+int _factRank(FactPart part) => switch (part.kind) {
+  FactKind.subtitle || FactKind.chapter => 0,
+  FactKind.fileText => 1,
+  FactKind.ingredient => 2,
+  FactKind.venue || FactKind.address => 3,
+  _ => 4,
+};
 
 /// Насколько слово текста похоже на вариант запроса: само слово, его форма,
 /// набранное начало, общее начало основы, опечатка. Ноль — не похоже.

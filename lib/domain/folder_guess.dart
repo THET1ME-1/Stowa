@@ -77,8 +77,10 @@ const _timeWords = {
 
 bool _isTimeWord(String lower) => _timeWords.contains(lower) || _timeStems.any(lower.startsWith);
 
-/// Слова текста без служебных; имя — слово с заглавной не в начале предложения.
-List<_Word> _words(String text) {
+/// Слова текста без служебных и без адресов; имя — слово с заглавной не в начале предложения.
+List<_Word> _words(String raw) {
+  // адрес — не слова: «youtube», «watch», «recipes» из ссылки связали бы что угодно с чем угодно
+  final text = raw.replaceAll(RegExp(r'https?://\S+|www\.\S+', caseSensitive: false), ' ');
   final words = <_Word>[];
   for (final match in _token.allMatches(text)) {
     final original = match.group(0)!;

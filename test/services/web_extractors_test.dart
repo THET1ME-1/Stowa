@@ -49,7 +49,8 @@ void main() {
     clock: () => now,
     extractors: [
       LinkExtractor(),
-      PageExtractor(fetch: fetch),
+      PageExtractor(),
+      PageFetchExtractor(fetch: fetch),
       SubtitlesExtractor(fetch: fetch, post: post, languages: () => ['ru', 'en']),
     ],
   );
@@ -78,10 +79,16 @@ void main() {
     expect(text, allOf(contains('гуанчиале'), contains('рецепт')));
   });
 
-  test('старая ссылка без копии: страница скачивается один раз и сохраняется', () async {
+  test('старая ссылка без копии: страница скачивается один раз, сохраняется и тут же разбирается', () async {
     await link('p', 'https://shop.md/divan');
     pages['https://shop.md/divan'] = html('<script type="application/ld+json">{"@type":"Product","name":"Диван","offers":{"price":"4500","priceCurrency":"MDL","availability":"InStock"}}</script>');
-    await pipeline().sweepNetwork();
+    final facts = pipeline();
+    // местный проход без копии ничего не узнал
+    await facts.sweep();
+    expect(await factsOf('p', FactKind.price), isEmpty);
+    await facts.sweepNetwork();
+    await facts.sweep();
+    await facts.sweepNetwork();
     expect(asked, ['https://shop.md/divan']);
     expect(pageFile(home, 'p').existsSync(), isTrue);
     final price = (await factsOf('p', FactKind.price)).single;
@@ -104,6 +111,16 @@ void main() {
     await (db.update(db.items)..where((t) => t.id.equals('e'))).write(ItemsCompanion(reminderAt: const Value(null), previewAt: Value(now.add(const Duration(minutes: 1)))));
     await facts.runItem('e', network: true);
     expect((await item('e')).reminderAt, isNull);
+  });
+
+  test('новая версия разбора перечитывает старые страницы без сети', () async {
+    await link('e', 'https://afisha.md/run');
+    await savePage(home, 'e', '<script type="application/ld+json">{"@type":"Event","name":"Бег","startDate":"2026-11-07","location":{"@type":"Place","name":"Teatrul Verde","address":{"addressLocality":"Chisinau","streetAddress":"Teatrul Verde, Chisinau"}}}</script>');
+    // прогон прошлой версии, сделанный когда-то давно
+    await db.into(db.extractorRuns).insert(ExtractorRunsCompanion.insert(itemId: 'e', extractor: 'page', version: 1, itemStamp: Value('${now.toIso8601String()}|https://afisha.md/run')));
+    await FactsPipeline(db, filesRoot: home, clock: () => now, extractors: [PageExtractor()], online: () async => false).sweep();
+    expect((await factsOf('e', FactKind.address)).single.value, 'Teatrul Verde, Chisinau');
+    expect(asked, isEmpty);
   });
 
   test('прошедшее событие напоминания не ставит', () async {

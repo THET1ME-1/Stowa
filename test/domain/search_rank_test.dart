@@ -119,6 +119,23 @@ void main() {
     expect(found.part.text.substring(found.marks.single.$1, found.marks.single.$1 + found.marks.single.$2), 'Клей');
   });
 
+  test('слово и в описании, и в субтитрах — подпись по субтитрам, с секундой', () {
+    final video = [
+      const SearchDoc(
+        id: 'yt',
+        title: 'Never Gonna Give You Up',
+        facts: [
+          FactPart(FactKind.description, 'Lyrics: never gonna run around and desert you'),
+          FactPart(FactKind.subtitle, 'Never gonna run around and desert you', seconds: 42.5),
+        ],
+      ),
+    ];
+    final found = rankSearch(video, _words(['desert'])).single.foundFact!;
+    expect(found.part.kind, FactKind.subtitle);
+    expect(found.part.seconds, 42.5);
+    expect(found.marks.single.$1, 'Never gonna run around and '.length);
+  });
+
   test('отобранное фильтрами без слов — свежие первыми', () {
     final hits = rankSearch(docs, [], filtered: true);
     expect(hits, hasLength(4));

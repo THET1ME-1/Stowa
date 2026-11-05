@@ -234,8 +234,12 @@ String? _address(Object? value) {
   if (value is String) return _string(value);
   if (value is List && value.isNotEmpty) return _address(value.first);
   if (value is! Map) return null;
-  // город и регион часто совпадают: «Chisinau, Chisinau» — одного хватит
-  final parts = {for (final key in ['streetAddress', 'addressLocality', 'addressRegion']) ?_string(value[key])};
+  // город повторяется: и в улице («Teatrul Verde, Chisinau»), и отдельно, и регионом — одного хватит
+  final parts = <String>{
+    for (final key in ['streetAddress', 'addressLocality', 'addressRegion'])
+      for (final part in (_string(value[key]) ?? '').split(','))
+        if (part.trim().isNotEmpty) part.trim(),
+  };
   return parts.isEmpty ? _string(value['name']) : parts.join(', ');
 }
 

@@ -65,6 +65,9 @@ void main() {
   test('одинаковые город и регион в адресе — один раз', () {
     final parsed = structuredPage(page('{"@type":"Event","name":"Бег","startDate":"2026-11-07","location":{"@type":"Place","name":"Teatrul Verde","address":{"addressLocality":"Chisinau","addressRegion":"Chisinau","streetAddress":"Teatrul Verde"}}}'))!;
     expect(parsed.address, 'Teatrul Verde, Chisinau');
+    // Meetup: город уже в улице и ещё раз отдельно
+    final meetup = structuredPage(page('{"@type":"Event","name":"Бег","startDate":"2026-11-07","location":{"@type":"Place","name":"Teatrul Verde","address":{"addressLocality":"Chisinau","addressRegion":"","streetAddress":"Teatrul Verde, Chisinau"}}}'))!;
+    expect(meetup.address, 'Teatrul Verde, Chisinau');
   });
 
   test('заведение: адрес, телефон, часы работы', () {

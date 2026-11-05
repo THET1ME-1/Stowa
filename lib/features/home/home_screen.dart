@@ -142,6 +142,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     final facts = ref.read(factsPipelineProvider);
     await facts.sweep();
     await facts.sweepNetwork();
+    // сеть докачала копии страниц старых ссылок — разобрать их сразу
+    await facts.sweep();
   }
 
   Future<void> _handOverFiles() async {

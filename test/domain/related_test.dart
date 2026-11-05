@@ -32,4 +32,15 @@ void main() {
   test('отклонённую связь не предлагаем', () {
     expect(findRelated('borsch', docs, rejected: {'beet'}), isEmpty);
   });
+
+  test('служебные слова других языков и куски адресов связью не считаются', () {
+    final english = [
+      const RelatedDoc(id: 'recipe', text: 'How to make this carbonara https://www.bbcgoodfood.com/recipes/carbonara'),
+      const RelatedDoc(id: 'song', text: 'This is how we make it https://www.youtube.com/watch?v=x'),
+      const RelatedDoc(id: 'run', text: 'Running club https://www.meetup.com/club'),
+      const RelatedDoc(id: 'other', text: 'Купить хлеб'),
+    ];
+    expect(findRelated('recipe', english), isEmpty);
+    expect(findRelated('run', english), isEmpty);
+  });
 }

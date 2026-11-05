@@ -81,27 +81,23 @@ List<FactDraft> pageFacts(StructuredPage page) {
 const eventReminderLead = Duration(hours: 1);
 
 /// Что страница говорит о себе: рецепт, товар, событие, заведение, статья, фильм, книга.
-/// Читает копию страницы, которую сохранило превью; у старых ссылок без копии один раз
-/// скачивает её сам, поэтому правило сетевое.
+/// Читает только копию страницы, поэтому работает без сети: улучшили разбор — старые
+/// ссылки перечитаются сами. Копию у старых ссылок скачивает [PageFetchExtractor].
 class PageExtractor extends Extractor {
-  PageExtractor({required this.fetch});
-
-  final Fetch fetch;
-
   @override
   String get name => 'page';
+
+  // 2: адрес без повторов города и региона; 3: и без города, повторённого в улице
   @override
-  int get version => 1;
-  @override
-  bool get needsNetwork => true;
+  int get version => 3;
   @override
   String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
   @override
-  String get appliesSql => "items.url IS NOT NULL AND items.kind IN ('link', 'video')";
+  String get appliesSql => _linkItems;
 
   @override
   Future<List<FactDraft>> extract(ExtractInput input) async {
-    final html = await _page(input, fetch);
+    final html = await readPage(input.filesRoot, input.item.id);
     if (html == null) return const [];
     final page = structuredPage(html);
     return page == null ? const [] : pageFacts(page);
@@ -115,6 +111,42 @@ class PageExtractor extends Extractor {
       final lead = start.subtract(eventReminderLead);
       await (db.update(db.items)..where((t) => t.id.equals(item.id))).write(ItemsCompanion(reminderAt: Value(lead.isAfter(now) ? lead : start)));
     }
+  }
+}
+
+const _linkItems = "items.url IS NOT NULL AND items.kind IN ('link', 'video')";
+
+/// Копия страницы для старых ссылок, сохранённых до того, как превью стало её хранить.
+/// Фактов не даёт: скачал — будит [PageExtractor], и тот разбирает уже без сети.
+class PageFetchExtractor extends Extractor {
+  PageFetchExtractor({required this.fetch});
+
+  final Fetch fetch;
+  final _saved = <String>{};
+
+  @override
+  String get name => 'page_fetch';
+  @override
+  int get version => 1;
+  @override
+  bool get needsNetwork => true;
+  @override
+  String get stampSql => "coalesce(items.url, '')";
+  @override
+  String get appliesSql => _linkItems;
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    if (await pageFile(input.filesRoot, input.item.id).exists()) return const [];
+    if (await _page(input, fetch) != null) _saved.add(input.item.id);
+    return const [];
+  }
+
+  @override
+  Future<void> after(AppDatabase db, Item item, List<FactDraft> facts, {required bool firstRun, required DateTime now}) async {
+    // копия появилась: разбор страницы считается непройденным и пройдёт при следующем местном проходе
+    if (!_saved.remove(item.id)) return;
+    await (db.delete(db.extractorRuns)..where((t) => t.itemId.equals(item.id) & t.extractor.equals('page'))).go();
   }
 }
 

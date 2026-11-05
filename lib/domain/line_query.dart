@@ -2,6 +2,7 @@
 /// слова запроса. Без Flutter, чтобы тестировалось быстро.
 library;
 
+import 'search_query.dart' show isServiceWord;
 import 'word_forms.dart';
 
 /// Встроенные команды строки. Плагины встанут рядом с ними.
@@ -141,8 +142,9 @@ const _stopWords = {
   'with',
 };
 
-/// Служебное слово: ни искать, ни раскладывать по нему нечего.
-bool isStopWord(String word) => _stopWords.contains(word);
+/// Служебное слово: ни искать, ни раскладывать по нему нечего. Свой список дополняет
+/// общий список семи языков.
+bool isStopWord(String word) => _stopWords.contains(word) || isServiceWord(word);
 
 /// Основа слова на любом из семи языков: окончание срезано.
 String stem(String word) => stemOf(word);

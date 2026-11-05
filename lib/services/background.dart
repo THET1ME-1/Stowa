@@ -81,14 +81,17 @@ void backgroundDispatcher() {
         clock: DateTime.now,
         extractors: [
           ...defaultExtractors(),
-          PageExtractor(fetch: httpFetch),
+          PageExtractor(),
+          PageFetchExtractor(fetch: httpFetch),
           SubtitlesExtractor(fetch: httpFetch, post: httpPost, languages: () => subtitleLanguages(settings.language?.code)),
         ],
       );
       await facts.sweep().catchError((_) {});
       if (task == _fileTask) return filesDone;
-      // страницы и субтитры — только при сети: периодическая задача её и требует
+      // страницы и субтитры — только при сети: периодическая задача её и требует; скачанные
+      // копии страниц тут же разбираются местным правилом
       await facts.sweepNetwork().catchError((_) {});
+      await facts.sweep().catchError((_) {});
       // сперва то, что переслали боту, потом разбор: новое сразу разложится
       final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: filesRoot, clock: DateTime.now);
       await TelegramService(capture: capture, prefs: prefs, tokens: const SecureKeyStore('tg_token'), http: client, inbox: Directory(p.join(filesRoot.path, 'telegram_inbox')))

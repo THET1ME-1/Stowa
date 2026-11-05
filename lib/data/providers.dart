@@ -67,7 +67,8 @@ final factsPipelineProvider = Provider((ref) {
     online: () async => ref.read(onlineProvider).value ?? true,
     extractors: [
       ...defaultExtractors(),
-      PageExtractor(fetch: fetch),
+      PageExtractor(),
+      PageFetchExtractor(fetch: fetch),
       SubtitlesExtractor(fetch: fetch, post: ref.watch(linkPostProvider), languages: () => subtitleLanguages(ref.read(languageProvider).value?.code)),
     ],
   );
