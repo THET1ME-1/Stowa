@@ -133,5 +133,15 @@
   "panelLooking": "Busco: {what}",
   "foundAtPlace": "por lugar",
   "fileSaving": "{count, plural, one{{count} archivo se está guardando} other{{count} archivos se están guardando}}",
-  "fileSavingHint": "Puedes cerrar la app, el archivo terminará solo. Cuando desaparezca la barra, puedes borrar el original."
+  "fileSavingHint": "Puedes cerrar la app, el archivo terminará solo. Cuando desaparezca la barra, puedes borrar el original.",
+  "foundInFile": "en el archivo",
+  "foundOnPage": "en la página",
+  "foundInPhotoInfo": "en los datos de la foto",
+  "documentSheet": "hoja «{name}»",
+  "documentSlide": "diapositiva {number}",
+  "documentChapter": "capítulo {number}",
+  "factCall": "Llamar",
+  "factWrite": "Escribir",
+  "factCopy": "Copiar",
+  "photoTaken": "Tomada el {date}"
 }

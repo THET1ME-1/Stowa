@@ -1,7 +1,7 @@
 import 'models.dart';
 
-// адрес со схемой или голый домен с зоной из двух и больше букв
-final _url = RegExp(r'(?<![@\w.])((?:https?://)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/[^\s]*)?)', caseSensitive: false);
+// адрес со схемой или голый домен с зоной из двух и больше букв; за зоной не «@» — иначе это почта
+final _url = RegExp(r'(?<![@\w.])((?:https?://)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?![@\w-])(?:/[^\s]*)?)', caseSensitive: false);
 
 const _videoHosts = ['tiktok.com', 'youtube.com', 'youtu.be', 'rutube.ru', 'vkvideo.ru', 'vimeo.com'];
 

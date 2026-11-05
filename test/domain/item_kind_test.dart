@@ -47,4 +47,10 @@ void main() {
     expect(firstUrl('просто текст'), isNull);
     expect(firstUrl('почта me@site.ru'), isNull);
   });
+
+  test('часть почты до «@» доменом не считается', () {
+    expect(urlMatches('ivan.master@mail.md'), isEmpty);
+    expect(firstUrl('пиши ivan.master@mail.md'), isNull);
+    expect(urlMatches('сайт mobila.md, почта a.b@c.md').map((match) => match.group(0)), ['mobila.md']);
+  });
 }

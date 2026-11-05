@@ -133,5 +133,15 @@
   "panelLooking": "Шукаю: {what}",
   "foundAtPlace": "за місцем",
   "fileSaving": "{count, plural, one{Зберігаю файл} few{Зберігаю {count} файли} other{Зберігаю {count} файлів}}",
-  "fileSavingHint": "Застосунок можна закрити: файл доляже сам. Коли смужка зникне, оригінал можна видалити."
+  "fileSavingHint": "Застосунок можна закрити: файл доляже сам. Коли смужка зникне, оригінал можна видалити.",
+  "foundInFile": "у файлі",
+  "foundOnPage": "на сторінці",
+  "foundInPhotoInfo": "у даних фото",
+  "documentSheet": "аркуш «{name}»",
+  "documentSlide": "слайд {number}",
+  "documentChapter": "розділ {number}",
+  "factCall": "Зателефонувати",
+  "factWrite": "Написати",
+  "factCopy": "Скопіювати",
+  "photoTaken": "Знято {date}"
 }

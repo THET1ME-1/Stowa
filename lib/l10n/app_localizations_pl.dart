@@ -1413,4 +1413,42 @@ class LPl extends L {
   @override
   String get fileSavingHint =>
       'Możesz zamknąć aplikację, plik zapisze się sam. Gdy pasek zniknie, oryginał można usunąć.';
+
+  @override
+  String get foundInFile => 'w pliku';
+
+  @override
+  String get foundOnPage => 'na stronie';
+
+  @override
+  String get foundInPhotoInfo => 'w danych zdjęcia';
+
+  @override
+  String documentSheet(Object name) {
+    return 'arkusz „$name”';
+  }
+
+  @override
+  String documentSlide(Object number) {
+    return 'slajd $number';
+  }
+
+  @override
+  String documentChapter(Object number) {
+    return 'rozdział $number';
+  }
+
+  @override
+  String get factCall => 'Zadzwoń';
+
+  @override
+  String get factWrite => 'Napisz';
+
+  @override
+  String get factCopy => 'Kopiuj';
+
+  @override
+  String photoTaken(Object date) {
+    return 'Zrobione $date';
+  }
 }

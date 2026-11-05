@@ -1413,4 +1413,42 @@ class LUk extends L {
   @override
   String get fileSavingHint =>
       'Застосунок можна закрити: файл доляже сам. Коли смужка зникне, оригінал можна видалити.';
+
+  @override
+  String get foundInFile => 'у файлі';
+
+  @override
+  String get foundOnPage => 'на сторінці';
+
+  @override
+  String get foundInPhotoInfo => 'у даних фото';
+
+  @override
+  String documentSheet(Object name) {
+    return 'аркуш «$name»';
+  }
+
+  @override
+  String documentSlide(Object number) {
+    return 'слайд $number';
+  }
+
+  @override
+  String documentChapter(Object number) {
+    return 'розділ $number';
+  }
+
+  @override
+  String get factCall => 'Зателефонувати';
+
+  @override
+  String get factWrite => 'Написати';
+
+  @override
+  String get factCopy => 'Скопіювати';
+
+  @override
+  String photoTaken(Object date) {
+    return 'Знято $date';
+  }
 }

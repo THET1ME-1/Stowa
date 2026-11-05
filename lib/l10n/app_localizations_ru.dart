@@ -1418,4 +1418,42 @@ class LRu extends L {
   @override
   String get fileSavingHint =>
       'Можно закрыть приложение: файл доляжет сам. Когда полоска пропадёт, оригинал можно удалить.';
+
+  @override
+  String get foundInFile => 'в файле';
+
+  @override
+  String get foundOnPage => 'на странице';
+
+  @override
+  String get foundInPhotoInfo => 'в данных фото';
+
+  @override
+  String documentSheet(Object name) {
+    return 'лист «$name»';
+  }
+
+  @override
+  String documentSlide(Object number) {
+    return 'слайд $number';
+  }
+
+  @override
+  String documentChapter(Object number) {
+    return 'глава $number';
+  }
+
+  @override
+  String get factCall => 'Позвонить';
+
+  @override
+  String get factWrite => 'Написать';
+
+  @override
+  String get factCopy => 'Скопировать';
+
+  @override
+  String photoTaken(Object date) {
+    return 'Снято $date';
+  }
 }

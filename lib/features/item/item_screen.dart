@@ -33,6 +33,7 @@ import '../folder/folder_sheets.dart';
 import '../map/map_screen.dart';
 import '../tags/tag_picker.dart';
 import 'copying_bar.dart';
+import 'facts_block.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
@@ -306,6 +307,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final full = ref.watch(itemProvider(_id)).value;
+    final facts = ref.watch(itemFactsProvider(_id)).value ?? const <Fact>[];
     final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
     final filesRoot = ref.watch(filesRootProvider);
     final now = _clock();
@@ -414,6 +416,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             now: now,
                             place: item.latitude == null ? null : (item.placeName ?? l.mapPlaceUnnamed),
                             onPlace: () => Navigator.of(context).push(mapRoute(focusItemId: _id)),
+                            taken: photoTakenLine(l, facts, now),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -473,6 +476,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     decoration: _bare(l.itemBodyHint),
                                   )
                                 : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
+                          ),
+                        ],
+                        // телефон, почта, сумма и ссылки из текста — кнопками; в правке не мешают
+                        if (!_editing && FactsChips.hasAny(facts)) ...[
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: FactsChips(facts: facts, onLink: _openLink),
                           ),
                         ],
                         if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
@@ -760,12 +771,15 @@ class _TagPill extends StatelessWidget {
 
 /// «Вторник, 3 ноября, 20:14 · Ботаника, Кишинёв». Год — только если не нынешний.
 class _WhenWhere extends StatelessWidget {
-  const _WhenWhere({required this.at, required this.now, required this.place, required this.onPlace});
+  const _WhenWhere({required this.at, required this.now, required this.place, required this.onPlace, this.taken});
 
   final DateTime at;
   final DateTime now;
   final String? place;
   final VoidCallback onPlace;
+
+  /// Когда и чем снято фото, если EXIF это знает.
+  final String? taken;
 
   @override
   Widget build(BuildContext context) {
@@ -792,6 +806,7 @@ class _WhenWhere extends StatelessWidget {
             onTap: onPlace,
             child: part('location_on', place!),
           ),
+        if (taken != null) part('photo_camera', taken!),
       ],
     );
   }

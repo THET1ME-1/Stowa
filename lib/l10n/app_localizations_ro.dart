@@ -1402,4 +1402,42 @@ class LRo extends L {
   @override
   String get fileSavingHint =>
       'Poți închide aplicația, fișierul se termină singur. Când bara dispare, originalul poate fi șters.';
+
+  @override
+  String get foundInFile => 'în fișier';
+
+  @override
+  String get foundOnPage => 'pe pagină';
+
+  @override
+  String get foundInPhotoInfo => 'în datele fotografiei';
+
+  @override
+  String documentSheet(Object name) {
+    return 'foaia „$name”';
+  }
+
+  @override
+  String documentSlide(Object number) {
+    return 'diapozitivul $number';
+  }
+
+  @override
+  String documentChapter(Object number) {
+    return 'capitolul $number';
+  }
+
+  @override
+  String get factCall => 'Sună';
+
+  @override
+  String get factWrite => 'Scrie';
+
+  @override
+  String get factCopy => 'Copiază';
+
+  @override
+  String photoTaken(Object date) {
+    return 'Făcută pe $date';
+  }
 }

@@ -133,5 +133,15 @@
   "panelLooking": "Suche: {what}",
   "foundAtPlace": "nach Ort",
   "fileSaving": "{count, plural, one{{count} Datei wird gespeichert} other{{count} Dateien werden gespeichert}}",
-  "fileSavingHint": "Du kannst die App schließen, die Datei wird von selbst fertig. Ist der Balken weg, kann das Original gelöscht werden."
+  "fileSavingHint": "Du kannst die App schließen, die Datei wird von selbst fertig. Ist der Balken weg, kann das Original gelöscht werden.",
+  "foundInFile": "in der Datei",
+  "foundOnPage": "auf der Seite",
+  "foundInPhotoInfo": "in den Fotodaten",
+  "documentSheet": "Blatt „{name}“",
+  "documentSlide": "Folie {number}",
+  "documentChapter": "Kapitel {number}",
+  "factCall": "Anrufen",
+  "factWrite": "Schreiben",
+  "factCopy": "Kopieren",
+  "photoTaken": "Aufgenommen am {date}"
 }

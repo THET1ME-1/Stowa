@@ -133,5 +133,15 @@
   "panelLooking": "Szukam: {what}",
   "foundAtPlace": "po miejscu",
   "fileSaving": "{count, plural, one{{count} plik się zapisuje} few{{count} pliki się zapisują} other{{count} plików się zapisuje}}",
-  "fileSavingHint": "Możesz zamknąć aplikację, plik zapisze się sam. Gdy pasek zniknie, oryginał można usunąć."
+  "fileSavingHint": "Możesz zamknąć aplikację, plik zapisze się sam. Gdy pasek zniknie, oryginał można usunąć.",
+  "foundInFile": "w pliku",
+  "foundOnPage": "na stronie",
+  "foundInPhotoInfo": "w danych zdjęcia",
+  "documentSheet": "arkusz „{name}”",
+  "documentSlide": "slajd {number}",
+  "documentChapter": "rozdział {number}",
+  "factCall": "Zadzwoń",
+  "factWrite": "Napisz",
+  "factCopy": "Kopiuj",
+  "photoTaken": "Zrobione {date}"
 }

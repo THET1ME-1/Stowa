@@ -6,6 +6,7 @@ import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
+import '../../domain/search_rank.dart' show FactPart;
 import '../../l10n/app_localizations.dart';
 import 'panel_model.dart';
 
@@ -86,6 +87,27 @@ String deepLabel(L l, ItemKind kind) => switch (kind) {
   ItemKind.image => l.foundOnImage,
   _ => l.foundInDescription,
 };
+
+/// Где в фактах нашлось: «в файле, лист «Ремонт»», «в файле, слайд 3», «на странице».
+String factLabel(L l, FactPart part) {
+  if (part.kind != FactKind.fileText) return part.kind == FactKind.camera ? l.foundInPhotoInfo : l.foundOnPage;
+  final place = documentPlace(l, part.place);
+  return place == null ? l.foundInFile : '${l.foundInFile}, $place';
+}
+
+/// Место в документе словами: `sheet:Ремонт` → «лист «Ремонт»», `slide:3` → «слайд 3».
+String? documentPlace(L l, String? place) {
+  if (place == null) return null;
+  final split = place.indexOf(':');
+  if (split < 0) return null;
+  final value = place.substring(split + 1);
+  return switch (place.substring(0, split)) {
+    'sheet' => l.documentSheet(value),
+    'slide' => l.documentSlide(value),
+    'chapter' => l.documentChapter(value),
+    _ => null,
+  };
+}
 
 String saveTitle(L l, SavePlan plan, DateTime now) {
   final command = plan.command;

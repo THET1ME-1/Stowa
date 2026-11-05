@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType;
+import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType, OrderingTerm;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -43,6 +43,15 @@ final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 final itemsRepositoryProvider = Provider((ref) {
   final facts = ref.watch(factsPipelineProvider);
   return ItemsRepository(ref.watch(databaseProvider))..onEdited = (id) => facts.runItem(id).ignore();
+});
+
+/// Факты одной вещи по порядку: для страницы вещи.
+final itemFactsProvider = StreamProvider.autoDispose.family<List<Fact>, String>((ref, itemId) {
+  final db = ref.watch(databaseProvider);
+  return (db.select(db.facts)
+        ..where((t) => t.itemId.equals(itemId))
+        ..orderBy([(t) => OrderingTerm.asc(t.extractor), (t) => OrderingTerm.asc(t.position)]))
+      .watch();
 });
 
 /// Конвейер извлекателей: деньги, контакты, текст документов, EXIF, автор и сайт ссылки.

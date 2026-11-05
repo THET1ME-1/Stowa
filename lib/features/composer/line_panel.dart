@@ -357,13 +357,15 @@ class _RowView extends StatelessWidget {
             : _badge('squircle', kindIcon(card.kind), selected);
         title = MarkedText(text: card.title, marks: hit.marks[SearchField.title] ?? const [], style: titleStyle, markColor: markColor);
         final whereField = hit.where;
+        final fact = whereField == SearchField.facts ? hit.foundFact : null;
         var source = switch (whereField) {
           SearchField.deep => hit.doc.deep,
           SearchField.place => hit.doc.place,
+          SearchField.facts => fact?.part.text ?? '',
           _ => card.body,
         };
-        var marks = hit.marks[whereField ?? SearchField.body] ?? const <TextMark>[];
-        if (whereField != SearchField.deep && whereField != SearchField.place) {
+        var marks = fact?.marks ?? hit.marks[whereField ?? SearchField.body] ?? const <TextMark>[];
+        if (whereField != SearchField.deep && whereField != SearchField.place && whereField != SearchField.facts) {
           // первая строка заметки уже стоит заголовком, подпись берёт текст после неё
           final lineEnd = card.body.indexOf('\n');
           if (isTitleLine(lineEnd < 0 ? card.body : card.body.substring(0, lineEnd), card.title)) {
@@ -393,6 +395,7 @@ class _RowView extends StatelessWidget {
         final found = switch (whereField) {
           SearchField.deep => deepLabel(l, card.kind),
           SearchField.place => l.foundAtPlace,
+          SearchField.facts when fact != null => factLabel(l, fact.part),
           _ => host ?? kindLabel(l, card.kind),
         };
         where = _where(kindIcon(card.kind), '$found · ${card.folderName ?? l.folderNone} · ${shortDate(l, card.createdAt, now)}', whereStyle, faint);

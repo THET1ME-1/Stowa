@@ -1393,4 +1393,42 @@ class LEn extends L {
   @override
   String get fileSavingHint =>
       'You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.';
+
+  @override
+  String get foundInFile => 'in the file';
+
+  @override
+  String get foundOnPage => 'on the page';
+
+  @override
+  String get foundInPhotoInfo => 'in photo details';
+
+  @override
+  String documentSheet(Object name) {
+    return 'sheet “$name”';
+  }
+
+  @override
+  String documentSlide(Object number) {
+    return 'slide $number';
+  }
+
+  @override
+  String documentChapter(Object number) {
+    return 'chapter $number';
+  }
+
+  @override
+  String get factCall => 'Call';
+
+  @override
+  String get factWrite => 'Write';
+
+  @override
+  String get factCopy => 'Copy';
+
+  @override
+  String photoTaken(Object date) {
+    return 'Taken $date';
+  }
 }

@@ -12,7 +12,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/features/home/folders_grid.dart';
+import 'package:stowa/services/capture_service.dart';
+import 'package:stowa/services/facts/facts_pipeline.dart';
 
 import '../../test/helpers/test_app.dart';
 
@@ -302,6 +305,19 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'кино');
     await tester.pumpAndSettle();
     await _shot(tester, '16-лист-тега');
+  });
+
+  testWidgets('страница вещи с фактами', (tester) async {
+    await tester.runAsync(() async {
+      await _seed(world);
+      final capture = CaptureService(world.db, tags: TagsRepository(world.db), filesRoot: world.files, clock: () => world.now);
+      final id = await capture.capture(const CaptureInput(text: 'Мастер по диванам\nИван, +373 69 123 456, ivan.master@mail.md\nПеретяжка 4 500 лей, ткань смотреть на www.mobila.md/tkani'));
+      await FactsPipeline(world.db, filesRoot: world.files, clock: () => world.now).runItem(id);
+    });
+    await open(tester);
+    await tester.tap(find.text('Мастер по диванам').first);
+    await tester.pumpAndSettle();
+    await _shot(tester, '17-факты');
   });
 
   testWidgets('крупный шрифт на узком', (tester) async {

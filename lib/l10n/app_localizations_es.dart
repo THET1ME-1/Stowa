@@ -1394,4 +1394,42 @@ class LEs extends L {
   @override
   String get fileSavingHint =>
       'Puedes cerrar la app, el archivo terminará solo. Cuando desaparezca la barra, puedes borrar el original.';
+
+  @override
+  String get foundInFile => 'en el archivo';
+
+  @override
+  String get foundOnPage => 'en la página';
+
+  @override
+  String get foundInPhotoInfo => 'en los datos de la foto';
+
+  @override
+  String documentSheet(Object name) {
+    return 'hoja «$name»';
+  }
+
+  @override
+  String documentSlide(Object number) {
+    return 'diapositiva $number';
+  }
+
+  @override
+  String documentChapter(Object number) {
+    return 'capítulo $number';
+  }
+
+  @override
+  String get factCall => 'Llamar';
+
+  @override
+  String get factWrite => 'Escribir';
+
+  @override
+  String get factCopy => 'Copiar';
+
+  @override
+  String photoTaken(Object date) {
+    return 'Tomada el $date';
+  }
 }

@@ -133,5 +133,15 @@
   "panelLooking": "Caut: {what}",
   "foundAtPlace": "după loc",
   "fileSaving": "{count, plural, one{{count} fișier se salvează} other{{count} fișiere se salvează}}",
-  "fileSavingHint": "Poți închide aplicația, fișierul se termină singur. Când bara dispare, originalul poate fi șters."
+  "fileSavingHint": "Poți închide aplicația, fișierul se termină singur. Când bara dispare, originalul poate fi șters.",
+  "foundInFile": "în fișier",
+  "foundOnPage": "pe pagină",
+  "foundInPhotoInfo": "în datele fotografiei",
+  "documentSheet": "foaia „{name}”",
+  "documentSlide": "diapozitivul {number}",
+  "documentChapter": "capitolul {number}",
+  "factCall": "Sună",
+  "factWrite": "Scrie",
+  "factCopy": "Copiază",
+  "photoTaken": "Făcută pe {date}"
 }

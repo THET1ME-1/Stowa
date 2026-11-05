@@ -1398,4 +1398,42 @@ class LDe extends L {
   @override
   String get fileSavingHint =>
       'Du kannst die App schließen, die Datei wird von selbst fertig. Ist der Balken weg, kann das Original gelöscht werden.';
+
+  @override
+  String get foundInFile => 'in der Datei';
+
+  @override
+  String get foundOnPage => 'auf der Seite';
+
+  @override
+  String get foundInPhotoInfo => 'in den Fotodaten';
+
+  @override
+  String documentSheet(Object name) {
+    return 'Blatt „$name“';
+  }
+
+  @override
+  String documentSlide(Object number) {
+    return 'Folie $number';
+  }
+
+  @override
+  String documentChapter(Object number) {
+    return 'Kapitel $number';
+  }
+
+  @override
+  String get factCall => 'Anrufen';
+
+  @override
+  String get factWrite => 'Schreiben';
+
+  @override
+  String get factCopy => 'Kopieren';
+
+  @override
+  String photoTaken(Object date) {
+    return 'Aufgenommen am $date';
+  }
 }

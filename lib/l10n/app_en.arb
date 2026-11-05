@@ -1787,5 +1787,45 @@
   "fileSavingHint": "You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.",
   "@fileSavingHint": {
     "description": "Пояснение под «Сохраняю файл»"
+  },
+  "foundInFile": "in the file",
+  "@foundInFile": {
+    "description": "Подпись у найденного: слово нашлось в тексте приложенного документа"
+  },
+  "foundOnPage": "on the page",
+  "@foundOnPage": {
+    "description": "Подпись у найденного: слово нашлось в авторе или описании страницы ссылки"
+  },
+  "foundInPhotoInfo": "in photo details",
+  "@foundInPhotoInfo": {
+    "description": "Подпись у найденного: слово нашлось в камере из EXIF"
+  },
+  "documentSheet": "sheet “{name}”",
+  "@documentSheet": {
+    "description": "Где в таблице нашлось: имя листа"
+  },
+  "documentSlide": "slide {number}",
+  "@documentSlide": {
+    "description": "Где в презентации нашлось: номер слайда"
+  },
+  "documentChapter": "chapter {number}",
+  "@documentChapter": {
+    "description": "Где в книге EPUB нашлось: номер главы"
+  },
+  "factCall": "Call",
+  "@factCall": {
+    "description": "Подсказка у телефона из текста вещи"
+  },
+  "factWrite": "Write",
+  "@factWrite": {
+    "description": "Подсказка у почты из текста вещи"
+  },
+  "factCopy": "Copy",
+  "@factCopy": {
+    "description": "Подсказка у суммы из текста вещи"
+  },
+  "photoTaken": "Taken {date}",
+  "@photoTaken": {
+    "description": "Под заголовком фото: дата съёмки из EXIF, например «Снято 3 мая 2024»"
   }
 }

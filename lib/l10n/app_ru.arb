@@ -381,5 +381,15 @@
   "panelLooking": "Ищу: {what}",
   "foundAtPlace": "по месту",
   "fileSaving": "{count, plural, one{Сохраняю файл} few{Сохраняю {count} файла} other{Сохраняю {count} файлов}}",
-  "fileSavingHint": "Можно закрыть приложение: файл доляжет сам. Когда полоска пропадёт, оригинал можно удалить."
+  "fileSavingHint": "Можно закрыть приложение: файл доляжет сам. Когда полоска пропадёт, оригинал можно удалить.",
+  "foundInFile": "в файле",
+  "foundOnPage": "на странице",
+  "foundInPhotoInfo": "в данных фото",
+  "documentSheet": "лист «{name}»",
+  "documentSlide": "слайд {number}",
+  "documentChapter": "глава {number}",
+  "factCall": "Позвонить",
+  "factWrite": "Написать",
+  "factCopy": "Скопировать",
+  "photoTaken": "Снято {date}"
 }

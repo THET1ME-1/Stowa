@@ -2398,6 +2398,66 @@ abstract class L {
   /// In en, this message translates to:
   /// **'You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.'**
   String get fileSavingHint;
+
+  /// Подпись у найденного: слово нашлось в тексте приложенного документа
+  ///
+  /// In en, this message translates to:
+  /// **'in the file'**
+  String get foundInFile;
+
+  /// Подпись у найденного: слово нашлось в авторе или описании страницы ссылки
+  ///
+  /// In en, this message translates to:
+  /// **'on the page'**
+  String get foundOnPage;
+
+  /// Подпись у найденного: слово нашлось в камере из EXIF
+  ///
+  /// In en, this message translates to:
+  /// **'in photo details'**
+  String get foundInPhotoInfo;
+
+  /// Где в таблице нашлось: имя листа
+  ///
+  /// In en, this message translates to:
+  /// **'sheet “{name}”'**
+  String documentSheet(Object name);
+
+  /// Где в презентации нашлось: номер слайда
+  ///
+  /// In en, this message translates to:
+  /// **'slide {number}'**
+  String documentSlide(Object number);
+
+  /// Где в книге EPUB нашлось: номер главы
+  ///
+  /// In en, this message translates to:
+  /// **'chapter {number}'**
+  String documentChapter(Object number);
+
+  /// Подсказка у телефона из текста вещи
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get factCall;
+
+  /// Подсказка у почты из текста вещи
+  ///
+  /// In en, this message translates to:
+  /// **'Write'**
+  String get factWrite;
+
+  /// Подсказка у суммы из текста вещи
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get factCopy;
+
+  /// Под заголовком фото: дата съёмки из EXIF, например «Снято 3 мая 2024»
+  ///
+  /// In en, this message translates to:
+  /// **'Taken {date}'**
+  String photoTaken(Object date);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
