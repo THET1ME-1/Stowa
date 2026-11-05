@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -53,6 +54,59 @@ void main() {
 
   FetchReply page(String html) => FetchReply(200, utf8.encode(html), 'text/html; charset=utf-8');
   final png = FetchReply(200, base64.decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='), 'image/png');
+
+  group('очередь превью', () {
+    Future<void> link(String id, String url) => db.into(db.items).insert(ItemsCompanion.insert(id: id, kind: ItemKind.link, title: url, body: Value(url), url: Value(url), createdAt: now, updatedAt: now));
+    Future<String> titleOf(String id) async => (await (db.select(db.items)..where((t) => t.id.equals(id))).getSingle()).title;
+
+    test('ссылка, пришедшая посреди разбора, не теряется и идёт раньше старых', () async {
+      await link('old', 'https://slow.md/old');
+      await link('old2', 'https://slow.md/old2');
+      final slow = Completer<void>();
+      final order = <String>[];
+      final previews = LinkPreviewService(
+        db,
+        filesRoot: home,
+        clock: () => now,
+        fetch: (uri) async {
+          order.add(uri.host == 'slow.md' ? uri.path : uri.host);
+          if (uri.path == '/old') await slow.future;
+          return page('<title>${uri.host}${uri.path}</title>');
+        },
+      );
+      final first = previews.run(['old', 'old2']);
+      await Future<void>.delayed(Duration.zero);
+      // пока старая ссылка грузится, человек поделился новой
+      await link('new', 'https://new.md/');
+      final second = previews.run(['new', 'old', 'old2']);
+      slow.complete();
+      await Future.wait([first, second]);
+      expect(await titleOf('new'), 'new.md/');
+      expect(order, ['/old', 'new.md', '/old2']);
+    });
+
+    test('сорвалась одна попытка — ссылка не заперта до перезапуска, retry пробует снова', () async {
+      await link('a', 'https://site.md/');
+      var calls = 0;
+      final previews = LinkPreviewService(
+        db,
+        filesRoot: home,
+        clock: () => now,
+        fetch: (uri) async {
+          calls++;
+          if (calls == 1) throw const SocketException('оборвалась');
+          return page('<title>Страница</title>');
+        },
+      );
+      await previews.run(['a']);
+      // следующий проход сразу после неудачи сайт заново не долбит
+      await previews.run(['a']);
+      expect(calls, 1);
+      // вернулся в приложение или появилась сеть — пробует снова
+      await previews.retry(['a']);
+      expect(await titleOf('a'), 'Страница');
+    });
+  });
 
   group('TikTok', () {
     String tiktokPage(Map<String, Object?> item) =>

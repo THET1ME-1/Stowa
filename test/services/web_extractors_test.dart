@@ -137,6 +137,56 @@ void main() {
     expect(asked, isEmpty);
   });
 
+  group('папка 18+', () {
+    Future<void> folder(String id, String name, {DateTime? deletedAt}) =>
+        db.into(db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: 'pill', deletedAt: Value(deletedAt)));
+    Future<void> place(String id, String folderId, SortedBy by) =>
+        (db.update(db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(folderId: Value(folderId), sortedBy: Value(by)));
+    Future<List<Folder>> adultFolders() => (db.select(db.folders)..where((t) => t.name.equals('18+'))).get();
+
+    test('вещи 18+ уезжают в папку «18+», папка создаётся одна', () async {
+      await link('a', 'https://www.xvideos.com/video1/x');
+      await link('b', 'https://rt.pornhub.com/view_video.php?viewkey=1');
+      await link('c', 'https://food.md/soup');
+      await pipeline().sweep();
+      final folders = await adultFolders();
+      expect(folders, hasLength(1));
+      expect(folders.single.icon, 'explicit');
+      expect((await item('a')).folderId, folders.single.id);
+      expect((await item('b')).folderId, folders.single.id);
+      expect((await item('b')).sortedBy, SortedBy.rule);
+      expect((await item('c')).folderId, isNull);
+    });
+
+    test('угадыватель и ИИ уступают, а разложенное руками и своим правилом остаётся', () async {
+      await folder('recipes', 'Рецепты');
+      for (final (id, by) in [('similar', SortedBy.similar), ('ai', SortedBy.ai), ('user', SortedBy.user), ('rule', SortedBy.rule)]) {
+        await link(id, 'https://www.xvideos.com/$id');
+        await place(id, 'recipes', by);
+      }
+      await pipeline().sweep();
+      final adult = (await adultFolders()).single.id;
+      expect((await item('similar')).folderId, adult);
+      expect((await item('ai')).folderId, adult);
+      expect((await item('user')).folderId, 'recipes');
+      expect((await item('rule')).folderId, 'recipes');
+    });
+
+    test('уже есть своя папка «18+» — вещи туда, вторая не заводится; удалил папку — заново не появляется', () async {
+      await folder('mine', '18+');
+      await link('a', 'https://www.xvideos.com/a');
+      await pipeline().sweep();
+      expect((await item('a')).folderId, 'mine');
+      expect(await adultFolders(), hasLength(1));
+
+      await (db.update(db.folders)..where((t) => t.id.equals('mine'))).write(FoldersCompanion(deletedAt: Value(now)));
+      await link('b', 'https://www.xvideos.com/b');
+      await pipeline().sweep();
+      expect((await item('b')).folderId, isNull);
+      expect(await adultFolders(), hasLength(1));
+    });
+  });
+
   test('прошедшее событие напоминания не ставит', () async {
     await link('e', 'https://afisha.md/old');
     await savePage(home, 'e', '<script type="application/ld+json">{"@type":"Event","name":"Было","startDate":"2026-10-01T19:00:00"}</script>');

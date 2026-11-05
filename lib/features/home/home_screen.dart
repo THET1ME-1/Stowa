@@ -82,6 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       if (next.value != true || previous?.value == true) return;
       ref.read(aiDrainProvider)().ignore();
       ref.read(telegramPullProvider)().ignore();
+      _retryPreviews();
     });
     // старые вещи под нынешние правила: размеры картинок для доски и заголовки вместо имён файлов
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -161,6 +162,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     showUndo(ScaffoldMessenger.of(context), message: l.autoSorted(moved.length), label: l.undo, onUndo: () => sorter.undoSort(moved), overDock: true);
   }
 
+  /// Ссылки, превью которых сорвалось (сеть оборвалась, телефон уснул), — ещё раз.
+  void _retryPreviews() {
+    final ids = ref.read(pendingPreviewsProvider).value;
+    if (ids != null && ids.isNotEmpty) ref.read(linkPreviewServiceProvider).retry(ids).ignore();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // ушёл из приложения, а файл ещё ложится: система доделает, даже если Stowa выгрузят
@@ -172,6 +179,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     if (state != AppLifecycleState.resumed) return;
     ref.read(captureServiceProvider).files.drain().ignore();
     _sweepFacts().ignore();
+    _retryPreviews();
     final launch = _pendingLaunch;
     _pendingLaunch = null;
     _onLaunch(launch);

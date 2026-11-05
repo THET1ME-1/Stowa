@@ -98,23 +98,41 @@ class LinkPreviewService {
   /// Превью записано: у вещи появились заголовок и описание страницы.
   final Future<void> Function(String itemId)? onPreviewed;
 
-  /// Вещи, до которых в этом запуске сеть не достучалась: второй раз не пробуем,
-  /// иначе без интернета очередь крутилась бы по кругу.
+  /// Вещи, до которых сеть не достучалась: до [retry] (возврат в приложение, появилась сеть)
+  /// не пробуем, иначе без интернета очередь крутилась бы по кругу.
   final _failed = <String>{};
   bool _running = false;
 
-  /// Разобрать очередь: вещи со ссылкой без превью, по одной.
+  // список, пришедший посреди разбора: раньше он отбрасывался, и новая ссылка
+  // ждала следующей правки в базе или перезапуска
+  List<String>? _wanted;
+
+  /// Разобрать очередь: вещи со ссылкой без превью, по одной, свежие первыми.
   Future<void> run(List<String> ids) async {
+    _wanted = ids;
     if (_running) return;
     _running = true;
+    final handled = <String>{};
     try {
-      for (final id in ids) {
-        if (_failed.contains(id)) continue;
-        if (!await fetchFor(id)) _failed.add(id);
+      while (_wanted != null) {
+        final batch = _wanted!;
+        _wanted = null;
+        for (final id in batch) {
+          // пришёл новый список — начать с него: свежая ссылка не ждёт за старыми
+          if (_wanted != null) break;
+          if (_failed.contains(id) || !handled.add(id)) continue;
+          if (!await fetchFor(id)) _failed.add(id);
+        }
       }
     } finally {
       _running = false;
     }
+  }
+
+  /// Снова попробовать то, что сорвалось: вернулись в приложение или появилась сеть.
+  Future<void> retry(List<String> ids) {
+    _failed.removeAll(ids);
+    return run(ids);
   }
 
   /// Загрузить превью одной вещи. Ложь — сеть не ответила, стоит попробовать потом.

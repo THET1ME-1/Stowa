@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/db/database.dart';
 import '../../domain/link_preview.dart' show decodePage;
@@ -95,9 +96,10 @@ class PageExtractor extends Extractor {
   String get name => 'page';
 
   // 2: адрес без повторов города и региона; 3: и без города, повторённого в улице;
-  // 4: сериал и манга отдельно от фильма и книги, жанры, страницы 18+; 5: и сайты 18+ по адресу
+  // 4: сериал и манга отдельно от фильма и книги, жанры, страницы 18+; 5: и сайты 18+ по адресу;
+  // 6: вещи 18+ — в свою папку
   @override
-  int get version => 5;
+  int get version => 6;
   @override
   String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
   @override
@@ -119,6 +121,7 @@ class PageExtractor extends Extractor {
 
   @override
   Future<void> after(AppDatabase db, Item item, List<FactDraft> facts, {required bool firstRun, required DateTime now}) async {
+    if (facts.any((fact) => fact.kind == FactKind.adult)) await _toAdultFolder(db, item);
     final start = facts.where((fact) => fact.kind == FactKind.eventStart).map((fact) => fact.at).nonNulls.firstOrNull;
     // напоминание ставится один раз: снял человек — больше не возвращается
     if (firstRun && start != null && item.reminderAt == null && start.isAfter(now)) {
@@ -127,6 +130,31 @@ class PageExtractor extends Extractor {
     }
   }
 }
+
+/// Вещь 18+ — в папку «18+». Уступают ей только догадки (угадыватель, ИИ);
+/// разложенное руками и своим правилом остаётся где было. Папку заводит сама,
+/// а удалённую человеком заново не заводит.
+Future<void> _toAdultFolder(AppDatabase db, Item item) async {
+  const guesses = [SortedBy.none, SortedBy.similar, SortedBy.ai];
+  if (!guesses.contains(item.sortedBy)) return;
+  final existing = await (db.select(db.folders)..where((t) => t.name.equals(adultFolderName))).get();
+  if (existing.isNotEmpty && existing.every((folder) => folder.deletedAt != null)) return;
+  var folderId = existing.where((folder) => folder.deletedAt == null).firstOrNull?.id;
+  if (folderId == null) {
+    folderId = const Uuid().v4();
+    final count = await db.folders.count().getSingle();
+    await db.into(db.folders).insert(
+      FoldersCompanion.insert(id: folderId, name: adultFolderName, icon: 'explicit', shape: 'cookie9', sortOrder: Value(count), createdByAi: const Value(true)),
+    );
+  }
+  if (item.folderId == folderId) return;
+  await (db.update(db.items)..where((t) => t.id.equals(item.id))).write(
+    ItemsCompanion(folderId: Value(folderId), sortedBy: const Value(SortedBy.rule), sortState: const Value(SortState.sorted)),
+  );
+}
+
+/// Имя папки для вещей 18+: одинаковое на всех языках.
+const adultFolderName = '18+';
 
 const _linkItems = "items.url IS NOT NULL AND items.kind IN ('link', 'video')";
 
