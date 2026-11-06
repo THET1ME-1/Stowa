@@ -27,6 +27,7 @@ import 'folders_grid.dart';
 import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
 import '../returns/return_screen.dart' show notificationRoute;
+import '../places/place_always_card.dart';
 import 'recent_strip.dart';
 import 'return_pills.dart';
 import 'section_header.dart';
@@ -244,6 +245,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     _retryPreviews();
     // пока приложение было свёрнуто, могло сработать напоминание по месту — снять его
     _syncPlaces().ignore();
+    // вернулся из системных настроек — место «всегда» могли разрешить
+    ref.invalidate(placeNeedsAlwaysProvider);
     // пока приложение было свёрнуто, файлы могли поправить снаружи (Obsidian, Syncthing)
     ref.read(vaultSyncProvider).run().ignore();
     _watchVault();
@@ -364,6 +367,8 @@ class _Feed extends ConsumerWidget {
           ),
         // спросить про уведомления один раз, когда уже есть что возвращать
         if (recent.isNotEmpty && ref.watch(returnsAskedProvider).value == false) const SliverToBoxAdapter(child: ReturnsAskCard()),
+        // напоминание по месту поставлено, а без места «всегда» оно не сработает
+        const SliverToBoxAdapter(child: PlaceAlwaysCard()),
         const SliverToBoxAdapter(child: ReturnPills()),
         // снаружи пришло много заметок (Syncthing, компьютер): видно, что приложение их забирает
         SliverToBoxAdapter(child: VaultSyncBar(sync: ref.watch(vaultSyncProvider))),

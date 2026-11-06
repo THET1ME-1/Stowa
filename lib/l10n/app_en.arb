@@ -2609,5 +2609,9 @@
   "placeChannel": "Place reminders",
   "@placeChannel": {
     "description": "Канал уведомлений Android: напоминания дома, на работе, в магазине, в точке"
+  },
+  "remindPlaceNeedsAlways": "I'll remind you there if location is allowed all the time",
+  "@remindPlaceNeedsAlways": {
+    "description": "Плашка после напоминания по месту, когда нет разрешения на место «всегда»"
   }
 }

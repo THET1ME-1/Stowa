@@ -291,5 +291,6 @@
   "placesMissingHome": "Tu casa aún no está definida: Stowa te avisará cuando la definas en Lugares",
   "placesMissingWork": "Tu trabajo aún no está definido: Stowa te avisará cuando lo definas en Lugares",
   "placesMissingShop": "Aún no hay tiendas: guarda al menos una en Lugares",
-  "placeChannel": "Recordatorios por lugar"
+  "placeChannel": "Recordatorios por lugar",
+  "remindPlaceNeedsAlways": "Te lo recordaré allí si permites la ubicación «siempre»"
 }

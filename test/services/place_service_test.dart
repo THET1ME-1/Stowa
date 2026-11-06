@@ -10,9 +10,13 @@ class FakePlaces implements PlaceSource {
   PlaceFix? fix;
   int asked = 0;
 
+  /// Можно ли было показать системное окно разрешения при каждом запросе.
+  final prompts = <bool>[];
+
   @override
-  Future<PlaceFix?> current() async {
+  Future<PlaceFix?> current({bool ask = true}) async {
     asked++;
+    prompts.add(ask);
     return fix;
   }
 }
@@ -38,6 +42,14 @@ void main() {
     expect(saved.latitude, 47.0245);
     expect(saved.longitude, 28.8323);
     expect(saved.placeName, 'Ботаника, Кишинёв');
+  });
+
+  test('обычное сохранение окно разрешения не показывает, «напомни тут» — показывает', () async {
+    final places = FakePlaces(const PlaceFix(latitude: 47, longitude: 28));
+    await PlaceService(db, source: places, clock: () => now, enabled: () => true).stamp('a');
+    await (db.update(db.items)..where((t) => t.id.equals('b'))).write(const ItemsCompanion(remindPlace: Value(PlaceReminderKind.point)));
+    await PlaceService(db, source: places, clock: () => now, enabled: () => true).stamp('b');
+    expect(places.prompts, [false, true]);
   });
 
   test('выключено в настройках — телефон о месте не спрашивают', () async {

@@ -43,6 +43,12 @@ void main() {
     expect(one.payload, 'tooth');
   });
 
+  test('пересчёт при открытии разрешение не спрашивает: окно — только по действию человека', () async {
+    await service.sync([(id: 'tooth', title: 'Зубной', body: '', at: DateTime(2026, 11, 4, 10))], now);
+    expect(port.scheduled, hasLength(1));
+    expect(port.asked, 0);
+  });
+
   test('текст под заголовком: первая живая строка после заголовка, без разметки, коротко', () {
     expect(reminderText('Зубной', 'Зубной\n\n- [ ] взять снимок\n- [ ] деньги'), 'взять снимок');
     expect(reminderText('Зубной', 'Зубной'), '');
@@ -70,14 +76,6 @@ void main() {
     expect(port.cancels, 1);
     await service.sync(const [], now);
     expect(port.scheduled, isEmpty);
-  });
-
-  test('разрешение спрашивается один раз и только когда есть что ставить', () async {
-    await service.sync(const [], now);
-    expect(port.asked, 0);
-    await service.sync([(id: 'a', title: 'А', body: '', at: now.add(const Duration(hours: 1)))], now);
-    await service.sync([(id: 'b', title: 'Б', body: '', at: now.add(const Duration(hours: 2)))], now);
-    expect(port.asked, 1);
   });
 
   test('у одной вещи всегда один и тот же номер уведомления', () {

@@ -2083,4 +2083,8 @@ class LRu extends L {
 
   @override
   String get placeChannel => 'Напоминания по месту';
+
+  @override
+  String get remindPlaceNeedsAlways =>
+      'Напомню у места, если разрешишь место «всегда»';
 }

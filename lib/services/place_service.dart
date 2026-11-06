@@ -21,7 +21,9 @@ class PlaceFix {
 
 /// Откуда берётся место. Настоящий — GPS телефона, в тестах — подставной.
 abstract interface class PlaceSource {
-  Future<PlaceFix?> current();
+  /// [ask] — можно показать системное окно разрешения: только по действию человека
+  /// («напомни тут»), а не при обычном сохранении заметки.
+  Future<PlaceFix?> current({bool ask = true});
 }
 
 /// Одно место живёт столько: заметки подряд не дёргают GPS каждый раз.
@@ -52,7 +54,8 @@ class PlaceService {
     final remindHere = item?.remindPlace == PlaceReminderKind.point && item?.remindLatitude == null;
     final enabled = _enabled();
     if (!enabled && !remindHere) return;
-    final fix = await _fix();
+    // обычное сохранение место берёт, только если оно уже разрешено; «напомни тут» просил сам человек
+    final fix = await _fix(ask: remindHere);
     if (fix == null) return;
     await (_db.update(_db.items)..where((t) => t.id.equals(itemId))).write(
       ItemsCompanion(
@@ -66,11 +69,11 @@ class PlaceService {
     );
   }
 
-  Future<PlaceFix?> _fix() async {
+  Future<PlaceFix?> _fix({required bool ask}) async {
     final at = _lastAt;
     if (_last != null && at != null && _clock().difference(at) < _fixFresh) return _last;
     // две вещи за секунду: второй запрос ждёт первый, а не просит GPS снова
-    final fix = await (_asking ??= _source.current().whenComplete(() => _asking = null));
+    final fix = await (_asking ??= _source.current(ask: ask).whenComplete(() => _asking = null));
     if (fix != null) {
       _last = fix;
       _lastAt = _clock();
@@ -129,11 +132,11 @@ class DevicePlaceSource implements PlaceSource {
   final String Function() language;
 
   @override
-  Future<PlaceFix?> current() async {
+  Future<PlaceFix?> current({bool ask = true}) async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) return null;
       var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied && ask) permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) return null;
 
       var position = await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);

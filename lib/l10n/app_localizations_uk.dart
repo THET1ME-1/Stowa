@@ -2078,4 +2078,8 @@ class LUk extends L {
 
   @override
   String get placeChannel => 'Нагадування за місцем';
+
+  @override
+  String get remindPlaceNeedsAlways =>
+      'Нагадаю на місці, якщо дозволиш місце «завжди»';
 }

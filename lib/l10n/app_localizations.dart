@@ -3346,6 +3346,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Place reminders'**
   String get placeChannel;
+
+  /// Плашка после напоминания по месту, когда нет разрешения на место «всегда»
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll remind you there if location is allowed all the time'**
+  String get remindPlaceNeedsAlways;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

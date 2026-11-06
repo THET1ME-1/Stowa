@@ -12,6 +12,7 @@ import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/services/place_channel.dart';
 import 'package:stowa/services/place_service.dart';
+import 'package:stowa/services/reminder_service.dart';
 import 'package:stowa/services/telegram_service.dart';
 import 'package:stowa/services/vault/vault_location.dart';
 import 'package:stowa/l10n/app_localizations.dart';
@@ -48,7 +49,20 @@ class TestWorld {
   /// Где телефон «сейчас» для «Я сейчас дома».
   PlaceFix? currentPlace;
 
+  /// Уведомления: сколько раз спросили разрешение.
+  final notifications = FakeNotificationPort();
+
+  /// Место «пока открыто» разрешено и сколько раз его спросили.
+  var placeGranted = true;
+  var placeAsked = 0;
+
   List<Override> get overrides => [
+        notificationPortProvider.overrideWithValue(notifications),
+        placeGrantedProvider.overrideWith((ref) async => placeGranted),
+        askPlaceProvider.overrideWithValue(() async {
+          placeAsked++;
+          return placeGranted = true;
+        }),
         databaseProvider.overrideWithValue(db),
         startFilesRootProvider.overrideWithValue(files),
         appSupportProvider.overrideWithValue(files),
@@ -122,6 +136,22 @@ class TestWorld {
 }
 
 /// Android мест в тестах: разрешение, сеть и тревоги — поля, которые тест читает и ставит.
+class FakeNotificationPort implements NotificationPort {
+  var asked = 0;
+
+  @override
+  Future<void> ensurePermission() async => asked++;
+
+  @override
+  Future<void> cancelAll() async {}
+
+  @override
+  Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
+
+  @override
+  Future<void> show({required int id, required String title, required String body, required String payload}) async {}
+}
+
 class FakePlaceChannel implements PlaceChannel {
   var background = false;
   var asked = 0;

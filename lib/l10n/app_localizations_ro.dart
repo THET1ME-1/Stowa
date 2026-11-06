@@ -2055,4 +2055,8 @@ class LRo extends L {
 
   @override
   String get placeChannel => 'Mementouri după loc';
+
+  @override
+  String get remindPlaceNeedsAlways =>
+      'Îți reamintesc acolo dacă permiți locația „mereu”';
 }

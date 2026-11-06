@@ -2043,4 +2043,8 @@ class LDe extends L {
 
   @override
   String get placeChannel => 'Ortserinnerungen';
+
+  @override
+  String get remindPlaceNeedsAlways =>
+      'Ich erinnere dich vor Ort, wenn der Standort „immer“ erlaubt ist';
 }

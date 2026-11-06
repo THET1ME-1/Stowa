@@ -107,6 +107,20 @@ void main() {
     }
   });
 
+  testWidgets('«Запоминать, где сохранено» без разрешения выключено; включение спрашивает место', (tester) async {
+    world.placeGranted = false;
+    await open(tester, keyStatus: 200);
+    await tester.scrollUntilVisible(find.text('Запоминать, где сохранено'), 100);
+    final toggle = find.ancestor(of: find.text('Запоминать, где сохранено'), matching: find.byType(InkWell)).first;
+    Switch shown() => tester.widget<Switch>(find.descendant(of: find.ancestor(of: find.text('Запоминать, где сохранено'), matching: find.byType(Row)).first, matching: find.byType(Switch)));
+    expect(shown().value, isFalse);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(world.placeAsked, 1);
+    expect(shown().value, isTrue);
+    expect(settings.placeEnabled, isTrue);
+  });
+
   testWidgets('раздел «Возвращать»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
     await open(tester, keyStatus: 200);
     for (final label in ['Возвращать', 'Посмотреть потом', 'В этот день', 'Сводка недели', '20:00', '22:00–08:00', 'воскресенье']) {
@@ -119,6 +133,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.returns.week, isFalse);
     expect(settings.returns.watchLater, isTrue);
+    // выключение не спрашивает, включение — спрашивает разрешение на уведомления
+    expect(world.notifications.asked, 0);
+    await tester.tap(find.text('Сводка недели'));
+    await tester.pumpAndSettle();
+    expect(settings.returns.week, isTrue);
+    expect(world.notifications.asked, 1);
 
     await tester.scrollUntilVisible(find.text('День сводки'), 100);
     await tester.tap(find.text('День сводки'));

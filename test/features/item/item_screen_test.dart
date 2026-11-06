@@ -39,7 +39,23 @@ void main() {
     expect(await world.db.select(world.db.vaultQueue).get(), everyElement(predicate<VaultQueueData>((row) => row.target != 'item:a' || row.version == 1)));
   });
 
+  testWidgets('напоминание по месту без места «всегда»: спрашивает уведомления и предлагает разрешить место', (tester) async {
+    world.currentPlace = const PlaceFix(latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв');
+    await open(tester, body: 'Купить кофе', title: 'Купить кофе');
+    expect(world.notifications.asked, 0);
+    await tester.tap(find.byTooltip('Напомнить'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Напомнить здесь'));
+    await tester.pumpAndSettle();
+    expect(world.notifications.asked, 1);
+    expect(find.text('Напомню у места, если разрешишь место «всегда»'), findsOneWidget);
+    await tester.tap(find.text('Разрешить'));
+    await tester.pumpAndSettle();
+    expect(world.placeChannel.asked, 1);
+  });
+
   testWidgets('«Напомнить» → «Напомнить дома»: плашка места; дом не отмечен — так и сказано; убрать', (tester) async {
+    world.placeChannel.background = true;
     await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
     await tester.tap(find.byTooltip('Напомнить'));
     await tester.pumpAndSettle();

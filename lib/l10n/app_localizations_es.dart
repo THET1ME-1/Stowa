@@ -2040,4 +2040,8 @@ class LEs extends L {
 
   @override
   String get placeChannel => 'Recordatorios por lugar';
+
+  @override
+  String get remindPlaceNeedsAlways =>
+      'Te lo recordaré allí si permites la ubicación «siempre»';
 }

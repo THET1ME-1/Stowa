@@ -2079,4 +2079,8 @@ class LPl extends L {
 
   @override
   String get placeChannel => 'Przypomnienia o miejscu';
+
+  @override
+  String get remindPlaceNeedsAlways =>
+      'Przypomnę na miejscu, jeśli zezwolisz na lokalizację „zawsze”';
 }

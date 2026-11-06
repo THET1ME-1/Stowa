@@ -266,6 +266,37 @@ final placeChangesProvider = StreamProvider((ref) {
   return db.customSelect('SELECT 1', readsFrom: {db.items, db.places, db.itemTags, db.tags}).watch();
 });
 
+/// Место «пока открыто» разрешено. Тесты подменяют.
+final placeGrantedProvider = FutureProvider.autoDispose<bool>((ref) async {
+  try {
+    final permission = await Geolocator.checkPermission();
+    return permission == LocationPermission.whileInUse || permission == LocationPermission.always;
+  } catch (_) {
+    return false;
+  }
+});
+
+/// Спросить место — по действию человека (включил «Запоминать, где сохранено»), не при сохранении.
+final askPlaceProvider = Provider<Future<bool> Function()>(
+  (ref) => () async {
+    try {
+      final permission = await Geolocator.requestPermission();
+      return permission == LocationPermission.whileInUse || permission == LocationPermission.always;
+    } catch (_) {
+      return false;
+    }
+  },
+);
+
+/// Есть напоминание по месту, а места «всегда» нет: оно молча не сработает. Карточка на главной.
+/// Разрешение меняют в системных настройках — главная пересчитывает при возврате в приложение.
+final placeNeedsAlwaysProvider = StreamProvider.autoDispose<bool>((ref) {
+  final db = ref.watch(databaseProvider);
+  final channel = ref.watch(placeChannelProvider);
+  final waiting = db.customSelect('SELECT count(*) AS n FROM items WHERE remind_place IS NOT NULL AND deleted_at IS NULL', readsFrom: {db.items}).watchSingle();
+  return waiting.asyncMap((row) async => row.read<int>('n') > 0 && !await channel.hasBackground());
+});
+
 /// «Похоже, дом — Ботаника»: где сохраняют ночью и в будни днём.
 final placeGuessProvider = FutureProvider.autoDispose((ref) async => guessHomeAndWork(await ref.watch(placesRepositoryProvider).savedPoints()));
 

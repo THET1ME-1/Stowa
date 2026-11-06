@@ -59,10 +59,13 @@ void main() {
     await open(tester);
     await type(tester, 'напомни дома купить хлеб');
     expect(find.text('Напомнить дома'), findsOneWidget);
+    expect(world.notifications.asked, 0);
     await tester.tap(find.text('Закинуть').last);
     await tester.pumpAndSettle();
     var item = await world.db.select(world.db.items).getSingle();
     expect((item.remindPlace, item.title), (PlaceReminderKind.home, 'Купить хлеб'));
+    // разрешение на уведомления — в момент, когда напоминание поставлено, не при открытии
+    expect(world.notifications.asked, 1);
 
     await world.db.delete(world.db.items).go();
     await type(tester, 'когда приду на работу отдать ключи');

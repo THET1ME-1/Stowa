@@ -2038,4 +2038,8 @@ class LEn extends L {
 
   @override
   String get placeChannel => 'Place reminders';
+
+  @override
+  String get remindPlaceNeedsAlways =>
+      'I\'ll remind you there if location is allowed all the time';
 }

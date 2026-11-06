@@ -291,5 +291,6 @@
   "placesMissingHome": "Acasă nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri",
   "placesMissingWork": "Serviciul nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri",
   "placesMissingShop": "Încă nu ai magazine: salvează măcar unul în Locuri",
-  "placeChannel": "Mementouri după loc"
+  "placeChannel": "Mementouri după loc",
+  "remindPlaceNeedsAlways": "Îți reamintesc acolo dacă permiți locația „mereu”"
 }

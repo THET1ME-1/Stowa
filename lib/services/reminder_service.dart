@@ -56,7 +56,7 @@ class SilentNotificationPort implements NotificationPort {
 
 /// Система уведомлений за тонкой стенкой: в тестах её подменяют.
 abstract interface class NotificationPort {
-  /// Разрешения на уведомления и точные будильники: спрашиваются, когда есть что ставить.
+  /// Разрешение на уведомления: спрашивается по действию человека, не при открытии.
   Future<void> ensurePermission();
 
   /// Снять запланированные будильники напоминаний. Уже показанные уведомления остаются:
@@ -76,7 +76,6 @@ class ReminderService {
 
   final NotificationPort _port;
   String? _last;
-  bool _asked = false;
 
   Future<void> sync(List<Reminder> reminders, DateTime now) async {
     final coming = reminders.where((one) => one.at.isAfter(now)).toList()..sort((a, b) => a.at.compareTo(b.at));
@@ -85,10 +84,8 @@ class ReminderService {
     final key = planned.map((one) => '${one.id}|${one.at.toIso8601String()}|${one.title}|${one.body}').join('\n');
     if (key == _last) return;
     _last = key;
-    if (planned.isNotEmpty && !_asked) {
-      _asked = true;
-      await _port.ensurePermission();
-    }
+    // разрешение здесь не спрашиваем: пересчёт идёт при открытии, а окно должно появляться
+    // по действию — поставил напоминание, включил возврат (askReminderPermissions)
     await _port.cancelAll();
     for (final one in planned) {
       await _port.schedule(id: notificationId(one.id), title: one.title, body: one.body, at: one.at, payload: one.id);
@@ -140,6 +137,8 @@ class LocalNotificationPort implements NotificationPort {
     final launch = await _plugin.getNotificationAppLaunchDetails();
     final payload = launch?.notificationResponse?.payload;
     if (launch?.didNotificationLaunchApp == true && payload != null) onOpen?.call(payload);
+    // точные будильники только узнаём: спрашивать нечего, USE_EXACT_ALARM выдан с установкой
+    _exact = await _android?.canScheduleExactNotifications() ?? false;
     _ready = true;
   }
 

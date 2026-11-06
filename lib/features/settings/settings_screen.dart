@@ -25,6 +25,7 @@ import '../../services/ai_client.dart';
 import '../../services/backup_service.dart';
 import '../../services/telegram_service.dart';
 import '../places/places_screen.dart';
+import '../places/reminder_permissions.dart';
 import '../tags/tags_screen.dart';
 import '../vault/vault_actions.dart';
 import 'ai_log_screen.dart';
@@ -105,8 +106,16 @@ class SettingsScreen extends ConsumerWidget {
                 _SwitchRow(
                   icon: 'location_on',
                   title: l.placeSetting,
-                  value: ref.watch(placeEnabledProvider).value ?? true,
-                  onChanged: (on) => ref.read(settingsRepositoryProvider).setPlaceEnabled(on),
+                  // без разрешения место не пишется — переключатель так и показывает
+                  value: (ref.watch(placeEnabledProvider).value ?? true) && (ref.watch(placeGrantedProvider).value ?? true),
+                  onChanged: (on) async {
+                    if (on && ref.read(placeGrantedProvider).value == false) {
+                      final granted = await ref.read(askPlaceProvider)();
+                      ref.invalidate(placeGrantedProvider);
+                      if (!granted) return;
+                    }
+                    await ref.read(settingsRepositoryProvider).setPlaceEnabled(on);
+                  },
                 ),
               ],
             ),
@@ -929,7 +938,12 @@ class _ReturnGroup extends ConsumerWidget {
     final l = L.of(context);
     final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
     // настройки — в момент правки, не при отрисовке: экран живёт и в тестах без них
-    Future<void> save(ReturnSettings value) => ref.read(settingsRepositoryProvider).setReturns(value);
+    Future<void> save(ReturnSettings value) async {
+      await ref.read(settingsRepositoryProvider).setReturns(value);
+      // включил вид возврата — придут уведомления: тут и спросить разрешение
+      final switchedOn = (value.watchLater && !returns.watchLater) || (value.onThisDay && !returns.onThisDay) || (value.week && !returns.week) || (value.shopping && !returns.shopping);
+      if (switchedOn) await askNotifications(ref);
+    }
     String clock(int minutes) => DateFormat.Hm(l.localeName).format(DateTime(2026, 1, 1, minutes ~/ 60, minutes % 60));
     // 1 ноября 2026 — воскресенье: день недели 1…7 ложится на 2…8 ноября
     String weekday(int day) => DateFormat.EEEE(l.localeName).format(DateTime(2026, 11, 1 + day));

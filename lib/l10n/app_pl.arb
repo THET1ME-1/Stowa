@@ -291,5 +291,6 @@
   "placesMissingHome": "Dom nie jest jeszcze ustawiony: Stowa przypomni, gdy ustawisz go w Miejscach",
   "placesMissingWork": "Praca nie jest jeszcze ustawiona: Stowa przypomni, gdy ustawisz ją w Miejscach",
   "placesMissingShop": "Nie ma jeszcze sklepów: zapisz choć jeden w Miejscach",
-  "placeChannel": "Przypomnienia o miejscu"
+  "placeChannel": "Przypomnienia o miejscu",
+  "remindPlaceNeedsAlways": "Przypomnę na miejscu, jeśli zezwolisz na lokalizację „zawsze”"
 }

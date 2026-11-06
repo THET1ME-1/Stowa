@@ -27,6 +27,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
 import '../folder/folder_sheets.dart';
 import '../home/saved_toast.dart';
+import '../places/reminder_permissions.dart';
 import 'attach_tray.dart';
 import 'line_controller.dart';
 import 'line_panel.dart';
@@ -480,6 +481,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           _focus.requestFocus();
         },
       );
+      // поставил напоминание — тут и спросить уведомления; про место «всегда» скажет карточка на главной
+      if (saved?.item.reminderAt != null || saved?.item.remindPlace != null) askNotifications(ref).ignore();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.saveFailed)));
     } finally {

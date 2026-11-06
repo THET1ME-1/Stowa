@@ -31,6 +31,7 @@ import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
 import '../places/places_screen.dart';
+import '../places/reminder_permissions.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
 import '../map/map_screen.dart';
@@ -201,6 +202,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(start));
     if (time == null) return;
     await _items.setReminder(_id, DateTime(day.year, day.month, day.day, time.hour, time.minute));
+    await askNotifications(ref);
   }
 
   PlaceReminder? _placeOf(Item item) =>
@@ -245,9 +247,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
         return;
       }
       await _items.setPlaceReminder(_id, PlaceReminder(kind, latitude: fix.latitude, longitude: fix.longitude, name: fix.name));
+      await askPlaceReminder(ref, messenger, l, overDock: true);
       return;
     }
     await _items.setPlaceReminder(_id, PlaceReminder(kind));
+    await askNotifications(ref);
     // дома, а дом не отмечен: напоминание стоит, сработает, когда отметят
     final places = ref.read(placesProvider).value ?? await ref.read(placesRepositoryProvider).all();
     final wanted = switch (kind) {
@@ -255,7 +259,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       PlaceReminderKind.work => PlaceKind.work,
       _ => PlaceKind.shop,
     };
-    if (places.any((place) => place.kind == wanted)) return;
+    // место отмечено — проверить «всегда»; не отмечено — ведём в «Места», там своя карточка разрешения
+    if (places.any((place) => place.kind == wanted)) {
+      await askPlaceReminder(ref, messenger, l, overDock: true);
+      return;
+    }
     final missing = switch (wanted) {
       PlaceKind.home => l.placesMissingHome,
       PlaceKind.work => l.placesMissingWork,
