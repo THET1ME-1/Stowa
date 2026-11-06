@@ -1861,4 +1861,37 @@ class LDe extends L {
 
   @override
   String get returnShopping => 'Einkaufen';
+
+  @override
+  String get settingsReturns => 'Zurückbringen';
+
+  @override
+  String get returnWeekSetting => 'Wochenrückblick';
+
+  @override
+  String get returnShoppingSetting => 'Einkäufe am Laden';
+
+  @override
+  String get returnEveningRow => 'Abends um';
+
+  @override
+  String get returnQuietRow => 'Ruhezeit';
+
+  @override
+  String get returnWeekDayRow => 'Tag des Rückblicks';
+
+  @override
+  String get returnSettingsHint =>
+      'Höchstens eine Benachrichtigung am Tag, lautlos, und nichts in der Ruhezeit. Eigene Erinnerungen nach Zeit und Ort zählen nicht mit.';
+
+  @override
+  String returnRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String get returnQuietFrom => 'Ruhe ab';
+
+  @override
+  String get returnQuietTo => 'Ruhe bis';
 }

@@ -1873,4 +1873,37 @@ class LRo extends L {
 
   @override
   String get returnShopping => 'De cumpărat';
+
+  @override
+  String get settingsReturns => 'Readu aminte';
+
+  @override
+  String get returnWeekSetting => 'Rezumatul săptămânii';
+
+  @override
+  String get returnShoppingSetting => 'Cumpărături lângă magazin';
+
+  @override
+  String get returnEveningRow => 'Seara la';
+
+  @override
+  String get returnQuietRow => 'Ore de liniște';
+
+  @override
+  String get returnWeekDayRow => 'Ziua rezumatului';
+
+  @override
+  String get returnSettingsHint =>
+      'Cel mult o notificare pe zi, fără sunet și nimic în orele de liniște. Mementourile tale după oră sau loc nu se pun la socoteală.';
+
+  @override
+  String returnRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String get returnQuietFrom => 'Liniște de la';
+
+  @override
+  String get returnQuietTo => 'Liniște până la';
 }

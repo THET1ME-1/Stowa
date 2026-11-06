@@ -1895,4 +1895,37 @@ class LPl extends L {
 
   @override
   String get returnShopping => 'Do kupienia';
+
+  @override
+  String get settingsReturns => 'Przypominaj';
+
+  @override
+  String get returnWeekSetting => 'Podsumowanie tygodnia';
+
+  @override
+  String get returnShoppingSetting => 'Zakupy przy sklepie';
+
+  @override
+  String get returnEveningRow => 'Wieczorem o';
+
+  @override
+  String get returnQuietRow => 'Godziny ciszy';
+
+  @override
+  String get returnWeekDayRow => 'Dzień podsumowania';
+
+  @override
+  String get returnSettingsHint =>
+      'Najwyżej jedno powiadomienie dziennie, bez dźwięku i nic w godzinach ciszy. Własne przypomnienia o czasie i miejscu się nie liczą.';
+
+  @override
+  String returnRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String get returnQuietFrom => 'Cisza od';
+
+  @override
+  String get returnQuietTo => 'Cisza do';
 }

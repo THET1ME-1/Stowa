@@ -2367,5 +2367,53 @@
   "returnShopping": "To buy",
   "@returnShopping": {
     "description": "Экран и настройка покупок у магазина"
+  },
+  "settingsReturns": "Bring back",
+  "@settingsReturns": {
+    "description": "Раздел настроек: что из сохранённого возвращать уведомлениями"
+  },
+  "returnWeekSetting": "Weekly summary",
+  "@returnWeekSetting": {
+    "description": "Переключатель сводки недели"
+  },
+  "returnShoppingSetting": "Shopping near a store",
+  "@returnShoppingSetting": {
+    "description": "Переключатель покупок у магазина"
+  },
+  "returnEveningRow": "In the evening at",
+  "@returnEveningRow": {
+    "description": "Строка: с какого часа вечером можно напомнить"
+  },
+  "returnQuietRow": "Quiet hours",
+  "@returnQuietRow": {
+    "description": "Строка: когда не беспокоить"
+  },
+  "returnWeekDayRow": "Summary day",
+  "@returnWeekDayRow": {
+    "description": "Строка: в какой день недели сводка"
+  },
+  "returnSettingsHint": "At most one notification a day, silent, and nothing during quiet hours. Reminders you set yourself by time or place don’t count.",
+  "@returnSettingsHint": {
+    "description": "Подсказка под разделом «Возвращать»"
+  },
+  "returnRange": "{from}–{to}",
+  "@returnRange": {
+    "description": "Промежуток времени: «22:00–08:00»",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "returnQuietFrom": "Quiet from",
+  "@returnQuietFrom": {
+    "description": "Выбор начала тихих часов"
+  },
+  "returnQuietTo": "Quiet until",
+  "@returnQuietTo": {
+    "description": "Выбор конца тихих часов"
   }
 }

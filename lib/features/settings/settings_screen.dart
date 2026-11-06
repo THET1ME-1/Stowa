@@ -17,6 +17,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
+import '../../domain/return_plan.dart';
 import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
@@ -124,6 +125,12 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.adultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
+            _Section(l.settingsReturns),
+            const _ReturnGroup(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+              child: Text(l.returnSettingsHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
             _Section(l.vaultSection),
             _Group(
@@ -907,6 +914,75 @@ class _Row extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// «Возвращать»: виды по одному, с какого часа вечером, тихие часы и день сводки.
+class _ReturnGroup extends ConsumerWidget {
+  const _ReturnGroup();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L.of(context);
+    final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
+    final repository = ref.read(settingsRepositoryProvider);
+    String clock(int minutes) => DateFormat.Hm(l.localeName).format(DateTime(2026, 1, 1, minutes ~/ 60, minutes % 60));
+    // 1 ноября 2026 — воскресенье: день недели 1…7 ложится на 2…8 ноября
+    String weekday(int day) => DateFormat.EEEE(l.localeName).format(DateTime(2026, 11, 1 + day));
+    Future<int?> pickTime(int minutes, String help) async {
+      final picked = await showTimePicker(context: context, initialTime: TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60), helpText: help);
+      return picked == null ? null : picked.hour * 60 + picked.minute;
+    }
+
+    Future<void> pickWeekDay() async {
+      final day = await showModalBottomSheet<int>(
+        context: context,
+        showDragHandle: true,
+        useSafeArea: true,
+        backgroundColor: Tokens.container,
+        builder: (sheet) => SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var day = DateTime.monday; day <= DateTime.sunday; day++)
+                ListTile(title: Text(weekday(day)), trailing: day == returns.weekDay ? Icon(symbolIcon('check')) : null, onTap: () => Navigator.pop(sheet, day)),
+            ],
+          ),
+        ),
+      );
+      if (day != null) await repository.setReturns(returns.copyWith(weekDay: day));
+    }
+
+    return _Group(
+      children: [
+        _SwitchRow(icon: 'smart_display', title: l.returnWatchTitle, value: returns.watchLater, onChanged: (on) => repository.setReturns(returns.copyWith(watchLater: on))),
+        _SwitchRow(icon: 'history', title: l.returnOnThisDay, value: returns.onThisDay, onChanged: (on) => repository.setReturns(returns.copyWith(onThisDay: on))),
+        _SwitchRow(icon: 'calendar_view_week', title: l.returnWeekSetting, value: returns.week, onChanged: (on) => repository.setReturns(returns.copyWith(week: on))),
+        _SwitchRow(icon: 'shopping_basket', title: l.returnShoppingSetting, value: returns.shopping, onChanged: (on) => repository.setReturns(returns.copyWith(shopping: on))),
+        _Row(
+          icon: 'schedule',
+          title: l.returnEveningRow,
+          value: clock(returns.evening),
+          onTap: () async {
+            final minutes = await pickTime(returns.evening, l.returnEveningRow);
+            if (minutes != null) await repository.setReturns(returns.copyWith(evening: minutes));
+          },
+        ),
+        _Row(
+          icon: 'bedtime',
+          title: l.returnQuietRow,
+          value: l.returnRange(clock(returns.quietStart), clock(returns.quietEnd)),
+          onTap: () async {
+            final start = await pickTime(returns.quietStart, l.returnQuietFrom);
+            if (start == null || !context.mounted) return;
+            final end = await pickTime(returns.quietEnd, l.returnQuietTo);
+            if (end != null) await repository.setReturns(returns.copyWith(quietStart: start, quietEnd: end));
+          },
+        ),
+        _Row(icon: 'event_repeat', title: l.returnWeekDayRow, value: weekday(returns.weekDay), onTap: pickWeekDay),
+      ],
     );
   }
 }

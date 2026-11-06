@@ -85,6 +85,9 @@ final itemsRepositoryProvider = Provider((ref) {
 /// Показывать ли обложки и описания 18+: решает человек в настройках.
 final showAdultProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchShowAdult());
 
+/// Что и когда возвращать уведомлениями.
+final returnSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchReturns());
+
 /// Вещи, страницы которых сказали о себе «18+».
 final adultItemsProvider = StreamProvider<Set<String>>((ref) {
   final db = ref.watch(databaseProvider);

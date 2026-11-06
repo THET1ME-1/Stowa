@@ -240,5 +240,15 @@
   "returnWeekUnsortedTitle": "Без теки",
   "returnShopTitle": "У магазині «{shop}»",
   "returnShopMore": "{items} і ще {count}",
-  "returnShopping": "Купити"
+  "returnShopping": "Купити",
+  "settingsReturns": "Повертати",
+  "returnWeekSetting": "Підсумок тижня",
+  "returnShoppingSetting": "Покупки біля магазину",
+  "returnEveningRow": "Увечері о",
+  "returnQuietRow": "Тихі години",
+  "returnWeekDayRow": "День підсумку",
+  "returnSettingsHint": "Не більше одного сповіщення на день, тихо, без звуку, і нічого в тихі години. Власні нагадування за часом і місцем не рахуються.",
+  "returnRange": "{from}–{to}",
+  "returnQuietFrom": "Тихо з",
+  "returnQuietTo": "Тихо до"
 }

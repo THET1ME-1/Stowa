@@ -1895,4 +1895,37 @@ class LUk extends L {
 
   @override
   String get returnShopping => 'Купити';
+
+  @override
+  String get settingsReturns => 'Повертати';
+
+  @override
+  String get returnWeekSetting => 'Підсумок тижня';
+
+  @override
+  String get returnShoppingSetting => 'Покупки біля магазину';
+
+  @override
+  String get returnEveningRow => 'Увечері о';
+
+  @override
+  String get returnQuietRow => 'Тихі години';
+
+  @override
+  String get returnWeekDayRow => 'День підсумку';
+
+  @override
+  String get returnSettingsHint =>
+      'Не більше одного сповіщення на день, тихо, без звуку, і нічого в тихі години. Власні нагадування за часом і місцем не рахуються.';
+
+  @override
+  String returnRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String get returnQuietFrom => 'Тихо з';
+
+  @override
+  String get returnQuietTo => 'Тихо до';
 }

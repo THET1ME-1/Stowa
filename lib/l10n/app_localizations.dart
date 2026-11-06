@@ -3040,6 +3040,66 @@ abstract class L {
   /// In en, this message translates to:
   /// **'To buy'**
   String get returnShopping;
+
+  /// Раздел настроек: что из сохранённого возвращать уведомлениями
+  ///
+  /// In en, this message translates to:
+  /// **'Bring back'**
+  String get settingsReturns;
+
+  /// Переключатель сводки недели
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly summary'**
+  String get returnWeekSetting;
+
+  /// Переключатель покупок у магазина
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping near a store'**
+  String get returnShoppingSetting;
+
+  /// Строка: с какого часа вечером можно напомнить
+  ///
+  /// In en, this message translates to:
+  /// **'In the evening at'**
+  String get returnEveningRow;
+
+  /// Строка: когда не беспокоить
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet hours'**
+  String get returnQuietRow;
+
+  /// Строка: в какой день недели сводка
+  ///
+  /// In en, this message translates to:
+  /// **'Summary day'**
+  String get returnWeekDayRow;
+
+  /// Подсказка под разделом «Возвращать»
+  ///
+  /// In en, this message translates to:
+  /// **'At most one notification a day, silent, and nothing during quiet hours. Reminders you set yourself by time or place don’t count.'**
+  String get returnSettingsHint;
+
+  /// Промежуток времени: «22:00–08:00»
+  ///
+  /// In en, this message translates to:
+  /// **'{from}–{to}'**
+  String returnRange(String from, String to);
+
+  /// Выбор начала тихих часов
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet from'**
+  String get returnQuietFrom;
+
+  /// Выбор конца тихих часов
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet until'**
+  String get returnQuietTo;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

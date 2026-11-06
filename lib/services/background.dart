@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -12,6 +13,8 @@ import '../core/icons/icon_registry.dart';
 import '../data/db/database.dart';
 import '../data/repositories/tags_repository.dart';
 import '../data/settings_repository.dart';
+import '../l10n/app_language.dart';
+import '../l10n/app_localizations.dart';
 import 'ai_image.dart';
 import 'ai_worker.dart';
 import 'capture_service.dart';
@@ -20,6 +23,8 @@ import 'facts/facts_pipeline.dart';
 import 'facts/web_extractors.dart';
 import 'link_preview_service.dart' show httpFetch, httpPost;
 import 'file_keeper.dart';
+import 'reminder_actions.dart';
+import 'return_service.dart';
 import 'telegram_service.dart';
 import 'vault/vault_location.dart';
 import 'vault/vault_reader.dart';
@@ -28,6 +33,9 @@ import 'vault/vault_writer.dart';
 
 const _aiTask = 'stowa-ai-queue';
 const _fileTask = 'stowa-files';
+
+/// Вернуть сохранённое: вечернее окно проверяется раз в 15 минут, сеть не нужна.
+const _returnTask = 'stowa-return';
 
 /// Чужая задача держится столько после последнего знака жизни: фон ждёт её и забирает.
 const _abandoned = Duration(seconds: 16);
@@ -63,6 +71,16 @@ Future<void> scheduleBackgroundWork() async {
     constraints: Constraints(networkType: NetworkType.connected),
     existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
   );
+  // без сети: «посмотреть потом» и «в этот день» решаются по базе на телефоне
+  await Workmanager().registerPeriodicTask(_returnTask, _returnTask, frequency: const Duration(minutes: 15), existingWorkPolicy: ExistingPeriodicWorkPolicy.keep);
+}
+
+/// Проход возврата в фоне: решить и, если пора, показать одно тихое уведомление.
+Future<void> returnInBackground(AppDatabase db, SharedPreferences prefs, SettingsRepository settings) async {
+  final language = settings.language ?? AppLanguage.resolve(PlatformDispatcher.instance.locales);
+  final l = lookupL(language.locale);
+  final port = reminderPort();
+  await ReturnService(db, prefs: prefs, port: port, clock: DateTime.now, settings: () => settings.returns, l: () => l).tick();
 }
 
 @pragma('vm:entry-point')
@@ -73,6 +91,17 @@ void backgroundDispatcher() {
     final settings = SettingsRepository(prefs, const SecureKeyStore());
     // база общая с открытым приложением, если оно сейчас живо
     final db = AppDatabase();
+    // возврат — короткий проход по базе: хранилище, факты и сеть ему не нужны
+    if (task == _returnTask) {
+      try {
+        await returnInBackground(db, prefs, settings);
+        return true;
+      } catch (_) {
+        return false;
+      } finally {
+        await db.close();
+      }
+    }
     final client = http.Client();
     // тот же корень, что у приложения: хранилище или, до переноса, папка приложения
     // временные файлы (голосовые, входящие бота) — во внутренней памяти, не в хранилище

@@ -240,5 +240,15 @@
   "returnWeekUnsortedTitle": "Sin carpeta",
   "returnShopTitle": "En {shop}",
   "returnShopMore": "{items} y {count} más",
-  "returnShopping": "Por comprar"
+  "returnShopping": "Por comprar",
+  "settingsReturns": "Recordar lo guardado",
+  "returnWeekSetting": "Resumen semanal",
+  "returnShoppingSetting": "Compras cerca de la tienda",
+  "returnEveningRow": "Por la tarde a las",
+  "returnQuietRow": "Horas de silencio",
+  "returnWeekDayRow": "Día del resumen",
+  "returnSettingsHint": "Como mucho una notificación al día, sin sonido y nada en las horas de silencio. Tus propios recordatorios por hora o lugar no cuentan.",
+  "returnRange": "{from}–{to}",
+  "returnQuietFrom": "Silencio desde",
+  "returnQuietTo": "Silencio hasta"
 }

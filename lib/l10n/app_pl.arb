@@ -240,5 +240,15 @@
   "returnWeekUnsortedTitle": "Bez folderu",
   "returnShopTitle": "W sklepie {shop}",
   "returnShopMore": "{items} i jeszcze {count}",
-  "returnShopping": "Do kupienia"
+  "returnShopping": "Do kupienia",
+  "settingsReturns": "Przypominaj",
+  "returnWeekSetting": "Podsumowanie tygodnia",
+  "returnShoppingSetting": "Zakupy przy sklepie",
+  "returnEveningRow": "Wieczorem o",
+  "returnQuietRow": "Godziny ciszy",
+  "returnWeekDayRow": "Dzień podsumowania",
+  "returnSettingsHint": "Najwyżej jedno powiadomienie dziennie, bez dźwięku i nic w godzinach ciszy. Własne przypomnienia o czasie i miejscu się nie liczą.",
+  "returnRange": "{from}–{to}",
+  "returnQuietFrom": "Cisza od",
+  "returnQuietTo": "Cisza do"
 }

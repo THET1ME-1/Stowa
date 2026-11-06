@@ -1900,4 +1900,37 @@ class LRu extends L {
 
   @override
   String get returnShopping => 'Купить';
+
+  @override
+  String get settingsReturns => 'Возвращать';
+
+  @override
+  String get returnWeekSetting => 'Сводка недели';
+
+  @override
+  String get returnShoppingSetting => 'Покупки у магазина';
+
+  @override
+  String get returnEveningRow => 'Вечером в';
+
+  @override
+  String get returnQuietRow => 'Тихие часы';
+
+  @override
+  String get returnWeekDayRow => 'День сводки';
+
+  @override
+  String get returnSettingsHint =>
+      'Не больше одного уведомления в день, тихо, без звука, и ничего в тихие часы. Свои напоминания по времени и месту не в счёт.';
+
+  @override
+  String returnRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String get returnQuietFrom => 'Тихо с';
+
+  @override
+  String get returnQuietTo => 'Тихо до';
 }

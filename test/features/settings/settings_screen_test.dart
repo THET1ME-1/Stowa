@@ -107,6 +107,28 @@ void main() {
     }
   });
 
+  testWidgets('раздел «Возвращать»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
+    await open(tester, keyStatus: 200);
+    for (final label in ['Возвращать', 'Посмотреть потом', 'В этот день', 'Сводка недели', '20:00', '22:00–08:00', 'воскресенье']) {
+      await tester.scrollUntilVisible(find.text(label), 100);
+      expect(find.text(label), findsOneWidget);
+    }
+
+    await tester.scrollUntilVisible(find.text('Сводка недели'), -100);
+    await tester.tap(find.text('Сводка недели'));
+    await tester.pumpAndSettle();
+    expect(settings.returns.week, isFalse);
+    expect(settings.returns.watchLater, isTrue);
+
+    await tester.scrollUntilVisible(find.text('День сводки'), 100);
+    await tester.tap(find.text('День сводки'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('суббота').last);
+    await tester.pumpAndSettle();
+    expect(settings.returns.weekDay, DateTime.saturday);
+    expect(find.text('суббота'), findsOneWidget);
+  });
+
   testWidgets('«Из Telegram»: папка выгрузки становится заметками, итог плашкой', (tester) async {
     final export = Directory.systemTemp.createTempSync('stowa_tg');
     addTearDown(() => export.deleteSync(recursive: true));

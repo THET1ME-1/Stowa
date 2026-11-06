@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../domain/return_plan.dart';
 import '../l10n/app_language.dart';
 import '../services/ai_client.dart';
 
@@ -168,6 +169,39 @@ class SettingsRepository {
   }
 
   Future<void> setPlaceEnabled(bool on) => _set(() => _prefs.setBool(_placeEnabled, on));
+
+  /// Что и когда возвращать: виды, час вечера, тихие часы, день сводки.
+  ReturnSettings get returns => ReturnSettings(
+    watchLater: _prefs.getBool('return_watch_later') ?? true,
+    onThisDay: _prefs.getBool('return_on_this_day') ?? true,
+    week: _prefs.getBool('return_week') ?? true,
+    shopping: _prefs.getBool('return_shopping') ?? true,
+    evening: _prefs.getInt('return_evening') ?? 20 * 60,
+    quietStart: _prefs.getInt('return_quiet_start') ?? 22 * 60,
+    quietEnd: _prefs.getInt('return_quiet_end') ?? 8 * 60,
+    weekDay: _prefs.getInt('return_week_day') ?? DateTime.sunday,
+  );
+
+  Stream<ReturnSettings> watchReturns() async* {
+    yield returns;
+    yield* _changes.stream.map((_) => returns).distinct();
+  }
+
+  Future<void> setReturns(ReturnSettings value) => _set(() async {
+    await _prefs.setBool('return_watch_later', value.watchLater);
+    await _prefs.setBool('return_on_this_day', value.onThisDay);
+    await _prefs.setBool('return_week', value.week);
+    await _prefs.setBool('return_shopping', value.shopping);
+    await _prefs.setInt('return_evening', value.evening);
+    await _prefs.setInt('return_quiet_start', value.quietStart);
+    await _prefs.setInt('return_quiet_end', value.quietEnd);
+    return _prefs.setInt('return_week_day', value.weekDay);
+  });
+
+  /// Карточка «Включить уведомления» на главной уже была: показывается один раз.
+  bool get returnsAsked => _prefs.getBool('returns_asked') ?? false;
+
+  Future<void> setReturnsAsked() => _set(() => _prefs.setBool('returns_asked', true));
 
   /// Показывать обложки и описания страниц 18+. Решает человек; по умолчанию нет — так
   /// хотят магазины. Скачивается всё в любом случае: включил — видно сразу.

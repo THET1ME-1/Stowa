@@ -240,5 +240,15 @@
   "returnWeekUnsortedTitle": "Fără dosar",
   "returnShopTitle": "La {shop}",
   "returnShopMore": "{items} și încă {count}",
-  "returnShopping": "De cumpărat"
+  "returnShopping": "De cumpărat",
+  "settingsReturns": "Readu aminte",
+  "returnWeekSetting": "Rezumatul săptămânii",
+  "returnShoppingSetting": "Cumpărături lângă magazin",
+  "returnEveningRow": "Seara la",
+  "returnQuietRow": "Ore de liniște",
+  "returnWeekDayRow": "Ziua rezumatului",
+  "returnSettingsHint": "Cel mult o notificare pe zi, fără sunet și nimic în orele de liniște. Mementourile tale după oră sau loc nu se pun la socoteală.",
+  "returnRange": "{from}–{to}",
+  "returnQuietFrom": "Liniște de la",
+  "returnQuietTo": "Liniște până la"
 }

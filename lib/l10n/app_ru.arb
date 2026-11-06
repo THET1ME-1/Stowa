@@ -488,5 +488,15 @@
   "returnWeekUnsortedTitle": "Без папки",
   "returnShopTitle": "В магазине «{shop}»",
   "returnShopMore": "{items} и ещё {count}",
-  "returnShopping": "Купить"
+  "returnShopping": "Купить",
+  "settingsReturns": "Возвращать",
+  "returnWeekSetting": "Сводка недели",
+  "returnShoppingSetting": "Покупки у магазина",
+  "returnEveningRow": "Вечером в",
+  "returnQuietRow": "Тихие часы",
+  "returnWeekDayRow": "День сводки",
+  "returnSettingsHint": "Не больше одного уведомления в день, тихо, без звука, и ничего в тихие часы. Свои напоминания по времени и месту не в счёт.",
+  "returnRange": "{from}–{to}",
+  "returnQuietFrom": "Тихо с",
+  "returnQuietTo": "Тихо до"
 }

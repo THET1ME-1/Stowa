@@ -1857,4 +1857,37 @@ class LEs extends L {
 
   @override
   String get returnShopping => 'Por comprar';
+
+  @override
+  String get settingsReturns => 'Recordar lo guardado';
+
+  @override
+  String get returnWeekSetting => 'Resumen semanal';
+
+  @override
+  String get returnShoppingSetting => 'Compras cerca de la tienda';
+
+  @override
+  String get returnEveningRow => 'Por la tarde a las';
+
+  @override
+  String get returnQuietRow => 'Horas de silencio';
+
+  @override
+  String get returnWeekDayRow => 'Día del resumen';
+
+  @override
+  String get returnSettingsHint =>
+      'Como mucho una notificación al día, sin sonido y nada en las horas de silencio. Tus propios recordatorios por hora o lugar no cuentan.';
+
+  @override
+  String returnRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String get returnQuietFrom => 'Silencio desde';
+
+  @override
+  String get returnQuietTo => 'Silencio hasta';
 }

@@ -1856,4 +1856,37 @@ class LEn extends L {
 
   @override
   String get returnShopping => 'To buy';
+
+  @override
+  String get settingsReturns => 'Bring back';
+
+  @override
+  String get returnWeekSetting => 'Weekly summary';
+
+  @override
+  String get returnShoppingSetting => 'Shopping near a store';
+
+  @override
+  String get returnEveningRow => 'In the evening at';
+
+  @override
+  String get returnQuietRow => 'Quiet hours';
+
+  @override
+  String get returnWeekDayRow => 'Summary day';
+
+  @override
+  String get returnSettingsHint =>
+      'At most one notification a day, silent, and nothing during quiet hours. Reminders you set yourself by time or place don’t count.';
+
+  @override
+  String returnRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String get returnQuietFrom => 'Quiet from';
+
+  @override
+  String get returnQuietTo => 'Quiet until';
 }

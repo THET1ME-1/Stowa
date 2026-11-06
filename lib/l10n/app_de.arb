@@ -240,5 +240,15 @@
   "returnWeekUnsortedTitle": "Ohne Ordner",
   "returnShopTitle": "Bei {shop}",
   "returnShopMore": "{items} und {count} weitere",
-  "returnShopping": "Einkaufen"
+  "returnShopping": "Einkaufen",
+  "settingsReturns": "Zurückbringen",
+  "returnWeekSetting": "Wochenrückblick",
+  "returnShoppingSetting": "Einkäufe am Laden",
+  "returnEveningRow": "Abends um",
+  "returnQuietRow": "Ruhezeit",
+  "returnWeekDayRow": "Tag des Rückblicks",
+  "returnSettingsHint": "Höchstens eine Benachrichtigung am Tag, lautlos, und nichts in der Ruhezeit. Eigene Erinnerungen nach Zeit und Ort zählen nicht mit.",
+  "returnRange": "{from}–{to}",
+  "returnQuietFrom": "Ruhe ab",
+  "returnQuietTo": "Ruhe bis"
 }

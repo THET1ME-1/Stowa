@@ -34,6 +34,32 @@ class ReturnSettings {
 
   /// День сводки недели: 1 — понедельник, 7 — воскресенье.
   final int weekDay;
+
+  ReturnSettings copyWith({bool? watchLater, bool? onThisDay, bool? week, bool? shopping, int? evening, int? quietStart, int? quietEnd, int? weekDay}) => ReturnSettings(
+    watchLater: watchLater ?? this.watchLater,
+    onThisDay: onThisDay ?? this.onThisDay,
+    week: week ?? this.week,
+    shopping: shopping ?? this.shopping,
+    evening: evening ?? this.evening,
+    quietStart: quietStart ?? this.quietStart,
+    quietEnd: quietEnd ?? this.quietEnd,
+    weekDay: weekDay ?? this.weekDay,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is ReturnSettings &&
+      other.watchLater == watchLater &&
+      other.onThisDay == onThisDay &&
+      other.week == week &&
+      other.shopping == shopping &&
+      other.evening == evening &&
+      other.quietStart == quietStart &&
+      other.quietEnd == quietEnd &&
+      other.weekDay == weekDay;
+
+  @override
+  int get hashCode => Object.hash(watchLater, onThisDay, week, shopping, evening, quietStart, quietEnd, weekDay);
 }
 
 /// Очередь «посмотреть потом»: непросмотренные ролики и статьи с известной длиной.
