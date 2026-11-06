@@ -229,7 +229,14 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
   }
 
   /// Заметки, которые раньше записались ссылкой из-за адреса внутри текста, — снова заметки.
+  /// И наоборот: ссылка с превью, которую правка сделала заметкой из-за длинного заголовка, — снова ссылка.
   Future<void> reclassifyNotes() async {
+    final previewed = await (_db.select(_db.items)..where((t) => t.kind.equals(ItemKind.note.name) & t.previewAt.isNotNull() & t.url.isNotNull() & t.deletedAt.isNull())).get();
+    for (final item in previewed) {
+      final kind = detectKind(text: item.body);
+      if (kind == ItemKind.note) continue;
+      await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(ItemsCompanion(kind: Value(kind)));
+    }
     final rows = await (_db.select(_db.items)..where((t) => t.kind.isIn([ItemKind.link.name, ItemKind.video.name]) & t.deletedAt.isNull())).get();
     for (final item in rows) {
       final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(item.id))).get();

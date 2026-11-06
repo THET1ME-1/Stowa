@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
+import 'package:stowa/domain/item_kind.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/services/capture_service.dart';
 import 'package:path/path.dart' as p;
@@ -114,6 +115,26 @@ void main() {
     expect((await items.get('long'))!.item.kind, ItemKind.note);
     expect((await items.get('short'))!.item.kind, ItemKind.video);
     expect((await items.get('apart'))!.item.kind, ItemKind.link);
+  });
+
+  test('ссылка с превью, которую правка сделала заметкой, снова ссылка', () async {
+    Future<void> old(String id, String body, {DateTime? previewAt}) => db.into(db.items).insert(ItemsCompanion.insert(
+          id: id,
+          kind: ItemKind.note,
+          title: id,
+          body: Value(body),
+          url: Value(firstUrl(body)?.toString()),
+          previewAt: Value(previewAt),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ));
+    await old('broken', 'https://rt.pornhub.com/view_video.php?viewkey=6440\n\nЛучшее видео, на которое у меня 100%.', previewAt: DateTime(2026));
+    // превью не было: это и раньше была заметка
+    await old('plain', 'Кофе https://coffee.ru/turka');
+
+    await capture.reclassifyNotes();
+    expect((await items.get('broken'))!.item.kind, ItemKind.link);
+    expect((await items.get('plain'))!.item.kind, ItemKind.note);
   });
 
   test('фото с камеры без текста: вместо IMG_… подпись от экрана', () async {

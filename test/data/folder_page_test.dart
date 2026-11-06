@@ -58,6 +58,15 @@ void main() {
     expect((item.kind, item.url), (ItemKind.link, 'https://coffee.ru/turka'));
   });
 
+  test('длинный заголовок от сайта не делает ссылку заметкой, когда к ней дописали пару слов', () async {
+    const url = 'https://rt.pornhub.com/view_video.php?viewkey=644065a6a9a54';
+    const title = 'Школьница в очках и с красной помадой проглотила всё. от первого лица, лучший ролик недели';
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'x', kind: ItemKind.link, title: title, body: const Value(url), url: const Value(url), createdAt: at, updatedAt: at));
+    await items.setTitleBody('x', title: title, body: '$url\n\nЛучшее видео, на которое у меня 100%.', at: at);
+    final item = (await items.get('x'))!.item;
+    expect((item.kind, item.url), (ItemKind.link, url));
+  });
+
   test('«Без папки» — отдельный список', () async {
     await item('a', folder: 'food');
     await item('b');

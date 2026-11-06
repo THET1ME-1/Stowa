@@ -406,7 +406,8 @@ WHERE items.deleted_at IS NULL''';
   /// считаются по новому тексту: дописал к ссылке заметку — стала заметкой.
   Future<void> setTitleBody(String id, {required String title, required String body, required DateTime at}) async {
     final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get();
-    final text = '$title\n$body';
+    // вид решает текст: заголовок от сайта длинный и сделал бы ссылку заметкой, а свой — не часть текста
+    final text = body.trim().isEmpty ? title : body;
     final url = firstUrl(text);
     await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
       ItemsCompanion(
