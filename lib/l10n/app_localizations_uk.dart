@@ -1978,4 +1978,83 @@ class LUk extends L {
 
   @override
   String get composerRemovePlace => 'Без нагадування за місцем';
+
+  @override
+  String get placesTitle => 'Місця';
+
+  @override
+  String get placesHome => 'Дім';
+
+  @override
+  String get placesWork => 'Робота';
+
+  @override
+  String get placesShops => 'Магазини';
+
+  @override
+  String get placesNotSet => 'Не задано';
+
+  @override
+  String placesWifi(String name) {
+    return 'Wi-Fi: $name';
+  }
+
+  @override
+  String get placesImHome => 'Я зараз удома';
+
+  @override
+  String get placesImWork => 'Я зараз на роботі';
+
+  @override
+  String get placesImShop => 'Я в магазині — запам’ятати';
+
+  @override
+  String placesGuessHome(String name) {
+    return 'Схоже, дім — $name';
+  }
+
+  @override
+  String placesGuessWork(String name) {
+    return 'Схоже, робота — $name';
+  }
+
+  @override
+  String get placesRemove => 'Прибрати';
+
+  @override
+  String get placesShopName => 'Як назвати магазин';
+
+  @override
+  String get placesSave => 'Зберегти';
+
+  @override
+  String get placesNoFix =>
+      'Не вдалося дізнатися, де ти. Перевір, що місце на телефоні увімкнене й дозволене Stowa.';
+
+  @override
+  String get placesPermissionTitle => 'Потрібне місце «завжди»';
+
+  @override
+  String get placesPermissionBody =>
+      'Android будить Stowa у потрібній точці й показує ім’я мережі Wi-Fi, лише якщо місцю дозволено «завжди». Координати лишаються на телефоні.';
+
+  @override
+  String get placesPermissionAllow => 'Дозволити';
+
+  @override
+  String get placesHint =>
+      'Місця потрібні для «нагадай удома», «на роботі» і «в магазині». Нотатки з тегом #купити спливають біля позначених магазинів, не частіше разу на день.';
+
+  @override
+  String placesShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count магазину',
+      many: '$count магазинів',
+      few: '$count магазини',
+      one: '$count магазин',
+    );
+    return '$_temp0';
+  }
 }

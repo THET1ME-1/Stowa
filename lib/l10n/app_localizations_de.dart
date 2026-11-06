@@ -1945,4 +1945,81 @@ class LDe extends L {
 
   @override
   String get composerRemovePlace => 'Keine Ortserinnerung';
+
+  @override
+  String get placesTitle => 'Orte';
+
+  @override
+  String get placesHome => 'Zuhause';
+
+  @override
+  String get placesWork => 'Arbeit';
+
+  @override
+  String get placesShops => 'Läden';
+
+  @override
+  String get placesNotSet => 'Nicht festgelegt';
+
+  @override
+  String placesWifi(String name) {
+    return 'WLAN: $name';
+  }
+
+  @override
+  String get placesImHome => 'Ich bin gerade zu Hause';
+
+  @override
+  String get placesImWork => 'Ich bin gerade auf der Arbeit';
+
+  @override
+  String get placesImShop => 'Ich bin im Laden — merken';
+
+  @override
+  String placesGuessHome(String name) {
+    return 'Sieht aus, als wäre zu Hause $name';
+  }
+
+  @override
+  String placesGuessWork(String name) {
+    return 'Sieht aus, als wäre die Arbeit $name';
+  }
+
+  @override
+  String get placesRemove => 'Entfernen';
+
+  @override
+  String get placesShopName => 'Name des Ladens';
+
+  @override
+  String get placesSave => 'Speichern';
+
+  @override
+  String get placesNoFix =>
+      'Dein Standort ließ sich nicht bestimmen. Prüfe, ob der Standort an und für Stowa erlaubt ist.';
+
+  @override
+  String get placesPermissionTitle => 'Standort „immer“ wird gebraucht';
+
+  @override
+  String get placesPermissionBody =>
+      'Android weckt Stowa am richtigen Ort und zeigt den WLAN-Namen nur, wenn der Standort „immer“ erlaubt ist. Die Koordinaten bleiben auf dem Handy.';
+
+  @override
+  String get placesPermissionAllow => 'Erlauben';
+
+  @override
+  String get placesHint =>
+      'Orte braucht es für „erinnere mich zu Hause“, „auf der Arbeit“ und „im Laden“. Notizen mit dem Tag #kaufen tauchen an gespeicherten Läden auf, höchstens einmal am Tag.';
+
+  @override
+  String placesShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Läden',
+      one: '$count Laden',
+    );
+    return '$_temp0';
+  }
 }

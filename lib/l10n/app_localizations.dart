@@ -3190,6 +3190,126 @@ abstract class L {
   /// In en, this message translates to:
   /// **'No place reminder'**
   String get composerRemovePlace;
+
+  /// Экран и строка настроек: дом, работа, магазины
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get placesTitle;
+
+  /// Место: дом
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get placesHome;
+
+  /// Место: работа
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get placesWork;
+
+  /// Раздел мест: магазины
+  ///
+  /// In en, this message translates to:
+  /// **'Stores'**
+  String get placesShops;
+
+  /// Место ещё не отмечено
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get placesNotSet;
+
+  /// Сеть дома или работы
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi: {name}'**
+  String placesWifi(String name);
+
+  /// Отметить дом там, где телефон сейчас
+  ///
+  /// In en, this message translates to:
+  /// **'I’m home now'**
+  String get placesImHome;
+
+  /// Отметить работу там, где телефон сейчас
+  ///
+  /// In en, this message translates to:
+  /// **'I’m at work now'**
+  String get placesImWork;
+
+  /// Отметить магазин там, где телефон сейчас
+  ///
+  /// In en, this message translates to:
+  /// **'I’m at a store — save it'**
+  String get placesImShop;
+
+  /// Подсказка дома по сохранённым заметкам
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like home is {name}'**
+  String placesGuessHome(String name);
+
+  /// Подсказка работы по сохранённым заметкам
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like work is {name}'**
+  String placesGuessWork(String name);
+
+  /// Убрать отмеченное место
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get placesRemove;
+
+  /// Окно названия магазина
+  ///
+  /// In en, this message translates to:
+  /// **'Store name'**
+  String get placesShopName;
+
+  /// Кнопка окна названия магазина
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get placesSave;
+
+  /// Место не определилось
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t find where you are. Check that location is on and allowed for Stowa.'**
+  String get placesNoFix;
+
+  /// Карточка разрешения на место в фоне
+  ///
+  /// In en, this message translates to:
+  /// **'Location “all the time” is needed'**
+  String get placesPermissionTitle;
+
+  /// Зачем место «всегда»
+  ///
+  /// In en, this message translates to:
+  /// **'Android wakes Stowa at the right spot and shows the Wi-Fi name only if location is allowed “all the time”. Coordinates stay on your phone.'**
+  String get placesPermissionBody;
+
+  /// Кнопка разрешения на место в фоне
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get placesPermissionAllow;
+
+  /// Подсказка внизу экрана мест
+  ///
+  /// In en, this message translates to:
+  /// **'Places are used for “remind me at home”, “at work” and “at a store”. Notes tagged #buy come up at your saved stores, at most once a day.'**
+  String get placesHint;
+
+  /// Сколько магазинов отмечено
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} store} other{{count} stores}}'**
+  String placesShopsCount(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

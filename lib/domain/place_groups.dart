@@ -54,6 +54,32 @@ const _enoughVisits = 4;
   return (home: home, work: most(workday, besides: home));
 }
 
+/// Подсказка в «Местах»: «Похоже, дом — Ботаника, Кишинёв».
+class PlaceGuess {
+  const PlaceGuess({required this.latitude, required this.longitude, this.name});
+
+  final double latitude;
+  final double longitude;
+  final String? name;
+}
+
+/// [homeAndWork] с названием места: самым частым у заметок, сохранённых в нём.
+({PlaceGuess? home, PlaceGuess? work}) guessHomeAndWork(List<({double latitude, double longitude, DateTime at, String? name})> points) {
+  final found = homeAndWork([for (final point in points) (latitude: point.latitude, longitude: point.longitude, at: point.at)]);
+  PlaceGuess? named(PlaceGroup? group) {
+    if (group == null) return null;
+    final counts = <String, int>{};
+    for (final id in group.ids) {
+      final name = points[int.parse(id)].name;
+      if (name != null && name.isNotEmpty) counts[name] = (counts[name] ?? 0) + 1;
+    }
+    final name = counts.entries.fold<MapEntry<String, int>?>(null, (best, entry) => best == null || entry.value > best.value ? entry : best)?.key;
+    return PlaceGuess(latitude: group.latitude, longitude: group.longitude, name: name);
+  }
+
+  return (home: named(found.home), work: named(found.work));
+}
+
 /// Склеить точки в места по клетке сетки. Центр места — среднее его точек.
 List<PlaceGroup> groupPlaces(List<({String id, double latitude, double longitude})> points) {
   final cells = <(int, int), List<({String id, double latitude, double longitude})>>{};

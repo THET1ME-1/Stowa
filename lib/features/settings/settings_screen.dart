@@ -17,12 +17,14 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
+import '../../domain/models.dart' show PlaceKind;
 import '../../domain/return_plan.dart';
 import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
 import '../../services/backup_service.dart';
 import '../../services/telegram_service.dart';
+import '../places/places_screen.dart';
 import '../tags/tags_screen.dart';
 import '../vault/vault_actions.dart';
 import 'ai_log_screen.dart';
@@ -935,6 +937,18 @@ class _ReturnGroup extends ConsumerWidget {
       return picked == null ? null : picked.hour * 60 + picked.minute;
     }
 
+    // «Дом, работа, 2 магазина» — что уже отмечено
+    String placesSummary() {
+      final places = ref.watch(placesProvider).value ?? const [];
+      final shops = places.where((place) => place.kind == PlaceKind.shop).length;
+      final parts = [
+        if (places.any((place) => place.kind == PlaceKind.home)) l.placesHome,
+        if (places.any((place) => place.kind == PlaceKind.work)) l.placesWork,
+        if (shops > 0) l.placesShopsCount(shops),
+      ];
+      return parts.isEmpty ? l.placesNotSet : parts.join(', ');
+    }
+
     Future<void> pickWeekDay() async {
       final day = await showModalBottomSheet<int>(
         context: context,
@@ -982,6 +996,7 @@ class _ReturnGroup extends ConsumerWidget {
           },
         ),
         _Row(icon: 'event_repeat', title: l.returnWeekDayRow, value: weekday(returns.weekDay), onTap: pickWeekDay),
+        _Row(icon: 'location_on', title: l.placesTitle, value: placesSummary(), onTap: () => Navigator.of(context).push(placesRoute())),
       ],
     );
   }

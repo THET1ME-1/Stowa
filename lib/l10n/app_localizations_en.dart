@@ -1941,4 +1941,81 @@ class LEn extends L {
 
   @override
   String get composerRemovePlace => 'No place reminder';
+
+  @override
+  String get placesTitle => 'Places';
+
+  @override
+  String get placesHome => 'Home';
+
+  @override
+  String get placesWork => 'Work';
+
+  @override
+  String get placesShops => 'Stores';
+
+  @override
+  String get placesNotSet => 'Not set';
+
+  @override
+  String placesWifi(String name) {
+    return 'Wi-Fi: $name';
+  }
+
+  @override
+  String get placesImHome => 'I’m home now';
+
+  @override
+  String get placesImWork => 'I’m at work now';
+
+  @override
+  String get placesImShop => 'I’m at a store — save it';
+
+  @override
+  String placesGuessHome(String name) {
+    return 'Looks like home is $name';
+  }
+
+  @override
+  String placesGuessWork(String name) {
+    return 'Looks like work is $name';
+  }
+
+  @override
+  String get placesRemove => 'Remove';
+
+  @override
+  String get placesShopName => 'Store name';
+
+  @override
+  String get placesSave => 'Save';
+
+  @override
+  String get placesNoFix =>
+      'Couldn’t find where you are. Check that location is on and allowed for Stowa.';
+
+  @override
+  String get placesPermissionTitle => 'Location “all the time” is needed';
+
+  @override
+  String get placesPermissionBody =>
+      'Android wakes Stowa at the right spot and shows the Wi-Fi name only if location is allowed “all the time”. Coordinates stay on your phone.';
+
+  @override
+  String get placesPermissionAllow => 'Allow';
+
+  @override
+  String get placesHint =>
+      'Places are used for “remind me at home”, “at work” and “at a store”. Notes tagged #buy come up at your saved stores, at most once a day.';
+
+  @override
+  String placesShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stores',
+      one: '$count store',
+    );
+    return '$_temp0';
+  }
 }

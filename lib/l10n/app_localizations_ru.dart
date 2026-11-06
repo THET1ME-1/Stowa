@@ -1983,4 +1983,83 @@ class LRu extends L {
 
   @override
   String get composerRemovePlace => 'Без напоминания по месту';
+
+  @override
+  String get placesTitle => 'Места';
+
+  @override
+  String get placesHome => 'Дом';
+
+  @override
+  String get placesWork => 'Работа';
+
+  @override
+  String get placesShops => 'Магазины';
+
+  @override
+  String get placesNotSet => 'Не задано';
+
+  @override
+  String placesWifi(String name) {
+    return 'Wi-Fi: $name';
+  }
+
+  @override
+  String get placesImHome => 'Я сейчас дома';
+
+  @override
+  String get placesImWork => 'Я сейчас на работе';
+
+  @override
+  String get placesImShop => 'Я в магазине — запомнить';
+
+  @override
+  String placesGuessHome(String name) {
+    return 'Похоже, дом — $name';
+  }
+
+  @override
+  String placesGuessWork(String name) {
+    return 'Похоже, работа — $name';
+  }
+
+  @override
+  String get placesRemove => 'Убрать';
+
+  @override
+  String get placesShopName => 'Как назвать магазин';
+
+  @override
+  String get placesSave => 'Сохранить';
+
+  @override
+  String get placesNoFix =>
+      'Не вышло узнать, где ты. Проверь, что место на телефоне включено и разрешено Stowa.';
+
+  @override
+  String get placesPermissionTitle => 'Нужно место «всегда»';
+
+  @override
+  String get placesPermissionBody =>
+      'Android будит Stowa у нужной точки и показывает имя сети Wi-Fi, только если месту разрешено «всегда». Координаты остаются на телефоне.';
+
+  @override
+  String get placesPermissionAllow => 'Разрешить';
+
+  @override
+  String get placesHint =>
+      'Места нужны для «напомни дома», «на работе» и «в магазине». Заметки с тегом #купить всплывают у отмеченных магазинов, не чаще раза в день.';
+
+  @override
+  String placesShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count магазина',
+      many: '$count магазинов',
+      few: '$count магазина',
+      one: '$count магазин',
+    );
+    return '$_temp0';
+  }
 }

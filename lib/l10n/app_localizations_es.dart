@@ -1942,4 +1942,81 @@ class LEs extends L {
 
   @override
   String get composerRemovePlace => 'Sin recordatorio por lugar';
+
+  @override
+  String get placesTitle => 'Lugares';
+
+  @override
+  String get placesHome => 'Casa';
+
+  @override
+  String get placesWork => 'Trabajo';
+
+  @override
+  String get placesShops => 'Tiendas';
+
+  @override
+  String get placesNotSet => 'Sin definir';
+
+  @override
+  String placesWifi(String name) {
+    return 'Wi-Fi: $name';
+  }
+
+  @override
+  String get placesImHome => 'Ahora estoy en casa';
+
+  @override
+  String get placesImWork => 'Ahora estoy en el trabajo';
+
+  @override
+  String get placesImShop => 'Estoy en una tienda — guardarla';
+
+  @override
+  String placesGuessHome(String name) {
+    return 'Parece que tu casa es $name';
+  }
+
+  @override
+  String placesGuessWork(String name) {
+    return 'Parece que tu trabajo es $name';
+  }
+
+  @override
+  String get placesRemove => 'Quitar';
+
+  @override
+  String get placesShopName => 'Nombre de la tienda';
+
+  @override
+  String get placesSave => 'Guardar';
+
+  @override
+  String get placesNoFix =>
+      'No pude saber dónde estás. Comprueba que la ubicación esté activada y permitida para Stowa.';
+
+  @override
+  String get placesPermissionTitle => 'Hace falta la ubicación «siempre»';
+
+  @override
+  String get placesPermissionBody =>
+      'Android despierta a Stowa en el lugar indicado y muestra el nombre del Wi-Fi solo si la ubicación está permitida «siempre». Las coordenadas se quedan en el teléfono.';
+
+  @override
+  String get placesPermissionAllow => 'Permitir';
+
+  @override
+  String get placesHint =>
+      'Los lugares sirven para «recuérdame en casa», «en el trabajo» y «en la tienda». Las notas con la etiqueta #comprar aparecen en tus tiendas guardadas, como mucho una vez al día.';
+
+  @override
+  String placesShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tiendas',
+      one: '$count tienda',
+    );
+    return '$_temp0';
+  }
 }

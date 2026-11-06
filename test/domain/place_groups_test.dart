@@ -44,6 +44,16 @@ void main() {
       expect(places.work!.latitude, closeTo(47.0400, 0.001));
     });
 
+    test('подсказка дома и работы с названием: самым частым у заметок этого места', () {
+      final points = [
+        for (final (index, point) in life().indexed) (latitude: point.latitude, longitude: point.longitude, at: point.at, name: index == 0 ? 'Рышкановка' : (point.latitude < 47.03 ? 'Ботаника, Кишинёв' : 'Центр, Кишинёв')),
+      ];
+      final guess = guessHomeAndWork(points);
+      expect(guess.home!.name, 'Ботаника, Кишинёв');
+      expect(guess.home!.latitude, closeTo(47.0245, 0.001));
+      expect(guess.work!.name, 'Центр, Кишинёв');
+    });
+
     test('мало точек — не угадывает', () {
       final places = homeAndWork(life().take(2).toList());
       expect(places.home, isNull);

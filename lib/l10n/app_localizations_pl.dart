@@ -1979,4 +1979,83 @@ class LPl extends L {
 
   @override
   String get composerRemovePlace => 'Bez przypomnienia o miejscu';
+
+  @override
+  String get placesTitle => 'Miejsca';
+
+  @override
+  String get placesHome => 'Dom';
+
+  @override
+  String get placesWork => 'Praca';
+
+  @override
+  String get placesShops => 'Sklepy';
+
+  @override
+  String get placesNotSet => 'Nie ustawiono';
+
+  @override
+  String placesWifi(String name) {
+    return 'Wi-Fi: $name';
+  }
+
+  @override
+  String get placesImHome => 'Jestem teraz w domu';
+
+  @override
+  String get placesImWork => 'Jestem teraz w pracy';
+
+  @override
+  String get placesImShop => 'Jestem w sklepie — zapamiętaj';
+
+  @override
+  String placesGuessHome(String name) {
+    return 'Wygląda na to, że dom to $name';
+  }
+
+  @override
+  String placesGuessWork(String name) {
+    return 'Wygląda na to, że praca to $name';
+  }
+
+  @override
+  String get placesRemove => 'Usuń';
+
+  @override
+  String get placesShopName => 'Nazwa sklepu';
+
+  @override
+  String get placesSave => 'Zapisz';
+
+  @override
+  String get placesNoFix =>
+      'Nie udało się ustalić, gdzie jesteś. Sprawdź, czy lokalizacja jest włączona i dozwolona dla Stowa.';
+
+  @override
+  String get placesPermissionTitle => 'Potrzebna lokalizacja „zawsze”';
+
+  @override
+  String get placesPermissionBody =>
+      'Android budzi Stowa we właściwym miejscu i pokazuje nazwę sieci Wi-Fi tylko wtedy, gdy lokalizacja jest dozwolona „zawsze”. Współrzędne zostają w telefonie.';
+
+  @override
+  String get placesPermissionAllow => 'Zezwól';
+
+  @override
+  String get placesHint =>
+      'Miejsca są do „przypomnij w domu”, „w pracy” i „w sklepie”. Notatki z tagiem #kupić pojawiają się przy zapisanych sklepach, najwyżej raz dziennie.';
+
+  @override
+  String placesShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sklepu',
+      many: '$count sklepów',
+      few: '$count sklepy',
+      one: '$count sklep',
+    );
+    return '$_temp0';
+  }
 }

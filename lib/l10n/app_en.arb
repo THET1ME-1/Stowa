@@ -2485,5 +2485,105 @@
   "composerRemovePlace": "No place reminder",
   "@composerRemovePlace": {
     "description": "Крестик на чипе места"
+  },
+  "placesTitle": "Places",
+  "@placesTitle": {
+    "description": "Экран и строка настроек: дом, работа, магазины"
+  },
+  "placesHome": "Home",
+  "@placesHome": {
+    "description": "Место: дом"
+  },
+  "placesWork": "Work",
+  "@placesWork": {
+    "description": "Место: работа"
+  },
+  "placesShops": "Stores",
+  "@placesShops": {
+    "description": "Раздел мест: магазины"
+  },
+  "placesNotSet": "Not set",
+  "@placesNotSet": {
+    "description": "Место ещё не отмечено"
+  },
+  "placesWifi": "Wi-Fi: {name}",
+  "@placesWifi": {
+    "description": "Сеть дома или работы",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "placesImHome": "I’m home now",
+  "@placesImHome": {
+    "description": "Отметить дом там, где телефон сейчас"
+  },
+  "placesImWork": "I’m at work now",
+  "@placesImWork": {
+    "description": "Отметить работу там, где телефон сейчас"
+  },
+  "placesImShop": "I’m at a store — save it",
+  "@placesImShop": {
+    "description": "Отметить магазин там, где телефон сейчас"
+  },
+  "placesGuessHome": "Looks like home is {name}",
+  "@placesGuessHome": {
+    "description": "Подсказка дома по сохранённым заметкам",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "placesGuessWork": "Looks like work is {name}",
+  "@placesGuessWork": {
+    "description": "Подсказка работы по сохранённым заметкам",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "placesRemove": "Remove",
+  "@placesRemove": {
+    "description": "Убрать отмеченное место"
+  },
+  "placesShopName": "Store name",
+  "@placesShopName": {
+    "description": "Окно названия магазина"
+  },
+  "placesSave": "Save",
+  "@placesSave": {
+    "description": "Кнопка окна названия магазина"
+  },
+  "placesNoFix": "Couldn’t find where you are. Check that location is on and allowed for Stowa.",
+  "@placesNoFix": {
+    "description": "Место не определилось"
+  },
+  "placesPermissionTitle": "Location “all the time” is needed",
+  "@placesPermissionTitle": {
+    "description": "Карточка разрешения на место в фоне"
+  },
+  "placesPermissionBody": "Android wakes Stowa at the right spot and shows the Wi-Fi name only if location is allowed “all the time”. Coordinates stay on your phone.",
+  "@placesPermissionBody": {
+    "description": "Зачем место «всегда»"
+  },
+  "placesPermissionAllow": "Allow",
+  "@placesPermissionAllow": {
+    "description": "Кнопка разрешения на место в фоне"
+  },
+  "placesHint": "Places are used for “remind me at home”, “at work” and “at a store”. Notes tagged #buy come up at your saved stores, at most once a day.",
+  "@placesHint": {
+    "description": "Подсказка внизу экрана мест"
+  },
+  "placesShopsCount": "{count, plural, one{{count} store} other{{count} stores}}",
+  "@placesShopsCount": {
+    "description": "Сколько магазинов отмечено",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

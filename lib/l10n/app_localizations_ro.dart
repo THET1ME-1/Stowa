@@ -1956,4 +1956,82 @@ class LRo extends L {
 
   @override
   String get composerRemovePlace => 'Fără memento după loc';
+
+  @override
+  String get placesTitle => 'Locuri';
+
+  @override
+  String get placesHome => 'Acasă';
+
+  @override
+  String get placesWork => 'Serviciu';
+
+  @override
+  String get placesShops => 'Magazine';
+
+  @override
+  String get placesNotSet => 'Nesetat';
+
+  @override
+  String placesWifi(String name) {
+    return 'Wi-Fi: $name';
+  }
+
+  @override
+  String get placesImHome => 'Sunt acasă acum';
+
+  @override
+  String get placesImWork => 'Sunt la serviciu acum';
+
+  @override
+  String get placesImShop => 'Sunt la magazin — salvează';
+
+  @override
+  String placesGuessHome(String name) {
+    return 'Se pare că acasă e $name';
+  }
+
+  @override
+  String placesGuessWork(String name) {
+    return 'Se pare că serviciul e $name';
+  }
+
+  @override
+  String get placesRemove => 'Elimină';
+
+  @override
+  String get placesShopName => 'Numele magazinului';
+
+  @override
+  String get placesSave => 'Salvează';
+
+  @override
+  String get placesNoFix =>
+      'Nu am aflat unde ești. Verifică dacă localizarea e pornită și permisă pentru Stowa.';
+
+  @override
+  String get placesPermissionTitle => 'E nevoie de localizare „mereu”';
+
+  @override
+  String get placesPermissionBody =>
+      'Android trezește Stowa la locul potrivit și arată numele rețelei Wi-Fi doar dacă localizarea e permisă „mereu”. Coordonatele rămân pe telefon.';
+
+  @override
+  String get placesPermissionAllow => 'Permite';
+
+  @override
+  String get placesHint =>
+      'Locurile sunt pentru „amintește-mi acasă”, „la serviciu” și „la magazin”. Notițele cu eticheta #cumpără apar la magazinele salvate, cel mult o dată pe zi.';
+
+  @override
+  String placesShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de magazine',
+      few: '$count magazine',
+      one: '$count magazin',
+    );
+    return '$_temp0';
+  }
 }

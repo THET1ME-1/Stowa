@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/icons/icon_registry.dart';
 import '../domain/folder_guess.dart';
 import '../domain/models.dart' show FactKind;
+import '../domain/place_groups.dart' show guessHomeAndWork;
 import '../domain/related.dart';
 import '../services/ai_image.dart';
 import '../services/ai_worker.dart';
@@ -24,6 +25,7 @@ import '../services/facts/facts_pipeline.dart';
 import '../services/facts/web_extractors.dart';
 import '../services/file_keeper.dart';
 import '../services/link_preview_service.dart';
+import '../services/place_channel.dart';
 import '../services/place_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
@@ -35,6 +37,7 @@ import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
+import 'repositories/places_repository.dart';
 import 'repositories/return_repository.dart';
 import 'repositories/rules_repository.dart';
 import 'repositories/tags_repository.dart';
@@ -236,6 +239,23 @@ final whereAmIProvider = Provider<Future<(double, double)?> Function()>(
     }
   },
 );
+
+/// Отмеченные места: дом, работа, магазины.
+final placesRepositoryProvider = Provider((ref) => PlacesRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
+final placesProvider = StreamProvider((ref) => ref.watch(placesRepositoryProvider).watchAll());
+
+/// Android: место «всегда», имя Wi-Fi, тревоги по месту. Тесты подменяют.
+final placeChannelProvider = Provider<PlaceChannel>((ref) => const MethodPlaceChannel());
+
+/// Где телефон сейчас, с названием: «Я сейчас дома», «Я в магазине». Тесты подменяют.
+final currentPlaceProvider = Provider<Future<PlaceFix?> Function()>((ref) {
+  final settings = ref.watch(settingsRepositoryProvider);
+  final source = DevicePlaceSource(client: ref.watch(aiHttpProvider), language: () => settings.language?.code ?? PlatformDispatcher.instance.locale.languageCode);
+  return source.current;
+});
+
+/// «Похоже, дом — Ботаника»: где сохраняют ночью и в будни днём.
+final placeGuessProvider = FutureProvider.autoDispose((ref) async => guessHomeAndWork(await ref.watch(placesRepositoryProvider).savedPoints()));
 
 /// Где телефон для «рядом» в поиске: последнее известное место сразу, без него — свежее.
 final searchHereProvider = Provider<Future<(double, double)?> Function()>((ref) {

@@ -10,6 +10,8 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/return_plan.dart';
+import 'package:stowa/services/place_channel.dart';
+import 'package:stowa/services/place_service.dart';
 import 'package:stowa/services/telegram_service.dart';
 import 'package:stowa/services/vault/vault_location.dart';
 import 'package:stowa/l10n/app_localizations.dart';
@@ -40,6 +42,12 @@ class TestWorld {
   /// Дан ли «Доступ ко всем файлам».
   var allFiles = true;
 
+  /// Android для мест: что разрешено и какие тревоги поставлены.
+  final placeChannel = FakePlaceChannel();
+
+  /// Где телефон «сейчас» для «Я сейчас дома».
+  PlaceFix? currentPlace;
+
   List<Override> get overrides => [
         databaseProvider.overrideWithValue(db),
         startFilesRootProvider.overrideWithValue(files),
@@ -60,6 +68,9 @@ class TestWorld {
         // GPS в тестах нет: место не ставится
         placeStampProvider.overrideWithValue((id) async {}),
         whereAmIProvider.overrideWithValue(() async => null),
+        // Android нет: место «всегда», Wi-Fi и тревоги — из полей мира
+        placeChannelProvider.overrideWithValue(placeChannel),
+        currentPlaceProvider.overrideWithValue(() async => currentPlace),
         // бота Telegram в тестах нет
         telegramPullProvider.overrideWithValue(() async => 0),
         telegramStateProvider.overrideWith((ref) => Stream.value(const TelegramState())),
@@ -107,6 +118,37 @@ class TestWorld {
   Future<void> dispose() async {
     await db.close();
     if (files.existsSync()) files.deleteSync(recursive: true);
+  }
+}
+
+/// Android мест в тестах: разрешение, сеть и тревоги — поля, которые тест читает и ставит.
+class FakePlaceChannel implements PlaceChannel {
+  var background = false;
+  var asked = 0;
+  String? wifi;
+  List<PlaceAlarm> alarms = const [];
+  final fired = <String>[];
+
+  @override
+  Future<bool> hasBackground() async => background;
+
+  @override
+  Future<void> askBackground() async {
+    asked++;
+    background = true;
+  }
+
+  @override
+  Future<String?> currentWifi() async => wifi;
+
+  @override
+  Future<void> sync(List<PlaceAlarm> alarms) async => this.alarms = List.of(alarms);
+
+  @override
+  Future<List<String>> takeFired() async {
+    final taken = List.of(fired);
+    fired.clear();
+    return taken;
   }
 }
 
