@@ -2019,4 +2019,22 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemRemindTime => 'A una hora';
+
+  @override
+  String get itemPlaceChange => 'Otro lugar';
+
+  @override
+  String get placesMissingHome =>
+      'Tu casa aún no está definida: Stowa te avisará cuando la definas en Lugares';
+
+  @override
+  String get placesMissingWork =>
+      'Tu trabajo aún no está definido: Stowa te avisará cuando lo definas en Lugares';
+
+  @override
+  String get placesMissingShop =>
+      'Aún no hay tiendas: guarda al menos una en Lugares';
 }

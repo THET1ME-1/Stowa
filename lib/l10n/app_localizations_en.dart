@@ -2018,4 +2018,21 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemRemindTime => 'At a time';
+
+  @override
+  String get itemPlaceChange => 'Another place';
+
+  @override
+  String get placesMissingHome =>
+      'Home isn’t set yet: Stowa will remind you once you set it in Places';
+
+  @override
+  String get placesMissingWork =>
+      'Work isn’t set yet: Stowa will remind you once you set it in Places';
+
+  @override
+  String get placesMissingShop => 'No stores yet: save at least one in Places';
 }

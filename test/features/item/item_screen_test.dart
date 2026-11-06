@@ -8,6 +8,7 @@ import 'package:stowa/core/widgets/voice_player.dart';
 import 'package:stowa/features/item/item_media.dart';
 import 'package:stowa/features/item/item_screen.dart';
 import 'package:stowa/features/item/photo_viewer.dart';
+import 'package:stowa/services/place_service.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -36,6 +37,36 @@ void main() {
     expect(item.openedAt, world.now);
     expect(item.updatedAt, world.now);
     expect(await world.db.select(world.db.vaultQueue).get(), everyElement(predicate<VaultQueueData>((row) => row.target != 'item:a' || row.version == 1)));
+  });
+
+  testWidgets('«Напомнить» → «Напомнить дома»: плашка места; дом не отмечен — так и сказано; убрать', (tester) async {
+    await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
+    await tester.tap(find.byTooltip('Напомнить'));
+    await tester.pumpAndSettle();
+    expect(find.text('По времени'), findsOneWidget);
+    await tester.tap(find.text('Напомнить дома'));
+    await tester.pumpAndSettle();
+    expect((await world.db.select(world.db.items).getSingle()).remindPlace, PlaceReminderKind.home);
+    expect(find.text('Дом ещё не отмечен: Stowa напомнит, когда отметишь его в «Местах»'), findsOneWidget);
+    expect(find.byKey(const ValueKey('item-place-reminder')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('item-place-reminder')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Убрать напоминание'));
+    await tester.pumpAndSettle();
+    expect((await world.db.select(world.db.items).getSingle()).remindPlace, isNull);
+  });
+
+  testWidgets('«Напомнить здесь» берёт текущую точку с названием', (tester) async {
+    world.currentPlace = const PlaceFix(latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв');
+    await open(tester, body: 'Купить кофе', title: 'Купить кофе');
+    await tester.tap(find.byTooltip('Напомнить'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Напомнить здесь'));
+    await tester.pumpAndSettle();
+    final item = await world.db.select(world.db.items).getSingle();
+    expect((item.remindPlace, item.remindLatitude, item.remindPlaceName), (PlaceReminderKind.point, 47.0245, 'Ботаника, Кишинёв'));
+    expect(find.text('Напомнить: Ботаника, Кишинёв'), findsOneWidget);
   });
 
   testWidgets('у задачи видна галочка, касание её ставит', (tester) async {

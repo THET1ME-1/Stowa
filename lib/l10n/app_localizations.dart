@@ -3310,6 +3310,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} store} other{{count} stores}}'**
   String placesShopsCount(int count);
+
+  /// Пункт листа «Напомнить»: выбрать день и время
+  ///
+  /// In en, this message translates to:
+  /// **'At a time'**
+  String get itemRemindTime;
+
+  /// Сменить место напоминания
+  ///
+  /// In en, this message translates to:
+  /// **'Another place'**
+  String get itemPlaceChange;
+
+  /// Напоминание дома, а дом не отмечен
+  ///
+  /// In en, this message translates to:
+  /// **'Home isn’t set yet: Stowa will remind you once you set it in Places'**
+  String get placesMissingHome;
+
+  /// Напоминание на работе, а работа не отмечена
+  ///
+  /// In en, this message translates to:
+  /// **'Work isn’t set yet: Stowa will remind you once you set it in Places'**
+  String get placesMissingWork;
+
+  /// Напоминание в магазине, а магазинов нет
+  ///
+  /// In en, this message translates to:
+  /// **'No stores yet: save at least one in Places'**
+  String get placesMissingShop;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

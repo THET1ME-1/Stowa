@@ -2062,4 +2062,22 @@ class LRu extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemRemindTime => 'По времени';
+
+  @override
+  String get itemPlaceChange => 'Другое место';
+
+  @override
+  String get placesMissingHome =>
+      'Дом ещё не отмечен: Stowa напомнит, когда отметишь его в «Местах»';
+
+  @override
+  String get placesMissingWork =>
+      'Работа ещё не отмечена: Stowa напомнит, когда отметишь её в «Местах»';
+
+  @override
+  String get placesMissingShop =>
+      'Магазинов ещё нет: отметь хотя бы один в «Местах»';
 }

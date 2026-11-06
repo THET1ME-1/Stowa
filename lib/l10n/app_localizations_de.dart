@@ -2022,4 +2022,22 @@ class LDe extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemRemindTime => 'Zu einer Zeit';
+
+  @override
+  String get itemPlaceChange => 'Anderer Ort';
+
+  @override
+  String get placesMissingHome =>
+      'Zuhause ist noch nicht festgelegt: Stowa erinnert dich, sobald du es unter Orte festlegst';
+
+  @override
+  String get placesMissingWork =>
+      'Die Arbeit ist noch nicht festgelegt: Stowa erinnert dich, sobald du sie unter Orte festlegst';
+
+  @override
+  String get placesMissingShop =>
+      'Noch keine Läden: lege mindestens einen unter Orte fest';
 }

@@ -285,5 +285,10 @@
   "placesPermissionBody": "Android despierta a Stowa en el lugar indicado y muestra el nombre del Wi-Fi solo si la ubicación está permitida «siempre». Las coordenadas se quedan en el teléfono.",
   "placesPermissionAllow": "Permitir",
   "placesHint": "Los lugares sirven para «recuérdame en casa», «en el trabajo» y «en la tienda». Las notas con la etiqueta #comprar aparecen en tus tiendas guardadas, como mucho una vez al día.",
-  "placesShopsCount": "{count, plural, one{{count} tienda} other{{count} tiendas}}"
+  "placesShopsCount": "{count, plural, one{{count} tienda} other{{count} tiendas}}",
+  "itemRemindTime": "A una hora",
+  "itemPlaceChange": "Otro lugar",
+  "placesMissingHome": "Tu casa aún no está definida: Stowa te avisará cuando la definas en Lugares",
+  "placesMissingWork": "Tu trabajo aún no está definido: Stowa te avisará cuando lo definas en Lugares",
+  "placesMissingShop": "Aún no hay tiendas: guarda al menos una en Lugares"
 }

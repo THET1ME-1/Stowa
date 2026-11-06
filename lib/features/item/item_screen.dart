@@ -30,6 +30,7 @@ import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
+import '../places/places_screen.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
 import '../map/map_screen.dart';
@@ -200,6 +201,97 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(start));
     if (time == null) return;
     await _items.setReminder(_id, DateTime(day.year, day.month, day.day, time.hour, time.minute));
+  }
+
+  PlaceReminder? _placeOf(Item item) =>
+      item.remindPlace == null ? null : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName);
+
+  /// «Напомнить»: по времени или по месту — здесь, дома, на работе, в магазине.
+  Future<void> _remindSheet() async {
+    final l = L.of(context);
+    // «time» — по времени, иначе имя вида места; смахнули лист — null
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(leading: Icon(symbolIcon('schedule')), title: Text(l.itemRemindTime), onTap: () => Navigator.pop(sheet, 'time')),
+            for (final (kind, icon) in const [(PlaceReminderKind.point, 'my_location'), (PlaceReminderKind.home, 'home'), (PlaceReminderKind.work, 'work'), (PlaceReminderKind.shop, 'storefront')])
+              ListTile(leading: Icon(symbolIcon(icon)), title: Text(remindPlaceLabel(l, kind)), onTap: () => Navigator.pop(sheet, kind.name)),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    if (choice == 'time') {
+      await _pickReminder(null);
+      return;
+    }
+    await _setPlace(PlaceReminderKind.values.byName(choice));
+  }
+
+  Future<void> _setPlace(PlaceReminderKind kind) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    if (kind == PlaceReminderKind.point) {
+      final fix = await ref.read(currentPlaceProvider)();
+      if (fix == null) {
+        showNote(messenger, l.placesNoFix);
+        return;
+      }
+      await _items.setPlaceReminder(_id, PlaceReminder(kind, latitude: fix.latitude, longitude: fix.longitude, name: fix.name));
+      return;
+    }
+    await _items.setPlaceReminder(_id, PlaceReminder(kind));
+    // дома, а дом не отмечен: напоминание стоит, сработает, когда отметят
+    final places = ref.read(placesProvider).value ?? await ref.read(placesRepositoryProvider).all();
+    final wanted = switch (kind) {
+      PlaceReminderKind.home => PlaceKind.home,
+      PlaceReminderKind.work => PlaceKind.work,
+      _ => PlaceKind.shop,
+    };
+    if (places.any((place) => place.kind == wanted)) return;
+    final missing = switch (wanted) {
+      PlaceKind.home => l.placesMissingHome,
+      PlaceKind.work => l.placesMissingWork,
+      PlaceKind.shop => l.placesMissingShop,
+    };
+    showUndo(messenger, message: missing, label: l.placesTitle, onUndo: () => navigator.push(placesRoute()), overDock: true);
+  }
+
+  Future<void> _placeMenu(PlaceReminder current) async {
+    final l = L.of(context);
+    final remove = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(leading: Icon(symbolIcon('edit_location_alt')), title: Text(l.itemPlaceChange), onTap: () => Navigator.pop(sheet, false)),
+            ListTile(
+              leading: Icon(symbolIcon('location_off'), color: Tokens.error),
+              title: Text(l.itemReminderRemove, style: const TextStyle(color: Tokens.error)),
+              onTap: () => Navigator.pop(sheet, true),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (remove == null || !mounted) return;
+    if (remove) {
+      await _items.setPlaceReminder(_id, null);
+      if (mounted) showUndo(ScaffoldMessenger.of(context), message: l.reminderCleared, label: l.undo, onUndo: () => _items.setPlaceReminder(_id, current));
+    } else {
+      await _remindSheet();
+    }
   }
 
   Future<void> _reminderMenu(DateTime current) async {
@@ -477,6 +569,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             onChange: () => _pickReminder(item.reminderAt),
                           ),
                         ],
+                        if (_placeOf(item) case final place?) ...[
+                          const SizedBox(height: 18),
+                          _PlaceReminderBlock(place: place, onTap: () => _placeMenu(place)),
+                        ],
                         // что страница сказала о себе: рецепт, товар, событие, место, статья, фильм
                         if (!_editing && PageCard.hasAny(facts)) ...[
                           const SizedBox(height: 12),
@@ -575,10 +671,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                 height: _dockHeight,
                                 buttons: [
                                   _DockButton(
-                                    icon: item.reminderAt != null ? 'alarm' : 'add_alarm',
+                                    icon: item.reminderAt != null || item.remindPlace != null ? 'alarm' : 'add_alarm',
                                     tooltip: l.itemRemind,
-                                    active: item.reminderAt != null,
-                                    onTap: () => item.reminderAt != null ? _reminderMenu(item.reminderAt!) : _pickReminder(null),
+                                    active: item.reminderAt != null || item.remindPlace != null,
+                                    onTap: () => item.reminderAt != null
+                                        ? _reminderMenu(item.reminderAt!)
+                                        : item.remindPlace != null
+                                        ? _placeMenu(_placeOf(item)!)
+                                        : _remindSheet(),
                                   ),
                                   _DockButton(icon: 'tag', tooltip: l.tagAdd, onTap: _addTag),
                                   // у ссылки главное — открыть, поэтому дописать мысль уходит в панель
@@ -899,6 +999,43 @@ class _WhenWhere extends StatelessWidget {
           ),
         if (taken != null) part('photo_camera', taken!),
       ],
+    );
+  }
+}
+
+/// Напоминание по месту той же светлой плашкой: «Напомнить дома», «Напомнить: Ботаника».
+class _PlaceReminderBlock extends StatelessWidget {
+  const _PlaceReminderBlock({required this.place, required this.onTap});
+
+  final PlaceReminder place;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return Material(
+      key: const ValueKey('item-place-reminder'),
+      color: Tokens.accent,
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Row(
+            children: [
+              Icon(symbolIcon('location_on', filled: true), size: 24, color: Tokens.onAccent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  remindPlaceLabel(l, place.kind, name: place.name),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Tokens.onAccent),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

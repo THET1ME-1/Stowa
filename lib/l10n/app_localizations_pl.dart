@@ -2058,4 +2058,22 @@ class LPl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemRemindTime => 'O godzinie';
+
+  @override
+  String get itemPlaceChange => 'Inne miejsce';
+
+  @override
+  String get placesMissingHome =>
+      'Dom nie jest jeszcze ustawiony: Stowa przypomni, gdy ustawisz go w Miejscach';
+
+  @override
+  String get placesMissingWork =>
+      'Praca nie jest jeszcze ustawiona: Stowa przypomni, gdy ustawisz ją w Miejscach';
+
+  @override
+  String get placesMissingShop =>
+      'Nie ma jeszcze sklepów: zapisz choć jeden w Miejscach';
 }

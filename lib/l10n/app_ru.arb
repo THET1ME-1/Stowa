@@ -533,5 +533,10 @@
   "placesPermissionBody": "Android будит Stowa у нужной точки и показывает имя сети Wi-Fi, только если месту разрешено «всегда». Координаты остаются на телефоне.",
   "placesPermissionAllow": "Разрешить",
   "placesHint": "Места нужны для «напомни дома», «на работе» и «в магазине». Заметки с тегом #купить всплывают у отмеченных магазинов, не чаще раза в день.",
-  "placesShopsCount": "{count, plural, one{{count} магазин} few{{count} магазина} many{{count} магазинов} other{{count} магазина}}"
+  "placesShopsCount": "{count, plural, one{{count} магазин} few{{count} магазина} many{{count} магазинов} other{{count} магазина}}",
+  "itemRemindTime": "По времени",
+  "itemPlaceChange": "Другое место",
+  "placesMissingHome": "Дом ещё не отмечен: Stowa напомнит, когда отметишь его в «Местах»",
+  "placesMissingWork": "Работа ещё не отмечена: Stowa напомнит, когда отметишь её в «Местах»",
+  "placesMissingShop": "Магазинов ещё нет: отметь хотя бы один в «Местах»"
 }

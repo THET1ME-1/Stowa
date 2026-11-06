@@ -2585,5 +2585,25 @@
         "type": "int"
       }
     }
+  },
+  "itemRemindTime": "At a time",
+  "@itemRemindTime": {
+    "description": "Пункт листа «Напомнить»: выбрать день и время"
+  },
+  "itemPlaceChange": "Another place",
+  "@itemPlaceChange": {
+    "description": "Сменить место напоминания"
+  },
+  "placesMissingHome": "Home isn’t set yet: Stowa will remind you once you set it in Places",
+  "@placesMissingHome": {
+    "description": "Напоминание дома, а дом не отмечен"
+  },
+  "placesMissingWork": "Work isn’t set yet: Stowa will remind you once you set it in Places",
+  "@placesMissingWork": {
+    "description": "Напоминание на работе, а работа не отмечена"
+  },
+  "placesMissingShop": "No stores yet: save at least one in Places",
+  "@placesMissingShop": {
+    "description": "Напоминание в магазине, а магазинов нет"
   }
 }

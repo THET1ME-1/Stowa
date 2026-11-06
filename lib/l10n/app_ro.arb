@@ -285,5 +285,10 @@
   "placesPermissionBody": "Android trezește Stowa la locul potrivit și arată numele rețelei Wi-Fi doar dacă localizarea e permisă „mereu”. Coordonatele rămân pe telefon.",
   "placesPermissionAllow": "Permite",
   "placesHint": "Locurile sunt pentru „amintește-mi acasă”, „la serviciu” și „la magazin”. Notițele cu eticheta #cumpără apar la magazinele salvate, cel mult o dată pe zi.",
-  "placesShopsCount": "{count, plural, one{{count} magazin} few{{count} magazine} other{{count} de magazine}}"
+  "placesShopsCount": "{count, plural, one{{count} magazin} few{{count} magazine} other{{count} de magazine}}",
+  "itemRemindTime": "La o oră",
+  "itemPlaceChange": "Alt loc",
+  "placesMissingHome": "Acasă nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri",
+  "placesMissingWork": "Serviciul nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri",
+  "placesMissingShop": "Încă nu ai magazine: salvează măcar unul în Locuri"
 }

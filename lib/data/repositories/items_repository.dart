@@ -502,6 +502,16 @@ WHERE items.deleted_at IS NULL''';
   }
 
   /// «Готово» у напоминания: вещь остаётся, напоминание снимается.
+  /// Напоминание по месту со страницы заметки; null снимает.
+  Future<void> setPlaceReminder(String id, PlaceReminder? place) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
+    ItemsCompanion(
+      remindPlace: Value(place?.kind),
+      remindLatitude: Value(place?.latitude),
+      remindLongitude: Value(place?.longitude),
+      remindPlaceName: Value(place?.name),
+    ),
+  );
+
   Future<void> clearReminder(String id) {
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(reminderAt: Value(null)));
   }

@@ -285,5 +285,10 @@
   "placesPermissionBody": "Android будить Stowa у потрібній точці й показує ім’я мережі Wi-Fi, лише якщо місцю дозволено «завжди». Координати лишаються на телефоні.",
   "placesPermissionAllow": "Дозволити",
   "placesHint": "Місця потрібні для «нагадай удома», «на роботі» і «в магазині». Нотатки з тегом #купити спливають біля позначених магазинів, не частіше разу на день.",
-  "placesShopsCount": "{count, plural, one{{count} магазин} few{{count} магазини} many{{count} магазинів} other{{count} магазину}}"
+  "placesShopsCount": "{count, plural, one{{count} магазин} few{{count} магазини} many{{count} магазинів} other{{count} магазину}}",
+  "itemRemindTime": "За часом",
+  "itemPlaceChange": "Інше місце",
+  "placesMissingHome": "Дім ще не позначений: Stowa нагадає, коли позначиш його в «Місцях»",
+  "placesMissingWork": "Робота ще не позначена: Stowa нагадає, коли позначиш її в «Місцях»",
+  "placesMissingShop": "Магазинів ще немає: познач хоча б один у «Місцях»"
 }

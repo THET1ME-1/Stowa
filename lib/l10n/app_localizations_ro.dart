@@ -2034,4 +2034,22 @@ class LRo extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemRemindTime => 'La o oră';
+
+  @override
+  String get itemPlaceChange => 'Alt loc';
+
+  @override
+  String get placesMissingHome =>
+      'Acasă nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri';
+
+  @override
+  String get placesMissingWork =>
+      'Serviciul nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri';
+
+  @override
+  String get placesMissingShop =>
+      'Încă nu ai magazine: salvează măcar unul în Locuri';
 }

@@ -2057,4 +2057,22 @@ class LUk extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemRemindTime => 'За часом';
+
+  @override
+  String get itemPlaceChange => 'Інше місце';
+
+  @override
+  String get placesMissingHome =>
+      'Дім ще не позначений: Stowa нагадає, коли позначиш його в «Місцях»';
+
+  @override
+  String get placesMissingWork =>
+      'Робота ще не позначена: Stowa нагадає, коли позначиш її в «Місцях»';
+
+  @override
+  String get placesMissingShop =>
+      'Магазинів ще немає: познач хоча б один у «Місцях»';
 }

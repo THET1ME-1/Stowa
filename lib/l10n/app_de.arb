@@ -285,5 +285,10 @@
   "placesPermissionBody": "Android weckt Stowa am richtigen Ort und zeigt den WLAN-Namen nur, wenn der Standort „immer“ erlaubt ist. Die Koordinaten bleiben auf dem Handy.",
   "placesPermissionAllow": "Erlauben",
   "placesHint": "Orte braucht es für „erinnere mich zu Hause“, „auf der Arbeit“ und „im Laden“. Notizen mit dem Tag #kaufen tauchen an gespeicherten Läden auf, höchstens einmal am Tag.",
-  "placesShopsCount": "{count, plural, one{{count} Laden} other{{count} Läden}}"
+  "placesShopsCount": "{count, plural, one{{count} Laden} other{{count} Läden}}",
+  "itemRemindTime": "Zu einer Zeit",
+  "itemPlaceChange": "Anderer Ort",
+  "placesMissingHome": "Zuhause ist noch nicht festgelegt: Stowa erinnert dich, sobald du es unter Orte festlegst",
+  "placesMissingWork": "Die Arbeit ist noch nicht festgelegt: Stowa erinnert dich, sobald du sie unter Orte festlegst",
+  "placesMissingShop": "Noch keine Läden: lege mindestens einen unter Orte fest"
 }

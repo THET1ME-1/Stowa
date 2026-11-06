@@ -285,5 +285,10 @@
   "placesPermissionBody": "Android budzi Stowa we właściwym miejscu i pokazuje nazwę sieci Wi-Fi tylko wtedy, gdy lokalizacja jest dozwolona „zawsze”. Współrzędne zostają w telefonie.",
   "placesPermissionAllow": "Zezwól",
   "placesHint": "Miejsca są do „przypomnij w domu”, „w pracy” i „w sklepie”. Notatki z tagiem #kupić pojawiają się przy zapisanych sklepach, najwyżej raz dziennie.",
-  "placesShopsCount": "{count, plural, one{{count} sklep} few{{count} sklepy} many{{count} sklepów} other{{count} sklepu}}"
+  "placesShopsCount": "{count, plural, one{{count} sklep} few{{count} sklepy} many{{count} sklepów} other{{count} sklepu}}",
+  "itemRemindTime": "O godzinie",
+  "itemPlaceChange": "Inne miejsce",
+  "placesMissingHome": "Dom nie jest jeszcze ustawiony: Stowa przypomni, gdy ustawisz go w Miejscach",
+  "placesMissingWork": "Praca nie jest jeszcze ustawiona: Stowa przypomni, gdy ustawisz ją w Miejscach",
+  "placesMissingShop": "Nie ma jeszcze sklepów: zapisz choć jeden w Miejscach"
 }
