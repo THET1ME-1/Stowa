@@ -14,6 +14,7 @@ import '../domain/inline_tags.dart';
 import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
 import '../domain/models.dart';
+import '../domain/place_cue.dart';
 import '../domain/reminder_parser.dart';
 import '../domain/sort_rules.dart';
 import '../domain/tag_name.dart';
@@ -55,7 +56,15 @@ class CaptureInput {
     this.untitled,
     this.here = true,
     this.at,
+    this.detectPlace = true,
+    this.forcedPlace,
   });
+
+  /// Искать место в тексте: «напомни дома». Человек снял чип места — не ищем.
+  final bool detectPlace;
+
+  /// Место, выбранное руками: главнее найденного в тексте.
+  final PlaceReminder? forcedPlace;
 
   /// Когда заметка написана, если не сейчас: перенос из Telegram ставит дату сообщения.
   final DateTime? at;
@@ -98,6 +107,9 @@ class CaptureService {
 
   final AppDatabase _db;
   final TagsRepository _tags;
+
+  // заметки с «напомни тут» из текущей пачки: им нужна точка с телефона
+  final _wantsHere = <String>{};
   final Directory _filesRoot;
   final DateTime Function() _clock;
   final Uuid _uuid;
@@ -137,7 +149,8 @@ class CaptureService {
     if (batch != null && ids.length > 1) batch(ids);
     for (final (index, id) in ids.indexed) {
       if (batch == null || ids.length == 1) afterCapture?.call(id);
-      if (inputs[index].here) stampPlace?.call(id);
+      // «напомни тут» нужна точка, даже если заметку прислали издалека
+      if (inputs[index].here || _wantsHere.remove(id)) stampPlace?.call(id);
     }
     return ids;
   }
@@ -152,7 +165,11 @@ class CaptureService {
     final found = input.forcedReminder == null && input.detectReminder ? parseReminder(text, now) : null;
     // дата уходит из заголовка, если без неё что-то осталось: «23 декабря 13:00 зубной» → «Зубной»
     final rest = found?.restOf(text) ?? '';
-    final titleSource = rest.isNotEmpty ? rest : text;
+    var titleSource = rest.isNotEmpty ? rest : text;
+    // и место: «напомни дома купить хлеб» → «Купить хлеб»
+    final cue = input.forcedPlace == null && input.detectPlace ? parsePlaceCue(titleSource) : null;
+    final place = input.forcedPlace ?? (cue == null ? null : PlaceReminder(cue.kind));
+    if (cue != null && cue.restOf(titleSource).isNotEmpty) titleSource = cue.restOf(titleSource);
     final fromContent = titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path));
     final title = fromContent.isEmpty ? (input.untitled ?? '') : fromContent;
     final kind = detectKind(text: text, mime: firstFile?.mime);
@@ -188,6 +205,10 @@ class CaptureService {
             ),
             sortState: Value(sorted ? SortState.sorted : SortState.pending),
             reminderAt: Value(input.forcedReminder ?? found?.at),
+            remindPlace: Value(place?.kind),
+            remindLatitude: Value(place?.latitude),
+            remindLongitude: Value(place?.longitude),
+            remindPlaceName: Value(place?.name),
             durationSeconds: Value(input.files.map((file) => file.seconds).nonNulls.firstOrNull),
             createdAt: input.at ?? now,
             updatedAt: input.at ?? now,
@@ -208,6 +229,7 @@ class CaptureService {
     if (!sorted || kind == ItemKind.voice) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
     // файлы — задачами в той же транзакции: вещь без своего файла не останется
     await files.enqueue(id, input.files);
+    if (place?.kind == PlaceReminderKind.point && place?.latitude == null) _wantsHere.add(id);
     return id;
   }
 

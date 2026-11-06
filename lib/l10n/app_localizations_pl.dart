@@ -1959,4 +1959,24 @@ class LPl extends L {
 
   @override
   String get returnsAskLater => 'Nie teraz';
+
+  @override
+  String get placeRemindHome => 'Przypomnij w domu';
+
+  @override
+  String get placeRemindWork => 'Przypomnij w pracy';
+
+  @override
+  String get placeRemindHere => 'Przypomnij tutaj';
+
+  @override
+  String get placeRemindShop => 'Przypomnij w sklepie';
+
+  @override
+  String placeRemindAt(String place) {
+    return 'Przypomnij: $place';
+  }
+
+  @override
+  String get composerRemovePlace => 'Bez przypomnienia o miejscu';
 }

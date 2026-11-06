@@ -4,6 +4,7 @@ import '../../core/theme/tokens.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
+import '../../domain/place_cue.dart';
 import '../../domain/reminder_parser.dart';
 import '../../domain/tag_name.dart';
 
@@ -29,8 +30,11 @@ class LineController extends TextEditingController {
   final List<String> _tags = [];
   FolderCard? _folder;
   bool _reminderDismissed = false;
+  bool _placeDismissed = false;
   String? _parsedText;
   ReminderMatch? _parsed;
+  String? _cueText;
+  PlaceCue? _cue;
 
   List<String> get tags => List.unmodifiable(_tags);
 
@@ -50,6 +54,18 @@ class LineController extends TextEditingController {
     return _parsed;
   }
 
+  bool get placeDismissed => _placeDismissed;
+
+  /// Место из текста («напомни дома»), пока человек его не снял.
+  PlaceCue? get placeCue {
+    if (_placeDismissed) return null;
+    if (_cueText != text) {
+      _cueText = text;
+      _cue = parsePlaceCue(text);
+    }
+    return _cue;
+  }
+
   @override
   set value(TextEditingValue newValue) {
     super.value = _liftMarks(newValue);
@@ -57,6 +73,11 @@ class LineController extends TextEditingController {
 
   void dismissReminder() {
     _reminderDismissed = true;
+    notifyListeners();
+  }
+
+  void dismissPlace() {
+    _placeDismissed = true;
     notifyListeners();
   }
 
@@ -112,12 +133,13 @@ class LineController extends TextEditingController {
   }
 
   /// Вернуть строку как была: «Отменить» после «Закинуть».
-  void restore({required String text, required List<String> tags, FolderCard? folder, bool reminderDismissed = false}) {
+  void restore({required String text, required List<String> tags, FolderCard? folder, bool reminderDismissed = false, bool placeDismissed = false}) {
     _tags
       ..clear()
       ..addAll(tags);
     _folder = folder;
     _reminderDismissed = reminderDismissed;
+    _placeDismissed = placeDismissed;
     value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
@@ -129,6 +151,7 @@ class LineController extends TextEditingController {
     _tags.clear();
     _folder = null;
     _reminderDismissed = false;
+    _placeDismissed = false;
     clear();
   }
 
@@ -175,8 +198,9 @@ class LineController extends TextEditingController {
       marks.add((0, command.end, const TextStyle(color: Tokens.onAccent, backgroundColor: Tokens.accent)));
     }
     final found = reminder;
-    // день и время могут стоять порознь: подчёркнут каждый кусок, слова между ними — нет
-    for (final (from, to) in found?.parts ?? const <(int, int)>[]) {
+    final cue = placeCue;
+    // день и время могут стоять порознь: подчёркнут каждый кусок, слова между ними — нет; место — так же
+    for (final (from, to) in [...?found?.parts, if (cue != null) (cue.start, cue.end)]) {
       marks.add((
         from,
         to,

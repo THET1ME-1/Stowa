@@ -1958,4 +1958,24 @@ class LUk extends L {
 
   @override
   String get returnsAskLater => 'Не зараз';
+
+  @override
+  String get placeRemindHome => 'Нагадати вдома';
+
+  @override
+  String get placeRemindWork => 'Нагадати на роботі';
+
+  @override
+  String get placeRemindHere => 'Нагадати тут';
+
+  @override
+  String get placeRemindShop => 'Нагадати в магазині';
+
+  @override
+  String placeRemindAt(String place) {
+    return 'Нагадати: $place';
+  }
+
+  @override
+  String get composerRemovePlace => 'Без нагадування за місцем';
 }

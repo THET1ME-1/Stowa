@@ -55,6 +55,27 @@ void main() {
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
   });
 
+  testWidgets('«напомни дома» — чип «Напомнить дома», сохраняется с местом; снял чип — без места', (tester) async {
+    await open(tester);
+    await type(tester, 'напомни дома купить хлеб');
+    expect(find.text('Напомнить дома'), findsOneWidget);
+    await tester.tap(find.text('Закинуть').last);
+    await tester.pumpAndSettle();
+    var item = await world.db.select(world.db.items).getSingle();
+    expect((item.remindPlace, item.title), (PlaceReminderKind.home, 'Купить хлеб'));
+
+    await world.db.delete(world.db.items).go();
+    await type(tester, 'когда приду на работу отдать ключи');
+    expect(find.text('Напомнить на работе'), findsOneWidget);
+    await tester.tap(find.byTooltip('Без напоминания по месту'));
+    await tester.pumpAndSettle();
+    expect(find.text('Напомнить на работе'), findsNothing);
+    await tester.tap(find.text('Закинуть').last);
+    await tester.pumpAndSettle();
+    item = await world.db.select(world.db.items).getSingle();
+    expect(item.remindPlace, isNull);
+  });
+
   testWidgets('точное слово находит вещь, белая строка у неё, кнопка открывает', (tester) async {
     await note('wifi', 'Пароль от Wi-Fi', body: 'Пароль от Wi-Fi\nСеть Keenetic, пароль zelenyi-chai-77');
     await open(tester);

@@ -1925,4 +1925,24 @@ class LDe extends L {
 
   @override
   String get returnsAskLater => 'Nicht jetzt';
+
+  @override
+  String get placeRemindHome => 'Zu Hause erinnern';
+
+  @override
+  String get placeRemindWork => 'Auf der Arbeit erinnern';
+
+  @override
+  String get placeRemindHere => 'Hier erinnern';
+
+  @override
+  String get placeRemindShop => 'Im Laden erinnern';
+
+  @override
+  String placeRemindAt(String place) {
+    return 'Erinnern: $place';
+  }
+
+  @override
+  String get composerRemovePlace => 'Keine Ortserinnerung';
 }

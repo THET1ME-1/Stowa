@@ -259,5 +259,11 @@
   "returnsAskTitle": "¿Te recuerdo lo guardado?",
   "returnsAskBody": "Por la tarde, una notificación sin sonido: qué ver, qué guardaste este día hace un año, un resumen semanal. Como mucho una vez al día.",
   "returnsAskOn": "Activar",
-  "returnsAskLater": "Ahora no"
+  "returnsAskLater": "Ahora no",
+  "placeRemindHome": "Recordar en casa",
+  "placeRemindWork": "Recordar en el trabajo",
+  "placeRemindHere": "Recordar aquí",
+  "placeRemindShop": "Recordar en la tienda",
+  "placeRemindAt": "Recordar en {place}",
+  "composerRemovePlace": "Sin recordatorio por lugar"
 }

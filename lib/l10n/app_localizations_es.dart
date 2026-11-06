@@ -1922,4 +1922,24 @@ class LEs extends L {
 
   @override
   String get returnsAskLater => 'Ahora no';
+
+  @override
+  String get placeRemindHome => 'Recordar en casa';
+
+  @override
+  String get placeRemindWork => 'Recordar en el trabajo';
+
+  @override
+  String get placeRemindHere => 'Recordar aquí';
+
+  @override
+  String get placeRemindShop => 'Recordar en la tienda';
+
+  @override
+  String placeRemindAt(String place) {
+    return 'Recordar en $place';
+  }
+
+  @override
+  String get composerRemovePlace => 'Sin recordatorio por lugar';
 }

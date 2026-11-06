@@ -3154,6 +3154,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Not now'**
   String get returnsAskLater;
+
+  /// Чип и пункт: напоминание дома
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at home'**
+  String get placeRemindHome;
+
+  /// Чип и пункт: напоминание на работе
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at work'**
+  String get placeRemindWork;
+
+  /// Чип и пункт: напоминание в этой точке
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me here'**
+  String get placeRemindHere;
+
+  /// Чип и пункт: напоминание у любого отмеченного магазина
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at a store'**
+  String get placeRemindShop;
+
+  /// Напоминание в точке с названием
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at {place}'**
+  String placeRemindAt(String place);
+
+  /// Крестик на чипе места
+  ///
+  /// In en, this message translates to:
+  /// **'No place reminder'**
+  String get composerRemovePlace;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

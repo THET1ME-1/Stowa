@@ -507,5 +507,11 @@
   "returnsAskTitle": "Возвращать сохранённое?",
   "returnsAskBody": "Вечером — одно тихое уведомление: что посмотреть, что было в этот день год назад, сводка недели. Не чаще раза в день.",
   "returnsAskOn": "Включить",
-  "returnsAskLater": "Не сейчас"
+  "returnsAskLater": "Не сейчас",
+  "placeRemindHome": "Напомнить дома",
+  "placeRemindWork": "Напомнить на работе",
+  "placeRemindHere": "Напомнить здесь",
+  "placeRemindShop": "Напомнить в магазине",
+  "placeRemindAt": "Напомнить: {place}",
+  "composerRemovePlace": "Без напоминания по месту"
 }

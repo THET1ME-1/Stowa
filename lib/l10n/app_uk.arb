@@ -259,5 +259,11 @@
   "returnsAskTitle": "Повертати збережене?",
   "returnsAskBody": "Увечері — одне тихе сповіщення: що переглянути, що було цього дня рік тому, підсумок тижня. Не частіше разу на день.",
   "returnsAskOn": "Увімкнути",
-  "returnsAskLater": "Не зараз"
+  "returnsAskLater": "Не зараз",
+  "placeRemindHome": "Нагадати вдома",
+  "placeRemindWork": "Нагадати на роботі",
+  "placeRemindHere": "Нагадати тут",
+  "placeRemindShop": "Нагадати в магазині",
+  "placeRemindAt": "Нагадати: {place}",
+  "composerRemovePlace": "Без нагадування за місцем"
 }

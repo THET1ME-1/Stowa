@@ -59,6 +59,20 @@ void main() {
     expect(places.asked, 2);
   });
 
+  test('«напомни тут»: точка напоминания берётся, даже если запоминать место выключено', () async {
+    await (db.update(db.items)..where((t) => t.id.equals('a'))).write(const ItemsCompanion(remindPlace: Value(PlaceReminderKind.point)));
+    final places = FakePlaces(const PlaceFix(latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв'));
+    final service = PlaceService(db, source: places, clock: () => now, enabled: () => false);
+    await service.stamp('a');
+    final a = await item('a');
+    expect((a.remindLatitude, a.remindLongitude, a.remindPlaceName), (47.0245, 28.8323, 'Ботаника, Кишинёв'));
+    // где сохранено — не пишется: это выключено
+    expect(a.latitude, isNull);
+    // обычная заметка при выключенном месте телефон не дёргает
+    await service.stamp('b');
+    expect(places.asked, 1);
+  });
+
   test('места нет (не разрешили) — вещь остаётся без места', () async {
     await PlaceService(db, source: FakePlaces(null), clock: () => now, enabled: () => true).stamp('a');
     expect((await item('a')).latitude, isNull);

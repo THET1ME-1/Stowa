@@ -1921,4 +1921,24 @@ class LEn extends L {
 
   @override
   String get returnsAskLater => 'Not now';
+
+  @override
+  String get placeRemindHome => 'Remind at home';
+
+  @override
+  String get placeRemindWork => 'Remind at work';
+
+  @override
+  String get placeRemindHere => 'Remind me here';
+
+  @override
+  String get placeRemindShop => 'Remind at a store';
+
+  @override
+  String placeRemindAt(String place) {
+    return 'Remind at $place';
+  }
+
+  @override
+  String get composerRemovePlace => 'No place reminder';
 }

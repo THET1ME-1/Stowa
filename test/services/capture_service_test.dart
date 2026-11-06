@@ -135,6 +135,24 @@ void main() {
     expect(single, [one]);
   });
 
+  test('«напомни дома купить хлеб» — напоминание по месту, место уходит из заголовка', () async {
+    final id = await capture.capture(const CaptureInput(text: 'напомни дома купить хлеб'));
+    final item = (await items.get(id))!.item;
+    expect((item.remindPlace, item.title, item.reminderAt), (PlaceReminderKind.home, 'Купить хлеб', null));
+  });
+
+  test('«напомни тут» просит место даже без «здесь и сейчас»; чип сняли — места нет', () async {
+    final stamped = <String>[];
+    capture.stampPlace = stamped.add;
+    final here = await capture.capture(const CaptureInput(text: 'напомни тут купить кофе', here: false));
+    expect((await items.get(here))!.item.remindPlace, PlaceReminderKind.point);
+    expect(stamped, [here]);
+    final plain = await capture.capture(const CaptureInput(text: 'напомни дома купить хлеб', detectPlace: false));
+    expect((await items.get(plain))!.item.remindPlace, isNull);
+    final forced = await capture.capture(const CaptureInput(text: 'купить молоко', forcedPlace: PlaceReminder(PlaceReminderKind.shop)));
+    expect((await items.get(forced))!.item.remindPlace, PlaceReminderKind.shop);
+  });
+
   test('пустая заметка в пачке — не сохраняется ничего', () async {
     await expectLater(capture.captureAll([const CaptureInput(text: 'есть'), const CaptureInput(text: '  ')]), throwsArgumentError);
     expect(await db.select(db.items).get(), isEmpty);

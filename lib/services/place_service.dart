@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/db/database.dart';
+import '../domain/models.dart';
 
 /// Где человек сейчас: координаты и, если нашлось, название места.
 class PlaceFix {
@@ -44,12 +45,24 @@ class PlaceService {
   DateTime? _lastAt;
   Future<PlaceFix?>? _asking;
 
+  /// Место, где сохранено, — если оно включено в настройках. «Напомни тут» берёт точку
+  /// напоминания всегда: о ней человек попросил сам.
   Future<void> stamp(String itemId) async {
-    if (!_enabled()) return;
+    final item = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingleOrNull();
+    final remindHere = item?.remindPlace == PlaceReminderKind.point && item?.remindLatitude == null;
+    final enabled = _enabled();
+    if (!enabled && !remindHere) return;
     final fix = await _fix();
     if (fix == null) return;
     await (_db.update(_db.items)..where((t) => t.id.equals(itemId))).write(
-      ItemsCompanion(latitude: Value(fix.latitude), longitude: Value(fix.longitude), placeName: Value(fix.name)),
+      ItemsCompanion(
+        latitude: enabled ? Value(fix.latitude) : const Value.absent(),
+        longitude: enabled ? Value(fix.longitude) : const Value.absent(),
+        placeName: enabled ? Value(fix.name) : const Value.absent(),
+        remindLatitude: remindHere ? Value(fix.latitude) : const Value.absent(),
+        remindLongitude: remindHere ? Value(fix.longitude) : const Value.absent(),
+        remindPlaceName: remindHere ? Value(fix.name) : const Value.absent(),
+      ),
     );
   }
 

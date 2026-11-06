@@ -435,7 +435,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       LineCommand.task => '- [ ] ${rest.trim()}',
       _ => rest,
     };
-    final snapshot = (text: _line.text, tags: _line.tags, folder: _line.folder, dismissed: _line.reminderDismissed, files: List.of(_files));
+    final snapshot = (text: _line.text, tags: _line.tags, folder: _line.folder, dismissed: _line.reminderDismissed, placeDismissed: _line.placeDismissed, files: List.of(_files));
     final reminderAt = _line.reminder?.at;
     setState(() => _sending = true);
     HapticFeedback.lightImpact();
@@ -449,6 +449,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           forcedFolderId: _line.folder?.id,
           forcedTagNames: _line.tags,
           detectReminder: !_line.reminderDismissed,
+          detectPlace: !_line.placeDismissed,
           asIs: command == LineCommand.inbox,
           untitled: files.isEmpty ? null : untitledFor(l, mime: files.first.mime, fileName: p.basename(files.first.path), at: _now),
         ),
@@ -474,7 +475,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           _files
             ..clear()
             ..addAll(snapshot.files);
-          _line.restore(text: snapshot.text, tags: snapshot.tags, folder: snapshot.folder, reminderDismissed: snapshot.dismissed);
+          _line.restore(text: snapshot.text, tags: snapshot.tags, folder: snapshot.folder, reminderDismissed: snapshot.dismissed, placeDismissed: snapshot.placeDismissed);
           _activate();
           _focus.requestFocus();
         },
@@ -994,6 +995,23 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           label: l.composerRemind(formatReminder(l, reminder.at, now)),
           removeTooltip: l.composerRemoveReminder,
           onRemove: _line.dismissReminder,
+        ),
+      );
+    }
+    final place = _line.placeCue;
+    if (place != null) {
+      chips.add(
+        _LineChip(
+          key: const ValueKey('place'),
+          leading: Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(9)),
+            child: Icon(symbolIcon('location_on', filled: true), size: 17, color: Tokens.onAccent),
+          ),
+          label: remindPlaceLabel(l, place.kind),
+          removeTooltip: l.composerRemovePlace,
+          onRemove: _line.dismissPlace,
         ),
       );
     }

@@ -57,6 +57,14 @@ String kindLabel(L l, ItemKind kind) => switch (kind) {
 
 /// Заголовок вещи, у которой нет ни текста, ни человеческого имени файла:
 /// «Фото от 3 ноября». По нему же вещь находится поиском.
+/// Подпись напоминания по месту: «Напомнить дома», «Напомнить: Ботаника, Кишинёв».
+String remindPlaceLabel(L l, PlaceReminderKind kind, {String? name}) => switch (kind) {
+  PlaceReminderKind.home => l.placeRemindHome,
+  PlaceReminderKind.work => l.placeRemindWork,
+  PlaceReminderKind.shop => l.placeRemindShop,
+  PlaceReminderKind.point => name == null || name.isEmpty ? l.placeRemindHere : l.placeRemindAt(name),
+};
+
 String untitledFor(L l, {required String mime, required String fileName, required DateTime at}) {
   final date = DateFormat.MMMMd(l.localeName).format(at);
   if (mime.startsWith('image/')) return isScreenshotName(fileName) ? l.untitledScreenshot(date) : l.untitledPhoto(date);

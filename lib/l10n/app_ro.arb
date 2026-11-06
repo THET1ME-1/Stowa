@@ -259,5 +259,11 @@
   "returnsAskTitle": "Să-ți readuc aminte ce ai salvat?",
   "returnsAskBody": "Seara, o singură notificare fără sunet: ce să vezi, ce ai salvat în această zi acum un an, rezumatul săptămânii. Cel mult o dată pe zi.",
   "returnsAskOn": "Activează",
-  "returnsAskLater": "Nu acum"
+  "returnsAskLater": "Nu acum",
+  "placeRemindHome": "Amintește acasă",
+  "placeRemindWork": "Amintește la serviciu",
+  "placeRemindHere": "Amintește aici",
+  "placeRemindShop": "Amintește la magazin",
+  "placeRemindAt": "Amintește la {place}",
+  "composerRemovePlace": "Fără memento după loc"
 }

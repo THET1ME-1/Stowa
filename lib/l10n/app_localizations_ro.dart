@@ -1936,4 +1936,24 @@ class LRo extends L {
 
   @override
   String get returnsAskLater => 'Nu acum';
+
+  @override
+  String get placeRemindHome => 'Amintește acasă';
+
+  @override
+  String get placeRemindWork => 'Amintește la serviciu';
+
+  @override
+  String get placeRemindHere => 'Amintește aici';
+
+  @override
+  String get placeRemindShop => 'Amintește la magazin';
+
+  @override
+  String placeRemindAt(String place) {
+    return 'Amintește la $place';
+  }
+
+  @override
+  String get composerRemovePlace => 'Fără memento după loc';
 }

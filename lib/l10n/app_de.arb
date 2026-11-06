@@ -259,5 +259,11 @@
   "returnsAskTitle": "Gespeichertes zurückbringen?",
   "returnsAskBody": "Abends eine lautlose Benachrichtigung: was du ansehen wolltest, was du vor einem Jahr an diesem Tag gespeichert hast, ein Wochenrückblick. Höchstens einmal am Tag.",
   "returnsAskOn": "Einschalten",
-  "returnsAskLater": "Nicht jetzt"
+  "returnsAskLater": "Nicht jetzt",
+  "placeRemindHome": "Zu Hause erinnern",
+  "placeRemindWork": "Auf der Arbeit erinnern",
+  "placeRemindHere": "Hier erinnern",
+  "placeRemindShop": "Im Laden erinnern",
+  "placeRemindAt": "Erinnern: {place}",
+  "composerRemovePlace": "Keine Ortserinnerung"
 }

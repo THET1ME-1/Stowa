@@ -1963,4 +1963,24 @@ class LRu extends L {
 
   @override
   String get returnsAskLater => 'Не сейчас';
+
+  @override
+  String get placeRemindHome => 'Напомнить дома';
+
+  @override
+  String get placeRemindWork => 'Напомнить на работе';
+
+  @override
+  String get placeRemindHere => 'Напомнить здесь';
+
+  @override
+  String get placeRemindShop => 'Напомнить в магазине';
+
+  @override
+  String placeRemindAt(String place) {
+    return 'Напомнить: $place';
+  }
+
+  @override
+  String get composerRemovePlace => 'Без напоминания по месту';
 }

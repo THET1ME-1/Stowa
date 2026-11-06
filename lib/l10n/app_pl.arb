@@ -259,5 +259,11 @@
   "returnsAskTitle": "Przypominać zapisane?",
   "returnsAskBody": "Wieczorem jedno ciche powiadomienie: co obejrzeć, co zapisałeś tego dnia rok temu, podsumowanie tygodnia. Najwyżej raz dziennie.",
   "returnsAskOn": "Włącz",
-  "returnsAskLater": "Nie teraz"
+  "returnsAskLater": "Nie teraz",
+  "placeRemindHome": "Przypomnij w domu",
+  "placeRemindWork": "Przypomnij w pracy",
+  "placeRemindHere": "Przypomnij tutaj",
+  "placeRemindShop": "Przypomnij w sklepie",
+  "placeRemindAt": "Przypomnij: {place}",
+  "composerRemovePlace": "Bez przypomnienia o miejscu"
 }

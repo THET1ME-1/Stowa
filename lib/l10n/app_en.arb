@@ -2456,5 +2456,34 @@
   "returnsAskLater": "Not now",
   "@returnsAskLater": {
     "description": "Кнопка карточки: скрыть"
+  },
+  "placeRemindHome": "Remind at home",
+  "@placeRemindHome": {
+    "description": "Чип и пункт: напоминание дома"
+  },
+  "placeRemindWork": "Remind at work",
+  "@placeRemindWork": {
+    "description": "Чип и пункт: напоминание на работе"
+  },
+  "placeRemindHere": "Remind me here",
+  "@placeRemindHere": {
+    "description": "Чип и пункт: напоминание в этой точке"
+  },
+  "placeRemindShop": "Remind at a store",
+  "@placeRemindShop": {
+    "description": "Чип и пункт: напоминание у любого отмеченного магазина"
+  },
+  "placeRemindAt": "Remind at {place}",
+  "@placeRemindAt": {
+    "description": "Напоминание в точке с названием",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "composerRemovePlace": "No place reminder",
+  "@composerRemovePlace": {
+    "description": "Крестик на чипе места"
   }
 }

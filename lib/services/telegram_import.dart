@@ -90,7 +90,8 @@ class TelegramImport {
         }
         final first = files.firstOrNull;
         final label = first == null ? null : untitled?.call(mime: first.mime, fileName: p.basename(first.path), at: note.at);
-        inputs.add(CaptureInput(text: note.text, files: files, at: note.at, here: false, detectReminder: false, untitled: label));
+        // старое «напомни дома» из «Избранного» не оживает: ни времени, ни места
+        inputs.add(CaptureInput(text: note.text, files: files, at: note.at, here: false, detectReminder: false, detectPlace: false, untitled: label));
       }
       if (filled > 0) _capture.files.drain().ignore();
       if (inputs.isNotEmpty) await _capture.captureAll(inputs);
