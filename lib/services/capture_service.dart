@@ -296,6 +296,27 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
     }
   }
 
+  /// Названия мест, записанные до `streetOf`, — «улица, город, страна, город»: оставить улицу и город.
+  Future<void> shortenPlaceNames() async {
+    String? short(String? name) {
+      final parts = name?.split(',').map((part) => part.trim()).toList();
+      if (parts == null || parts.length < 3) return null;
+      return '${parts.first}, ${parts.last}';
+    }
+
+    final rows = await (_db.select(_db.items)..where((t) => t.placeName.like('%,%,%') | t.remindPlaceName.like('%,%,%'))).get();
+    for (final item in rows) {
+      final place = short(item.placeName);
+      final remind = short(item.remindPlaceName);
+      await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(
+        ItemsCompanion(
+          placeName: place == null ? const Value.absent() : Value(place),
+          remindPlaceName: remind == null ? const Value.absent() : Value(remind),
+        ),
+      );
+    }
+  }
+
   /// Картинкам, сохранённым до учёта размеров, дописать размер. Пропавший файл пропускается.
   Future<void> fillImageSizes() async {
     final missing = await (_db.select(_db.attachments)..where((t) => t.mime.like('image/%') & t.width.isNull())).get();

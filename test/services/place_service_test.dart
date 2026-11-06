@@ -86,6 +86,13 @@ void main() {
       expect(placeLabel(), isNull);
     });
 
+    test('улица без города: геокодер кладёт в street всю строку адреса', () {
+      expect(streetOf(street: 'Bulevardul Iuri Gagarin 7, Chișinău, Молдова', thoroughfare: 'Bulevardul Iuri Gagarin', subThoroughfare: '7'), 'Bulevardul Iuri Gagarin 7');
+      expect(streetOf(street: 'Bulevardul Iuri Gagarin 7, Chișinău, Молдова', thoroughfare: 'Bulevardul Iuri Gagarin'), 'Bulevardul Iuri Gagarin');
+      expect(streetOf(street: 'улица Пушкина 12, Кишинёв'), 'улица Пушкина 12');
+      expect(streetOf(street: '  ', thoroughfare: ''), isNull);
+    });
+
     test('из OpenStreetMap, когда на телефоне нет геокодера', () {
       expect(
         placeLabelFromNominatim({

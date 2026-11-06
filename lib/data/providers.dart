@@ -247,10 +247,16 @@ final placesProvider = StreamProvider((ref) => ref.watch(placesRepositoryProvide
 /// Android: место «всегда», имя Wi-Fi, тревоги по месту. Тесты подменяют.
 final placeChannelProvider = Provider<PlaceChannel>((ref) => const MethodPlaceChannel());
 
-/// Где телефон сейчас, с названием: «Я сейчас дома», «Я в магазине». Тесты подменяют.
+/// Где телефон сейчас, с названием: «Я сейчас дома», «Я в магазине», «Напомнить здесь».
+/// Точка отмечается надолго, поэтому свежая (до 30 с) и точная. Тесты подменяют.
 final currentPlaceProvider = Provider<Future<PlaceFix?> Function()>((ref) {
   final settings = ref.watch(settingsRepositoryProvider);
-  final source = DevicePlaceSource(client: ref.watch(aiHttpProvider), language: () => settings.language?.code ?? PlatformDispatcher.instance.locale.languageCode);
+  final source = DevicePlaceSource(
+    client: ref.watch(aiHttpProvider),
+    language: () => settings.language?.code ?? PlatformDispatcher.instance.locale.languageCode,
+    maxAge: const Duration(seconds: 30),
+    accuracy: LocationAccuracy.high,
+  );
   return source.current;
 });
 

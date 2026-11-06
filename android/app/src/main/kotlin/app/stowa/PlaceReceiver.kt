@@ -13,13 +13,12 @@ class PlaceReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             PlaceAlarms.ACTION_PLACE -> {
-                // тревога зовёт и на выходе из круга: напоминаем только на входе
-                if (!intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, false)) return
                 val id = intent.getStringExtra("id") ?: return
-                PlaceAlarms.fire(context, id)
+                // тревога зовёт и на входе в круг, и на выходе: напоминаем на входе, выход взводит
+                if (intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, false)) PlaceAlarms.entered(context, id) else PlaceAlarms.left(context, id)
             }
-            PlaceAlarms.ACTION_WIFI -> PlaceAlarms.wifiConnected(context)
-            // после загрузки и обновления Android тревоги забывает
+            PlaceAlarms.ACTION_WIFI -> PlaceAlarms.checkWifi(context)
+            // после загрузки и обновления Android тревоги и слежение за сетью забывает
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> PlaceAlarms.apply(context)
         }
     }

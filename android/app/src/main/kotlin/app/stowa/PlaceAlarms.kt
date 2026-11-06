@@ -16,11 +16,17 @@ import android.net.NetworkRequest
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.Worker
+import androidx.work.WorkerParameters
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate
+import java.util.concurrent.TimeUnit
 
 /**
  * Напоминания по месту без сервисов Google: круг на карте — `LocationManager.addProximityAlert`,
@@ -40,6 +46,10 @@ object PlaceAlarms {
     private const val FIRED = "flutter.place_fired"
     private const val BUDGET_DAY = "flutter.return_day"
     private const val CHANNEL_ID = "places"
+
+    // последняя сеть, которую видели: приход — смена её на сеть дома или работы
+    private const val LAST_SSID = "last_ssid"
+    private const val WIFI_CHECK = "stowa-wifi-check"
 
     fun hasFine(context: Context): Boolean =
         context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -82,22 +92,98 @@ object PlaceAlarms {
             locations.removeProximityAlert(pending(context, id))
         }
         val registered = mutableSetOf<String>()
+        val inside = mutableSetOf<String>()
         if (hasBackground(context)) {
             val fired = fired(context)
+            val here = lastKnown(locations)
             for (alarm in alarms(context)) {
                 val id = alarm.getString("id")
                 // своё напоминание срабатывает один раз; покупки — каждый день, бюджет решит
                 if (!alarm.optBoolean("budget") && fired.any { noteKey(it) == noteKey(id) }) continue
+                val latitude = alarm.getDouble("latitude")
+                val longitude = alarm.getDouble("longitude")
+                val radius = alarm.optInt("radius", 150).toFloat()
+                // уже внутри круга — «когда буду здесь» значит в следующий приход: ждём выхода
+                if (here != null && distance(here, latitude, longitude) < radius) inside += id
                 try {
-                    locations.addProximityAlert(alarm.getDouble("latitude"), alarm.getDouble("longitude"), alarm.optInt("radius", 150).toFloat(), -1, pending(context, id))
+                    locations.addProximityAlert(latitude, longitude, radius, -1, pending(context, id))
                     registered += id
                 } catch (denied: SecurityException) {
                     // разрешение отозвали: тревоги встанут, когда его вернут и приложение откроют
                 }
             }
         }
-        stored.edit().putStringSet("registered", registered).apply()
-        watchWifi(context, alarms(context).any { it.has("wifi") } && hasBackground(context))
+        stored.edit().putStringSet("registered", registered).putStringSet("inside", inside).apply()
+        // новое напоминание «дома», поставленное дома, ждёт следующего прихода, а не звенит сразу;
+        // а вне сети дома следующее подключение к ней — приход
+        stored.edit().putString(LAST_SSID, currentWifi(context) ?: "").apply()
+        val wanted = wifiTargets(context).isNotEmpty() && hasBackground(context)
+        planWifiCheck(context, wanted)
+        if (wanted) armWifi(context)
+    }
+
+    /** Вход в круг: тревога, поставленная внутри него, ждёт сперва выхода. */
+    fun entered(context: Context, id: String) {
+        val inside = prefs(context).getStringSet("inside", emptySet()) ?: emptySet()
+        if (id in inside) return
+        fire(context, id)
+    }
+
+    /**
+     * Выход из круга: теперь следующий вход — настоящий приход. Пока телефон в сети дома, слежения
+     * за сетью нет, а об уходе из неё Android не сообщает: выход из круга дома и ставит его снова.
+     */
+    fun left(context: Context, id: String) {
+        val stored = prefs(context)
+        val inside = stored.getStringSet("inside", emptySet()) ?: emptySet()
+        if (id in inside) stored.edit().putStringSet("inside", inside - id).apply()
+        val alarm = alarms(context).firstOrNull { it.getString("id") == id } ?: return
+        if (alarm.optString("wifi").isEmpty()) return
+        stored.edit().putString(LAST_SSID, currentWifi(context) ?: "").apply()
+        if (hasBackground(context)) armWifi(context)
+    }
+
+    /**
+     * Сеть сменилась или пора проверить: приход — это смена сети на сеть дома или работы.
+     * Ту же сеть, о которой Android сообщает сразу после постановки слежения, приходом не считаем.
+     * Зовут приёмник (слежение сработало) и проверка раз в 15 минут.
+     */
+    fun checkWifi(context: Context) {
+        val stored = prefs(context)
+        val ssid = currentWifi(context) ?: ""
+        val last = stored.getString(LAST_SSID, "") ?: ""
+        if (ssid != last) {
+            stored.edit().putString(LAST_SSID, ssid).apply()
+            if (ssid.isNotEmpty()) {
+                for (alarm in alarms(context)) {
+                    if (alarm.optString("wifi") == ssid) fire(context, alarm.getString("id"))
+                }
+            }
+        }
+        if (wifiTargets(context).isNotEmpty() && hasBackground(context)) armWifi(context)
+    }
+
+    // сети, при подключении к которым есть что напомнить: сработавшее ждёт только, пока его снимет приложение
+    private fun wifiTargets(context: Context): Set<String> {
+        val fired = fired(context).map(::noteKey).toSet()
+        return alarms(context)
+            .filter { it.optBoolean("budget") || noteKey(it.getString("id")) !in fired }
+            .mapNotNull { it.optString("wifi").takeIf { wifi -> wifi.isNotEmpty() } }
+            .toSet()
+    }
+
+    private fun lastKnown(locations: LocationManager): android.location.Location? = try {
+        listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+            .mapNotNull { provider -> runCatching { locations.getLastKnownLocation(provider) }.getOrNull() }
+            .maxByOrNull { it.time }
+    } catch (denied: SecurityException) {
+        null
+    }
+
+    private fun distance(from: android.location.Location, latitude: Double, longitude: Double): Float {
+        val result = FloatArray(1)
+        android.location.Location.distanceBetween(from.latitude, from.longitude, latitude, longitude, result)
+        return result[0]
     }
 
     /** Сработала точка или подключилась сеть: показать уведомление, если пора. */
@@ -121,14 +207,6 @@ object PlaceAlarms {
             }
         }
         show(context, alarm)
-    }
-
-    /** Подключился Wi-Fi: тревоги с этой сетью срабатывают, даже если GPS ещё не понял, где ты. */
-    fun wifiConnected(context: Context) {
-        val ssid = currentWifi(context) ?: return
-        for (alarm in alarms(context)) {
-            if (alarm.optString("wifi") == ssid) fire(context, alarm.getString("id"))
-        }
     }
 
     private fun show(context: Context, alarm: JSONObject) {
@@ -157,22 +235,38 @@ object PlaceAlarms {
         }
     }
 
-    private fun watchWifi(context: Context, wanted: Boolean) {
+    /**
+     * Слежение за подключением к Wi-Fi через `PendingIntent` одноразовое: система шлёт сигнал один раз
+     * и через несколько секунд снимает запрос (`ConnectivityService.onSendFinished`). Ставим его, только
+     * пока телефон не в нужной сети, — иначе каждая постановка тут же давала бы эхо по кругу.
+     */
+    private fun armWifi(context: Context) {
+        val ssid = currentWifi(context)
+        if (ssid != null && ssid in wifiTargets(context)) return
         val connectivity = context.getSystemService(ConnectivityManager::class.java) ?: return
-        val intent = PendingIntent.getBroadcast(
-            context,
-            4813,
-            Intent(context, PlaceReceiver::class.java).setAction(ACTION_WIFI),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
-        )
-        try {
-            connectivity.unregisterNetworkCallback(intent)
-        } catch (notRegistered: Exception) {
-            // ещё не ставили
-        }
-        if (!wanted) return
         val request = NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build()
-        connectivity.registerNetworkCallback(request, intent)
+        try {
+            connectivity.registerNetworkCallback(request, wifiIntent(context))
+        } catch (failed: Exception) {
+            // лимит запросов или нет разрешения: проверка раз в 15 минут поймает приход позже
+        }
+    }
+
+    private fun wifiIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
+        context,
+        4813,
+        Intent(context, PlaceReceiver::class.java).setAction(ACTION_WIFI),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+    )
+
+    /** Проверка сети раз в 15 минут: страховка, если приход пришёлся на время без слежения. */
+    private fun planWifiCheck(context: Context, wanted: Boolean) {
+        val work = WorkManager.getInstance(context)
+        if (!wanted) {
+            work.cancelUniqueWork(WIFI_CHECK)
+            return
+        }
+        work.enqueueUniquePeriodicWork(WIFI_CHECK, ExistingPeriodicWorkPolicy.KEEP, PeriodicWorkRequestBuilder<WifiCheckWorker>(15, TimeUnit.MINUTES).build())
     }
 
     private fun pending(context: Context, id: String): PendingIntent = PendingIntent.getBroadcast(
@@ -199,6 +293,14 @@ object PlaceAlarms {
 
     // «note:<id>@<магазин>» и «note:<id>» — одно напоминание
     private fun noteKey(id: String): String = id.substringBefore('@')
+}
+
+/** Раз в 15 минут: сменилась ли сеть и стоит ли слежение. */
+class WifiCheckWorker(context: Context, parameters: WorkerParameters) : Worker(context, parameters) {
+    override fun doWork(): Result {
+        PlaceAlarms.checkWifi(applicationContext)
+        return Result.success()
+    }
 }
 
 /** Канал `stowa/places` главного окна. */

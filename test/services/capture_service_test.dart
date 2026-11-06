@@ -103,6 +103,23 @@ void main() {
     expect(await title('text'), 'IMG_2.jpg');
   });
 
+  test('название места со всей строкой адреса сокращается до улицы и города', () async {
+    Future<void> old(String id, String? place, {String? remind}) => db
+        .into(db.items)
+        .insert(ItemsCompanion.insert(id: id, kind: ItemKind.note, title: id, placeName: Value(place), remindPlaceName: Value(remind), createdAt: DateTime(2026, 11, 1), updatedAt: DateTime(2026, 11, 1)));
+
+    await old('long', 'Bulevardul Iuri Gagarin 7, Chișinău, Молдова, Chișinău', remind: 'улица Пушкина 12, Кишинёв, Молдова, Кишинёв');
+    await old('short', 'Ботаника, Кишинёв');
+    await old('none', null);
+
+    await capture.shortenPlaceNames();
+    final long = (await items.get('long'))!.item;
+    expect(long.placeName, 'Bulevardul Iuri Gagarin 7, Chișinău');
+    expect(long.remindPlaceName, 'улица Пушкина 12, Кишинёв');
+    expect((await items.get('short'))!.item.placeName, 'Ботаника, Кишинёв');
+    expect((await items.get('none'))!.item.placeName, isNull);
+  });
+
   test('пачка заметок одной транзакцией: файлы ложатся после неё, afterCapture видит каждую записанной', () async {
     final source = await bigFile();
     final seen = <String, bool>{};

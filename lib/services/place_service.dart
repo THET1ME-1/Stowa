@@ -89,6 +89,18 @@ String? placeLabel({String? street, String? subLocality, String? locality, Strin
   return '$near, $city';
 }
 
+/// Улица с домом. Геокодер телефона кладёт в `street` всю строку адреса с городом и страной,
+/// поэтому сперва улица и дом по полям, а из строки — только её начало до запятой.
+String? streetOf({String? street, String? thoroughfare, String? subThoroughfare}) {
+  String? clean(String? value) => value == null || value.trim().isEmpty ? null : value.trim();
+  final road = clean(thoroughfare);
+  if (road != null) {
+    final house = clean(subThoroughfare);
+    return house == null ? road : '$road $house';
+  }
+  return clean(street?.split(',').first);
+}
+
 /// То же из ответа OpenStreetMap (`/reverse?format=jsonv2`).
 String? placeLabelFromNominatim(Map<String, Object?> json) {
   final address = json['address'];
@@ -104,9 +116,14 @@ String? placeLabelFromNominatim(Map<String, Object?> json) {
 /// Место с телефона: последнее известное, если свежее, иначе новое. Через
 /// системный LocationManager, без сервисов Google: работает и на прошивках без них.
 class DevicePlaceSource implements PlaceSource {
-  const DevicePlaceSource({required this.client, required this.language});
+  const DevicePlaceSource({required this.client, required this.language, this.maxAge = const Duration(minutes: 5), this.accuracy = LocationAccuracy.medium});
 
   final http.Client client;
+
+  /// Насколько старое последнее известное место годится. Заметке хватит пяти минут,
+  /// а «Я в магазине» отмечает место навсегда: там нужна свежая точка.
+  final Duration maxAge;
+  final LocationAccuracy accuracy;
 
   /// Язык названий: «Кишинёв» по-русски, «Chișinău» по-румынски.
   final String Function() language;
@@ -120,9 +137,9 @@ class DevicePlaceSource implements PlaceSource {
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) return null;
 
       var position = await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);
-      if (position == null || DateTime.now().difference(position.timestamp) > const Duration(minutes: 5)) {
+      if (position == null || DateTime.now().difference(position.timestamp) > maxAge) {
         position = await Geolocator.getCurrentPosition(
-          locationSettings: AndroidSettings(accuracy: LocationAccuracy.medium, forceLocationManager: true, timeLimit: const Duration(seconds: 15)),
+          locationSettings: AndroidSettings(accuracy: accuracy, forceLocationManager: true, timeLimit: const Duration(seconds: 15)),
         );
       }
       final name = await _name(position.latitude, position.longitude);
@@ -137,7 +154,7 @@ class DevicePlaceSource implements PlaceSource {
     try {
       final marks = await Geocoding().placemarkFromCoordinates(latitude, longitude, locale: Locale(language())).timeout(const Duration(seconds: 6));
       final mark = marks.firstOrNull;
-      final label = mark == null ? null : placeLabel(street: mark.street, subLocality: mark.subLocality, locality: mark.locality, administrativeArea: mark.administrativeArea);
+      final label = mark == null ? null : placeLabel(street: streetOf(street: mark.street, thoroughfare: mark.thoroughfare, subThoroughfare: mark.subThoroughfare), subLocality: mark.subLocality, locality: mark.locality, administrativeArea: mark.administrativeArea);
       if (label != null) return label;
     } catch (_) {
       // на прошивке без геокодера спросим OpenStreetMap
