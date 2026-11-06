@@ -176,6 +176,19 @@ void main() {
     expect(await queue(), ['item:a']);
   });
 
+  test('карта файлов потеряна (копия, переустановка) — свой файл узнаётся по id, «… 2.md» не появляется', () async {
+    await note('a', 'Карбонара', folder: 'recipes');
+    await note('b', 'Карбонара', folder: 'recipes', body: 'другая карбонара');
+    await writer().drain();
+    final before = {await pathOf('a'), await pathOf('b')};
+    await db.delete(db.vaultFiles).go();
+    await db.enqueueWholeVault();
+    await writer().drain();
+    expect({await pathOf('a'), await pathOf('b')}, before);
+    final notes = Directory(p.join(root.path, 'Рецепты')).listSync().whereType<File>().map((f) => p.basename(f.path)).toSet();
+    expect(notes, {'Карбонара.md', 'Карбонара 2.md'});
+  });
+
   test('чужая аренда: задачу, занятую другим писателем, не берём', () async {
     await note('a', 'Идеи');
     await (db.update(db.vaultQueue)..where((t) => t.target.equals('item:a'))).write(VaultQueueCompanion(claimedUntil: Value(now.millisecondsSinceEpoch + 15000)));

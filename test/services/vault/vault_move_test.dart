@@ -96,6 +96,21 @@ void main() {
     expect(at('Рецепты/Борщ.md').existsSync(), isTrue, reason: 'чужая для приложения папка остаётся как была');
   });
 
+  test('открытие готового хранилища после переустановки не переписывает его заметки', () async {
+    await move().moveTo(target, VaultMode.device);
+    final before = {for (final file in target.listSync(recursive: true).whereType<File>()) if (file.path.endsWith('.md')) file.path: file.lastModifiedSync()};
+    // переустановка: пустая база собирается из папки, хранилище внутри приложения пустое
+    final fresh = AppDatabase.memory();
+    addTearDown(fresh.close);
+    final inside = Directory.systemTemp.createTempSync('stowa_inside');
+    addTearDown(() => inside.deleteSync(recursive: true));
+    await VaultReader(fresh, root: target, clock: () => now).rebuild();
+    final report = await VaultMove(fresh, settings: settings, from: inside, fromInsideApp: true, clock: () => now).moveTo(target, VaultMode.device);
+    expect(report.ok, isTrue, reason: report.missing.join(', '));
+    final after = {for (final file in target.listSync(recursive: true).whereType<File>()) if (file.path.endsWith('.md')) file.path: file.lastModifiedSync()};
+    expect(after, before);
+  });
+
   test('«Пересобрать указатель» из папки даёт те же вещи, без дублей', () async {
     await move().moveTo(target, VaultMode.device);
     final before = (await db.select(db.items).get()).length;

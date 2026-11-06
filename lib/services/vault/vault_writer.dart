@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -133,7 +134,7 @@ class VaultWriter {
     var wanted = notePath(folderName: folder == null || folder.deletedAt != null ? null : folder.name, fileName: '${vaultFileName(item.title)}.md');
     if (item.deletedAt != null) wanted = trashPath(wanted);
     // «Купить молоко 2.md» остаётся «2», пока заголовок тот же: файл не прыгает между именами
-    final path = known != null && _sameName(known.path, wanted) ? known.path : await _free(wanted, id);
+    final path = known != null && _sameName(known.path, wanted) ? known.path : (known == null ? await _ownFile(wanted, id) : null) ?? await _free(wanted, id);
 
     if (known != null && known.path != path) await _move(id, known.path, path);
     await _gather(id, attachmentsDir(path));
@@ -176,6 +177,33 @@ class VaultWriter {
     final stem = attachmentsDir(p.posix.basename(current)).toLowerCase();
     final want = attachmentsDir(p.posix.basename(wanted)).toLowerCase();
     return stem == want || RegExp('^${RegExp.escape(want)} \\d+\$').hasMatch(stem);
+  }
+
+  /// Карты файлов нет (восстановили копию, открыли готовое хранилище), а заметка уже лежит
+  /// на диске: свой файл узнаётся по id среди «Карбонара.md», «Карбонара 2.md»… Иначе
+  /// писатель счёл бы своё имя занятым и записал копию рядом.
+  Future<String?> _ownFile(String wanted, String id) async {
+    final folder = p.posix.dirname(wanted);
+    final dir = Directory(_absolute(folder));
+    if (!await dir.exists()) return null;
+    final stem = attachmentsDir(p.posix.basename(wanted)).toLowerCase();
+    final numbered = RegExp('^${RegExp.escape(stem)} \\d+\$');
+    await for (final entity in dir.list(followLinks: false)) {
+      final name = p.basename(entity.path);
+      if (entity is! File || !name.endsWith('.md')) continue;
+      final base = attachmentsDir(name).toLowerCase();
+      if (base != stem && !numbered.hasMatch(base)) continue;
+      if (await _idOf(entity) == id) return folder == '.' ? name : '$folder/$name';
+    }
+    return null;
+  }
+
+  // id из свойств: только начало файла, тексту заметки разбор не нужен
+  static Future<String?> _idOf(File file) async {
+    final head = await file.openRead(0, 1024).fold<List<int>>([], (bytes, chunk) => bytes..addAll(chunk));
+    final text = utf8.decode(head, allowMalformed: true);
+    if (!text.startsWith('---')) return null;
+    return RegExp(r'^id:\s*"?([^"\n]+)"?\s*$', multiLine: true).firstMatch(text)?.group(1)?.trim();
   }
 
   // имя занято файлом на диске (может, заметкой Obsidian, ещё не прочитанной) или другой вещью

@@ -90,8 +90,20 @@ class VaultMove {
     // пути в базе — на новое место; прежние запомнены на случай отката
     final oldFiles = await _db.select(_db.vaultFiles).get();
     await _repoint(copies, (copy) => copy.to);
-    await _db.delete(_db.vaultFiles).go();
+    // заметка уже лежит в новой папке такой, какой её только что прочли (открыли готовое
+    // хранилище после переустановки) — её не переписывать: тысяча файлов писалась минутами
+    final written = <String>{};
+    for (final row in oldFiles) {
+      final file = File(_at(target, row.path));
+      if (!await file.exists()) continue;
+      final stat = await file.stat();
+      if (stat.modified.millisecondsSinceEpoch == row.modified && stat.size == row.size) written.add(row.itemId);
+    }
+    await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.isNotIn(written))).go();
     await _enqueueAll();
+    if (written.isNotEmpty) {
+      await (_db.delete(_db.vaultQueue)..where((t) => t.target.isIn([for (final id in written) ...['item:$id', 'facts:$id']]))).go();
+    }
     final writer = VaultWriter(_db, root: target, clock: _clock);
     await writer.drain();
     await writer.drain();

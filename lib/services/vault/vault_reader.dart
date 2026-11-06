@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' show min;
 
 import 'package:drift/drift.dart';
 import 'package:mime/mime.dart';
@@ -40,20 +41,28 @@ class VaultReader {
   final Directory? _root;
   final DateTime Function() _clock;
 
-  /// Сверить файлы с базой по времени и размеру и забрать изменённое.
+  /// Сколько заметок ложится в базу одной транзакцией. На телефоне каждая транзакция —
+  /// запись на диск: по одной на заметку тысяча собиралась минутами.
+  static const _batch = 100;
+
+  /// Сверить файлы с базой по времени и размеру и забрать изменённое. Сперва читаются
+  /// файлы, потом всё прочитанное ложится в базу пачками.
   Future<VaultScan> reconcile({void Function(int done, int total)? progress}) async {
     final scan = VaultScan();
     if (_root == null || !await _root.exists()) return scan;
     final known = await _db.select(_db.vaultFiles).get();
     final byPath = {for (final row in known) row.path: row};
-    final byId = {for (final row in known) row.itemId: row};
+    final byId = {for (final row in known) row.itemId: row.path};
     final notes = await _notes(trash: false);
     final pending = {for (final row in await _db.select(_db.vaultQueue).get()) row.target};
-    final links = <String, List<String>>{};
+    final ids = {for (final row in await (_db.selectOnly(_db.items)..addColumns([_db.items.id])).get()) row.read(_db.items.id)!};
     final seen = <String>{};
+    final incoming = <_Incoming>[];
+    // половина полоски — чтение файлов, половина — запись в базу
+    final total = notes.length * 2;
 
     for (final (index, relative) in notes.indexed) {
-      progress?.call(index, notes.length);
+      progress?.call(index, total);
       seen.add(relative);
       final file = File(_absolute(relative));
       final stat = await file.stat();
@@ -66,37 +75,65 @@ class VaultReader {
       var newId = id.isEmpty;
       // копия файла с тем же id (Syncthing-конфликт, копия руками) — отдельная вещь
       final twin = id.isEmpty ? null : byId[id];
-      if (twin != null && twin.path != relative && await File(_absolute(twin.path)).exists()) newId = true;
+      if (twin != null && twin != relative && await File(_absolute(twin)).exists()) newId = true;
       if (newId) id = const Uuid().v4();
-      final existing = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
-
-      // файл правили снаружи, а в приложении есть незаписанная правка: обе версии остаются
-      final clash = !newId && before != null && existing != null && pending.contains('item:$id');
-      if (clash) {
-        await _keepOurs(existing);
-        scan.conflicts++;
-      }
-
-      await _import(id, relative, note, deleted: false, conflict: newId && relative.contains('.sync-conflict-'));
-      if (newId) await _writeId(file, text, id);
-      final after = await file.stat();
-      await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: relative, modified: after.modified.millisecondsSinceEpoch, size: after.size));
-      byId[id] = VaultFile(itemId: id, path: relative, modified: after.modified.millisecondsSinceEpoch, size: after.size);
-      if (clash) await (_db.delete(_db.vaultQueue)..where((t) => t.target.equals('item:$id'))).go();
-      existing == null ? scan.added++ : scan.changed++;
-      final targets = [for (final match in _wikiLink.allMatches(note.body)) match.group(1)!.trim()];
-      if (targets.isNotEmpty) links[id] = targets;
+      byId[id] = relative;
+      final exists = ids.contains(id);
+      incoming.add(
+        _Incoming(
+          id: id,
+          relative: relative,
+          place: relative,
+          note: note,
+          text: text,
+          newId: newId,
+          exists: exists,
+          deleted: false,
+          // файл правили снаружи, а в приложении есть незаписанная правка: обе версии остаются
+          clash: !newId && before != null && exists && pending.contains('item:$id'),
+          conflict: newId && relative.contains('.sync-conflict-'),
+          attachments: await _attachments(relative, note),
+        ),
+      );
     }
-    progress?.call(notes.length, notes.length);
+
+    // версия из базы — отдельной вещью, пока файл её не переписал
+    for (final one in incoming.where((one) => one.clash)) {
+      await _keepOurs(await (_db.select(_db.items)..where((t) => t.id.equals(one.id))).getSingle());
+      scan.conflicts++;
+    }
+    await _store(incoming, progress: (done) => progress?.call(notes.length + done, total));
+
+    // id в чужие заметки, карта файлов — одной пачкой
+    final mapped = <VaultFilesCompanion>[];
+    final links = <String, List<String>>{};
+    for (final one in incoming) {
+      final file = File(_absolute(one.relative));
+      if (one.newId) await _writeId(file, one.text, one.id);
+      final after = await file.stat();
+      mapped.add(VaultFilesCompanion.insert(itemId: one.id, path: one.relative, modified: after.modified.millisecondsSinceEpoch, size: after.size));
+      one.exists ? scan.changed++ : scan.added++;
+      final targets = [for (final match in _wikiLink.allMatches(one.note.body)) match.group(1)!.trim()];
+      if (targets.isNotEmpty) links[one.id] = targets;
+    }
+    await _db.batch((batch) => batch.insertAllOnConflictUpdate(_db.vaultFiles, mapped));
+    for (final one in incoming.where((one) => one.clash)) {
+      await (_db.delete(_db.vaultQueue)..where((t) => t.target.equals('item:${one.id}'))).go();
+    }
+    progress?.call(total, total);
 
     // файла нет ни среди заметок, ни на своём месте (корзина, служебное): удалили снаружи
+    final gone = <String>[];
     for (final row in known) {
       if (seen.contains(row.path) || await File(_absolute(row.path)).exists()) continue;
+      gone.add(row.itemId);
+    }
+    if (gone.isNotEmpty) {
       await _quietly(() async {
-        await (_db.update(_db.items)..where((t) => t.id.equals(row.itemId) & t.deletedAt.isNull())).write(ItemsCompanion(deletedAt: Value(_clock())));
-        await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(row.itemId))).go();
+        await (_db.update(_db.items)..where((t) => t.id.isIn(gone) & t.deletedAt.isNull())).write(ItemsCompanion(deletedAt: Value(_clock())));
+        await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.isIn(gone))).go();
       });
-      scan.removed++;
+      scan.removed += gone.length;
     }
 
     await _link(links);
@@ -111,14 +148,38 @@ class VaultReader {
       await _restoreMeta(name);
     }
     final scan = await reconcile(progress: progress);
+    final ids = {for (final row in await (_db.selectOnly(_db.items)..addColumns([_db.items.id])).get()) row.read(_db.items.id)!};
+    final trashed = <_Incoming>[];
     for (final relative in await _notes(trash: true)) {
       final file = File(_absolute(relative));
       final stat = await file.stat();
-      final note = readVaultNote(utf8.decode(await file.readAsBytes(), allowMalformed: true), fileName: p.posix.basename(relative), fileModified: stat.modified);
+      final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
+      final note = readVaultNote(text, fileName: p.posix.basename(relative), fileModified: stat.modified);
       if (note.id.isEmpty) continue;
-      await _import(note.id, relative.substring(trashFolder.length + 1), note, deleted: true, conflict: false);
-      await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: note.id, path: relative, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+      trashed.add(
+        _Incoming(
+          id: note.id,
+          relative: relative,
+          // папка вещи — по пути без «.trash/»
+          place: relative.substring(trashFolder.length + 1),
+          note: note,
+          text: text,
+          newId: false,
+          exists: ids.contains(note.id),
+          deleted: true,
+          clash: false,
+          conflict: false,
+          attachments: await _attachments(relative, note),
+        ),
+      );
     }
+    await _store(trashed);
+    final mapped = <VaultFilesCompanion>[];
+    for (final one in trashed) {
+      final stat = await File(_absolute(one.relative)).stat();
+      mapped.add(VaultFilesCompanion.insert(itemId: one.id, path: one.relative, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+    }
+    await _db.batch((batch) => batch.insertAllOnConflictUpdate(_db.vaultFiles, mapped));
     for (final name in ['links', 'learned', 'canvas']) {
       await _restoreMeta(name);
     }
@@ -140,19 +201,45 @@ class VaultReader {
     return found..sort();
   }
 
-  /// Вещь из заметки. Папки и теги заводятся обычной записью (их файлы обновятся),
-  /// сама вещь — под флагом: она уже лежит в файле.
-  Future<void> _import(String id, String relative, VaultNote note, {required bool deleted, required bool conflict}) async {
-    final folderId = await _folderFor(relative);
+  /// Прочитанные заметки — в базу пачками, под флагом: вещь уже лежит в файле. Папки и
+  /// теги берутся из памяти, новые заводятся по ходу, и их файлы просятся отдельно.
+  Future<void> _store(List<_Incoming> incoming, {void Function(int done)? progress}) async {
+    if (incoming.isEmpty) return;
+    final folders = {
+      for (final folder in await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get()) vaultFileName(folder.name).toLowerCase(): folder.id,
+    };
+    final tags = {for (final tag in await _db.select(_db.tags).get()) tag.name: tag.id};
+    final created = <String>{};
+    for (var start = 0; start < incoming.length; start += _batch) {
+      final chunk = incoming.sublist(start, min(start + _batch, incoming.length));
+      await _quietly(() async {
+        for (final one in chunk) {
+          await _storeOne(one, folders, tags, created);
+        }
+      });
+      progress?.call(start + chunk.length);
+    }
+    for (final target in created) {
+      await _db.customStatement("INSERT INTO vault_queue (target) VALUES ('$target') ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL");
+    }
+  }
+
+  Future<void> _storeOne(_Incoming one, Map<String, String> folders, Map<String, String> tags, Set<String> created) async {
+    final id = one.id;
+    final note = one.note;
+    final attachments = one.attachments;
+    final deleted = one.deleted;
+    final exists = one.exists;
+    final folderId = await _folderFor(one.place, folders, created);
     final inline = extractInlineTags(note.body);
     final tagIds = <String, String>{};
-    for (final name in [...note.tags, if (conflict) conflictTag]) {
-      tagIds[name] = await _tagFor(name);
+    for (final raw in [...note.tags, if (one.conflict) conflictTag]) {
+      final name = normalizeTagName(raw);
+      if (name.isEmpty) continue;
+      tagIds[name] = tags[name] ??= await _newTag(name, created);
     }
-    final attachments = await _attachments(relative, note);
     final now = _clock();
-    await _quietly(() async {
-      final exists = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() != null;
+    {
       final fields = ItemsCompanion(
         kind: Value(note.kind),
         title: Value(note.title),
@@ -218,7 +305,7 @@ class VaultReader {
           ),
         );
       }
-    });
+    }
   }
 
   /// Вложения: строки `![[…]]` из хвоста (путь от корня, как пишет Stowa, или короткое
@@ -249,18 +336,25 @@ class VaultReader {
   }
 
   /// Папка Stowa по каталогу верхнего уровня; нет такой — заводится.
-  Future<String?> _folderFor(String relative) async {
+  Future<String?> _folderFor(String relative, Map<String, String> folders, Set<String> created) async {
     final parts = relative.split('/');
     if (parts.length < 2) return null;
     final name = parts.first;
-    final folders = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
-    for (final folder in folders) {
-      if (vaultFileName(folder.name).toLowerCase() == name.toLowerCase()) return folder.id;
-    }
+    final known = folders[name.toLowerCase()];
+    if (known != null) return known;
     final id = const Uuid().v4();
     final count = await _db.folders.count().getSingle();
     const shapes = ['cookie9', 'squircle', 'gem', 'pill', 'cookie6'];
     await _db.into(_db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: shapes[count % shapes.length], sortOrder: Value(count)));
+    folders[name.toLowerCase()] = id;
+    created.add('meta:folders');
+    return id;
+  }
+
+  Future<String> _newTag(String name, Set<String> created) async {
+    final id = const Uuid().v4();
+    await _db.into(_db.tags).insert(TagsCompanion.insert(id: id, name: name, createdAt: _clock()));
+    created.add('meta:tags');
     return id;
   }
 
@@ -390,4 +484,39 @@ class VaultReader {
   });
 
   String _absolute(String relative) => p.joinAll([_root!.path, ...relative.split('/')]);
+}
+
+/// Прочитанная заметка, которая ждёт записи в базу.
+class _Incoming {
+  const _Incoming({
+    required this.id,
+    required this.relative,
+    required this.place,
+    required this.note,
+    required this.text,
+    required this.newId,
+    required this.exists,
+    required this.deleted,
+    required this.clash,
+    required this.conflict,
+    required this.attachments,
+  });
+
+  final String id;
+
+  /// Где лежит файл.
+  final String relative;
+
+  /// Путь, по которому ищется папка: у корзины — без «.trash/».
+  final String place;
+  final VaultNote note;
+  final String text;
+
+  /// Заметка без своего id (Obsidian) или копия: id выдан здесь и дописывается в файл.
+  final bool newId;
+  final bool exists;
+  final bool deleted;
+  final bool clash;
+  final bool conflict;
+  final List<String> attachments;
 }
