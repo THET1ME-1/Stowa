@@ -22,7 +22,7 @@ class LRu extends L {
   String get homeFolders => 'Папки';
 
   @override
-  String get homeEmpty => 'Пока пусто. Закинь первую вещь в строку снизу.';
+  String get homeEmpty => 'Пока пусто. Закинь первую заметку в строку снизу.';
 
   @override
   String get homeNext => 'Ближайшее';
@@ -291,7 +291,7 @@ class LRu extends L {
   }
 
   @override
-  String get reasonKind => 'по виду вещи, без сети';
+  String get reasonKind => 'по виду заметки, без сети';
 
   @override
   String get reasonNone => 'без папки, разложу, когда появится похожее';
@@ -322,10 +322,10 @@ class LRu extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count вещи',
-      many: '$count вещей',
-      few: '$count вещи',
-      one: '$count вещь',
+      other: '$count заметки',
+      many: '$count заметок',
+      few: '$count заметки',
+      one: '$count заметка',
     );
     return '$_temp0';
   }
@@ -569,7 +569,7 @@ class LRu extends L {
 
   @override
   String folderDeleteAsk(String name) {
-    return 'Удалить «$name»? Вещи из неё останутся без папки.';
+    return 'Удалить «$name»? Заметки из неё останутся без папки.';
   }
 
   @override
@@ -705,12 +705,12 @@ class LRu extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count вещи',
-      many: '$count вещей',
-      few: '$count вещей',
-      one: '$count вещи',
+      other: '$count заметки',
+      many: '$count заметок',
+      few: '$count заметок',
+      one: '$count заметки',
     );
-    return 'Убрать тег #$name у $_temp0? Сами вещи останутся.';
+    return 'Убрать тег #$name у $_temp0? Сами заметки останутся.';
   }
 
   @override
@@ -737,7 +737,7 @@ class LRu extends L {
   String get ruleIfWord => 'есть слово';
 
   @override
-  String get ruleIfKind => 'вид вещи';
+  String get ruleIfKind => 'вид заметки';
 
   @override
   String get ruleThenFolder => 'в папку';
@@ -939,10 +939,10 @@ class LRu extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Разложил $count похожих вещи',
-      many: 'Разложил $count похожих вещей',
-      few: 'Разложил $count похожие вещи',
-      one: 'Разложил $count похожую вещь',
+      other: 'Разложил $count похожих заметки',
+      many: 'Разложил $count похожих заметок',
+      few: 'Разложил $count похожие заметки',
+      one: 'Разложил $count похожую заметку',
     );
     return '$_temp0';
   }
@@ -994,7 +994,7 @@ class LRu extends L {
 
   @override
   String get aiStateOffHint =>
-      'Вставь свой ключ, и вещи без папки разложатся сами: с тегами, заголовком и описанием для поиска. Ключ хранится только на этом телефоне, запросы идут прямо к поставщику.';
+      'Вставь свой ключ, и заметки без папки разложатся сами: с тегами, заголовком и описанием для поиска. Ключ хранится только на этом телефоне, запросы идут прямо к поставщику.';
 
   @override
   String get aiStateOn => 'Работает';
@@ -1009,10 +1009,10 @@ class LRu extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count вещи ждут разбора',
-      many: '$count вещей ждут разбора',
-      few: '$count вещи ждут разбора',
-      one: '$count вещь ждёт разбора',
+      other: '$count заметки ждут разбора',
+      many: '$count заметок ждут разбора',
+      few: '$count заметки ждут разбора',
+      one: '$count заметка ждёт разбора',
     );
     return '$_temp0';
   }
@@ -1149,10 +1149,10 @@ class LRu extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Стереть $count вещи насовсем? Вернуть их будет нельзя.',
-      many: 'Стереть $count вещей насовсем? Вернуть их будет нельзя.',
-      few: 'Стереть $count вещи насовсем? Вернуть их будет нельзя.',
-      one: 'Стереть $count вещь насовсем? Вернуть её будет нельзя.',
+      other: 'Стереть $count заметки насовсем? Вернуть их будет нельзя.',
+      many: 'Стереть $count заметок насовсем? Вернуть их будет нельзя.',
+      few: 'Стереть $count заметки насовсем? Вернуть их будет нельзя.',
+      one: 'Стереть $count заметку насовсем? Вернуть её будет нельзя.',
     );
     return '$_temp0';
   }
@@ -1173,7 +1173,7 @@ class LRu extends L {
 
   @override
   String get backupSaveHint =>
-      'Вся Stowa одним файлом: вещи, папки, теги, правила и файлы. Ключа ИИ в копии нет.';
+      'Вся Stowa одним файлом: заметки, папки, теги, правила и файлы. Ключа ИИ в копии нет.';
 
   @override
   String get backupRestore => 'Восстановить из копии';
@@ -1184,13 +1184,13 @@ class LRu extends L {
       count,
       locale: localeName,
       other:
-          'Заменить всё копией от $date? В ней $count вещи, нынешние пропадут.',
+          'Заменить всё копией от $date? В ней $count заметки, нынешние пропадут.',
       many:
-          'Заменить всё копией от $date? В ней $count вещей, нынешние пропадут.',
+          'Заменить всё копией от $date? В ней $count заметок, нынешние пропадут.',
       few:
-          'Заменить всё копией от $date? В ней $count вещи, нынешние пропадут.',
+          'Заменить всё копией от $date? В ней $count заметки, нынешние пропадут.',
       one:
-          'Заменить всё копией от $date? В ней $count вещь, нынешние пропадут.',
+          'Заменить всё копией от $date? В ней $count заметка, нынешние пропадут.',
     );
     return '$_temp0';
   }
@@ -1306,10 +1306,10 @@ class LRu extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Переложил $count вещи в «$folder»',
-      many: 'Переложил $count вещей в «$folder»',
-      few: 'Переложил $count вещи в «$folder»',
-      one: 'Переложил $count вещь в «$folder»',
+      other: 'Переложил $count заметки в «$folder»',
+      many: 'Переложил $count заметок в «$folder»',
+      few: 'Переложил $count заметки в «$folder»',
+      one: 'Переложил $count заметку в «$folder»',
     );
     return '$_temp0';
   }
@@ -1319,10 +1319,10 @@ class LRu extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Удалил $count вещи',
-      many: 'Удалил $count вещей',
-      few: 'Удалил $count вещи',
-      one: 'Удалил $count вещь',
+      other: 'Удалил $count заметки',
+      many: 'Удалил $count заметок',
+      few: 'Удалил $count заметки',
+      one: 'Удалил $count заметку',
     );
     return '$_temp0';
   }
@@ -1357,7 +1357,7 @@ class LRu extends L {
 
   @override
   String get graphEmpty =>
-      'Связей пока нет. Они появятся, когда вещи начнут перекликаться словами или ИИ свяжет их сам.';
+      'Связей пока нет. Они появятся, когда заметки начнут перекликаться словами или ИИ свяжет их сам.';
 
   @override
   String get graphFailed => 'Граф не построился';
@@ -1380,7 +1380,7 @@ class LRu extends L {
 
   @override
   String get mapEmpty =>
-      'Пока нет вещей с местом. Новые заметки запомнят, где их сохранили, и встанут сюда.';
+      'Пока нет заметок с местом. Новые заметки запомнят, где их сохранили, и встанут сюда.';
 
   @override
   String get mapWhereAmI => 'Где я';
@@ -1393,7 +1393,7 @@ class LRu extends L {
 
   @override
   String get placeSettingHint =>
-      'Место ставится после сохранения и видно на странице вещи и на карте. Координаты остаются на телефоне, наружу уходит только запрос названия улицы.';
+      'Место ставится после сохранения и видно на странице заметки и на карте. Координаты остаются на телефоне, наружу уходит только запрос названия улицы.';
 
   @override
   String panelLooking(Object what) {
@@ -1559,7 +1559,7 @@ class LRu extends L {
 
   @override
   String get adultSettingHint =>
-      'Страницы, которые сами помечают себя как 18+, и известные сайты для взрослых. Пока выключено, их обложки размыты, а описания скрыты. Вещь и поиск по ней остаются.';
+      'Страницы, которые сами помечают себя как 18+, и известные сайты для взрослых. Пока выключено, их обложки размыты, а описания скрыты. Заметка и поиск по ней остаются.';
 
   @override
   String get adultHidden =>

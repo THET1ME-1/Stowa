@@ -168,7 +168,7 @@ void main() {
     await tester.tap(find.text('Дом').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Переложил 1 вещь в «Дом»'), findsOneWidget);
+    expect(find.text('Переложил 1 заметку в «Дом»'), findsOneWidget);
     final moved = await (world.db.select(world.db.items)..where((t) => t.id.equals('v'))).getSingle();
     expect(moved.folderId, 'home');
 

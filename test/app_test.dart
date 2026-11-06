@@ -21,7 +21,7 @@ void main() {
   testWidgets('приложение открывается по-русски на графите', (tester) async {
     await open(tester);
     expect(find.text('Stowa'), findsOneWidget);
-    expect(find.text('Пока пусто. Закинь первую вещь в строку снизу.'), findsOneWidget);
+    expect(find.text('Пока пусто. Закинь первую заметку в строку снизу.'), findsOneWidget);
     final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(app.theme!.scaffoldBackgroundColor, const Color(0xFF141517));
   });
