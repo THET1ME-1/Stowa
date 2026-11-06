@@ -149,6 +149,15 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// Очередь записи хранилища: сколько задач и сумма их версий. По одному числу задач писатель
+  /// не просыпался, когда правка поднимала версию уже стоящей задачи: задач столько же, а файл старый.
+  /// Очередь пишут триггеры, а о них drift не знает, поэтому запрос пересчитывается от записи
+  /// в любую таблицу: он дешёвый, в очереди считанные строки.
+  Stream<(int, int)> watchVaultQueue() => customSelect(
+    'SELECT count(*) AS tasks, coalesce(sum(version), 0) AS versions FROM vault_queue',
+    readsFrom: allTables.toSet(),
+  ).watchSingle().map((row) => (row.read<int>('tasks'), row.read<int>('versions')));
+
   // любую правку, кто бы её ни сделал, ловит сама база: семьдесят мест записи в коде не трогаются
   Future<void> _createVaultTriggers() async {
     Future<void> trigger(String name, String event, String table, String body) =>

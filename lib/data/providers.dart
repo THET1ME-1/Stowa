@@ -405,11 +405,8 @@ final vaultReaderProvider = Provider((ref) => VaultReader(ref.watch(databaseProv
 final vaultSyncProvider = Provider((ref) => VaultSync(reader: ref.watch(vaultReaderProvider), writer: ref.watch(vaultWriterProvider)));
 
 /// Сколько задач ждёт записи в хранилище: изменилось — главная разбирает очередь.
-final vaultQueueSizeProvider = StreamProvider((ref) {
-  final db = ref.watch(databaseProvider);
-  final count = db.vaultQueue.target.count();
-  return (db.selectOnly(db.vaultQueue)..addColumns([count])).map((row) => row.read(count) ?? 0).watchSingle();
-});
+/// Очередь записи хранилища: (задач, сумма версий) — меняется и от новой правки поверх старой.
+final vaultQueueProvider = StreamProvider((ref) => ref.watch(databaseProvider).watchVaultQueue());
 
 final recentItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchRecent());
 

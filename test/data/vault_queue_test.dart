@@ -53,6 +53,20 @@ void main() {
     expect(second.claimedUntil, isNull);
   });
 
+  test('сторож очереди замечает новую правку поверх старой: задач столько же, версия выросла', () async {
+    await edit(const ItemsCompanion(title: Value('Паста')));
+    final stamps = <(int, int)>[];
+    final watching = db.watchVaultQueue().listen(stamps.add);
+    addTearDown(watching.cancel);
+    await pumpEventQueue();
+    await edit(const ItemsCompanion(title: Value('Паста 2')));
+    await pumpEventQueue();
+    // задача одна и та же, но писатель должен проснуться ещё раз
+    expect(stamps.length, greaterThanOrEqualTo(2));
+    expect(stamps.first.$1, stamps.last.$1);
+    expect(stamps.last, isNot(stamps.first));
+  });
+
   test('переименование папки ставит meta:folders, тег — meta:tags, правило — meta:rules', () async {
     await (db.update(db.folders)..where((t) => t.id.equals('f'))).write(const FoldersCompanion(name: Value('Еда')));
     await db.into(db.tags).insert(TagsCompanion.insert(id: 't', name: 'паста', createdAt: now));

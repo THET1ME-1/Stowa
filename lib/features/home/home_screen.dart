@@ -60,8 +60,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     }, fireImmediately: true);
     // правки ждут записи в файлы хранилища: писатель забирает их, пока приложение открыто;
     // наткнулся на файл, поправленный снаружи, — полная сверка, чтобы его не затереть
-    ref.listenManual(vaultQueueSizeProvider, (previous, next) {
-      if ((next.value ?? 0) == 0) return;
+    ref.listenManual(vaultQueueProvider, (previous, next) {
+      if ((next.value?.$1 ?? 0) == 0) return;
       final writer = ref.read(vaultWriterProvider);
       writer.drain().then((_) {
         if (writer.sawExternalEdit) ref.read(vaultSyncProvider).run().ignore();
