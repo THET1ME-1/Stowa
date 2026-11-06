@@ -250,5 +250,14 @@
   "returnSettingsHint": "Не більше одного сповіщення на день, тихо, без звуку, і нічого в тихі години. Власні нагадування за часом і місцем не рахуються.",
   "returnRange": "{from}–{to}",
   "returnQuietFrom": "Тихо з",
-  "returnQuietTo": "Тихо до"
+  "returnQuietTo": "Тихо до",
+  "returnWatchEmpty": "Черга порожня: усе свіже вже переглянуто.",
+  "returnDayEmpty": "Цього дня раніше нічого не зберігали.",
+  "returnWeekEmpty": "За тиждень нічого не збережено.",
+  "returnShoppingEmpty": "Купувати нічого: списки відмічені.",
+  "returnMinutesShort": "{count} хв",
+  "returnsAskTitle": "Повертати збережене?",
+  "returnsAskBody": "Увечері — одне тихе сповіщення: що переглянути, що було цього дня рік тому, підсумок тижня. Не частіше разу на день.",
+  "returnsAskOn": "Увімкнути",
+  "returnsAskLater": "Не зараз"
 }

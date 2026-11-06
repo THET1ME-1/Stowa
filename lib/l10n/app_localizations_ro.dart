@@ -1906,4 +1906,34 @@ class LRo extends L {
 
   @override
   String get returnQuietTo => 'Liniște până la';
+
+  @override
+  String get returnWatchEmpty => 'Coada e goală: ai văzut tot ce e nou.';
+
+  @override
+  String get returnDayEmpty => 'În această zi nu ai salvat nimic înainte.';
+
+  @override
+  String get returnWeekEmpty => 'Nimic salvat săptămâna aceasta.';
+
+  @override
+  String get returnShoppingEmpty => 'Nimic de cumpărat: listele sunt bifate.';
+
+  @override
+  String returnMinutesShort(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get returnsAskTitle => 'Să-ți readuc aminte ce ai salvat?';
+
+  @override
+  String get returnsAskBody =>
+      'Seara, o singură notificare fără sunet: ce să vezi, ce ai salvat în această zi acum un an, rezumatul săptămânii. Cel mult o dată pe zi.';
+
+  @override
+  String get returnsAskOn => 'Activează';
+
+  @override
+  String get returnsAskLater => 'Nu acum';
 }

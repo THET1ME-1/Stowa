@@ -35,6 +35,7 @@ import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/items_repository.dart';
+import 'repositories/return_repository.dart';
 import 'repositories/rules_repository.dart';
 import 'repositories/tags_repository.dart';
 import 'repositories/trash_repository.dart';
@@ -87,6 +88,38 @@ final showAdultProvider = StreamProvider((ref) => ref.watch(settingsRepositoryPr
 
 /// Что и когда возвращать уведомлениями.
 final returnSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchReturns());
+
+final returnRepositoryProvider = Provider((ref) => ReturnRepository(ref.watch(databaseProvider)));
+
+/// Карточку «Возвращать сохранённое?» уже показывали.
+final returnsAskedProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchReturnsAsked());
+
+/// Очередь «посмотреть потом», «в этот день», неделя и покупки — живые: экраны и пилюли главной.
+final watchLaterProvider = StreamProvider.autoDispose((ref) {
+  final returns = ref.watch(returnRepositoryProvider);
+  final clock = ref.watch(clockProvider);
+  return returns.watch(() => returns.watchLater(clock()));
+});
+final onThisDayProvider = StreamProvider.autoDispose((ref) {
+  final returns = ref.watch(returnRepositoryProvider);
+  final clock = ref.watch(clockProvider);
+  return returns.watch(() => returns.onThisDay(clock()));
+});
+final weekReturnProvider = StreamProvider.autoDispose((ref) {
+  final returns = ref.watch(returnRepositoryProvider);
+  final clock = ref.watch(clockProvider);
+  return returns.watch(() => returns.week(clock()));
+});
+final shoppingProvider = StreamProvider.autoDispose((ref) {
+  final returns = ref.watch(returnRepositoryProvider);
+  return returns.watch(returns.shopping);
+});
+
+/// Карточки этих заметок по порядку.
+final cardsProvider = StreamProvider.autoDispose.family<List<ItemCard>, String>((ref, joinedIds) {
+  final ids = joinedIds.isEmpty ? const <String>[] : joinedIds.split('\x1f');
+  return ref.watch(itemsRepositoryProvider).watchCards(ids);
+});
 
 /// Вещи, страницы которых сказали о себе «18+».
 final adultItemsProvider = StreamProvider<Set<String>>((ref) {

@@ -250,5 +250,14 @@
   "returnSettingsHint": "Cel mult o notificare pe zi, fără sunet și nimic în orele de liniște. Mementourile tale după oră sau loc nu se pun la socoteală.",
   "returnRange": "{from}–{to}",
   "returnQuietFrom": "Liniște de la",
-  "returnQuietTo": "Liniște până la"
+  "returnQuietTo": "Liniște până la",
+  "returnWatchEmpty": "Coada e goală: ai văzut tot ce e nou.",
+  "returnDayEmpty": "În această zi nu ai salvat nimic înainte.",
+  "returnWeekEmpty": "Nimic salvat săptămâna aceasta.",
+  "returnShoppingEmpty": "Nimic de cumpărat: listele sunt bifate.",
+  "returnMinutesShort": "{count} min",
+  "returnsAskTitle": "Să-ți readuc aminte ce ai salvat?",
+  "returnsAskBody": "Seara, o singură notificare fără sunet: ce să vezi, ce ai salvat în această zi acum un an, rezumatul săptămânii. Cel mult o dată pe zi.",
+  "returnsAskOn": "Activează",
+  "returnsAskLater": "Nu acum"
 }

@@ -23,6 +23,7 @@ import 'folders_grid.dart';
 import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
 import 'recent_strip.dart';
+import 'return_pills.dart';
 import 'section_header.dart';
 import 'vault_sync_bar.dart';
 
@@ -323,6 +324,9 @@ class _Feed extends ConsumerWidget {
               onTap: () => onOpen(upcoming.first.id),
             ),
           ),
+        // спросить про уведомления один раз, когда уже есть что возвращать
+        if (recent.isNotEmpty && ref.watch(returnsAskedProvider).value == false) const SliverToBoxAdapter(child: ReturnsAskCard()),
+        const SliverToBoxAdapter(child: ReturnPills()),
         // снаружи пришло много заметок (Syncthing, компьютер): видно, что приложение их забирает
         SliverToBoxAdapter(child: VaultSyncBar(sync: ref.watch(vaultSyncProvider))),
         if (recent.isNotEmpty) ...[

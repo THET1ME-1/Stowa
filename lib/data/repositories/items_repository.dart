@@ -253,6 +253,18 @@ class ItemsRepository {
         .map((rows) => [for (final row in rows) _card(row)]);
   }
 
+  /// Карточки этих заметок в том же порядке: экраны возврата получают список id, а рисуют ленту.
+  Stream<List<ItemCard>> watchCards(List<String> ids) {
+    if (ids.isEmpty) return Stream.value(const []);
+    return _db
+        .customSelect('$_cardSelect AND items.id IN (${List.filled(ids.length, '?').join(', ')})', variables: [for (final id in ids) Variable.withString(id)], readsFrom: _cardTables)
+        .watch()
+        .map((rows) {
+          final cards = {for (final row in rows) row.read<String>('id'): _card(row)};
+          return [for (final id in ids) ?cards[id]];
+        });
+  }
+
   /// Ближайшие напоминания с этого момента, по времени. Их мало, поэтому
   /// отбор идёт в Dart: время хранится текстом, сравнивать строки ненадёжно.
   Stream<List<ItemCard>> watchUpcoming(DateTime now, {int limit = 3}) {

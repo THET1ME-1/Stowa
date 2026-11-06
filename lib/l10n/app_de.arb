@@ -250,5 +250,14 @@
   "returnSettingsHint": "Höchstens eine Benachrichtigung am Tag, lautlos, und nichts in der Ruhezeit. Eigene Erinnerungen nach Zeit und Ort zählen nicht mit.",
   "returnRange": "{from}–{to}",
   "returnQuietFrom": "Ruhe ab",
-  "returnQuietTo": "Ruhe bis"
+  "returnQuietTo": "Ruhe bis",
+  "returnWatchEmpty": "Die Liste ist leer: alles Neue ist schon angesehen.",
+  "returnDayEmpty": "An diesem Tag wurde früher nichts gespeichert.",
+  "returnWeekEmpty": "Diese Woche wurde nichts gespeichert.",
+  "returnShoppingEmpty": "Nichts zu kaufen: alle Listen abgehakt.",
+  "returnMinutesShort": "{count} Min.",
+  "returnsAskTitle": "Gespeichertes zurückbringen?",
+  "returnsAskBody": "Abends eine lautlose Benachrichtigung: was du ansehen wolltest, was du vor einem Jahr an diesem Tag gespeichert hast, ein Wochenrückblick. Höchstens einmal am Tag.",
+  "returnsAskOn": "Einschalten",
+  "returnsAskLater": "Nicht jetzt"
 }

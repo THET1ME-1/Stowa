@@ -9,6 +9,7 @@ import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/services/telegram_service.dart';
 import 'package:stowa/services/vault/vault_location.dart';
 import 'package:stowa/l10n/app_localizations.dart';
@@ -72,6 +73,9 @@ class TestWorld {
           languageProvider.overrideWith((ref) => Stream.value(null)),
           placeEnabledProvider.overrideWith((ref) => Stream.value(true)),
           showAdultProvider.overrideWith((ref) => Stream.value(showAdult)),
+          // карточку «Возвращать сохранённое?» в чужих тестах уже закрыли
+          returnsAskedProvider.overrideWith((ref) => Stream.value(true)),
+          returnSettingsProvider.overrideWith((ref) => Stream.value(const ReturnSettings())),
         ],
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
       ];

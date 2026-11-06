@@ -3100,6 +3100,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Quiet until'**
   String get returnQuietTo;
+
+  /// Пустая очередь «посмотреть потом»
+  ///
+  /// In en, this message translates to:
+  /// **'The queue is empty: you’ve seen everything recent.'**
+  String get returnWatchEmpty;
+
+  /// Пустой экран «В этот день»
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was saved on this day before.'**
+  String get returnDayEmpty;
+
+  /// Пустая сводка недели
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing saved this week.'**
+  String get returnWeekEmpty;
+
+  /// Пустой экран покупок
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to buy: every list is checked off.'**
+  String get returnShoppingEmpty;
+
+  /// Коротко минуты на пилюле главной
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String returnMinutesShort(int count);
+
+  /// Карточка на главной: спросить про уведомления
+  ///
+  /// In en, this message translates to:
+  /// **'Bring saved things back?'**
+  String get returnsAskTitle;
+
+  /// Карточка на главной: что будет
+  ///
+  /// In en, this message translates to:
+  /// **'One silent notification in the evening: what to watch, what you saved on this day a year ago, a weekly summary. Never more than once a day.'**
+  String get returnsAskBody;
+
+  /// Кнопка карточки: разрешить уведомления
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get returnsAskOn;
+
+  /// Кнопка карточки: скрыть
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get returnsAskLater;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

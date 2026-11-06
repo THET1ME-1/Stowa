@@ -498,5 +498,14 @@
   "returnSettingsHint": "Не больше одного уведомления в день, тихо, без звука, и ничего в тихие часы. Свои напоминания по времени и месту не в счёт.",
   "returnRange": "{from}–{to}",
   "returnQuietFrom": "Тихо с",
-  "returnQuietTo": "Тихо до"
+  "returnQuietTo": "Тихо до",
+  "returnWatchEmpty": "Очередь пуста: всё свежее уже посмотрено.",
+  "returnDayEmpty": "В этот день раньше ничего не сохраняли.",
+  "returnWeekEmpty": "За неделю ничего не сохранено.",
+  "returnShoppingEmpty": "Покупать нечего: списки отмечены.",
+  "returnMinutesShort": "{count} мин",
+  "returnsAskTitle": "Возвращать сохранённое?",
+  "returnsAskBody": "Вечером — одно тихое уведомление: что посмотреть, что было в этот день год назад, сводка недели. Не чаще раза в день.",
+  "returnsAskOn": "Включить",
+  "returnsAskLater": "Не сейчас"
 }

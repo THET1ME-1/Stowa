@@ -1928,4 +1928,35 @@ class LPl extends L {
 
   @override
   String get returnQuietTo => 'Cisza do';
+
+  @override
+  String get returnWatchEmpty =>
+      'Kolejka jest pusta: wszystko świeże już obejrzane.';
+
+  @override
+  String get returnDayEmpty => 'Tego dnia wcześniej nic nie zapisano.';
+
+  @override
+  String get returnWeekEmpty => 'W tym tygodniu nic nie zapisano.';
+
+  @override
+  String get returnShoppingEmpty => 'Nic do kupienia: listy odhaczone.';
+
+  @override
+  String returnMinutesShort(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get returnsAskTitle => 'Przypominać zapisane?';
+
+  @override
+  String get returnsAskBody =>
+      'Wieczorem jedno ciche powiadomienie: co obejrzeć, co zapisałeś tego dnia rok temu, podsumowanie tygodnia. Najwyżej raz dziennie.';
+
+  @override
+  String get returnsAskOn => 'Włącz';
+
+  @override
+  String get returnsAskLater => 'Nie teraz';
 }

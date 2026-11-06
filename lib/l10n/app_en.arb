@@ -2415,5 +2415,46 @@
   "returnQuietTo": "Quiet until",
   "@returnQuietTo": {
     "description": "Выбор конца тихих часов"
+  },
+  "returnWatchEmpty": "The queue is empty: you’ve seen everything recent.",
+  "@returnWatchEmpty": {
+    "description": "Пустая очередь «посмотреть потом»"
+  },
+  "returnDayEmpty": "Nothing was saved on this day before.",
+  "@returnDayEmpty": {
+    "description": "Пустой экран «В этот день»"
+  },
+  "returnWeekEmpty": "Nothing saved this week.",
+  "@returnWeekEmpty": {
+    "description": "Пустая сводка недели"
+  },
+  "returnShoppingEmpty": "Nothing to buy: every list is checked off.",
+  "@returnShoppingEmpty": {
+    "description": "Пустой экран покупок"
+  },
+  "returnMinutesShort": "{count} min",
+  "@returnMinutesShort": {
+    "description": "Коротко минуты на пилюле главной",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnsAskTitle": "Bring saved things back?",
+  "@returnsAskTitle": {
+    "description": "Карточка на главной: спросить про уведомления"
+  },
+  "returnsAskBody": "One silent notification in the evening: what to watch, what you saved on this day a year ago, a weekly summary. Never more than once a day.",
+  "@returnsAskBody": {
+    "description": "Карточка на главной: что будет"
+  },
+  "returnsAskOn": "Turn on",
+  "@returnsAskOn": {
+    "description": "Кнопка карточки: разрешить уведомления"
+  },
+  "returnsAskLater": "Not now",
+  "@returnsAskLater": {
+    "description": "Кнопка карточки: скрыть"
   }
 }

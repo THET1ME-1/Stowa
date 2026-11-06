@@ -250,5 +250,14 @@
   "returnSettingsHint": "Najwyżej jedno powiadomienie dziennie, bez dźwięku i nic w godzinach ciszy. Własne przypomnienia o czasie i miejscu się nie liczą.",
   "returnRange": "{from}–{to}",
   "returnQuietFrom": "Cisza od",
-  "returnQuietTo": "Cisza do"
+  "returnQuietTo": "Cisza do",
+  "returnWatchEmpty": "Kolejka jest pusta: wszystko świeże już obejrzane.",
+  "returnDayEmpty": "Tego dnia wcześniej nic nie zapisano.",
+  "returnWeekEmpty": "W tym tygodniu nic nie zapisano.",
+  "returnShoppingEmpty": "Nic do kupienia: listy odhaczone.",
+  "returnMinutesShort": "{count} min",
+  "returnsAskTitle": "Przypominać zapisane?",
+  "returnsAskBody": "Wieczorem jedno ciche powiadomienie: co obejrzeć, co zapisałeś tego dnia rok temu, podsumowanie tygodnia. Najwyżej raz dziennie.",
+  "returnsAskOn": "Włącz",
+  "returnsAskLater": "Nie teraz"
 }

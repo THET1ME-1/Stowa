@@ -1933,4 +1933,34 @@ class LRu extends L {
 
   @override
   String get returnQuietTo => 'Тихо до';
+
+  @override
+  String get returnWatchEmpty => 'Очередь пуста: всё свежее уже посмотрено.';
+
+  @override
+  String get returnDayEmpty => 'В этот день раньше ничего не сохраняли.';
+
+  @override
+  String get returnWeekEmpty => 'За неделю ничего не сохранено.';
+
+  @override
+  String get returnShoppingEmpty => 'Покупать нечего: списки отмечены.';
+
+  @override
+  String returnMinutesShort(int count) {
+    return '$count мин';
+  }
+
+  @override
+  String get returnsAskTitle => 'Возвращать сохранённое?';
+
+  @override
+  String get returnsAskBody =>
+      'Вечером — одно тихое уведомление: что посмотреть, что было в этот день год назад, сводка недели. Не чаще раза в день.';
+
+  @override
+  String get returnsAskOn => 'Включить';
+
+  @override
+  String get returnsAskLater => 'Не сейчас';
 }

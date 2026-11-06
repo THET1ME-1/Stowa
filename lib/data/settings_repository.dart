@@ -201,6 +201,11 @@ class SettingsRepository {
   /// Карточка «Включить уведомления» на главной уже была: показывается один раз.
   bool get returnsAsked => _prefs.getBool('returns_asked') ?? false;
 
+  Stream<bool> watchReturnsAsked() async* {
+    yield returnsAsked;
+    yield* _changes.stream.map((_) => returnsAsked).distinct();
+  }
+
   Future<void> setReturnsAsked() => _set(() => _prefs.setBool('returns_asked', true));
 
   /// Показывать обложки и описания страниц 18+. Решает человек; по умолчанию нет — так

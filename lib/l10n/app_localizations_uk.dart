@@ -1928,4 +1928,34 @@ class LUk extends L {
 
   @override
   String get returnQuietTo => 'Тихо до';
+
+  @override
+  String get returnWatchEmpty => 'Черга порожня: усе свіже вже переглянуто.';
+
+  @override
+  String get returnDayEmpty => 'Цього дня раніше нічого не зберігали.';
+
+  @override
+  String get returnWeekEmpty => 'За тиждень нічого не збережено.';
+
+  @override
+  String get returnShoppingEmpty => 'Купувати нічого: списки відмічені.';
+
+  @override
+  String returnMinutesShort(int count) {
+    return '$count хв';
+  }
+
+  @override
+  String get returnsAskTitle => 'Повертати збережене?';
+
+  @override
+  String get returnsAskBody =>
+      'Увечері — одне тихе сповіщення: що переглянути, що було цього дня рік тому, підсумок тижня. Не частіше разу на день.';
+
+  @override
+  String get returnsAskOn => 'Увімкнути';
+
+  @override
+  String get returnsAskLater => 'Не зараз';
 }

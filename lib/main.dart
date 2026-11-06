@@ -10,7 +10,7 @@ import 'app.dart';
 import 'data/db/database.dart';
 import 'data/providers.dart';
 import 'data/settings_repository.dart';
-import 'features/item/item_screen.dart';
+import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
 import 'services/background.dart';
 import 'services/reminder_actions.dart';
@@ -20,8 +20,10 @@ import 'services/vault/vault_location.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final notifications = reminderPort(
-    // тап по уведомлению: открыть вещь, как только навигатор готов
-    onOpen: (id) => WidgetsBinding.instance.addPostFrameCallback((_) => appNavigator.currentState?.push(itemRoute(id))),
+    // тап по уведомлению: открыть заметку или экран возврата, как только навигатор готов
+    onOpen: (payload) => WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (notificationRoute(payload) case final route?) appNavigator.currentState?.push(route);
+    }),
   );
   await _run(const StowaApp(), notifications);
 }

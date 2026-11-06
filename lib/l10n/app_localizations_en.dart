@@ -1889,4 +1889,36 @@ class LEn extends L {
 
   @override
   String get returnQuietTo => 'Quiet until';
+
+  @override
+  String get returnWatchEmpty =>
+      'The queue is empty: you’ve seen everything recent.';
+
+  @override
+  String get returnDayEmpty => 'Nothing was saved on this day before.';
+
+  @override
+  String get returnWeekEmpty => 'Nothing saved this week.';
+
+  @override
+  String get returnShoppingEmpty =>
+      'Nothing to buy: every list is checked off.';
+
+  @override
+  String returnMinutesShort(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get returnsAskTitle => 'Bring saved things back?';
+
+  @override
+  String get returnsAskBody =>
+      'One silent notification in the evening: what to watch, what you saved on this day a year ago, a weekly summary. Never more than once a day.';
+
+  @override
+  String get returnsAskOn => 'Turn on';
+
+  @override
+  String get returnsAskLater => 'Not now';
 }

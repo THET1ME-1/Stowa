@@ -250,5 +250,14 @@
   "returnSettingsHint": "Como mucho una notificación al día, sin sonido y nada en las horas de silencio. Tus propios recordatorios por hora o lugar no cuentan.",
   "returnRange": "{from}–{to}",
   "returnQuietFrom": "Silencio desde",
-  "returnQuietTo": "Silencio hasta"
+  "returnQuietTo": "Silencio hasta",
+  "returnWatchEmpty": "La cola está vacía: ya viste todo lo reciente.",
+  "returnDayEmpty": "Ningún otro año guardaste nada este día.",
+  "returnWeekEmpty": "Esta semana no guardaste nada.",
+  "returnShoppingEmpty": "Nada que comprar: las listas están marcadas.",
+  "returnMinutesShort": "{count} min",
+  "returnsAskTitle": "¿Te recuerdo lo guardado?",
+  "returnsAskBody": "Por la tarde, una notificación sin sonido: qué ver, qué guardaste este día hace un año, un resumen semanal. Como mucho una vez al día.",
+  "returnsAskOn": "Activar",
+  "returnsAskLater": "Ahora no"
 }

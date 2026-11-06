@@ -1894,4 +1894,35 @@ class LDe extends L {
 
   @override
   String get returnQuietTo => 'Ruhe bis';
+
+  @override
+  String get returnWatchEmpty =>
+      'Die Liste ist leer: alles Neue ist schon angesehen.';
+
+  @override
+  String get returnDayEmpty => 'An diesem Tag wurde früher nichts gespeichert.';
+
+  @override
+  String get returnWeekEmpty => 'Diese Woche wurde nichts gespeichert.';
+
+  @override
+  String get returnShoppingEmpty => 'Nichts zu kaufen: alle Listen abgehakt.';
+
+  @override
+  String returnMinutesShort(int count) {
+    return '$count Min.';
+  }
+
+  @override
+  String get returnsAskTitle => 'Gespeichertes zurückbringen?';
+
+  @override
+  String get returnsAskBody =>
+      'Abends eine lautlose Benachrichtigung: was du ansehen wolltest, was du vor einem Jahr an diesem Tag gespeichert hast, ein Wochenrückblick. Höchstens einmal am Tag.';
+
+  @override
+  String get returnsAskOn => 'Einschalten';
+
+  @override
+  String get returnsAskLater => 'Nicht jetzt';
 }

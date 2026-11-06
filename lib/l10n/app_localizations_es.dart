@@ -1890,4 +1890,36 @@ class LEs extends L {
 
   @override
   String get returnQuietTo => 'Silencio hasta';
+
+  @override
+  String get returnWatchEmpty =>
+      'La cola está vacía: ya viste todo lo reciente.';
+
+  @override
+  String get returnDayEmpty => 'Ningún otro año guardaste nada este día.';
+
+  @override
+  String get returnWeekEmpty => 'Esta semana no guardaste nada.';
+
+  @override
+  String get returnShoppingEmpty =>
+      'Nada que comprar: las listas están marcadas.';
+
+  @override
+  String returnMinutesShort(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get returnsAskTitle => '¿Te recuerdo lo guardado?';
+
+  @override
+  String get returnsAskBody =>
+      'Por la tarde, una notificación sin sonido: qué ver, qué guardaste este día hace un año, un resumen semanal. Como mucho una vez al día.';
+
+  @override
+  String get returnsAskOn => 'Activar';
+
+  @override
+  String get returnsAskLater => 'Ahora no';
 }

@@ -60,6 +60,10 @@ class ReturnRepository {
 
   Future<List<Item>> _alive() => (_db.select(_db.items)..where((t) => t.deletedAt.isNull())).get();
 
+  /// Пересчитать [compute], когда меняются заметки, факты или теги: открыл ролик — очередь короче.
+  Stream<T> watch<T>(Future<T> Function() compute) =>
+      _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.facts, _db.itemTags, _db.tags}).watch().asyncMap((_) => compute());
+
   bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
 
   /// Непросмотренные ролики и статьи за 30 дней, у которых известна длина. Свежие первыми.
