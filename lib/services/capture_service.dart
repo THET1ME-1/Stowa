@@ -54,7 +54,11 @@ class CaptureInput {
     this.title,
     this.untitled,
     this.here = true,
+    this.at,
   });
+
+  /// Когда заметка написана, если не сейчас: перенос из Telegram ставит дату сообщения.
+  final DateTime? at;
 
   /// Вещь сохранена тут и сейчас: ей ставится место. Пересланное боту — нет,
   /// его могли написать где угодно и давно.
@@ -156,8 +160,8 @@ class CaptureService {
               sortState: Value(sorted ? SortState.sorted : SortState.pending),
               reminderAt: Value(input.forcedReminder ?? found?.at),
               durationSeconds: Value(input.files.map((file) => file.seconds).nonNulls.firstOrNull),
-              createdAt: now,
-              updatedAt: now,
+              createdAt: input.at ?? now,
+              updatedAt: input.at ?? now,
             ),
           );
       // выбранные руками ставятся первыми, тег из текста их источник не перебьёт
