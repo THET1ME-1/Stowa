@@ -87,6 +87,15 @@ void main() {
     expect(note.filesMissing, 1);
   });
 
+  test('контакт, место и опрос — заметки своим текстом', () {
+    final notes = parseTelegramExport(_saved([
+      _message(1, 100, extra: {'contact_information': {'first_name': 'Иван', 'last_name': 'Петров', 'phone_number': '+373 69 123 456'}}),
+      _message(2, 200, extra: {'location_information': {'latitude': 47.0245, 'longitude': 28.8323}}),
+      _message(3, 300, extra: {'poll': {'question': 'Куда едем?', 'answers': [{'text': 'Море'}, {'text': 'Горы'}]}}),
+    ]));
+    expect(notes.map((note) => note.text), ['Иван Петров\n+373 69 123 456', '47.0245, 28.8323 https://maps.google.com/maps?q=47.0245,28.8323', 'Куда едем?\n- [ ] Море\n- [ ] Горы']);
+  });
+
   test('выгрузка всех данных: берётся «Избранное» из списка чатов', () {
     final notes = parseTelegramExport({
       'about': 'Here is the data you requested.',

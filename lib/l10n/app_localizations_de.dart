@@ -1728,4 +1728,15 @@ class LDe extends L {
     );
     return '$_temp0 — Dateien in den Exporteinstellungen einschalten und erneut übertragen';
   }
+
+  @override
+  String importFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count frühere Notizen haben ihre Dateien bekommen',
+      one: '$count frühere Notiz hat ihre Dateien bekommen',
+    );
+    return '$_temp0';
+  }
 }

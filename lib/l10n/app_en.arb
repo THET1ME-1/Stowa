@@ -2193,5 +2193,14 @@
         "type": "int"
       }
     }
+  },
+  "importFilled": "{count, plural, one{{count} earlier note got its files} other{{count} earlier notes got their files}}",
+  "@importFilled": {
+    "description": "Добавка к итогу: файлы новой выгрузки легли к заметкам, перенесённым раньше без них",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

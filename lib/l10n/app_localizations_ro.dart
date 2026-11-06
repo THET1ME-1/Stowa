@@ -1734,4 +1734,16 @@ class LRo extends L {
     );
     return '$_temp0 — activează fișierele în setările exportului și importă din nou';
   }
+
+  @override
+  String importFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de notițe importate anterior au primit fișierele',
+      few: '$count notițe importate anterior au primit fișierele',
+      one: '$count notiță importată anterior a primit fișierele',
+    );
+    return '$_temp0';
+  }
 }

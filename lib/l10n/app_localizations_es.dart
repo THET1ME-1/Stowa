@@ -1724,4 +1724,15 @@ class LEs extends L {
     );
     return '$_temp0 — activa los archivos en los ajustes de exportación e importa de nuevo';
   }
+
+  @override
+  String importFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notas anteriores recibieron sus archivos',
+      one: '$count nota anterior recibió sus archivos',
+    );
+    return '$_temp0';
+  }
 }

@@ -117,8 +117,16 @@ class _Draft {
 
     take(raw['photo'], null);
     take(raw['file'], raw['mime_type'] as String?);
+    final contact = raw['contact_information'];
+    final place = raw['location_information'];
+    final poll = raw['poll'];
+    final shared = [
+      if (contact is Map) _contactText(['${contact['first_name'] ?? ''} ${contact['last_name'] ?? ''}', '${contact['phone_number'] ?? ''}']),
+      if (place is Map && place['latitude'] is num && place['longitude'] is num) _placeText('${place['latitude']}, ${place['longitude']}'),
+      if (poll is Map) _pollText('${poll['question'] ?? ''}', [for (final answer in (poll['answers'] as List?) ?? const []) if (answer is Map) '${answer['text'] ?? ''}']),
+    ];
     return _Draft(
-      text: _text(raw),
+      text: _joined([...shared, _text(raw)]),
       files: files,
       at: DateTime.fromMillisecondsSinceEpoch(unix * 1000),
       source: raw['forwarded_from'] as String?,
@@ -131,11 +139,26 @@ class _Draft {
     final at = _htmlDate(message.querySelector('div.date.details')?.attributes['title'] ?? '');
     if (at == null) return null;
     final files = <ExportedFile>[];
+    final shared = <String>[];
     var missing = 0;
     for (final media in message.querySelectorAll('div.media_wrap > *')) {
       final classes = media.classes;
       // стикер — реакция, а не мысль
       if (classes.contains('sticker_wrap') || classes.contains('media_sticker')) continue;
+      String part(String selector) => media.querySelector(selector)?.text.trim() ?? '';
+      // контакт, место и опрос файлов не несут: от них остаётся текст
+      if (classes.contains('media_contact')) {
+        shared.add(_contactText([part('.title'), part('.status')]));
+        continue;
+      }
+      if (classes.contains('media_location') || classes.contains('media_live_location')) {
+        shared.add(_placeText(part('.status')));
+        continue;
+      }
+      if (classes.contains('media_poll')) {
+        shared.add(_pollText(part('.question'), [for (final answer in media.querySelectorAll('.answer')) answer.text.trim().replaceFirst(RegExp(r'^-\s*'), '')]));
+        continue;
+      }
       final href = media.localName == 'a' ? media.attributes['href'] ?? '' : '';
       if (href.isEmpty || href.contains(':') || href.startsWith('#')) {
         // блок без ссылки: файла в выгрузке нет; контакт, место и опрос файлами не бывают
@@ -148,7 +171,7 @@ class _Draft {
     final forwarded = message.querySelector('div.forwarded.body');
     final textBlock = (forwarded ?? message).querySelector('div.text');
     final source = forwarded?.querySelector('.from_name')?.nodes.whereType<Text>().map((node) => node.data).join().trim();
-    return _Draft(text: textBlock == null ? '' : _render(textBlock).trim(), files: files, at: at, source: source, missing: missing);
+    return _Draft(text: _joined([...shared, if (textBlock != null) _render(textBlock)]), files: files, at: at, source: source, missing: missing);
   }
 
   /// Следующее сообщение — часть того же альбома: оба с файлами, одна секунда,
@@ -191,6 +214,22 @@ String _text(Map raw) {
   }
   return out.toString();
 }
+
+// куски текста сообщения через пустую строку: контакт или опрос, потом подпись
+String _joined(List<String> parts) => parts.map((part) => part.trim()).where((part) => part.isNotEmpty).join('\n\n');
+
+// контакт — имя строкой, телефон под ним: поиск найдёт по обоим, телефон станет кнопкой
+String _contactText(List<String> lines) => lines.map((line) => line.trim()).where((line) => line.isNotEmpty).join('\n');
+
+// место — координаты и ссылка на карту: без слов, у заметки любой язык
+String _placeText(String coordinates) {
+  final match = RegExp(r'(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)').firstMatch(coordinates);
+  if (match == null) return coordinates;
+  return '${match.group(1)}, ${match.group(2)} https://maps.google.com/maps?q=${match.group(1)},${match.group(2)}';
+}
+
+// опрос — вопрос и ответы чек-листом
+String _pollText(String question, List<String> answers) => [question.trim(), for (final answer in answers) if (answer.trim().isNotEmpty) '- [ ] ${answer.trim()}'].where((line) => line.isNotEmpty).join('\n');
 
 // блоки медиа, за которыми стоит файл: без ссылки — Telegram его не выгрузил
 const _fileKinds = ['media_photo', 'media_video', 'media_file', 'media_voice_message', 'media_audio_file', 'media_video_message', 'media_animation'];

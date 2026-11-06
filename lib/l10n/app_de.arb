@@ -217,5 +217,6 @@
   "importDone": "{count, plural, one{{count} Notiz übertragen} other{{count} Notizen übertragen}}",
   "importRepeated": "{count, plural, one{{count} war schon da} other{{count} waren schon da}}",
   "importNotTelegram": "In diesem Ordner liegt kein Telegram-Export: messages.html oder result.json fehlt",
-  "importMissing": "{count, plural, one{{count} Datei fehlt im Export} other{{count} Dateien fehlen im Export}} — Dateien in den Exporteinstellungen einschalten und erneut übertragen"
+  "importMissing": "{count, plural, one{{count} Datei fehlt im Export} other{{count} Dateien fehlen im Export}} — Dateien in den Exporteinstellungen einschalten und erneut übertragen",
+  "importFilled": "{count, plural, one{{count} frühere Notiz hat ihre Dateien bekommen} other{{count} frühere Notizen haben ihre Dateien bekommen}}"
 }

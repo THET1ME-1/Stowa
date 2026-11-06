@@ -1750,4 +1750,17 @@ class LUk extends L {
     );
     return '$_temp0 — увімкни файли в налаштуваннях вивантаження й перенеси ще раз';
   }
+
+  @override
+  String importFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count перенесеної раніше отримали файли',
+      many: '$count перенесених раніше отримали файли',
+      few: '$count перенесені раніше отримали файли',
+      one: '$count перенесена раніше отримала файли',
+    );
+    return '$_temp0';
+  }
 }

@@ -96,6 +96,18 @@ void main() {
     expect(notes.single.at, DateTime.utc(2023, 5, 12, 8).toLocal());
   });
 
+  test('контакт, место и опрос — заметки своим текстом', () {
+    final notes = parseTelegramHtml([
+      _page(
+        _message(1, '12.05.2023 10:00:00 GMT+02:00', media: '<div class="media clearfix pull_left media_contact"><div class="body"><div class="title bold">\nИван Петров\n</div><div class="status details">\n+373 69 123 456\n</div></div></div>') +
+            _message(2, '12.05.2023 11:00:00 GMT+02:00', media: '<a class="media clearfix pull_left block_link media_location" href="https://maps.google.com/maps?q=47.0245,28.8323&amp;ll=47.0245,28.8323&amp;z=16"><div class="body"><div class="title bold">Location</div><div class="status details">47.0245, 28.8323</div></div></a>') +
+            _message(3, '12.05.2023 12:00:00 GMT+02:00', media: '<div class="media_poll"><div class="question bold">Куда едем?</div><div class="details">Anonymous poll</div><div class="answer">- Море</div><div class="answer">- Горы</div></div>'),
+      ),
+    ]);
+    expect(notes.map((note) => note.text), ['Иван Петров\n+373 69 123 456', '47.0245, 28.8323 https://maps.google.com/maps?q=47.0245,28.8323', 'Куда едем?\n- [ ] Море\n- [ ] Горы']);
+    expect(notes.every((note) => note.files.isEmpty && note.filesMissing == 0), isTrue);
+  });
+
   test('страницы идут по порядку, пустые и служебные пропускаются', () {
     final notes = parseTelegramHtml([
       _page(_service + _message(1, '12.05.2023 10:00:00 GMT+02:00', text: 'первая')),

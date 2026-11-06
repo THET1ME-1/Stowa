@@ -1750,4 +1750,17 @@ class LPl extends L {
     );
     return '$_temp0 — włącz pliki w ustawieniach eksportu i przenieś ponownie';
   }
+
+  @override
+  String importFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wcześniejszej notatki dostało pliki',
+      many: '$count wcześniejszych notatek dostało pliki',
+      few: '$count wcześniejsze notatki dostały pliki',
+      one: '$count wcześniejsza notatka dostała pliki',
+    );
+    return '$_temp0';
+  }
 }

@@ -217,5 +217,6 @@
   "importDone": "{count, plural, one{{count} notiță importată} few{{count} notițe importate} other{{count} de notițe importate}}",
   "importRepeated": "{count, plural, one{{count} exista deja} other{{count} existau deja}}",
   "importNotTelegram": "Nu există export Telegram în acest dosar: e nevoie de messages.html sau result.json",
-  "importMissing": "{count, plural, one{{count} fișier lipsește din export} few{{count} fișiere lipsesc din export} other{{count} de fișiere lipsesc din export}} — activează fișierele în setările exportului și importă din nou"
+  "importMissing": "{count, plural, one{{count} fișier lipsește din export} few{{count} fișiere lipsesc din export} other{{count} de fișiere lipsesc din export}} — activează fișierele în setările exportului și importă din nou",
+  "importFilled": "{count, plural, one{{count} notiță importată anterior a primit fișierele} few{{count} notițe importate anterior au primit fișierele} other{{count} de notițe importate anterior au primit fișierele}}"
 }

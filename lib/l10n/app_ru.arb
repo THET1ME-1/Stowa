@@ -465,5 +465,6 @@
   "importDone": "{count, plural, one{Перенёс {count} заметку} few{Перенёс {count} заметки} many{Перенёс {count} заметок} other{Перенёс {count} заметки}}",
   "importRepeated": "{count, plural, one{{count} уже была} few{{count} уже были} many{{count} уже были} other{{count} уже были}}",
   "importNotTelegram": "В этой папке нет выгрузки Telegram: нужен messages.html или result.json",
-  "importMissing": "{count, plural, one{{count} файл Telegram не выгрузил} few{{count} файла Telegram не выгрузил} many{{count} файлов Telegram не выгрузил} other{{count} файла Telegram не выгрузил}} — включи файлы в настройках выгрузки и перенеси ещё раз"
+  "importMissing": "{count, plural, one{{count} файл Telegram не выгрузил} few{{count} файла Telegram не выгрузил} many{{count} файлов Telegram не выгрузил} other{{count} файла Telegram не выгрузил}} — включи файлы в настройках выгрузки и перенеси ещё раз",
+  "importFilled": "{count, plural, one{{count} перенесённая раньше получила файлы} few{{count} перенесённые раньше получили файлы} many{{count} перенесённых раньше получили файлы} other{{count} перенесённой раньше получили файлы}}"
 }

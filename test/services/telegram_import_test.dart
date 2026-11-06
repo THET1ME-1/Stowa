@@ -89,6 +89,28 @@ void main() {
     expect((report.added, report.filesMissing), (1, 1));
   });
 
+  test('выгрузили заново с файлами — файл дописывается к уже перенесённой заметке, двойника нет', () async {
+    const notIncluded = '(File not included. Change data exporting settings to download.)';
+    await exportWith([message(1, 100, 'договор аренды', {'file': notIncluded, 'mime_type': 'application/pdf'})]);
+    await import.run(export);
+
+    await Directory(p.join(export.path, 'files')).create();
+    await File(p.join(export.path, 'files', 'Договор.pdf')).writeAsBytes(List.filled(4096, 2));
+    await exportWith([message(1, 100, 'договор аренды', {'file': 'files/Договор.pdf', 'mime_type': 'application/pdf'})]);
+    final again = await import.run(export);
+    await capture.settled();
+
+    expect((again.added, again.repeated, again.filled), (0, 1, 1));
+    final note = await db.select(db.items).getSingle();
+    expect((await ItemsRepository(db).get(note.id))!.attachments.single.mime, 'application/pdf');
+
+    // третий раз — файл уже на месте, второй не ложится
+    final third = await import.run(export);
+    await capture.settled();
+    expect(third.filled, 0);
+    expect(await db.select(db.attachments).get(), hasLength(1));
+  });
+
   test('сообщение из одного невыгруженного файла заметкой не становится, но в счёт идёт', () async {
     await exportWith([
       message(1, 100, '', {'file': '(File not included. Change data exporting settings to download.)', 'mime_type': 'application/pdf'}),

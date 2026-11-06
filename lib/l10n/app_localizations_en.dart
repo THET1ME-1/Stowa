@@ -1723,4 +1723,15 @@ class LEn extends L {
     );
     return '$_temp0 — turn files on in the export settings and import again';
   }
+
+  @override
+  String importFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count earlier notes got their files',
+      one: '$count earlier note got its files',
+    );
+    return '$_temp0';
+  }
 }

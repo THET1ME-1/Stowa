@@ -217,5 +217,6 @@
   "importDone": "{count, plural, one{{count} notatka przeniesiona} few{{count} notatki przeniesione} many{{count} notatek przeniesionych} other{{count} notatki przeniesione}}",
   "importRepeated": "{count, plural, one{{count} już była} few{{count} już były} many{{count} już były} other{{count} już były}}",
   "importNotTelegram": "W tym folderze nie ma eksportu Telegrama: potrzebny jest messages.html lub result.json",
-  "importMissing": "{count, plural, one{{count} plik pominięty w eksporcie} few{{count} pliki pominięte w eksporcie} many{{count} plików pominiętych w eksporcie} other{{count} pliku pominiętego w eksporcie}} — włącz pliki w ustawieniach eksportu i przenieś ponownie"
+  "importMissing": "{count, plural, one{{count} plik pominięty w eksporcie} few{{count} pliki pominięte w eksporcie} many{{count} plików pominiętych w eksporcie} other{{count} pliku pominiętego w eksporcie}} — włącz pliki w ustawieniach eksportu i przenieś ponownie",
+  "importFilled": "{count, plural, one{{count} wcześniejsza notatka dostała pliki} few{{count} wcześniejsze notatki dostały pliki} many{{count} wcześniejszych notatek dostało pliki} other{{count} wcześniejszej notatki dostało pliki}}"
 }

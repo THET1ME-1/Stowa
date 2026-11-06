@@ -2902,6 +2902,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} file was left out of the export} other{{count} files were left out of the export}} — turn files on in the export settings and import again'**
   String importMissing(int count);
+
+  /// Добавка к итогу: файлы новой выгрузки легли к заметкам, перенесённым раньше без них
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} earlier note got its files} other{{count} earlier notes got their files}}'**
+  String importFilled(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

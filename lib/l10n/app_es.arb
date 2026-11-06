@@ -217,5 +217,6 @@
   "importDone": "{count, plural, one{{count} nota importada} other{{count} notas importadas}}",
   "importRepeated": "{count, plural, one{{count} ya estaba} other{{count} ya estaban}}",
   "importNotTelegram": "En esta carpeta no hay exportación de Telegram: falta messages.html o result.json",
-  "importMissing": "{count, plural, one{{count} archivo quedó fuera de la exportación} other{{count} archivos quedaron fuera de la exportación}} — activa los archivos en los ajustes de exportación e importa de nuevo"
+  "importMissing": "{count, plural, one{{count} archivo quedó fuera de la exportación} other{{count} archivos quedaron fuera de la exportación}} — activa los archivos en los ajustes de exportación e importa de nuevo",
+  "importFilled": "{count, plural, one{{count} nota anterior recibió sus archivos} other{{count} notas anteriores recibieron sus archivos}}"
 }

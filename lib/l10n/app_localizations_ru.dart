@@ -1755,4 +1755,17 @@ class LRu extends L {
     );
     return '$_temp0 — включи файлы в настройках выгрузки и перенеси ещё раз';
   }
+
+  @override
+  String importFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count перенесённой раньше получили файлы',
+      many: '$count перенесённых раньше получили файлы',
+      few: '$count перенесённые раньше получили файлы',
+      one: '$count перенесённая раньше получила файлы',
+    );
+    return '$_temp0';
+  }
 }
