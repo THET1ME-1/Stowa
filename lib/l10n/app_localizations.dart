@@ -2632,6 +2632,210 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Description hidden: 18+. You can turn it on in settings.'**
   String get adultHidden;
+
+  /// Заголовок экрана первого запуска
+  ///
+  /// In en, this message translates to:
+  /// **'Where to keep your notes'**
+  String get vaultSetupTitle;
+
+  /// Пояснение под заголовком экрана первого запуска
+  ///
+  /// In en, this message translates to:
+  /// **'Notes, photos and files live as plain files in a folder. You can see it in a file manager, open it in Obsidian and sync it with Syncthing.'**
+  String get vaultSetupHint;
+
+  /// Первый путь на экране выбора хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Create a vault'**
+  String get vaultCreate;
+
+  /// Пояснение к «Создать хранилище»
+  ///
+  /// In en, this message translates to:
+  /// **'A new folder in phone storage. Your notes stay even if you uninstall the app.'**
+  String get vaultCreateHint;
+
+  /// Кнопка «Создать хранилище»
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get vaultCreateButton;
+
+  /// Второй путь на экране выбора хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Open folder as vault'**
+  String get vaultOpen;
+
+  /// Пояснение к «Открыть папку как хранилище»
+  ///
+  /// In en, this message translates to:
+  /// **'Your old Stowa vault after a reinstall, or an Obsidian vault.'**
+  String get vaultOpenHint;
+
+  /// Кнопка «Открыть папку как хранилище»
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get vaultOpenButton;
+
+  /// Третий путь на экране выбора хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Keep inside the app'**
+  String get vaultInApp;
+
+  /// Пояснение к «Хранить внутри приложения»
+  ///
+  /// In en, this message translates to:
+  /// **'No permissions. Uninstalling the app deletes your notes.'**
+  String get vaultInAppHint;
+
+  /// Кнопка «Хранить внутри приложения»
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get vaultInAppButton;
+
+  /// Предупреждение перед выбором хранилища внутри приложения
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes will live inside the app and disappear if you uninstall it. You can move them to a regular folder later in settings.'**
+  String get vaultInAppWarning;
+
+  /// Кнопка подтверждения хранилища внутри приложения
+  ///
+  /// In en, this message translates to:
+  /// **'Keep inside'**
+  String get vaultInAppConfirm;
+
+  /// Поле имени нового хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Vault name'**
+  String get vaultName;
+
+  /// Строка выбора папки для нового хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get vaultPlace;
+
+  /// Заголовок листа с просьбой о разрешении
+  ///
+  /// In en, this message translates to:
+  /// **'File access needed'**
+  String get vaultAccessTitle;
+
+  /// Пояснение к разрешению «Доступ ко всем файлам»
+  ///
+  /// In en, this message translates to:
+  /// **'To keep notes in a regular folder, Android asks for “All files access”. Stowa only reads and writes the vault folder.'**
+  String get vaultAccessHint;
+
+  /// Кнопка перехода к системному разрешению
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get vaultAccessGrant;
+
+  /// Плашка: разрешение не дали
+  ///
+  /// In en, this message translates to:
+  /// **'Without file access a vault in phone storage can’t work'**
+  String get vaultAccessDenied;
+
+  /// Ход переноса хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Moving: {done} of {total}'**
+  String vaultMoving(int done, int total);
+
+  /// Ход сборки указателя из папки
+  ///
+  /// In en, this message translates to:
+  /// **'Building the index: {done} of {total}'**
+  String vaultBuilding(int done, int total);
+
+  /// Перенос не сошёлся при сверке
+  ///
+  /// In en, this message translates to:
+  /// **'Not everything moved, missing: {count}. Your notes stayed where they were.'**
+  String vaultMoveFailed(int count);
+
+  /// Заголовок экрана, когда папки хранилища нет
+  ///
+  /// In en, this message translates to:
+  /// **'Vault not found'**
+  String get vaultMissingTitle;
+
+  /// Пояснение на экране «Хранилище не найдено»
+  ///
+  /// In en, this message translates to:
+  /// **'The folder {path} is gone or Stowa lost file access. The notes in the app are safe.'**
+  String vaultMissingHint(String path);
+
+  /// Кнопка на экране «Хранилище не найдено»
+  ///
+  /// In en, this message translates to:
+  /// **'Grant access'**
+  String get vaultGrantAccess;
+
+  /// Кнопка выбора другой папки хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a folder'**
+  String get vaultChooseAgain;
+
+  /// Раздел настроек
+  ///
+  /// In en, this message translates to:
+  /// **'Vault'**
+  String get vaultSection;
+
+  /// Строка настроек: где лежит хранилище
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get vaultFolder;
+
+  /// Значение строки «Папка», когда хранилище внутри приложения
+  ///
+  /// In en, this message translates to:
+  /// **'Inside the app'**
+  String get vaultInsideApp;
+
+  /// Строка настроек
+  ///
+  /// In en, this message translates to:
+  /// **'Move to another folder'**
+  String get vaultMoveTo;
+
+  /// Строка настроек: собрать базу поиска заново из папки
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuild the index'**
+  String get vaultRebuild;
+
+  /// Пояснение под разделом «Хранилище»
+  ///
+  /// In en, this message translates to:
+  /// **'Notes are .md files: Obsidian opens this folder and Syncthing syncs it. The index is a search database the app builds by itself.'**
+  String get vaultSettingHint;
+
+  /// Плашка после переноса
+  ///
+  /// In en, this message translates to:
+  /// **'Vault moved'**
+  String get vaultMoved;
+
+  /// Плашка после сборки указателя
+  ///
+  /// In en, this message translates to:
+  /// **'Index rebuilt'**
+  String get vaultRebuilt;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

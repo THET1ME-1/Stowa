@@ -27,6 +27,7 @@ import '../services/link_preview_service.dart';
 import '../services/place_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
+import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
 import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
@@ -51,6 +52,23 @@ final filesRootProvider = Provider<Directory>((ref) => ref.watch(vaultRootProvid
 
 /// Хранилище недоступно: папку удалили или отозвали разрешение.
 final vaultMissingProvider = Provider<bool>((ref) => false);
+
+/// Папка приложения: в ней хранилище «внутри приложения».
+final appSupportProvider = Provider<Directory>((ref) => throw UnimplementedError('папка приложения задаётся в main'));
+
+/// Разрешение «Доступ ко всем файлам».
+final vaultChannelProvider = Provider<VaultChannel>((ref) => const VaultChannel());
+
+/// Выбор папки системным окном; в тестах — готовая папка.
+final vaultPickerProvider = Provider<Future<String?> Function()>((ref) => pickVaultFolder);
+
+/// Где хранилище и доступно ли оно.
+final vaultLocationProvider = Provider(
+  (ref) => VaultLocation(settings: ref.watch(settingsRepositoryProvider), appSupport: ref.watch(appSupportProvider), channel: ref.watch(vaultChannelProvider)),
+);
+
+/// Место хранилища уже выбирали на экране первого запуска.
+final vaultAskedProvider = Provider<bool>((ref) => ref.watch(settingsRepositoryProvider).vaultAsked);
 
 /// Часы: в тестах подменяются, чтобы «завтра» было предсказуемым.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);

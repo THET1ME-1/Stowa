@@ -1564,4 +1564,122 @@ class LRu extends L {
   @override
   String get adultHidden =>
       'Описание скрыто: 18+. Показ включается в настройках.';
+
+  @override
+  String get vaultSetupTitle => 'Где хранить заметки';
+
+  @override
+  String get vaultSetupHint =>
+      'Заметки, фото и файлы лежат обычными файлами в папке. Её видно в файловом менеджере, её открывает Obsidian и синхронизирует Syncthing.';
+
+  @override
+  String get vaultCreate => 'Создать хранилище';
+
+  @override
+  String get vaultCreateHint =>
+      'Новая папка в памяти телефона. Заметки останутся, даже если удалить приложение.';
+
+  @override
+  String get vaultCreateButton => 'Создать';
+
+  @override
+  String get vaultOpen => 'Открыть папку как хранилище';
+
+  @override
+  String get vaultOpenHint =>
+      'Прежнее хранилище Stowa после переустановки или хранилище Obsidian.';
+
+  @override
+  String get vaultOpenButton => 'Открыть';
+
+  @override
+  String get vaultInApp => 'Хранить внутри приложения';
+
+  @override
+  String get vaultInAppHint =>
+      'Без разрешений. При удалении приложения заметки пропадут.';
+
+  @override
+  String get vaultInAppButton => 'Выбрать';
+
+  @override
+  String get vaultInAppWarning =>
+      'Заметки будут лежать внутри приложения и пропадут, если его удалить. Перенести их в обычную папку можно потом в настройках.';
+
+  @override
+  String get vaultInAppConfirm => 'Хранить внутри';
+
+  @override
+  String get vaultName => 'Имя хранилища';
+
+  @override
+  String get vaultPlace => 'Где создать';
+
+  @override
+  String get vaultAccessTitle => 'Нужен доступ к файлам';
+
+  @override
+  String get vaultAccessHint =>
+      'Чтобы хранить заметки в обычной папке, Android просит разрешение «Доступ ко всем файлам». Stowa читает и пишет только папку хранилища.';
+
+  @override
+  String get vaultAccessGrant => 'Открыть настройки';
+
+  @override
+  String get vaultAccessDenied =>
+      'Без доступа к файлам хранилище в памяти телефона не работает';
+
+  @override
+  String vaultMoving(int done, int total) {
+    return 'Переношу: $done из $total';
+  }
+
+  @override
+  String vaultBuilding(int done, int total) {
+    return 'Собираю указатель: $done из $total';
+  }
+
+  @override
+  String vaultMoveFailed(int count) {
+    return 'Перенеслось не всё, не хватает: $count. Заметки остались на прежнем месте.';
+  }
+
+  @override
+  String get vaultMissingTitle => 'Хранилище не найдено';
+
+  @override
+  String vaultMissingHint(String path) {
+    return 'Папки $path нет или у Stowa забрали доступ к файлам. Заметки в приложении целы.';
+  }
+
+  @override
+  String get vaultGrantAccess => 'Дать доступ';
+
+  @override
+  String get vaultChooseAgain => 'Выбрать папку';
+
+  @override
+  String get vaultSection => 'Хранилище';
+
+  @override
+  String get vaultFolder => 'Папка';
+
+  @override
+  String get vaultInsideApp => 'Внутри приложения';
+
+  @override
+  String get vaultMoveTo => 'Перенести в другую папку';
+
+  @override
+  String get vaultRebuild => 'Пересобрать указатель';
+
+  @override
+  String get vaultSettingHint =>
+      'Заметки лежат файлами .md: эту папку открывает Obsidian и синхронизирует Syncthing. Указатель — служебная база для поиска, приложение собирает его само.';
+
+  @override
+  String get vaultMoved => 'Хранилище перенесено';
+
+  @override
+  String get vaultRebuilt => 'Указатель собран';
 }

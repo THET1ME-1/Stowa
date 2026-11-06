@@ -10,6 +10,7 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/services/telegram_service.dart';
+import 'package:stowa/services/vault/vault_location.dart';
 import 'package:stowa/l10n/app_localizations.dart';
 
 /// База в памяти, своя папка файлов и замёрзшие часы — для виджет-тестов.
@@ -26,9 +27,26 @@ class TestWorld {
   /// Включён ли показ 18+ в настройках.
   var showAdult = false;
 
+  /// Место хранилища уже выбрано: по умолчанию сразу главная, без экрана первого запуска.
+  var vaultAsked = true;
+
+  /// Папка хранилища пропала или отозвали доступ.
+  var vaultMissing = false;
+
+  /// Что вернёт окно выбора папки.
+  String? pickedFolder;
+
+  /// Дан ли «Доступ ко всем файлам».
+  var allFiles = true;
+
   List<Override> get overrides => [
         databaseProvider.overrideWithValue(db),
         startFilesRootProvider.overrideWithValue(files),
+        appSupportProvider.overrideWithValue(files),
+        vaultAskedProvider.overrideWithValue(vaultAsked),
+        vaultMissingProvider.overrideWithValue(vaultMissing),
+        vaultPickerProvider.overrideWithValue(() async => pickedFolder),
+        vaultChannelProvider.overrideWithValue(_TestChannel(this)),
         clockProvider.overrideWithValue(() => now),
         // превью ссылок в тестах без интернета: сеть «молчит», вещь остаётся как есть
         linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
@@ -86,4 +104,17 @@ class TestWorld {
     await db.close();
     if (files.existsSync()) files.deleteSync(recursive: true);
   }
+}
+
+/// Разрешение «Доступ ко всем файлам» из [TestWorld.allFiles]; просьба его сразу даёт.
+class _TestChannel implements VaultChannel {
+  _TestChannel(this.world);
+
+  final TestWorld world;
+
+  @override
+  Future<bool> hasAllFiles() async => world.allFiles;
+
+  @override
+  Future<void> askAllFiles() async => world.allFiles = true;
 }

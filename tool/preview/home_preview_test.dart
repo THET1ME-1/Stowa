@@ -10,7 +10,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/features/home/folders_grid.dart';
@@ -174,6 +176,21 @@ void main() {
   testWidgets('пустая', (tester) async {
     await open(tester);
     await _shot(tester, '1-пустая');
+  });
+
+  testWidgets('где хранить заметки', (tester) async {
+    world.vaultAsked = false;
+    await open(tester);
+    await _shot(tester, '0-хранилище');
+  });
+
+  testWidgets('хранилище не найдено', (tester) async {
+    SharedPreferences.setMockInitialValues({'vault_path': '/storage/emulated/0/Documents/Stowa', 'vault_mode': 'device', 'vault_asked': true});
+    world
+      ..vaultMissing = true
+      ..settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+    await open(tester);
+    await _shot(tester, '0-хранилище-нет');
   });
 
   testWidgets('с вещами', (tester) async {

@@ -1539,4 +1539,122 @@ class LEs extends L {
   @override
   String get adultHidden =>
       'Descripción oculta: 18+. Puedes activarla en los ajustes.';
+
+  @override
+  String get vaultSetupTitle => 'Dónde guardar tus notas';
+
+  @override
+  String get vaultSetupHint =>
+      'Las notas, fotos y archivos son archivos normales en una carpeta. La ves en el gestor de archivos, la abre Obsidian y la sincroniza Syncthing.';
+
+  @override
+  String get vaultCreate => 'Crear una bóveda';
+
+  @override
+  String get vaultCreateHint =>
+      'Una carpeta nueva en la memoria del teléfono. Tus notas se quedan aunque borres la app.';
+
+  @override
+  String get vaultCreateButton => 'Crear';
+
+  @override
+  String get vaultOpen => 'Abrir carpeta como bóveda';
+
+  @override
+  String get vaultOpenHint =>
+      'Tu bóveda de Stowa tras reinstalar o una bóveda de Obsidian.';
+
+  @override
+  String get vaultOpenButton => 'Abrir';
+
+  @override
+  String get vaultInApp => 'Guardar dentro de la app';
+
+  @override
+  String get vaultInAppHint =>
+      'Sin permisos. Si borras la app, se borran las notas.';
+
+  @override
+  String get vaultInAppButton => 'Elegir';
+
+  @override
+  String get vaultInAppWarning =>
+      'Las notas estarán dentro de la app y desaparecerán si la borras. Puedes moverlas a una carpeta normal más tarde en los ajustes.';
+
+  @override
+  String get vaultInAppConfirm => 'Guardar dentro';
+
+  @override
+  String get vaultName => 'Nombre de la bóveda';
+
+  @override
+  String get vaultPlace => 'Ubicación';
+
+  @override
+  String get vaultAccessTitle => 'Hace falta acceso a archivos';
+
+  @override
+  String get vaultAccessHint =>
+      'Para guardar notas en una carpeta normal, Android pide «Acceso a todos los archivos». Stowa solo lee y escribe la carpeta de la bóveda.';
+
+  @override
+  String get vaultAccessGrant => 'Abrir ajustes';
+
+  @override
+  String get vaultAccessDenied =>
+      'Sin acceso a archivos, la bóveda en la memoria del teléfono no funciona';
+
+  @override
+  String vaultMoving(int done, int total) {
+    return 'Moviendo: $done de $total';
+  }
+
+  @override
+  String vaultBuilding(int done, int total) {
+    return 'Creando el índice: $done de $total';
+  }
+
+  @override
+  String vaultMoveFailed(int count) {
+    return 'No se movió todo, faltan: $count. Las notas siguen donde estaban.';
+  }
+
+  @override
+  String get vaultMissingTitle => 'No se encuentra la bóveda';
+
+  @override
+  String vaultMissingHint(String path) {
+    return 'La carpeta $path no está o Stowa perdió el acceso a archivos. Las notas de la app están a salvo.';
+  }
+
+  @override
+  String get vaultGrantAccess => 'Dar acceso';
+
+  @override
+  String get vaultChooseAgain => 'Elegir carpeta';
+
+  @override
+  String get vaultSection => 'Bóveda';
+
+  @override
+  String get vaultFolder => 'Carpeta';
+
+  @override
+  String get vaultInsideApp => 'Dentro de la app';
+
+  @override
+  String get vaultMoveTo => 'Mover a otra carpeta';
+
+  @override
+  String get vaultRebuild => 'Rehacer el índice';
+
+  @override
+  String get vaultSettingHint =>
+      'Las notas son archivos .md: Obsidian abre esta carpeta y Syncthing la sincroniza. El índice es una base de búsqueda que la app crea sola.';
+
+  @override
+  String get vaultMoved => 'Bóveda movida';
+
+  @override
+  String get vaultRebuilt => 'Índice rehecho';
 }

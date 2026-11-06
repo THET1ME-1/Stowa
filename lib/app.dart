@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
 import 'data/providers.dart';
-import 'features/home/home_screen.dart';
+import 'features/vault/vault_gate.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 
@@ -12,7 +12,7 @@ import 'l10n/app_localizations.dart';
 final appNavigator = GlobalKey<NavigatorState>();
 
 class StowaApp extends ConsumerWidget {
-  const StowaApp({super.key, this.locale, this.home = const HomeScreen()});
+  const StowaApp({super.key, this.locale, this.home = const VaultGate()});
 
   /// Язык для тестов и кадров. Пусто — выбранный в настройках, иначе язык устройства.
   final Locale? locale;

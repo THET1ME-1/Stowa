@@ -1559,4 +1559,122 @@ class LPl extends L {
   @override
   String get adultHidden =>
       'Opis ukryty: 18+. Pokazywanie włączysz w ustawieniach.';
+
+  @override
+  String get vaultSetupTitle => 'Gdzie trzymać notatki';
+
+  @override
+  String get vaultSetupHint =>
+      'Notatki, zdjęcia i pliki leżą jako zwykłe pliki w folderze. Widać go w menedżerze plików, otwiera go Obsidian i synchronizuje Syncthing.';
+
+  @override
+  String get vaultCreate => 'Utwórz skarbiec';
+
+  @override
+  String get vaultCreateHint =>
+      'Nowy folder w pamięci telefonu. Notatki zostaną, nawet gdy usuniesz aplikację.';
+
+  @override
+  String get vaultCreateButton => 'Utwórz';
+
+  @override
+  String get vaultOpen => 'Otwórz folder jako skarbiec';
+
+  @override
+  String get vaultOpenHint =>
+      'Dawny skarbiec Stowa po ponownej instalacji albo skarbiec Obsidian.';
+
+  @override
+  String get vaultOpenButton => 'Otwórz';
+
+  @override
+  String get vaultInApp => 'Trzymaj w aplikacji';
+
+  @override
+  String get vaultInAppHint =>
+      'Bez uprawnień. Usunięcie aplikacji usunie notatki.';
+
+  @override
+  String get vaultInAppButton => 'Wybierz';
+
+  @override
+  String get vaultInAppWarning =>
+      'Notatki będą w aplikacji i znikną, gdy ją usuniesz. Później przeniesiesz je do zwykłego folderu w ustawieniach.';
+
+  @override
+  String get vaultInAppConfirm => 'Trzymaj w aplikacji';
+
+  @override
+  String get vaultName => 'Nazwa skarbca';
+
+  @override
+  String get vaultPlace => 'Gdzie utworzyć';
+
+  @override
+  String get vaultAccessTitle => 'Potrzebny dostęp do plików';
+
+  @override
+  String get vaultAccessHint =>
+      'Żeby trzymać notatki w zwykłym folderze, Android prosi o „Dostęp do wszystkich plików”. Stowa czyta i zapisuje tylko folder skarbca.';
+
+  @override
+  String get vaultAccessGrant => 'Otwórz ustawienia';
+
+  @override
+  String get vaultAccessDenied =>
+      'Bez dostępu do plików skarbiec w pamięci telefonu nie działa';
+
+  @override
+  String vaultMoving(int done, int total) {
+    return 'Przenoszę: $done z $total';
+  }
+
+  @override
+  String vaultBuilding(int done, int total) {
+    return 'Buduję indeks: $done z $total';
+  }
+
+  @override
+  String vaultMoveFailed(int count) {
+    return 'Nie wszystko się przeniosło, brakuje: $count. Notatki zostały na starym miejscu.';
+  }
+
+  @override
+  String get vaultMissingTitle => 'Nie znaleziono skarbca';
+
+  @override
+  String vaultMissingHint(String path) {
+    return 'Folderu $path nie ma albo Stowa straciła dostęp do plików. Notatki w aplikacji są całe.';
+  }
+
+  @override
+  String get vaultGrantAccess => 'Daj dostęp';
+
+  @override
+  String get vaultChooseAgain => 'Wybierz folder';
+
+  @override
+  String get vaultSection => 'Skarbiec';
+
+  @override
+  String get vaultFolder => 'Folder';
+
+  @override
+  String get vaultInsideApp => 'W aplikacji';
+
+  @override
+  String get vaultMoveTo => 'Przenieś do innego folderu';
+
+  @override
+  String get vaultRebuild => 'Odbuduj indeks';
+
+  @override
+  String get vaultSettingHint =>
+      'Notatki to pliki .md: ten folder otwiera Obsidian i synchronizuje Syncthing. Indeks to baza wyszukiwania, którą aplikacja buduje sama.';
+
+  @override
+  String get vaultMoved => 'Skarbiec przeniesiony';
+
+  @override
+  String get vaultRebuilt => 'Indeks odbudowany';
 }

@@ -80,6 +80,7 @@ class VaultLocation {
     return root.exists();
   }
 
-  /// Выбор папки системным окном.
-  Future<String?> pickFolder() => FilePicker.getDirectoryPath(initialDirectory: suggestedFolder);
 }
+
+/// Выбор папки системным окном, с подсказкой «Документы».
+Future<String?> pickVaultFolder() => FilePicker.getDirectoryPath(initialDirectory: VaultLocation.suggestedFolder);

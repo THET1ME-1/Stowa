@@ -1538,4 +1538,122 @@ class LEn extends L {
   @override
   String get adultHidden =>
       'Description hidden: 18+. You can turn it on in settings.';
+
+  @override
+  String get vaultSetupTitle => 'Where to keep your notes';
+
+  @override
+  String get vaultSetupHint =>
+      'Notes, photos and files live as plain files in a folder. You can see it in a file manager, open it in Obsidian and sync it with Syncthing.';
+
+  @override
+  String get vaultCreate => 'Create a vault';
+
+  @override
+  String get vaultCreateHint =>
+      'A new folder in phone storage. Your notes stay even if you uninstall the app.';
+
+  @override
+  String get vaultCreateButton => 'Create';
+
+  @override
+  String get vaultOpen => 'Open folder as vault';
+
+  @override
+  String get vaultOpenHint =>
+      'Your old Stowa vault after a reinstall, or an Obsidian vault.';
+
+  @override
+  String get vaultOpenButton => 'Open';
+
+  @override
+  String get vaultInApp => 'Keep inside the app';
+
+  @override
+  String get vaultInAppHint =>
+      'No permissions. Uninstalling the app deletes your notes.';
+
+  @override
+  String get vaultInAppButton => 'Choose';
+
+  @override
+  String get vaultInAppWarning =>
+      'Your notes will live inside the app and disappear if you uninstall it. You can move them to a regular folder later in settings.';
+
+  @override
+  String get vaultInAppConfirm => 'Keep inside';
+
+  @override
+  String get vaultName => 'Vault name';
+
+  @override
+  String get vaultPlace => 'Location';
+
+  @override
+  String get vaultAccessTitle => 'File access needed';
+
+  @override
+  String get vaultAccessHint =>
+      'To keep notes in a regular folder, Android asks for “All files access”. Stowa only reads and writes the vault folder.';
+
+  @override
+  String get vaultAccessGrant => 'Open settings';
+
+  @override
+  String get vaultAccessDenied =>
+      'Without file access a vault in phone storage can’t work';
+
+  @override
+  String vaultMoving(int done, int total) {
+    return 'Moving: $done of $total';
+  }
+
+  @override
+  String vaultBuilding(int done, int total) {
+    return 'Building the index: $done of $total';
+  }
+
+  @override
+  String vaultMoveFailed(int count) {
+    return 'Not everything moved, missing: $count. Your notes stayed where they were.';
+  }
+
+  @override
+  String get vaultMissingTitle => 'Vault not found';
+
+  @override
+  String vaultMissingHint(String path) {
+    return 'The folder $path is gone or Stowa lost file access. The notes in the app are safe.';
+  }
+
+  @override
+  String get vaultGrantAccess => 'Grant access';
+
+  @override
+  String get vaultChooseAgain => 'Choose a folder';
+
+  @override
+  String get vaultSection => 'Vault';
+
+  @override
+  String get vaultFolder => 'Folder';
+
+  @override
+  String get vaultInsideApp => 'Inside the app';
+
+  @override
+  String get vaultMoveTo => 'Move to another folder';
+
+  @override
+  String get vaultRebuild => 'Rebuild the index';
+
+  @override
+  String get vaultSettingHint =>
+      'Notes are .md files: Obsidian opens this folder and Syncthing syncs it. The index is a search database the app builds by itself.';
+
+  @override
+  String get vaultMoved => 'Vault moved';
+
+  @override
+  String get vaultRebuilt => 'Index rebuilt';
 }

@@ -23,6 +23,7 @@ import '../../services/ai_client.dart';
 import '../../services/backup_service.dart';
 import '../../services/telegram_service.dart';
 import '../tags/tags_screen.dart';
+import '../vault/vault_actions.dart';
 import 'ai_log_screen.dart';
 import 'trash_screen.dart';
 
@@ -123,6 +124,18 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.adultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
+            _Section(l.vaultSection),
+            _Group(
+              children: [
+                _Row(icon: 'folder_open', title: l.vaultFolder, value: _vaultPlace(ref, l), onTap: () => moveVaultElsewhere(context, ref)),
+                _Row(icon: 'drive_file_move', title: l.vaultMoveTo, onTap: () => moveVaultElsewhere(context, ref)),
+                _Row(icon: 'manage_search', title: l.vaultRebuild, onTap: () => rebuildIndex(context, ref)),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+              child: Text(l.vaultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
             _Group(
               children: [
                 _Row(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
@@ -152,6 +165,13 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Где хранилище: папка человека или внутри приложения (и старая установка до переноса).
+String _vaultPlace(WidgetRef ref, L l) {
+  final root = ref.watch(vaultRootProvider);
+  if (root == null || root.path.startsWith(ref.watch(appSupportProvider).path)) return l.vaultInsideApp;
+  return shortVaultPath(root.path);
 }
 
 /// Копия собирается во временную папку и уходит через «Поделиться»: в Диск, Telegram, на компьютер.

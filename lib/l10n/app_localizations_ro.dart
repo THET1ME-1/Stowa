@@ -1547,4 +1547,122 @@ class LRo extends L {
   @override
   String get adultHidden =>
       'Descriere ascunsă: 18+. Se poate activa în setări.';
+
+  @override
+  String get vaultSetupTitle => 'Unde păstrezi notițele';
+
+  @override
+  String get vaultSetupHint =>
+      'Notițele, pozele și fișierele stau ca fișiere obișnuite într-un dosar. Îl vezi în managerul de fișiere, îl deschide Obsidian și îl sincronizează Syncthing.';
+
+  @override
+  String get vaultCreate => 'Creează un seif';
+
+  @override
+  String get vaultCreateHint =>
+      'Un dosar nou în memoria telefonului. Notițele rămân chiar dacă ștergi aplicația.';
+
+  @override
+  String get vaultCreateButton => 'Creează';
+
+  @override
+  String get vaultOpen => 'Deschide un dosar ca seif';
+
+  @override
+  String get vaultOpenHint =>
+      'Seiful Stowa de dinainte de reinstalare sau un seif Obsidian.';
+
+  @override
+  String get vaultOpenButton => 'Deschide';
+
+  @override
+  String get vaultInApp => 'Păstrează în aplicație';
+
+  @override
+  String get vaultInAppHint =>
+      'Fără permisiuni. Dacă ștergi aplicația, notițele dispar.';
+
+  @override
+  String get vaultInAppButton => 'Alege';
+
+  @override
+  String get vaultInAppWarning =>
+      'Notițele vor sta în aplicație și dispar dacă o ștergi. Le poți muta mai târziu într-un dosar obișnuit, din setări.';
+
+  @override
+  String get vaultInAppConfirm => 'Păstrează în aplicație';
+
+  @override
+  String get vaultName => 'Numele seifului';
+
+  @override
+  String get vaultPlace => 'Unde';
+
+  @override
+  String get vaultAccessTitle => 'E nevoie de acces la fișiere';
+
+  @override
+  String get vaultAccessHint =>
+      'Ca să păstrezi notițele într-un dosar obișnuit, Android cere „Acces la toate fișierele”. Stowa citește și scrie doar dosarul seifului.';
+
+  @override
+  String get vaultAccessGrant => 'Deschide setările';
+
+  @override
+  String get vaultAccessDenied =>
+      'Fără acces la fișiere, seiful din memoria telefonului nu merge';
+
+  @override
+  String vaultMoving(int done, int total) {
+    return 'Mut: $done din $total';
+  }
+
+  @override
+  String vaultBuilding(int done, int total) {
+    return 'Construiesc indexul: $done din $total';
+  }
+
+  @override
+  String vaultMoveFailed(int count) {
+    return 'Nu s-a mutat tot, lipsesc: $count. Notițele au rămas unde erau.';
+  }
+
+  @override
+  String get vaultMissingTitle => 'Seiful nu a fost găsit';
+
+  @override
+  String vaultMissingHint(String path) {
+    return 'Dosarul $path lipsește sau Stowa a pierdut accesul la fișiere. Notițele din aplicație sunt în siguranță.';
+  }
+
+  @override
+  String get vaultGrantAccess => 'Dă acces';
+
+  @override
+  String get vaultChooseAgain => 'Alege un dosar';
+
+  @override
+  String get vaultSection => 'Seif';
+
+  @override
+  String get vaultFolder => 'Dosar';
+
+  @override
+  String get vaultInsideApp => 'În aplicație';
+
+  @override
+  String get vaultMoveTo => 'Mută în alt dosar';
+
+  @override
+  String get vaultRebuild => 'Reconstruiește indexul';
+
+  @override
+  String get vaultSettingHint =>
+      'Notițele sunt fișiere .md: dosarul îl deschide Obsidian și îl sincronizează Syncthing. Indexul e baza de căutare pe care aplicația o face singură.';
+
+  @override
+  String get vaultMoved => 'Seiful a fost mutat';
+
+  @override
+  String get vaultRebuilt => 'Indexul a fost refăcut';
 }

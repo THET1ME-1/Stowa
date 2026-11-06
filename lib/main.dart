@@ -40,8 +40,9 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
   final settings = SettingsRepository(prefs, const SecureKeyStore());
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
   final db = AppDatabase();
+  final appSupport = await getApplicationSupportDirectory();
   // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
-  final place = await VaultLocation(settings: settings, appSupport: await getApplicationSupportDirectory()).resolve(hasData: await hasSavedItems(db));
+  final place = await VaultLocation(settings: settings, appSupport: appSupport).resolve(hasData: await hasSavedItems(db));
   runApp(
     ProviderScope(
       overrides: [
@@ -49,6 +50,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
         startFilesRootProvider.overrideWithValue(place.files),
         vaultRootProvider.overrideWith(() => VaultRootNotifier(place.vault)),
         vaultMissingProvider.overrideWithValue(!place.reachable),
+        appSupportProvider.overrideWithValue(appSupport),
         cacheRootProvider.overrideWithValue(cache),
         notificationPortProvider.overrideWithValue(notifications),
         settingsRepositoryProvider.overrideWithValue(settings),

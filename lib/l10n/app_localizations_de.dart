@@ -1543,4 +1543,122 @@ class LDe extends L {
   @override
   String get adultHidden =>
       'Beschreibung verborgen: 18+. In den Einstellungen einschaltbar.';
+
+  @override
+  String get vaultSetupTitle => 'Wo deine Notizen liegen';
+
+  @override
+  String get vaultSetupHint =>
+      'Notizen, Fotos und Dateien liegen als normale Dateien in einem Ordner. Du siehst ihn im Dateimanager, Obsidian öffnet ihn, Syncthing gleicht ihn ab.';
+
+  @override
+  String get vaultCreate => 'Tresor anlegen';
+
+  @override
+  String get vaultCreateHint =>
+      'Ein neuer Ordner im Telefonspeicher. Die Notizen bleiben, auch wenn du die App löschst.';
+
+  @override
+  String get vaultCreateButton => 'Anlegen';
+
+  @override
+  String get vaultOpen => 'Ordner als Tresor öffnen';
+
+  @override
+  String get vaultOpenHint =>
+      'Dein alter Stowa-Tresor nach einer Neuinstallation oder ein Obsidian-Tresor.';
+
+  @override
+  String get vaultOpenButton => 'Öffnen';
+
+  @override
+  String get vaultInApp => 'In der App behalten';
+
+  @override
+  String get vaultInAppHint =>
+      'Ohne Berechtigungen. Löschst du die App, sind die Notizen weg.';
+
+  @override
+  String get vaultInAppButton => 'Wählen';
+
+  @override
+  String get vaultInAppWarning =>
+      'Die Notizen liegen in der App und sind weg, wenn du sie löschst. In einen normalen Ordner verschieben kannst du sie später in den Einstellungen.';
+
+  @override
+  String get vaultInAppConfirm => 'In der App';
+
+  @override
+  String get vaultName => 'Name des Tresors';
+
+  @override
+  String get vaultPlace => 'Ort';
+
+  @override
+  String get vaultAccessTitle => 'Dateizugriff nötig';
+
+  @override
+  String get vaultAccessHint =>
+      'Für Notizen in einem normalen Ordner fragt Android nach „Zugriff auf alle Dateien“. Stowa liest und schreibt nur den Tresor-Ordner.';
+
+  @override
+  String get vaultAccessGrant => 'Einstellungen öffnen';
+
+  @override
+  String get vaultAccessDenied =>
+      'Ohne Dateizugriff funktioniert ein Tresor im Telefonspeicher nicht';
+
+  @override
+  String vaultMoving(int done, int total) {
+    return 'Verschiebe: $done von $total';
+  }
+
+  @override
+  String vaultBuilding(int done, int total) {
+    return 'Baue den Index: $done von $total';
+  }
+
+  @override
+  String vaultMoveFailed(int count) {
+    return 'Nicht alles wurde verschoben, es fehlen: $count. Die Notizen bleiben am alten Ort.';
+  }
+
+  @override
+  String get vaultMissingTitle => 'Tresor nicht gefunden';
+
+  @override
+  String vaultMissingHint(String path) {
+    return 'Der Ordner $path fehlt oder Stowa hat keinen Dateizugriff mehr. Die Notizen in der App sind sicher.';
+  }
+
+  @override
+  String get vaultGrantAccess => 'Zugriff erlauben';
+
+  @override
+  String get vaultChooseAgain => 'Ordner wählen';
+
+  @override
+  String get vaultSection => 'Tresor';
+
+  @override
+  String get vaultFolder => 'Ordner';
+
+  @override
+  String get vaultInsideApp => 'In der App';
+
+  @override
+  String get vaultMoveTo => 'In anderen Ordner verschieben';
+
+  @override
+  String get vaultRebuild => 'Index neu aufbauen';
+
+  @override
+  String get vaultSettingHint =>
+      'Notizen sind .md-Dateien: Obsidian öffnet diesen Ordner, Syncthing gleicht ihn ab. Der Index ist eine Suchdatenbank, die die App selbst baut.';
+
+  @override
+  String get vaultMoved => 'Tresor verschoben';
+
+  @override
+  String get vaultRebuilt => 'Index neu aufgebaut';
 }

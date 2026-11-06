@@ -1559,4 +1559,122 @@ class LUk extends L {
   @override
   String get adultHidden =>
       'Опис приховано: 18+. Показ вмикається в налаштуваннях.';
+
+  @override
+  String get vaultSetupTitle => 'Де зберігати нотатки';
+
+  @override
+  String get vaultSetupHint =>
+      'Нотатки, фото й файли лежать звичайними файлами в папці. Її видно у файловому менеджері, її відкриває Obsidian і синхронізує Syncthing.';
+
+  @override
+  String get vaultCreate => 'Створити сховище';
+
+  @override
+  String get vaultCreateHint =>
+      'Нова папка в пам\'яті телефона. Нотатки залишаться, навіть якщо видалити застосунок.';
+
+  @override
+  String get vaultCreateButton => 'Створити';
+
+  @override
+  String get vaultOpen => 'Відкрити папку як сховище';
+
+  @override
+  String get vaultOpenHint =>
+      'Попереднє сховище Stowa після перевстановлення або сховище Obsidian.';
+
+  @override
+  String get vaultOpenButton => 'Відкрити';
+
+  @override
+  String get vaultInApp => 'Зберігати всередині застосунку';
+
+  @override
+  String get vaultInAppHint =>
+      'Без дозволів. Якщо видалити застосунок, нотатки зникнуть.';
+
+  @override
+  String get vaultInAppButton => 'Вибрати';
+
+  @override
+  String get vaultInAppWarning =>
+      'Нотатки лежатимуть усередині застосунку й зникнуть, якщо його видалити. Перенести їх у звичайну папку можна згодом у налаштуваннях.';
+
+  @override
+  String get vaultInAppConfirm => 'Зберігати всередині';
+
+  @override
+  String get vaultName => 'Назва сховища';
+
+  @override
+  String get vaultPlace => 'Де створити';
+
+  @override
+  String get vaultAccessTitle => 'Потрібен доступ до файлів';
+
+  @override
+  String get vaultAccessHint =>
+      'Щоб зберігати нотатки у звичайній папці, Android просить дозвіл «Доступ до всіх файлів». Stowa читає й пише лише папку сховища.';
+
+  @override
+  String get vaultAccessGrant => 'Відкрити налаштування';
+
+  @override
+  String get vaultAccessDenied =>
+      'Без доступу до файлів сховище в пам\'яті телефона не працює';
+
+  @override
+  String vaultMoving(int done, int total) {
+    return 'Переношу: $done з $total';
+  }
+
+  @override
+  String vaultBuilding(int done, int total) {
+    return 'Збираю покажчик: $done з $total';
+  }
+
+  @override
+  String vaultMoveFailed(int count) {
+    return 'Перенеслося не все, бракує: $count. Нотатки лишилися на старому місці.';
+  }
+
+  @override
+  String get vaultMissingTitle => 'Сховище не знайдено';
+
+  @override
+  String vaultMissingHint(String path) {
+    return 'Папки $path немає або Stowa втратила доступ до файлів. Нотатки в застосунку цілі.';
+  }
+
+  @override
+  String get vaultGrantAccess => 'Дати доступ';
+
+  @override
+  String get vaultChooseAgain => 'Вибрати папку';
+
+  @override
+  String get vaultSection => 'Сховище';
+
+  @override
+  String get vaultFolder => 'Папка';
+
+  @override
+  String get vaultInsideApp => 'Усередині застосунку';
+
+  @override
+  String get vaultMoveTo => 'Перенести в іншу папку';
+
+  @override
+  String get vaultRebuild => 'Перезібрати покажчик';
+
+  @override
+  String get vaultSettingHint =>
+      'Нотатки лежать файлами .md: цю папку відкриває Obsidian і синхронізує Syncthing. Покажчик — службова база для пошуку, застосунок збирає її сам.';
+
+  @override
+  String get vaultMoved => 'Сховище перенесено';
+
+  @override
+  String get vaultRebuilt => 'Покажчик зібрано';
 }

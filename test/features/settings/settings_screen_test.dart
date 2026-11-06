@@ -97,6 +97,15 @@ void main() {
     expect(settings.showAdult, isTrue);
   });
 
+  testWidgets('раздел «Хранилище»: где лежит, перенос и «Пересобрать указатель»', (tester) async {
+    await open(tester, keyStatus: 200);
+    await tester.scrollUntilVisible(find.text('Пересобрать указатель'), 200);
+    await tester.pumpAndSettle();
+    expect(find.text('Хранилище'), findsOneWidget);
+    expect(find.text('Внутри приложения'), findsOneWidget);
+    expect(find.text('Перенести в другую папку'), findsOneWidget);
+  });
+
   testWidgets('язык меняется сразу, без перезапуска', (tester) async {
     await settings.setLanguage(AppLanguage.ru);
     await open(tester, keyStatus: 200, ownLanguage: true);

@@ -1943,5 +1943,167 @@
   "adultHidden": "Description hidden: 18+. You can turn it on in settings.",
   "@adultHidden": {
     "description": "Вместо описания страницы 18+, пока показ выключен"
+  },
+  "vaultSetupTitle": "Where to keep your notes",
+  "@vaultSetupTitle": {
+    "description": "Заголовок экрана первого запуска"
+  },
+  "vaultSetupHint": "Notes, photos and files live as plain files in a folder. You can see it in a file manager, open it in Obsidian and sync it with Syncthing.",
+  "@vaultSetupHint": {
+    "description": "Пояснение под заголовком экрана первого запуска"
+  },
+  "vaultCreate": "Create a vault",
+  "@vaultCreate": {
+    "description": "Первый путь на экране выбора хранилища"
+  },
+  "vaultCreateHint": "A new folder in phone storage. Your notes stay even if you uninstall the app.",
+  "@vaultCreateHint": {
+    "description": "Пояснение к «Создать хранилище»"
+  },
+  "vaultCreateButton": "Create",
+  "@vaultCreateButton": {
+    "description": "Кнопка «Создать хранилище»"
+  },
+  "vaultOpen": "Open folder as vault",
+  "@vaultOpen": {
+    "description": "Второй путь на экране выбора хранилища"
+  },
+  "vaultOpenHint": "Your old Stowa vault after a reinstall, or an Obsidian vault.",
+  "@vaultOpenHint": {
+    "description": "Пояснение к «Открыть папку как хранилище»"
+  },
+  "vaultOpenButton": "Open",
+  "@vaultOpenButton": {
+    "description": "Кнопка «Открыть папку как хранилище»"
+  },
+  "vaultInApp": "Keep inside the app",
+  "@vaultInApp": {
+    "description": "Третий путь на экране выбора хранилища"
+  },
+  "vaultInAppHint": "No permissions. Uninstalling the app deletes your notes.",
+  "@vaultInAppHint": {
+    "description": "Пояснение к «Хранить внутри приложения»"
+  },
+  "vaultInAppButton": "Choose",
+  "@vaultInAppButton": {
+    "description": "Кнопка «Хранить внутри приложения»"
+  },
+  "vaultInAppWarning": "Your notes will live inside the app and disappear if you uninstall it. You can move them to a regular folder later in settings.",
+  "@vaultInAppWarning": {
+    "description": "Предупреждение перед выбором хранилища внутри приложения"
+  },
+  "vaultInAppConfirm": "Keep inside",
+  "@vaultInAppConfirm": {
+    "description": "Кнопка подтверждения хранилища внутри приложения"
+  },
+  "vaultName": "Vault name",
+  "@vaultName": {
+    "description": "Поле имени нового хранилища"
+  },
+  "vaultPlace": "Location",
+  "@vaultPlace": {
+    "description": "Строка выбора папки для нового хранилища"
+  },
+  "vaultAccessTitle": "File access needed",
+  "@vaultAccessTitle": {
+    "description": "Заголовок листа с просьбой о разрешении"
+  },
+  "vaultAccessHint": "To keep notes in a regular folder, Android asks for “All files access”. Stowa only reads and writes the vault folder.",
+  "@vaultAccessHint": {
+    "description": "Пояснение к разрешению «Доступ ко всем файлам»"
+  },
+  "vaultAccessGrant": "Open settings",
+  "@vaultAccessGrant": {
+    "description": "Кнопка перехода к системному разрешению"
+  },
+  "vaultAccessDenied": "Without file access a vault in phone storage can’t work",
+  "@vaultAccessDenied": {
+    "description": "Плашка: разрешение не дали"
+  },
+  "vaultMoving": "Moving: {done} of {total}",
+  "@vaultMoving": {
+    "description": "Ход переноса хранилища",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultBuilding": "Building the index: {done} of {total}",
+  "@vaultBuilding": {
+    "description": "Ход сборки указателя из папки",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultMoveFailed": "Not everything moved, missing: {count}. Your notes stayed where they were.",
+  "@vaultMoveFailed": {
+    "description": "Перенос не сошёлся при сверке",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultMissingTitle": "Vault not found",
+  "@vaultMissingTitle": {
+    "description": "Заголовок экрана, когда папки хранилища нет"
+  },
+  "vaultMissingHint": "The folder {path} is gone or Stowa lost file access. The notes in the app are safe.",
+  "@vaultMissingHint": {
+    "description": "Пояснение на экране «Хранилище не найдено»",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultGrantAccess": "Grant access",
+  "@vaultGrantAccess": {
+    "description": "Кнопка на экране «Хранилище не найдено»"
+  },
+  "vaultChooseAgain": "Choose a folder",
+  "@vaultChooseAgain": {
+    "description": "Кнопка выбора другой папки хранилища"
+  },
+  "vaultSection": "Vault",
+  "@vaultSection": {
+    "description": "Раздел настроек"
+  },
+  "vaultFolder": "Folder",
+  "@vaultFolder": {
+    "description": "Строка настроек: где лежит хранилище"
+  },
+  "vaultInsideApp": "Inside the app",
+  "@vaultInsideApp": {
+    "description": "Значение строки «Папка», когда хранилище внутри приложения"
+  },
+  "vaultMoveTo": "Move to another folder",
+  "@vaultMoveTo": {
+    "description": "Строка настроек"
+  },
+  "vaultRebuild": "Rebuild the index",
+  "@vaultRebuild": {
+    "description": "Строка настроек: собрать базу поиска заново из папки"
+  },
+  "vaultSettingHint": "Notes are .md files: Obsidian opens this folder and Syncthing syncs it. The index is a search database the app builds by itself.",
+  "@vaultSettingHint": {
+    "description": "Пояснение под разделом «Хранилище»"
+  },
+  "vaultMoved": "Vault moved",
+  "@vaultMoved": {
+    "description": "Плашка после переноса"
+  },
+  "vaultRebuilt": "Index rebuilt",
+  "@vaultRebuilt": {
+    "description": "Плашка после сборки указателя"
   }
 }
