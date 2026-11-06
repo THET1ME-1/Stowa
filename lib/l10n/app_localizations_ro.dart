@@ -1670,4 +1670,14 @@ class LRo extends L {
   String vaultSyncing(int done, int total) {
     return 'Sincronizare notițe $done din $total';
   }
+
+  @override
+  String repeatIn(String folder, String date) {
+    return 'Aceeași e în dosarul „$folder” din $date';
+  }
+
+  @override
+  String repeatNoFolder(String date) {
+    return 'Aceeași e fără dosar din $date';
+  }
 }

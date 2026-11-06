@@ -1682,4 +1682,14 @@ class LPl extends L {
   String vaultSyncing(int done, int total) {
     return 'Synchronizacja notatek $done z $total';
   }
+
+  @override
+  String repeatIn(String folder, String date) {
+    return 'Taka sama leży w folderze „$folder” od $date';
+  }
+
+  @override
+  String repeatNoFolder(String date) {
+    return 'Taka sama leży bez folderu od $date';
+  }
 }

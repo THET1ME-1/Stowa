@@ -1687,4 +1687,14 @@ class LRu extends L {
   String vaultSyncing(int done, int total) {
     return 'Синхронизация заметок $done из $total';
   }
+
+  @override
+  String repeatIn(String folder, String date) {
+    return 'Такая же лежит в папке «$folder» с $date';
+  }
+
+  @override
+  String repeatNoFolder(String date) {
+    return 'Такая же лежит без папки с $date';
+  }
 }

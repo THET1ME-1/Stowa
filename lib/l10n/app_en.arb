@@ -2117,5 +2117,26 @@
         "type": "int"
       }
     }
+  },
+  "repeatIn": "Same one is in the “{folder}” folder since {date}",
+  "@repeatIn": {
+    "description": "Строка на странице заметки: та же ссылка или картинка уже есть в другой заметке",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "repeatNoFolder": "Same one is unfiled since {date}",
+  "@repeatNoFolder": {
+    "description": "То же, когда у другой заметки нет папки",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }

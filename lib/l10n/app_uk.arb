@@ -207,5 +207,7 @@
   "vaultSettingHint": "Нотатки лежать файлами .md: цю папку відкриває Obsidian і синхронізує Syncthing. Покажчик — службова база для пошуку, застосунок збирає її сам.",
   "vaultMoved": "Сховище перенесено",
   "vaultRebuilt": "Покажчик зібрано",
-  "vaultSyncing": "Синхронізація нотаток {done} з {total}"
+  "vaultSyncing": "Синхронізація нотаток {done} з {total}",
+  "repeatIn": "Така сама лежить у теці «{folder}» з {date}",
+  "repeatNoFolder": "Така сама лежить без теки з {date}"
 }

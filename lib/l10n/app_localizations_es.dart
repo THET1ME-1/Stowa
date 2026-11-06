@@ -1662,4 +1662,14 @@ class LEs extends L {
   String vaultSyncing(int done, int total) {
     return 'Sincronizando notas $done de $total';
   }
+
+  @override
+  String repeatIn(String folder, String date) {
+    return 'La misma está en la carpeta «$folder» desde el $date';
+  }
+
+  @override
+  String repeatNoFolder(String date) {
+    return 'La misma está sin carpeta desde el $date';
+  }
 }

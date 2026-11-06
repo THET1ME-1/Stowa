@@ -84,6 +84,33 @@ void main() {
     expect(tester.widget<TextField>(find.byType(TextField).first).controller!.text, 'Архитектура приложения');
   });
 
+  testWidgets('та же ссылка уже лежит — строка «Такая же лежит в папке «Рецепты» с 12 мая», касание открывает её', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'food', name: 'Рецепты', icon: 'folder', shape: 'pill'));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'old',
+          kind: ItemKind.link,
+          title: 'Борщ бабушки',
+          body: const Value('https://eda.ru/borsch'),
+          url: const Value('https://eda.ru/borsch'),
+          folderId: const Value('food'),
+          createdAt: DateTime(world.now.year, 5, 12),
+          updatedAt: DateTime(world.now.year, 5, 12),
+        ));
+    await open(tester, body: 'https://www.eda.ru/borsch/?utm_source=tg', title: 'Борщ');
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(const ItemsCompanion(url: Value('https://www.eda.ru/borsch/?utm_source=tg')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Такая же лежит в папке «Рецепты» с 12 мая'), findsOneWidget);
+    await tester.tap(find.text('Такая же лежит в папке «Рецепты» с 12 мая'));
+    await tester.pumpAndSettle();
+    expect(find.text('Борщ бабушки'), findsOneWidget);
+  });
+
+  testWidgets('повтора нет — строки нет', (tester) async {
+    await open(tester, body: 'Мысль', title: 'Мысль');
+    expect(find.textContaining('Такая же'), findsNothing);
+  });
+
   testWidgets('касание по тексту тоже открывает правку', (tester) async {
     await open(tester, body: 'Мысль\nвторая строка мысли', title: 'Мысль');
     await tester.tap(find.textContaining('вторая строка'));

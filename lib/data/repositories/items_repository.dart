@@ -1,12 +1,14 @@
 import 'package:drift/drift.dart';
 
 import '../../domain/folder_guess.dart';
+import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../domain/place_groups.dart';
 import '../../domain/related.dart';
 import '../../domain/search_query.dart';
 import '../../domain/search_rank.dart';
+import '../../domain/url_key.dart';
 import '../../domain/word_forms.dart';
 import '../../services/reminder_service.dart' show Reminder, reminderText;
 import '../db/database.dart';
@@ -123,6 +125,16 @@ class GraphData {
   final List<(String, String)> edges;
 }
 
+/// Другая заметка с той же ссылкой или той же картинкой.
+class RepeatNote {
+  const RepeatNote({required this.id, required this.title, required this.folderName, required this.createdAt});
+
+  final String id;
+  final String title;
+  final String? folderName;
+  final DateTime createdAt;
+}
+
 /// Вещь сохранена дома или на работе, если не дальше этого от их середины: двор и офисное здание.
 const _markMeters = 250.0;
 
@@ -172,6 +184,41 @@ class ItemsRepository {
 
   // таблицы карточки: лента перерисуется, когда изменится любая
   Set<ResultSetImplementation<dynamic, dynamic>> get _cardTables => {_db.items, _db.folders, _db.attachments, _db.fileJobs, _db.itemTags, _db.tags};
+
+  /// Самая ранняя другая заметка с той же ссылкой или той же картинкой, иначе null.
+  /// Ссылки сравниваются по [urlKey], картинки — отпечатком не дальше [repeatDistance] бит.
+  Future<RepeatNote?> repeatOf(String id) async {
+    final self = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (self == null) return null;
+    final repeats = <String>{};
+    if (self.url case final url?) {
+      final key = urlKey(url);
+      final linked = await (_db.select(_db.items)..where((t) => t.url.isNotNull() & t.deletedAt.isNull() & t.id.equals(id).not())).get();
+      repeats.addAll([for (final other in linked) if (urlKey(other.url!) == key) other.id]);
+    }
+    final prints = await (_db.select(_db.facts)..where((t) => t.kind.equals(FactKind.fingerprint.name))).get();
+    final mine = [for (final fact in prints) if (fact.itemId == id) parseFingerprint(fact.value)];
+    if (mine.isNotEmpty) {
+      for (final fact in prints) {
+        if (fact.itemId == id) continue;
+        final other = parseFingerprint(fact.value);
+        if (mine.any((print) => fingerprintDistance(print, other) <= repeatDistance)) repeats.add(fact.itemId);
+      }
+    }
+    if (repeats.isEmpty) return null;
+    final query = _db.select(_db.items).join([leftOuterJoin(_db.folders, _db.folders.id.equalsExp(_db.items.folderId) & _db.folders.deletedAt.isNull())])
+      ..where(_db.items.id.isIn(repeats) & _db.items.deletedAt.isNull())
+      ..orderBy([OrderingTerm.asc(_db.items.createdAt)])
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+    final item = row.readTable(_db.items);
+    return RepeatNote(id: item.id, title: item.title, folderName: row.readTableOrNull(_db.folders)?.name, createdAt: item.createdAt);
+  }
+
+  /// Повтор, который обновляется, когда меняются заметки или их факты: отпечаток картинки приходит позже.
+  Stream<RepeatNote?> watchRepeatOf(String id) =>
+      _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.facts, _db.folders}).watch().asyncMap((_) => repeatOf(id));
 
   Future<ItemFull?> get(String id) async {
     final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();

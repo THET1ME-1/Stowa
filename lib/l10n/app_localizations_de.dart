@@ -1666,4 +1666,14 @@ class LDe extends L {
   String vaultSyncing(int done, int total) {
     return 'Notizen synchronisieren $done von $total';
   }
+
+  @override
+  String repeatIn(String folder, String date) {
+    return 'Dieselbe liegt seit $date im Ordner „$folder“';
+  }
+
+  @override
+  String repeatNoFolder(String date) {
+    return 'Dieselbe liegt seit $date ohne Ordner';
+  }
 }

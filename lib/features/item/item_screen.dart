@@ -433,6 +433,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             taken: photoTakenLine(l, facts, now),
                           ),
                         ),
+                        _RepeatLine(itemId: _id, now: now),
                         const SizedBox(height: 14),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -801,6 +802,40 @@ class _TagPill extends StatelessWidget {
 }
 
 /// «Вторник, 3 ноября, 20:14 · Ботаника, Кишинёв». Год — только если не нынешний.
+/// «Такая же лежит в «Рецептах» с 12 мая»: та же ссылка или картинка уже есть. Касание открывает ту заметку.
+class _RepeatLine extends ConsumerWidget {
+  const _RepeatLine({required this.itemId, required this.now});
+
+  final String itemId;
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repeat = ref.watch(repeatProvider(itemId)).value;
+    if (repeat == null) return const SizedBox.shrink();
+    final l = L.of(context);
+    final at = repeat.createdAt;
+    final date = at.year == now.year ? DateFormat.MMMMd(l.localeName).format(at) : DateFormat.yMMMMd(l.localeName).format(at);
+    final label = repeat.folderName == null ? l.repeatNoFolder(date) : l.repeatIn(repeat.folderName!, date);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).push(itemRoute(repeat.id)),
+        child: Row(
+          children: [
+            Icon(symbolIcon('content_copy'), size: 17, color: Tokens.accent),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: Tokens.onSurface)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _WhenWhere extends StatelessWidget {
   const _WhenWhere({required this.at, required this.now, required this.place, required this.onPlace, this.taken});
 

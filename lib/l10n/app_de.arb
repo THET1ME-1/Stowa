@@ -207,5 +207,7 @@
   "vaultSettingHint": "Notizen sind .md-Dateien: Obsidian öffnet diesen Ordner, Syncthing gleicht ihn ab. Der Index ist eine Suchdatenbank, die die App selbst baut.",
   "vaultMoved": "Tresor verschoben",
   "vaultRebuilt": "Index neu aufgebaut",
-  "vaultSyncing": "Notizen synchronisieren {done} von {total}"
+  "vaultSyncing": "Notizen synchronisieren {done} von {total}",
+  "repeatIn": "Dieselbe liegt seit {date} im Ordner „{folder}“",
+  "repeatNoFolder": "Dieselbe liegt seit {date} ohne Ordner"
 }

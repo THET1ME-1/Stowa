@@ -207,5 +207,7 @@
   "vaultSettingHint": "Las notas son archivos .md: Obsidian abre esta carpeta y Syncthing la sincroniza. El índice es una base de búsqueda que la app crea sola.",
   "vaultMoved": "Bóveda movida",
   "vaultRebuilt": "Índice rehecho",
-  "vaultSyncing": "Sincronizando notas {done} de {total}"
+  "vaultSyncing": "Sincronizando notas {done} de {total}",
+  "repeatIn": "La misma está en la carpeta «{folder}» desde el {date}",
+  "repeatNoFolder": "La misma está sin carpeta desde el {date}"
 }

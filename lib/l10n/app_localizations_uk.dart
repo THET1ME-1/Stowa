@@ -1682,4 +1682,14 @@ class LUk extends L {
   String vaultSyncing(int done, int total) {
     return 'Синхронізація нотаток $done з $total';
   }
+
+  @override
+  String repeatIn(String folder, String date) {
+    return 'Така сама лежить у теці «$folder» з $date';
+  }
+
+  @override
+  String repeatNoFolder(String date) {
+    return 'Така сама лежить без теки з $date';
+  }
 }

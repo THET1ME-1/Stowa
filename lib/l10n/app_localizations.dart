@@ -2842,6 +2842,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Syncing notes {done} of {total}'**
   String vaultSyncing(int done, int total);
+
+  /// Строка на странице заметки: та же ссылка или картинка уже есть в другой заметке
+  ///
+  /// In en, this message translates to:
+  /// **'Same one is in the “{folder}” folder since {date}'**
+  String repeatIn(String folder, String date);
+
+  /// То же, когда у другой заметки нет папки
+  ///
+  /// In en, this message translates to:
+  /// **'Same one is unfiled since {date}'**
+  String repeatNoFolder(String date);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

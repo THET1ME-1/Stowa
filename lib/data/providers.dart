@@ -436,6 +436,9 @@ final relatedProvider = StreamProvider.family<List<({ItemCard card, Related why}
 /// Одна вещь целиком для её страницы, обновляется вместе с базой.
 final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchItem(id));
 
+/// Другая заметка с той же ссылкой или картинкой: строка на странице заметки.
+final repeatProvider = StreamProvider.autoDispose.family<RepeatNote?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchRepeatOf(id));
+
 /// Система уведомлений: настоящая подставляется в main, в тестах — тишина.
 final notificationPortProvider = Provider<NotificationPort>((ref) => const SilentNotificationPort());
 final reminderServiceProvider = Provider((ref) => ReminderService(ref.watch(notificationPortProvider)));

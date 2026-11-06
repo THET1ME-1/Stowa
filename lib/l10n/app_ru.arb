@@ -455,5 +455,7 @@
   "vaultSettingHint": "Заметки лежат файлами .md: эту папку открывает Obsidian и синхронизирует Syncthing. Указатель — служебная база для поиска, приложение собирает его само.",
   "vaultMoved": "Хранилище перенесено",
   "vaultRebuilt": "Указатель собран",
-  "vaultSyncing": "Синхронизация заметок {done} из {total}"
+  "vaultSyncing": "Синхронизация заметок {done} из {total}",
+  "repeatIn": "Такая же лежит в папке «{folder}» с {date}",
+  "repeatNoFolder": "Такая же лежит без папки с {date}"
 }

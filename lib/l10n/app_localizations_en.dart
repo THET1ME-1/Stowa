@@ -1661,4 +1661,14 @@ class LEn extends L {
   String vaultSyncing(int done, int total) {
     return 'Syncing notes $done of $total';
   }
+
+  @override
+  String repeatIn(String folder, String date) {
+    return 'Same one is in the “$folder” folder since $date';
+  }
+
+  @override
+  String repeatNoFolder(String date) {
+    return 'Same one is unfiled since $date';
+  }
 }
