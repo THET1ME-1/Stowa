@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/return_plan.dart';
+import 'package:stowa/features/folder/folder_cards.dart';
 import 'package:stowa/features/returns/return_screen.dart';
 
 import '../../helpers/test_app.dart';
@@ -69,6 +70,15 @@ void main() {
     expect(find.text('Год назад'), findsOneWidget);
     expect(find.text('Борщ бабушкин'), findsOneWidget);
     expect(find.text('Плов'), findsOneWidget);
+  });
+
+  testWidgets('короткая заметка во всю ширину, как ролик, а не по своему тексту', (tester) async {
+    await note('Чай', DateTime(2025, 11, 6, 9));
+    await note('Плов', DateTime(2025, 11, 6, 10), kind: ItemKind.video, seconds: 600);
+    await open(tester, ReturnKind.onThisDay);
+    final noteCard = tester.getRect(find.ancestor(of: find.text('Чай'), matching: find.byType(FolderItemCard)));
+    final videoCard = tester.getRect(find.ancestor(of: find.text('Плов'), matching: find.byType(FolderItemCard)));
+    expect((noteCard.left, noteCard.width), (videoCard.left, videoCard.width));
   });
 
   testWidgets('сводка недели: не открыты и без папки', (tester) async {

@@ -151,7 +151,9 @@ class _Cards extends ConsumerWidget {
     final cards = ref.watch(cardsProvider(ids.join('\x1f'))).value ?? const [];
     final filesRoot = ref.watch(filesRootProvider);
     final now = ref.read(clockProvider)();
+    // без растяжки короткая заметка сжимается до своего текста и встаёт по центру
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final card in cards)
           Padding(

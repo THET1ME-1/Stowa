@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 
 import '../../domain/models.dart';
@@ -61,8 +63,40 @@ class ReturnRepository {
   Future<List<Item>> _alive() => (_db.select(_db.items)..where((t) => t.deletedAt.isNull())).get();
 
   /// Пересчитать [compute], когда меняются заметки, факты или теги: открыл ролик — очередь короче.
-  Stream<T> watch<T>(Future<T> Function() compute) =>
-      _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.facts, _db.itemTags, _db.tags}).watch().asyncMap((_) => compute());
+  /// С [clock] — ещё и когда наступил новый день: приложение живёт открытым сутками, а «год назад»
+  /// и очередь зависят от даты. Проверка даты раз в [dayCheck] ничего не считает, пока день тот же.
+  Stream<T> watch<T>(Future<T> Function() compute, {DateTime Function()? clock, Duration dayCheck = const Duration(minutes: 1)}) {
+    final changes = _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.facts, _db.itemTags, _db.tags}).watch();
+    if (clock == null) return changes.asyncMap((_) => compute());
+    final out = StreamController<T>();
+    StreamSubscription<void>? subscription;
+    Timer? timer;
+    var day = clock();
+    var latest = 0;
+    Future<void> emit() async {
+      day = clock();
+      // пересчёты могут обогнать друг друга: в поток идёт только последний
+      final ticket = ++latest;
+      try {
+        final value = await compute();
+        if (ticket == latest && !out.isClosed) out.add(value);
+      } catch (error, stack) {
+        if (!out.isClosed) out.addError(error, stack);
+      }
+    }
+
+    out.onListen = () {
+      subscription = changes.listen((_) => emit(), onError: out.addError);
+      timer = Timer.periodic(dayCheck, (_) {
+        if (!_sameDay(day, clock())) emit();
+      });
+    };
+    out.onCancel = () {
+      timer?.cancel();
+      return subscription?.cancel();
+    };
+    return out.stream;
+  }
 
   bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
 

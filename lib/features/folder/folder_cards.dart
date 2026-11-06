@@ -13,6 +13,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
+import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart' show shortDate;
@@ -269,9 +270,7 @@ class _NoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final lines = card.body.trim().split('\n');
-    // первая строка уже заголовок
-    final rest = lines.skip(1).where((line) => line.trim().isNotEmpty).join('\n');
+    final rest = linesUnderTitle(card.body, card.title).join('\n');
     return Pressable(
       onTap: onTap,
       pressedScale: 0.98,

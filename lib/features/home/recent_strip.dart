@@ -12,6 +12,7 @@ import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
+import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../item/adult_veil.dart';
@@ -20,11 +21,8 @@ import '../item/copying_bar.dart';
 const recentCardWidth = 132.0;
 const _artHeight = 64.0;
 
-/// Текст заметки после первой строки: первая уже стоит заголовком.
-String notePreview(String body) {
-  final lines = body.trim().split('\n');
-  return lines.skip(1).map((line) => line.trim()).where((line) => line.isNotEmpty).join('\n');
-}
+/// Текст заметки под заголовком, без отступов: карточка узкая.
+String notePreview(String body, {required String title}) => linesUnderTitle(body, title).map((line) => line.trim()).join('\n');
 
 /// Высота карточки растёт вместе с системным шрифтом, иначе подпись режется.
 double recentCardHeight(TextScaler scaler) {
@@ -230,7 +228,7 @@ class RecentCard extends StatelessWidget {
       },
       _ => null,
     };
-    final preview = notePreview(item.body);
+    final preview = notePreview(item.body, title: item.title);
     final iconName = switch (item.kind) {
       ItemKind.video => 'play_arrow',
       ItemKind.link => 'link',

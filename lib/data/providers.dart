@@ -101,17 +101,17 @@ final returnsAskedProvider = StreamProvider((ref) => ref.watch(settingsRepositor
 final watchLaterProvider = StreamProvider.autoDispose((ref) {
   final returns = ref.watch(returnRepositoryProvider);
   final clock = ref.watch(clockProvider);
-  return returns.watch(() => returns.watchLater(clock()));
+  return returns.watch(() => returns.watchLater(clock()), clock: clock);
 });
 final onThisDayProvider = StreamProvider.autoDispose((ref) {
   final returns = ref.watch(returnRepositoryProvider);
   final clock = ref.watch(clockProvider);
-  return returns.watch(() => returns.onThisDay(clock()));
+  return returns.watch(() => returns.onThisDay(clock()), clock: clock);
 });
 final weekReturnProvider = StreamProvider.autoDispose((ref) {
   final returns = ref.watch(returnRepositoryProvider);
   final clock = ref.watch(clockProvider);
-  return returns.watch(() => returns.week(clock()));
+  return returns.watch(() => returns.week(clock()), clock: clock);
 });
 final shoppingProvider = StreamProvider.autoDispose((ref) {
   final returns = ref.watch(returnRepositoryProvider);

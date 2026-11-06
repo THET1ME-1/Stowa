@@ -34,6 +34,11 @@ bool titleIsFirstLine(String body, String title) {
   return isTitleLine(first, title);
 }
 
+/// Непустые строки текста под заголовком для карточки. Первая пропускается, только если
+/// заголовок из неё: у заметки из Obsidian заголовок — имя файла, а первая строка — уже текст.
+List<String> linesUnderTitle(String body, String title) =>
+    body.trim().split('\n').skip(titleIsFirstLine(body, title) ? 1 : 0).where((line) => line.trim().isNotEmpty).toList();
+
 /// Текст заметки с первой строкой, которую прежняя правка унесла в заголовок, или null,
 /// если она на месте. Заголовок, чьи слова в тексте есть (дата ушла из строки), и копия
 /// конфликта «… (Stowa)» не трогаются.

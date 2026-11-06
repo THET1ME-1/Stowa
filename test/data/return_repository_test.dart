@@ -124,4 +124,17 @@ void main() {
       });
     });
   });
+
+  test('после полуночи пересчитывает без правок в базе: приложение открыто сутками', () async {
+    await note('Борщ', DateTime(2025, 11, 7, 9));
+    var clock = DateTime(2026, 11, 6, 23, 59);
+    final seen = <bool>[];
+    final watching = returns.watch(() => returns.onThisDay(clock), clock: () => clock, dayCheck: const Duration(milliseconds: 20)).listen((day) => seen.add(day != null));
+    addTearDown(watching.cancel);
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    expect(seen, [false]);
+    clock = DateTime(2026, 11, 7, 0, 1);
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    expect(seen, [false, true]);
+  });
 }
