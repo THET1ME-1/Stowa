@@ -10,6 +10,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/launch_actions.dart';
+import '../../services/vault/vault_watch.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
@@ -105,6 +106,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       _sweepFacts().ignore();
       // хранилище: сперва правки снаружи, сделанные, пока приложение было закрыто, потом свои
       ref.read(vaultSyncProvider).run().ignore();
+      _watchVault();
       // всё, что накопилось без сети или без ключа, и что переслали боту
       ref.read(aiDrainProvider)().ignore();
       ref.read(telegramPullProvider)().ignore();
@@ -121,10 +123,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _watch?.stop().ignore();
     super.dispose();
   }
 
   LaunchAction? _pendingLaunch;
+
+  /// Слежка за папкой хранилища, пока приложение на экране.
+  VaultWatch? _watch;
+
+  void _watchVault() {
+    _watch?.stop().ignore();
+    _watch = VaultWatch(ref.read(databaseProvider), root: ref.read(vaultRootProvider), onChange: () => ref.read(vaultSyncProvider).run())..start();
+  }
 
   void _onLaunch(LaunchAction? action) {
     if (action == null || !mounted) return;
@@ -184,6 +195,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // ушёл из приложения, а файл ещё ложится: система доделает, даже если Stowa выгрузят
     if (state == AppLifecycleState.paused) {
       _handOverFiles().ignore();
+      _watch?.stop().ignore();
+      _watch = null;
       return;
     }
     // «ближайшее» считается от момента подписки, после паузы его надо пересчитать
@@ -193,6 +206,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     _retryPreviews();
     // пока приложение было свёрнуто, файлы могли поправить снаружи (Obsidian, Syncthing)
     ref.read(vaultSyncProvider).run().ignore();
+    _watchVault();
     final launch = _pendingLaunch;
     _pendingLaunch = null;
     _onLaunch(launch);
