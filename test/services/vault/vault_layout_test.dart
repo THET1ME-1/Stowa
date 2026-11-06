@@ -32,7 +32,6 @@ void main() {
   test('факты, обложки, копии страниц, значки тегов и холст лежат под .stowa', () {
     expect(metaFile('tags'), '.stowa/tags.json');
     expect(factsFile('a'), '.stowa/facts/a.json');
-    expect(canvasFile('Рецепты'), '.stowa/canvas/Рецепты.json');
     expect(coverFile('a', 'jpg'), '.stowa/covers/a.jpg');
     expect(pageCopyFile('a'), '.stowa/pages/a.html.gz');
     expect(tagIconFile('x.png'), '.stowa/tag-icons/x.png');

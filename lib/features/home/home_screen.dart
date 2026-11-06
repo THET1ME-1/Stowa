@@ -56,6 +56,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final ids = next.value;
       if (ids != null && ids.isNotEmpty) ref.read(linkPreviewServiceProvider).run(ids).ignore();
     }, fireImmediately: true);
+    // правки ждут записи в файлы хранилища: писатель забирает их, пока приложение открыто
+    ref.listenManual(vaultQueueSizeProvider, (previous, next) {
+      if ((next.value ?? 0) > 0) ref.read(vaultWriterProvider).drain().ignore();
+    }, fireImmediately: true);
     // ИИ положил вещь в папку, пока приложение открыто: сказать куда и дать переложить
     ref.listenManual(aiSortedProvider, (previous, next) {
       final sorted = next.value;

@@ -27,6 +27,7 @@ import '../services/link_preview_service.dart';
 import '../services/place_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
+import '../services/vault/vault_writer.dart';
 import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
 import 'repositories/folders_repository.dart';
@@ -343,6 +344,19 @@ final manualMovesProvider = StreamProvider((ref) {
 
 /// Ссылки и ролики без превью: их разбирает фоновая очередь главной.
 final pendingPreviewsProvider = StreamProvider((ref) => watchPendingPreviews(ref.watch(databaseProvider)));
+
+/// Корень хранилища файлами; null — хранилище ещё не выбрано, правки копятся в очереди.
+final vaultRootProvider = Provider<Directory?>((ref) => null);
+
+/// Переносит правки из базы в файлы хранилища.
+final vaultWriterProvider = Provider((ref) => VaultWriter(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));
+
+/// Сколько задач ждёт записи в хранилище: изменилось — главная разбирает очередь.
+final vaultQueueSizeProvider = StreamProvider((ref) {
+  final db = ref.watch(databaseProvider);
+  final count = db.vaultQueue.target.count();
+  return (db.selectOnly(db.vaultQueue)..addColumns([count])).map((row) => row.read(count) ?? 0).watchSingle();
+});
 
 final recentItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchRecent());
 

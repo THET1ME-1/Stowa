@@ -34,8 +34,6 @@ String metaFile(String name) => '$serviceFolder/$name.json';
 
 String factsFile(String itemId) => '$serviceFolder/facts/$itemId.json';
 
-String canvasFile(String folderName) => '$serviceFolder/canvas/${vaultFileName(folderName)}.json';
-
 String coverFile(String itemId, String extension) => '$serviceFolder/covers/$itemId.$extension';
 
 String pageCopyFile(String itemId) => '$serviceFolder/pages/$itemId.html.gz';
