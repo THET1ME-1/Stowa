@@ -15,6 +15,7 @@ import 'features/share/share_receiver.dart';
 import 'services/background.dart';
 import 'services/reminder_actions.dart';
 import 'services/reminder_service.dart';
+import 'services/vault/vault_location.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,18 +34,21 @@ Future<void> shareMain() async {
 }
 
 Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
-  // вложения лежат рядом с базой, в базе — пути от этой папки
-  final filesRoot = await getApplicationSupportDirectory();
   // сюда выбор файлов, камера и «Поделиться» кладут свои копии: их можно переносить, а не копировать
   final cache = await getTemporaryDirectory();
   final prefs = await SharedPreferences.getInstance();
   final settings = SettingsRepository(prefs, const SecureKeyStore());
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
+  final db = AppDatabase();
+  // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
+  final place = await VaultLocation(settings: settings, appSupport: await getApplicationSupportDirectory()).resolve(hasData: await hasSavedItems(db));
   runApp(
     ProviderScope(
       overrides: [
-        databaseProvider.overrideWithValue(AppDatabase()),
-        filesRootProvider.overrideWithValue(filesRoot),
+        databaseProvider.overrideWithValue(db),
+        startFilesRootProvider.overrideWithValue(place.files),
+        vaultRootProvider.overrideWith(() => VaultRootNotifier(place.vault)),
+        vaultMissingProvider.overrideWithValue(!place.reachable),
         cacheRootProvider.overrideWithValue(cache),
         notificationPortProvider.overrideWithValue(notifications),
         settingsRepositoryProvider.overrideWithValue(settings),

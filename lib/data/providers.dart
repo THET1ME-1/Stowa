@@ -41,7 +41,16 @@ import 'settings_repository.dart';
 
 /// База и папка файлов открываются в main и подставляются сюда.
 final databaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('база открывается в main'));
-final filesRootProvider = Provider<Directory>((ref) => throw UnimplementedError('папка файлов задаётся в main'));
+
+/// Корень файлов этого запуска (`VaultLocation.resolve`): хранилище или, до переноса, папка приложения.
+final startFilesRootProvider = Provider<Directory>((ref) => throw UnimplementedError('папка файлов задаётся в main'));
+
+/// От этой папки считаются все пути в базе: хранилище, когда оно есть, иначе корень запуска.
+/// Перенесли хранилище — корень меняется на ходу.
+final filesRootProvider = Provider<Directory>((ref) => ref.watch(vaultRootProvider) ?? ref.watch(startFilesRootProvider));
+
+/// Хранилище недоступно: папку удалили или отозвали разрешение.
+final vaultMissingProvider = Provider<bool>((ref) => false);
 
 /// Часы: в тестах подменяются, чтобы «завтра» было предсказуемым.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
@@ -348,7 +357,19 @@ final manualMovesProvider = StreamProvider((ref) {
 final pendingPreviewsProvider = StreamProvider((ref) => watchPendingPreviews(ref.watch(databaseProvider)));
 
 /// Корень хранилища файлами; null — хранилище ещё не выбрано, правки копятся в очереди.
-final vaultRootProvider = Provider<Directory?>((ref) => null);
+final vaultRootProvider = NotifierProvider<VaultRootNotifier, Directory?>(VaultRootNotifier.new);
+
+class VaultRootNotifier extends Notifier<Directory?> {
+  VaultRootNotifier([this._start]);
+
+  final Directory? _start;
+
+  @override
+  Directory? build() => _start;
+
+  /// Хранилище выбрали или перенесли.
+  void change(Directory? root) => state = root;
+}
 
 /// Переносит правки из базы в файлы хранилища.
 final vaultWriterProvider = Provider((ref) => VaultWriter(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));

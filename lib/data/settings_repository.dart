@@ -37,6 +37,10 @@ class MemoryKeyStore implements KeyStore {
 }
 
 /// Настройки разбора по ключу ИИ. Самого ключа здесь нет: только есть ли он.
+/// Где хранилище: в памяти устройства (обычная папка, переживает удаление приложения)
+/// или внутри приложения (без разрешений, удаляется вместе с ним).
+enum VaultMode { device, app }
+
 class AiSettings {
   const AiSettings({
     this.baseUrl = defaultAiBaseUrl,
@@ -84,6 +88,28 @@ class SettingsRepository {
   static const _language = 'language';
   static const _placeEnabled = 'place_enabled';
   static const _showAdult = 'show_adult';
+  static const _vaultPath = 'vault_path';
+  static const _vaultMode = 'vault_mode';
+  static const _vaultAsked = 'vault_asked';
+
+  /// Папка хранилища файлами; null — старая установка, хранилище ещё не перенесено.
+  String? get vaultPath => _prefs.getString(_vaultPath);
+
+  VaultMode get vaultMode => VaultMode.values.asNameMap()[_prefs.getString(_vaultMode)] ?? VaultMode.app;
+
+  /// Человек уже выбрал место на экране первого запуска.
+  bool get vaultAsked => _prefs.getBool(_vaultAsked) ?? false;
+
+  Stream<String?> watchVaultPath() async* {
+    yield vaultPath;
+    yield* _changes.stream.map((_) => vaultPath).distinct();
+  }
+
+  Future<void> setVault(String path, VaultMode mode, {bool asked = true}) => _set(() async {
+    await _prefs.setString(_vaultPath, path);
+    await _prefs.setString(_vaultMode, mode.name);
+    return _prefs.setBool(_vaultAsked, asked);
+  });
 
   AiSettings get ai {
     final retry = _prefs.getInt(_retryAt);

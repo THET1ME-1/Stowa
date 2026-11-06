@@ -21,6 +21,10 @@ import 'facts/web_extractors.dart';
 import 'link_preview_service.dart' show httpFetch, httpPost;
 import 'file_keeper.dart';
 import 'telegram_service.dart';
+import 'vault/vault_location.dart';
+import 'vault/vault_reader.dart';
+import 'vault/vault_sync.dart';
+import 'vault/vault_writer.dart';
 
 const _aiTask = 'stowa-ai-queue';
 const _fileTask = 'stowa-files';
@@ -70,10 +74,15 @@ void backgroundDispatcher() {
     // база общая с открытым приложением, если оно сейчас живо
     final db = AppDatabase();
     final client = http.Client();
-    final filesRoot = await getApplicationSupportDirectory();
+    // тот же корень, что у приложения: хранилище или, до переноса, папка приложения
+    final place = await VaultLocation(settings: settings, appSupport: await getApplicationSupportDirectory()).resolve(hasData: true);
+    final filesRoot = place.files;
     try {
       // файлы — прежде всего: без сети и без ключа, просто положить на место
       final filesDone = await keepFilesInBackground(db, filesRoot);
+      // и сразу в файлы хранилища: приложение могли закрыть, не дописав очередь
+      final vault = VaultSync(reader: VaultReader(db, root: place.vault, clock: DateTime.now), writer: VaultWriter(db, root: place.vault, clock: DateTime.now));
+      await vault.run().catchError((_) {});
       // легли файлы или вышла новая версия извлекателей: разобрать, пока приложение закрыто
       final facts = FactsPipeline(
         db,
@@ -110,6 +119,8 @@ void backgroundDispatcher() {
           isIcon: hasSymbol,
         ).drain();
       }
+      // бот и ИИ поменяли вещи — в файлы
+      await vault.run().catchError((_) {});
       return true;
     } catch (_) {
       return false;

@@ -28,7 +28,7 @@ class TestWorld {
 
   List<Override> get overrides => [
         databaseProvider.overrideWithValue(db),
-        filesRootProvider.overrideWithValue(files),
+        startFilesRootProvider.overrideWithValue(files),
         clockProvider.overrideWithValue(() => now),
         // превью ссылок в тестах без интернета: сеть «молчит», вещь остаётся как есть
         linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
