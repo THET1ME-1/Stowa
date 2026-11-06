@@ -30,6 +30,7 @@ LocalNotificationPort reminderPort({void Function(String id)? onOpen}) {
     channelName: l.reminderChannel,
     doneLabel: l.reminderDoneAction,
     snoozeLabel: l.reminderSnoozeAction,
+    returnChannelName: l.returnChannel,
     onOpen: onOpen,
     onAction: reminderActionInBackground,
   );

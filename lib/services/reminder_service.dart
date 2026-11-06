@@ -49,6 +49,9 @@ class SilentNotificationPort implements NotificationPort {
 
   @override
   Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
+
+  @override
+  Future<void> show({required int id, required String title, required String body, required String payload}) async {}
 }
 
 /// Система уведомлений за тонкой стенкой: в тестах её подменяют.
@@ -56,9 +59,14 @@ abstract interface class NotificationPort {
   /// Разрешения на уведомления и точные будильники: спрашиваются, когда есть что ставить.
   Future<void> ensurePermission();
 
+  /// Снять запланированные будильники напоминаний. Уже показанные уведомления остаются:
+  /// пересчёт при открытии приложения не должен стирать вечернее «посмотреть потом».
   Future<void> cancelAll();
 
   Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload});
+
+  /// Показать сейчас, в тихом канале «Возвращение»: то, о чём человек не просил, не звенит.
+  Future<void> show({required int id, required String title, required String body, required String payload});
 }
 
 /// Держит будильники системы в согласии с базой. Любая правка напоминаний —
@@ -90,9 +98,12 @@ class ReminderService {
 
 /// Настоящие уведомления Android: канал «Напоминания», точные будильники, если разрешены.
 class LocalNotificationPort implements NotificationPort {
-  LocalNotificationPort({required this.channelName, required this.doneLabel, required this.snoozeLabel, this.onOpen, this.onAction});
+  LocalNotificationPort({required this.channelName, required this.doneLabel, required this.snoozeLabel, this.returnChannelName = '', this.onOpen, this.onAction});
 
   final String channelName;
+
+  /// Канал возвращающих уведомлений: «посмотреть потом», «в этот день», сводка.
+  final String returnChannelName;
   final String doneLabel;
   final String snoozeLabel;
 
@@ -142,7 +153,27 @@ class LocalNotificationPort implements NotificationPort {
   @override
   Future<void> cancelAll() async {
     await start();
-    await _plugin.cancelAll();
+    await _plugin.cancelAllPendingNotifications();
+  }
+
+  @override
+  Future<void> show({required int id, required String title, required String body, required String payload}) async {
+    await start();
+    await _plugin.show(
+      id: id,
+      title: title,
+      body: body.isEmpty ? null : body,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          'returns',
+          returnChannelName,
+          importance: Importance.low,
+          priority: Priority.low,
+          styleInformation: body.isEmpty ? null : BigTextStyleInformation(body),
+        ),
+      ),
+      payload: payload,
+    );
   }
 
   @override

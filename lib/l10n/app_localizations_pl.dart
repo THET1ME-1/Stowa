@@ -1763,4 +1763,136 @@ class LPl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get returnChannel => 'Powroty';
+
+  @override
+  String get returnWatchTitle => 'Do obejrzenia';
+
+  @override
+  String returnVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filmu',
+      many: '$count filmów',
+      few: '$count filmy',
+      one: '$count film',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnArticles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count artykułu',
+      many: '$count artykułów',
+      few: '$count artykuły',
+      one: '$count artykuł',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minuty',
+      many: '$count minut',
+      few: '$count minuty',
+      one: '$count minuta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnAnd(String first, String second) {
+    return '$first i $second';
+  }
+
+  @override
+  String returnWatchBody(String what, String minutes) {
+    return '$what — $minutes';
+  }
+
+  @override
+  String returnYearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count roku temu',
+      many: '$count lat temu',
+      few: '$count lata temu',
+      one: 'Rok temu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get returnMonthAgo => 'Miesiąc temu';
+
+  @override
+  String get returnWeekAgo => 'Tydzień temu';
+
+  @override
+  String returnDayOne(String title) {
+    return '„$title”';
+  }
+
+  @override
+  String returnDayMore(String title, int count) {
+    return '„$title” i jeszcze $count';
+  }
+
+  @override
+  String get returnOnThisDay => 'Tego dnia';
+
+  @override
+  String get returnWeekTitle => 'Tydzień w Stowa';
+
+  @override
+  String returnWeekSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notatki w tym tygodniu',
+      many: '$count notatek w tym tygodniu',
+      few: '$count notatki w tym tygodniu',
+      one: '$count notatka w tym tygodniu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnWeekUnopened(int count) {
+    return '$count nieotwarte';
+  }
+
+  @override
+  String returnWeekUnsorted(int count) {
+    return '$count bez folderu';
+  }
+
+  @override
+  String get returnWeekUnopenedTitle => 'Nieotwarte';
+
+  @override
+  String get returnWeekUnsortedTitle => 'Bez folderu';
+
+  @override
+  String returnShopTitle(String shop) {
+    return 'W sklepie $shop';
+  }
+
+  @override
+  String returnShopMore(String items, int count) {
+    return '$items i jeszcze $count';
+  }
+
+  @override
+  String get returnShopping => 'Do kupienia';
 }

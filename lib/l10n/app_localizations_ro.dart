@@ -1746,4 +1746,131 @@ class LRo extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get returnChannel => 'Reveniri';
+
+  @override
+  String get returnWatchTitle => 'De văzut mai târziu';
+
+  @override
+  String returnVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de videoclipuri',
+      few: '$count videoclipuri',
+      one: '$count videoclip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnArticles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de articole',
+      few: '$count articole',
+      one: '$count articol',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de minute',
+      few: '$count minute',
+      one: '$count minut',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnAnd(String first, String second) {
+    return '$first și $second';
+  }
+
+  @override
+  String returnWatchBody(String what, String minutes) {
+    return '$what — $minutes';
+  }
+
+  @override
+  String returnYearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Acum $count de ani',
+      few: 'Acum $count ani',
+      one: 'Acum un an',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get returnMonthAgo => 'Acum o lună';
+
+  @override
+  String get returnWeekAgo => 'Acum o săptămână';
+
+  @override
+  String returnDayOne(String title) {
+    return '„$title”';
+  }
+
+  @override
+  String returnDayMore(String title, int count) {
+    return '„$title” și încă $count';
+  }
+
+  @override
+  String get returnOnThisDay => 'În această zi';
+
+  @override
+  String get returnWeekTitle => 'Săptămâna în Stowa';
+
+  @override
+  String returnWeekSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de notițe săptămâna aceasta',
+      few: '$count notițe săptămâna aceasta',
+      one: '$count notiță săptămâna aceasta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnWeekUnopened(int count) {
+    return '$count nedeschise';
+  }
+
+  @override
+  String returnWeekUnsorted(int count) {
+    return '$count fără dosar';
+  }
+
+  @override
+  String get returnWeekUnopenedTitle => 'Nedeschise';
+
+  @override
+  String get returnWeekUnsortedTitle => 'Fără dosar';
+
+  @override
+  String returnShopTitle(String shop) {
+    return 'La $shop';
+  }
+
+  @override
+  String returnShopMore(String items, int count) {
+    return '$items și încă $count';
+  }
+
+  @override
+  String get returnShopping => 'De cumpărat';
 }

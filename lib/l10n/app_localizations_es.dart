@@ -1735,4 +1735,126 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get returnChannel => 'Volver a lo guardado';
+
+  @override
+  String get returnWatchTitle => 'Ver más tarde';
+
+  @override
+  String returnVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vídeos',
+      one: '$count vídeo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnArticles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count artículos',
+      one: '$count artículo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutos',
+      one: '$count minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnAnd(String first, String second) {
+    return '$first y $second';
+  }
+
+  @override
+  String returnWatchBody(String what, String minutes) {
+    return '$what — $minutes';
+  }
+
+  @override
+  String returnYearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hace $count años',
+      one: 'Hace un año',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get returnMonthAgo => 'Hace un mes';
+
+  @override
+  String get returnWeekAgo => 'Hace una semana';
+
+  @override
+  String returnDayOne(String title) {
+    return '«$title»';
+  }
+
+  @override
+  String returnDayMore(String title, int count) {
+    return '«$title» y $count más';
+  }
+
+  @override
+  String get returnOnThisDay => 'Tal día como hoy';
+
+  @override
+  String get returnWeekTitle => 'Tu semana en Stowa';
+
+  @override
+  String returnWeekSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notas esta semana',
+      one: '$count nota esta semana',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnWeekUnopened(int count) {
+    return '$count sin abrir';
+  }
+
+  @override
+  String returnWeekUnsorted(int count) {
+    return '$count sin carpeta';
+  }
+
+  @override
+  String get returnWeekUnopenedTitle => 'Sin abrir';
+
+  @override
+  String get returnWeekUnsortedTitle => 'Sin carpeta';
+
+  @override
+  String returnShopTitle(String shop) {
+    return 'En $shop';
+  }
+
+  @override
+  String returnShopMore(String items, int count) {
+    return '$items y $count más';
+  }
+
+  @override
+  String get returnShopping => 'Por comprar';
 }

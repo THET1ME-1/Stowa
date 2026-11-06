@@ -1763,4 +1763,136 @@ class LUk extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get returnChannel => 'Повернення';
+
+  @override
+  String get returnWatchTitle => 'Переглянути пізніше';
+
+  @override
+  String returnVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count відео',
+      many: '$count відео',
+      few: '$count відео',
+      one: '$count відео',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnArticles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count статті',
+      many: '$count статей',
+      few: '$count статті',
+      one: '$count стаття',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count хвилини',
+      many: '$count хвилин',
+      few: '$count хвилини',
+      one: '$count хвилина',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnAnd(String first, String second) {
+    return '$first і $second';
+  }
+
+  @override
+  String returnWatchBody(String what, String minutes) {
+    return '$what — $minutes';
+  }
+
+  @override
+  String returnYearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count року тому',
+      many: '$count років тому',
+      few: '$count роки тому',
+      one: 'Рік тому',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get returnMonthAgo => 'Місяць тому';
+
+  @override
+  String get returnWeekAgo => 'Тиждень тому';
+
+  @override
+  String returnDayOne(String title) {
+    return '«$title»';
+  }
+
+  @override
+  String returnDayMore(String title, int count) {
+    return '«$title» і ще $count';
+  }
+
+  @override
+  String get returnOnThisDay => 'Цього дня';
+
+  @override
+  String get returnWeekTitle => 'Тиждень у Stowa';
+
+  @override
+  String returnWeekSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'За тиждень $count нотатки',
+      many: 'За тиждень $count нотаток',
+      few: 'За тиждень $count нотатки',
+      one: 'За тиждень $count нотатка',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnWeekUnopened(int count) {
+    return '$count не відкриті';
+  }
+
+  @override
+  String returnWeekUnsorted(int count) {
+    return '$count без теки';
+  }
+
+  @override
+  String get returnWeekUnopenedTitle => 'Не відкриті';
+
+  @override
+  String get returnWeekUnsortedTitle => 'Без теки';
+
+  @override
+  String returnShopTitle(String shop) {
+    return 'У магазині «$shop»';
+  }
+
+  @override
+  String returnShopMore(String items, int count) {
+    return '$items і ще $count';
+  }
+
+  @override
+  String get returnShopping => 'Купити';
 }

@@ -1739,4 +1739,126 @@ class LDe extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get returnChannel => 'Erinnerungen an Gespeichertes';
+
+  @override
+  String get returnWatchTitle => 'Später ansehen';
+
+  @override
+  String returnVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Videos',
+      one: '$count Video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnArticles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Artikel',
+      one: '$count Artikel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Minuten',
+      one: '$count Minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnAnd(String first, String second) {
+    return '$first und $second';
+  }
+
+  @override
+  String returnWatchBody(String what, String minutes) {
+    return '$what — $minutes';
+  }
+
+  @override
+  String returnYearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vor $count Jahren',
+      one: 'Vor einem Jahr',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get returnMonthAgo => 'Vor einem Monat';
+
+  @override
+  String get returnWeekAgo => 'Vor einer Woche';
+
+  @override
+  String returnDayOne(String title) {
+    return '„$title“';
+  }
+
+  @override
+  String returnDayMore(String title, int count) {
+    return '„$title“ und $count weitere';
+  }
+
+  @override
+  String get returnOnThisDay => 'An diesem Tag';
+
+  @override
+  String get returnWeekTitle => 'Deine Woche in Stowa';
+
+  @override
+  String returnWeekSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Notizen diese Woche',
+      one: '$count Notiz diese Woche',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String returnWeekUnopened(int count) {
+    return '$count ungeöffnet';
+  }
+
+  @override
+  String returnWeekUnsorted(int count) {
+    return '$count ohne Ordner';
+  }
+
+  @override
+  String get returnWeekUnopenedTitle => 'Noch nicht geöffnet';
+
+  @override
+  String get returnWeekUnsortedTitle => 'Ohne Ordner';
+
+  @override
+  String returnShopTitle(String shop) {
+    return 'Bei $shop';
+  }
+
+  @override
+  String returnShopMore(String items, int count) {
+    return '$items und $count weitere';
+  }
+
+  @override
+  String get returnShopping => 'Einkaufen';
 }

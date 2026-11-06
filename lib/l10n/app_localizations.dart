@@ -2908,6 +2908,138 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} earlier note got its files} other{{count} earlier notes got their files}}'**
   String importFilled(int count);
+
+  /// Канал уведомлений: что из сохранённого вернуть
+  ///
+  /// In en, this message translates to:
+  /// **'Coming back'**
+  String get returnChannel;
+
+  /// Заголовок уведомления и экрана очереди
+  ///
+  /// In en, this message translates to:
+  /// **'Watch later'**
+  String get returnWatchTitle;
+
+  /// Сколько роликов в очереди
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video} other{{count} videos}}'**
+  String returnVideos(int count);
+
+  /// Сколько статей в очереди
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} article} other{{count} articles}}'**
+  String returnArticles(int count);
+
+  /// Сколько минут займёт очередь
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} minute} other{{count} minutes}}'**
+  String returnMinutes(int count);
+
+  /// Два куска через «и»: «3 ролика и статья»
+  ///
+  /// In en, this message translates to:
+  /// **'{first} and {second}'**
+  String returnAnd(String first, String second);
+
+  /// Текст уведомления очереди: «3 ролика и статья — 24 минуты»
+  ///
+  /// In en, this message translates to:
+  /// **'{what} — {minutes}'**
+  String returnWatchBody(String what, String minutes);
+
+  /// «В этот день»: сколько лет назад
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{A year ago} other{{count} years ago}}'**
+  String returnYearsAgo(int count);
+
+  /// «В этот день»: месяц назад
+  ///
+  /// In en, this message translates to:
+  /// **'A month ago'**
+  String get returnMonthAgo;
+
+  /// «В этот день»: неделю назад
+  ///
+  /// In en, this message translates to:
+  /// **'A week ago'**
+  String get returnWeekAgo;
+
+  /// «В этот день», одна заметка
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}”'**
+  String returnDayOne(String title);
+
+  /// «В этот день», несколько заметок
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” and {count} more'**
+  String returnDayMore(String title, int count);
+
+  /// Экран и настройка «В этот день»
+  ///
+  /// In en, this message translates to:
+  /// **'On this day'**
+  String get returnOnThisDay;
+
+  /// Заголовок сводки недели
+  ///
+  /// In en, this message translates to:
+  /// **'Your week in Stowa'**
+  String get returnWeekTitle;
+
+  /// Сводка: сколько сохранено
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} note this week} other{{count} notes this week}}'**
+  String returnWeekSaved(int count);
+
+  /// Сводка: сколько не открыто
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unopened'**
+  String returnWeekUnopened(int count);
+
+  /// Сводка: сколько без папки
+  ///
+  /// In en, this message translates to:
+  /// **'{count} without a folder'**
+  String returnWeekUnsorted(int count);
+
+  /// Раздел экрана сводки
+  ///
+  /// In en, this message translates to:
+  /// **'Not opened yet'**
+  String get returnWeekUnopenedTitle;
+
+  /// Раздел экрана сводки
+  ///
+  /// In en, this message translates to:
+  /// **'Without a folder'**
+  String get returnWeekUnsortedTitle;
+
+  /// Уведомление покупок у отмеченного магазина
+  ///
+  /// In en, this message translates to:
+  /// **'At {shop}'**
+  String returnShopTitle(String shop);
+
+  /// Покупки: первые пункты и сколько ещё
+  ///
+  /// In en, this message translates to:
+  /// **'{items} and {count} more'**
+  String returnShopMore(String items, int count);
+
+  /// Экран и настройка покупок у магазина
+  ///
+  /// In en, this message translates to:
+  /// **'To buy'**
+  String get returnShopping;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

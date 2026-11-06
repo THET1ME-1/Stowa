@@ -2202,5 +2202,170 @@
         "type": "int"
       }
     }
+  },
+  "returnChannel": "Coming back",
+  "@returnChannel": {
+    "description": "Канал уведомлений: что из сохранённого вернуть"
+  },
+  "returnWatchTitle": "Watch later",
+  "@returnWatchTitle": {
+    "description": "Заголовок уведомления и экрана очереди"
+  },
+  "returnVideos": "{count, plural, one{{count} video} other{{count} videos}}",
+  "@returnVideos": {
+    "description": "Сколько роликов в очереди",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnArticles": "{count, plural, one{{count} article} other{{count} articles}}",
+  "@returnArticles": {
+    "description": "Сколько статей в очереди",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnMinutes": "{count, plural, one{{count} minute} other{{count} minutes}}",
+  "@returnMinutes": {
+    "description": "Сколько минут займёт очередь",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnAnd": "{first} and {second}",
+  "@returnAnd": {
+    "description": "Два куска через «и»: «3 ролика и статья»",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "returnWatchBody": "{what} — {minutes}",
+  "@returnWatchBody": {
+    "description": "Текст уведомления очереди: «3 ролика и статья — 24 минуты»",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "returnYearsAgo": "{count, plural, one{A year ago} other{{count} years ago}}",
+  "@returnYearsAgo": {
+    "description": "«В этот день»: сколько лет назад",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnMonthAgo": "A month ago",
+  "@returnMonthAgo": {
+    "description": "«В этот день»: месяц назад"
+  },
+  "returnWeekAgo": "A week ago",
+  "@returnWeekAgo": {
+    "description": "«В этот день»: неделю назад"
+  },
+  "returnDayOne": "“{title}”",
+  "@returnDayOne": {
+    "description": "«В этот день», одна заметка",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "returnDayMore": "“{title}” and {count} more",
+  "@returnDayMore": {
+    "description": "«В этот день», несколько заметок",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnOnThisDay": "On this day",
+  "@returnOnThisDay": {
+    "description": "Экран и настройка «В этот день»"
+  },
+  "returnWeekTitle": "Your week in Stowa",
+  "@returnWeekTitle": {
+    "description": "Заголовок сводки недели"
+  },
+  "returnWeekSaved": "{count, plural, one{{count} note this week} other{{count} notes this week}}",
+  "@returnWeekSaved": {
+    "description": "Сводка: сколько сохранено",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnWeekUnopened": "{count} unopened",
+  "@returnWeekUnopened": {
+    "description": "Сводка: сколько не открыто",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnWeekUnsorted": "{count} without a folder",
+  "@returnWeekUnsorted": {
+    "description": "Сводка: сколько без папки",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnWeekUnopenedTitle": "Not opened yet",
+  "@returnWeekUnopenedTitle": {
+    "description": "Раздел экрана сводки"
+  },
+  "returnWeekUnsortedTitle": "Without a folder",
+  "@returnWeekUnsortedTitle": {
+    "description": "Раздел экрана сводки"
+  },
+  "returnShopTitle": "At {shop}",
+  "@returnShopTitle": {
+    "description": "Уведомление покупок у отмеченного магазина",
+    "placeholders": {
+      "shop": {
+        "type": "String"
+      }
+    }
+  },
+  "returnShopMore": "{items} and {count} more",
+  "@returnShopMore": {
+    "description": "Покупки: первые пункты и сколько ещё",
+    "placeholders": {
+      "items": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "returnShopping": "To buy",
+  "@returnShopping": {
+    "description": "Экран и настройка покупок у магазина"
   }
 }

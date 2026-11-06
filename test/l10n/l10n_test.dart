@@ -38,7 +38,8 @@ void main() {
   });
 
   test('подстановки одни и те же во всех переводах', () {
-    final holes = RegExp(r'\{(\w+)');
+    // подстановка — «{имя}» или «{имя, plural…»; «{Vor {count} Jahren}» — ветка с текстом, не подстановка
+    final holes = RegExp(r'\{(\w+)\s*[},]');
     final english = _arb('en');
     for (final language in AppLanguage.values) {
       final arb = _arb(language.code);

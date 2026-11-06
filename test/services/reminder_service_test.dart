@@ -19,6 +19,9 @@ class _FakePort implements NotificationPort {
   Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload}) async {
     scheduled[id] = (title: title, body: body, at: at, payload: payload);
   }
+
+  @override
+  Future<void> show({required int id, required String title, required String body, required String payload}) async {}
 }
 
 void main() {
