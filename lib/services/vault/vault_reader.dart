@@ -58,11 +58,11 @@ class VaultReader {
     final ids = {for (final row in await (_db.selectOnly(_db.items)..addColumns([_db.items.id])).get()) row.read(_db.items.id)!};
     final seen = <String>{};
     final incoming = <_Incoming>[];
-    // половина полоски — чтение файлов, половина — запись в базу
-    final total = notes.length * 2;
+    // счётчик — в заметках: «340 из 1200»; первая половина хода — чтение файлов, вторая — запись в базу
+    final total = notes.length;
 
     for (final (index, relative) in notes.indexed) {
-      progress?.call(index, total);
+      progress?.call(index ~/ 2, total);
       seen.add(relative);
       final file = File(_absolute(relative));
       final stat = await file.stat();
@@ -102,7 +102,8 @@ class VaultReader {
       await _keepOurs(await (_db.select(_db.items)..where((t) => t.id.equals(one.id))).getSingle());
       scan.conflicts++;
     }
-    await _store(incoming, progress: (done) => progress?.call(notes.length + done, total));
+    // в базу идут только изменённые: вторая половина хода — их доля
+    await _store(incoming, progress: (done) => progress?.call((total + total * done ~/ incoming.length) ~/ 2, total));
 
     // id в чужие заметки, карта файлов — одной пачкой
     final mapped = <VaultFilesCompanion>[];

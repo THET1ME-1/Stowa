@@ -157,6 +157,18 @@ void main() {
     expect(await fresh.select(fresh.vaultQueue).get(), isEmpty, reason: 'собранное не пишется обратно');
   });
 
+  test('счётчик сборки считает заметки, а не проходы: «… из 3», от нуля до трёх', () async {
+    for (final name in ['a', 'b', 'c']) {
+      put('$name.md', 'заметка $name');
+    }
+    final seen = <(int, int)>[];
+    await reader().rebuild(progress: (done, total) => seen.add((done, total)));
+    expect(seen.map((step) => step.$2).toSet(), {3});
+    expect(seen.first.$1, 0);
+    expect(seen.last, (3, 3));
+    expect([for (final step in seen) step.$1], orderedEquals([...seen.map((step) => step.$1)]..sort()), reason: 'счётчик не откатывается назад');
+  });
+
   test('хранилище не выбрано — читатель ничего не делает', () async {
     put('Идеи.md', 'текст');
     final scan = await VaultReader(db, root: null, clock: () => now).reconcile();
