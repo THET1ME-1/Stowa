@@ -2870,7 +2870,7 @@ abstract class L {
   /// Подсказка под разделом «Перенос»
   ///
   /// In en, this message translates to:
-  /// **'Pick a Saved Messages export folder from Telegram Desktop in JSON format. Notes keep their dates, an album becomes one note.'**
+  /// **'Pick a Saved Messages export folder from Telegram Desktop, HTML or JSON. Notes keep their dates, an album becomes one note.'**
   String get importTelegramHint;
 
   /// Ход переноса
@@ -2894,8 +2894,14 @@ abstract class L {
   /// Перенос не начался: выбрана не та папка
   ///
   /// In en, this message translates to:
-  /// **'No Telegram export in this folder: result.json is needed'**
+  /// **'No Telegram export in this folder: messages.html or result.json is needed'**
   String get importNotTelegram;
+
+  /// Добавка к итогу переноса: Telegram не выгрузил часть файлов
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file was left out of the export} other{{count} files were left out of the export}} — turn files on in the export settings and import again'**
+  String importMissing(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -1701,7 +1701,7 @@ class LPl extends L {
 
   @override
   String get importTelegramHint =>
-      'Wybierz folder eksportu „Zapisanych” z Telegram Desktop w formacie JSON. Notatki zachowają daty, album będzie jedną notatką.';
+      'Wybierz folder eksportu „Zapisanych” z Telegram Desktop, HTML lub JSON. Notatki zachowają daty, album będzie jedną notatką.';
 
   @override
   String importProgress(int done, int total) {
@@ -1736,5 +1736,18 @@ class LPl extends L {
 
   @override
   String get importNotTelegram =>
-      'W tym folderze nie ma eksportu Telegrama: potrzebny jest result.json';
+      'W tym folderze nie ma eksportu Telegrama: potrzebny jest messages.html lub result.json';
+
+  @override
+  String importMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pliku pominiętego w eksporcie',
+      many: '$count plików pominiętych w eksporcie',
+      few: '$count pliki pominięte w eksporcie',
+      one: '$count plik pominięty w eksporcie',
+    );
+    return '$_temp0 — włącz pliki w ustawieniach eksportu i przenieś ponownie';
+  }
 }

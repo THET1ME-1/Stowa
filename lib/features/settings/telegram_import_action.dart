@@ -25,7 +25,8 @@ Future<void> importTelegram(BuildContext context, WidgetRef ref) async {
   try {
     final import = TelegramImport(ref.read(databaseProvider), ref.read(captureServiceProvider));
     final report = await import.run(Directory(picked), progress: (done, total) => status.value = (l.importProgress(done, total), total == 0 ? null : done / total));
-    showNote(messenger, [l.importDone(report.added), if (report.repeated > 0) l.importRepeated(report.repeated)].join(', '));
+    final done = [l.importDone(report.added), if (report.repeated > 0) l.importRepeated(report.repeated)].join(', ');
+    showNote(messenger, report.filesMissing > 0 ? '$done. ${l.importMissing(report.filesMissing)}' : done);
   } on TelegramImportError {
     showNote(messenger, l.importNotTelegram);
   } finally {

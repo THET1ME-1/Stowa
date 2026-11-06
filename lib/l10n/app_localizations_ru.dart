@@ -1706,7 +1706,7 @@ class LRu extends L {
 
   @override
   String get importTelegramHint =>
-      'Выбери папку выгрузки «Избранного» из Telegram Desktop в формате JSON. Заметки встанут со своими датами, альбом — одной заметкой.';
+      'Выбери папку выгрузки «Избранного» из Telegram Desktop — HTML или JSON. Заметки встанут со своими датами, альбом — одной заметкой.';
 
   @override
   String importProgress(int done, int total) {
@@ -1741,5 +1741,18 @@ class LRu extends L {
 
   @override
   String get importNotTelegram =>
-      'В этой папке нет выгрузки Telegram: нужен result.json';
+      'В этой папке нет выгрузки Telegram: нужен messages.html или result.json';
+
+  @override
+  String importMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла Telegram не выгрузил',
+      many: '$count файлов Telegram не выгрузил',
+      few: '$count файла Telegram не выгрузил',
+      one: '$count файл Telegram не выгрузил',
+    );
+    return '$_temp0 — включи файлы в настройках выгрузки и перенеси ещё раз';
+  }
 }

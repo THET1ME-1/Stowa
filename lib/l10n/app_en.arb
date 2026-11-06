@@ -2147,7 +2147,7 @@
   "@importTelegram": {
     "description": "Строка настроек: перенос «Избранного» из выгрузки Telegram"
   },
-  "importTelegramHint": "Pick a Saved Messages export folder from Telegram Desktop in JSON format. Notes keep their dates, an album becomes one note.",
+  "importTelegramHint": "Pick a Saved Messages export folder from Telegram Desktop, HTML or JSON. Notes keep their dates, an album becomes one note.",
   "@importTelegramHint": {
     "description": "Подсказка под разделом «Перенос»"
   },
@@ -2181,8 +2181,17 @@
       }
     }
   },
-  "importNotTelegram": "No Telegram export in this folder: result.json is needed",
+  "importNotTelegram": "No Telegram export in this folder: messages.html or result.json is needed",
   "@importNotTelegram": {
     "description": "Перенос не начался: выбрана не та папка"
+  },
+  "importMissing": "{count, plural, one{{count} file was left out of the export} other{{count} files were left out of the export}} — turn files on in the export settings and import again",
+  "@importMissing": {
+    "description": "Добавка к итогу переноса: Telegram не выгрузил часть файлов",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

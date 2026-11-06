@@ -1680,7 +1680,7 @@ class LEn extends L {
 
   @override
   String get importTelegramHint =>
-      'Pick a Saved Messages export folder from Telegram Desktop in JSON format. Notes keep their dates, an album becomes one note.';
+      'Pick a Saved Messages export folder from Telegram Desktop, HTML or JSON. Notes keep their dates, an album becomes one note.';
 
   @override
   String importProgress(int done, int total) {
@@ -1711,5 +1711,16 @@ class LEn extends L {
 
   @override
   String get importNotTelegram =>
-      'No Telegram export in this folder: result.json is needed';
+      'No Telegram export in this folder: messages.html or result.json is needed';
+
+  @override
+  String importMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files were left out of the export',
+      one: '$count file was left out of the export',
+    );
+    return '$_temp0 — turn files on in the export settings and import again';
+  }
 }

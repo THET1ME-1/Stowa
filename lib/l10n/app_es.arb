@@ -212,9 +212,10 @@
   "repeatNoFolder": "La misma está sin carpeta desde el {date}",
   "settingsImport": "Importar",
   "importTelegram": "Desde Telegram",
-  "importTelegramHint": "Elige la carpeta de exportación de «Mensajes guardados» de Telegram Desktop en formato JSON. Las notas conservan su fecha y un álbum queda como una nota.",
+  "importTelegramHint": "Elige la carpeta de exportación de «Mensajes guardados» de Telegram Desktop, HTML o JSON. Las notas conservan su fecha y un álbum queda como una nota.",
   "importProgress": "Importando {done} de {total}",
   "importDone": "{count, plural, one{{count} nota importada} other{{count} notas importadas}}",
   "importRepeated": "{count, plural, one{{count} ya estaba} other{{count} ya estaban}}",
-  "importNotTelegram": "En esta carpeta no hay exportación de Telegram: falta result.json"
+  "importNotTelegram": "En esta carpeta no hay exportación de Telegram: falta messages.html o result.json",
+  "importMissing": "{count, plural, one{{count} archivo quedó fuera de la exportación} other{{count} archivos quedaron fuera de la exportación}} — activa los archivos en los ajustes de exportación e importa de nuevo"
 }

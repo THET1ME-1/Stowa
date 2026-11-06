@@ -20,6 +20,12 @@ void main() {
     expect(bodyWithTitleLine('Борщ\nСвёкла', 'Борщ (Stowa)'), isNull);
   });
 
+  test('строка из одной точки не роняет заголовок: берётся следующая, а без неё — сама точка', () {
+    expect(titleFor('.\nвторая строка'), 'Вторая строка');
+    expect(titleFor('.'), '.');
+    expect(titleFor('https://eda.ru/borsch .'), 'https://eda.ru/borsch .');
+  });
+
   test('ссылка уходит из заголовка, если без неё остались слова', () {
     expect(titleFor('Паста с креветками https://vt.tiktok.com/ZSpasta15/'), 'Паста с креветками');
     expect(titleFor('Смотри: https://coffee.ru/turka'), 'Смотри');

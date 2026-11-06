@@ -212,9 +212,10 @@
   "repeatNoFolder": "Aceeași e fără dosar din {date}",
   "settingsImport": "Import",
   "importTelegram": "Din Telegram",
-  "importTelegramHint": "Alege dosarul exportului „Mesaje salvate” din Telegram Desktop în format JSON. Notițele își păstrează datele, un album devine o notiță.",
+  "importTelegramHint": "Alege dosarul exportului „Mesaje salvate” din Telegram Desktop, HTML sau JSON. Notițele își păstrează datele, un album devine o notiță.",
   "importProgress": "Import {done} din {total}",
   "importDone": "{count, plural, one{{count} notiță importată} few{{count} notițe importate} other{{count} de notițe importate}}",
   "importRepeated": "{count, plural, one{{count} exista deja} other{{count} existau deja}}",
-  "importNotTelegram": "Nu există export Telegram în acest dosar: e nevoie de result.json"
+  "importNotTelegram": "Nu există export Telegram în acest dosar: e nevoie de messages.html sau result.json",
+  "importMissing": "{count, plural, one{{count} fișier lipsește din export} few{{count} fișiere lipsesc din export} other{{count} de fișiere lipsesc din export}} — activează fișierele în setările exportului și importă din nou"
 }

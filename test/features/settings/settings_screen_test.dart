@@ -141,7 +141,7 @@ void main() {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
       await tester.pump(const Duration(milliseconds: 50));
     }
-    expect(find.text('В этой папке нет выгрузки Telegram: нужен result.json'), findsOneWidget);
+    expect(find.text('В этой папке нет выгрузки Telegram: нужен messages.html или result.json'), findsOneWidget);
   });
 
   testWidgets('язык меняется сразу, без перезапуска', (tester) async {

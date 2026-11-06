@@ -1689,7 +1689,7 @@ class LRo extends L {
 
   @override
   String get importTelegramHint =>
-      'Alege dosarul exportului „Mesaje salvate” din Telegram Desktop în format JSON. Notițele își păstrează datele, un album devine o notiță.';
+      'Alege dosarul exportului „Mesaje salvate” din Telegram Desktop, HTML sau JSON. Notițele își păstrează datele, un album devine o notiță.';
 
   @override
   String importProgress(int done, int total) {
@@ -1721,5 +1721,17 @@ class LRo extends L {
 
   @override
   String get importNotTelegram =>
-      'Nu există export Telegram în acest dosar: e nevoie de result.json';
+      'Nu există export Telegram în acest dosar: e nevoie de messages.html sau result.json';
+
+  @override
+  String importMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de fișiere lipsesc din export',
+      few: '$count fișiere lipsesc din export',
+      one: '$count fișier lipsește din export',
+    );
+    return '$_temp0 — activează fișierele în setările exportului și importă din nou';
+  }
 }

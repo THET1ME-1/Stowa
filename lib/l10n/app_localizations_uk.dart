@@ -1701,7 +1701,7 @@ class LUk extends L {
 
   @override
   String get importTelegramHint =>
-      'Обери теку вивантаження «Збереженого» з Telegram Desktop у форматі JSON. Нотатки збережуть свої дати, альбом — однією нотаткою.';
+      'Обери теку вивантаження «Збереженого» з Telegram Desktop — HTML або JSON. Нотатки збережуть свої дати, альбом — однією нотаткою.';
 
   @override
   String importProgress(int done, int total) {
@@ -1736,5 +1736,18 @@ class LUk extends L {
 
   @override
   String get importNotTelegram =>
-      'У цій теці немає вивантаження Telegram: потрібен result.json';
+      'У цій теці немає вивантаження Telegram: потрібен messages.html або result.json';
+
+  @override
+  String importMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файлу Telegram не вивантажив',
+      many: '$count файлів Telegram не вивантажив',
+      few: '$count файли Telegram не вивантажив',
+      one: '$count файл Telegram не вивантажив',
+    );
+    return '$_temp0 — увімкни файли в налаштуваннях вивантаження й перенеси ще раз';
+  }
 }

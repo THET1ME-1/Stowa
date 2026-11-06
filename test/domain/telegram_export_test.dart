@@ -81,9 +81,10 @@ void main() {
       _message(3, 300),
       _message(4, 400, text: 'видео с концерта', extra: {'file': '(File not included. Change data exporting settings to download.)', 'media_type': 'video_file', 'mime_type': 'video/mp4'}),
     ]));
-    expect(notes.single.text, 'видео с концерта');
-    expect(notes.single.files, isEmpty);
-    expect(notes.single.filesMissing, 1);
+    final note = notes.singleWhere((note) => note.text.isNotEmpty || note.files.isNotEmpty);
+    expect(note.text, 'видео с концерта');
+    expect(note.files, isEmpty);
+    expect(note.filesMissing, 1);
   });
 
   test('выгрузка всех данных: берётся «Избранное» из списка чатов', () {

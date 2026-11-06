@@ -51,7 +51,8 @@ String titleFor(String text, {String? fileName}) {
   ];
   // ссылка в заголовке не читается: берём слова вокруг неё, а голую ссылку оставляем как есть
   final words = lines.map((line) => line.replaceAll(_url, ' ').replaceAll(RegExp(r'\s+'), ' ').replaceAll(_danglingPunctuation, '').trim());
-  final line = words.firstWhere((clean) => clean.isNotEmpty, orElse: () => '');
+  // строка из одной точки заголовком не бывает: без точки от неё ничего не остаётся
+  final line = words.firstWhere((clean) => clean.isNotEmpty && clean != '.', orElse: () => '');
   if (line.isEmpty) {
     final bare = lines.firstWhere((clean) => clean.isNotEmpty, orElse: () => '');
     if (bare.isNotEmpty) return bare;

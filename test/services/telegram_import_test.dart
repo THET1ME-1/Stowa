@@ -89,6 +89,15 @@ void main() {
     expect((report.added, report.filesMissing), (1, 1));
   });
 
+  test('сообщение из одного невыгруженного файла заметкой не становится, но в счёт идёт', () async {
+    await exportWith([
+      message(1, 100, '', {'file': '(File not included. Change data exporting settings to download.)', 'mime_type': 'application/pdf'}),
+      message(2, 200, 'с подписью', {'file': '(File not included. Change data exporting settings to download.)', 'mime_type': 'video/mp4'}),
+    ]);
+    final report = await import.run(export);
+    expect((report.added, report.filesMissing), (1, 2));
+  });
+
   test('файла нет на месте — сообщение переносится без него', () async {
     await exportWith([message(1, 100, 'договор', {'file': 'files/нет.pdf', 'mime_type': 'application/pdf'})]);
     final report = await import.run(export);
@@ -104,6 +113,26 @@ void main() {
     expect(report.added, 120);
     expect(await db.select(db.items).get(), hasLength(120));
     expect(steps, [(0, 120), (50, 120), (100, 120), (120, 120)]);
+  });
+
+  test('выгрузка в HTML: страницы по номерам, фото на месте', () async {
+    String page(String body) => '<html><body><div class="history">$body</div></body></html>';
+    String message(String date, String text, [String media = '']) =>
+        '<div class="message default clearfix"><div class="body"><div class="pull_right date details" title="$date">x</div>'
+        '${media.isEmpty ? '' : '<div class="media_wrap clearfix">$media</div>'}<div class="text">$text</div></div></div>';
+    await Directory(p.join(export.path, 'photos')).create();
+    await File(p.join(export.path, 'photos', 'sea.jpg')).writeAsBytes(List.filled(2048, 1));
+    // вторая страница называется messages2, десятая — messages10: порядок по номеру, а не по алфавиту
+    await File(p.join(export.path, 'messages.html')).writeAsString(page(message('12.05.2023 10:00:00 GMT+02:00', 'первая')));
+    await File(p.join(export.path, 'messages2.html')).writeAsString(page(message('13.05.2023 10:00:00 GMT+02:00', 'Море', '<a class="photo_wrap clearfix pull_left" href="photos/sea.jpg"></a>')));
+    await File(p.join(export.path, 'messages10.html')).writeAsString(page(message('14.05.2023 10:00:00 GMT+02:00', 'десятая')));
+
+    final report = await import.run(export);
+    await capture.settled();
+    expect(report.added, 3);
+    final notes = await (db.select(db.items)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
+    expect(notes.map((note) => note.body), ['первая', 'Море', 'десятая']);
+    expect((await ItemsRepository(db).get(notes[1].id))!.attachments.single.mime, 'image/jpeg');
   });
 
   test('в папке нет result.json — понятная ошибка', () async {

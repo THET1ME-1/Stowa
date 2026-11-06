@@ -212,9 +212,10 @@
   "repeatNoFolder": "Така сама лежить без теки з {date}",
   "settingsImport": "Перенесення",
   "importTelegram": "З Telegram",
-  "importTelegramHint": "Обери теку вивантаження «Збереженого» з Telegram Desktop у форматі JSON. Нотатки збережуть свої дати, альбом — однією нотаткою.",
+  "importTelegramHint": "Обери теку вивантаження «Збереженого» з Telegram Desktop — HTML або JSON. Нотатки збережуть свої дати, альбом — однією нотаткою.",
   "importProgress": "Переношу {done} з {total}",
   "importDone": "{count, plural, one{Переніс {count} нотатку} few{Переніс {count} нотатки} many{Переніс {count} нотаток} other{Переніс {count} нотатки}}",
   "importRepeated": "{count, plural, one{{count} вже була} few{{count} вже були} many{{count} вже були} other{{count} вже були}}",
-  "importNotTelegram": "У цій теці немає вивантаження Telegram: потрібен result.json"
+  "importNotTelegram": "У цій теці немає вивантаження Telegram: потрібен messages.html або result.json",
+  "importMissing": "{count, plural, one{{count} файл Telegram не вивантажив} few{{count} файли Telegram не вивантажив} many{{count} файлів Telegram не вивантажив} other{{count} файлу Telegram не вивантажив}} — увімкни файли в налаштуваннях вивантаження й перенеси ще раз"
 }

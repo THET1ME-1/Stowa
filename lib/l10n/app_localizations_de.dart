@@ -1685,7 +1685,7 @@ class LDe extends L {
 
   @override
   String get importTelegramHint =>
-      'Wähle den Exportordner der „Gespeicherten Nachrichten“ aus Telegram Desktop im JSON-Format. Notizen behalten ihr Datum, ein Album wird zu einer Notiz.';
+      'Wähle den Exportordner der „Gespeicherten Nachrichten“ aus Telegram Desktop, HTML oder JSON. Notizen behalten ihr Datum, ein Album wird zu einer Notiz.';
 
   @override
   String importProgress(int done, int total) {
@@ -1716,5 +1716,16 @@ class LDe extends L {
 
   @override
   String get importNotTelegram =>
-      'In diesem Ordner liegt kein Telegram-Export: result.json fehlt';
+      'In diesem Ordner liegt kein Telegram-Export: messages.html oder result.json fehlt';
+
+  @override
+  String importMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien fehlen im Export',
+      one: '$count Datei fehlt im Export',
+    );
+    return '$_temp0 — Dateien in den Exporteinstellungen einschalten und erneut übertragen';
+  }
 }

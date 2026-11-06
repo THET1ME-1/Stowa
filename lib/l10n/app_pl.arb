@@ -212,9 +212,10 @@
   "repeatNoFolder": "Taka sama leży bez folderu od {date}",
   "settingsImport": "Import",
   "importTelegram": "Z Telegrama",
-  "importTelegramHint": "Wybierz folder eksportu „Zapisanych” z Telegram Desktop w formacie JSON. Notatki zachowają daty, album będzie jedną notatką.",
+  "importTelegramHint": "Wybierz folder eksportu „Zapisanych” z Telegram Desktop, HTML lub JSON. Notatki zachowają daty, album będzie jedną notatką.",
   "importProgress": "Przenoszę {done} z {total}",
   "importDone": "{count, plural, one{{count} notatka przeniesiona} few{{count} notatki przeniesione} many{{count} notatek przeniesionych} other{{count} notatki przeniesione}}",
   "importRepeated": "{count, plural, one{{count} już była} few{{count} już były} many{{count} już były} other{{count} już były}}",
-  "importNotTelegram": "W tym folderze nie ma eksportu Telegrama: potrzebny jest result.json"
+  "importNotTelegram": "W tym folderze nie ma eksportu Telegrama: potrzebny jest messages.html lub result.json",
+  "importMissing": "{count, plural, one{{count} plik pominięty w eksporcie} few{{count} pliki pominięte w eksporcie} many{{count} plików pominiętych w eksporcie} other{{count} pliku pominiętego w eksporcie}} — włącz pliki w ustawieniach eksportu i przenieś ponownie"
 }

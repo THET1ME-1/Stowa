@@ -11,6 +11,9 @@ import 'capture_service.dart';
 // сообщений в одной транзакции: на телефоне каждая — запись на диск
 const _batch = 50;
 
+// страница выгрузки в HTML: messages.html — первая, messages2.html — вторая
+final _page = RegExp(r'^messages(\d*)\.html$');
+
 /// Итог переноса: сколько заметок появилось, сколько уже было, сколько файлов не нашлось.
 class TelegramImportReport {
   const TelegramImportReport({required this.added, required this.repeated, required this.filesMissing});
@@ -38,11 +41,9 @@ class TelegramImport {
   final CaptureService _capture;
 
   Future<TelegramImportReport> run(Directory folder, {void Function(int done, int total)? progress}) async {
-    final file = File(p.join(folder.path, 'result.json'));
-    if (!await file.exists()) throw const TelegramImportError('нет result.json');
     final List<ExportedNote> notes;
     try {
-      notes = parseTelegramExport(jsonDecode(await file.readAsString()));
+      notes = await _read(folder);
     } on FormatException catch (error) {
       throw TelegramImportError(error.message);
     }
@@ -78,6 +79,19 @@ class TelegramImport {
       progress?.call(start + batch.length, notes.length);
     }
     return TelegramImportReport(added: added, repeated: repeated, filesMissing: missing);
+  }
+
+  // выгрузка в JSON — result.json; в HTML (по умолчанию) — messages.html, messages2.html … по номерам
+  Future<List<ExportedNote>> _read(Directory folder) async {
+    final json = File(p.join(folder.path, 'result.json'));
+    if (await json.exists()) return parseTelegramExport(jsonDecode(await json.readAsString()));
+    final pages = <(int, File)>[
+      await for (final entity in folder.list())
+        if (entity is File)
+          if (_page.firstMatch(p.basename(entity.path)) case final match?) (int.tryParse(match.group(1)!) ?? 1, entity),
+    ]..sort((a, b) => a.$1.compareTo(b.$1));
+    if (pages.isEmpty) throw const TelegramImportError('нет result.json и messages.html');
+    return parseTelegramHtml([for (final (_, page) in pages) await page.readAsString()]);
   }
 
   // та же дата до секунды и тот же текст — это сообщение уже переносили
