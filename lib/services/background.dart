@@ -41,8 +41,8 @@ Future<void> scheduleFileWork() async {
 
 /// Разобрать очередь файлов в фоне. Задачу, брошенную закрытым окном, фон дожидается
 /// и забирает; не вышло — система повторит позже.
-Future<bool> keepFilesInBackground(AppDatabase db, Directory filesRoot) async {
-  final files = FileKeeper(db, filesRoot: filesRoot, movable: ownTemporaryFolders(filesRoot, await getTemporaryDirectory()), clock: DateTime.now, runner: 'background');
+Future<bool> keepFilesInBackground(AppDatabase db, Directory filesRoot, Directory scratch) async {
+  final files = FileKeeper(db, filesRoot: filesRoot, movable: ownTemporaryFolders(scratch, await getTemporaryDirectory()), clock: DateTime.now, runner: 'background');
   for (var round = 0; round < 4; round++) {
     await files.drain();
     final waiting = await db.select(db.fileJobs).get();
@@ -75,11 +75,13 @@ void backgroundDispatcher() {
     final db = AppDatabase();
     final client = http.Client();
     // тот же корень, что у приложения: хранилище или, до переноса, папка приложения
-    final place = await VaultLocation(settings: settings, appSupport: await getApplicationSupportDirectory()).resolve(hasData: true);
+    // временные файлы (голосовые, входящие бота) — во внутренней памяти, не в хранилище
+    final scratch = await getApplicationSupportDirectory();
+    final place = await VaultLocation(settings: settings, appSupport: scratch).resolve(hasData: true);
     final filesRoot = place.files;
     try {
       // файлы — прежде всего: без сети и без ключа, просто положить на место
-      final filesDone = await keepFilesInBackground(db, filesRoot);
+      final filesDone = await keepFilesInBackground(db, filesRoot, scratch);
       // и сразу в файлы хранилища: приложение могли закрыть, не дописав очередь
       final vault = VaultSync(reader: VaultReader(db, root: place.vault, clock: DateTime.now), writer: VaultWriter(db, root: place.vault, clock: DateTime.now));
       await vault.run().catchError((_) {});
@@ -102,8 +104,14 @@ void backgroundDispatcher() {
       await facts.sweepNetwork().catchError((_) {});
       await facts.sweep().catchError((_) {});
       // сперва то, что переслали боту, потом разбор: новое сразу разложится
-      final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: filesRoot, clock: DateTime.now);
-      await TelegramService(capture: capture, prefs: prefs, tokens: const SecureKeyStore('tg_token'), http: client, inbox: Directory(p.join(filesRoot.path, 'telegram_inbox')))
+      final capture = CaptureService(
+        db,
+        tags: TagsRepository(db),
+        filesRoot: filesRoot,
+        clock: DateTime.now,
+        files: FileKeeper(db, filesRoot: filesRoot, movable: ownTemporaryFolders(scratch), clock: DateTime.now, runner: 'background'),
+      );
+      await TelegramService(capture: capture, prefs: prefs, tokens: const SecureKeyStore('tg_token'), http: client, inbox: Directory(p.join(scratch.path, 'telegram_inbox')))
           .pull()
           .catchError((_) => 0);
       await capture.settled();

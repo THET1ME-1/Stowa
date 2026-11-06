@@ -56,6 +56,10 @@ final vaultMissingProvider = Provider<bool>((ref) => false);
 /// Папка приложения: в ней хранилище «внутри приложения».
 final appSupportProvider = Provider<Directory>((ref) => throw UnimplementedError('папка приложения задаётся в main'));
 
+/// Временные файлы приложения: голосовые до сохранения, входящие бота. Всегда во внутренней
+/// памяти: в хранилище их увидел бы Obsidian, а Syncthing гонял бы недописанное.
+final scratchRootProvider = Provider<Directory>((ref) => ref.watch(appSupportProvider));
+
 /// Разрешение «Доступ ко всем файлам».
 final vaultChannelProvider = Provider<VaultChannel>((ref) => const VaultChannel());
 
@@ -131,7 +135,7 @@ final fileKeeperProvider = Provider((ref) {
   return FileKeeper(
     ref.watch(databaseProvider),
     filesRoot: filesRoot,
-    movable: ownTemporaryFolders(filesRoot, ref.watch(cacheRootProvider)),
+    movable: ownTemporaryFolders(ref.watch(scratchRootProvider), ref.watch(cacheRootProvider)),
     clock: ref.watch(clockProvider),
     onLeftover: ref.watch(fileWorkProvider),
   )..onKept = (id) => facts.runItem(id).ignore();
@@ -318,7 +322,7 @@ final telegramServiceProvider = Provider(
     prefs: ref.watch(preferencesProvider),
     tokens: const SecureKeyStore('tg_token'),
     http: ref.watch(aiHttpProvider),
-    inbox: Directory('${ref.watch(filesRootProvider).path}/telegram_inbox'),
+    inbox: Directory('${ref.watch(scratchRootProvider).path}/telegram_inbox'),
   ),
 );
 final telegramStateProvider = StreamProvider((ref) => ref.watch(telegramServiceProvider).watch());

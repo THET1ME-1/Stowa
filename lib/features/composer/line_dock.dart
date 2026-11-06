@@ -145,7 +145,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     super.dispose();
   }
 
-  Directory get _voiceFolder => Directory(p.join(ref.read(filesRootProvider).path, 'tmp'));
+  Directory get _voiceFolder => Directory(p.join(ref.read(scratchRootProvider).path, 'tmp'));
 
   DateTime get _now => ref.read(clockProvider)();
 
