@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui' as ui;
 
 import '../../domain/contacts.dart';
 import '../../domain/document_text.dart';
+import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../domain/money.dart';
@@ -11,7 +13,7 @@ import '../../domain/video_text.dart' show hashtagsIn;
 import 'extractor.dart';
 
 /// Местные извлекатели: работают без сети. Сетевые добавляет тот, кто знает, чем ходить в сеть.
-List<Extractor> defaultExtractors() => [TextExtractor(), FileTextExtractor(), PhotoExtractor(), LinkExtractor()];
+List<Extractor> defaultExtractors() => [TextExtractor(), FileTextExtractor(), PhotoExtractor(), FingerprintExtractor(), LinkExtractor()];
 
 const _attachmentsStamp = "coalesce((SELECT group_concat(attachments.id) FROM attachments WHERE attachments.item_id = items.id), '')";
 
@@ -123,6 +125,39 @@ class PhotoExtractor extends Extractor {
     } finally {
       await reader.close();
     }
+  }
+}
+
+/// Отпечаток каждой картинки: по нему страница заметки видит ту же картинку в другой заметке.
+/// Картинку сжимает до 9×8 системный декодер, сама картинка в память целиком не разворачивается.
+class FingerprintExtractor extends Extractor {
+  @override
+  String get name => 'fingerprint';
+  @override
+  int get version => 1;
+  @override
+  String get stampSql => _attachmentsStamp;
+  @override
+  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%')";
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    final facts = <FactDraft>[];
+    for (final attachment in input.files.where((file) => file.mime.startsWith('image/'))) {
+      final file = input.fileOf(attachment);
+      if (!await file.exists()) continue;
+      try {
+        final codec = await ui.instantiateImageCodec(await file.readAsBytes(), targetWidth: 9, targetHeight: 8);
+        final frame = await codec.getNextFrame();
+        final pixels = await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
+        frame.image.dispose();
+        codec.dispose();
+        if (pixels != null) facts.add(FactDraft(FactKind.fingerprint, fingerprintText(fingerprintOf(pixels.buffer.asUint8List()))));
+      } on Exception {
+        // битая или неизвестная декодеру картинка: отпечатка у неё просто нет
+      }
+    }
+    return facts;
   }
 }
 
