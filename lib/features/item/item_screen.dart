@@ -27,6 +27,7 @@ import '../../domain/note_blocks.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show CaptureInput;
 import '../composer/line_dock.dart';
+import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
 import '../composer/picked_files.dart';
@@ -59,6 +60,8 @@ const _autosaveDelay = Duration(milliseconds: 700);
 /// Высота плавающей панели внизу и её отступ от края.
 const _dockHeight = 72.0;
 const _dockGap = 16.0;
+// полоса разметки над панелью в правке
+const _markdownStrip = 52.0;
 
 /// Пробелы и переносы в конце текста: «Дописать» ставит курсор с новой строки,
 /// а пустая строка в конце сохраняться не должна.
@@ -83,6 +86,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   final _title = TextEditingController();
   final _body = MarkdownController();
   final _bodyFocus = FocusNode();
+  // «Отменить» и «Вернуть» в правке: и набранное, и кнопки разметки
+  final _undo = UndoHistoryController();
   bool _editing = false;
   Timer? _autosave;
   String? _savedTitle;
@@ -114,6 +119,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _title.dispose();
     _body.dispose();
     _bodyFocus.dispose();
+    _undo.dispose();
     super.dispose();
   }
 
@@ -493,13 +499,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                 ? TextField(
                                     controller: _body,
                                     focusNode: _bodyFocus,
+                                    undoController: _undo,
                                     maxLines: null,
                                     minLines: 5,
                                     keyboardType: TextInputType.multiline,
                                     inputFormatters: [TextInputFormatter.withFunction(continueLists)],
                                     textCapitalization: TextCapitalization.sentences,
-                                    // строка с курсором не прячется под плавающую панель
-                                    scrollPadding: const EdgeInsets.only(bottom: _dockHeight + _dockGap * 2 + 24),
+                                    // строка с курсором не прячется под плавающую панель и полосу разметки над ней
+                                    scrollPadding: const EdgeInsets.only(bottom: _dockHeight + _dockGap * 2 + _markdownStrip + 24),
                                     style: bodyStyle,
                                     decoration: _bare(l.itemBodyHint),
                                   )
@@ -532,18 +539,34 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                       child: AnimatedSwitcher(
                         duration: Motion.medium,
                         child: _editing
-                            ? _Dock(
+                            ? Column(
                                 key: const ValueKey('edit-dock'),
-                                height: 64,
-                                buttons: [
-                                  _DockButton(icon: 'format_list_bulleted', tooltip: l.mdBullets, onTap: () => _markdown(MarkdownAction.bullets)),
-                                  _DockButton(icon: 'checklist', tooltip: l.mdChecklist, onTap: () => _markdown(MarkdownAction.checklist)),
-                                  _DockButton(icon: 'format_bold', tooltip: l.mdBold, onTap: () => _markdown(MarkdownAction.bold)),
-                                  _DockButton(icon: 'add_photo_alternate', tooltip: l.itemAddPhoto, onTap: _addPhotos),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // та же полоса разметки, что в строке на весь экран
+                                  Container(
+                                    height: _markdownStrip,
+                                    decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(_markdownStrip / 2)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    alignment: Alignment.center,
+                                    child: MarkdownBar(onAction: _markdown),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ValueListenableBuilder(
+                                    valueListenable: _undo,
+                                    builder: (context, history, _) => _Dock(
+                                      height: 64,
+                                      buttons: [
+                                        _DockButton(icon: 'add_photo_alternate', tooltip: l.itemAddPhoto, onTap: _addPhotos),
+                                        _DockButton(icon: 'undo', tooltip: l.mdUndo, onTap: history.canUndo ? _undo.undo : null),
+                                        _DockButton(icon: 'redo', tooltip: l.mdRedo, onTap: history.canRedo ? _undo.redo : null),
+                                      ],
+                                      accentIcon: 'check',
+                                      accentLabel: l.itemEditDone,
+                                      onAccent: _finish,
+                                    ),
+                                  ),
                                 ],
-                                accentIcon: 'check',
-                                accentLabel: l.itemEditDone,
-                                onAccent: _finish,
                               )
                             : _Dock(
                                 key: const ValueKey('view-dock'),
@@ -1015,7 +1038,9 @@ class _DockButton {
 
   final String icon;
   final String tooltip;
-  final VoidCallback onTap;
+
+  /// null — кнопка выключена: отменять нечего.
+  final VoidCallback? onTap;
   final bool active;
 }
 
@@ -1059,7 +1084,7 @@ class _Dock extends StatelessWidget {
                               child: SizedBox(
                                 width: 52,
                                 height: height - 16,
-                                child: Icon(symbolIcon(button.icon, filled: button.active), size: 24, color: Tokens.onSurface),
+                                child: Icon(symbolIcon(button.icon, filled: button.active), size: 24, color: button.onTap == null ? Tokens.muted : Tokens.onSurface),
                               ),
                             ),
                           ),

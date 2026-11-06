@@ -30,6 +30,7 @@ import '../home/saved_toast.dart';
 import 'attach_tray.dart';
 import 'line_controller.dart';
 import 'line_panel.dart';
+import 'markdown_bar.dart';
 import 'markdown_edit.dart';
 import 'panel_model.dart';
 import 'panel_text.dart';
@@ -869,7 +870,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                 child: AnimatedOpacity(
                   opacity: _full && !_morph.isAnimating ? 1 : 0,
                   duration: const Duration(milliseconds: 250),
-                  child: _full && !_morph.isAnimating ? _MarkdownBar(onAction: _markdown, undo: _undo, l: l) : const SizedBox(width: double.infinity),
+                  child: _full && !_morph.isAnimating ? MarkdownBar(onAction: _markdown, undo: _undo) : const SizedBox(width: double.infinity),
                 ),
               ),
               // рост под чипы ведёт рамка всей строки; край не маской (она перерисовывает слой
@@ -1213,66 +1214,6 @@ class _FolderOption extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(child: Text(name, style: Theme.of(context).textTheme.titleMedium)),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MarkdownBar extends StatelessWidget {
-  const _MarkdownBar({required this.onAction, required this.undo, required this.l});
-
-  final ValueChanged<MarkdownAction> onAction;
-  final UndoHistoryController undo;
-  final L l;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget button(String icon, String tooltip, VoidCallback? onTap) => IconButton(
-      tooltip: tooltip,
-      onPressed: onTap,
-      visualDensity: VisualDensity.compact,
-      style: IconButton.styleFrom(
-        fixedSize: const Size(30, 40),
-        minimumSize: const Size(30, 40),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: EdgeInsets.zero,
-        foregroundColor: Tokens.onSurface,
-        disabledForegroundColor: Tokens.muted,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      icon: Icon(symbolIcon(icon), size: 21),
-    );
-    const divider = SizedBox(height: 22, child: VerticalDivider(width: 1, thickness: 1, color: Tokens.outline));
-    // кнопки расходятся по всей ширине, а на узком экране листаются
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
-      child: LayoutBuilder(
-        builder: (context, constraints) => ValueListenableBuilder(
-          valueListenable: undo,
-          builder: (context, value, _) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  button('format_h1', l.mdHeading, () => onAction(MarkdownAction.heading)),
-                  button('format_bold', l.mdBold, () => onAction(MarkdownAction.bold)),
-                  button('format_italic', l.mdItalic, () => onAction(MarkdownAction.italic)),
-                  button('format_strikethrough', l.mdStrike, () => onAction(MarkdownAction.strike)),
-                  divider,
-                  button('format_list_bulleted', l.mdBullets, () => onAction(MarkdownAction.bullets)),
-                  button('check_box', l.mdChecklist, () => onAction(MarkdownAction.checklist)),
-                  button('format_quote', l.mdQuote, () => onAction(MarkdownAction.quote)),
-                  button('code', l.mdCode, () => onAction(MarkdownAction.code)),
-                  divider,
-                  button('undo', l.mdUndo, value.canUndo ? undo.undo : null),
-                  button('redo', l.mdRedo, value.canRedo ? undo.redo : null),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

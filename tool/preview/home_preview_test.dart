@@ -365,6 +365,20 @@ void main() {
     await _shot(tester, '17-факты');
   });
 
+  testWidgets('правка заметки', (tester) async {
+    await tester.runAsync(() async {
+      await _seed(world);
+      final capture = CaptureService(world.db, tags: TagsRepository(world.db), filesRoot: world.files, clock: () => world.now);
+      await capture.capture(const CaptureInput(text: 'Борщ бабушкин\nСвёкла 2 шт, капуста, морковь\nВарить 40 минут'));
+    });
+    await open(tester);
+    await tester.tap(find.text('Борщ бабушкин').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await _shot(tester, '17б-правка');
+  });
+
   testWidgets('страница рецепта и событие', (tester) async {
     await tester.runAsync(() async {
       await _seed(world);

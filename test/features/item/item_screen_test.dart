@@ -139,6 +139,29 @@ void main() {
     expect(tester.widget<TextField>(body).controller!.text, '- [ ] купить хлеб');
   });
 
+  testWidgets('в правке те же инструменты, что в строке: заголовок, курсив, зачёркнутый, цитата, код, отменить и вернуть', (tester) async {
+    await open(tester, body: 'купить хлеб', title: 'Покупки');
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    for (final tool in ['Заголовок', 'Жирный', 'Курсив', 'Зачеркнуть', 'Список', 'Чек-лист', 'Цитата', 'Код', 'Отменить', 'Вернуть']) {
+      expect(find.byTooltip(tool), findsOneWidget, reason: tool);
+    }
+    final body = find.byType(TextField).last;
+    await tester.tap(body);
+    tester.widget<TextField>(body).controller!.selection = const TextSelection(baseOffset: 0, extentOffset: 6);
+    await tester.tap(find.byTooltip('Курсив'));
+    await tester.pump();
+    expect(tester.widget<TextField>(body).controller!.text, '_купить_ хлеб');
+    // отмена работает и для кнопок разметки
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byTooltip('Отменить'));
+    await tester.pump();
+    expect(tester.widget<TextField>(body).controller!.text, 'купить хлеб');
+    await tester.tap(find.byTooltip('Заголовок'));
+    await tester.pump();
+    expect(tester.widget<TextField>(body).controller!.text, '# купить хлеб');
+  });
+
   testWidgets('разметка видна: жирное жирным, пункт с точкой, без звёздочек', (tester) async {
     await open(tester, body: 'План\nЭто **важно**\n- первое', title: 'План');
     expect(find.textContaining('**'), findsNothing);
