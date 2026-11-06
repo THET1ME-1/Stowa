@@ -54,7 +54,10 @@ void main() {
   test('стереть навсегда: строки и файлы уходят, живые не трогаются', () async {
     await add('live');
     await add('a', deletedAt: now);
+    // файл, который ещё лежит во входящих
+    File('${home.path}/.stowa/incoming/a/1_b.jpg').createSync(recursive: true);
     await trash.purge('a');
+    expect(Directory('${home.path}/.stowa/incoming/a').existsSync(), isFalse);
     expect((await db.select(db.items).get()).map((item) => item.id), ['live']);
     expect((await db.select(db.attachments).get()).map((file) => file.itemId), ['live']);
     expect(Directory('${home.path}/attachments/a').existsSync(), isFalse);

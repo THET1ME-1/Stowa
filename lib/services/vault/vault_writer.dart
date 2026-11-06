@@ -119,6 +119,7 @@ class VaultWriter {
     final path = known != null && _sameName(known.path, wanted) ? known.path : await _free(wanted, id);
 
     if (known != null && known.path != path) await _move(id, known.path, path);
+    await _gather(id, attachmentsDir(path));
 
     final tags = await _db
         .customSelect(
@@ -190,6 +191,35 @@ class VaultWriter {
       });
     }
     await _prune(p.posix.dirname(from));
+  }
+
+  /// Вложения, которые лежат не у заметки (входящие, старое место `attachments/`), переезжают
+  /// в её папку под своим именем без номера порядка; одинаковые имена — «фото 2.jpg».
+  Future<void> _gather(String id, String dir) async {
+    final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
+    final used = {for (final attachment in attachments) if (attachment.path.startsWith('$dir/')) p.posix.basename(attachment.path).toLowerCase()};
+    final moved = <String, String>{};
+    for (final attachment in attachments) {
+      if (attachment.path.startsWith('$dir/')) continue;
+      final source = File(_absolute(attachment.path));
+      if (!await source.exists()) continue;
+      final name = p.posix.basename(attachment.path).replaceFirst(RegExp(r'^\d+_'), '');
+      var target = '$dir/$name';
+      for (var number = 2; used.contains(p.posix.basename(target).toLowerCase()) || File(_absolute(target)).existsSync(); number++) {
+        target = '$dir/${p.posix.basenameWithoutExtension(name)} $number${p.posix.extension(name)}';
+      }
+      used.add(p.posix.basename(target).toLowerCase());
+      await Directory(p.dirname(_absolute(target))).create(recursive: true);
+      await source.rename(_absolute(target));
+      moved[attachment.id] = target;
+      await _prune(p.posix.dirname(attachment.path));
+    }
+    if (moved.isEmpty) return;
+    await _quietly(() async {
+      for (final MapEntry(key: attachmentId, value: path) in moved.entries) {
+        await (_db.update(_db.attachments)..where((t) => t.id.equals(attachmentId))).write(AttachmentsCompanion(path: Value(path)));
+      }
+    });
   }
 
   /// Своя правка базы, которую не надо писать обратно в файлы: флаг глушит триггеры.

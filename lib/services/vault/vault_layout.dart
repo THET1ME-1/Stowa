@@ -32,6 +32,11 @@ bool isServicePath(String relative) => relative.split('/').any((part) => part.st
 
 String metaFile(String name) => '$serviceFolder/$name.json';
 
+/// Входящие вещи: здесь файл ждёт, пока писатель не перенесёт его к заметке.
+String incomingDir(String itemId) => '$serviceFolder/incoming/$itemId';
+
+String incomingFile(String itemId, String fileName) => '${incomingDir(itemId)}/$fileName';
+
 String factsFile(String itemId) => '$serviceFolder/facts/$itemId.json';
 
 String coverFile(String itemId, String extension) => '$serviceFolder/covers/$itemId.$extension';

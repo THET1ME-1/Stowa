@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
@@ -63,6 +63,23 @@ void main() {
     expect((await db.select(db.attachments).getSingle()).path, 'Еда/Карбонара/фото.jpg');
     expect(file('Еда/Карбонара.md').readAsStringSync(), contains('![[Еда/Карбонара/фото.jpg]]'));
     expect(await queue(), isEmpty, reason: 'правка путей вложений не встаёт в очередь снова');
+  });
+
+  test('вложения из входящих и старой папки переезжают к заметке под своим именем, без номера и без затирания', () async {
+    await note('a', 'Карбонара', folder: 'recipes');
+    for (final (id, path, position) in [('p1', '.stowa/incoming/a/0_фото.jpg', 0), ('p2', 'attachments/a/1_фото.jpg', 1)]) {
+      file(path)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(id);
+      await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: id, itemId: 'a', path: path, mime: 'image/jpeg', size: 2, position: Value(position)));
+    }
+    await writer().drain();
+    final paths = [for (final row in await (db.select(db.attachments)..orderBy([(t) => OrderingTerm.asc(t.position)])).get()) row.path];
+    expect(paths, ['Рецепты/Карбонара/фото.jpg', 'Рецепты/Карбонара/фото 2.jpg']);
+    expect(file('Рецепты/Карбонара/фото.jpg').readAsStringSync(), 'p1');
+    expect(file('Рецепты/Карбонара/фото 2.jpg').readAsStringSync(), 'p2');
+    expect(Directory(p.join(root.path, '.stowa', 'incoming', 'a')).existsSync(), isFalse);
+    expect(await queue(), isEmpty);
   });
 
   test('переименование папки переносит её вещи', () async {

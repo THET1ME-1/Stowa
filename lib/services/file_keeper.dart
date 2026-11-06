@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../data/db/database.dart';
 import '../domain/image_size.dart';
 import 'capture_service.dart' show PickedFile;
+import 'vault/vault_layout.dart';
 
 /// Дописать [from] в [part] с места [offset]; [onWritten] получает, сколько уже лежит в [part].
 typedef CopyWrite = Future<void> Function(String from, String part, int offset, void Function(int written) onWritten);
@@ -146,7 +147,9 @@ class FileKeeper {
               itemId: itemId,
               position: index,
               source: file.path,
-              target: p.join('attachments', itemId, '${index}_${p.basename(file.path)}'),
+              // папку заметки при сохранении ещё не знаешь: файл ждёт во входящих, писатель хранилища
+              // переносит его к заметке под настоящим именем
+              target: incomingFile(itemId, '${index}_${p.basename(file.path)}'),
               mime: file.mime,
               size: file.size,
               createdAt: now,

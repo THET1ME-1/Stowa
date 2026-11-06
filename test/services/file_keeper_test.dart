@@ -63,6 +63,14 @@ void main() {
     expect(File(video.path).existsSync(), isTrue);
   });
 
+  test('файл ложится во входящие вещи под .stowa: папку заметки при сохранении ещё не знаешь', () async {
+    final id = await item();
+    final files = keeper();
+    await files.enqueue(id, [await source(gallery, 'clip.mp4', bytes: 10)]);
+    await files.drain();
+    expect((await attachments()).single.path, '.stowa/incoming/v/0_clip.mp4');
+  });
+
   test('временный файл приложения переносится, а не копируется', () async {
     final id = await item();
     final voice = await source(cache, 'voice.m4a');

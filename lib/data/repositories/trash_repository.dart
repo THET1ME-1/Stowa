@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 
 import '../../domain/models.dart';
 import '../../services/page_cache.dart';
+import '../../services/vault/vault_layout.dart';
 import '../db/database.dart';
 
 /// Сколько удалённое лежит в корзине, пока не сотрётся само.
@@ -94,8 +95,10 @@ ORDER BY items.deleted_at DESC''',
     for (final path in paths) {
       await _remove(File(p.join(_filesRoot.path, path)));
     }
-    final folder = Directory(p.join(_filesRoot.path, 'attachments', id));
-    if (await folder.exists()) await folder.delete(recursive: true).catchError((_) => folder);
+    // папки вложений по старому месту и входящие; папку заметки стирает писатель хранилища
+    for (final folder in [Directory(p.join(_filesRoot.path, 'attachments', id)), Directory(p.join(_filesRoot.path, incomingDir(id)))]) {
+      if (await folder.exists()) await folder.delete(recursive: true).catchError((_) => folder);
+    }
     // копия страницы ссылки тоже уходит
     await _remove(pageFile(_filesRoot, id));
     await _remove(legacyPageFile(_filesRoot, id));
