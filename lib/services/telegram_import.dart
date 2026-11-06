@@ -55,7 +55,11 @@ class TelegramImport {
     var repeated = 0;
     var missing = 0;
     var filled = 0;
-    progress?.call(0, notes.length);
+    // в ходе — только будущие заметки: сообщение из невыгруженного файла заметкой не станет
+    bool real(ExportedNote note) => note.text.isNotEmpty || note.files.isNotEmpty;
+    final total = notes.where(real).length;
+    var done = 0;
+    progress?.call(0, total);
     for (var start = 0; start < notes.length; start += _batch) {
       final batch = notes.sublist(start, (start + _batch).clamp(0, notes.length));
       final inputs = <CaptureInput>[];
@@ -86,7 +90,8 @@ class TelegramImport {
       if (filled > 0) _capture.files.drain().ignore();
       if (inputs.isNotEmpty) await _capture.captureAll(inputs);
       added += inputs.length;
-      progress?.call(start + batch.length, notes.length);
+      done += batch.where(real).length;
+      progress?.call(done, total);
     }
     return TelegramImportReport(added: added, repeated: repeated, filesMissing: missing, filled: filled);
   }

@@ -108,6 +108,10 @@ class CaptureService {
   /// Что сделать после сохранения: правила, напоминание, очередь ИИ.
   void Function(String itemId)? afterCapture;
 
+  /// То же для пачки [captureAll] разом: индекс соседей и разбор строятся один раз на пачку,
+  /// а не на каждую заметку. Нет — пачка идёт через [afterCapture] по одной.
+  void Function(List<String> itemIds)? afterBatch;
+
   /// Поставить вещи место, где её сохранили. Сохранение не ждёт.
   void Function(String itemId)? stampPlace;
 
@@ -129,8 +133,10 @@ class CaptureService {
     });
 
     if (inputs.any((input) => input.files.isNotEmpty)) files.drain().ignore();
+    final batch = afterBatch;
+    if (batch != null && ids.length > 1) batch(ids);
     for (final (index, id) in ids.indexed) {
-      afterCapture?.call(id);
+      if (batch == null || ids.length == 1) afterCapture?.call(id);
       if (inputs[index].here) stampPlace?.call(id);
     }
     return ids;

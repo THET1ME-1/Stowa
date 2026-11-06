@@ -160,6 +160,12 @@ final captureServiceProvider = Provider((ref) {
       // деньги, телефоны и ссылки из текста — сразу; из файлов — когда они лягут
       facts.runItem(id).ignore();
     }
+    // перенос пачками: теги соседей одним индексом, факты одним проходом по всем, кому нужно
+    ..afterBatch = (ids) {
+      sorter.tagItems(ids).ignore();
+      drain().ignore();
+      facts.sweep().ignore();
+    }
     ..stampPlace = (id) => stamp(id).ignore();
 });
 

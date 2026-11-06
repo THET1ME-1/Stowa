@@ -121,6 +121,20 @@ void main() {
     expect((await items.get(ids[2]))!.item.createdAt, DateTime(2023, 5, 12));
   });
 
+  test('пачка зовёт afterBatch один раз со всеми заметками, а не afterCapture на каждую', () async {
+    final single = <String>[];
+    final batches = <List<String>>[];
+    capture
+      ..afterCapture = single.add
+      ..afterBatch = batches.add;
+    final ids = await capture.captureAll([const CaptureInput(text: 'раз'), const CaptureInput(text: 'два'), const CaptureInput(text: 'три')]);
+    expect(batches, [ids]);
+    expect(single, isEmpty);
+    // одна заметка — обычный путь
+    final one = await capture.capture(const CaptureInput(text: 'одна'));
+    expect(single, [one]);
+  });
+
   test('пустая заметка в пачке — не сохраняется ничего', () async {
     await expectLater(capture.captureAll([const CaptureInput(text: 'есть'), const CaptureInput(text: '  ')]), throwsArgumentError);
     expect(await db.select(db.items).get(), isEmpty);

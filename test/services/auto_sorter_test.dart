@@ -94,6 +94,18 @@ void main() {
     expect(link.source, TagSource.similar);
   });
 
+  test('пачка заметок: теги соседей ставятся всем, база читается один раз', () async {
+    await add('Борщ с говядиной, рецепт бабушки', tags: [('рецепт', TagSource.user)]);
+    await add('Рецепт борща на скорую руку', tags: [('рецепт', TagSource.user)]);
+    for (final note in ['Купить хлеб', 'Позвонить в банк', 'Забрать посылку', 'Счёт за свет', 'Записаться к врачу', 'Идея для подарка']) {
+      await add(note);
+    }
+    final soup = await add('Постный борщ без мяса');
+    final bread = await add('Купить батон');
+    final added = await sorter.tagItems([soup, bread]);
+    expect(added, {soup: ['рецепт'], bread: <String>[]});
+  });
+
   test('тег одной вещи ещё не повод ставить его другим', () async {
     await add('Борщ с говядиной', tags: [('рецепт', TagSource.user)]);
     await add('Купить хлеб');

@@ -111,13 +111,15 @@ void main() {
     expect(await db.select(db.attachments).get(), hasLength(1));
   });
 
-  test('сообщение из одного невыгруженного файла заметкой не становится, но в счёт идёт', () async {
+  test('сообщение из одного невыгруженного файла заметкой не становится, но в счёт идёт; ход считает только заметки', () async {
     await exportWith([
       message(1, 100, '', {'file': '(File not included. Change data exporting settings to download.)', 'mime_type': 'application/pdf'}),
       message(2, 200, 'с подписью', {'file': '(File not included. Change data exporting settings to download.)', 'mime_type': 'video/mp4'}),
     ]);
-    final report = await import.run(export);
+    final steps = <(int, int)>[];
+    final report = await import.run(export, progress: (done, total) => steps.add((done, total)));
     expect((report.added, report.filesMissing), (1, 2));
+    expect(steps, [(0, 1), (1, 1)]);
   });
 
   test('файла нет на месте — сообщение переносится без него', () async {
