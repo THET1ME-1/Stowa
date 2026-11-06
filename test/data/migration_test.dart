@@ -119,6 +119,29 @@ void main() {
     final queued = {for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target};
     expect(queued, containsAll(['item:old', 'facts:old', 'meta:folders', 'meta:tags', 'meta:rules', 'meta:links', 'meta:learned', 'meta:canvas']));
   });
+
+  test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 6);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'recipe', kind: ItemKind.note, title: 'Борщ', body: const Value('Свёкла 2 шт'), createdAt: now, updatedAt: now));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'whole', kind: ItemKind.note, title: 'Плов', body: const Value('Плов\nРис 300 г'), createdAt: now, updatedAt: now));
+    // у ссылки заголовок от сайта, в тексте его и не было
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'link', kind: ItemKind.link, title: 'Кофе в турке', body: const Value('https://coffee.ru/turka'), createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropVault(raw);
+    raw.execute('PRAGMA user_version = 6');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final bodies = {for (final item in await upgraded.select(upgraded.items).get()) item.id: item.body};
+    expect(bodies, {'recipe': 'Борщ\nСвёкла 2 шт', 'whole': 'Плов\nРис 300 г', 'link': 'https://coffee.ru/turka'});
+  });
 }
 
 // очередь хранилища и её триггеры появились в версии 7

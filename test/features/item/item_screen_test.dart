@@ -41,21 +41,47 @@ void main() {
 
   Future<Item> saved() => world.db.select(world.db.items).getSingle();
 
-  testWidgets('карандаш открывает правку: заголовок и текст меняются, «Готово» сохраняет', (tester) async {
+  testWidgets('первая строка заметки остаётся текстом, заголовком над ним не встаёт', (tester) async {
+    await open(tester, body: 'Борщ\nСвёкла 2 шт', title: 'Борщ');
+    expect(find.text('Борщ\nСвёкла 2 шт'), findsOneWidget);
+    expect(find.text('Борщ'), findsNothing);
+  });
+
+  testWidgets('правка не уносит первую строку из текста, заголовок идёт за ней', (tester) async {
+    await open(tester, body: 'Борщ\nСвёкла 2 шт', title: 'Борщ');
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField).first).controller!.text, isEmpty);
+    expect(tester.widget<TextField>(find.byType(TextField).last).controller!.text, 'Борщ\nСвёкла 2 шт');
+
+    await tester.enterText(find.byType(TextField).last, 'Борщ зелёный\nЩавель пучок');
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+
+    expect((await saved()).body, 'Борщ зелёный\nЩавель пучок');
+    expect((await saved()).title, 'Борщ зелёный');
+    expect(find.text('Борщ зелёный\nЩавель пучок'), findsOneWidget);
+  });
+
+  testWidgets('свой заголовок стоит над текстом, текст при этом целый', (tester) async {
     await open(tester, body: 'Дипломная работа\nКлючевые слова оставить', title: 'Дипломная работа');
     expect(find.byType(TextField), findsNothing);
     await tester.tap(find.byTooltip('Править'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, 'Архитектура приложения');
-    await tester.enterText(find.byType(TextField).last, 'Ключевые слова оставить\nМинимум 20 источников');
     await tester.tap(find.text('Готово'));
     await tester.pumpAndSettle();
 
     expect(find.byType(TextField), findsNothing);
     expect((await saved()).title, 'Архитектура приложения');
-    expect((await saved()).body, 'Ключевые слова оставить\nМинимум 20 источников');
+    expect((await saved()).body, 'Дипломная работа\nКлючевые слова оставить');
     expect(find.text('Архитектура приложения'), findsOneWidget);
+    expect(find.text('Дипломная работа\nКлючевые слова оставить'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField).first).controller!.text, 'Архитектура приложения');
   });
 
   testWidgets('касание по тексту тоже открывает правку', (tester) async {
@@ -165,13 +191,13 @@ void main() {
     await tester.tap(find.text('Дописать'));
     await tester.pumpAndSettle();
     final body = tester.widget<TextField>(find.byType(TextField).last).controller!;
-    expect(body.text, 'первая\n');
+    expect(body.text, 'Мысль\nпервая\n');
     expect(body.selection.baseOffset, body.text.length);
 
-    await tester.enterText(find.byType(TextField).last, 'первая\nвторая');
+    await tester.enterText(find.byType(TextField).last, 'Мысль\nпервая\nвторая');
     await tester.tap(find.text('Готово'));
     await tester.pumpAndSettle();
-    expect((await saved()).body, 'первая\nвторая');
+    expect((await saved()).body, 'Мысль\nпервая\nвторая');
   });
 
   testWidgets('«Дописать» и выход без набора ничего не меняют', (tester) async {

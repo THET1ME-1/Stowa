@@ -27,6 +27,22 @@ String _fileTitle(String fileName) {
 /// хранились с точкой в конце, поэтому сравниваются оба после того же правила.
 bool isTitleLine(String line, String title) => line.trim().isNotEmpty && titleFor(line) == titleFor(title);
 
+/// Заголовок сделан из первой строки текста, а не дан человеком: тогда он идёт за ней
+/// при правке, а на странице вещи над текстом не повторяется.
+bool titleIsFirstLine(String body, String title) {
+  final first = body.split('\n').firstWhere((line) => line.trim().isNotEmpty, orElse: () => '');
+  return isTitleLine(first, title);
+}
+
+/// Текст заметки с первой строкой, которую прежняя правка унесла в заголовок, или null,
+/// если она на месте. Заголовок, чьи слова в тексте есть (дата ушла из строки), и копия
+/// конфликта «… (Stowa)» не трогаются.
+String? bodyWithTitleLine(String body, String title) {
+  final core = title.trim().replaceFirst(RegExp(r'…$'), '').toLowerCase();
+  if (core.isEmpty || title.endsWith(' (Stowa)') || body.toLowerCase().contains(core)) return null;
+  return body.trim().isEmpty ? title : '$title\n$body';
+}
+
 /// Заголовок вещи: первая строка без разметки и тегов, с заглавной буквы,
 /// не длиннее [titleLimit]. Без текста — имя первого файла, если его давал человек.
 String titleFor(String text, {String? fileName}) {

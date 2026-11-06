@@ -64,7 +64,7 @@ void main() {
 
     await tester.tap(find.text('Открыть'));
     await tester.pumpAndSettle();
-    expect(find.text('Сеть Keenetic, пароль zelenyi-chai-77'), findsOneWidget);
+    expect(find.text('Пароль от Wi-Fi\nСеть Keenetic, пароль zelenyi-chai-77'), findsOneWidget);
   });
 
   testWidgets('время в запросе отбирает найденное, над ним — что поиск понял', (tester) async {

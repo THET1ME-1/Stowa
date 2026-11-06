@@ -1,5 +1,4 @@
 import 'item_kind.dart';
-import 'item_title.dart';
 
 /// Кусок текста заметки, как его рисует страница вещи.
 sealed class NoteBlock {
@@ -48,8 +47,8 @@ final _bullet = RegExp(r'^\s*[-*•] (.+)$');
 final _numbered = RegExp(r'^\s*(\d{1,3})[.)] (.+)$');
 final _quote = RegExp(r'^> ?(.*)$');
 
-/// Текст заметки в блоки. [skipTitle]: первая строка, если из неё сделан заголовок, не повторяется.
-List<NoteBlock> parseNoteBlocks(String body, {String? skipTitle}) {
+/// Текст заметки в блоки, все строки как написаны.
+List<NoteBlock> parseNoteBlocks(String body) {
   final lines = body.split('\n');
   final blocks = <NoteBlock>[];
   final paragraph = <String>[];
@@ -59,14 +58,8 @@ List<NoteBlock> parseNoteBlocks(String body, {String? skipTitle}) {
     paragraph.clear();
   }
 
-  var titleSkipped = skipTitle == null;
   for (final (index, raw) in lines.indexed) {
     final line = raw.trimRight();
-    if (!titleSkipped && line.trim().isNotEmpty) {
-      titleSkipped = true;
-      // строку с галочкой оставляем: без неё задачу не отметить
-      if (!checkLine.hasMatch(line) && isTitleLine(line, skipTitle!)) continue;
-    }
     if (line.trim().isEmpty) {
       flush();
       continue;

@@ -2,6 +2,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/domain/item_title.dart';
 
 void main() {
+  test('заголовок из первой строки узнаётся, свой заголовок — нет', () {
+    expect(titleIsFirstLine('Борщ\nСвёкла 2 шт', 'Борщ'), isTrue);
+    expect(titleIsFirstLine('\nразработка архитектуры.\nтекст', 'Разработка архитектуры'), isTrue);
+    expect(titleIsFirstLine('Свёкла 2 шт', 'Борщ'), isFalse);
+    expect(titleIsFirstLine('', 'Голосовое'), isFalse);
+  });
+
+  test('строка, которую правка унесла в заголовок, возвращается в текст', () {
+    expect(bodyWithTitleLine('Свёкла 2 шт\nМорковь', 'Борщ'), 'Борщ\nСвёкла 2 шт\nМорковь');
+    expect(bodyWithTitleLine('', 'Купить хлеб'), 'Купить хлеб');
+    // строка на месте — чинить нечего
+    expect(bodyWithTitleLine('Борщ\nСвёкла', 'Борщ'), isNull);
+    // заголовок взят из середины строки: дата ушла, слово в тексте есть
+    expect(bodyWithTitleLine('23 декабря 13:00 зубной', 'Зубной'), isNull);
+    // копия при конфликте названа по-своему, текст у неё целый
+    expect(bodyWithTitleLine('Борщ\nСвёкла', 'Борщ (Stowa)'), isNull);
+  });
+
   test('ссылка уходит из заголовка, если без неё остались слова', () {
     expect(titleFor('Паста с креветками https://vt.tiktok.com/ZSpasta15/'), 'Паста с креветками');
     expect(titleFor('Смотри: https://coffee.ru/turka'), 'Смотри');

@@ -117,22 +117,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     super.dispose();
   }
 
-  /// Текст для правки без первой строки, если она стоит заголовком: иначе она двоилась бы.
-  String _editableBody(Item item) {
-    final lines = item.body.split('\n');
-    final first = lines.indexWhere((line) => line.trim().isNotEmpty);
-    if (first < 0 || checkLine.hasMatch(lines[first]) || !isTitleLine(lines[first], item.title)) return item.body;
-    lines.removeAt(first);
-    return lines.join('\n').replaceFirst(RegExp(r'^\n+'), '');
-  }
-
-  /// Правка на месте. С `append` курсор встаёт с новой строки в конце текста.
+  /// Правка на месте. Текст правится целиком: первая строка в нём остаётся. Заголовок из неё
+  /// поле не показывает, поле — для своего. С `append` курсор встаёт с новой строки в конце.
   void _startEditing(Item item, {bool append = false}) {
     if (_editing) return;
-    final body = _editableBody(item);
+    final body = item.body;
     _savedTitle = item.title;
     _savedBody = body.replaceFirst(_trailingSpace, '');
-    _title.text = _savedTitle!;
+    _title.text = titleIsFirstLine(body, item.title) ? '' : item.title;
     _body.text = append && body.trim().isNotEmpty && !body.endsWith('\n') ? '$body\n' : body;
     _body.selection = TextSelection.collapsed(offset: _body.text.length);
     setState(() => _editing = true);
@@ -336,7 +328,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final files = full.attachments.where((file) => !file.mime.startsWith('image/') && !file.mime.startsWith('audio/') && file != videoFile).toList();
     // адрес уже стоит в превью: строкой в тексте он не повторяется
     final shownBody = linkLike ? item.body.split('\n').where((line) => line.trim() != url).join('\n') : item.body;
-    final blocks = parseNoteBlocks(shownBody, skipTitle: item.title);
+    final blocks = parseNoteBlocks(shownBody);
+    // заголовок из первой строки над ней же не повторяется: заметка видна, как её написали
+    final showTitle = _editing || linkLike || !titleIsFirstLine(shownBody, item.title);
     final source = url == null ? null : sourceName(Uri.tryParse(url)?.host ?? '');
     final duration = item.durationSeconds == null ? null : Duration(seconds: item.durationSeconds!);
     Future<void> openMain() => videoFile != null ? openLocalFile(context, p.join(filesRoot.path, videoFile.path), videoFile.mime) : _openLink(url!);
@@ -408,20 +402,21 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           const SizedBox(height: 18),
                         ] else
                           const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: _editing
-                              ? TextField(
-                                  controller: _title,
-                                  maxLines: null,
-                                  textCapitalization: TextCapitalization.sentences,
-                                  textInputAction: TextInputAction.next,
-                                  onSubmitted: (_) => _bodyFocus.requestFocus(),
-                                  style: titleStyle,
-                                  decoration: _bare(l.itemTitleHint),
-                                )
-                              : GestureDetector(onTap: () => _startEditing(item), child: Text(item.title, style: linkLike ? titleStyle.copyWith(fontSize: 22) : titleStyle)),
-                        ),
+                        if (showTitle)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: _editing
+                                ? TextField(
+                                    controller: _title,
+                                    maxLines: null,
+                                    textCapitalization: TextCapitalization.sentences,
+                                    textInputAction: TextInputAction.next,
+                                    onSubmitted: (_) => _bodyFocus.requestFocus(),
+                                    style: titleStyle,
+                                    decoration: _bare(l.itemTitleHint),
+                                  )
+                                : GestureDetector(onTap: () => _startEditing(item), child: Text(item.title, style: linkLike ? titleStyle.copyWith(fontSize: 22) : titleStyle)),
+                          ),
                         if (videoLink && item.previewAuthor != null)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),

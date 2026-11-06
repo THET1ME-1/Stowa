@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import 'tables.dart';
 
@@ -105,6 +106,8 @@ class AppDatabase extends _$AppDatabase {
       }
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
+        // до очереди: файлы хранилища сразу пишутся с целым текстом
+        await _restoreTitleLines();
         await migrator.createTable(vaultQueue);
         await migrator.createTable(vaultFiles);
         await migrator.createTable(vaultFlags);
@@ -116,6 +119,19 @@ class AppDatabase extends _$AppDatabase {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  // прежняя правка уносила первую строку заметки в заголовок и сохраняла текст без неё.
+  // Заметки без файлов получают её обратно; у ссылок и файлов заголовок свой, их не трогаем
+  Future<void> _restoreTitleLines() async {
+    final rows = await customSelect(
+      "SELECT id, title, body FROM items WHERE kind = 'note' AND NOT EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id)",
+    ).get();
+    for (final row in rows) {
+      final body = bodyWithTitleLine(row.readNullable<String>('body') ?? '', row.read<String>('title'));
+      if (body == null) continue;
+      await customUpdate('UPDATE items SET body = ? WHERE id = ?', variables: [Variable(body), Variable(row.read<String>('id'))], updates: {items});
+    }
+  }
 
   // факты вещи — по вещи; суммы для «до 500 лей» — по виду и числу
   Future<void> _createFactIndexes() async {

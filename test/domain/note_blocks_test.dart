@@ -23,16 +23,6 @@ void main() {
     expect([for (final check in checks) (check.text, check.done, check.line)], [('паспорт', true, 2), ('крем', false, 3)]);
   });
 
-  test('первая строка, ставшая заголовком, в тексте не повторяется', () {
-    final blocks = parseNoteBlocks('Что взять на море\nкрем и шляпу', skipTitle: 'Что взять на море');
-    expect((blocks.single as ParagraphBlock).text, 'крем и шляпу');
-  });
-
-  test('старый заголовок с точкой тоже узнаётся и не двоится', () {
-    final blocks = parseNoteBlocks('Разработка архитектуры приложения.\nтекст', skipTitle: 'Разработка архитектуры приложения.');
-    expect((blocks.single as ParagraphBlock).text, 'текст');
-  });
-
   test('жирный, курсив, зачёркнутый, код и ссылка внутри строки', () {
     final pieces = parseInline('Это **важно**, _тихо_, ~~было~~, `код` и coffee.ru/turka');
     expect([for (final piece in pieces) if (piece.bold) piece.text], ['важно']);
