@@ -2105,5 +2105,17 @@
   "vaultRebuilt": "Index rebuilt",
   "@vaultRebuilt": {
     "description": "Плашка после сборки указателя"
+  },
+  "vaultSyncing": "Syncing notes {done} of {total}",
+  "@vaultSyncing": {
+    "description": "Полоска на главной, пока из папки хранилища забирается много заметок",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -2836,6 +2836,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Index rebuilt'**
   String get vaultRebuilt;
+
+  /// Полоска на главной, пока из папки хранилища забирается много заметок
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing notes {done} of {total}'**
+  String vaultSyncing(int done, int total);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

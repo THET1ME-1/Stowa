@@ -19,6 +19,12 @@ import 'package:stowa/features/home/folders_grid.dart';
 import 'package:stowa/features/item/item_screen.dart';
 import 'package:stowa/services/capture_service.dart';
 import 'package:stowa/services/facts/facts_pipeline.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stowa/app.dart';
+import 'package:stowa/data/providers.dart';
+import 'package:stowa/services/vault/vault_reader.dart';
+import 'package:stowa/services/vault/vault_sync.dart';
+import 'package:stowa/services/vault/vault_writer.dart';
 
 import '../../test/helpers/test_app.dart';
 
@@ -176,6 +182,26 @@ void main() {
   testWidgets('пустая', (tester) async {
     await open(tester);
     await _shot(tester, '1-пустая');
+  });
+
+  testWidgets('синхронизация заметок', (tester) async {
+    await tester.runAsync(() => _seed(world));
+    final sync = VaultSync(reader: VaultReader(world.db, root: null, clock: () => world.now), writer: VaultWriter(world.db, root: null, clock: () => world.now));
+    tester.view.physicalSize = _size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: const ValueKey('shot'),
+        child: ProviderScope(overrides: [...world.overrides, vaultSyncProvider.overrideWithValue(sync)], child: const StowaApp(locale: Locale('ru'))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // главная при открытии сама сверяет хранилище и сбрасывает ход: выставляем после
+    sync.status.value = (340, 1000);
+    await tester.pump();
+    await _shot(tester, '0-синхронизация');
   });
 
   testWidgets('где хранить заметки', (tester) async {

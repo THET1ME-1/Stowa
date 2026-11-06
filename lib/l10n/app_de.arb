@@ -206,5 +206,6 @@
   "vaultRebuild": "Index neu aufbauen",
   "vaultSettingHint": "Notizen sind .md-Dateien: Obsidian öffnet diesen Ordner, Syncthing gleicht ihn ab. Der Index ist eine Suchdatenbank, die die App selbst baut.",
   "vaultMoved": "Tresor verschoben",
-  "vaultRebuilt": "Index neu aufgebaut"
+  "vaultRebuilt": "Index neu aufgebaut",
+  "vaultSyncing": "Notizen synchronisieren {done} von {total}"
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'vault_reader.dart';
 import 'vault_writer.dart';
 
@@ -9,6 +11,12 @@ class VaultSync {
 
   final VaultReader reader;
   final VaultWriter writer;
+
+  /// С какого числа пришедших заметок главная показывает полоску: пара правок появится и так.
+  static const showFrom = 50;
+
+  /// Ход сверки «340 из 1000», пока снаружи пришло много заметок; null — полоски нет.
+  final status = ValueNotifier<(int, int)?>(null);
 
   Future<void>? _running;
   bool _again = false;
@@ -23,15 +31,23 @@ class VaultSync {
   }
 
   Future<void> _loop() async {
-    do {
-      _again = false;
-      await reader.reconcile();
-      await writer.drain();
-      // файл поправили, пока писатель писал соседние: забрать и дописать
-      if (writer.sawExternalEdit) {
-        await reader.reconcile();
+    try {
+      do {
+        _again = false;
+        await reader.reconcile(progress: _report);
         await writer.drain();
-      }
-    } while (_again);
+        // файл поправили, пока писатель писал соседние: забрать и дописать
+        if (writer.sawExternalEdit) {
+          await reader.reconcile(progress: _report);
+          await writer.drain();
+        }
+      } while (_again);
+    } finally {
+      status.value = null;
+    }
+  }
+
+  void _report(int done, int total) {
+    if (total >= showFrom) status.value = (done, total);
   }
 }

@@ -1656,4 +1656,9 @@ class LEn extends L {
 
   @override
   String get vaultRebuilt => 'Index rebuilt';
+
+  @override
+  String vaultSyncing(int done, int total) {
+    return 'Syncing notes $done of $total';
+  }
 }

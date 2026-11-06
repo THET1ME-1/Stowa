@@ -1677,4 +1677,9 @@ class LPl extends L {
 
   @override
   String get vaultRebuilt => 'Indeks odbudowany';
+
+  @override
+  String vaultSyncing(int done, int total) {
+    return 'Synchronizacja notatek $done z $total';
+  }
 }

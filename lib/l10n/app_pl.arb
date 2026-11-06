@@ -206,5 +206,6 @@
   "vaultRebuild": "Odbuduj indeks",
   "vaultSettingHint": "Notatki to pliki .md: ten folder otwiera Obsidian i synchronizuje Syncthing. Indeks to baza wyszukiwania, którą aplikacja buduje sama.",
   "vaultMoved": "Skarbiec przeniesiony",
-  "vaultRebuilt": "Indeks odbudowany"
+  "vaultRebuilt": "Indeks odbudowany",
+  "vaultSyncing": "Synchronizacja notatek {done} z {total}"
 }

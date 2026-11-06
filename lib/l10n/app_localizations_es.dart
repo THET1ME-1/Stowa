@@ -1657,4 +1657,9 @@ class LEs extends L {
 
   @override
   String get vaultRebuilt => 'Índice rehecho';
+
+  @override
+  String vaultSyncing(int done, int total) {
+    return 'Sincronizando notas $done de $total';
+  }
 }

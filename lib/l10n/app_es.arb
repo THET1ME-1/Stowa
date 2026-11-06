@@ -206,5 +206,6 @@
   "vaultRebuild": "Rehacer el índice",
   "vaultSettingHint": "Las notas son archivos .md: Obsidian abre esta carpeta y Syncthing la sincroniza. El índice es una base de búsqueda que la app crea sola.",
   "vaultMoved": "Bóveda movida",
-  "vaultRebuilt": "Índice rehecho"
+  "vaultRebuilt": "Índice rehecho",
+  "vaultSyncing": "Sincronizando notas {done} de {total}"
 }

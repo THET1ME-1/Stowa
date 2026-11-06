@@ -169,6 +169,18 @@ void main() {
     expect([for (final step in seen) step.$1], orderedEquals([...seen.map((step) => step.$1)]..sort()), reason: 'счётчик не откатывается назад');
   });
 
+  test('счётчик сверки — только изменённые заметки, не вся папка', () async {
+    for (final name in ['a', 'b', 'c']) {
+      put('$name.md', 'заметка $name');
+    }
+    await reader().reconcile();
+    touch('b.md', '${file('b.md').readAsStringSync()}правка\n');
+    final seen = <(int, int)>[];
+    await reader().reconcile(progress: (done, total) => seen.add((done, total)));
+    expect(seen.map((step) => step.$2).toSet(), {1});
+    expect(seen.last, (1, 1));
+  });
+
   test('хранилище не выбрано — читатель ничего не делает', () async {
     put('Идеи.md', 'текст');
     final scan = await VaultReader(db, root: null, clock: () => now).reconcile();

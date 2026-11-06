@@ -56,18 +56,24 @@ class VaultReader {
     final notes = await _notes(trash: false);
     final pending = {for (final row in await _db.select(_db.vaultQueue).get()) row.target};
     final ids = {for (final row in await (_db.selectOnly(_db.items)..addColumns([_db.items.id])).get()) row.read(_db.items.id)!};
-    final seen = <String>{};
+    final seen = notes.toSet();
     final incoming = <_Incoming>[];
-    // счётчик — в заметках: «340 из 1200»; первая половина хода — чтение файлов, вторая — запись в базу
-    final total = notes.length;
 
-    for (final (index, relative) in notes.indexed) {
-      progress?.call(index ~/ 2, total);
-      seen.add(relative);
-      final file = File(_absolute(relative));
-      final stat = await file.stat();
+    // сперва быстрый проход по времени и размеру: счётчик — только изменённые заметки, «340 из 1000»
+    final changed = <(String, FileStat)>[];
+    for (final relative in notes) {
+      final stat = await File(_absolute(relative)).stat();
       final before = byPath[relative];
       if (before != null && before.modified == stat.modified.millisecondsSinceEpoch && before.size == stat.size) continue;
+      changed.add((relative, stat));
+    }
+    // первая половина хода — чтение файлов, вторая — запись в базу
+    final total = changed.length;
+
+    for (final (index, (relative, stat)) in changed.indexed) {
+      progress?.call(index ~/ 2, total);
+      final file = File(_absolute(relative));
+      final before = byPath[relative];
 
       final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
       final note = readVaultNote(text, fileName: p.posix.basename(relative), fileModified: stat.modified);

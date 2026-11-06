@@ -1661,4 +1661,9 @@ class LDe extends L {
 
   @override
   String get vaultRebuilt => 'Index neu aufgebaut';
+
+  @override
+  String vaultSyncing(int done, int total) {
+    return 'Notizen synchronisieren $done von $total';
+  }
 }

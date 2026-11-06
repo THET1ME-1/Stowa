@@ -1677,4 +1677,9 @@ class LUk extends L {
 
   @override
   String get vaultRebuilt => 'Покажчик зібрано';
+
+  @override
+  String vaultSyncing(int done, int total) {
+    return 'Синхронізація нотаток $done з $total';
+  }
 }

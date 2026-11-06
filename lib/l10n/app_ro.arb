@@ -206,5 +206,6 @@
   "vaultRebuild": "Reconstruiește indexul",
   "vaultSettingHint": "Notițele sunt fișiere .md: dosarul îl deschide Obsidian și îl sincronizează Syncthing. Indexul e baza de căutare pe care aplicația o face singură.",
   "vaultMoved": "Seiful a fost mutat",
-  "vaultRebuilt": "Indexul a fost refăcut"
+  "vaultRebuilt": "Indexul a fost refăcut",
+  "vaultSyncing": "Sincronizare notițe {done} din {total}"
 }

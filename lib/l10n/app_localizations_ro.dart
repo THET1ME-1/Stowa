@@ -1665,4 +1665,9 @@ class LRo extends L {
 
   @override
   String get vaultRebuilt => 'Indexul a fost refăcut';
+
+  @override
+  String vaultSyncing(int done, int total) {
+    return 'Sincronizare notițe $done din $total';
+  }
 }

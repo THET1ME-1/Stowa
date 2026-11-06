@@ -1682,4 +1682,9 @@ class LRu extends L {
 
   @override
   String get vaultRebuilt => 'Указатель собран';
+
+  @override
+  String vaultSyncing(int done, int total) {
+    return 'Синхронизация заметок $done из $total';
+  }
 }

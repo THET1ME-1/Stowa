@@ -31,4 +31,32 @@ void main() {
     expect(copy.readAsStringSync(), contains('в приложении'));
     expect(await db.select(db.vaultQueue).get(), isEmpty);
   });
+
+  test('много заметок пришло снаружи — сверка показывает ход, пара правок — нет', () async {
+    final db = AppDatabase.memory();
+    final root = Directory.systemTemp.createTempSync('stowa_vault');
+    addTearDown(() async {
+      await db.close();
+      root.deleteSync(recursive: true);
+    });
+    final now = DateTime(2026, 11, 6, 10);
+    final sync = VaultSync(reader: VaultReader(db, root: root, clock: () => now), writer: VaultWriter(db, root: root, clock: () => now));
+    final shown = <(int, int)?>[];
+    sync.status.addListener(() => shown.add(sync.status.value));
+
+    for (var index = 0; index < 3; index++) {
+      File(p.join(root.path, 'n$index.md')).writeAsStringSync('заметка $index');
+    }
+    await sync.run();
+    expect(shown, isEmpty, reason: 'три заметки появятся и так');
+
+    Directory(p.join(root.path, 'Syncthing')).createSync();
+    for (var index = 0; index < 60; index++) {
+      File(p.join(root.path, 'Syncthing', 'm$index.md')).writeAsStringSync('пришла $index');
+    }
+    await sync.run();
+    expect(shown.whereType<(int, int)>().map((step) => step.$2).toSet(), {60});
+    expect(shown.whereType<(int, int)>().last, (60, 60));
+    expect(shown.last, isNull, reason: 'кончилось — полоски нет');
+  });
 }

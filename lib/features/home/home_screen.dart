@@ -24,6 +24,7 @@ import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
 import 'recent_strip.dart';
 import 'section_header.dart';
+import 'vault_sync_bar.dart';
 
 /// Место под свёрнутую строку внизу ленты, чтобы последняя плитка не пряталась.
 const _dockSpace = 150.0;
@@ -322,6 +323,8 @@ class _Feed extends ConsumerWidget {
               onTap: () => onOpen(upcoming.first.id),
             ),
           ),
+        // снаружи пришло много заметок (Syncthing, компьютер): видно, что приложение их забирает
+        SliverToBoxAdapter(child: VaultSyncBar(sync: ref.watch(vaultSyncProvider))),
         if (recent.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: SectionHeader(
