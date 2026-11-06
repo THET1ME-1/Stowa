@@ -98,6 +98,7 @@ ORDER BY items.deleted_at DESC''',
     if (await folder.exists()) await folder.delete(recursive: true).catchError((_) => folder);
     // копия страницы ссылки тоже уходит
     await _remove(pageFile(_filesRoot, id));
+    await _remove(legacyPageFile(_filesRoot, id));
   }
 
   Future<void> _remove(File file) async {

@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 import '../data/db/database.dart';
 
 /// Папки с файлами вещей, обложками ссылок и картинками тегов.
-const _fileFolders = ['attachments', 'covers', 'tags'];
+const _fileFolders = ['attachments', 'covers', 'tags', '.stowa/covers', '.stowa/tag-icons'];
 
 /// Журнал запросов к ИИ в копию не идёт: он для отладки и пухнет.
 const _skipTables = {'ai_log'};

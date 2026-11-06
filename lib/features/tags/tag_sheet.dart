@@ -18,6 +18,7 @@ import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/vault/vault_layout.dart';
 import '../folder/folder_sheets.dart';
 import '../graph/graph_screen.dart';
 
@@ -75,8 +76,8 @@ class _TagSheetState extends ConsumerState<TagSheet> {
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 256, maxHeight: 256);
     if (picked == null) return;
-    // своя картинка лежит в папке приложения, путь от неё
-    final relative = p.join('tags', '${const Uuid().v4()}${p.extension(picked.path)}');
+    // своя картинка лежит в служебной папке хранилища, путь от корня
+    final relative = tagIconFile('${const Uuid().v4()}${p.extension(picked.path)}');
     final target = File(p.join(ref.read(filesRootProvider).path, relative));
     await target.parent.create(recursive: true);
     await File(picked.path).copy(target.path);

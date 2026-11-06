@@ -11,6 +11,7 @@ import '../domain/video_text.dart' show parseTiktokPage;
 import '../domain/models.dart';
 import '../domain/site_sources.dart';
 import 'page_cache.dart';
+import 'vault/vault_layout.dart';
 
 /// Ответ сети: код, байты и тип содержимого.
 class FetchReply {
@@ -272,7 +273,7 @@ class LinkPreviewService {
           'image/gif' => 'gif',
           _ => 'jpg',
         };
-        final relative = p.join('covers', '$id.$extension');
+        final relative = coverFile(id, extension);
         final file = File(p.join(_filesRoot.path, relative));
         await file.parent.create(recursive: true);
         await file.writeAsBytes(reply.bytes, flush: true);
