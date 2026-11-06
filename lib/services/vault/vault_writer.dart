@@ -33,6 +33,10 @@ class VaultWriter {
   bool _running = false;
   bool _again = false;
 
+  /// В последнем проходе нашёлся файл, который правили снаружи после нашей записи:
+  /// писатель его не тронул, сперва нужна сверка читателем.
+  bool sawExternalEdit = false;
+
   /// Разобрать очередь. Возвращает, сколько задач сделано.
   Future<int> drain() async {
     if (_root == null) return 0;
@@ -41,6 +45,7 @@ class VaultWriter {
       return 0;
     }
     _running = true;
+    sawExternalEdit = false;
     var done = 0;
     try {
       do {
@@ -53,6 +58,11 @@ class VaultWriter {
           if (!await _claim(task)) continue;
           try {
             await _run(task.target);
+          } on _ExternalEdit {
+            // правку снаружи не затираем: задача ждёт, пока читатель её заберёт
+            sawExternalEdit = true;
+            await (_db.update(_db.vaultQueue)..where((t) => t.target.equals(task.target) & t.version.equals(task.version))).write(const VaultQueueCompanion(claimedUntil: Value(null)));
+            continue;
           } catch (_) {
             // диск не пишет: задача остаётся, остальное подождёт следующего прохода
             await (_db.update(_db.vaultQueue)..where((t) => t.target.equals(task.target) & t.version.equals(task.version))).write(const VaultQueueCompanion(claimedUntil: Value(null)));
@@ -110,6 +120,13 @@ class VaultWriter {
       }
       await _remove(factsFile(id));
       return;
+    }
+    if (known != null) {
+      final current = File(_absolute(known.path));
+      if (await current.exists()) {
+        final stat = await current.stat();
+        if (stat.modified.millisecondsSinceEpoch != known.modified || stat.size != known.size) throw const _ExternalEdit();
+      }
     }
 
     final folder = item.folderId == null ? null : await (_db.select(_db.folders)..where((t) => t.id.equals(item.folderId!))).getSingleOrNull();
@@ -260,4 +277,8 @@ class VaultWriter {
   }
 
   String _absolute(String relative) => p.joinAll([_root!.path, ...relative.split('/')]);
+}
+
+class _ExternalEdit implements Exception {
+  const _ExternalEdit();
 }

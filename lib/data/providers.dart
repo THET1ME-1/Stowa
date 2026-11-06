@@ -27,6 +27,8 @@ import '../services/link_preview_service.dart';
 import '../services/place_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
+import '../services/vault/vault_reader.dart';
+import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
 import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
@@ -350,6 +352,12 @@ final vaultRootProvider = Provider<Directory?>((ref) => null);
 
 /// Переносит правки из базы в файлы хранилища.
 final vaultWriterProvider = Provider((ref) => VaultWriter(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));
+
+/// Забирает в базу правки, сделанные в файлах снаружи.
+final vaultReaderProvider = Provider((ref) => VaultReader(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));
+
+/// Сверка хранилища: сперва чужие правки, потом свои.
+final vaultSyncProvider = Provider((ref) => VaultSync(reader: ref.watch(vaultReaderProvider), writer: ref.watch(vaultWriterProvider)));
 
 /// Сколько задач ждёт записи в хранилище: изменилось — главная разбирает очередь.
 final vaultQueueSizeProvider = StreamProvider((ref) {

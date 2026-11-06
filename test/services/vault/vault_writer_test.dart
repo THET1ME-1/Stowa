@@ -163,6 +163,19 @@ void main() {
     expect(file('.stowa/canvas.json').existsSync(), isTrue);
   });
 
+  test('файл правили снаружи после нашей записи — писатель его не затирает и просит сверку', () async {
+    await note('a', 'Идеи', body: 'Идеи\nиз приложения');
+    await writer().drain();
+    file('Идеи.md').writeAsStringSync(file('Идеи.md').readAsStringSync().replaceFirst('из приложения', 'с компьютера'));
+    file('Идеи.md').setLastModifiedSync(DateTime.now().add(const Duration(minutes: 5)));
+    await edit('a', const ItemsCompanion(body: Value('Идеи\nправка в приложении')));
+    final second = writer();
+    await second.drain();
+    expect(file('Идеи.md').readAsStringSync(), contains('с компьютера'));
+    expect(second.sawExternalEdit, isTrue);
+    expect(await queue(), ['item:a']);
+  });
+
   test('чужая аренда: задачу, занятую другим писателем, не берём', () async {
     await note('a', 'Идеи');
     await (db.update(db.vaultQueue)..where((t) => t.target.equals('item:a'))).write(VaultQueueCompanion(claimedUntil: Value(now.millisecondsSinceEpoch + 15000)));

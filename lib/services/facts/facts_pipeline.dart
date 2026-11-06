@@ -190,14 +190,17 @@ class FactsPipeline {
     );
   }
 
-  // текст фактов одной строкой для поиска; правка вещи от этого не считается
-  Future<void> _refreshText(String itemId) async {
-    final facts = await (_db.select(_db.facts)
-          ..where((t) => t.itemId.equals(itemId) & t.kind.isIn([for (final kind in searchableFacts) kind.name]))
-          ..orderBy([(t) => OrderingTerm.asc(t.extractor), (t) => OrderingTerm.asc(t.position)]))
-        .get();
-    var text = facts.map((fact) => fact.value).join('\n');
-    if (text.length > documentTextLimit) text = text.substring(0, documentTextLimit);
-    await (_db.update(_db.items)..where((t) => t.id.equals(itemId))).write(ItemsCompanion(factsText: Value(text)));
-  }
+  Future<void> _refreshText(String itemId) => refreshFactsText(_db, itemId);
+}
+
+/// Текст фактов одной строкой для поиска; правка вещи от этого не считается.
+/// Его же пересчитывает читатель хранилища, когда собирает базу из папки.
+Future<void> refreshFactsText(AppDatabase db, String itemId) async {
+  final facts = await (db.select(db.facts)
+        ..where((t) => t.itemId.equals(itemId) & t.kind.isIn([for (final kind in searchableFacts) kind.name]))
+        ..orderBy([(t) => OrderingTerm.asc(t.extractor), (t) => OrderingTerm.asc(t.position)]))
+      .get();
+  var text = facts.map((fact) => fact.value).join('\n');
+  if (text.length > documentTextLimit) text = text.substring(0, documentTextLimit);
+  await (db.update(db.items)..where((t) => t.id.equals(itemId))).write(ItemsCompanion(factsText: Value(text)));
 }

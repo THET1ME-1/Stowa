@@ -56,10 +56,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final ids = next.value;
       if (ids != null && ids.isNotEmpty) ref.read(linkPreviewServiceProvider).run(ids).ignore();
     }, fireImmediately: true);
-    // правки ждут записи в файлы хранилища: писатель забирает их, пока приложение открыто
+    // правки ждут записи в файлы хранилища: писатель забирает их, пока приложение открыто;
+    // наткнулся на файл, поправленный снаружи, — полная сверка, чтобы его не затереть
     ref.listenManual(vaultQueueSizeProvider, (previous, next) {
-      if ((next.value ?? 0) > 0) ref.read(vaultWriterProvider).drain().ignore();
-    }, fireImmediately: true);
+      if ((next.value ?? 0) == 0) return;
+      final writer = ref.read(vaultWriterProvider);
+      writer.drain().then((_) {
+        if (writer.sawExternalEdit) ref.read(vaultSyncProvider).run().ignore();
+      }).ignore();
+    });
     // ИИ положил вещь в папку, пока приложение открыто: сказать куда и дать переложить
     ref.listenManual(aiSortedProvider, (previous, next) {
       final sorted = next.value;
@@ -98,6 +103,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       ref.read(captureServiceProvider).files.drain().ignore();
       // вещи, которые ещё не разобраны извлекателями или разобраны старой их версией
       _sweepFacts().ignore();
+      // хранилище: сперва правки снаружи, сделанные, пока приложение было закрыто, потом свои
+      ref.read(vaultSyncProvider).run().ignore();
       // всё, что накопилось без сети или без ключа, и что переслали боту
       ref.read(aiDrainProvider)().ignore();
       ref.read(telegramPullProvider)().ignore();
@@ -184,6 +191,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     ref.read(captureServiceProvider).files.drain().ignore();
     _sweepFacts().ignore();
     _retryPreviews();
+    // пока приложение было свёрнуто, файлы могли поправить снаружи (Obsidian, Syncthing)
+    ref.read(vaultSyncProvider).run().ignore();
     final launch = _pendingLaunch;
     _pendingLaunch = null;
     _onLaunch(launch);

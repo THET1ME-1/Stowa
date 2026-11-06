@@ -1,0 +1,166 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/vault/vault_reader.dart';
+import 'package:stowa/services/vault/vault_writer.dart';
+
+void main() {
+  late AppDatabase db;
+  late Directory root;
+  final now = DateTime(2026, 11, 6, 10);
+
+  setUp(() async {
+    db = AppDatabase.memory();
+    root = Directory.systemTemp.createTempSync('stowa_vault');
+  });
+  tearDown(() async {
+    await db.close();
+    root.deleteSync(recursive: true);
+  });
+
+  VaultWriter writer([AppDatabase? base]) => VaultWriter(base ?? db, root: root, clock: () => now);
+  VaultReader reader([AppDatabase? base]) => VaultReader(base ?? db, root: root, clock: () => now);
+  File file(String relative) => File(p.join(root.path, relative));
+  void put(String relative, String text) => file(relative)
+    ..createSync(recursive: true)
+    ..writeAsStringSync(text);
+  Future<Item?> item(String id) => (db.select(db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<List<Item>> items() => db.select(db.items).get();
+  Future<List<String>> queue() async => [for (final row in await db.select(db.vaultQueue).get()) row.target];
+  Future<void> note(String id, String title, {String? body, String? folder}) => db
+      .into(db.items)
+      .insert(ItemsCompanion.insert(id: id, kind: ItemKind.note, title: title, body: Value(body ?? title), folderId: Value(folder), createdAt: now, updatedAt: now));
+  // правка снаружи: другое время файла, как у настоящего редактора
+  void touch(String relative, String text) {
+    file(relative).writeAsStringSync(text);
+    file(relative).setLastModifiedSync(DateTime.now().add(const Duration(minutes: 5)));
+  }
+
+  test('правка текста снаружи видна в базе и в поиске, назад в очередь не встаёт', () async {
+    await note('a', 'Плитка', body: 'Плитка\nкупить клей');
+    await writer().drain();
+    touch('Плитка.md', file('Плитка.md').readAsStringSync().replaceFirst('купить клей', 'купить затирку'));
+    final scan = await reader().reconcile();
+    expect(scan.changed, 1);
+    expect((await item('a'))!.body, 'Плитка\nкупить затирку');
+    expect(await db.searchIds('затирку'), ['a']);
+    expect(await queue(), isEmpty);
+  });
+
+  test('новый файл из Obsidian становится вещью, id дописан в файл, остальное как было', () async {
+    put('Идеи.md', 'Сделать полку #дом\n');
+    final scan = await reader().reconcile();
+    expect(scan.added, 1);
+    final created = (await items()).single;
+    expect(created.title, 'Идеи');
+    expect(created.body, 'Сделать полку #дом');
+    expect(file('Идеи.md').readAsStringSync(), '---\nid: "${created.id}"\n---\nСделать полку #дом\n');
+    final tags = await db.select(db.tags).get();
+    expect(tags.map((tag) => tag.name), ['дом']);
+    // новый тег уходит в tags.json, а сама заметка назад не пишется
+    expect(await queue(), ['meta:tags']);
+    // второй проход ничего не меняет
+    expect((await reader().reconcile()).changed + (await reader().reconcile()).added, 0);
+  });
+
+  test('удалённый снаружи файл — вещь в корзине', () async {
+    await note('a', 'Плитка');
+    await writer().drain();
+    file('Плитка.md').deleteSync();
+    final scan = await reader().reconcile();
+    expect(scan.removed, 1);
+    expect((await item('a'))!.deletedAt, isNotNull);
+  });
+
+  test('папка, созданная в файловом менеджере, — папка Stowa; вложенная подпапка — в верхнюю', () async {
+    put('Сад/Грядки.md', 'Посадить чеснок');
+    put('Сад/Весна/Рассада.md', 'Томаты');
+    put('.obsidian/workspace.md', 'служебное Obsidian');
+    await reader().reconcile();
+    final folders = await db.select(db.folders).get();
+    expect(folders.map((folder) => folder.name), ['Сад']);
+    expect((await items()).map((one) => one.folderId).toSet(), {folders.single.id});
+    expect((await items()).map((one) => one.title), unorderedEquals(['Грядки', 'Рассада']));
+  });
+
+  test('[[Заметка]] — ручная связь, ![[фото.jpg]] рядом с заметкой — вложение', () async {
+    put('Чеснок.md', 'Сорт Любаша');
+    put('Сад/Грядки.md', 'Посадить, см. [[Чеснок]]\n\n![[фото.jpg]]\n');
+    put('Сад/фото.jpg', 'jpeg');
+    await reader().reconcile();
+    final all = await items();
+    final beds = all.firstWhere((one) => one.title == 'Грядки');
+    final garlic = all.firstWhere((one) => one.title == 'Чеснок');
+    final link = (await db.select(db.links).get()).single;
+    expect((link.fromId, link.toId, link.source), (beds.id, garlic.id, LinkSource.manual));
+    final attachment = (await db.select(db.attachments).get()).single;
+    expect(attachment.path, 'Сад/фото.jpg');
+    expect(attachment.mime, 'image/jpeg');
+  });
+
+  test('правка с двух сторон: файл берётся, версия из базы — рядом отдельной вещью с тегом «конфликт»', () async {
+    await note('a', 'Плитка', body: 'Плитка\nверсия Stowa 1');
+    await writer().drain();
+    // в приложении поправили, но записать не успели — и тут же пришёл файл от Syncthing
+    await (db.update(db.items)..where((t) => t.id.equals('a'))).write(const ItemsCompanion(body: Value('Плитка\nверсия Stowa 2')));
+    touch('Плитка.md', file('Плитка.md').readAsStringSync().replaceFirst('версия Stowa 1', 'версия с компьютера'));
+    final scan = await reader().reconcile();
+    expect(scan.conflicts, 1);
+    expect((await item('a'))!.body, 'Плитка\nверсия с компьютера');
+    final copy = (await items()).firstWhere((one) => one.id != 'a');
+    expect(copy.title, 'Плитка (Stowa)');
+    expect(copy.body, contains('версия Stowa 2'));
+    final tagged = await db.customSelect("SELECT tags.name FROM item_tags JOIN tags ON tags.id = item_tags.tag_id WHERE item_tags.item_id = '${copy.id}'").get();
+    expect(tagged.map((row) => row.read<String>('name')), ['конфликт']);
+  });
+
+  test('конфликт Syncthing — отдельная вещь с тегом «конфликт», у оригинала свой id', () async {
+    await note('a', 'Плитка', body: 'Плитка\nодин');
+    await writer().drain();
+    put('Плитка.sync-conflict-20261106-101500-ABCDEFG.md', file('Плитка.md').readAsStringSync().replaceFirst('один', 'два'));
+    await reader().reconcile();
+    final all = await items();
+    expect(all, hasLength(2));
+    final copy = all.firstWhere((one) => one.id != 'a');
+    expect(copy.body, contains('два'));
+    expect((await item('a'))!.body, contains('один'));
+  });
+
+  test('пересборка из папки: вещи, папки, теги, правила, факты и прогоны — без сети и без повторного разбора', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'f', name: 'Ремонт', icon: 'build', shape: 'gem'));
+    await note('a', 'Плитка', body: 'Плитка\nклей', folder: 'f');
+    await db.into(db.tags).insert(TagsCompanion.insert(id: 't', name: 'дом', createdAt: now, pinned: const Value(true)));
+    await db.into(db.itemTags).insert(ItemTagsCompanion.insert(itemId: 'a', tagId: 't', source: TagSource.user));
+    await db.into(db.rules).insert(RulesCompanion.insert(id: 'r', conditionKind: RuleConditionKind.keyword, conditionValue: 'плитка', actionKind: RuleActionKind.addTag, actionValue: 't'));
+    await db.into(db.facts).insert(FactsCompanion.insert(id: 'x', itemId: 'a', extractor: 'file_text', kind: FactKind.fileText, value: 'Затирка серая'));
+    await db.into(db.extractorRuns).insert(ExtractorRunsCompanion.insert(itemId: 'a', extractor: 'file_text', version: 3, itemStamp: const Value('s1')));
+    await writer().drain();
+
+    // переустановка: база пустая, папка та же
+    final fresh = AppDatabase.memory();
+    addTearDown(fresh.close);
+    var steps = 0;
+    await reader(fresh).rebuild(progress: (done, total) => steps++);
+    expect(steps, greaterThan(0));
+    final restored = await (fresh.select(fresh.items)..where((t) => t.id.equals('a'))).getSingle();
+    expect(restored.folderId, 'f');
+    expect((await fresh.select(fresh.folders).getSingle()).icon, 'build');
+    expect((await fresh.select(fresh.tags).getSingle()).pinned, isTrue);
+    expect((await fresh.select(fresh.rules).getSingle()).conditionValue, 'плитка');
+    expect((await fresh.select(fresh.facts).getSingle()).value, 'Затирка серая');
+    expect((await fresh.select(fresh.extractorRuns).getSingle()).version, 3);
+    expect(await fresh.searchIds('затирка'), ['a'], reason: 'текст фактов в поиске сразу');
+    expect(await fresh.select(fresh.vaultQueue).get(), isEmpty, reason: 'собранное не пишется обратно');
+  });
+
+  test('хранилище не выбрано — читатель ничего не делает', () async {
+    put('Идеи.md', 'текст');
+    final scan = await VaultReader(db, root: null, clock: () => now).reconcile();
+    expect(scan.added, 0);
+    expect(await items(), isEmpty);
+  });
+}
