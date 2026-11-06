@@ -4,24 +4,26 @@ import 'package:flutter/services.dart';
 enum LaunchAction { compose, voice }
 
 /// Канал с MainActivity: `initial` — с чем приложение открыли, `open` — касание
-/// виджета, когда приложение уже живо.
+/// виджета или уведомления по месту, когда приложение уже живо.
 const launchChannel = MethodChannel('stowa/launch');
 
-LaunchAction? _parse(Object? raw) => LaunchAction.values.asNameMap()[raw];
+LaunchAction? launchActionOf(String? raw) => LaunchAction.values.asNameMap()[raw];
 
-/// С чем приложение запустили. Нет платформы (тесты, кадры) — null.
-Future<LaunchAction?> initialLaunchAction() async {
+/// Касание уведомления по месту (его показывает сам Android): `open:note:<id>` → `note:<id>`.
+String? openPayloadOf(String? raw) => raw != null && raw.startsWith('open:') ? raw.substring(5) : null;
+
+/// С чем приложение запустили: действие виджета или «open:…». Нет платформы (тесты, кадры) — null.
+Future<String?> initialLaunch() async {
   try {
-    return _parse(await launchChannel.invokeMethod<String>('initial'));
+    return await launchChannel.invokeMethod<String>('initial');
   } on MissingPluginException {
     return null;
   }
 }
 
-/// Слушать касания виджета, пока приложение открыто.
-void listenLaunchActions(void Function(LaunchAction action) onAction) {
+/// Слушать касания виджета и уведомлений по месту, пока приложение открыто.
+void listenLaunches(void Function(String raw) onLaunch) {
   launchChannel.setMethodCallHandler((call) async {
-    final action = call.method == 'open' ? _parse(call.arguments) : null;
-    if (action != null) onAction(action);
+    if (call.method == 'open' && call.arguments is String) onLaunch(call.arguments as String);
   });
 }

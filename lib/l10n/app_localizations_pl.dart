@@ -2076,4 +2076,7 @@ class LPl extends L {
   @override
   String get placesMissingShop =>
       'Nie ma jeszcze sklepów: zapisz choć jeden w Miejscach';
+
+  @override
+  String get placeChannel => 'Przypomnienia o miejscu';
 }

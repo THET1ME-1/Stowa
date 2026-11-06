@@ -290,5 +290,6 @@
   "itemPlaceChange": "Alt loc",
   "placesMissingHome": "Acasă nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri",
   "placesMissingWork": "Serviciul nu e setat încă: Stowa îți va aminti după ce îl setezi în Locuri",
-  "placesMissingShop": "Încă nu ai magazine: salvează măcar unul în Locuri"
+  "placesMissingShop": "Încă nu ai magazine: salvează măcar unul în Locuri",
+  "placeChannel": "Mementouri după loc"
 }

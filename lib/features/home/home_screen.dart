@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,8 +10,10 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
+import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/launch_actions.dart';
+import '../../services/place_alarms.dart';
 import '../../services/vault/vault_watch.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
@@ -22,6 +26,7 @@ import '../settings/settings_screen.dart';
 import 'folders_grid.dart';
 import 'next_reminder_card.dart';
 import 'pinned_tags_row.dart';
+import '../returns/return_screen.dart' show notificationRoute;
 import 'recent_strip.dart';
 import 'return_pills.dart';
 import 'section_header.dart';
@@ -89,6 +94,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final l = L.of(context);
       showNote(ScaffoldMessenger.of(context), failure.removed ? l.shareFailed : l.copyPartlyFailed(failure.failed), overDock: true);
     });
+    // заметки, теги или места поменялись: тревоги по месту переставляются, когда правки утихнут
+    ref.listenManual(placeChangesProvider, (previous, next) {
+      _placeTimer?.cancel();
+      _placeTimer = Timer(const Duration(seconds: 1), () => _syncPlaces().ignore());
+    });
     // сеть вернулась: всё, что ждало ИИ без связи, уходит сразу
     ref.listenManual(onlineProvider, (previous, next) {
       if (next.value != true || previous?.value == true) return;
@@ -100,8 +110,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       // открыли с виджета: строка с клавиатурой или сразу запись голоса
-      initialLaunchAction().then(_onLaunch).ignore();
-      listenLaunchActions(_onLaunch);
+      initialLaunch().then(_onRawLaunch).ignore();
+      listenLaunches(_onRawLaunch);
       // при открытии: файлы, которые не успели лечь до закрытия или выключения телефона
       ref.read(captureServiceProvider).files.drain().ignore();
       // вещи, которые ещё не разобраны извлекателями или разобраны старой их версией
@@ -126,10 +136,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _watch?.stop().ignore();
+    _placeTimer?.cancel();
     super.dispose();
   }
 
   LaunchAction? _pendingLaunch;
+
+  Timer? _placeTimer;
+
+  /// Сработавшее по месту снять, тревоги поставить заново. Без Android (тесты) канал молчит.
+  Future<void> _syncPlaces() async {
+    if (!mounted) return;
+    final l = L.of(context);
+    await PlaceAlarmService(
+      ref.read(databaseProvider),
+      channel: ref.read(placeChannelProvider),
+      settings: () => ref.read(returnSettingsProvider).value ?? const ReturnSettings(),
+      l: () => l,
+    ).sync();
+  }
 
   /// Слежка за папкой хранилища, пока приложение на экране.
   VaultWatch? _watch;
@@ -137,6 +162,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void _watchVault() {
     _watch?.stop().ignore();
     _watch = VaultWatch(ref.read(databaseProvider), root: ref.read(vaultRootProvider), onChange: () => ref.read(vaultSyncProvider).run())..start();
+  }
+
+  /// Запуск снаружи: уведомление по месту открывает заметку или экран возврата, виджет — строку.
+  void _onRawLaunch(String? raw) {
+    if (!mounted) return;
+    if (openPayloadOf(raw) case final payload?) {
+      if (notificationRoute(payload) case final route?) Navigator.of(context).push(route);
+      return;
+    }
+    _onLaunch(launchActionOf(raw));
   }
 
   void _onLaunch(LaunchAction? action) {
@@ -206,6 +241,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     ref.read(captureServiceProvider).files.drain().ignore();
     _sweepFacts().ignore();
     _retryPreviews();
+    // пока приложение было свёрнуто, могло сработать напоминание по месту — снять его
+    _syncPlaces().ignore();
     // пока приложение было свёрнуто, файлы могли поправить снаружи (Obsidian, Syncthing)
     ref.read(vaultSyncProvider).run().ignore();
     _watchVault();

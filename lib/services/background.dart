@@ -23,6 +23,8 @@ import 'facts/facts_pipeline.dart';
 import 'facts/web_extractors.dart';
 import 'link_preview_service.dart' show httpFetch, httpPost;
 import 'file_keeper.dart';
+import 'place_alarms.dart';
+import 'place_channel.dart';
 import 'reminder_actions.dart';
 import 'return_service.dart';
 import 'telegram_service.dart';
@@ -81,6 +83,8 @@ Future<void> returnInBackground(AppDatabase db, SharedPreferences prefs, Setting
   final l = lookupL(language.locale);
   final port = reminderPort();
   await ReturnService(db, prefs: prefs, port: port, clock: DateTime.now, settings: () => settings.returns, l: () => l).tick();
+  // сработавшее по месту, пока приложение закрыто, снимается в базе; тревоги ставятся заново
+  await PlaceAlarmService(db, channel: const MethodPlaceChannel(), settings: () => settings.returns, l: () => l).sync().catchError((_) {});
 }
 
 @pragma('vm:entry-point')

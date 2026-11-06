@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Тревога по месту для Android: круг на карте и, у дома и работы, сеть Wi-Fi. Текст готов
 /// заранее: приёмник показывает уведомление сам, даже если приложение выгружено.
@@ -63,8 +66,8 @@ abstract interface class PlaceChannel {
   /// Имя сети Wi-Fi, к которой телефон подключён сейчас, или null.
   Future<String?> currentWifi();
 
-  /// Поставить тревоги вместо прежних.
-  Future<void> sync(List<PlaceAlarm> alarms);
+  /// Поставить тревоги вместо прежних. [channelName] — имя канала уведомлений на языке приложения.
+  Future<void> sync(List<PlaceAlarm> alarms, {String channelName = ''});
 
   /// Какие тревоги сработали с прошлого раза; список после этого пуст.
   Future<List<String>> takeFired();
@@ -84,7 +87,7 @@ class SilentPlaceChannel implements PlaceChannel {
   Future<String?> currentWifi() async => null;
 
   @override
-  Future<void> sync(List<PlaceAlarm> alarms) async {}
+  Future<void> sync(List<PlaceAlarm> alarms, {String channelName = ''}) async {}
 
   @override
   Future<List<String>> takeFired() async => const [];
@@ -116,8 +119,25 @@ class MethodPlaceChannel implements PlaceChannel {
   Future<String?> currentWifi() => _call<String>('currentWifi');
 
   @override
-  Future<void> sync(List<PlaceAlarm> alarms) => _call<void>('sync', [for (final alarm in alarms) alarm.toJson()]);
+  Future<void> sync(List<PlaceAlarm> alarms, {String channelName = ''}) =>
+      _call<void>('sync', {'channel': channelName, 'alarms': [for (final alarm in alarms) alarm.toJson()]});
 
+  /// Сработавшее приёмник кладёт в общие настройки Flutter, а не отдаёт по каналу: фоновая
+  /// задача живёт в своём движке, где этого канала нет, а настройки общие.
   @override
-  Future<List<String>> takeFired() async => (await _call<List<Object?>>('takeFired'))?.whereType<String>().toList() ?? const [];
+  Future<List<String>> takeFired() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final raw = prefs.getString(placeFiredPref);
+    if (raw == null) return const [];
+    await prefs.remove(placeFiredPref);
+    try {
+      return (jsonDecode(raw) as List).whereType<String>().toList();
+    } on FormatException {
+      return const [];
+    }
+  }
 }
+
+/// Что сработало по месту, пока Dart не видел: JSON-список id. Пишет `PlaceAlarms.kt`.
+const placeFiredPref = 'place_fired';

@@ -3340,6 +3340,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'No stores yet: save at least one in Places'**
   String get placesMissingShop;
+
+  /// Канал уведомлений Android: напоминания дома, на работе, в магазине, в точке
+  ///
+  /// In en, this message translates to:
+  /// **'Place reminders'**
+  String get placeChannel;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

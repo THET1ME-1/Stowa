@@ -2052,4 +2052,7 @@ class LRo extends L {
   @override
   String get placesMissingShop =>
       'Încă nu ai magazine: salvează măcar unul în Locuri';
+
+  @override
+  String get placeChannel => 'Mementouri după loc';
 }

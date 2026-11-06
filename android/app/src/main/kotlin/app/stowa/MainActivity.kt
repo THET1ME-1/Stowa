@@ -23,6 +23,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         registerVaultChannel(flutterEngine, this)
+        registerPlaceChannel(flutterEngine, this)
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/launch").apply {
             setMethodCallHandler { call, result ->
                 if (call.method == "initial") {
@@ -41,6 +42,10 @@ class MainActivity : FlutterActivity() {
         channel?.invokeMethod("open", action)
     }
 
-    private fun actionOf(intent: Intent?): String? =
-        intent?.data?.takeIf { it.scheme == "stowa" }?.host
+    // stowa://compose, stowa://voice — виджет; stowa://open?payload=note:… — уведомление по месту
+    private fun actionOf(intent: Intent?): String? {
+        val data = intent?.data?.takeIf { it.scheme == "stowa" } ?: return null
+        if (data.host == "open") return data.getQueryParameter("payload")?.let { "open:$it" }
+        return data.host
+    }
 }

@@ -2035,4 +2035,7 @@ class LEn extends L {
 
   @override
   String get placesMissingShop => 'No stores yet: save at least one in Places';
+
+  @override
+  String get placeChannel => 'Place reminders';
 }

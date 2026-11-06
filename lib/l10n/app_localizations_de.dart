@@ -2040,4 +2040,7 @@ class LDe extends L {
   @override
   String get placesMissingShop =>
       'Noch keine Läden: lege mindestens einen unter Orte fest';
+
+  @override
+  String get placeChannel => 'Ortserinnerungen';
 }

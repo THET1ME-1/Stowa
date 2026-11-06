@@ -2605,5 +2605,9 @@
   "placesMissingShop": "No stores yet: save at least one in Places",
   "@placesMissingShop": {
     "description": "Напоминание в магазине, а магазинов нет"
+  },
+  "placeChannel": "Place reminders",
+  "@placeChannel": {
+    "description": "Канал уведомлений Android: напоминания дома, на работе, в магазине, в точке"
   }
 }

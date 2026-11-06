@@ -254,6 +254,12 @@ final currentPlaceProvider = Provider<Future<PlaceFix?> Function()>((ref) {
   return source.current;
 });
 
+/// Тронули заметки, теги или места — тревоги по месту, может быть, пора переставить.
+final placeChangesProvider = StreamProvider((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.customSelect('SELECT 1', readsFrom: {db.items, db.places, db.itemTags, db.tags}).watch();
+});
+
 /// «Похоже, дом — Ботаника»: где сохраняют ночью и в будни днём.
 final placeGuessProvider = FutureProvider.autoDispose((ref) async => guessHomeAndWork(await ref.watch(placesRepositoryProvider).savedPoints()));
 

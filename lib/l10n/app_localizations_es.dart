@@ -2037,4 +2037,7 @@ class LEs extends L {
   @override
   String get placesMissingShop =>
       'Aún no hay tiendas: guarda al menos una en Lugares';
+
+  @override
+  String get placeChannel => 'Recordatorios por lugar';
 }

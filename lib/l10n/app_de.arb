@@ -290,5 +290,6 @@
   "itemPlaceChange": "Anderer Ort",
   "placesMissingHome": "Zuhause ist noch nicht festgelegt: Stowa erinnert dich, sobald du es unter Orte festlegst",
   "placesMissingWork": "Die Arbeit ist noch nicht festgelegt: Stowa erinnert dich, sobald du sie unter Orte festlegst",
-  "placesMissingShop": "Noch keine Läden: lege mindestens einen unter Orte fest"
+  "placesMissingShop": "Noch keine Läden: lege mindestens einen unter Orte fest",
+  "placeChannel": "Ortserinnerungen"
 }

@@ -2075,4 +2075,7 @@ class LUk extends L {
   @override
   String get placesMissingShop =>
       'Магазинів ще немає: познач хоча б один у «Місцях»';
+
+  @override
+  String get placeChannel => 'Нагадування за місцем';
 }

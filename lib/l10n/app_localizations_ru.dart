@@ -2080,4 +2080,7 @@ class LRu extends L {
   @override
   String get placesMissingShop =>
       'Магазинов ещё нет: отметь хотя бы один в «Местах»';
+
+  @override
+  String get placeChannel => 'Напоминания по месту';
 }

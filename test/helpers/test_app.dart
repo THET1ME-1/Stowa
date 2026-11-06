@@ -142,7 +142,7 @@ class FakePlaceChannel implements PlaceChannel {
   Future<String?> currentWifi() async => wifi;
 
   @override
-  Future<void> sync(List<PlaceAlarm> alarms) async => this.alarms = List.of(alarms);
+  Future<void> sync(List<PlaceAlarm> alarms, {String channelName = ''}) async => this.alarms = List.of(alarms);
 
   @override
   Future<List<String>> takeFired() async {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/models.dart';
 import 'package:stowa/services/launch_actions.dart';
 
 import '../../helpers/test_app.dart';
@@ -22,6 +24,14 @@ void main() {
     // повторный показ клавиатуры идёт через 450 мс после фокуса
     await tester.pump(const Duration(seconds: 1));
   }
+
+  testWidgets('касание уведомления по месту открывает заметку', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Купить кофе', createdAt: world.now, updatedAt: world.now));
+    await open(tester, initial: 'open:note:a');
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Править'), findsOneWidget);
+    expect(find.text('Купить кофе'), findsWidgets);
+  });
 
   bool lineFocused(WidgetTester tester) => tester.widget<EditableText>(find.byType(EditableText).first).focusNode.hasFocus;
 

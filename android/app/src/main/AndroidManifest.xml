@@ -7,6 +7,11 @@
     <!-- где сохранена вещь: дата, место и карта заметок -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- напоминания по месту: Android будит Stowa у точки и показывает имя сети Wi-Fi дома и на работе,
+         только если месту разрешено «всегда»; спрашивается, лишь когда человек включает места -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- голосовое из строки -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- галерея прямо над строкой и подсказка свежего скриншота -->
@@ -82,6 +87,13 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/composer_widget_info" />
+        </receiver>
+        <!-- напоминания по месту: точка, сеть дома и работы; после загрузки тревоги ставятся заново -->
+        <receiver android:exported="false" android:name=".PlaceReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
         </receiver>
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <!-- кнопки «Готово» и «Через час» на уведомлении -->
