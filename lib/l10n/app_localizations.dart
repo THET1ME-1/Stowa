@@ -572,7 +572,7 @@ abstract class L {
   /// Why the folder
   ///
   /// In en, this message translates to:
-  /// **'by item type, offline'**
+  /// **'by note type, offline'**
   String get reasonKind;
 
   /// Почему вещь ляжет без папки: ни правила, ни похожего
@@ -626,7 +626,7 @@ abstract class L {
   /// Count of items
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} item} other{{count} items}}'**
+  /// **'{count, plural, one{{count} note} other{{count} notes}}'**
   String itemsCount(int count);
 
   /// New tag row
@@ -1070,7 +1070,7 @@ abstract class L {
   /// Delete confirmation
   ///
   /// In en, this message translates to:
-  /// **'Delete “{name}”? Its items stay without a folder.'**
+  /// **'Delete “{name}”? Its notes stay without a folder.'**
   String folderDeleteAsk(String name);
 
   /// Toast
@@ -1322,7 +1322,7 @@ abstract class L {
   /// Confirm
   ///
   /// In en, this message translates to:
-  /// **'Remove #{name} from {count, plural, one{{count} item} other{{count} items}}? The items stay.'**
+  /// **'Remove #{name} from {count, plural, one{{count} note} other{{count} notes}}? The notes stay.'**
   String tagDeleteAsk(String name, int count);
 
   /// Toast
@@ -1370,7 +1370,7 @@ abstract class L {
   /// Condition kind
   ///
   /// In en, this message translates to:
-  /// **'item type'**
+  /// **'note type'**
   String get ruleIfKind;
 
   /// Action kind
@@ -1712,7 +1712,7 @@ abstract class L {
   /// Плашка: алгоритм разложил «Без папки» после того, как человек переложил похожее
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} similar item sorted} other{{count} similar items sorted}}'**
+  /// **'{count, plural, one{{count} similar note sorted} other{{count} similar notes sorted}}'**
   String autoSorted(num count);
 
   /// Заголовок блока похожих вещей на странице вещи
@@ -1796,7 +1796,7 @@ abstract class L {
   /// aiStateOffHint
   ///
   /// In en, this message translates to:
-  /// **'Add your own key and items without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.'**
+  /// **'Add your own key and notes without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.'**
   String get aiStateOffHint;
 
   /// aiStateOn
@@ -1814,7 +1814,7 @@ abstract class L {
   /// aiQueued
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} item waiting} other{{count} items waiting}}'**
+  /// **'{count, plural, one{{count} note waiting} other{{count} notes waiting}}'**
   String aiQueued(int count);
 
   /// aiSortNow
@@ -2006,7 +2006,7 @@ abstract class L {
   /// trashHint
   ///
   /// In en, this message translates to:
-  /// **'Deleted items stay here for 30 days, then they are erased with their files.'**
+  /// **'Deleted notes stay here for 30 days, then they are erased with their files.'**
   String get trashHint;
 
   /// trashDaysLeft
@@ -2036,7 +2036,7 @@ abstract class L {
   /// trashPurgeAllAsk
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} item will be erased forever. This can’t be undone.} other{{count} items will be erased forever. This can’t be undone.}}'**
+  /// **'{count, plural, one{{count} note will be erased forever. This can’t be undone.} other{{count} notes will be erased forever. This can’t be undone.}}'**
   String trashPurgeAllAsk(int count);
 
   /// trashRestored
@@ -2066,7 +2066,7 @@ abstract class L {
   /// backupSaveHint
   ///
   /// In en, this message translates to:
-  /// **'All of Stowa in one file: items, folders, tags, rules and files. Your AI key is not included.'**
+  /// **'All of Stowa in one file: notes, folders, tags, rules and files. Your AI key is not included.'**
   String get backupSaveHint;
 
   /// backupRestore
@@ -2078,7 +2078,7 @@ abstract class L {
   /// backupRestoreAsk
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} item from the {date} backup will replace everything you have now.} other{{count} items from the {date} backup will replace everything you have now.}}'**
+  /// **'{count, plural, one{{count} note from the {date} backup will replace everything you have now.} other{{count} notes from the {date} backup will replace everything you have now.}}'**
   String backupRestoreAsk(int count, String date);
 
   /// backupReplace
@@ -2264,13 +2264,13 @@ abstract class L {
   /// selMoved
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} item moved to “{folder}”} other{{count} items moved to “{folder}”}}'**
+  /// **'{count, plural, one{{count} note moved to “{folder}”} other{{count} notes moved to “{folder}”}}'**
   String selMoved(int count, String folder);
 
   /// selDeleted
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} item deleted} other{{count} items deleted}}'**
+  /// **'{count, plural, one{{count} note deleted} other{{count} notes deleted}}'**
   String selDeleted(int count);
 
   /// selTagged
@@ -2324,7 +2324,7 @@ abstract class L {
   /// graphEmpty
   ///
   /// In en, this message translates to:
-  /// **'No links yet. They appear when items start sharing words or the AI links them.'**
+  /// **'No links yet. They appear when notes start sharing words or the AI links them.'**
   String get graphEmpty;
 
   /// graphFailed
@@ -2372,7 +2372,7 @@ abstract class L {
   /// placeSettingHint
   ///
   /// In en, this message translates to:
-  /// **'The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.'**
+  /// **'The place is added after saving and shows on the note page and the map. Coordinates stay on the phone; only a street-name lookup goes out.'**
   String get placeSettingHint;
 
   /// Над найденным: что поиск понял из запроса, например «видео · вчера»
@@ -2624,7 +2624,7 @@ abstract class L {
   /// Пояснение под переключателем 18+
   ///
   /// In en, this message translates to:
-  /// **'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The item and its search stay.'**
+  /// **'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The note and its search stay.'**
   String get adultSettingHint;
 
   /// Вместо описания страницы 18+, пока показ выключен

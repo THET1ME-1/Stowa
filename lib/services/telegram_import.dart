@@ -38,10 +38,13 @@ class TelegramImportError implements Exception {
 /// Перенос «Избранного» из папки выгрузки Telegram Desktop. Каждое сообщение сохраняется
 /// как обычная заметка: правила, угадыватель папки, ИИ, файлы и хранилище работают как всегда.
 class TelegramImport {
-  TelegramImport(this._db, this._capture);
+  TelegramImport(this._db, this._capture, {this.untitled});
 
   final AppDatabase _db;
   final CaptureService _capture;
+
+  /// Подпись фото или файла без текста: «Фото от 12 мая». Её знает экран, а не перенос.
+  final String Function({required String mime, required String fileName, required DateTime at})? untitled;
 
   Future<TelegramImportReport> run(Directory folder, {void Function(int done, int total)? progress}) async {
     final List<ExportedNote> notes;
@@ -85,7 +88,9 @@ class TelegramImport {
           }
           continue;
         }
-        inputs.add(CaptureInput(text: note.text, files: files, at: note.at, here: false, detectReminder: false));
+        final first = files.firstOrNull;
+        final label = first == null ? null : untitled?.call(mime: first.mime, fileName: p.basename(first.path), at: note.at);
+        inputs.add(CaptureInput(text: note.text, files: files, at: note.at, here: false, detectReminder: false, untitled: label));
       }
       if (filled > 0) _capture.files.drain().ignore();
       if (inputs.isNotEmpty) await _capture.captureAll(inputs);

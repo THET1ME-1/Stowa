@@ -42,6 +42,10 @@ void main() {
     expect(titleFor('', fileName: 'PXL_20261103_154512345.MP.jpg'), '');
     expect(titleFor('', fileName: '1730645112345.jpg'), '');
     expect(titleFor('', fileName: 'VID-20261103-WA0007.mp4'), '');
+    // так их называет выгрузка Telegram
+    expect(titleFor('', fileName: 'photo_930@06-11-2026_13-12-01.jpg'), '');
+    expect(titleFor('', fileName: 'audio_1@12-05-2023_10-00-00.ogg'), '');
+    expect(titleFor('', fileName: 'video_2@12-05-2023_10-00-00.mp4'), '');
     expect(titleFor('', fileName: 'Договор аренды.pdf'), 'Договор аренды');
     expect(titleFor('', fileName: 'отчёт по лабе 3.docx'), 'Отчёт по лабе 3');
   });

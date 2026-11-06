@@ -294,7 +294,7 @@ class LEn extends L {
   }
 
   @override
-  String get reasonKind => 'by item type, offline';
+  String get reasonKind => 'by note type, offline';
 
   @override
   String get reasonNone =>
@@ -326,8 +326,8 @@ class LEn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count notes',
+      one: '$count note',
     );
     return '$_temp0';
   }
@@ -571,7 +571,7 @@ class LEn extends L {
 
   @override
   String folderDeleteAsk(String name) {
-    return 'Delete “$name”? Its items stay without a folder.';
+    return 'Delete “$name”? Its notes stay without a folder.';
   }
 
   @override
@@ -707,10 +707,10 @@ class LEn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count notes',
+      one: '$count note',
     );
-    return 'Remove #$name from $_temp0? The items stay.';
+    return 'Remove #$name from $_temp0? The notes stay.';
   }
 
   @override
@@ -737,7 +737,7 @@ class LEn extends L {
   String get ruleIfWord => 'has word';
 
   @override
-  String get ruleIfKind => 'item type';
+  String get ruleIfKind => 'note type';
 
   @override
   String get ruleThenFolder => 'into folder';
@@ -935,8 +935,8 @@ class LEn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count similar items sorted',
-      one: '$count similar item sorted',
+      other: '$count similar notes sorted',
+      one: '$count similar note sorted',
     );
     return '$_temp0';
   }
@@ -988,7 +988,7 @@ class LEn extends L {
 
   @override
   String get aiStateOffHint =>
-      'Add your own key and items without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.';
+      'Add your own key and notes without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.';
 
   @override
   String get aiStateOn => 'On';
@@ -1003,8 +1003,8 @@ class LEn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items waiting',
-      one: '$count item waiting',
+      other: '$count notes waiting',
+      one: '$count note waiting',
     );
     return '$_temp0';
   }
@@ -1110,7 +1110,7 @@ class LEn extends L {
 
   @override
   String get trashHint =>
-      'Deleted items stay here for 30 days, then they are erased with their files.';
+      'Deleted notes stay here for 30 days, then they are erased with their files.';
 
   @override
   String trashDaysLeft(int count) {
@@ -1139,8 +1139,8 @@ class LEn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items will be erased forever. This can’t be undone.',
-      one: '$count item will be erased forever. This can’t be undone.',
+      other: '$count notes will be erased forever. This can’t be undone.',
+      one: '$count note will be erased forever. This can’t be undone.',
     );
     return '$_temp0';
   }
@@ -1161,7 +1161,7 @@ class LEn extends L {
 
   @override
   String get backupSaveHint =>
-      'All of Stowa in one file: items, folders, tags, rules and files. Your AI key is not included.';
+      'All of Stowa in one file: notes, folders, tags, rules and files. Your AI key is not included.';
 
   @override
   String get backupRestore => 'Restore from backup';
@@ -1172,9 +1172,9 @@ class LEn extends L {
       count,
       locale: localeName,
       other:
-          '$count items from the $date backup will replace everything you have now.',
+          '$count notes from the $date backup will replace everything you have now.',
       one:
-          '$count item from the $date backup will replace everything you have now.',
+          '$count note from the $date backup will replace everything you have now.',
     );
     return '$_temp0';
   }
@@ -1288,8 +1288,8 @@ class LEn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items moved to “$folder”',
-      one: '$count item moved to “$folder”',
+      other: '$count notes moved to “$folder”',
+      one: '$count note moved to “$folder”',
     );
     return '$_temp0';
   }
@@ -1299,8 +1299,8 @@ class LEn extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items deleted',
-      one: '$count item deleted',
+      other: '$count notes deleted',
+      one: '$count note deleted',
     );
     return '$_temp0';
   }
@@ -1335,7 +1335,7 @@ class LEn extends L {
 
   @override
   String get graphEmpty =>
-      'No links yet. They appear when items start sharing words or the AI links them.';
+      'No links yet. They appear when notes start sharing words or the AI links them.';
 
   @override
   String get graphFailed => 'The graph didn’t build';
@@ -1369,7 +1369,7 @@ class LEn extends L {
 
   @override
   String get placeSettingHint =>
-      'The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.';
+      'The place is added after saving and shows on the note page and the map. Coordinates stay on the phone; only a street-name lookup goes out.';
 
   @override
   String panelLooking(Object what) {
@@ -1533,7 +1533,7 @@ class LEn extends L {
 
   @override
   String get adultSettingHint =>
-      'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The item and its search stay.';
+      'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The note and its search stay.';
 
   @override
   String get adultHidden =>

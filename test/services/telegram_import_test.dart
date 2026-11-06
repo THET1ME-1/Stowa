@@ -69,6 +69,19 @@ void main() {
     expect(notes.last.kind, ItemKind.image);
   });
 
+  test('фото без подписи получает подпись от экрана, а не имя файла Telegram', () async {
+    await Directory(p.join(export.path, 'photos')).create();
+    await File(p.join(export.path, 'photos', 'photo_930@06-11-2026_13-12-01.jpg')).writeAsBytes(List.filled(2048, 1));
+    await exportWith([message(1, 1683885600, '', {'photo': 'photos/photo_930@06-11-2026_13-12-01.jpg'})]);
+    final asked = <(String, DateTime)>[];
+    await TelegramImport(db, capture, untitled: ({required mime, required fileName, required at}) {
+      asked.add((mime, at));
+      return 'Фото от 12 мая';
+    }).run(export);
+    expect((await db.select(db.items).getSingle()).title, 'Фото от 12 мая');
+    expect(asked, [('image/jpeg', DateTime.fromMillisecondsSinceEpoch(1683885600 * 1000))]);
+  });
+
   test('дата в тексте сообщения напоминанием не становится', () async {
     await exportWith([message(1, 1683885600, 'Завтра в 10 стоматолог')]);
     await import.run(export);

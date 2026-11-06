@@ -294,7 +294,7 @@ class LEs extends L {
   }
 
   @override
-  String get reasonKind => 'by item type, offline';
+  String get reasonKind => 'by note type, offline';
 
   @override
   String get reasonNone =>
@@ -326,8 +326,8 @@ class LEs extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count notes',
+      one: '$count note',
     );
     return '$_temp0';
   }
@@ -571,7 +571,7 @@ class LEs extends L {
 
   @override
   String folderDeleteAsk(String name) {
-    return 'Delete “$name”? Its items stay without a folder.';
+    return 'Delete “$name”? Its notes stay without a folder.';
   }
 
   @override
@@ -707,10 +707,10 @@ class LEs extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count notes',
+      one: '$count note',
     );
-    return 'Remove #$name from $_temp0? The items stay.';
+    return 'Remove #$name from $_temp0? The notes stay.';
   }
 
   @override
@@ -737,7 +737,7 @@ class LEs extends L {
   String get ruleIfWord => 'has word';
 
   @override
-  String get ruleIfKind => 'item type';
+  String get ruleIfKind => 'note type';
 
   @override
   String get ruleThenFolder => 'into folder';

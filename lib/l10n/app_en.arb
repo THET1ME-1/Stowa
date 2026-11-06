@@ -366,7 +366,7 @@
       }
     }
   },
-  "reasonKind": "by item type, offline",
+  "reasonKind": "by note type, offline",
   "@reasonKind": {
     "description": "Why the folder"
   },
@@ -402,7 +402,7 @@
   "@actionAppend": {
     "description": "Add the thought to a similar note"
   },
-  "itemsCount": "{count, plural, one{{count} item} other{{count} items}}",
+  "itemsCount": "{count, plural, one{{count} note} other{{count} notes}}",
   "@itemsCount": {
     "description": "Count of items",
     "placeholders": {
@@ -751,7 +751,7 @@
   "@cancel": {
     "description": "Button"
   },
-  "folderDeleteAsk": "Delete “{name}”? Its items stay without a folder.",
+  "folderDeleteAsk": "Delete “{name}”? Its notes stay without a folder.",
   "@folderDeleteAsk": {
     "description": "Delete confirmation",
     "placeholders": {
@@ -929,7 +929,7 @@
   "@tagDelete": {
     "description": "Button"
   },
-  "tagDeleteAsk": "Remove #{name} from {count, plural, one{{count} item} other{{count} items}}? The items stay.",
+  "tagDeleteAsk": "Remove #{name} from {count, plural, one{{count} note} other{{count} notes}}? The notes stay.",
   "@tagDeleteAsk": {
     "description": "Confirm",
     "placeholders": {
@@ -974,7 +974,7 @@
   "@ruleIfWord": {
     "description": "Condition kind"
   },
-  "ruleIfKind": "item type",
+  "ruleIfKind": "note type",
   "@ruleIfKind": {
     "description": "Condition kind"
   },
@@ -1232,7 +1232,7 @@
   "@voiceSpeed": {
     "description": "Подсказка кнопки скорости голосового"
   },
-  "autoSorted": "{count, plural, one{{count} similar item sorted} other{{count} similar items sorted}}",
+  "autoSorted": "{count, plural, one{{count} similar note sorted} other{{count} similar notes sorted}}",
   "@autoSorted": {
     "description": "Плашка: алгоритм разложил «Без папки» после того, как человек переложил похожее"
   },
@@ -1293,7 +1293,7 @@
   "@aiStateOff": {
     "description": "aiStateOff"
   },
-  "aiStateOffHint": "Add your own key and items without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.",
+  "aiStateOffHint": "Add your own key and notes without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.",
   "@aiStateOffHint": {
     "description": "aiStateOffHint"
   },
@@ -1310,7 +1310,7 @@
       }
     }
   },
-  "aiQueued": "{count, plural, one{{count} item waiting} other{{count} items waiting}}",
+  "aiQueued": "{count, plural, one{{count} note waiting} other{{count} notes waiting}}",
   "@aiQueued": {
     "description": "aiQueued",
     "placeholders": {
@@ -1453,7 +1453,7 @@
   "@trashEmpty": {
     "description": "trashEmpty"
   },
-  "trashHint": "Deleted items stay here for 30 days, then they are erased with their files.",
+  "trashHint": "Deleted notes stay here for 30 days, then they are erased with their files.",
   "@trashHint": {
     "description": "trashHint"
   },
@@ -1483,7 +1483,7 @@
   "@trashPurgeAll": {
     "description": "trashPurgeAll"
   },
-  "trashPurgeAllAsk": "{count, plural, one{{count} item will be erased forever. This can’t be undone.} other{{count} items will be erased forever. This can’t be undone.}}",
+  "trashPurgeAllAsk": "{count, plural, one{{count} note will be erased forever. This can’t be undone.} other{{count} notes will be erased forever. This can’t be undone.}}",
   "@trashPurgeAllAsk": {
     "description": "trashPurgeAllAsk",
     "placeholders": {
@@ -1513,7 +1513,7 @@
   "@backupSave": {
     "description": "backupSave"
   },
-  "backupSaveHint": "All of Stowa in one file: items, folders, tags, rules and files. Your AI key is not included.",
+  "backupSaveHint": "All of Stowa in one file: notes, folders, tags, rules and files. Your AI key is not included.",
   "@backupSaveHint": {
     "description": "backupSaveHint"
   },
@@ -1521,7 +1521,7 @@
   "@backupRestore": {
     "description": "backupRestore"
   },
-  "backupRestoreAsk": "{count, plural, one{{count} item from the {date} backup will replace everything you have now.} other{{count} items from the {date} backup will replace everything you have now.}}",
+  "backupRestoreAsk": "{count, plural, one{{count} note from the {date} backup will replace everything you have now.} other{{count} notes from the {date} backup will replace everything you have now.}}",
   "@backupRestoreAsk": {
     "description": "backupRestoreAsk",
     "placeholders": {
@@ -1668,7 +1668,7 @@
   "@selDelete": {
     "description": "selDelete"
   },
-  "selMoved": "{count, plural, one{{count} item moved to “{folder}”} other{{count} items moved to “{folder}”}}",
+  "selMoved": "{count, plural, one{{count} note moved to “{folder}”} other{{count} notes moved to “{folder}”}}",
   "@selMoved": {
     "description": "selMoved",
     "placeholders": {
@@ -1680,7 +1680,7 @@
       }
     }
   },
-  "selDeleted": "{count, plural, one{{count} item deleted} other{{count} items deleted}}",
+  "selDeleted": "{count, plural, one{{count} note deleted} other{{count} notes deleted}}",
   "@selDeleted": {
     "description": "selDeleted",
     "placeholders": {
@@ -1731,7 +1731,7 @@
   "@graphTitle": {
     "description": "graphTitle"
   },
-  "graphEmpty": "No links yet. They appear when items start sharing words or the AI links them.",
+  "graphEmpty": "No links yet. They appear when notes start sharing words or the AI links them.",
   "@graphEmpty": {
     "description": "graphEmpty"
   },
@@ -1768,7 +1768,7 @@
   "@placeSetting": {
     "description": "placeSetting"
   },
-  "placeSettingHint": "The place is added after saving and shows on the item page and the map. Coordinates stay on the phone; only a street-name lookup goes out.",
+  "placeSettingHint": "The place is added after saving and shows on the note page and the map. Coordinates stay on the phone; only a street-name lookup goes out.",
   "@placeSettingHint": {
     "description": "placeSettingHint"
   },
@@ -1936,7 +1936,7 @@
   "@adultSetting": {
     "description": "Переключатель в настройках: показывать ли обложки и описания страниц для взрослых"
   },
-  "adultSettingHint": "Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The item and its search stay.",
+  "adultSettingHint": "Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The note and its search stay.",
   "@adultSettingHint": {
     "description": "Пояснение под переключателем 18+"
   },

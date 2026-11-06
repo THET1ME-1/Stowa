@@ -5,9 +5,9 @@ final _inlineTag = RegExp(r'(?<![\p{L}\p{N}_#])#[\p{L}_][\p{L}\p{N}_]*', unicode
 final _url = RegExp(r'(?:https?://|www\.)\S+', caseSensitive: false);
 final _danglingPunctuation = RegExp(r'[\s:—–-]+$');
 
-// имена, которые придумала камера или телефон, а не человек
+// имена, которые придумала камера или телефон, а не человек; «photo_930@06-11-2026» — выгрузка Telegram
 final _machineName = RegExp(
-  r'^(img|vid|pxl|dsc|dcim|mvimg|screenshot|скриншот|снимок экрана|photo|image|video|signal|telegram|whatsapp|photo_|pic|wp)[\s_\-]?[\w\-\s.]*\d{4}|^[\d_\-\s.]+$',
+  r'^(img|vid|pxl|dsc|dcim|mvimg|screenshot|скриншот|снимок экрана|photo|image|video|audio|signal|telegram|whatsapp|photo_|pic|wp)[\s_\-]?[\w\-\s.@]*\d{4}|^[\d_\-\s.]+$',
   caseSensitive: false,
 );
 final _screenshotName = RegExp(r'^(screenshot|скриншот|снимок экрана|screen shot)', caseSensitive: false);
