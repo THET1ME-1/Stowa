@@ -74,3 +74,28 @@ enum FactKind {
 /// similar — связь по общим словам или сайту, её считает телефон; в базе
 /// хранится только отклонённая, чтобы больше её не предлагать.
 enum LinkSource { manual, ai, similar }
+
+/// Отмеченное место в настройках «Места»: дом, работа или магазин.
+enum PlaceKind { home, work, shop }
+
+/// Где напомнить: в точке (здесь, на карте), дома, на работе, в любом отмеченном магазине.
+enum PlaceReminderKind { point, home, work, shop }
+
+/// Напоминание по месту. Точка несёт координаты и название, остальные берут место из «Мест».
+class PlaceReminder {
+  const PlaceReminder(this.kind, {this.latitude, this.longitude, this.name});
+
+  final PlaceReminderKind kind;
+  final double? latitude;
+  final double? longitude;
+  final String? name;
+
+  @override
+  bool operator ==(Object other) => other is PlaceReminder && other.kind == kind && other.latitude == latitude && other.longitude == longitude && other.name == name;
+
+  @override
+  int get hashCode => Object.hash(kind, latitude, longitude, name);
+
+  @override
+  String toString() => 'PlaceReminder($kind, $latitude, $longitude, $name)';
+}

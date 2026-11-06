@@ -29,7 +29,8 @@ String normalizeSearchText(String text) => _ftsSwaps.fold(text, (value, swap) =>
 // поля вещи, которые идут в файл хранилища: их правка ставит вещь в очередь записи
 const _vaultItemColumns =
     'kind, title, body, url, folder_id, sorted_by, cover_path, preview_text, preview_site, preview_author, '
-    'duration_seconds, latitude, longitude, place_name, reminder_at, deleted_at, created_at, updated_at';
+    'duration_seconds, latitude, longitude, place_name, reminder_at, remind_place, remind_latitude, remind_longitude, remind_place_name, '
+    'deleted_at, created_at, updated_at';
 
 // всё, что пишется в .stowa/*.json: таблица → цель очереди
 const _vaultMetaTables = {
@@ -40,9 +41,10 @@ const _vaultMetaTables = {
   'word_stats': 'meta:learned',
   'corrections': 'meta:learned',
   'canvas_positions': 'meta:canvas',
+  'places': 'meta:places',
 };
 
-const _vaultMetaTargets = ['meta:folders', 'meta:tags', 'meta:rules', 'meta:links', 'meta:learned', 'meta:canvas'];
+const _vaultMetaTargets = ['meta:folders', 'meta:tags', 'meta:rules', 'meta:links', 'meta:learned', 'meta:canvas', 'meta:places'];
 
 const _notImporting = "NOT EXISTS (SELECT 1 FROM vault_flags WHERE name = 'importing')";
 
@@ -52,7 +54,7 @@ const _vaultUpsert = 'ON CONFLICT(target) DO UPDATE SET version = version + 1, c
 String _vaultEnqueue(String target) => 'INSERT INTO vault_queue (target) VALUES ($target) $_vaultUpsert;';
 
 @DriftDatabase(
-  tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions, VaultQueue, VaultFiles, VaultFlags],
+  tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions, VaultQueue, VaultFiles, VaultFlags, Places],
 )
 class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
@@ -63,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -104,6 +106,14 @@ class AppDatabase extends _$AppDatabase {
         await _createSearch();
         await customStatement('INSERT INTO items_fts(rowid, $_ftsColumns) SELECT rowid, ${_ftsValues('items')} FROM items');
       }
+      // 8: открыта ли заметка, напоминание по месту и места. До очереди хранилища: у базы
+      // старше 7 её триггеры ставятся ниже и уже ссылаются на эти поля и таблицу
+      if (from < 8) {
+        for (final column in <GeneratedColumn<Object>>[items.openedAt, items.remindPlace, items.remindLatitude, items.remindLongitude, items.remindPlaceName]) {
+          await migrator.addColumn(items, column);
+        }
+        await migrator.createTable(places);
+      }
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
         // до очереди: файлы хранилища сразу пишутся с целым текстом
@@ -113,6 +123,14 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(vaultFlags);
         await _createVaultTriggers();
         await enqueueWholeVault();
+      }
+      // 8 у базы с очередью: триггер правки заметки знает новые поля, места — свой meta:places
+      if (from == 7) {
+        await customStatement('DROP TRIGGER IF EXISTS vault_items_update');
+        await customStatement("CREATE TRIGGER vault_items_update AFTER UPDATE OF $_vaultItemColumns ON items WHEN $_notImporting BEGIN ${_vaultEnqueue("'item:' || new.id")} END");
+        for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+          await customStatement("CREATE TRIGGER vault_places_${event.toLowerCase()}_meta AFTER $event ON places WHEN $_notImporting BEGIN ${_vaultEnqueue("'meta:places'")} END");
+        }
       }
     },
     beforeOpen: (details) async {

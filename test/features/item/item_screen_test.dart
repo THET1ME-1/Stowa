@@ -30,6 +30,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('открытая заметка запоминает, когда её открыли, а время правки не трогает', (tester) async {
+    await open(tester, body: 'Мысль', title: 'Мысль');
+    final item = await world.db.select(world.db.items).getSingle();
+    expect(item.openedAt, world.now);
+    expect(item.updatedAt, world.now);
+    expect(await world.db.select(world.db.vaultQueue).get(), everyElement(predicate<VaultQueueData>((row) => row.target != 'item:a' || row.version == 1)));
+  });
+
   testWidgets('у задачи видна галочка, касание её ставит', (tester) async {
     await open(tester, body: '- [ ] купить молоко', title: 'Купить молоко');
     expect(find.text('купить молоко'), findsOneWidget);

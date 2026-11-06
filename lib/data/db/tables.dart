@@ -35,6 +35,17 @@ class Items extends Table {
   TextColumn get placeName => text().nullable()();
   DateTimeColumn get reminderAt => dateTime().nullable()();
 
+  /// Напоминание по месту (схема v8): вид и, у точки, координаты с названием.
+  /// Срабатывает один раз при входе в круг и снимается, как «Готово».
+  TextColumn get remindPlace => textEnum<PlaceReminderKind>().nullable()();
+  RealColumn get remindLatitude => real().nullable()();
+  RealColumn get remindLongitude => real().nullable()();
+  TextColumn get remindPlaceName => text().nullable()();
+
+  /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
+  /// В файл хранилища не идёт — это след чтения, а не заметка.
+  DateTimeColumn get openedAt => dateTime().nullable()();
+
   /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
   TextColumn get factsText => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
@@ -127,6 +138,27 @@ class VaultQueue extends Table {
 
   @override
   Set<Column> get primaryKey => {target};
+}
+
+/// Отмеченные места (v8): дом, работа, магазины. Дом и работа узнаются ещё и по своей сети Wi-Fi.
+class Places extends Table {
+  TextColumn get id => text()();
+  TextColumn get kind => textEnum<PlaceKind>()();
+
+  /// «Дом», «Linella на Ботанике» — что человек увидит в уведомлении.
+  TextColumn get name => text()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+
+  /// Круг срабатывания, метры: у телефонного GPS разброс около 150.
+  IntColumn get radius => integer().withDefault(const Constant(150))();
+
+  /// Имя сети Wi-Fi дома или на работе, если его удалось прочитать.
+  TextColumn get wifi => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 /// Где лежит файл вещи и каким он был после нашей последней записи или чтения:

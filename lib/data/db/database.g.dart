@@ -217,6 +217,59 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<PlaceReminderKind?, String>
+  remindPlace = GeneratedColumn<String>(
+    'remind_place',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<PlaceReminderKind?>($ItemsTable.$converterremindPlacen);
+  static const VerificationMeta _remindLatitudeMeta = const VerificationMeta(
+    'remindLatitude',
+  );
+  @override
+  late final GeneratedColumn<double> remindLatitude = GeneratedColumn<double>(
+    'remind_latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remindLongitudeMeta = const VerificationMeta(
+    'remindLongitude',
+  );
+  @override
+  late final GeneratedColumn<double> remindLongitude = GeneratedColumn<double>(
+    'remind_longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remindPlaceNameMeta = const VerificationMeta(
+    'remindPlaceName',
+  );
+  @override
+  late final GeneratedColumn<String> remindPlaceName = GeneratedColumn<String>(
+    'remind_place_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _openedAtMeta = const VerificationMeta(
+    'openedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openedAt = GeneratedColumn<DateTime>(
+    'opened_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _factsTextMeta = const VerificationMeta(
     'factsText',
   );
@@ -284,6 +337,11 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     longitude,
     placeName,
     reminderAt,
+    remindPlace,
+    remindLatitude,
+    remindLongitude,
+    remindPlaceName,
+    openedAt,
     factsText,
     createdAt,
     updatedAt,
@@ -419,6 +477,39 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         reminderAt.isAcceptableOrUnknown(data['reminder_at']!, _reminderAtMeta),
       );
     }
+    if (data.containsKey('remind_latitude')) {
+      context.handle(
+        _remindLatitudeMeta,
+        remindLatitude.isAcceptableOrUnknown(
+          data['remind_latitude']!,
+          _remindLatitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('remind_longitude')) {
+      context.handle(
+        _remindLongitudeMeta,
+        remindLongitude.isAcceptableOrUnknown(
+          data['remind_longitude']!,
+          _remindLongitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('remind_place_name')) {
+      context.handle(
+        _remindPlaceNameMeta,
+        remindPlaceName.isAcceptableOrUnknown(
+          data['remind_place_name']!,
+          _remindPlaceNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('opened_at')) {
+      context.handle(
+        _openedAtMeta,
+        openedAt.isAcceptableOrUnknown(data['opened_at']!, _openedAtMeta),
+      );
+    }
     if (data.containsKey('facts_text')) {
       context.handle(
         _factsTextMeta,
@@ -542,6 +633,28 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}reminder_at'],
       ),
+      remindPlace: $ItemsTable.$converterremindPlacen.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}remind_place'],
+        ),
+      ),
+      remindLatitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}remind_latitude'],
+      ),
+      remindLongitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}remind_longitude'],
+      ),
+      remindPlaceName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remind_place_name'],
+      ),
+      openedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}opened_at'],
+      ),
       factsText: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}facts_text'],
@@ -572,6 +685,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       const EnumNameConverter<SortState>(SortState.values);
   static JsonTypeConverter2<SortedBy, String, String> $convertersortedBy =
       const EnumNameConverter<SortedBy>(SortedBy.values);
+  static JsonTypeConverter2<PlaceReminderKind, String, String>
+  $converterremindPlace = const EnumNameConverter<PlaceReminderKind>(
+    PlaceReminderKind.values,
+  );
+  static JsonTypeConverter2<PlaceReminderKind?, String?, String?>
+  $converterremindPlacen = JsonTypeConverter2.asNullable($converterremindPlace);
 }
 
 class Item extends DataClass implements Insertable<Item> {
@@ -606,6 +725,17 @@ class Item extends DataClass implements Insertable<Item> {
   final String? placeName;
   final DateTime? reminderAt;
 
+  /// Напоминание по месту (схема v8): вид и, у точки, координаты с названием.
+  /// Срабатывает один раз при входе в круг и снимается, как «Готово».
+  final PlaceReminderKind? remindPlace;
+  final double? remindLatitude;
+  final double? remindLongitude;
+  final String? remindPlaceName;
+
+  /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
+  /// В файл хранилища не идёт — это след чтения, а не заметка.
+  final DateTime? openedAt;
+
   /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
   final String factsText;
   final DateTime createdAt;
@@ -632,6 +762,11 @@ class Item extends DataClass implements Insertable<Item> {
     this.longitude,
     this.placeName,
     this.reminderAt,
+    this.remindPlace,
+    this.remindLatitude,
+    this.remindLongitude,
+    this.remindPlaceName,
+    this.openedAt,
     required this.factsText,
     required this.createdAt,
     required this.updatedAt,
@@ -698,6 +833,23 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || reminderAt != null) {
       map['reminder_at'] = Variable<DateTime>(reminderAt);
     }
+    if (!nullToAbsent || remindPlace != null) {
+      map['remind_place'] = Variable<String>(
+        $ItemsTable.$converterremindPlacen.toSql(remindPlace),
+      );
+    }
+    if (!nullToAbsent || remindLatitude != null) {
+      map['remind_latitude'] = Variable<double>(remindLatitude);
+    }
+    if (!nullToAbsent || remindLongitude != null) {
+      map['remind_longitude'] = Variable<double>(remindLongitude);
+    }
+    if (!nullToAbsent || remindPlaceName != null) {
+      map['remind_place_name'] = Variable<String>(remindPlaceName);
+    }
+    if (!nullToAbsent || openedAt != null) {
+      map['opened_at'] = Variable<DateTime>(openedAt);
+    }
     map['facts_text'] = Variable<String>(factsText);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -755,6 +907,21 @@ class Item extends DataClass implements Insertable<Item> {
       reminderAt: reminderAt == null && nullToAbsent
           ? const Value.absent()
           : Value(reminderAt),
+      remindPlace: remindPlace == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindPlace),
+      remindLatitude: remindLatitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindLatitude),
+      remindLongitude: remindLongitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindLongitude),
+      remindPlaceName: remindPlaceName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindPlaceName),
+      openedAt: openedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openedAt),
       factsText: Value(factsText),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -796,6 +963,13 @@ class Item extends DataClass implements Insertable<Item> {
       longitude: serializer.fromJson<double?>(json['longitude']),
       placeName: serializer.fromJson<String?>(json['placeName']),
       reminderAt: serializer.fromJson<DateTime?>(json['reminderAt']),
+      remindPlace: $ItemsTable.$converterremindPlacen.fromJson(
+        serializer.fromJson<String?>(json['remindPlace']),
+      ),
+      remindLatitude: serializer.fromJson<double?>(json['remindLatitude']),
+      remindLongitude: serializer.fromJson<double?>(json['remindLongitude']),
+      remindPlaceName: serializer.fromJson<String?>(json['remindPlaceName']),
+      openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
       factsText: serializer.fromJson<String>(json['factsText']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -832,6 +1006,13 @@ class Item extends DataClass implements Insertable<Item> {
       'longitude': serializer.toJson<double?>(longitude),
       'placeName': serializer.toJson<String?>(placeName),
       'reminderAt': serializer.toJson<DateTime?>(reminderAt),
+      'remindPlace': serializer.toJson<String?>(
+        $ItemsTable.$converterremindPlacen.toJson(remindPlace),
+      ),
+      'remindLatitude': serializer.toJson<double?>(remindLatitude),
+      'remindLongitude': serializer.toJson<double?>(remindLongitude),
+      'remindPlaceName': serializer.toJson<String?>(remindPlaceName),
+      'openedAt': serializer.toJson<DateTime?>(openedAt),
       'factsText': serializer.toJson<String>(factsText),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -860,6 +1041,11 @@ class Item extends DataClass implements Insertable<Item> {
     Value<double?> longitude = const Value.absent(),
     Value<String?> placeName = const Value.absent(),
     Value<DateTime?> reminderAt = const Value.absent(),
+    Value<PlaceReminderKind?> remindPlace = const Value.absent(),
+    Value<double?> remindLatitude = const Value.absent(),
+    Value<double?> remindLongitude = const Value.absent(),
+    Value<String?> remindPlaceName = const Value.absent(),
+    Value<DateTime?> openedAt = const Value.absent(),
     String? factsText,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -891,6 +1077,17 @@ class Item extends DataClass implements Insertable<Item> {
     longitude: longitude.present ? longitude.value : this.longitude,
     placeName: placeName.present ? placeName.value : this.placeName,
     reminderAt: reminderAt.present ? reminderAt.value : this.reminderAt,
+    remindPlace: remindPlace.present ? remindPlace.value : this.remindPlace,
+    remindLatitude: remindLatitude.present
+        ? remindLatitude.value
+        : this.remindLatitude,
+    remindLongitude: remindLongitude.present
+        ? remindLongitude.value
+        : this.remindLongitude,
+    remindPlaceName: remindPlaceName.present
+        ? remindPlaceName.value
+        : this.remindPlaceName,
+    openedAt: openedAt.present ? openedAt.value : this.openedAt,
     factsText: factsText ?? this.factsText,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -932,6 +1129,19 @@ class Item extends DataClass implements Insertable<Item> {
       reminderAt: data.reminderAt.present
           ? data.reminderAt.value
           : this.reminderAt,
+      remindPlace: data.remindPlace.present
+          ? data.remindPlace.value
+          : this.remindPlace,
+      remindLatitude: data.remindLatitude.present
+          ? data.remindLatitude.value
+          : this.remindLatitude,
+      remindLongitude: data.remindLongitude.present
+          ? data.remindLongitude.value
+          : this.remindLongitude,
+      remindPlaceName: data.remindPlaceName.present
+          ? data.remindPlaceName.value
+          : this.remindPlaceName,
+      openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       factsText: data.factsText.present ? data.factsText.value : this.factsText,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -962,6 +1172,11 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('longitude: $longitude, ')
           ..write('placeName: $placeName, ')
           ..write('reminderAt: $reminderAt, ')
+          ..write('remindPlace: $remindPlace, ')
+          ..write('remindLatitude: $remindLatitude, ')
+          ..write('remindLongitude: $remindLongitude, ')
+          ..write('remindPlaceName: $remindPlaceName, ')
+          ..write('openedAt: $openedAt, ')
           ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -992,6 +1207,11 @@ class Item extends DataClass implements Insertable<Item> {
     longitude,
     placeName,
     reminderAt,
+    remindPlace,
+    remindLatitude,
+    remindLongitude,
+    remindPlaceName,
+    openedAt,
     factsText,
     createdAt,
     updatedAt,
@@ -1021,6 +1241,11 @@ class Item extends DataClass implements Insertable<Item> {
           other.longitude == this.longitude &&
           other.placeName == this.placeName &&
           other.reminderAt == this.reminderAt &&
+          other.remindPlace == this.remindPlace &&
+          other.remindLatitude == this.remindLatitude &&
+          other.remindLongitude == this.remindLongitude &&
+          other.remindPlaceName == this.remindPlaceName &&
+          other.openedAt == this.openedAt &&
           other.factsText == this.factsText &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -1048,6 +1273,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<double?> longitude;
   final Value<String?> placeName;
   final Value<DateTime?> reminderAt;
+  final Value<PlaceReminderKind?> remindPlace;
+  final Value<double?> remindLatitude;
+  final Value<double?> remindLongitude;
+  final Value<String?> remindPlaceName;
+  final Value<DateTime?> openedAt;
   final Value<String> factsText;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1074,6 +1304,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.longitude = const Value.absent(),
     this.placeName = const Value.absent(),
     this.reminderAt = const Value.absent(),
+    this.remindPlace = const Value.absent(),
+    this.remindLatitude = const Value.absent(),
+    this.remindLongitude = const Value.absent(),
+    this.remindPlaceName = const Value.absent(),
+    this.openedAt = const Value.absent(),
     this.factsText = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1101,6 +1336,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.longitude = const Value.absent(),
     this.placeName = const Value.absent(),
     this.reminderAt = const Value.absent(),
+    this.remindPlace = const Value.absent(),
+    this.remindLatitude = const Value.absent(),
+    this.remindLongitude = const Value.absent(),
+    this.remindPlaceName = const Value.absent(),
+    this.openedAt = const Value.absent(),
     this.factsText = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -1132,6 +1372,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<double>? longitude,
     Expression<String>? placeName,
     Expression<DateTime>? reminderAt,
+    Expression<String>? remindPlace,
+    Expression<double>? remindLatitude,
+    Expression<double>? remindLongitude,
+    Expression<String>? remindPlaceName,
+    Expression<DateTime>? openedAt,
     Expression<String>? factsText,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1159,6 +1404,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (longitude != null) 'longitude': longitude,
       if (placeName != null) 'place_name': placeName,
       if (reminderAt != null) 'reminder_at': reminderAt,
+      if (remindPlace != null) 'remind_place': remindPlace,
+      if (remindLatitude != null) 'remind_latitude': remindLatitude,
+      if (remindLongitude != null) 'remind_longitude': remindLongitude,
+      if (remindPlaceName != null) 'remind_place_name': remindPlaceName,
+      if (openedAt != null) 'opened_at': openedAt,
       if (factsText != null) 'facts_text': factsText,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1188,6 +1438,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<double?>? longitude,
     Value<String?>? placeName,
     Value<DateTime?>? reminderAt,
+    Value<PlaceReminderKind?>? remindPlace,
+    Value<double?>? remindLatitude,
+    Value<double?>? remindLongitude,
+    Value<String?>? remindPlaceName,
+    Value<DateTime?>? openedAt,
     Value<String>? factsText,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1215,6 +1470,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       longitude: longitude ?? this.longitude,
       placeName: placeName ?? this.placeName,
       reminderAt: reminderAt ?? this.reminderAt,
+      remindPlace: remindPlace ?? this.remindPlace,
+      remindLatitude: remindLatitude ?? this.remindLatitude,
+      remindLongitude: remindLongitude ?? this.remindLongitude,
+      remindPlaceName: remindPlaceName ?? this.remindPlaceName,
+      openedAt: openedAt ?? this.openedAt,
       factsText: factsText ?? this.factsText,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1292,6 +1552,23 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (reminderAt.present) {
       map['reminder_at'] = Variable<DateTime>(reminderAt.value);
     }
+    if (remindPlace.present) {
+      map['remind_place'] = Variable<String>(
+        $ItemsTable.$converterremindPlacen.toSql(remindPlace.value),
+      );
+    }
+    if (remindLatitude.present) {
+      map['remind_latitude'] = Variable<double>(remindLatitude.value);
+    }
+    if (remindLongitude.present) {
+      map['remind_longitude'] = Variable<double>(remindLongitude.value);
+    }
+    if (remindPlaceName.present) {
+      map['remind_place_name'] = Variable<String>(remindPlaceName.value);
+    }
+    if (openedAt.present) {
+      map['opened_at'] = Variable<DateTime>(openedAt.value);
+    }
     if (factsText.present) {
       map['facts_text'] = Variable<String>(factsText.value);
     }
@@ -1333,6 +1610,11 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('longitude: $longitude, ')
           ..write('placeName: $placeName, ')
           ..write('reminderAt: $reminderAt, ')
+          ..write('remindPlace: $remindPlace, ')
+          ..write('remindLatitude: $remindLatitude, ')
+          ..write('remindLongitude: $remindLongitude, ')
+          ..write('remindPlaceName: $remindPlaceName, ')
+          ..write('openedAt: $openedAt, ')
           ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -8253,6 +8535,509 @@ class VaultFlagsCompanion extends UpdateCompanion<VaultFlag> {
   }
 }
 
+class $PlacesTable extends Places with TableInfo<$PlacesTable, Place> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlacesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PlaceKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<PlaceKind>($PlacesTable.$converterkind);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _radiusMeta = const VerificationMeta('radius');
+  @override
+  late final GeneratedColumn<int> radius = GeneratedColumn<int>(
+    'radius',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(150),
+  );
+  static const VerificationMeta _wifiMeta = const VerificationMeta('wifi');
+  @override
+  late final GeneratedColumn<String> wifi = GeneratedColumn<String>(
+    'wifi',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    name,
+    latitude,
+    longitude,
+    radius,
+    wifi,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'places';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Place> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('radius')) {
+      context.handle(
+        _radiusMeta,
+        radius.isAcceptableOrUnknown(data['radius']!, _radiusMeta),
+      );
+    }
+    if (data.containsKey('wifi')) {
+      context.handle(
+        _wifiMeta,
+        wifi.isAcceptableOrUnknown(data['wifi']!, _wifiMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Place map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Place(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: $PlacesTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      radius: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}radius'],
+      )!,
+      wifi: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}wifi'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PlacesTable createAlias(String alias) {
+    return $PlacesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<PlaceKind, String, String> $converterkind =
+      const EnumNameConverter<PlaceKind>(PlaceKind.values);
+}
+
+class Place extends DataClass implements Insertable<Place> {
+  final String id;
+  final PlaceKind kind;
+
+  /// «Дом», «Linella на Ботанике» — что человек увидит в уведомлении.
+  final String name;
+  final double latitude;
+  final double longitude;
+
+  /// Круг срабатывания, метры: у телефонного GPS разброс около 150.
+  final int radius;
+
+  /// Имя сети Wi-Fi дома или на работе, если его удалось прочитать.
+  final String? wifi;
+  final DateTime createdAt;
+  const Place({
+    required this.id,
+    required this.kind,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    required this.radius,
+    this.wifi,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    {
+      map['kind'] = Variable<String>($PlacesTable.$converterkind.toSql(kind));
+    }
+    map['name'] = Variable<String>(name);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    map['radius'] = Variable<int>(radius);
+    if (!nullToAbsent || wifi != null) {
+      map['wifi'] = Variable<String>(wifi);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PlacesCompanion toCompanion(bool nullToAbsent) {
+    return PlacesCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      name: Value(name),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      radius: Value(radius),
+      wifi: wifi == null && nullToAbsent ? const Value.absent() : Value(wifi),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Place.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Place(
+      id: serializer.fromJson<String>(json['id']),
+      kind: $PlacesTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      name: serializer.fromJson<String>(json['name']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      radius: serializer.fromJson<int>(json['radius']),
+      wifi: serializer.fromJson<String?>(json['wifi']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<String>(
+        $PlacesTable.$converterkind.toJson(kind),
+      ),
+      'name': serializer.toJson<String>(name),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'radius': serializer.toJson<int>(radius),
+      'wifi': serializer.toJson<String?>(wifi),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Place copyWith({
+    String? id,
+    PlaceKind? kind,
+    String? name,
+    double? latitude,
+    double? longitude,
+    int? radius,
+    Value<String?> wifi = const Value.absent(),
+    DateTime? createdAt,
+  }) => Place(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    name: name ?? this.name,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    radius: radius ?? this.radius,
+    wifi: wifi.present ? wifi.value : this.wifi,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Place copyWithCompanion(PlacesCompanion data) {
+    return Place(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      name: data.name.present ? data.name.value : this.name,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      radius: data.radius.present ? data.radius.value : this.radius,
+      wifi: data.wifi.present ? data.wifi.value : this.wifi,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Place(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radius: $radius, ')
+          ..write('wifi: $wifi, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, kind, name, latitude, longitude, radius, wifi, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Place &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.name == this.name &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.radius == this.radius &&
+          other.wifi == this.wifi &&
+          other.createdAt == this.createdAt);
+}
+
+class PlacesCompanion extends UpdateCompanion<Place> {
+  final Value<String> id;
+  final Value<PlaceKind> kind;
+  final Value<String> name;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<int> radius;
+  final Value<String?> wifi;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PlacesCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.name = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.radius = const Value.absent(),
+    this.wifi = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PlacesCompanion.insert({
+    required String id,
+    required PlaceKind kind,
+    required String name,
+    required double latitude,
+    required double longitude,
+    this.radius = const Value.absent(),
+    this.wifi = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       name = Value(name),
+       latitude = Value(latitude),
+       longitude = Value(longitude),
+       createdAt = Value(createdAt);
+  static Insertable<Place> custom({
+    Expression<String>? id,
+    Expression<String>? kind,
+    Expression<String>? name,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<int>? radius,
+    Expression<String>? wifi,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (name != null) 'name': name,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (radius != null) 'radius': radius,
+      if (wifi != null) 'wifi': wifi,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PlacesCompanion copyWith({
+    Value<String>? id,
+    Value<PlaceKind>? kind,
+    Value<String>? name,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<int>? radius,
+    Value<String?>? wifi,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PlacesCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      radius: radius ?? this.radius,
+      wifi: wifi ?? this.wifi,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $PlacesTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (radius.present) {
+      map['radius'] = Variable<int>(radius.value);
+    }
+    if (wifi.present) {
+      map['wifi'] = Variable<String>(wifi.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlacesCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radius: $radius, ')
+          ..write('wifi: $wifi, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8276,6 +9061,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $VaultQueueTable vaultQueue = $VaultQueueTable(this);
   late final $VaultFilesTable vaultFiles = $VaultFilesTable(this);
   late final $VaultFlagsTable vaultFlags = $VaultFlagsTable(this);
+  late final $PlacesTable places = $PlacesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8299,6 +9085,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     vaultQueue,
     vaultFiles,
     vaultFlags,
+    places,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -8326,6 +9113,11 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<double?> longitude,
   Value<String?> placeName,
   Value<DateTime?> reminderAt,
+  Value<PlaceReminderKind?> remindPlace,
+  Value<double?> remindLatitude,
+  Value<double?> remindLongitude,
+  Value<String?> remindPlaceName,
+  Value<DateTime?> openedAt,
   Value<String> factsText,
   required DateTime createdAt,
   required DateTime updatedAt,
@@ -8353,6 +9145,11 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<double?> longitude,
   Value<String?> placeName,
   Value<DateTime?> reminderAt,
+  Value<PlaceReminderKind?> remindPlace,
+  Value<double?> remindLatitude,
+  Value<double?> remindLongitude,
+  Value<String?> remindPlaceName,
+  Value<DateTime?> openedAt,
   Value<String> factsText,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -8468,6 +9265,32 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get reminderAt => $composableBuilder(
     column: $table.reminderAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PlaceReminderKind?, PlaceReminderKind, String>
+  get remindPlace => $composableBuilder(
+    column: $table.remindPlace,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<double> get remindLatitude => $composableBuilder(
+    column: $table.remindLatitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get remindLongitude => $composableBuilder(
+    column: $table.remindLongitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remindPlaceName => $composableBuilder(
+    column: $table.remindPlaceName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8601,6 +9424,31 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remindPlace => $composableBuilder(
+    column: $table.remindPlace,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get remindLatitude => $composableBuilder(
+    column: $table.remindLatitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get remindLongitude => $composableBuilder(
+    column: $table.remindLongitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remindPlaceName => $composableBuilder(
+    column: $table.remindPlaceName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get factsText => $composableBuilder(
     column: $table.factsText,
     builder: (column) => ColumnOrderings(column),
@@ -8705,6 +9553,30 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumnWithTypeConverter<PlaceReminderKind?, String>
+  get remindPlace => $composableBuilder(
+    column: $table.remindPlace,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get remindLatitude => $composableBuilder(
+    column: $table.remindLatitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get remindLongitude => $composableBuilder(
+    column: $table.remindLongitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get remindPlaceName => $composableBuilder(
+    column: $table.remindPlaceName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get openedAt =>
+      $composableBuilder(column: $table.openedAt, builder: (column) => column);
+
   GeneratedColumn<String> get factsText =>
       $composableBuilder(column: $table.factsText, builder: (column) => column);
 
@@ -8766,6 +9638,11 @@ class $$ItemsTableTableManager
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> placeName = const Value.absent(),
                 Value<DateTime?> reminderAt = const Value.absent(),
+                Value<PlaceReminderKind?> remindPlace = const Value.absent(),
+                Value<double?> remindLatitude = const Value.absent(),
+                Value<double?> remindLongitude = const Value.absent(),
+                Value<String?> remindPlaceName = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
                 Value<String> factsText = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -8792,6 +9669,11 @@ class $$ItemsTableTableManager
                 longitude: longitude,
                 placeName: placeName,
                 reminderAt: reminderAt,
+                remindPlace: remindPlace,
+                remindLatitude: remindLatitude,
+                remindLongitude: remindLongitude,
+                remindPlaceName: remindPlaceName,
+                openedAt: openedAt,
                 factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -8820,6 +9702,11 @@ class $$ItemsTableTableManager
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> placeName = const Value.absent(),
                 Value<DateTime?> reminderAt = const Value.absent(),
+                Value<PlaceReminderKind?> remindPlace = const Value.absent(),
+                Value<double?> remindLatitude = const Value.absent(),
+                Value<double?> remindLongitude = const Value.absent(),
+                Value<String?> remindPlaceName = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
                 Value<String> factsText = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -8846,6 +9733,11 @@ class $$ItemsTableTableManager
                 longitude: longitude,
                 placeName: placeName,
                 reminderAt: reminderAt,
+                remindPlace: remindPlace,
+                remindLatitude: remindLatitude,
+                remindLongitude: remindLongitude,
+                remindPlaceName: remindPlaceName,
+                openedAt: openedAt,
                 factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -12643,6 +13535,265 @@ typedef $$VaultFlagsTableProcessedTableManager =
       VaultFlag,
       PrefetchHooks Function()
     >;
+typedef $$PlacesTableCreateCompanionBuilder = PlacesCompanion Function({
+  required String id,
+  required PlaceKind kind,
+  required String name,
+  required double latitude,
+  required double longitude,
+  Value<int> radius,
+  Value<String?> wifi,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$PlacesTableUpdateCompanionBuilder = PlacesCompanion Function({
+  Value<String> id,
+  Value<PlaceKind> kind,
+  Value<String> name,
+  Value<double> latitude,
+  Value<double> longitude,
+  Value<int> radius,
+  Value<String?> wifi,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$PlacesTableFilterComposer
+    extends Composer<_$AppDatabase, $PlacesTable> {
+  $$PlacesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PlaceKind, PlaceKind, String> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get radius => $composableBuilder(
+    column: $table.radius,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get wifi => $composableBuilder(
+    column: $table.wifi,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PlacesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlacesTable> {
+  $$PlacesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get radius => $composableBuilder(
+    column: $table.radius,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get wifi => $composableBuilder(
+    column: $table.wifi,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PlacesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlacesTable> {
+  $$PlacesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PlaceKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<int> get radius =>
+      $composableBuilder(column: $table.radius, builder: (column) => column);
+
+  GeneratedColumn<String> get wifi =>
+      $composableBuilder(column: $table.wifi, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$PlacesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PlacesTable,
+          Place,
+          $$PlacesTableFilterComposer,
+          $$PlacesTableOrderingComposer,
+          $$PlacesTableAnnotationComposer,
+          $$PlacesTableCreateCompanionBuilder,
+          $$PlacesTableUpdateCompanionBuilder,
+          (Place, BaseReferences<_$AppDatabase, $PlacesTable, Place>),
+          Place,
+          PrefetchHooks Function()
+        > {
+  $$PlacesTableTableManager(_$AppDatabase db, $PlacesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PlacesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlacesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PlacesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<PlaceKind> kind = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<int> radius = const Value.absent(),
+                Value<String?> wifi = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PlacesCompanion(
+                id: id,
+                kind: kind,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radius: radius,
+                wifi: wifi,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required PlaceKind kind,
+                required String name,
+                required double latitude,
+                required double longitude,
+                Value<int> radius = const Value.absent(),
+                Value<String?> wifi = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PlacesCompanion.insert(
+                id: id,
+                kind: kind,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radius: radius,
+                wifi: wifi,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PlacesTable, Place>(table),
+                  BaseReferences<_$AppDatabase, $PlacesTable, Place>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PlacesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PlacesTable,
+      Place,
+      $$PlacesTableFilterComposer,
+      $$PlacesTableOrderingComposer,
+      $$PlacesTableAnnotationComposer,
+      $$PlacesTableCreateCompanionBuilder,
+      $$PlacesTableUpdateCompanionBuilder,
+      (Place, BaseReferences<_$AppDatabase, $PlacesTable, Place>),
+      Place,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12682,4 +13833,6 @@ class $AppDatabaseManager {
       $$VaultFilesTableTableManager(_db, _db.vaultFiles);
   $$VaultFlagsTableTableManager get vaultFlags =>
       $$VaultFlagsTableTableManager(_db, _db.vaultFlags);
+  $$PlacesTableTableManager get places =>
+      $$PlacesTableTableManager(_db, _db.places);
 }

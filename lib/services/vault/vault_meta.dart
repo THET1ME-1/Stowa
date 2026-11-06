@@ -16,6 +16,7 @@ const vaultMetaTables = {
   'links': ['links'],
   'learned': ['word_stats', 'corrections'],
   'canvas': ['canvas_positions'],
+  'places': ['places'],
 };
 
 const _pretty = JsonEncoder.withIndent('  ');

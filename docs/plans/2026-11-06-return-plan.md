@@ -1,0 +1,19 @@
+# Вернуть в нужный момент — план
+
+**Описание:** `docs/specs/2026-11-06-return-design.md`. Читать вместе.
+
+**Общие правила:** тесты сперва (красный → зелёный); тесты локально только затронутых файлов с потолком (`systemd-run … -p CPUQuota=200% … flutter test -j 1 <файлы>`), весь набор — `check.yml` после пуша; строки — `tool/add_strings.py` на 7 языков; коммит и пуш после каждой задачи; в чате и строках — «заметки».
+
+## Задачи
+
+1. **Схема v8.** `items.opened_at`, `items.remind_place`/`remind_latitude`/`remind_longitude`/`remind_place_name`, таблица `places` (id, kind home|work|shop, name, latitude, longitude, radius, wifi, created_at). Миграция v7→v8. Напоминание по месту — в файл хранилища (`remind_place: "home"` / `"shop"` / `"point 47.0245,28.8323 Ботаника"`) и обратно; `meta:places`. `ItemsRepository.markOpened(id, at)` на странице заметки, без очереди хранилища. Тесты: миграция, триггер не ставит заметку в очередь от `opened_at`, запись и чтение `remind_place` в `vault_note`, meta places.
+2. **Решение дня** `domain/return_plan.dart`: `ReturnSettings`, `ReturnFound` (очередь: штук роликов, статей, минут; «в этот день»: период и заметки; неделя: всего, не открыто, без папки), `ReturnPick? pickReturn({now, settings, lastDay, found})`. Тесты: тихие часы, окно вечера, бюджет дня, выключенный вид, порядок сводка > в этот день > посмотреть потом, пустое не шлётся.
+3. **Что найти** `data/repositories/return_repository.dart`: `watchLater(now)`, `onThisDay(now)`, `week(now)`, `shopping()`. Тесты на базе в памяти: открытое и старше 30 дней не в очереди, длина из `duration_seconds` и факта `readingTime`, год важнее месяца, неделя, удалённые мимо, списки покупок с неотмеченными пунктами и `#купить`.
+4. **Отправка** `services/return_service.dart`: `ReturnService.tick()` — найти, решить, показать в канал «Возвращение» (тихий), записать `return_day`. Тексты на 7 языках (`returnWatch…`, `returnDay…`, `returnWeek…`). `NotificationPort.show`. Тесты с поддельным портом и настройками.
+5. **Фон и настройки.** Периодическая задача `stowa-return` (15 мин, без сети) зовёт `tick` и снятие сработавших мест. Настройки: включатели трёх видов, час вечера, тихие часы, день сводки (`SettingsRepository`), раздел «Возвращать» в экране настроек. Виджет-тесты.
+6. **Экраны и главная.** `features/returns/return_screen.dart` — «Посмотреть потом», «В этот день», «Неделя», «В магазин»; касание уведомления `stowa://return/<вид>` и `stowa://note/<id>` (канал `stowa/launch`); пилюли на главной; карточка «Включить уведомления» один раз. Виджет-тесты.
+7. **Место из текста** `domain/place_cue.dart`: `PlaceCue? parsePlaceCue(String text)` на 7 языках (дом, работа, здесь, магазин), `restOf`. `CaptureService` ставит `remind_place`; строка показывает чип места. Тесты разбора, сохранения и чипа.
+8. **Места в настройках.** Раздел «Места»: дом, работа (точка и Wi-Fi), магазины; подсказка из `homeAndWork`; разрешение «всегда» со ссылкой в системные настройки. Канал `stowa/places`: `hasBackground`, `askBackground`, `currentWifi`, `sync`. Виджет-тесты с поддельным каналом.
+9. **Напоминание по месту на странице заметки.** Лист «Напомнить»: по времени, здесь, дома, на работе, в магазине; плашка с местом; снять. Тесты.
+10. **Android.** `PlaceAlarms.kt` (proximity alerts, Wi-Fi callback, хранение тревог), `PlaceReceiver.kt` (показать, отметить, бюджет для покупок), перезапуск после загрузки, манифест (`ACCESS_BACKGROUND_LOCATION`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK_STATE`). Dart `services/place_alarms.dart`: собрать тревоги из базы (заметки с местом, покупки у магазинов), снять сработавшие. Тесты Dart-части; Android — проверка на эмуляторе (`adb emu geo fix`).
+11. **Документы:** FEATURES.md, CLAUDE.md (грабли, состояние), шапка плана. Проверка на эмуляторе со снимками — в список долга, если память занята.

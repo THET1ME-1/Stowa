@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
 import '../../data/db/database.dart';
+import '../../domain/models.dart';
 import '../../domain/vault_note.dart';
 import 'vault_layout.dart';
 import 'vault_meta.dart';
@@ -164,6 +165,9 @@ class VaultWriter {
       latitude: item.latitude,
       longitude: item.longitude,
       placeName: item.placeName,
+      remindPlace: item.remindPlace == null
+          ? null
+          : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName),
       sortedBy: item.sortedBy,
       attachments: [for (final attachment in attachments) attachment.path],
     );

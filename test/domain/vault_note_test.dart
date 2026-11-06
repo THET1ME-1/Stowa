@@ -55,6 +55,21 @@ void main() {
     expect(writeVaultNote(back, fileName: 'Человек-бензопила.md'), text);
   });
 
+  test('напоминание по месту проходит круг файл → заметка: дом, магазин и точка с названием', () {
+    for (final place in const [
+      PlaceReminder(PlaceReminderKind.home),
+      PlaceReminder(PlaceReminderKind.shop),
+      PlaceReminder(PlaceReminderKind.point, latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв'),
+    ]) {
+      final note = VaultNote(id: 'a', kind: ItemKind.note, title: 'Кофе', body: 'Кофе', created: created, updated: updated, remindPlace: place);
+      final back = readVaultNote(writeVaultNote(note, fileName: 'Кофе.md'), fileName: 'Кофе.md', fileModified: DateTime(2000));
+      expect(back.remindPlace, place);
+      expect(back.extra, isEmpty);
+    }
+    final none = VaultNote(id: 'a', kind: ItemKind.note, title: 'Кофе', body: 'Кофе', created: created, updated: updated);
+    expect(writeVaultNote(none, fileName: 'Кофе.md'), isNot(contains('remind_place')));
+  });
+
   test('вложения — строки ![[…]] в конце, текст их не содержит', () {
     final text = writeVaultNote(
       VaultNote(id: 'a', kind: ItemKind.note, title: 'Карбонара', body: 'Карбонара\nгуанчиале', created: created, updated: updated, attachments: ['Карбонара/фото 1.jpg']),

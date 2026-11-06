@@ -30,6 +30,7 @@ class VaultNote {
     this.latitude,
     this.longitude,
     this.placeName,
+    this.remindPlace,
     this.sortedBy,
     this.attachments = const [],
     this.extra = const {},
@@ -56,6 +57,9 @@ class VaultNote {
   final double? longitude;
   final String? placeName;
 
+  /// Напомнить по месту: дома, на работе, в магазине или в точке.
+  final PlaceReminder? remindPlace;
+
   /// Кто положил в папку: ручное решение должно пережить переустановку.
   final SortedBy? sortedBy;
 
@@ -66,7 +70,7 @@ class VaultNote {
   final Map<String, Object?> extra;
 }
 
-const _known = {'id', 'kind', 'title', 'created', 'updated', 'tags', 'url', 'preview', 'cover', 'duration', 'reminder', 'place', 'sorted_by'};
+const _known = {'id', 'kind', 'title', 'created', 'updated', 'tags', 'url', 'preview', 'cover', 'duration', 'reminder', 'place', 'remind_place', 'sorted_by'};
 
 // символы, которые Android, Windows (через Syncthing) или Obsidian не пускают в имя
 final _forbidden = RegExp(r'[/\\:*?"<>|#^\[\]\x00-\x1F]');
@@ -114,6 +118,9 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
   put('duration', note.durationSeconds);
   put('reminder', note.reminder == null ? null : _time(note.reminder!));
   put('place', place);
+  if (note.remindPlace case final remind?) {
+    put('remind_place', <String, Object?>{'kind': remind.kind.name, 'lat': ?remind.latitude, 'lon': ?remind.longitude, 'name': ?remind.name});
+  }
   if (note.sortedBy != null && note.sortedBy != SortedBy.none) put('sorted_by', note.sortedBy!.name);
   for (final MapEntry(:key, :value) in note.extra.entries) {
     put(key, value);
@@ -173,6 +180,8 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
   };
   final preview = map('preview');
   final place = map('place');
+  final remind = map('remind_place');
+  final remindKind = PlaceReminderKind.values.asNameMap()[remind['kind']];
   final tags = <String>[];
   for (final tag in [..._tagList(properties['tags']), ...extractInlineTags(body)]) {
     final name = normalizeTagName(tag);
@@ -197,6 +206,9 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
     latitude: (place['lat'] as num?)?.toDouble(),
     longitude: (place['lon'] as num?)?.toDouble(),
     placeName: place['name'] as String?,
+    remindPlace: remindKind == null
+        ? null
+        : PlaceReminder(remindKind, latitude: (remind['lat'] as num?)?.toDouble(), longitude: (remind['lon'] as num?)?.toDouble(), name: remind['name'] as String?),
     sortedBy: SortedBy.values.asNameMap()[stringOf('sorted_by')],
     attachments: attachments,
     extra: {for (final MapEntry(:key, :value) in properties.entries) if (!_known.contains(key)) key: value},

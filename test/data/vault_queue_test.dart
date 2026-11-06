@@ -53,6 +53,16 @@ void main() {
     expect(second.claimedUntil, isNull);
   });
 
+  test('открыл заметку — в файл это не идёт; напоминание по месту — идёт; место в настройках — meta:places', () async {
+    await edit(ItemsCompanion(openedAt: Value(now)));
+    expect(await queued(), isEmpty);
+    await edit(const ItemsCompanion(remindPlace: Value(PlaceReminderKind.home)));
+    expect(await queued(), {'item:a'});
+    await db.delete(db.vaultQueue).go();
+    await db.into(db.places).insert(PlacesCompanion.insert(id: 'p', kind: PlaceKind.shop, name: 'Linella', latitude: 47.02, longitude: 28.83, createdAt: now));
+    expect(await queued(), {'meta:places'});
+  });
+
   test('сторож очереди замечает новую правку поверх старой: задач столько же, версия выросла', () async {
     await edit(const ItemsCompanion(title: Value('Паста')));
     final stamps = <(int, int)>[];

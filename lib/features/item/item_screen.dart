@@ -109,6 +109,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _clock = ref.read(clockProvider);
     _title.addListener(_changed);
     _body.addListener(_changed);
+    // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
+    _items.markOpened(widget.id, _clock()).ignore();
   }
 
   @override

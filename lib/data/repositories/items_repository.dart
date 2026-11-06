@@ -469,6 +469,9 @@ WHERE items.deleted_at IS NULL''';
   }
 
   /// Напоминание руками со страницы вещи; null снимает.
+  /// Заметку открыли: «ни разу не открыто» больше не про неё. Время правки и файл не трогаются.
+  Future<void> markOpened(String id, DateTime at) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(openedAt: Value(at)));
+
   Future<void> setReminder(String id, DateTime? at) {
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(reminderAt: Value(at)));
   }

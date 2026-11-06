@@ -120,6 +120,30 @@ void main() {
     expect(queued, containsAll(['item:old', 'facts:old', 'meta:folders', 'meta:tags', 'meta:rules', 'meta:links', 'meta:learned', 'meta:canvas']));
   });
 
+  test('v7 → v8: заметки на месте, есть места и напоминание по месту, правка места ставит заметку в очередь', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 6);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'Кофе', createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropPlaces(raw);
+    raw.execute('PRAGMA user_version = 7');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    expect((await upgraded.select(upgraded.items).getSingle()).title, 'Кофе');
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('old'))).write(const ItemsCompanion(remindPlace: Value(PlaceReminderKind.work)));
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:old']);
+    await upgraded.into(upgraded.places).insert(PlacesCompanion.insert(id: 'h', kind: PlaceKind.home, name: 'Дом', latitude: 47, longitude: 28, createdAt: now));
+    expect(await upgraded.select(upgraded.places).get(), hasLength(1));
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -144,8 +168,21 @@ void main() {
   });
 }
 
+// версия 8: открыта ли заметка, напоминание по месту и места. Триггер правки заметки
+// ссылается на поля — без него их можно убрать, миграция ставит его заново
+void _dropPlaces(Database raw) {
+  for (final row in raw.select("SELECT name FROM sqlite_master WHERE type = 'trigger' AND (name LIKE 'vault_places_%' OR name = 'vault_items_update')")) {
+    raw.execute('DROP TRIGGER ${row['name']}');
+  }
+  for (final column in ['opened_at', 'remind_place', 'remind_latitude', 'remind_longitude', 'remind_place_name']) {
+    raw.execute('ALTER TABLE items DROP COLUMN $column');
+  }
+  raw.execute('DROP TABLE IF EXISTS places');
+}
+
 // очередь хранилища и её триггеры появились в версии 7
 void _dropVault(Database raw) {
+  _dropPlaces(raw);
   for (final row in raw.select("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'vault_%'")) {
     raw.execute('DROP TRIGGER ${row['name']}');
   }
