@@ -928,7 +928,8 @@ class _ReturnGroup extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
-    final repository = ref.read(settingsRepositoryProvider);
+    // настройки — в момент правки, не при отрисовке: экран живёт и в тестах без них
+    Future<void> save(ReturnSettings value) => ref.read(settingsRepositoryProvider).setReturns(value);
     String clock(int minutes) => DateFormat.Hm(l.localeName).format(DateTime(2026, 1, 1, minutes ~/ 60, minutes % 60));
     // 1 ноября 2026 — воскресенье: день недели 1…7 ложится на 2…8 ноября
     String weekday(int day) => DateFormat.EEEE(l.localeName).format(DateTime(2026, 11, 1 + day));
@@ -966,22 +967,22 @@ class _ReturnGroup extends ConsumerWidget {
           ),
         ),
       );
-      if (day != null) await repository.setReturns(returns.copyWith(weekDay: day));
+      if (day != null) await save(returns.copyWith(weekDay: day));
     }
 
     return _Group(
       children: [
-        _SwitchRow(icon: 'smart_display', title: l.returnWatchTitle, value: returns.watchLater, onChanged: (on) => repository.setReturns(returns.copyWith(watchLater: on))),
-        _SwitchRow(icon: 'history', title: l.returnOnThisDay, value: returns.onThisDay, onChanged: (on) => repository.setReturns(returns.copyWith(onThisDay: on))),
-        _SwitchRow(icon: 'calendar_view_week', title: l.returnWeekSetting, value: returns.week, onChanged: (on) => repository.setReturns(returns.copyWith(week: on))),
-        _SwitchRow(icon: 'shopping_basket', title: l.returnShoppingSetting, value: returns.shopping, onChanged: (on) => repository.setReturns(returns.copyWith(shopping: on))),
+        _SwitchRow(icon: 'smart_display', title: l.returnWatchTitle, value: returns.watchLater, onChanged: (on) => save(returns.copyWith(watchLater: on))),
+        _SwitchRow(icon: 'history', title: l.returnOnThisDay, value: returns.onThisDay, onChanged: (on) => save(returns.copyWith(onThisDay: on))),
+        _SwitchRow(icon: 'calendar_view_week', title: l.returnWeekSetting, value: returns.week, onChanged: (on) => save(returns.copyWith(week: on))),
+        _SwitchRow(icon: 'shopping_basket', title: l.returnShoppingSetting, value: returns.shopping, onChanged: (on) => save(returns.copyWith(shopping: on))),
         _Row(
           icon: 'schedule',
           title: l.returnEveningRow,
           value: clock(returns.evening),
           onTap: () async {
             final minutes = await pickTime(returns.evening, l.returnEveningRow);
-            if (minutes != null) await repository.setReturns(returns.copyWith(evening: minutes));
+            if (minutes != null) await save(returns.copyWith(evening: minutes));
           },
         ),
         _Row(
@@ -992,7 +993,7 @@ class _ReturnGroup extends ConsumerWidget {
             final start = await pickTime(returns.quietStart, l.returnQuietFrom);
             if (start == null || !context.mounted) return;
             final end = await pickTime(returns.quietEnd, l.returnQuietTo);
-            if (end != null) await repository.setReturns(returns.copyWith(quietStart: start, quietEnd: end));
+            if (end != null) await save(returns.copyWith(quietStart: start, quietEnd: end));
           },
         ),
         _Row(icon: 'event_repeat', title: l.returnWeekDayRow, value: weekday(returns.weekDay), onTap: pickWeekDay),
