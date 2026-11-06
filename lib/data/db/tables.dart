@@ -113,6 +113,48 @@ class FileJobs extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Что надо перенести из базы в файлы хранилища. Ставят триггеры (схема v7),
+/// забирает писатель хранилища: `item:<id>`, `facts:<id>`, `meta:folders` и другие.
+class VaultQueue extends Table {
+  TextColumn get target => text()();
+
+  /// Растёт с каждой новой просьбой: писатель снимает задачу, только если
+  /// за время записи новой просьбы не пришло.
+  IntColumn get version => integer().withDefault(const Constant(1))();
+
+  /// До какого времени задача занята, миллисекунды от 1970 года.
+  IntColumn get claimedUntil => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {target};
+}
+
+/// Где лежит файл вещи и каким он был после нашей последней записи или чтения:
+/// изменилось время или размер — файл правили снаружи.
+class VaultFiles extends Table {
+  TextColumn get itemId => text()();
+
+  /// Путь `.md` от корня хранилища.
+  TextColumn get path => text()();
+
+  /// Время изменения файла, миллисекунды от 1970 года.
+  IntColumn get modified => integer()();
+  IntColumn get size => integer()();
+
+  @override
+  Set<Column> get primaryKey => {itemId};
+}
+
+/// Флаги хранилища. `importing` — читатель забирает файлы в базу, и триггеры
+/// не ставят забранное обратно в очередь записи.
+class VaultFlags extends Table {
+  TextColumn get name => text()();
+  TextColumn get value => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {name};
+}
+
 class Attachments extends Table {
   TextColumn get id => text()();
   TextColumn get itemId => text()();

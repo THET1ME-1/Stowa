@@ -7447,6 +7447,812 @@ class CanvasPositionsCompanion extends UpdateCompanion<CanvasPosition> {
   }
 }
 
+class $VaultQueueTable extends VaultQueue
+    with TableInfo<$VaultQueueTable, VaultQueueData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VaultQueueTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _targetMeta = const VerificationMeta('target');
+  @override
+  late final GeneratedColumn<String> target = GeneratedColumn<String>(
+    'target',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _claimedUntilMeta = const VerificationMeta(
+    'claimedUntil',
+  );
+  @override
+  late final GeneratedColumn<int> claimedUntil = GeneratedColumn<int>(
+    'claimed_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [target, version, claimedUntil];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vault_queue';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VaultQueueData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('target')) {
+      context.handle(
+        _targetMeta,
+        target.isAcceptableOrUnknown(data['target']!, _targetMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('claimed_until')) {
+      context.handle(
+        _claimedUntilMeta,
+        claimedUntil.isAcceptableOrUnknown(
+          data['claimed_until']!,
+          _claimedUntilMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {target};
+  @override
+  VaultQueueData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VaultQueueData(
+      target: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      claimedUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}claimed_until'],
+      ),
+    );
+  }
+
+  @override
+  $VaultQueueTable createAlias(String alias) {
+    return $VaultQueueTable(attachedDatabase, alias);
+  }
+}
+
+class VaultQueueData extends DataClass implements Insertable<VaultQueueData> {
+  final String target;
+
+  /// Растёт с каждой новой просьбой: писатель снимает задачу, только если
+  /// за время записи новой просьбы не пришло.
+  final int version;
+
+  /// До какого времени задача занята, миллисекунды от 1970 года.
+  final int? claimedUntil;
+  const VaultQueueData({
+    required this.target,
+    required this.version,
+    this.claimedUntil,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['target'] = Variable<String>(target);
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || claimedUntil != null) {
+      map['claimed_until'] = Variable<int>(claimedUntil);
+    }
+    return map;
+  }
+
+  VaultQueueCompanion toCompanion(bool nullToAbsent) {
+    return VaultQueueCompanion(
+      target: Value(target),
+      version: Value(version),
+      claimedUntil: claimedUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(claimedUntil),
+    );
+  }
+
+  factory VaultQueueData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VaultQueueData(
+      target: serializer.fromJson<String>(json['target']),
+      version: serializer.fromJson<int>(json['version']),
+      claimedUntil: serializer.fromJson<int?>(json['claimedUntil']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'target': serializer.toJson<String>(target),
+      'version': serializer.toJson<int>(version),
+      'claimedUntil': serializer.toJson<int?>(claimedUntil),
+    };
+  }
+
+  VaultQueueData copyWith({
+    String? target,
+    int? version,
+    Value<int?> claimedUntil = const Value.absent(),
+  }) => VaultQueueData(
+    target: target ?? this.target,
+    version: version ?? this.version,
+    claimedUntil: claimedUntil.present ? claimedUntil.value : this.claimedUntil,
+  );
+  VaultQueueData copyWithCompanion(VaultQueueCompanion data) {
+    return VaultQueueData(
+      target: data.target.present ? data.target.value : this.target,
+      version: data.version.present ? data.version.value : this.version,
+      claimedUntil: data.claimedUntil.present
+          ? data.claimedUntil.value
+          : this.claimedUntil,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultQueueData(')
+          ..write('target: $target, ')
+          ..write('version: $version, ')
+          ..write('claimedUntil: $claimedUntil')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(target, version, claimedUntil);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VaultQueueData &&
+          other.target == this.target &&
+          other.version == this.version &&
+          other.claimedUntil == this.claimedUntil);
+}
+
+class VaultQueueCompanion extends UpdateCompanion<VaultQueueData> {
+  final Value<String> target;
+  final Value<int> version;
+  final Value<int?> claimedUntil;
+  final Value<int> rowid;
+  const VaultQueueCompanion({
+    this.target = const Value.absent(),
+    this.version = const Value.absent(),
+    this.claimedUntil = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VaultQueueCompanion.insert({
+    required String target,
+    this.version = const Value.absent(),
+    this.claimedUntil = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : target = Value(target);
+  static Insertable<VaultQueueData> custom({
+    Expression<String>? target,
+    Expression<int>? version,
+    Expression<int>? claimedUntil,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (target != null) 'target': target,
+      if (version != null) 'version': version,
+      if (claimedUntil != null) 'claimed_until': claimedUntil,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VaultQueueCompanion copyWith({
+    Value<String>? target,
+    Value<int>? version,
+    Value<int?>? claimedUntil,
+    Value<int>? rowid,
+  }) {
+    return VaultQueueCompanion(
+      target: target ?? this.target,
+      version: version ?? this.version,
+      claimedUntil: claimedUntil ?? this.claimedUntil,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (target.present) {
+      map['target'] = Variable<String>(target.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (claimedUntil.present) {
+      map['claimed_until'] = Variable<int>(claimedUntil.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultQueueCompanion(')
+          ..write('target: $target, ')
+          ..write('version: $version, ')
+          ..write('claimedUntil: $claimedUntil, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VaultFilesTable extends VaultFiles
+    with TableInfo<$VaultFilesTable, VaultFile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VaultFilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  @override
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modifiedMeta = const VerificationMeta(
+    'modified',
+  );
+  @override
+  late final GeneratedColumn<int> modified = GeneratedColumn<int>(
+    'modified',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  @override
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [itemId, path, modified, size];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vault_files';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VaultFile> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('path')) {
+      context.handle(
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pathMeta);
+    }
+    if (data.containsKey('modified')) {
+      context.handle(
+        _modifiedMeta,
+        modified.isAcceptableOrUnknown(data['modified']!, _modifiedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_modifiedMeta);
+    }
+    if (data.containsKey('size')) {
+      context.handle(
+        _sizeMeta,
+        size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sizeMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {itemId};
+  @override
+  VaultFile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VaultFile(
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      path: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}path'],
+      )!,
+      modified: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}modified'],
+      )!,
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size'],
+      )!,
+    );
+  }
+
+  @override
+  $VaultFilesTable createAlias(String alias) {
+    return $VaultFilesTable(attachedDatabase, alias);
+  }
+}
+
+class VaultFile extends DataClass implements Insertable<VaultFile> {
+  final String itemId;
+
+  /// Путь `.md` от корня хранилища.
+  final String path;
+
+  /// Время изменения файла, миллисекунды от 1970 года.
+  final int modified;
+  final int size;
+  const VaultFile({
+    required this.itemId,
+    required this.path,
+    required this.modified,
+    required this.size,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['item_id'] = Variable<String>(itemId);
+    map['path'] = Variable<String>(path);
+    map['modified'] = Variable<int>(modified);
+    map['size'] = Variable<int>(size);
+    return map;
+  }
+
+  VaultFilesCompanion toCompanion(bool nullToAbsent) {
+    return VaultFilesCompanion(
+      itemId: Value(itemId),
+      path: Value(path),
+      modified: Value(modified),
+      size: Value(size),
+    );
+  }
+
+  factory VaultFile.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VaultFile(
+      itemId: serializer.fromJson<String>(json['itemId']),
+      path: serializer.fromJson<String>(json['path']),
+      modified: serializer.fromJson<int>(json['modified']),
+      size: serializer.fromJson<int>(json['size']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'itemId': serializer.toJson<String>(itemId),
+      'path': serializer.toJson<String>(path),
+      'modified': serializer.toJson<int>(modified),
+      'size': serializer.toJson<int>(size),
+    };
+  }
+
+  VaultFile copyWith({
+    String? itemId,
+    String? path,
+    int? modified,
+    int? size,
+  }) => VaultFile(
+    itemId: itemId ?? this.itemId,
+    path: path ?? this.path,
+    modified: modified ?? this.modified,
+    size: size ?? this.size,
+  );
+  VaultFile copyWithCompanion(VaultFilesCompanion data) {
+    return VaultFile(
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      path: data.path.present ? data.path.value : this.path,
+      modified: data.modified.present ? data.modified.value : this.modified,
+      size: data.size.present ? data.size.value : this.size,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultFile(')
+          ..write('itemId: $itemId, ')
+          ..write('path: $path, ')
+          ..write('modified: $modified, ')
+          ..write('size: $size')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(itemId, path, modified, size);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VaultFile &&
+          other.itemId == this.itemId &&
+          other.path == this.path &&
+          other.modified == this.modified &&
+          other.size == this.size);
+}
+
+class VaultFilesCompanion extends UpdateCompanion<VaultFile> {
+  final Value<String> itemId;
+  final Value<String> path;
+  final Value<int> modified;
+  final Value<int> size;
+  final Value<int> rowid;
+  const VaultFilesCompanion({
+    this.itemId = const Value.absent(),
+    this.path = const Value.absent(),
+    this.modified = const Value.absent(),
+    this.size = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VaultFilesCompanion.insert({
+    required String itemId,
+    required String path,
+    required int modified,
+    required int size,
+    this.rowid = const Value.absent(),
+  }) : itemId = Value(itemId),
+       path = Value(path),
+       modified = Value(modified),
+       size = Value(size);
+  static Insertable<VaultFile> custom({
+    Expression<String>? itemId,
+    Expression<String>? path,
+    Expression<int>? modified,
+    Expression<int>? size,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (itemId != null) 'item_id': itemId,
+      if (path != null) 'path': path,
+      if (modified != null) 'modified': modified,
+      if (size != null) 'size': size,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VaultFilesCompanion copyWith({
+    Value<String>? itemId,
+    Value<String>? path,
+    Value<int>? modified,
+    Value<int>? size,
+    Value<int>? rowid,
+  }) {
+    return VaultFilesCompanion(
+      itemId: itemId ?? this.itemId,
+      path: path ?? this.path,
+      modified: modified ?? this.modified,
+      size: size ?? this.size,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (modified.present) {
+      map['modified'] = Variable<int>(modified.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultFilesCompanion(')
+          ..write('itemId: $itemId, ')
+          ..write('path: $path, ')
+          ..write('modified: $modified, ')
+          ..write('size: $size, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VaultFlagsTable extends VaultFlags
+    with TableInfo<$VaultFlagsTable, VaultFlag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VaultFlagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [name, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vault_flags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VaultFlag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {name};
+  @override
+  VaultFlag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VaultFlag(
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      ),
+    );
+  }
+
+  @override
+  $VaultFlagsTable createAlias(String alias) {
+    return $VaultFlagsTable(attachedDatabase, alias);
+  }
+}
+
+class VaultFlag extends DataClass implements Insertable<VaultFlag> {
+  final String name;
+  final String? value;
+  const VaultFlag({required this.name, this.value});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || value != null) {
+      map['value'] = Variable<String>(value);
+    }
+    return map;
+  }
+
+  VaultFlagsCompanion toCompanion(bool nullToAbsent) {
+    return VaultFlagsCompanion(
+      name: Value(name),
+      value: value == null && nullToAbsent
+          ? const Value.absent()
+          : Value(value),
+    );
+  }
+
+  factory VaultFlag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VaultFlag(
+      name: serializer.fromJson<String>(json['name']),
+      value: serializer.fromJson<String?>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'name': serializer.toJson<String>(name),
+      'value': serializer.toJson<String?>(value),
+    };
+  }
+
+  VaultFlag copyWith({
+    String? name,
+    Value<String?> value = const Value.absent(),
+  }) => VaultFlag(
+    name: name ?? this.name,
+    value: value.present ? value.value : this.value,
+  );
+  VaultFlag copyWithCompanion(VaultFlagsCompanion data) {
+    return VaultFlag(
+      name: data.name.present ? data.name.value : this.name,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultFlag(')
+          ..write('name: $name, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(name, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VaultFlag &&
+          other.name == this.name &&
+          other.value == this.value);
+}
+
+class VaultFlagsCompanion extends UpdateCompanion<VaultFlag> {
+  final Value<String> name;
+  final Value<String?> value;
+  final Value<int> rowid;
+  const VaultFlagsCompanion({
+    this.name = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VaultFlagsCompanion.insert({
+    required String name,
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<VaultFlag> custom({
+    Expression<String>? name,
+    Expression<String>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (name != null) 'name': name,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VaultFlagsCompanion copyWith({
+    Value<String>? name,
+    Value<String?>? value,
+    Value<int>? rowid,
+  }) {
+    return VaultFlagsCompanion(
+      name: name ?? this.name,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultFlagsCompanion(')
+          ..write('name: $name, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7467,6 +8273,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CanvasPositionsTable canvasPositions = $CanvasPositionsTable(
     this,
   );
+  late final $VaultQueueTable vaultQueue = $VaultQueueTable(this);
+  late final $VaultFilesTable vaultFiles = $VaultFilesTable(this);
+  late final $VaultFlagsTable vaultFlags = $VaultFlagsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7487,6 +8296,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     wordStats,
     corrections,
     canvasPositions,
+    vaultQueue,
+    vaultFiles,
+    vaultFlags,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -11333,6 +12145,504 @@ typedef $$CanvasPositionsTableProcessedTableManager =
       CanvasPosition,
       PrefetchHooks Function()
     >;
+typedef $$VaultQueueTableCreateCompanionBuilder = VaultQueueCompanion Function({
+  required String target,
+  Value<int> version,
+  Value<int?> claimedUntil,
+  Value<int> rowid,
+});
+typedef $$VaultQueueTableUpdateCompanionBuilder = VaultQueueCompanion Function({
+  Value<String> target,
+  Value<int> version,
+  Value<int?> claimedUntil,
+  Value<int> rowid,
+});
+
+class $$VaultQueueTableFilterComposer
+    extends Composer<_$AppDatabase, $VaultQueueTable> {
+  $$VaultQueueTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get target => $composableBuilder(
+    column: $table.target,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get claimedUntil => $composableBuilder(
+    column: $table.claimedUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VaultQueueTableOrderingComposer
+    extends Composer<_$AppDatabase, $VaultQueueTable> {
+  $$VaultQueueTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get target => $composableBuilder(
+    column: $table.target,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get claimedUntil => $composableBuilder(
+    column: $table.claimedUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VaultQueueTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VaultQueueTable> {
+  $$VaultQueueTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get target =>
+      $composableBuilder(column: $table.target, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<int> get claimedUntil => $composableBuilder(
+    column: $table.claimedUntil,
+    builder: (column) => column,
+  );
+}
+
+class $$VaultQueueTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VaultQueueTable,
+          VaultQueueData,
+          $$VaultQueueTableFilterComposer,
+          $$VaultQueueTableOrderingComposer,
+          $$VaultQueueTableAnnotationComposer,
+          $$VaultQueueTableCreateCompanionBuilder,
+          $$VaultQueueTableUpdateCompanionBuilder,
+          (
+            VaultQueueData,
+            BaseReferences<_$AppDatabase, $VaultQueueTable, VaultQueueData>,
+          ),
+          VaultQueueData,
+          PrefetchHooks Function()
+        > {
+  $$VaultQueueTableTableManager(_$AppDatabase db, $VaultQueueTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VaultQueueTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VaultQueueTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VaultQueueTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> target = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int?> claimedUntil = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultQueueCompanion(
+                target: target,
+                version: version,
+                claimedUntil: claimedUntil,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String target,
+                Value<int> version = const Value.absent(),
+                Value<int?> claimedUntil = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultQueueCompanion.insert(
+                target: target,
+                version: version,
+                claimedUntil: claimedUntil,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$VaultQueueTable, VaultQueueData>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $VaultQueueTable,
+                    VaultQueueData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VaultQueueTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VaultQueueTable,
+      VaultQueueData,
+      $$VaultQueueTableFilterComposer,
+      $$VaultQueueTableOrderingComposer,
+      $$VaultQueueTableAnnotationComposer,
+      $$VaultQueueTableCreateCompanionBuilder,
+      $$VaultQueueTableUpdateCompanionBuilder,
+      (
+        VaultQueueData,
+        BaseReferences<_$AppDatabase, $VaultQueueTable, VaultQueueData>,
+      ),
+      VaultQueueData,
+      PrefetchHooks Function()
+    >;
+typedef $$VaultFilesTableCreateCompanionBuilder = VaultFilesCompanion Function({
+  required String itemId,
+  required String path,
+  required int modified,
+  required int size,
+  Value<int> rowid,
+});
+typedef $$VaultFilesTableUpdateCompanionBuilder = VaultFilesCompanion Function({
+  Value<String> itemId,
+  Value<String> path,
+  Value<int> modified,
+  Value<int> size,
+  Value<int> rowid,
+});
+
+class $$VaultFilesTableFilterComposer
+    extends Composer<_$AppDatabase, $VaultFilesTable> {
+  $$VaultFilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get modified => $composableBuilder(
+    column: $table.modified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VaultFilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $VaultFilesTable> {
+  $$VaultFilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get modified => $composableBuilder(
+    column: $table.modified,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VaultFilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VaultFilesTable> {
+  $$VaultFilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<int> get modified =>
+      $composableBuilder(column: $table.modified, builder: (column) => column);
+
+  GeneratedColumn<int> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => column);
+}
+
+class $$VaultFilesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VaultFilesTable,
+          VaultFile,
+          $$VaultFilesTableFilterComposer,
+          $$VaultFilesTableOrderingComposer,
+          $$VaultFilesTableAnnotationComposer,
+          $$VaultFilesTableCreateCompanionBuilder,
+          $$VaultFilesTableUpdateCompanionBuilder,
+          (
+            VaultFile,
+            BaseReferences<_$AppDatabase, $VaultFilesTable, VaultFile>,
+          ),
+          VaultFile,
+          PrefetchHooks Function()
+        > {
+  $$VaultFilesTableTableManager(_$AppDatabase db, $VaultFilesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VaultFilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VaultFilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VaultFilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> itemId = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<int> modified = const Value.absent(),
+                Value<int> size = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultFilesCompanion(
+                itemId: itemId,
+                path: path,
+                modified: modified,
+                size: size,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String itemId,
+                required String path,
+                required int modified,
+                required int size,
+                Value<int> rowid = const Value.absent(),
+              }) => VaultFilesCompanion.insert(
+                itemId: itemId,
+                path: path,
+                modified: modified,
+                size: size,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$VaultFilesTable, VaultFile>(table),
+                  BaseReferences<_$AppDatabase, $VaultFilesTable, VaultFile>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VaultFilesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VaultFilesTable,
+      VaultFile,
+      $$VaultFilesTableFilterComposer,
+      $$VaultFilesTableOrderingComposer,
+      $$VaultFilesTableAnnotationComposer,
+      $$VaultFilesTableCreateCompanionBuilder,
+      $$VaultFilesTableUpdateCompanionBuilder,
+      (VaultFile, BaseReferences<_$AppDatabase, $VaultFilesTable, VaultFile>),
+      VaultFile,
+      PrefetchHooks Function()
+    >;
+typedef $$VaultFlagsTableCreateCompanionBuilder = VaultFlagsCompanion Function({
+  required String name,
+  Value<String?> value,
+  Value<int> rowid,
+});
+typedef $$VaultFlagsTableUpdateCompanionBuilder = VaultFlagsCompanion Function({
+  Value<String> name,
+  Value<String?> value,
+  Value<int> rowid,
+});
+
+class $$VaultFlagsTableFilterComposer
+    extends Composer<_$AppDatabase, $VaultFlagsTable> {
+  $$VaultFlagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VaultFlagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VaultFlagsTable> {
+  $$VaultFlagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VaultFlagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VaultFlagsTable> {
+  $$VaultFlagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+}
+
+class $$VaultFlagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VaultFlagsTable,
+          VaultFlag,
+          $$VaultFlagsTableFilterComposer,
+          $$VaultFlagsTableOrderingComposer,
+          $$VaultFlagsTableAnnotationComposer,
+          $$VaultFlagsTableCreateCompanionBuilder,
+          $$VaultFlagsTableUpdateCompanionBuilder,
+          (
+            VaultFlag,
+            BaseReferences<_$AppDatabase, $VaultFlagsTable, VaultFlag>,
+          ),
+          VaultFlag,
+          PrefetchHooks Function()
+        > {
+  $$VaultFlagsTableTableManager(_$AppDatabase db, $VaultFlagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VaultFlagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VaultFlagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VaultFlagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> name = const Value.absent(),
+            Value<String?> value = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => VaultFlagsCompanion(name: name, value: value, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required String name,
+                Value<String?> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultFlagsCompanion.insert(
+                name: name,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$VaultFlagsTable, VaultFlag>(table),
+                  BaseReferences<_$AppDatabase, $VaultFlagsTable, VaultFlag>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VaultFlagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VaultFlagsTable,
+      VaultFlag,
+      $$VaultFlagsTableFilterComposer,
+      $$VaultFlagsTableOrderingComposer,
+      $$VaultFlagsTableAnnotationComposer,
+      $$VaultFlagsTableCreateCompanionBuilder,
+      $$VaultFlagsTableUpdateCompanionBuilder,
+      (VaultFlag, BaseReferences<_$AppDatabase, $VaultFlagsTable, VaultFlag>),
+      VaultFlag,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11366,4 +12676,10 @@ class $AppDatabaseManager {
       $$CorrectionsTableTableManager(_db, _db.corrections);
   $$CanvasPositionsTableTableManager get canvasPositions =>
       $$CanvasPositionsTableTableManager(_db, _db.canvasPositions);
+  $$VaultQueueTableTableManager get vaultQueue =>
+      $$VaultQueueTableTableManager(_db, _db.vaultQueue);
+  $$VaultFilesTableTableManager get vaultFiles =>
+      $$VaultFilesTableTableManager(_db, _db.vaultFiles);
+  $$VaultFlagsTableTableManager get vaultFlags =>
+      $$VaultFlagsTableTableManager(_db, _db.vaultFlags);
 }

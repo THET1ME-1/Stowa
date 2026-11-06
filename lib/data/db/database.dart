@@ -25,7 +25,34 @@ final _ftsOld = _ftsValues('old');
 /// Запрос к индексу с теми же заменами, что и в самом индексе.
 String normalizeSearchText(String text) => _ftsSwaps.fold(text, (value, swap) => value.replaceAll(swap.$1, swap.$2));
 
-@DriftDatabase(tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions])
+// поля вещи, которые идут в файл хранилища: их правка ставит вещь в очередь записи
+const _vaultItemColumns =
+    'kind, title, body, url, folder_id, sorted_by, cover_path, preview_text, preview_site, preview_author, '
+    'duration_seconds, latitude, longitude, place_name, reminder_at, deleted_at, created_at, updated_at';
+
+// всё, что пишется в .stowa/*.json: таблица → цель очереди
+const _vaultMetaTables = {
+  'folders': 'meta:folders',
+  'tags': 'meta:tags',
+  'rules': 'meta:rules',
+  'links': 'meta:links',
+  'word_stats': 'meta:learned',
+  'corrections': 'meta:learned',
+  'canvas_positions': 'meta:canvas',
+};
+
+const _vaultMetaTargets = ['meta:folders', 'meta:tags', 'meta:rules', 'meta:links', 'meta:learned', 'meta:canvas'];
+
+const _notImporting = "NOT EXISTS (SELECT 1 FROM vault_flags WHERE name = 'importing')";
+
+// новая просьба поверх старой поднимает версию и снимает аренду
+const _vaultUpsert = 'ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL';
+
+String _vaultEnqueue(String target) => 'INSERT INTO vault_queue (target) VALUES ($target) $_vaultUpsert;';
+
+@DriftDatabase(
+  tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions, VaultQueue, VaultFiles, VaultFlags],
+)
 class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
   AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa', native: const DriftNativeOptions(shareAcrossIsolates: true)));
@@ -35,7 +62,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +70,7 @@ class AppDatabase extends _$AppDatabase {
       await migrator.createAll();
       await _createSearch();
       await _createFactIndexes();
+      await _createVaultTriggers();
     },
     onUpgrade: (migrator, from, to) async {
       // 2: превью ссылок и роликов
@@ -75,6 +103,18 @@ class AppDatabase extends _$AppDatabase {
         await _createSearch();
         await customStatement('INSERT INTO items_fts(rowid, $_ftsColumns) SELECT rowid, ${_ftsValues('items')} FROM items');
       }
+      // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
+      if (from < 7) {
+        await migrator.createTable(vaultQueue);
+        await migrator.createTable(vaultFiles);
+        await migrator.createTable(vaultFlags);
+        await _createVaultTriggers();
+        await customStatement("INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE true $_vaultUpsert");
+        await customStatement("INSERT INTO vault_queue (target) SELECT 'facts:' || id FROM items WHERE true $_vaultUpsert");
+        for (final target in _vaultMetaTargets) {
+          await customStatement(_vaultEnqueue("'$target'"));
+        }
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -85,6 +125,45 @@ class AppDatabase extends _$AppDatabase {
   Future<void> _createFactIndexes() async {
     await customStatement('CREATE INDEX IF NOT EXISTS facts_item ON facts (item_id, extractor)');
     await customStatement('CREATE INDEX IF NOT EXISTS facts_kind ON facts (kind, number)');
+  }
+
+  // любую правку, кто бы её ни сделал, ловит сама база: семьдесят мест записи в коде не трогаются
+  Future<void> _createVaultTriggers() async {
+    Future<void> trigger(String name, String event, String table, String body) =>
+        customStatement('CREATE TRIGGER $name AFTER $event ON $table WHEN $_notImporting BEGIN $body END');
+
+    await trigger('vault_items_insert', 'INSERT', 'items', _vaultEnqueue("'item:' || new.id"));
+    await trigger('vault_items_update', 'UPDATE OF $_vaultItemColumns', 'items', _vaultEnqueue("'item:' || new.id"));
+    await trigger('vault_items_delete', 'DELETE', 'items', _vaultEnqueue("'item:' || old.id"));
+    // расшифровка и описание ИИ добыты платным ключом: лежат рядом с фактами
+    await trigger('vault_items_derived', 'UPDATE OF transcript, ai_description', 'items', _vaultEnqueue("'facts:' || new.id"));
+
+    // вложения и теги — часть файла вещи; факты и прогоны — её .stowa/facts/<id>.json
+    for (final (table, target) in [('attachments', 'item:'), ('item_tags', 'item:'), ('facts', 'facts:'), ('extractor_runs', 'facts:')]) {
+      await trigger('vault_${table}_insert', 'INSERT', table, _vaultEnqueue("'$target' || new.item_id"));
+      await trigger('vault_${table}_update', 'UPDATE', table, '${_vaultEnqueue("'$target' || old.item_id")} ${_vaultEnqueue("'$target' || new.item_id")}');
+      await trigger('vault_${table}_delete', 'DELETE', table, _vaultEnqueue("'$target' || old.item_id"));
+    }
+
+    // переименованная папка меняет путь всех своих вещей, тег — их свойство tags
+    await trigger(
+      'vault_folders_rename',
+      'UPDATE OF name',
+      'folders',
+      "INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE folder_id = new.id $_vaultUpsert;",
+    );
+    await trigger(
+      'vault_tags_rename',
+      'UPDATE OF name',
+      'tags',
+      "INSERT INTO vault_queue (target) SELECT 'item:' || item_id FROM item_tags WHERE tag_id = new.id $_vaultUpsert;",
+    );
+
+    for (final MapEntry(key: table, value: target) in _vaultMetaTables.entries) {
+      for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+        await trigger('vault_${table}_${event.toLowerCase()}_meta', event, table, _vaultEnqueue("'$target'"));
+      }
+    }
   }
 
   Future<void> _createSearch() async {

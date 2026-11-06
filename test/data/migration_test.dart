@@ -97,11 +97,44 @@ void main() {
     expect(await upgraded.searchIds('"аренд"*'), ['old']);
     expect(await upgraded.select(upgraded.facts).get(), isEmpty);
   });
+
+  test('v6 → v7: вещи на месте, все вещи и meta:* стоят в очереди записи', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 6);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.folders).insert(FoldersCompanion.insert(id: 'f', name: 'Рецепты', icon: 'folder', shape: 'pill'));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'Старая', folderId: const Value('f'), createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropVault(raw);
+    raw.execute('PRAGMA user_version = 6');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    expect((await upgraded.select(upgraded.items).getSingle()).title, 'Старая');
+    final queued = {for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target};
+    expect(queued, containsAll(['item:old', 'facts:old', 'meta:folders', 'meta:tags', 'meta:rules', 'meta:links', 'meta:learned', 'meta:canvas']));
+  });
+}
+
+// очередь хранилища и её триггеры появились в версии 7
+void _dropVault(Database raw) {
+  for (final row in raw.select("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'vault_%'")) {
+    raw.execute('DROP TRIGGER ${row['name']}');
+  }
+  for (final table in ['vault_queue', 'vault_files', 'vault_flags']) {
+    raw.execute('DROP TABLE IF EXISTS $table');
+  }
 }
 
 // триггеры индекса ссылаются на поля: без них поля можно убрать, а миграция строит индекс заново.
 // Заодно убирается то, чего до версии 6 не было: факты и их текст
 void _dropSearch(Database raw) {
+  _dropVault(raw);
   for (final trigger in ['items_fts_insert', 'items_fts_delete', 'items_fts_update']) {
     raw.execute('DROP TRIGGER IF EXISTS $trigger');
   }
