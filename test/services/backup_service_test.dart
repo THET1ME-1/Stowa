@@ -70,6 +70,37 @@ void main() {
     expect(found.results.single.card.id, 'a');
   });
 
+  test('копия хранилища: все его файлы, кроме копий страниц и временных', () async {
+    await fill();
+    for (final path in ['Еда/Борщ.md', 'Еда/Борщ/борщ.jpg', '.stowa/tags.json', '.stowa/pages/a.html.gz', 'Еда/.Борщ.md.tmp', '.obsidian/app.json']) {
+      File('${sourceFiles.path}/$path')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(path);
+    }
+    final zip = await BackupService(source, filesRoot: sourceFiles, vault: true, clock: () => now).export(out);
+    final names = BackupService.entries(zip);
+    expect(names, containsAll(['files/Еда/Борщ.md', 'files/Еда/Борщ/борщ.jpg', 'files/.stowa/tags.json', 'files/.obsidian/app.json', 'files/attachments/a/0_borsch.jpg']));
+    expect(names, isNot(contains('files/.stowa/pages/a.html.gz')));
+    expect(names, isNot(contains('files/Еда/.Борщ.md.tmp')));
+  });
+
+  test('восстановление в хранилище: файлы на месте, чужие файлы хранилища не тронуты, заметки ждут записи', () async {
+    await fill();
+    File('${sourceFiles.path}/Еда/Борщ/борщ.jpg')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('jpeg');
+    final zip = await BackupService(source, filesRoot: sourceFiles, vault: true, clock: () => now).export(out);
+    File('${targetFiles.path}/Мои/список.md')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('своё');
+    await BackupService(target, filesRoot: targetFiles, vault: true, clock: () => now).restore(zip);
+    expect(File('${targetFiles.path}/Еда/Борщ/борщ.jpg').readAsStringSync(), 'jpeg');
+    expect(File('${targetFiles.path}/Мои/список.md').readAsStringSync(), 'своё');
+    expect(await target.select(target.vaultFiles).get(), isEmpty, reason: 'карта файлов прежнего телефона не годится');
+    final queued = {for (final row in await target.select(target.vaultQueue).get()) row.target};
+    expect(queued, containsAll(['item:a', 'item:b', 'meta:folders']));
+  });
+
   test('в копии нет ключа ИИ и настроек: только база и файлы', () async {
     await fill();
     final zip = await BackupService(source, filesRoot: sourceFiles, clock: () => now).export(out);

@@ -326,7 +326,9 @@ final telegramStateProvider = StreamProvider((ref) => ref.watch(telegramServiceP
 /// Забрать сообщения бота. Тесты подменяют пустышкой.
 final telegramPullProvider = Provider<Future<int> Function()>((ref) => ref.watch(telegramServiceProvider).pull);
 
-final backupServiceProvider = Provider((ref) => BackupService(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider), clock: ref.watch(clockProvider)));
+final backupServiceProvider = Provider(
+  (ref) => BackupService(ref.watch(databaseProvider), filesRoot: ref.watch(filesRootProvider), vault: ref.watch(vaultRootProvider) != null, clock: ref.watch(clockProvider)),
+);
 
 /// Язык, выбранный в настройках; null — язык устройства.
 final languageProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchLanguage());

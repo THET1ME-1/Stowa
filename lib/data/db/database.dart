@@ -109,11 +109,7 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(vaultFiles);
         await migrator.createTable(vaultFlags);
         await _createVaultTriggers();
-        await customStatement("INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE true $_vaultUpsert");
-        await customStatement("INSERT INTO vault_queue (target) SELECT 'facts:' || id FROM items WHERE true $_vaultUpsert");
-        for (final target in _vaultMetaTargets) {
-          await customStatement(_vaultEnqueue("'$target'"));
-        }
+        await enqueueWholeVault();
       }
     },
     beforeOpen: (details) async {
@@ -125,6 +121,16 @@ class AppDatabase extends _$AppDatabase {
   Future<void> _createFactIndexes() async {
     await customStatement('CREATE INDEX IF NOT EXISTS facts_item ON facts (item_id, extractor)');
     await customStatement('CREATE INDEX IF NOT EXISTS facts_kind ON facts (kind, number)');
+  }
+
+  /// Всё в очередь записи хранилища: вещи, их факты и служебное. После переноса,
+  /// восстановления копии и перехода со старой схемы файлы пишутся заново из базы.
+  Future<void> enqueueWholeVault() async {
+    await customStatement("INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE true $_vaultUpsert");
+    await customStatement("INSERT INTO vault_queue (target) SELECT 'facts:' || id FROM items WHERE true $_vaultUpsert");
+    for (final target in _vaultMetaTargets) {
+      await customStatement(_vaultEnqueue("'$target'"));
+    }
   }
 
   // любую правку, кто бы её ни сделал, ловит сама база: семьдесят мест записи в коде не трогаются

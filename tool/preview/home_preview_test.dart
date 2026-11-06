@@ -185,6 +185,7 @@ void main() {
   });
 
   testWidgets('хранилище не найдено', (tester) async {
+    // ignore: invalid_use_of_visible_for_testing_member
     SharedPreferences.setMockInitialValues({'vault_path': '/storage/emulated/0/Documents/Stowa', 'vault_mode': 'device', 'vault_asked': true});
     world
       ..vaultMissing = true

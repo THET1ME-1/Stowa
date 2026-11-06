@@ -38,13 +38,39 @@ class BackupInfo {
 /// Резервная копия всей Stowa одним zip: снимок базы и файлы. Ключа ИИ и настроек
 /// в ней нет — они живут не в базе.
 class BackupService {
-  BackupService(this._db, {required Directory filesRoot, required DateTime Function() clock})
+  BackupService(this._db, {required Directory filesRoot, bool vault = false, required DateTime Function() clock})
     : _filesRoot = filesRoot, // ignore: prefer_initializing_formals
+      _vault = vault, // ignore: prefer_initializing_formals
       _clock = clock; // ignore: prefer_initializing_formals
 
   final AppDatabase _db;
   final Directory _filesRoot;
+
+  /// [_filesRoot] — хранилище: в копию идёт оно целиком. Иначе старая установка:
+  /// в папке приложения лежит и чужое, берутся только папки файлов.
+  final bool _vault;
   final DateTime Function() _clock;
+
+  // копии страниц можно скачать заново, временные файлы — недописанное
+  static bool _skipped(String relative) =>
+      relative.startsWith('.stowa/pages/') || relative.startsWith('.stowa/cache/') || (p.posix.basename(relative).startsWith('.') && relative.endsWith('.tmp'));
+
+  /// Файлы, которые идут в копию, путями от корня.
+  List<File> _files() {
+    if (_vault) {
+      if (!_filesRoot.existsSync()) return const [];
+      return [
+        for (final file in _filesRoot.listSync(recursive: true, followLinks: false).whereType<File>())
+          if (!_skipped(_relative(file))) file,
+      ];
+    }
+    return [
+      for (final name in _fileFolders)
+        if (Directory(p.join(_filesRoot.path, name)).existsSync()) ...Directory(p.join(_filesRoot.path, name)).listSync(recursive: true).whereType<File>(),
+    ];
+  }
+
+  String _relative(File file) => p.relative(file.path, from: _filesRoot.path).replaceAll(r'\', '/');
 
   /// Собрать копию в [folder]. Имя с датой: «Stowa-2026-11-03.zip».
   Future<File> export(Directory folder) async {
@@ -62,12 +88,8 @@ class BackupService {
       final encoder = ZipFileEncoder()..create(zip.path);
       await encoder.addFile(manifest, 'manifest.json');
       await encoder.addFile(File(snapshot), 'stowa.sqlite');
-      for (final name in _fileFolders) {
-        final dir = Directory(p.join(_filesRoot.path, name));
-        if (!dir.existsSync()) continue;
-        for (final file in dir.listSync(recursive: true).whereType<File>()) {
-          await encoder.addFile(file, 'files/${p.relative(file.path, from: _filesRoot.path).replaceAll(r'\', '/')}');
-        }
+      for (final file in _files()) {
+        await encoder.addFile(file, 'files/${_relative(file)}');
       }
       await encoder.close();
       return zip;
@@ -140,6 +162,17 @@ class BackupService {
         await _db.customStatement('PRAGMA foreign_keys = ON');
       }
       _db.markTablesUpdated(_db.allTables);
+
+      if (_vault) {
+        // файлы копии встают в хранилище поверх, чужие файлы хранилища остаются; карта файлов
+        // прежнего телефона не годится — заметки пишутся заново из восстановленной базы
+        final restored = Directory(p.join(work.path, 'files'));
+        if (restored.existsSync()) await _copyFolder(restored, _filesRoot);
+        await _db.delete(_db.vaultFiles).go();
+        await _db.delete(_db.vaultFlags).go();
+        await _db.enqueueWholeVault();
+        return;
+      }
 
       // файлы: прежние папки уходят, на их место встают из копии
       for (final name in _fileFolders) {

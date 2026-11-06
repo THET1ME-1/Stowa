@@ -128,14 +128,7 @@ class VaultMove {
     }
   }
 
-  Future<void> _enqueueAll() async {
-    const upsert = 'ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL';
-    await _db.customStatement("INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE true $upsert");
-    await _db.customStatement("INSERT INTO vault_queue (target) SELECT 'facts:' || id FROM items WHERE true $upsert");
-    for (final name in ['folders', 'tags', 'rules', 'links', 'learned', 'canvas']) {
-      await _db.customStatement("INSERT INTO vault_queue (target) VALUES ('meta:$name') $upsert");
-    }
-  }
+  Future<void> _enqueueAll() => _db.enqueueWholeVault();
 
   /// Каждая вещь — файлом, каждый скопированный файл — на месте и той же длины.
   Future<List<String>> _check(Directory target, List<_Copy> copies, Map<String, int> sizes) async {
