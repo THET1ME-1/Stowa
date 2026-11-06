@@ -103,6 +103,29 @@ void main() {
     expect(await title('text'), 'IMG_2.jpg');
   });
 
+  test('пачка заметок одной транзакцией: файлы ложатся после неё, afterCapture видит каждую записанной', () async {
+    final source = await bigFile();
+    final seen = <String, bool>{};
+    capture.afterCapture = (id) => seen[id] = false;
+    final ids = await capture.captureAll([
+      const CaptureInput(text: 'Купить кофе'),
+      CaptureInput(text: 'Море', files: [PickedFile(path: source.path, mime: 'image/jpeg', size: await source.length())]),
+      CaptureInput(text: 'Старое', at: DateTime(2023, 5, 12)),
+    ]);
+    for (final id in seen.keys) {
+      seen[id] = await items.get(id) != null;
+    }
+    expect(seen, {for (final id in ids) id: true});
+    await capture.settled();
+    expect((await items.get(ids[1]))!.attachments, hasLength(1));
+    expect((await items.get(ids[2]))!.item.createdAt, DateTime(2023, 5, 12));
+  });
+
+  test('пустая заметка в пачке — не сохраняется ничего', () async {
+    await expectLater(capture.captureAll([const CaptureInput(text: 'есть'), const CaptureInput(text: '  ')]), throwsArgumentError);
+    expect(await db.select(db.items).get(), isEmpty);
+  });
+
   test('старые заметки, записанные ссылкой из-за адреса внутри, снова заметки', () async {
     Future<void> old(String id, ItemKind kind, String body) =>
         db.into(db.items).insert(ItemsCompanion.insert(id: id, kind: kind, title: id, body: Value(body), createdAt: DateTime(2026), updatedAt: DateTime(2026)));

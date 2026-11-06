@@ -8,6 +8,9 @@ import '../data/db/database.dart';
 import '../domain/telegram_export.dart';
 import 'capture_service.dart';
 
+// сообщений в одной транзакции: на телефоне каждая — запись на диск
+const _batch = 50;
+
 /// Итог переноса: сколько заметок появилось, сколько уже было, сколько файлов не нашлось.
 class TelegramImportReport {
   const TelegramImportReport({required this.added, required this.repeated, required this.filesMissing});
@@ -48,26 +51,31 @@ class TelegramImport {
     var repeated = 0;
     var missing = 0;
     progress?.call(0, notes.length);
-    for (final (index, note) in notes.indexed) {
-      missing += note.filesMissing;
-      final files = <PickedFile>[];
-      for (final exported in note.files) {
-        final source = File(p.join(folder.path, exported.path));
-        if (!await source.exists()) {
-          missing++;
+    for (var start = 0; start < notes.length; start += _batch) {
+      final batch = notes.sublist(start, (start + _batch).clamp(0, notes.length));
+      final inputs = <CaptureInput>[];
+      for (final note in batch) {
+        missing += note.filesMissing;
+        final files = <PickedFile>[];
+        for (final exported in note.files) {
+          final source = File(p.join(folder.path, exported.path));
+          if (!await source.exists()) {
+            missing++;
+            continue;
+          }
+          files.add(PickedFile(path: source.path, mime: exported.mime, size: await source.length(), seconds: exported.seconds));
+        }
+        // ни текста, ни файла: переносить нечего
+        if (note.text.isEmpty && files.isEmpty) continue;
+        if (await _already(note)) {
+          repeated++;
           continue;
         }
-        files.add(PickedFile(path: source.path, mime: exported.mime, size: await source.length(), seconds: exported.seconds));
+        inputs.add(CaptureInput(text: note.text, files: files, at: note.at, here: false, detectReminder: false));
       }
-      if (note.text.isEmpty && files.isEmpty) {
-        // ни текста, ни файла: переносить нечего
-      } else if (await _already(note)) {
-        repeated++;
-      } else {
-        await _capture.capture(CaptureInput(text: note.text, files: files, at: note.at, here: false, detectReminder: false));
-        added++;
-      }
-      progress?.call(index + 1, notes.length);
+      if (inputs.isNotEmpty) await _capture.captureAll(inputs);
+      added += inputs.length;
+      progress?.call(start + batch.length, notes.length);
     }
     return TelegramImportReport(added: added, repeated: repeated, filesMissing: missing);
   }

@@ -111,10 +111,34 @@ class CaptureService {
   /// Поставить вещи место, где её сохранили. Сохранение не ждёт.
   void Function(String itemId)? stampPlace;
 
-  Future<String> capture(CaptureInput input) async {
-    final text = input.text.trim();
-    if (text.isEmpty && input.files.isEmpty) throw ArgumentError('пустую вещь сохранять нечего');
+  Future<String> capture(CaptureInput input) async => (await captureAll([input])).single;
 
+  /// Пачка заметок одной транзакцией: на телефоне каждая транзакция — запись на диск, перенос
+  /// тысячи сообщений по одной шёл бы минутами. Хранитель файлов, разбор и место запускаются
+  /// после неё: изнутри они работали бы с транзакцией, которая уже закрылась.
+  Future<List<String>> captureAll(List<CaptureInput> inputs) async {
+    if (inputs.any((input) => input.text.trim().isEmpty && input.files.isEmpty)) throw ArgumentError('пустую вещь сохранять нечего');
+    final ids = <String>[];
+    await _db.transaction(() async {
+      final rules = await RulesRepository(_db).enabled();
+      FolderIndex? index;
+      Future<FolderIndex> folders() async => index ??= FolderIndex(await ItemsRepository(_db).folderDocs());
+      for (final input in inputs) {
+        ids.add(await _insert(input, rules, folders));
+      }
+    });
+
+    if (inputs.any((input) => input.files.isNotEmpty)) files.drain().ignore();
+    for (final (index, id) in ids.indexed) {
+      afterCapture?.call(id);
+      if (inputs[index].here) stampPlace?.call(id);
+    }
+    return ids;
+  }
+
+  // одна заметка внутри транзакции [captureAll]
+  Future<String> _insert(CaptureInput input, List<SortRule> enabledRules, Future<FolderIndex> Function() folders) async {
+    final text = input.text.trim();
     final id = _uuid.v4();
     final now = _clock();
     final firstFile = input.files.isEmpty ? null : input.files.first;
@@ -129,61 +153,55 @@ class CaptureService {
     final url = firstUrl(text);
     final ownTags = [...input.forcedTagNames.map(normalizeTagName), ...extractInlineTags(text)];
 
-    await _db.transaction(() async {
-      // правила раньше ИИ: разложили — вещь в очередь ИИ не встаёт
-      final rules = byHand ? const RuleOutcome() : applyRules(await RulesRepository(_db).enabled(), text: text, tags: ownTags, host: url?.host, kind: kind);
-      final byRule = rules.folderId != null;
-      // правила молчат — угадыватель смотрит, в какой папке уже живут слова заметки,
-      // ссылки с того же сайта и такие же фото и файлы
-      final signals = itemSignals(kind: kind, url: url?.toString(), fileName: firstFile == null ? null : p.basename(firstFile.path));
-      final guess = byHand || byRule ? null : FolderIndex(await ItemsRepository(_db).folderDocs()).guess(text, signals: signals);
-      final sorted = byHand || byRule || guess != null;
-      await _db
-          .into(_db.items)
-          .insert(
-            ItemsCompanion.insert(
-              id: id,
-              kind: kind,
-              title: input.title ?? title,
-              body: Value(text),
-              url: Value(url?.toString()),
-              folderId: Value(input.forcedFolderId ?? rules.folderId ?? guess?.folderId),
-              sortedBy: Value(
-                byHand
-                    ? SortedBy.user
-                    : byRule
-                    ? SortedBy.rule
-                    : guess != null
-                    ? SortedBy.similar
-                    : SortedBy.none,
-              ),
-              sortState: Value(sorted ? SortState.sorted : SortState.pending),
-              reminderAt: Value(input.forcedReminder ?? found?.at),
-              durationSeconds: Value(input.files.map((file) => file.seconds).nonNulls.firstOrNull),
-              createdAt: input.at ?? now,
-              updatedAt: input.at ?? now,
+    // правила раньше ИИ: разложили — вещь в очередь ИИ не встаёт
+    final rules = byHand ? const RuleOutcome() : applyRules(enabledRules, text: text, tags: ownTags, host: url?.host, kind: kind);
+    final byRule = rules.folderId != null;
+    // правила молчат — угадыватель смотрит, в какой папке уже живут слова заметки,
+    // ссылки с того же сайта и такие же фото и файлы
+    final signals = itemSignals(kind: kind, url: url?.toString(), fileName: firstFile == null ? null : p.basename(firstFile.path));
+    final guess = byHand || byRule ? null : (await folders()).guess(text, signals: signals);
+    final sorted = byHand || byRule || guess != null;
+    await _db
+        .into(_db.items)
+        .insert(
+          ItemsCompanion.insert(
+            id: id,
+            kind: kind,
+            title: input.title ?? title,
+            body: Value(text),
+            url: Value(url?.toString()),
+            folderId: Value(input.forcedFolderId ?? rules.folderId ?? guess?.folderId),
+            sortedBy: Value(
+              byHand
+                  ? SortedBy.user
+                  : byRule
+                  ? SortedBy.rule
+                  : guess != null
+                  ? SortedBy.similar
+                  : SortedBy.none,
             ),
-          );
-      // выбранные руками ставятся первыми, тег из текста их источник не перебьёт
-      for (final raw in input.forcedTagNames) {
-        await _linkTag(id, raw, TagSource.user);
-      }
-      for (final name in extractInlineTags(text)) {
-        await _linkTag(id, name, TagSource.inline);
-      }
-      for (final name in rules.tags) {
-        await _linkTag(id, name, TagSource.rule);
-      }
-      // папки так и нет — вещь ждёт ключ ИИ; без ключа или сети задача просто лежит.
-      // голосовое ждёт всегда: его расшифрует модель речи, если она выбрана
-      if (!sorted || kind == ItemKind.voice) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
-      // файлы — задачами в той же транзакции: вещь без своего файла не останется
-      await files.enqueue(id, input.files);
-    });
-
-    if (input.files.isNotEmpty) files.drain().ignore();
-    afterCapture?.call(id);
-    if (input.here) stampPlace?.call(id);
+            sortState: Value(sorted ? SortState.sorted : SortState.pending),
+            reminderAt: Value(input.forcedReminder ?? found?.at),
+            durationSeconds: Value(input.files.map((file) => file.seconds).nonNulls.firstOrNull),
+            createdAt: input.at ?? now,
+            updatedAt: input.at ?? now,
+          ),
+        );
+    // выбранные руками ставятся первыми, тег из текста их источник не перебьёт
+    for (final raw in input.forcedTagNames) {
+      await _linkTag(id, raw, TagSource.user);
+    }
+    for (final name in extractInlineTags(text)) {
+      await _linkTag(id, name, TagSource.inline);
+    }
+    for (final name in rules.tags) {
+      await _linkTag(id, name, TagSource.rule);
+    }
+    // папки так и нет — вещь ждёт ключ ИИ; без ключа или сети задача просто лежит.
+    // голосовое ждёт всегда: его расшифрует модель речи, если она выбрана
+    if (!sorted || kind == ItemKind.voice) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
+    // файлы — задачами в той же транзакции: вещь без своего файла не останется
+    await files.enqueue(id, input.files);
     return id;
   }
 

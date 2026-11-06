@@ -97,6 +97,15 @@ void main() {
     expect((await db.select(db.attachments).get()), isEmpty);
   });
 
+  test('сотни сообщений переносятся пачками: все на месте, ход по пачкам до конца', () async {
+    await exportWith([for (var id = 1; id <= 120; id++) message(id, 1683885600 + id * 60, 'Заметка номер $id')]);
+    final steps = <(int, int)>[];
+    final report = await import.run(export, progress: (done, total) => steps.add((done, total)));
+    expect(report.added, 120);
+    expect(await db.select(db.items).get(), hasLength(120));
+    expect(steps, [(0, 120), (50, 120), (100, 120), (120, 120)]);
+  });
+
   test('в папке нет result.json — понятная ошибка', () async {
     expect(() => import.run(export), throwsA(isA<TelegramImportError>()));
   });
