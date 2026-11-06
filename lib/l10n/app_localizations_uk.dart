@@ -1692,4 +1692,49 @@ class LUk extends L {
   String repeatNoFolder(String date) {
     return 'Така сама лежить без теки з $date';
   }
+
+  @override
+  String get settingsImport => 'Перенесення';
+
+  @override
+  String get importTelegram => 'З Telegram';
+
+  @override
+  String get importTelegramHint =>
+      'Обери теку вивантаження «Збереженого» з Telegram Desktop у форматі JSON. Нотатки збережуть свої дати, альбом — однією нотаткою.';
+
+  @override
+  String importProgress(int done, int total) {
+    return 'Переношу $done з $total';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Переніс $count нотатки',
+      many: 'Переніс $count нотаток',
+      few: 'Переніс $count нотатки',
+      one: 'Переніс $count нотатку',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importRepeated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вже були',
+      many: '$count вже були',
+      few: '$count вже були',
+      one: '$count вже була',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNotTelegram =>
+      'У цій теці немає вивантаження Telegram: потрібен result.json';
 }

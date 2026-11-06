@@ -25,6 +25,7 @@ import '../../services/telegram_service.dart';
 import '../tags/tags_screen.dart';
 import '../vault/vault_actions.dart';
 import 'ai_log_screen.dart';
+import 'telegram_import_action.dart';
 import 'trash_screen.dart';
 
 Route<void> settingsRoute() => PageRouteBuilder(
@@ -146,6 +147,14 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
               child: Text(l.backupSaveHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
+            _Section(l.settingsImport),
+            _Group(
+              children: [_Row(icon: 'send', title: l.importTelegram, onTap: () => importTelegram(context, ref))],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+              child: Text(l.importTelegramHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
             _Section(l.settingsLanguage),
             _Group(

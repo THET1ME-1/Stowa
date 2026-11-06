@@ -457,5 +457,12 @@
   "vaultRebuilt": "Указатель собран",
   "vaultSyncing": "Синхронизация заметок {done} из {total}",
   "repeatIn": "Такая же лежит в папке «{folder}» с {date}",
-  "repeatNoFolder": "Такая же лежит без папки с {date}"
+  "repeatNoFolder": "Такая же лежит без папки с {date}",
+  "settingsImport": "Перенос",
+  "importTelegram": "Из Telegram",
+  "importTelegramHint": "Выбери папку выгрузки «Избранного» из Telegram Desktop в формате JSON. Заметки встанут со своими датами, альбом — одной заметкой.",
+  "importProgress": "Переношу {done} из {total}",
+  "importDone": "{count, plural, one{Перенёс {count} заметку} few{Перенёс {count} заметки} many{Перенёс {count} заметок} other{Перенёс {count} заметки}}",
+  "importRepeated": "{count, plural, one{{count} уже была} few{{count} уже были} many{{count} уже были} other{{count} уже были}}",
+  "importNotTelegram": "В этой папке нет выгрузки Telegram: нужен result.json"
 }

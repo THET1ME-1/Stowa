@@ -1672,4 +1672,45 @@ class LEs extends L {
   String repeatNoFolder(String date) {
     return 'La misma está sin carpeta desde el $date';
   }
+
+  @override
+  String get settingsImport => 'Importar';
+
+  @override
+  String get importTelegram => 'Desde Telegram';
+
+  @override
+  String get importTelegramHint =>
+      'Elige la carpeta de exportación de «Mensajes guardados» de Telegram Desktop en formato JSON. Las notas conservan su fecha y un álbum queda como una nota.';
+
+  @override
+  String importProgress(int done, int total) {
+    return 'Importando $done de $total';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notas importadas',
+      one: '$count nota importada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importRepeated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ya estaban',
+      one: '$count ya estaba',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNotTelegram =>
+      'En esta carpeta no hay exportación de Telegram: falta result.json';
 }

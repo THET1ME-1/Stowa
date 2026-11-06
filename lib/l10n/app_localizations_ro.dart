@@ -1680,4 +1680,46 @@ class LRo extends L {
   String repeatNoFolder(String date) {
     return 'Aceeași e fără dosar din $date';
   }
+
+  @override
+  String get settingsImport => 'Import';
+
+  @override
+  String get importTelegram => 'Din Telegram';
+
+  @override
+  String get importTelegramHint =>
+      'Alege dosarul exportului „Mesaje salvate” din Telegram Desktop în format JSON. Notițele își păstrează datele, un album devine o notiță.';
+
+  @override
+  String importProgress(int done, int total) {
+    return 'Import $done din $total';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de notițe importate',
+      few: '$count notițe importate',
+      one: '$count notiță importată',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importRepeated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count existau deja',
+      one: '$count exista deja',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNotTelegram =>
+      'Nu există export Telegram în acest dosar: e nevoie de result.json';
 }

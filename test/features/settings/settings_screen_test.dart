@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -99,11 +100,48 @@ void main() {
 
   testWidgets('раздел «Хранилище»: где лежит, перенос и «Пересобрать указатель»', (tester) async {
     await open(tester, keyStatus: 200);
-    await tester.scrollUntilVisible(find.text('Пересобрать указатель'), 200);
+    // экран теста короткий: заголовок и строки раздела на нём разом не видны
+    for (final label in ['Хранилище', 'Внутри приложения', 'Перенести в другую папку', 'Пересобрать указатель']) {
+      await tester.scrollUntilVisible(find.text(label), 100);
+      expect(find.text(label), findsOneWidget);
+    }
+  });
+
+  testWidgets('«Из Telegram»: папка выгрузки становится заметками, итог плашкой', (tester) async {
+    final export = Directory.systemTemp.createTempSync('stowa_tg');
+    addTearDown(() => export.deleteSync(recursive: true));
+    Map<String, Object?> message(int id, String text) => {'id': id, 'type': 'message', 'date_unixtime': '${1683885600 + id * 60}', 'text': text, 'text_entities': [{'type': 'plain', 'text': text}]};
+    File('${export.path}/result.json').writeAsStringSync(jsonEncode({'name': 'Saved Messages', 'type': 'saved_messages', 'id': 1, 'messages': [message(1, 'Купить кофе'), message(2, 'Позвонить маме')]}));
+    world.pickedFolder = export.path;
+
+    await open(tester, keyStatus: 200);
+    await tester.scrollUntilVisible(find.text('Из Telegram'), 200);
     await tester.pumpAndSettle();
-    expect(find.text('Хранилище'), findsOneWidget);
-    expect(find.text('Внутри приложения'), findsOneWidget);
-    expect(find.text('Перенести в другую папку'), findsOneWidget);
+    await tester.tap(find.text('Из Telegram'));
+    // файл читается по-настоящему: время теста и время диска идут по очереди
+    for (var step = 0; step < 20 && find.textContaining('Перенёс').evaluate().isEmpty; step++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(find.text('Перенёс 2 заметки'), findsOneWidget);
+    expect((await world.db.select(world.db.items).get()).map((item) => item.body), unorderedEquals(['Купить кофе', 'Позвонить маме']));
+  });
+
+  testWidgets('в папке нет выгрузки Telegram — так и сказано', (tester) async {
+    final empty = Directory.systemTemp.createTempSync('stowa_tg');
+    addTearDown(() => empty.deleteSync(recursive: true));
+    world.pickedFolder = empty.path;
+
+    await open(tester, keyStatus: 200);
+    await tester.scrollUntilVisible(find.text('Из Telegram'), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Из Telegram'));
+    for (var step = 0; step < 20 && find.textContaining('result.json').evaluate().isEmpty; step++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('В этой папке нет выгрузки Telegram: нужен result.json'), findsOneWidget);
   });
 
   testWidgets('язык меняется сразу, без перезапуска', (tester) async {

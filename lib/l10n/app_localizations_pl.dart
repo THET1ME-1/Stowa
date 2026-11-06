@@ -1692,4 +1692,49 @@ class LPl extends L {
   String repeatNoFolder(String date) {
     return 'Taka sama leży bez folderu od $date';
   }
+
+  @override
+  String get settingsImport => 'Import';
+
+  @override
+  String get importTelegram => 'Z Telegrama';
+
+  @override
+  String get importTelegramHint =>
+      'Wybierz folder eksportu „Zapisanych” z Telegram Desktop w formacie JSON. Notatki zachowają daty, album będzie jedną notatką.';
+
+  @override
+  String importProgress(int done, int total) {
+    return 'Przenoszę $done z $total';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notatki przeniesione',
+      many: '$count notatek przeniesionych',
+      few: '$count notatki przeniesione',
+      one: '$count notatka przeniesiona',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importRepeated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count już były',
+      many: '$count już były',
+      few: '$count już były',
+      one: '$count już była',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNotTelegram =>
+      'W tym folderze nie ma eksportu Telegrama: potrzebny jest result.json';
 }

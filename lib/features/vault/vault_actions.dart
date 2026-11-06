@@ -82,7 +82,7 @@ Future<bool> moveVault(BuildContext context, WidgetRef ref, Directory target, Va
   final status = ValueNotifier<(String, double?)>((l.vaultMoving(0, 0), null));
   void report(String Function(int done, int total) label, int done, int total) => status.value = (label(done, total), total == 0 ? null : done / total);
 
-  unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => _Progress(status: status)));
+  unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
   try {
     if (openExisting) {
       await VaultReader(db, root: target, clock: clock).rebuild(progress: (done, total) => report(l.vaultBuilding, done, total));
@@ -158,7 +158,7 @@ Future<void> rebuildIndex(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
   final navigator = Navigator.of(context, rootNavigator: true);
   final status = ValueNotifier<(String, double?)>((l.vaultBuilding(0, 0), null));
-  unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => _Progress(status: status)));
+  unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
   try {
     await ref.read(vaultReaderProvider).rebuild(progress: (done, total) => status.value = (l.vaultBuilding(done, total), total == 0 ? null : done / total));
     showNote(messenger, l.vaultRebuilt);
@@ -181,8 +181,9 @@ Future<void> moveVaultElsewhere(BuildContext context, WidgetRef ref) async {
   if (await moveVault(context, ref, target, VaultMode.device, openExisting: existing)) showNote(messenger, l.vaultMoved);
 }
 
-class _Progress extends StatelessWidget {
-  const _Progress({required this.status});
+/// Окно с подписью и полоской, которое не закрыть, пока идёт долгая работа: перенос, сборка, импорт.
+class ProgressDialog extends StatelessWidget {
+  const ProgressDialog({super.key, required this.status});
 
   final ValueNotifier<(String, double?)> status;
 

@@ -1671,4 +1671,45 @@ class LEn extends L {
   String repeatNoFolder(String date) {
     return 'Same one is unfiled since $date';
   }
+
+  @override
+  String get settingsImport => 'Import';
+
+  @override
+  String get importTelegram => 'From Telegram';
+
+  @override
+  String get importTelegramHint =>
+      'Pick a Saved Messages export folder from Telegram Desktop in JSON format. Notes keep their dates, an album becomes one note.';
+
+  @override
+  String importProgress(int done, int total) {
+    return 'Importing $done of $total';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes imported',
+      one: '$count note imported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importRepeated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count were already here',
+      one: '$count was already here',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNotTelegram =>
+      'No Telegram export in this folder: result.json is needed';
 }

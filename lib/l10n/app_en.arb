@@ -2138,5 +2138,51 @@
         "type": "String"
       }
     }
+  },
+  "settingsImport": "Import",
+  "@settingsImport": {
+    "description": "Раздел настроек: перенос заметок из других мест"
+  },
+  "importTelegram": "From Telegram",
+  "@importTelegram": {
+    "description": "Строка настроек: перенос «Избранного» из выгрузки Telegram"
+  },
+  "importTelegramHint": "Pick a Saved Messages export folder from Telegram Desktop in JSON format. Notes keep their dates, an album becomes one note.",
+  "@importTelegramHint": {
+    "description": "Подсказка под разделом «Перенос»"
+  },
+  "importProgress": "Importing {done} of {total}",
+  "@importProgress": {
+    "description": "Ход переноса",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importDone": "{count, plural, one{{count} note imported} other{{count} notes imported}}",
+  "@importDone": {
+    "description": "Итог переноса",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRepeated": "{count, plural, one{{count} was already here} other{{count} were already here}}",
+  "@importRepeated": {
+    "description": "Добавка к итогу: сколько сообщений уже переносили",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importNotTelegram": "No Telegram export in this folder: result.json is needed",
+  "@importNotTelegram": {
+    "description": "Перенос не начался: выбрана не та папка"
   }
 }

@@ -1697,4 +1697,49 @@ class LRu extends L {
   String repeatNoFolder(String date) {
     return 'Такая же лежит без папки с $date';
   }
+
+  @override
+  String get settingsImport => 'Перенос';
+
+  @override
+  String get importTelegram => 'Из Telegram';
+
+  @override
+  String get importTelegramHint =>
+      'Выбери папку выгрузки «Избранного» из Telegram Desktop в формате JSON. Заметки встанут со своими датами, альбом — одной заметкой.';
+
+  @override
+  String importProgress(int done, int total) {
+    return 'Переношу $done из $total';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Перенёс $count заметки',
+      many: 'Перенёс $count заметок',
+      few: 'Перенёс $count заметки',
+      one: 'Перенёс $count заметку',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importRepeated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count уже были',
+      many: '$count уже были',
+      few: '$count уже были',
+      one: '$count уже была',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNotTelegram =>
+      'В этой папке нет выгрузки Telegram: нужен result.json';
 }

@@ -2854,6 +2854,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Same one is unfiled since {date}'**
   String repeatNoFolder(String date);
+
+  /// Раздел настроек: перенос заметок из других мест
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get settingsImport;
+
+  /// Строка настроек: перенос «Избранного» из выгрузки Telegram
+  ///
+  /// In en, this message translates to:
+  /// **'From Telegram'**
+  String get importTelegram;
+
+  /// Подсказка под разделом «Перенос»
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a Saved Messages export folder from Telegram Desktop in JSON format. Notes keep their dates, an album becomes one note.'**
+  String get importTelegramHint;
+
+  /// Ход переноса
+  ///
+  /// In en, this message translates to:
+  /// **'Importing {done} of {total}'**
+  String importProgress(int done, int total);
+
+  /// Итог переноса
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} note imported} other{{count} notes imported}}'**
+  String importDone(int count);
+
+  /// Добавка к итогу: сколько сообщений уже переносили
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} was already here} other{{count} were already here}}'**
+  String importRepeated(int count);
+
+  /// Перенос не начался: выбрана не та папка
+  ///
+  /// In en, this message translates to:
+  /// **'No Telegram export in this folder: result.json is needed'**
+  String get importNotTelegram;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

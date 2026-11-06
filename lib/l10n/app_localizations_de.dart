@@ -1676,4 +1676,45 @@ class LDe extends L {
   String repeatNoFolder(String date) {
     return 'Dieselbe liegt seit $date ohne Ordner';
   }
+
+  @override
+  String get settingsImport => 'Import';
+
+  @override
+  String get importTelegram => 'Aus Telegram';
+
+  @override
+  String get importTelegramHint =>
+      'Wähle den Exportordner der „Gespeicherten Nachrichten“ aus Telegram Desktop im JSON-Format. Notizen behalten ihr Datum, ein Album wird zu einer Notiz.';
+
+  @override
+  String importProgress(int done, int total) {
+    return 'Übertrage $done von $total';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Notizen übertragen',
+      one: '$count Notiz übertragen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importRepeated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count waren schon da',
+      one: '$count war schon da',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNotTelegram =>
+      'In diesem Ordner liegt kein Telegram-Export: result.json fehlt';
 }

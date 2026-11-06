@@ -209,5 +209,12 @@
   "vaultRebuilt": "Índice rehecho",
   "vaultSyncing": "Sincronizando notas {done} de {total}",
   "repeatIn": "La misma está en la carpeta «{folder}» desde el {date}",
-  "repeatNoFolder": "La misma está sin carpeta desde el {date}"
+  "repeatNoFolder": "La misma está sin carpeta desde el {date}",
+  "settingsImport": "Importar",
+  "importTelegram": "Desde Telegram",
+  "importTelegramHint": "Elige la carpeta de exportación de «Mensajes guardados» de Telegram Desktop en formato JSON. Las notas conservan su fecha y un álbum queda como una nota.",
+  "importProgress": "Importando {done} de {total}",
+  "importDone": "{count, plural, one{{count} nota importada} other{{count} notas importadas}}",
+  "importRepeated": "{count, plural, one{{count} ya estaba} other{{count} ya estaban}}",
+  "importNotTelegram": "En esta carpeta no hay exportación de Telegram: falta result.json"
 }

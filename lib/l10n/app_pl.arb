@@ -209,5 +209,12 @@
   "vaultRebuilt": "Indeks odbudowany",
   "vaultSyncing": "Synchronizacja notatek {done} z {total}",
   "repeatIn": "Taka sama leży w folderze „{folder}” od {date}",
-  "repeatNoFolder": "Taka sama leży bez folderu od {date}"
+  "repeatNoFolder": "Taka sama leży bez folderu od {date}",
+  "settingsImport": "Import",
+  "importTelegram": "Z Telegrama",
+  "importTelegramHint": "Wybierz folder eksportu „Zapisanych” z Telegram Desktop w formacie JSON. Notatki zachowają daty, album będzie jedną notatką.",
+  "importProgress": "Przenoszę {done} z {total}",
+  "importDone": "{count, plural, one{{count} notatka przeniesiona} few{{count} notatki przeniesione} many{{count} notatek przeniesionych} other{{count} notatki przeniesione}}",
+  "importRepeated": "{count, plural, one{{count} już była} few{{count} już były} many{{count} już były} other{{count} już były}}",
+  "importNotTelegram": "W tym folderze nie ma eksportu Telegrama: potrzebny jest result.json"
 }

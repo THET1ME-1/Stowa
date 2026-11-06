@@ -209,5 +209,12 @@
   "vaultRebuilt": "Index neu aufgebaut",
   "vaultSyncing": "Notizen synchronisieren {done} von {total}",
   "repeatIn": "Dieselbe liegt seit {date} im Ordner „{folder}“",
-  "repeatNoFolder": "Dieselbe liegt seit {date} ohne Ordner"
+  "repeatNoFolder": "Dieselbe liegt seit {date} ohne Ordner",
+  "settingsImport": "Import",
+  "importTelegram": "Aus Telegram",
+  "importTelegramHint": "Wähle den Exportordner der „Gespeicherten Nachrichten“ aus Telegram Desktop im JSON-Format. Notizen behalten ihr Datum, ein Album wird zu einer Notiz.",
+  "importProgress": "Übertrage {done} von {total}",
+  "importDone": "{count, plural, one{{count} Notiz übertragen} other{{count} Notizen übertragen}}",
+  "importRepeated": "{count, plural, one{{count} war schon da} other{{count} waren schon da}}",
+  "importNotTelegram": "In diesem Ordner liegt kein Telegram-Export: result.json fehlt"
 }
