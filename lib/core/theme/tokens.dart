@@ -1,33 +1,42 @@
 import 'package:flutter/painting.dart';
 
-/// Цвета тёмной графитовой темы, сняты с макета (design/mockup/template.html).
-///
-/// Глубина строится ступенями поверхности, а не тенями: чем выше блок, тем
-/// светлее его графит. Акцент один, матовый белый.
+import 'palette.dart';
+
+/// Цвета текущей темы. Читают выбранную палитру: светлую, тёмную, цветную.
+/// Тему меняет только `StowaApp` через [use] и тут же перестраивает экраны.
 abstract final class Tokens {
-  static const background = Color(0xFF141517);
-  static const containerLowest = Color(0xFF101113);
-  static const containerLow = Color(0xFF1A1B1E);
-  static const container = Color(0xFF1F2023);
-  static const containerHigh = Color(0xFF26272B);
-  static const containerHighest = Color(0xFF2E2F33);
+  static StowaPalette _palette = StowaPalette.graphiteDark;
+
+  static StowaPalette get palette => _palette;
+
+  static void use(StowaPalette palette) => _palette = palette;
+
+  static Color get background => _palette.background;
+  static Color get containerLowest => _palette.containerLowest;
+  static Color get containerLow => _palette.containerLow;
+  static Color get container => _palette.container;
+  static Color get containerHigh => _palette.containerHigh;
+  static Color get containerHighest => _palette.containerHighest;
 
   /// Тональные кнопки и фигуры значков.
-  static const graphite = Color(0xFF333438);
+  static Color get graphite => _palette.graphite;
 
   /// Разделители и дорожки, рамок в приложении нет.
-  static const outline = Color(0xFF3A3B40);
+  static Color get outline => _palette.outline;
 
-  static const onSurface = Color(0xFFF2F2F0);
-  static const onSurfaceVariant = Color(0xFFB0B1B6);
-  static const muted = Color(0xFF96979D);
+  static Color get onSurface => _palette.onSurface;
+  static Color get onSurfaceVariant => _palette.onSurfaceVariant;
+  static Color get muted => _palette.muted;
 
-  static const accent = Color(0xFFF4F4F2);
-  static const onAccent = Color(0xFF141517);
-  static const onAccentVariant = Color(0xFF56575C);
+  static Color get accent => _palette.accent;
+  static Color get onAccent => _palette.onAccent;
+  static Color get onAccentVariant => _palette.onAccentVariant;
 
-  static const error = Color(0xFFFFB4AB);
-  static const onError = Color(0xFF690005);
+  /// Кнопка на акцентной плашке: акцент, чуть сдвинутый к своей надписи.
+  static Color get accentTonal => Color.alphaBlend(_palette.onAccent.withValues(alpha: 0.08), _palette.accent);
+
+  static Color get error => _palette.error;
+  static Color get onError => _palette.onError;
 }
 
 /// Отступы и радиусы макета.

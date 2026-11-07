@@ -160,7 +160,7 @@ class _LinePanelState extends State<LinePanel> {
                   ),
                 ),
                 // верх списка тает, только когда над ним есть что прокрутить
-                if (_faded) const Positioned(top: 0, left: 0, right: 0, height: 18, child: EdgeFade(color: Tokens.containerHigh, toTop: true)),
+                if (_faded) Positioned(top: 0, left: 0, right: 0, height: 18, child: EdgeFade(color: Tokens.containerHigh, toTop: true)),
               ],
             ),
           ),

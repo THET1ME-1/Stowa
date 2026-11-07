@@ -126,7 +126,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(color: Tokens.background.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(4)),
-                      child: const Text('© OpenStreetMap', style: TextStyle(fontSize: 10, color: Tokens.muted)),
+                      child: Text('© OpenStreetMap', style: TextStyle(fontSize: 10, color: Tokens.muted)),
                     ),
                   ),
                 ),
@@ -143,7 +143,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     Container(
                       width: 72,
                       height: 72,
-                      decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
                       child: Icon(symbolIcon('map'), size: 32, color: Tokens.muted),
                     ),
                     const SizedBox(height: 16),
@@ -181,7 +181,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               bottom: 0,
               child: Container(
                 padding: EdgeInsets.only(top: 16, bottom: bottom + 16),
-                decoration: const BoxDecoration(color: Tokens.containerLow, borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.card))),
+                decoration: BoxDecoration(color: Tokens.containerLow, borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.card))),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -278,7 +278,7 @@ class _PlaceMark extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(11), border: Border.all(color: Tokens.background, width: 2)),
-                  child: Text('${cards.length}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                  child: Text('${cards.length}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
                 ),
               ),
           ],
@@ -305,7 +305,7 @@ class _RoundButton extends StatelessWidget {
         child: Container(
           width: 44,
           height: 44,
-          decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
           child: Icon(symbolIcon(icon), color: Tokens.onSurface),
         ),
       ),

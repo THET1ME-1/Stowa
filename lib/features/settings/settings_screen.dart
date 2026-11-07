@@ -381,7 +381,7 @@ class _AiCard extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: busy ? null : onSortNow,
               icon: busy
-                  ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Tokens.onSurfaceVariant))
+                  ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Tokens.onSurfaceVariant))
                   : Icon(symbolIcon('play_arrow', filled: true)),
               label: Text(busy ? l.aiSortingNow : l.aiSortNow),
             ),
@@ -609,7 +609,7 @@ class _BotSheetState extends ConsumerState<_BotSheet> {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
                     child: Icon(symbolIcon('send', filled: true), size: 20, color: Tokens.onAccent),
                   ),
                   const SizedBox(width: 12),
@@ -1200,7 +1200,7 @@ class _RoundButton extends StatelessWidget {
         child: Container(
           width: 44,
           height: 44,
-          decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
           child: Icon(symbolIcon(icon), color: Tokens.onSurface),
         ),
       ),

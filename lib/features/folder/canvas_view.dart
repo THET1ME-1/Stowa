@@ -294,7 +294,7 @@ class _CanvasItem extends StatelessWidget {
               File(p.join(filesRoot.path, thumb)),
               fit: BoxFit.cover,
               cacheWidth: 900,
-              errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+              errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),
             ),
           )
         : Container(

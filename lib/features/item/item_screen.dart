@@ -285,7 +285,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
             ListTile(leading: Icon(symbolIcon('edit_location_alt')), title: Text(l.itemPlaceChange), onTap: () => Navigator.pop(sheet, false)),
             ListTile(
               leading: Icon(symbolIcon('location_off'), color: Tokens.error),
-              title: Text(l.itemReminderRemove, style: const TextStyle(color: Tokens.error)),
+              title: Text(l.itemReminderRemove, style: TextStyle(color: Tokens.error)),
               onTap: () => Navigator.pop(sheet, true),
             ),
           ],
@@ -315,7 +315,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
             ListTile(leading: Icon(symbolIcon('edit_calendar')), title: Text(l.itemReminderChange), onTap: () => Navigator.pop(sheet, false)),
             ListTile(
               leading: Icon(symbolIcon('notifications_off'), color: Tokens.error),
-              title: Text(l.itemReminderRemove, style: const TextStyle(color: Tokens.error)),
+              title: Text(l.itemReminderRemove, style: TextStyle(color: Tokens.error)),
               onTap: () => Navigator.pop(sheet, true),
             ),
           ],
@@ -506,7 +506,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   Expanded(
                                     child: Text(
                                       articleMinutes(facts) != null ? l.readerGone : l.linkGone,
-                                      style: const TextStyle(fontSize: 13, color: Tokens.onSurfaceVariant),
+                                      style: TextStyle(fontSize: 13, color: Tokens.onSurfaceVariant),
                                     ),
                                   ),
                                 ],
@@ -549,7 +549,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                         if (videoLink && item.previewAuthor != null)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
-                            child: Text(item.previewAuthor!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
+                            child: Text(item.previewAuthor!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
                           ),
                         // когда и где сохранено: место открывает карту
                         Padding(
@@ -739,7 +739,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   InputDecoration _bare(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: Tokens.muted),
+    hintStyle: TextStyle(color: Tokens.muted),
     border: InputBorder.none,
     enabledBorder: InputBorder.none,
     focusedBorder: InputBorder.none,
@@ -866,7 +866,7 @@ class _Header extends StatelessWidget {
                             key: const ValueKey('item-folder-badge'),
                             width: 40,
                             height: 40,
-                            decoration: const BoxDecoration(color: Tokens.graphite, shape: BoxShape.circle),
+                            decoration: BoxDecoration(color: Tokens.graphite, shape: BoxShape.circle),
                             child: Icon(symbolIcon(folder?.icon ?? 'inbox', filled: true), size: 20, color: Tokens.onSurface),
                           ),
                           const SizedBox(width: 9),
@@ -878,8 +878,8 @@ class _Header extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(folderName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.2, color: Tokens.onSurface)),
-                                  Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, height: 1.2, color: Tokens.onSurfaceVariant)),
+                                  Text(folderName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.2, color: Tokens.onSurface)),
+                                  Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, height: 1.2, color: Tokens.onSurfaceVariant)),
                                 ],
                               ),
                             ),
@@ -985,7 +985,7 @@ class _RepeatLine extends ConsumerWidget {
             Icon(symbolIcon('content_copy'), size: 17, color: Tokens.accent),
             const SizedBox(width: 6),
             Flexible(
-              child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: Tokens.onSurface)),
+              child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.3, color: Tokens.onSurface)),
             ),
           ],
         ),
@@ -1010,7 +1010,7 @@ class _WhenWhere extends StatelessWidget {
     final l = L.of(context);
     final day = at.year == now.year ? DateFormat.MMMMEEEEd(l.localeName).format(at) : DateFormat.yMMMMEEEEd(l.localeName).format(at);
     final when = '${_capitalized(day)}, ${DateFormat.jm(l.localeName).format(at)}';
-    const style = TextStyle(fontSize: 14, fontWeight: FontWeight.w500, height: 1.3, color: Tokens.onSurfaceVariant);
+    final style = TextStyle(fontSize: 14, fontWeight: FontWeight.w500, height: 1.3, color: Tokens.onSurfaceVariant);
     Widget part(String icon, String label) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1062,7 +1062,7 @@ class _PlaceReminderBlock extends StatelessWidget {
               Expanded(
                 child: Text(
                   remindPlaceLabel(l, place.kind, name: place.name),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Tokens.onAccent),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Tokens.onAccent),
                 ),
               ),
             ],
@@ -1103,8 +1103,8 @@ class _ReminderBlock extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_capitalized(formatReminder(l, at, now)), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
-                    Text(date, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.onAccentVariant)),
+                    Text(_capitalized(formatReminder(l, at, now)), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                    Text(date, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.onAccentVariant)),
                   ],
                 ),
               ),
@@ -1156,7 +1156,7 @@ class _PhotoCover extends StatelessWidget {
               File(path),
               fit: BoxFit.cover,
               cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
-              errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+              errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),
             ),
           ),
         ),
@@ -1195,7 +1195,7 @@ class _Thumbs extends StatelessWidget {
                 height: 56,
                 fit: BoxFit.cover,
                 cacheWidth: 168,
-                errorBuilder: (_, _, _) => const SizedBox.square(dimension: 56, child: ColoredBox(color: Tokens.containerHigh)),
+                errorBuilder: (_, _, _) => SizedBox.square(dimension: 56, child: ColoredBox(color: Tokens.containerHigh)),
               ),
             ),
           ),
@@ -1290,7 +1290,7 @@ class _Dock extends StatelessWidget {
                             const SizedBox(width: 8),
                             MediaQuery.withClampedTextScaling(
                               maxScaleFactor: 1.2,
-                              child: Text(accentLabel, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                              child: Text(accentLabel, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
                             ),
                           ],
                         ],
@@ -1353,7 +1353,7 @@ class _ItemMenu extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
+              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
             ),
             row(_MenuAction.copy, 'content_copy', l.itemCopy, const BorderRadius.vertical(top: Radius.circular(24), bottom: Radius.circular(8))),
             const SizedBox(height: 4),

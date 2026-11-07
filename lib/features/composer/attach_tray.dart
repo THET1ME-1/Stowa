@@ -120,7 +120,7 @@ class _AttachTrayState extends State<AttachTray> {
     final text = Theme.of(context).textTheme;
     final permission = _permission;
     if (permission == null) {
-      return const SizedBox(
+      return SizedBox(
         height: 120,
         child: Center(child: CircularProgressIndicator(strokeWidth: 2.5, color: Tokens.onSurfaceVariant)),
       );

@@ -86,7 +86,7 @@ class _PhotoFace extends StatelessWidget {
       children: [
         AdultVeil(
           itemId: item.id,
-          child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh)),
+          child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
         ),
         // белый заголовок читается на любой картинке: снизу затемнение цветом фона
         DecoratedBox(

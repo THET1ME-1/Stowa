@@ -67,7 +67,7 @@ class NoteBody extends StatelessWidget {
           padding: const EdgeInsets.only(top: 10, left: 6),
           child: Align(
             alignment: Alignment.topLeft,
-            child: Container(width: 6, height: 6, decoration: const BoxDecoration(color: Tokens.onSurfaceVariant, shape: BoxShape.circle)),
+            child: Container(width: 6, height: 6, decoration: BoxDecoration(color: Tokens.onSurfaceVariant, shape: BoxShape.circle)),
           ),
         ),
         value,

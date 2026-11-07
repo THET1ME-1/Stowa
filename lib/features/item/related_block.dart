@@ -45,7 +45,7 @@ class RelatedBlock extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-            child: Text(l.relatedTitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
+            child: Text(l.relatedTitle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
           ),
           for (final (index, (:card, :why)) in related.indexed) ...[
             if (index > 0) const SizedBox(height: 3),
@@ -111,7 +111,7 @@ class _RelatedRow extends StatelessWidget {
                             File(p.join(filesRoot.path, thumb)),
                             fit: BoxFit.cover,
                             cacheWidth: (44 * MediaQuery.devicePixelRatioOf(context)).round(),
-                            errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHighest),
+                            errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHighest),
                           ),
                         )
                       : ColoredBox(color: Tokens.containerHighest, child: Icon(symbolIcon(kindIcon(card.kind)), size: 22, color: Tokens.onSurface)),
@@ -122,9 +122,9 @@ class _RelatedRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(card.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
+                    Text(card.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
                     const SizedBox(height: 2),
-                    Text(reason, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: Tokens.onSurfaceVariant)),
+                    Text(reason, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: Tokens.onSurfaceVariant)),
                   ],
                 ),
               ),

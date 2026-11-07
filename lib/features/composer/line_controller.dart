@@ -195,7 +195,7 @@ class LineController extends TextEditingController {
     final marks = <(int, int, TextStyle)>[];
     final command = _commandMark.firstMatch(text);
     if (command != null) {
-      marks.add((0, command.end, const TextStyle(color: Tokens.onAccent, backgroundColor: Tokens.accent)));
+      marks.add((0, command.end, TextStyle(color: Tokens.onAccent, backgroundColor: Tokens.accent)));
     }
     final found = reminder;
     final cue = placeCue;
@@ -204,7 +204,7 @@ class LineController extends TextEditingController {
       marks.add((
         from,
         to,
-        const TextStyle(
+        TextStyle(
           decoration: TextDecoration.underline,
           decorationStyle: TextDecorationStyle.dotted,
           decorationThickness: 1.5,
@@ -216,11 +216,11 @@ class LineController extends TextEditingController {
       marks.add((
         match.start,
         match.end,
-        const TextStyle(color: Tokens.onSurfaceVariant, decoration: TextDecoration.underline, decorationColor: Tokens.onSurfaceVariant),
+        TextStyle(color: Tokens.onSurfaceVariant, decoration: TextDecoration.underline, decorationColor: Tokens.onSurfaceVariant),
       ));
     }
     for (final match in _markdown.allMatches(text)) {
-      marks.add((match.start, match.end, const TextStyle(color: Tokens.muted)));
+      marks.add((match.start, match.end, TextStyle(color: Tokens.muted)));
     }
     // тег или папка, которые пишутся сейчас, подсвечены фоном: ширина букв та же, курсор не прыгает
     if (selection.isValid && selection.isCollapsed && selection.extentOffset <= text.length) {

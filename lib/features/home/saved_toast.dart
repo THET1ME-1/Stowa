@@ -24,7 +24,7 @@ class SavedToast extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: const BoxDecoration(color: Tokens.graphite, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Tokens.graphite, shape: BoxShape.circle),
             child: Icon(symbolIcon(icon), size: 20, color: Tokens.onSurface),
           ),
           const SizedBox(width: 10),
@@ -41,7 +41,7 @@ class SavedToast extends StatelessWidget {
             TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                backgroundColor: const Color(0xFFE2E2DF),
+                backgroundColor: Tokens.accentTonal,
                 foregroundColor: Tokens.onAccent,
                 minimumSize: const Size(0, 40),
                 padding: const EdgeInsets.symmetric(horizontal: 14),

@@ -417,7 +417,7 @@ class _Photo extends StatelessWidget {
               child: SizedBox.expand(
                 child: AdultVeil(
                   itemId: item.id,
-                  child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh)),
+                  child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
                 ),
               ),
             ),
@@ -473,7 +473,7 @@ class _Attachment extends StatelessWidget {
               AdultVeil(
                 itemId: item.id,
                 compact: true,
-                child: Image.file(File(thumb!), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh)),
+                child: Image.file(File(thumb!), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
               ),
               if (item.kind == ItemKind.video)
                 Center(
@@ -560,11 +560,11 @@ class _Marks extends StatelessWidget {
       folder = _Chip(
         fill: Tokens.containerHigh,
         ink: Tokens.onSurfaceVariant,
-        lead: const SizedBox(
+        lead: SizedBox(
           width: 14,
           height: 3,
           child: ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(2)),
+            borderRadius: const BorderRadius.all(Radius.circular(2)),
             child: LinearProgressIndicator(color: Tokens.onSurfaceVariant, backgroundColor: Tokens.graphite),
           ),
         ),

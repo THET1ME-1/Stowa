@@ -118,7 +118,7 @@ Widget _photo(Directory root, String path, {required String id, double? height, 
     width: double.infinity,
     height: height,
     cacheWidth: cacheWidth,
-    errorBuilder: (_, _, _) => SizedBox(height: height ?? 120, child: const ColoredBox(color: Tokens.containerHigh)),
+    errorBuilder: (_, _, _) => SizedBox(height: height ?? 120, child: ColoredBox(color: Tokens.containerHigh)),
   ),
 );
 
@@ -149,7 +149,7 @@ class _VideoCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  card.thumbPath != null ? _photo(filesRoot, card.thumbPath!, id: card.id, cacheWidth: width) : const ColoredBox(color: Tokens.containerHigh),
+                  card.thumbPath != null ? _photo(filesRoot, card.thumbPath!, id: card.id, cacheWidth: width) : ColoredBox(color: Tokens.containerHigh),
                   if (host != null)
                     Positioned(
                       left: 12,
@@ -189,7 +189,7 @@ class _VideoCard extends StatelessWidget {
                     child: Container(
                       width: 44,
                       height: 44,
-                      decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
                       child: Icon(symbolIcon('play_arrow', filled: true), color: Tokens.onAccent),
                     ),
                   ),
@@ -437,9 +437,9 @@ class BoardTile extends StatelessWidget {
                       fit: card.thumbRatio == null ? BoxFit.fitWidth : BoxFit.cover,
                       cacheWidth: (width * MediaQuery.devicePixelRatioOf(context)).round(),
                       frameBuilder: (context, child, frame, sync) => frame == null && !sync
-                          ? SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh))
+                          ? SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: ColoredBox(color: Tokens.containerHigh))
                           : child,
-                      errorBuilder: (_, _, _) => SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: const ColoredBox(color: Tokens.containerHigh)),
+                      errorBuilder: (_, _, _) => SizedBox(width: width, height: width * (card.thumbRatio ?? 1), child: ColoredBox(color: Tokens.containerHigh)),
                     ),
                   ),
                   if (tag != null)

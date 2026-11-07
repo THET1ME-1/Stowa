@@ -97,7 +97,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> with WidgetsBinding
             if (current != null)
               ListTile(
                 leading: Icon(symbolIcon('delete'), color: Tokens.error),
-                title: Text(l.placesRemove, style: const TextStyle(color: Tokens.error)),
+                title: Text(l.placesRemove, style: TextStyle(color: Tokens.error)),
                 onTap: () => Navigator.pop(sheet, 'remove'),
               ),
           ],

@@ -62,7 +62,7 @@ class NextReminderCard extends StatelessWidget {
                   IconButton(
                     tooltip: l.homeReminderDone,
                     onPressed: onDone,
-                    style: IconButton.styleFrom(backgroundColor: const Color(0xFFE2E2DF), foregroundColor: Tokens.onAccent),
+                    style: IconButton.styleFrom(backgroundColor: Tokens.accentTonal, foregroundColor: Tokens.onAccent),
                     icon: Icon(symbolIcon('check')),
                   ),
                 ],

@@ -83,7 +83,7 @@ class _DeadLinksScreenState extends ConsumerState<DeadLinksScreen> {
               child: FilledButton.tonalIcon(
                 onPressed: _checking ? null : _check,
                 icon: _checking
-                    ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Tokens.onSurfaceVariant))
+                    ? SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Tokens.onSurfaceVariant))
                     : Icon(symbolIcon('refresh'), size: 18),
                 label: Text(_checking ? l.deadLinksChecking : l.deadLinksCheck),
               ),
@@ -97,7 +97,7 @@ class _DeadLinksScreenState extends ConsumerState<DeadLinksScreen> {
                     Container(
                       width: 72,
                       height: 72,
-                      decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
                       child: Icon(symbolIcon('link'), size: 32, color: Tokens.muted),
                     ),
                     const SizedBox(height: 16),

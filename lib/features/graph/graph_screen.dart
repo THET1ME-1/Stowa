@@ -128,7 +128,7 @@ class _GraphScreenState extends ConsumerState<GraphScreen> {
                       child: Container(
                         width: 44,
                         height: 44,
-                        decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
                         child: Icon(symbolIcon('arrow_back'), color: Tokens.onSurface),
                       ),
                     ),

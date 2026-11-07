@@ -26,7 +26,7 @@ class CopyingBar extends ConsumerWidget {
             FractionallySizedBox(
               alignment: Alignment.centerLeft,
               widthFactor: fraction.clamp(0.0, 1.0),
-              child: const ColoredBox(color: Tokens.onSurface),
+              child: ColoredBox(color: Tokens.onSurface),
             ),
           ],
         ),

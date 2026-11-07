@@ -49,7 +49,7 @@ class PinnedTagsRow extends StatelessWidget {
                   ),
           ),
           // край тает градиентом поверх, а не маской: маска перерисовывает слой при прокрутке
-          const Positioned(top: 0, bottom: 0, right: 0, width: 48, child: EdgeFade(color: Tokens.background, toRight: true)),
+          Positioned(top: 0, bottom: 0, right: 0, width: 48, child: EdgeFade(color: Tokens.background, toRight: true)),
         ],
       ),
     );

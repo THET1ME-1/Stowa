@@ -135,7 +135,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
                   child: SizedBox.square(
                     dimension: 64,
                     child: image != null
-                        ? Image.file(File(p.join(filesRoot.path, image.path)), fit: BoxFit.cover, errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh))
+                        ? Image.file(File(p.join(filesRoot.path, image.path)), fit: BoxFit.cover, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh))
                         : ColoredBox(
                             color: Tokens.containerHigh,
                             child: Icon(symbolIcon(item == null ? 'check' : kindIcon(item.item.kind), filled: true), size: 28, color: Tokens.onSurface),

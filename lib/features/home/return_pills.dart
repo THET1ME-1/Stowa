@@ -46,7 +46,7 @@ class ReturnPills extends ConsumerWidget {
                     children: [
                       Icon(symbolIcon(pill.icon), size: 18, color: Tokens.onSurfaceVariant),
                       const SizedBox(width: 8),
-                      Flexible(child: Text(pill.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurface))),
+                      Flexible(child: Text(pill.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurface))),
                     ],
                   ),
                 ),

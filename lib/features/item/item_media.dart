@@ -82,7 +82,7 @@ class LinkPreviewCard extends ConsumerWidget {
                     fit: BoxFit.cover,
                     width: double.infinity,
                     cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
-                    errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+                    errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),
                   ),
                 ),
               ),
@@ -96,7 +96,7 @@ class LinkPreviewCard extends ConsumerWidget {
                       _SiteMark(site: site),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(site, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
+                        child: Text(site, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
                       ),
                       Icon(symbolIcon('open_in_new'), size: 18, color: Tokens.muted),
                     ],
@@ -107,7 +107,7 @@ class LinkPreviewCard extends ConsumerWidget {
                     description ?? item.url ?? '',
                     maxLines: description == null ? 1 : 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14, height: 1.45, color: Tokens.onSurfaceVariant),
+                    style: TextStyle(fontSize: 14, height: 1.45, color: Tokens.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -133,7 +133,7 @@ class _SiteMark extends StatelessWidget {
       height: 22,
       alignment: Alignment.center,
       decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(7)),
-      child: Text(letter, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Tokens.onSurface)),
+      child: Text(letter, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Tokens.onSurface)),
     );
   }
 }
@@ -177,11 +177,11 @@ class VideoCover extends StatelessWidget {
                     File(p.join(filesRoot.path, cover)),
                     fit: BoxFit.cover,
                     cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
-                    errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh),
+                    errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),
                   ),
                 )
               else
-                const ColoredBox(color: Tokens.containerHigh),
+                ColoredBox(color: Tokens.containerHigh),
               if (source != null)
                 Positioned(
                   left: 12,
@@ -192,7 +192,7 @@ class VideoCover extends StatelessWidget {
                       children: [
                         Icon(symbolIcon('smart_display', filled: true), size: 18, color: Tokens.onSurface),
                         const SizedBox(width: 6),
-                        Text(source!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
+                        Text(source!, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
                       ],
                     ),
                   ),
@@ -201,13 +201,13 @@ class VideoCover extends StatelessWidget {
                 Positioned(
                   right: 12,
                   bottom: 12,
-                  child: pill(Center(widthFactor: 1, child: Text(formatClock(duration!), style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Tokens.onSurface)))),
+                  child: pill(Center(widthFactor: 1, child: Text(formatClock(duration!), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Tokens.onSurface)))),
                 ),
               Center(
                 child: Container(
                   width: 64,
                   height: 64,
-                  decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
                   child: Icon(symbolIcon('play_arrow', filled: true), size: 36, color: Tokens.onAccent),
                 ),
               ),
@@ -252,9 +252,9 @@ class FileTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(fileTitle(file.path), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
+                      Text(fileTitle(file.path), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
                       const SizedBox(height: 2),
-                      Text(fileCaption(file.path, file.size), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.onSurfaceVariant)),
+                      Text(fileCaption(file.path, file.size), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.onSurfaceVariant)),
                     ],
                   ),
                 ),

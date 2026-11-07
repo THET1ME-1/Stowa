@@ -334,7 +334,7 @@ class _ArticleBody extends StatelessWidget {
           decoration: BoxDecoration(color: Tokens.containerLowest, borderRadius: BorderRadius.circular(Radii.photo)),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Text(block.text, style: const TextStyle(fontFamily: 'monospace', fontSize: 14, height: 1.5, color: Tokens.onSurfaceVariant)),
+            child: Text(block.text, style: TextStyle(fontFamily: 'monospace', fontSize: 14, height: 1.5, color: Tokens.onSurfaceVariant)),
           ),
         ),
         ArticleBlockKind.image => _ArticleImage(file: imageOf(images++), caption: block.text),
@@ -457,7 +457,7 @@ class _NoteLine extends StatelessWidget {
             children: [
               Icon(symbolIcon('edit_note'), size: 18, color: _marker),
               const SizedBox(width: 8),
-              Expanded(child: Text(note, style: const TextStyle(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant))),
+              Expanded(child: Text(note, style: TextStyle(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant))),
             ],
           ),
         ),
@@ -483,7 +483,7 @@ class _ArticleImage extends StatelessWidget {
         children: [
           Icon(symbolIcon('image'), size: 18, color: Tokens.muted),
           const SizedBox(width: 10),
-          Expanded(child: Text(caption.isEmpty ? l.readerImageOff : caption, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: Tokens.muted))),
+          Expanded(child: Text(caption.isEmpty ? l.readerImageOff : caption, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: Tokens.muted))),
         ],
       ),
     );
@@ -503,7 +503,7 @@ class _ArticleImage extends StatelessWidget {
         if (caption.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(caption, style: const TextStyle(fontSize: 13, height: 1.4, color: Tokens.muted)),
+            child: Text(caption, style: TextStyle(fontSize: 13, height: 1.4, color: Tokens.muted)),
           ),
       ],
     );
@@ -526,7 +526,7 @@ class _NoCopy extends StatelessWidget {
           children: [
             Icon(symbolIcon('chrome_reader_mode'), size: 36, color: Tokens.muted),
             const SizedBox(height: 14),
-            Text(l.readerNoCopy, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant)),
+            Text(l.readerNoCopy, textAlign: TextAlign.center, style: TextStyle(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant)),
             if (onOpen != null) ...[
               const SizedBox(height: 18),
               FilledButton.tonal(onPressed: onOpen, child: Text(l.readerOriginal)),
@@ -658,7 +658,7 @@ class _HighlightSheetState extends State<_HighlightSheet> {
             Container(
               width: 52,
               height: 52,
-              decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
               child: Icon(symbolIcon(icon), size: 22, color: danger ? Tokens.error : Tokens.onSurface),
             ),
             const SizedBox(height: 6),

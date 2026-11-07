@@ -116,7 +116,7 @@ class FolderPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = Theme.of(context).textTheme.labelLarge!;
-    const ink = Tokens.onAccent;
+    final ink = Tokens.onAccent;
     return Pressable(
       onTap: onTap,
       pressedScale: 0.94,

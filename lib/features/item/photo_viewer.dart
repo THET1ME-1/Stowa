@@ -139,7 +139,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             alignment: Alignment.center,
                             decoration: BoxDecoration(color: Tokens.containerHigh.withValues(alpha: 0.82), borderRadius: BorderRadius.circular(18)),
-                            child: Text(l.photoCounter(count, _index + 1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
+                            child: Text(l.photoCounter(count, _index + 1), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
                           ),
                         const Spacer(),
                         const SizedBox(width: 48),
@@ -175,7 +175,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
                                       children: [
                                         Icon(symbolIcon('download'), size: 22, color: Tokens.onAccent),
                                         const SizedBox(width: 8),
-                                        Text(l.photoToGallery, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                                        Text(l.photoToGallery, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
                                       ],
                                     ),
                                   ),

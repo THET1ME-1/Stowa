@@ -37,7 +37,7 @@ class MarkdownController extends TextEditingController {
 
   @override
   TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
-    const mark = TextStyle(color: Tokens.muted);
+    final mark = TextStyle(color: Tokens.muted);
     final children = <InlineSpan>[];
     final lines = text.split('\n');
     for (final (index, line) in lines.indexed) {
@@ -47,9 +47,9 @@ class MarkdownController extends TextEditingController {
       if (lead.startsWith('#')) {
         restStyle = const TextStyle(fontWeight: FontWeight.w700, fontSize: 19);
       } else if (lead.contains('[x]') || lead.contains('[X]')) {
-        restStyle = const TextStyle(color: Tokens.muted, decoration: TextDecoration.lineThrough, decorationColor: Tokens.muted);
+        restStyle = TextStyle(color: Tokens.muted, decoration: TextDecoration.lineThrough, decorationColor: Tokens.muted);
       } else if (lead.startsWith('>')) {
-        restStyle = const TextStyle(color: Tokens.onSurfaceVariant);
+        restStyle = TextStyle(color: Tokens.onSurfaceVariant);
       }
       if (lead.isNotEmpty) children.add(TextSpan(text: lead, style: mark));
       _inline(rest, restStyle, children);
@@ -60,7 +60,7 @@ class MarkdownController extends TextEditingController {
 
   // жирный, курсив, зачёркнутый, код: знаки по краям приглушены, середина выделена
   void _inline(String line, TextStyle base, List<InlineSpan> out) {
-    final mark = base.merge(const TextStyle(color: Tokens.muted, fontWeight: FontWeight.w400, fontStyle: FontStyle.normal));
+    final mark = base.merge(TextStyle(color: Tokens.muted, fontWeight: FontWeight.w400, fontStyle: FontStyle.normal));
     var last = 0;
     for (final match in inlineMarks.allMatches(line)) {
       if (match.start > last) out.add(TextSpan(text: line.substring(last, match.start), style: base));
@@ -68,7 +68,7 @@ class MarkdownController extends TextEditingController {
         _ when match.group(1) != null => (2, const TextStyle(fontWeight: FontWeight.w700)),
         _ when match.group(2) != null || match.group(3) != null => (1, const TextStyle(fontStyle: FontStyle.italic)),
         _ when match.group(4) != null => (2, const TextStyle(decoration: TextDecoration.lineThrough)),
-        _ => (1, const TextStyle(fontFamily: 'monospace', backgroundColor: Tokens.containerHigh)),
+        _ => (1, TextStyle(fontFamily: 'monospace', backgroundColor: Tokens.containerHigh)),
       };
       final whole = match.group(0)!;
       out

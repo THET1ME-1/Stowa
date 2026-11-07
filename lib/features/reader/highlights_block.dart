@@ -58,7 +58,7 @@ class HighlightsBlock extends StatelessWidget {
               const SizedBox(width: 8),
               Text(l.highlightsTitle, style: Theme.of(context).textTheme.titleSmall),
               const Spacer(),
-              Text('${highlights.length}', style: const TextStyle(fontSize: 13, color: Tokens.muted)),
+              Text('${highlights.length}', style: TextStyle(fontSize: 13, color: Tokens.muted)),
             ],
           ),
           const SizedBox(height: 8),
@@ -80,7 +80,7 @@ class HighlightsBlock extends StatelessWidget {
                     if (one.note != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
-                        child: Text(one.note!, style: const TextStyle(fontSize: 14, height: 1.4, color: Tokens.onSurfaceVariant)),
+                        child: Text(one.note!, style: TextStyle(fontSize: 14, height: 1.4, color: Tokens.onSurfaceVariant)),
                       ),
                   ],
                 ),

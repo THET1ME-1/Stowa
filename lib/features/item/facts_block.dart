@@ -107,7 +107,7 @@ class _FactChip extends StatelessWidget {
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurface),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurface),
                   ),
                 ),
               ],

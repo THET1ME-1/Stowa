@@ -82,10 +82,10 @@ class PageCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_capitalized(_kind(l, type)), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
+          Text(_capitalized(_kind(l, type)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
           if (price != null && type == PageType.product) ...[
             const SizedBox(height: 6),
-            Text(price.value, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: Tokens.onSurface, height: 1.1)),
+            Text(price.value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: Tokens.onSurface, height: 1.1)),
           ],
           for (final row in rows) ...[const SizedBox(height: 10), row],
           if (ingredients.isNotEmpty) ...[
@@ -96,11 +96,11 @@ class PageCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8, right: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, right: 10),
                       child: SizedBox(width: 5, height: 5, child: DecoratedBox(decoration: BoxDecoration(color: Tokens.onSurfaceVariant, shape: BoxShape.circle))),
                     ),
-                    Expanded(child: Text(ingredient, style: const TextStyle(fontSize: 15, height: 1.4, color: Tokens.onSurface))),
+                    Expanded(child: Text(ingredient, style: TextStyle(fontSize: 15, height: 1.4, color: Tokens.onSurface))),
                   ],
                 ),
               ),
@@ -200,7 +200,7 @@ class ChaptersBlock extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
-            child: Text(l.chaptersTitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
+            child: Text(l.chaptersTitle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
           ),
           for (final chapter in chapters)
             InkWell(
@@ -214,10 +214,10 @@ class ChaptersBlock extends StatelessWidget {
                       width: 56,
                       child: Text(
                         formatClock(Duration(seconds: chapter.number!.floor())),
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Tokens.onSurface, fontFeatures: [FontFeature.tabularFigures()]),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Tokens.onSurface, fontFeatures: [FontFeature.tabularFigures()]),
                       ),
                     ),
-                    Expanded(child: Text(chapter.value, style: const TextStyle(fontSize: 15, color: Tokens.onSurface))),
+                    Expanded(child: Text(chapter.value, style: TextStyle(fontSize: 15, color: Tokens.onSurface))),
                   ],
                 ),
               ),
@@ -251,13 +251,13 @@ class SuggestedTags extends StatelessWidget {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text(l.authorTags, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
+        Text(l.authorTags, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
         for (final tag in tags)
           Tooltip(
             message: l.tagAdd,
             child: Material(
               color: Colors.transparent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Tokens.containerHighest)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Tokens.containerHighest)),
               clipBehavior: Clip.antiAlias,
               child: InkWell(
                 onTap: () => onAdd(tag),
@@ -268,7 +268,7 @@ class SuggestedTags extends StatelessWidget {
                     children: [
                       Icon(symbolIcon('add'), size: 16, color: Tokens.onSurfaceVariant),
                       const SizedBox(width: 4),
-                      Text('#$tag', style: const TextStyle(fontSize: 14, color: Tokens.onSurfaceVariant)),
+                      Text('#$tag', style: TextStyle(fontSize: 14, color: Tokens.onSurfaceVariant)),
                     ],
                   ),
                 ),

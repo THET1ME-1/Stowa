@@ -414,10 +414,11 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
               right: 0,
               bottom: 0,
               height: _dockSpace + bottom,
-              child: const IgnorePointer(
+              child: IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x00000000), Tokens.background], stops: [0, 0.3]),
+                    // прозрачный край того же цвета: от прозрачного чёрного светлая тема серела бы
+                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Tokens.background.withValues(alpha: 0), Tokens.background], stops: const [0, 0.3]),
                   ),
                 ),
               ),
@@ -551,7 +552,7 @@ class _RoundButton extends StatelessWidget {
         child: Container(
           width: 44,
           height: 44,
-          decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
           child: Icon(symbolIcon(icon), color: Tokens.onSurface),
         ),
       ),

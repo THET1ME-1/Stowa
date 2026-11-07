@@ -889,7 +889,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                         children: [for (final chip in chips) Padding(padding: const EdgeInsets.only(right: 8), child: chip)],
                       ),
                     ),
-                    const Positioned(top: 0, bottom: 0, right: 0, width: 28, child: EdgeFade(color: Tokens.containerHighest, toRight: true)),
+                    Positioned(top: 0, bottom: 0, right: 0, width: 28, child: EdgeFade(color: Tokens.containerHighest, toRight: true)),
                   ],
                 ),
               // поле всегда в одном и том же месте дерева: иначе Flutter пересоздаёт его,
@@ -1031,7 +1031,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           leading: Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
             child: Icon(symbolIcon('content_paste'), size: 18, color: Tokens.onAccent),
           ),
           label: l.suggestClip,
@@ -1049,7 +1049,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
             borderRadius: BorderRadius.circular(12),
             child: SizedBox.square(
               dimension: 32,
-              child: _shotThumb == null ? const ColoredBox(color: Tokens.graphite) : Image.memory(_shotThumb!, fit: BoxFit.cover),
+              child: _shotThumb == null ? ColoredBox(color: Tokens.graphite) : Image.memory(_shotThumb!, fit: BoxFit.cover),
             ),
           ),
           label: l.suggestShot,
@@ -1408,7 +1408,7 @@ class _AttachmentTile extends StatelessWidget {
         File(file.path),
         fit: BoxFit.cover,
         cacheWidth: (60 * MediaQuery.devicePixelRatioOf(context)).round(),
-        errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.graphite),
+        errorBuilder: (_, _, _) => ColoredBox(color: Tokens.graphite),
       );
     } else {
       final icon = switch (attached.mime.split('/').first) {
@@ -1447,7 +1447,7 @@ class _AttachmentTile extends StatelessWidget {
                   child: Container(
                     width: 22,
                     height: 22,
-                    decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
                     alignment: Alignment.center,
                     // загрузилось — галочка выпрыгивает с поворотом
                     child: AnimatedSwitcher(
@@ -1456,8 +1456,8 @@ class _AttachmentTile extends StatelessWidget {
                       switchInCurve: Motion.spatial,
                       transitionBuilder: popTransition,
                       child: file == null
-                          ? const SizedBox.square(
-                              key: ValueKey('loading'),
+                          ? SizedBox.square(
+                              key: const ValueKey('loading'),
                               dimension: 13,
                               child: CircularProgressIndicator(strokeWidth: 2.4, color: Tokens.onAccent),
                             )
@@ -1640,7 +1640,7 @@ class _BlinkState extends State<_Blink> with SingleTickerProviderStateMixin {
       child: Container(
         width: 10,
         height: 10,
-        decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+        decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
       ),
     );
   }

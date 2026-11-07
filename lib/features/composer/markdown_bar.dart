@@ -31,7 +31,7 @@ class MarkdownBar extends StatelessWidget {
       ),
       icon: Icon(symbolIcon(icon), size: 21),
     );
-    const divider = SizedBox(height: 22, child: VerticalDivider(width: 1, thickness: 1, color: Tokens.outline));
+    final divider = SizedBox(height: 22, child: VerticalDivider(width: 1, thickness: 1, color: Tokens.outline));
     List<Widget> history(UndoHistoryValue value) => [
       divider,
       button('undo', l.mdUndo, value.canUndo ? undo!.undo : null),

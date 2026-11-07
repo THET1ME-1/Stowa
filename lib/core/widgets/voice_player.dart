@@ -144,7 +144,7 @@ class _VoicePlayerState extends State<VoicePlayer> {
             child: Container(
               width: button,
               height: button,
-              decoration: const BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
               child: Icon(symbolIcon(_playing ? 'pause' : 'play_arrow', filled: true), size: large ? 30 : 24, color: Tokens.onAccent),
             ),
           ),
@@ -182,7 +182,7 @@ class _VoicePlayerState extends State<VoicePlayer> {
                   constraints: const BoxConstraints(minWidth: 44, minHeight: 32),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   alignment: Alignment.center,
-                  child: Text('${voiceSpeeds[_speed].toString().replaceFirst('.0', '')}×', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
+                  child: Text('${voiceSpeeds[_speed].toString().replaceFirst('.0', '')}×', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Tokens.onSurface)),
                 ),
               ),
             ),

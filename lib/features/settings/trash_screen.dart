@@ -97,7 +97,7 @@ class TrashScreen extends ConsumerWidget {
                     Container(
                       width: 72,
                       height: 72,
-                      decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
                       child: Icon(symbolIcon('delete'), size: 32, color: Tokens.muted),
                     ),
                     const SizedBox(height: 16),
@@ -244,7 +244,7 @@ class _RoundButton extends StatelessWidget {
         child: Container(
           width: 44,
           height: 44,
-          decoration: const BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
           child: Icon(symbolIcon(icon), color: Tokens.onSurface),
         ),
       ),
