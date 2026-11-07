@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
@@ -77,13 +78,14 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
                 const SizedBox(width: 12),
-                Expanded(child: Text(l.settingsTitle, style: text.titleLarge!.copyWith(fontSize: 18))),
+                Expanded(child: Text(l.settingsTitle, style: text.titleLarge!.copyWith(fontSize: 22))),
               ],
             ),
             const SizedBox(height: 18),
             _AiCard(settings: ai, queued: queued, busy: ref.watch(aiBusyProvider).value ?? false, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
             const SizedBox(height: 8),
             _Group(
+              tint: _tint('violet'),
               children: [
                 _Row(icon: 'key', title: l.aiKey, value: ai.hasKey ? l.aiKeySet : l.aiKeyNone, onTap: () => _showKeySheet(context)),
                 _Row(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => _showProviderSheet(context, ai.baseUrl)),
@@ -94,16 +96,19 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Section(l.settingsOutside),
             _Group(
+              tint: _tint('sky'),
               children: [
                 _Row(icon: 'send', title: l.tgTitle, value: telegram.botName == null ? l.tgNone : '@${telegram.botName}', onTap: () => _sheet(context, const _BotSheet())),
               ],
             ),
             _Section(l.settingsOrder),
             _Group(
+              tint: _tint('amber'),
               children: [_Row(icon: 'label', title: l.settingsTooltip, onTap: () => Navigator.of(context).push(tagsRoute()))],
             ),
             _Section(l.settingsData),
             _Group(
+              tint: _tint('mint'),
               children: [
                 _SwitchRow(
                   icon: 'location_on',
@@ -126,6 +131,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Text(l.placeSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
             _Group(
+              tint: _tint('coral'),
               children: [
                 _SwitchRow(
                   icon: 'explicit',
@@ -147,6 +153,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Section(l.settingsArticles),
             _Group(
+              tint: _tint('lemon'),
               children: [
                 _SwitchRow(
                   icon: 'image',
@@ -168,6 +175,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Section(l.vaultSection),
             _Group(
+              tint: _tint('teal'),
               children: [
                 _Row(icon: 'folder_open', title: l.vaultFolder, value: _vaultPlace(ref, l), onTap: () => moveVaultElsewhere(context, ref)),
                 _Row(icon: 'drive_file_move', title: l.vaultMoveTo, onTap: () => moveVaultElsewhere(context, ref)),
@@ -179,6 +187,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Text(l.vaultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
             _Group(
+              tint: _tint('blue'),
               children: [
                 _Row(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
                 _Row(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
@@ -191,6 +200,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Section(l.settingsImport),
             _Group(
+              tint: _tint('sky'),
               children: [_Row(icon: 'send', title: l.importTelegram, onTap: () => importTelegram(context, ref))],
             ),
             Padding(
@@ -199,6 +209,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Section(l.settingsStart),
             _Group(
+              tint: _tint('lime'),
               children: [
                 _Row(
                   icon: 'start',
@@ -214,6 +225,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Section(l.settingsLanguage),
             _Group(
+              tint: _tint('orchid'),
               children: [_Row(icon: 'translate', title: l.settingsLanguage, value: language?.label ?? l.languageSystem, onTap: () => _showLanguageSheet(context, language))],
             ),
             const SizedBox(height: 28),
@@ -306,6 +318,9 @@ Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
   }
 }
 
+/// Цвет значков группы из палитры папок: разделы различаются с первого взгляда.
+Color _tint(String key) => FolderPalette.colors[key]!;
+
 /// «nvidia/nemotron-3.5-super-vl:free» → «nemotron-3.5-super-vl»: поставщик и пометка цены и так видны в списке.
 String _modelLabel(String id) => id.split('/').last.replaceFirst(RegExp(r':free$'), '');
 
@@ -344,14 +359,9 @@ class _AiCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(color: Tokens.graphite, shape: BoxShape.circle),
-                child: Icon(symbolIcon('auto_awesome', filled: true), size: 22, color: Tokens.onSurface),
-              ),
-              const SizedBox(width: 14),
-              Expanded(child: Text(l.settingsAi, style: text.titleMedium)),
+              _IconChip('auto_awesome', color: _tint('violet')),
+              const SizedBox(width: 16),
+              Expanded(child: Text(l.settingsAi, style: text.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w600))),
             ],
           ),
           const SizedBox(height: 14),
@@ -929,33 +939,94 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 22, bottom: 8, left: 4),
-      child: Text(title, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
+      padding: const EdgeInsets.fromLTRB(8, 26, 8, 10),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium!.copyWith(color: Tokens.onSurfaceVariant, fontWeight: FontWeight.w700, letterSpacing: 1.1),
+      ),
     );
   }
 }
 
-/// Строки одной группы сцеплены: крайние скруглены крупно, между ними щель в два пикселя.
+/// Каждая строка — свой блок: крайние скруглены крупно, средние слегка, между ними щель.
+/// [tint] — цвет круглых значков всей группы, из палитры папок.
 class _Group extends StatelessWidget {
-  const _Group({required this.children});
+  const _Group({required this.tint, required this.children});
 
+  final Color tint;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var index = 0; index < children.length; index++)
-          Padding(
-            padding: EdgeInsets.only(top: index == 0 ? 0 : 2),
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(index == 0 ? Radii.tile : 6),
-                bottom: Radius.circular(index == children.length - 1 ? Radii.tile : 6),
+    const outer = Radius.circular(Radii.card);
+    const inner = Radius.circular(8);
+    return _GroupTint(
+      color: tint,
+      child: Column(
+        children: [
+          for (var index = 0; index < children.length; index++)
+            Padding(
+              padding: EdgeInsets.only(top: index == 0 ? 0 : 4),
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: index == 0 ? outer : inner, bottom: index == children.length - 1 ? outer : inner),
+                child: children[index],
               ),
-              child: children[index],
             ),
-          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Цвет значков группы для её строк.
+class _GroupTint extends InheritedWidget {
+  const _GroupTint({required this.color, required super.child});
+
+  final Color color;
+
+  static Color of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<_GroupTint>()?.color ?? Tokens.onSurface;
+
+  @override
+  bool updateShouldNotify(_GroupTint old) => old.color != color;
+}
+
+/// Круглый значок строки: цвет группы на его же приглушённой подложке.
+class _IconChip extends StatelessWidget {
+  const _IconChip(this.icon, {this.color});
+
+  final String icon;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final tint = color ?? _GroupTint.of(context);
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(color: FolderPalette.tint(tint, 0.22), shape: BoxShape.circle),
+      child: Icon(symbolIcon(icon, filled: true), size: 22, color: tint),
+    );
+  }
+}
+
+/// Заголовок строки крупно, значение подписью под ним.
+class _RowText extends StatelessWidget {
+  const _RowText({required this.title, this.value});
+
+  final String title;
+  final String? value;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: text.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600)),
+        if (value != null) ...[
+          const SizedBox(height: 2),
+          Text(value!, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+        ],
       ],
     );
   }
@@ -971,24 +1042,19 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     return Material(
       color: Tokens.containerHigh,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
           child: Row(
             children: [
-              Icon(symbolIcon(icon), size: 22, color: Tokens.onSurfaceVariant),
-              const SizedBox(width: 14),
-              Expanded(child: Text(title, style: text.bodyLarge)),
-              if (value != null)
-                Flexible(
-                  child: Text(value!, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.end, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
-                ),
-              const SizedBox(width: 4),
-              Icon(symbolIcon('chevron_right'), size: 20, color: Tokens.muted),
+              _IconChip(icon),
+              const SizedBox(width: 16),
+              Expanded(child: _RowText(title: title, value: value)),
+              const SizedBox(width: 8),
+              Icon(symbolIcon('chevron_right'), size: 22, color: Tokens.muted),
             ],
           ),
         ),
@@ -1053,6 +1119,7 @@ class _ReturnGroup extends ConsumerWidget {
     }
 
     return _Group(
+      tint: _tint('tangerine'),
       children: [
         _SwitchRow(icon: 'smart_display', title: l.returnWatchTitle, value: returns.watchLater, onChanged: (on) => save(returns.copyWith(watchLater: on))),
         _SwitchRow(icon: 'history', title: l.returnOnThisDay, value: returns.onThisDay, onChanged: (on) => save(returns.copyWith(onThisDay: on))),
@@ -1100,12 +1167,13 @@ class _SwitchRow extends StatelessWidget {
       child: InkWell(
         onTap: () => onChanged(!value),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
           child: Row(
             children: [
-              Icon(symbolIcon(icon), size: 22, color: Tokens.onSurfaceVariant),
-              const SizedBox(width: 14),
-              Expanded(child: Text(title, style: Theme.of(context).textTheme.bodyLarge)),
+              _IconChip(icon),
+              const SizedBox(width: 16),
+              Expanded(child: _RowText(title: title)),
+              const SizedBox(width: 8),
               Switch(value: value, onChanged: onChanged),
             ],
           ),

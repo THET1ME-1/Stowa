@@ -114,7 +114,7 @@ void main() {
   testWidgets('раздел «Хранилище»: где лежит, перенос и «Пересобрать указатель»', (tester) async {
     await open(tester, keyStatus: 200);
     // экран теста короткий: заголовок и строки раздела на нём разом не видны
-    for (final label in ['Хранилище', 'Внутри приложения', 'Перенести в другую папку', 'Пересобрать указатель']) {
+    for (final label in ['ХРАНИЛИЩЕ', 'Внутри приложения', 'Перенести в другую папку', 'Пересобрать указатель']) {
       await tester.scrollUntilVisible(find.text(label), 100);
       expect(find.text(label), findsOneWidget);
     }
@@ -136,12 +136,13 @@ void main() {
 
   testWidgets('раздел «Возвращать»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
     await open(tester, keyStatus: 200);
-    for (final label in ['Возвращать', 'Посмотреть потом', 'В этот день', 'Сводка недели', '20:00', '22:00–08:00', 'воскресенье']) {
+    for (final label in ['ВОЗВРАЩАТЬ', 'Посмотреть потом', 'В этот день', 'Сводка недели', '20:00', '22:00–08:00', 'воскресенье']) {
       await tester.scrollUntilVisible(find.text(label), 100);
       expect(find.text(label), findsOneWidget);
     }
 
-    await tester.scrollUntilVisible(find.text('Сводка недели'), -100);
+    await tester.ensureVisible(find.text('Сводка недели'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Сводка недели'));
     await tester.pumpAndSettle();
     expect(settings.returns.week, isFalse);
