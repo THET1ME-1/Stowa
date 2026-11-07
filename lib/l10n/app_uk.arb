@@ -295,5 +295,9 @@
   "remindPlaceNeedsAlways": "Нагадаю на місці, якщо дозволиш місце «завжди»",
   "lookColor": "Колір",
   "homeFoldersMore": "Ще {count}",
-  "homeChecksMore": "ще {count}"
+  "homeChecksMore": "ще {count}",
+  "catalogTitle": "Каталог",
+  "catalogExpand": "Розгорнути все",
+  "catalogCollapse": "Згорнути все",
+  "catalogOpenFolder": "Відкрити папку"
 }

@@ -295,5 +295,9 @@
   "remindPlaceNeedsAlways": "Îți reamintesc acolo dacă permiți locația „mereu”",
   "lookColor": "Culoare",
   "homeFoldersMore": "Încă {count}",
-  "homeChecksMore": "încă {count}"
+  "homeChecksMore": "încă {count}",
+  "catalogTitle": "Catalog",
+  "catalogExpand": "Extinde tot",
+  "catalogCollapse": "Restrânge tot",
+  "catalogOpenFolder": "Deschide dosarul"
 }

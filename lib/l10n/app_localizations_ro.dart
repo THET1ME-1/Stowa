@@ -2072,4 +2072,16 @@ class LRo extends L {
   String homeChecksMore(Object count) {
     return 'încă $count';
   }
+
+  @override
+  String get catalogTitle => 'Catalog';
+
+  @override
+  String get catalogExpand => 'Extinde tot';
+
+  @override
+  String get catalogCollapse => 'Restrânge tot';
+
+  @override
+  String get catalogOpenFolder => 'Deschide dosarul';
 }

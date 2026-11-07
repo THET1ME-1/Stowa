@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,17 +24,23 @@ import '../item/adult_veil.dart';
 import '../item/copying_bar.dart';
 
 /// Ось ленты: по ней идёт пунктир, на ней точка в цвет папки.
-const _rail = Space.screen + 12.5;
+const _rail = Space.screen + 6;
 
-/// Отступ текста заметки от края экрана.
-const _indent = Space.screen + 40;
+/// Отступ карточки заметки от края экрана: ось с точкой занимает узкую полосу слева.
+const _indent = Space.screen + 22;
+
+/// Точка заметки на оси — на уровне заголовка карточки.
+const _dotTop = 18.0;
+
+/// Фото в ленте не выше этого: лента листается быстро, а целиком оно на странице заметки.
+const _photoMax = 220.0;
 
 /// Сколько строк заметки видно в ленте; дальше — на её странице.
 const _lines = 8;
 
 const _cardRadius = 24.0;
 
-/// Лента главной: последние заметки по дням, время на пунктирной оси слева, как в дневнике.
+/// Лента главной: последние заметки по дням, точки в цвет папок на пунктирной оси слева, как в дневнике.
 /// Заметку видно целиком, пункты списка отмечаются прямо здесь.
 class NoteTimeline extends StatefulWidget {
   const NoteTimeline({
@@ -90,7 +97,7 @@ class _NoteTimelineState extends State<NoteTimeline> {
           _DayHeader(day: day, now: widget.now),
           Stack(
             children: [
-              const Positioned(left: _rail - 0.75, top: 12, bottom: 0, child: _DottedRail()),
+              const Positioned(left: _rail - 0.75, top: _dotTop, bottom: 0, child: _DottedRail()),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -99,7 +106,7 @@ class _NoteTimelineState extends State<NoteTimeline> {
                       key: ValueKey(item.id),
                       play: _seen.add(item.id),
                       child: Padding(
-                        padding: const EdgeInsets.only(bottom: 22),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: _Entry(
                           item: item,
                           filesRoot: widget.filesRoot,
@@ -144,7 +151,7 @@ class _DayHeader extends StatelessWidget {
     };
     final date = day.year == now.year ? DateFormat.MMMMd(l.localeName).format(day) : DateFormat.yMMMMd(l.localeName).format(day);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.screen, 26, Space.screen, 14),
+      padding: const EdgeInsets.fromLTRB(Space.screen, 22, Space.screen, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -185,7 +192,7 @@ class _DotsPainter extends CustomPainter {
   bool shouldRepaint(_DotsPainter oldDelegate) => false;
 }
 
-/// Одна заметка: время на оси, под ним содержимое и метки.
+/// Одна заметка: точка на оси и карточка, внизу карточки метки и время.
 class _Entry extends StatelessWidget {
   const _Entry({
     required this.item,
@@ -224,14 +231,26 @@ class _Entry extends StatelessWidget {
     };
     // карточка чуть в цвет папки: заметки одной папки узнаются в ленте издалека
     final fill = item.folderColor == null ? Tokens.container : FolderPalette.tint(item.folderColor!, 0.1);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final time = Text(
+      DateFormat.jm(l.localeName).format(item.createdAt),
+      style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()]),
+    );
+    return Stack(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: Space.screen),
-          child: _TimePill(time: DateFormat.jm(l.localeName).format(item.createdAt), color: item.folderColor),
+        // точка в цвет папки, у неразложенной серая; кольцо цвета фона разрывает пунктир
+        Positioned(
+          left: _rail - 6,
+          top: _dotTop - 6,
+          child: Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: item.folderColor ?? Tokens.muted,
+              shape: BoxShape.circle,
+              border: Border.all(color: Tokens.background, width: 2.5),
+            ),
+          ),
         ),
-        const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.only(left: _indent, right: Space.screen),
           child: Pressable(
@@ -245,9 +264,17 @@ class _Entry extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   content,
+                  // время — в углу рядом с меткой папки, а не отдельной строкой над карточкой
                   Padding(
-                    padding: EdgeInsets.fromLTRB(pad, 12, pad, pad),
-                    child: _Marks(item: item, now: now, aiSorting: aiSorting, onMove: onMove),
+                    padding: EdgeInsets.fromLTRB(pad, 12, pad + 2, pad),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(child: _Marks(item: item, now: now, aiSorting: aiSorting, onMove: onMove)),
+                        const SizedBox(width: 8),
+                        Padding(padding: const EdgeInsets.only(bottom: 6), child: time),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -255,31 +282,6 @@ class _Entry extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Время на оси. Точка — цвет папки, у неразложенной серая.
-class _TimePill extends StatelessWidget {
-  const _TimePill({required this.time, this.color});
-
-  final String time;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      padding: const EdgeInsets.only(left: 9, right: 10),
-      decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(100)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(width: 7, height: 7, decoration: BoxDecoration(color: color ?? Tokens.muted, shape: BoxShape.circle)),
-          const SizedBox(width: 6),
-          Text(time, style: Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 11.5, color: Tokens.onSurfaceVariant, fontFeatures: const [FontFeature.tabularFigures()])),
-        ],
-      ),
     );
   }
 }
@@ -406,16 +408,17 @@ class _Photo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // фото во всю ширину карточки, края скругляет сама карточка
-        AspectRatio(
-          // высокое фото не съедает экран: не выше квадрата
-          aspectRatio: 1 / (item.thumbRatio ?? 0.75).clamp(0.56, 1.0),
-          child: WithCopyingBar(
-            itemId: item.id,
-            copying: item.copying > 0,
-            child: SizedBox.expand(
-              child: AdultVeil(
-                itemId: item.id,
-                child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh)),
+        LayoutBuilder(
+          builder: (context, box) => SizedBox(
+            height: math.min(box.maxWidth * (item.thumbRatio ?? 0.75), _photoMax),
+            child: WithCopyingBar(
+              itemId: item.id,
+              copying: item.copying > 0,
+              child: SizedBox.expand(
+                child: AdultVeil(
+                  itemId: item.id,
+                  child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => const ColoredBox(color: Tokens.containerHigh)),
+                ),
               ),
             ),
           ),

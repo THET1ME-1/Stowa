@@ -2625,5 +2625,21 @@
   "homeChecksMore": "{count} more",
   "@homeChecksMore": {
     "description": "Под пунктами списка в ленте главной: сколько пунктов не показано"
+  },
+  "catalogTitle": "Catalog",
+  "@catalogTitle": {
+    "description": "Кнопка на главной и заголовок экрана: все папки и заметки деревом"
+  },
+  "catalogExpand": "Expand all",
+  "@catalogExpand": {
+    "description": "Подсказка кнопки каталога"
+  },
+  "catalogCollapse": "Collapse all",
+  "@catalogCollapse": {
+    "description": "Подсказка кнопки каталога"
+  },
+  "catalogOpenFolder": "Open folder",
+  "@catalogOpenFolder": {
+    "description": "Подсказка стрелки у папки в каталоге"
   }
 }

@@ -2095,4 +2095,16 @@ class LUk extends L {
   String homeChecksMore(Object count) {
     return 'ще $count';
   }
+
+  @override
+  String get catalogTitle => 'Каталог';
+
+  @override
+  String get catalogExpand => 'Розгорнути все';
+
+  @override
+  String get catalogCollapse => 'Згорнути все';
+
+  @override
+  String get catalogOpenFolder => 'Відкрити папку';
 }

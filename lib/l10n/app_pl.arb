@@ -295,5 +295,9 @@
   "remindPlaceNeedsAlways": "Przypomnę na miejscu, jeśli zezwolisz na lokalizację „zawsze”",
   "lookColor": "Kolor",
   "homeFoldersMore": "Jeszcze {count}",
-  "homeChecksMore": "jeszcze {count}"
+  "homeChecksMore": "jeszcze {count}",
+  "catalogTitle": "Katalog",
+  "catalogExpand": "Rozwiń wszystko",
+  "catalogCollapse": "Zwiń wszystko",
+  "catalogOpenFolder": "Otwórz folder"
 }

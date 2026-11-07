@@ -543,5 +543,9 @@
   "remindPlaceNeedsAlways": "Напомню у места, если разрешишь место «всегда»",
   "lookColor": "Цвет",
   "homeFoldersMore": "Ещё {count}",
-  "homeChecksMore": "ещё {count}"
+  "homeChecksMore": "ещё {count}",
+  "catalogTitle": "Каталог",
+  "catalogExpand": "Раскрыть всё",
+  "catalogCollapse": "Свернуть всё",
+  "catalogOpenFolder": "Открыть папку"
 }

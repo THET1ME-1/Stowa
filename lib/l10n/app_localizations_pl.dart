@@ -2096,4 +2096,16 @@ class LPl extends L {
   String homeChecksMore(Object count) {
     return 'jeszcze $count';
   }
+
+  @override
+  String get catalogTitle => 'Katalog';
+
+  @override
+  String get catalogExpand => 'Rozwiń wszystko';
+
+  @override
+  String get catalogCollapse => 'Zwiń wszystko';
+
+  @override
+  String get catalogOpenFolder => 'Otwórz folder';
 }

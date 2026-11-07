@@ -2055,4 +2055,16 @@ class LEn extends L {
   String homeChecksMore(Object count) {
     return '$count more';
   }
+
+  @override
+  String get catalogTitle => 'Catalog';
+
+  @override
+  String get catalogExpand => 'Expand all';
+
+  @override
+  String get catalogCollapse => 'Collapse all';
+
+  @override
+  String get catalogOpenFolder => 'Open folder';
 }

@@ -3370,6 +3370,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count} more'**
   String homeChecksMore(Object count);
+
+  /// Кнопка на главной и заголовок экрана: все папки и заметки деревом
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog'**
+  String get catalogTitle;
+
+  /// Подсказка кнопки каталога
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get catalogExpand;
+
+  /// Подсказка кнопки каталога
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get catalogCollapse;
+
+  /// Подсказка стрелки у папки в каталоге
+  ///
+  /// In en, this message translates to:
+  /// **'Open folder'**
+  String get catalogOpenFolder;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -15,6 +15,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/launch_actions.dart';
 import '../../services/place_alarms.dart';
 import '../../services/vault/vault_watch.dart';
+import '../catalog/catalog_screen.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
@@ -308,6 +309,14 @@ class _Feed extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(child: Text(l.appName, style: text.headlineSmall)),
+                  // все папки и заметки деревом, отдельным экраном
+                  IconButton(
+                    tooltip: l.catalogTitle,
+                    onPressed: () => Navigator.of(context).push(catalogRoute()),
+                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
+                    icon: Icon(symbolIcon('account_tree'), size: 20, color: Tokens.onSurface),
+                  ),
+                  const SizedBox(width: 8),
                   // где что сохранено
                   IconButton(
                     tooltip: l.mapTitle,

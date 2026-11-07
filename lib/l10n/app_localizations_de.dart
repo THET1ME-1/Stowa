@@ -2060,4 +2060,16 @@ class LDe extends L {
   String homeChecksMore(Object count) {
     return '$count weitere';
   }
+
+  @override
+  String get catalogTitle => 'Katalog';
+
+  @override
+  String get catalogExpand => 'Alle aufklappen';
+
+  @override
+  String get catalogCollapse => 'Alle zuklappen';
+
+  @override
+  String get catalogOpenFolder => 'Ordner öffnen';
 }

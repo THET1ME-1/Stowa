@@ -295,5 +295,9 @@
   "remindPlaceNeedsAlways": "Ich erinnere dich vor Ort, wenn der Standort „immer“ erlaubt ist",
   "lookColor": "Farbe",
   "homeFoldersMore": "{count} weitere",
-  "homeChecksMore": "{count} weitere"
+  "homeChecksMore": "{count} weitere",
+  "catalogTitle": "Katalog",
+  "catalogExpand": "Alle aufklappen",
+  "catalogCollapse": "Alle zuklappen",
+  "catalogOpenFolder": "Ordner öffnen"
 }

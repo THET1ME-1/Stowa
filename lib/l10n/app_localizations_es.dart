@@ -2057,4 +2057,16 @@ class LEs extends L {
   String homeChecksMore(Object count) {
     return '$count más';
   }
+
+  @override
+  String get catalogTitle => 'Catálogo';
+
+  @override
+  String get catalogExpand => 'Expandir todo';
+
+  @override
+  String get catalogCollapse => 'Contraer todo';
+
+  @override
+  String get catalogOpenFolder => 'Abrir carpeta';
 }

@@ -2100,4 +2100,16 @@ class LRu extends L {
   String homeChecksMore(Object count) {
     return 'ещё $count';
   }
+
+  @override
+  String get catalogTitle => 'Каталог';
+
+  @override
+  String get catalogExpand => 'Раскрыть всё';
+
+  @override
+  String get catalogCollapse => 'Свернуть всё';
+
+  @override
+  String get catalogOpenFolder => 'Открыть папку';
 }
