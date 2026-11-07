@@ -300,5 +300,17 @@
   "catalogExpand": "Розгорнути все",
   "catalogCollapse": "Згорнути все",
   "catalogOpenFolder": "Відкрити папку",
-  "foldersCount": "{count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}"
+  "foldersCount": "{count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}",
+  "readerOpen": "Читати · {count} хв",
+  "readerOriginal": "Оригінал",
+  "readerQuote": "Цитата",
+  "readerCopy": "Копіювати",
+  "readerNote": "Позначка",
+  "readerNoteHint": "Позначка до цитати",
+  "readerRemove": "Прибрати",
+  "readerRemoved": "Цитату прибрано",
+  "readerGone": "Оригінал видалено · копію збережено",
+  "readerNoCopy": "Текст статті не зберігся. Його можна відкрити на сайті.",
+  "readerImageOff": "Картинку не збережено",
+  "highlightsTitle": "Цитати"
 }

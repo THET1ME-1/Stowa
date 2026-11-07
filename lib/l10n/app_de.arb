@@ -300,5 +300,17 @@
   "catalogExpand": "Alle aufklappen",
   "catalogCollapse": "Alle zuklappen",
   "catalogOpenFolder": "Ordner öffnen",
-  "foldersCount": "{count, plural, one{{count} Ordner} other{{count} Ordner}}"
+  "foldersCount": "{count, plural, one{{count} Ordner} other{{count} Ordner}}",
+  "readerOpen": "Lesen · {count} Min.",
+  "readerOriginal": "Original",
+  "readerQuote": "Zitat",
+  "readerCopy": "Kopieren",
+  "readerNote": "Notiz",
+  "readerNoteHint": "Notiz zum Zitat",
+  "readerRemove": "Entfernen",
+  "readerRemoved": "Zitat entfernt",
+  "readerGone": "Original gelöscht · Kopie gespeichert",
+  "readerNoCopy": "Der Artikeltext wurde nicht gespeichert. Du kannst ihn auf der Website öffnen.",
+  "readerImageOff": "Bild nicht gespeichert",
+  "highlightsTitle": "Zitate"
 }

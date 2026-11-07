@@ -2096,4 +2096,43 @@ class LRo extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String readerOpen(Object count) {
+    return 'Citește · $count min';
+  }
+
+  @override
+  String get readerOriginal => 'Original';
+
+  @override
+  String get readerQuote => 'Citat';
+
+  @override
+  String get readerCopy => 'Copiază';
+
+  @override
+  String get readerNote => 'Notă';
+
+  @override
+  String get readerNoteHint => 'Notă la citat';
+
+  @override
+  String get readerRemove => 'Elimină';
+
+  @override
+  String get readerRemoved => 'Citat eliminat';
+
+  @override
+  String get readerGone => 'Originalul a fost șters · copia e salvată';
+
+  @override
+  String get readerNoCopy =>
+      'Textul articolului nu s-a salvat. Îl poți deschide pe site.';
+
+  @override
+  String get readerImageOff => 'Imagine nesalvată';
+
+  @override
+  String get highlightsTitle => 'Citate';
 }

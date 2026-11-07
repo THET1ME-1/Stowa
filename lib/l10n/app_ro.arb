@@ -300,5 +300,17 @@
   "catalogExpand": "Extinde tot",
   "catalogCollapse": "Restrânge tot",
   "catalogOpenFolder": "Deschide dosarul",
-  "foldersCount": "{count, plural, one{{count} dosar} few{{count} dosare} other{{count} de dosare}}"
+  "foldersCount": "{count, plural, one{{count} dosar} few{{count} dosare} other{{count} de dosare}}",
+  "readerOpen": "Citește · {count} min",
+  "readerOriginal": "Original",
+  "readerQuote": "Citat",
+  "readerCopy": "Copiază",
+  "readerNote": "Notă",
+  "readerNoteHint": "Notă la citat",
+  "readerRemove": "Elimină",
+  "readerRemoved": "Citat eliminat",
+  "readerGone": "Originalul a fost șters · copia e salvată",
+  "readerNoCopy": "Textul articolului nu s-a salvat. Îl poți deschide pe site.",
+  "readerImageOff": "Imagine nesalvată",
+  "highlightsTitle": "Citate"
 }

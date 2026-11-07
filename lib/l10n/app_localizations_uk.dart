@@ -2120,4 +2120,43 @@ class LUk extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String readerOpen(Object count) {
+    return 'Читати · $count хв';
+  }
+
+  @override
+  String get readerOriginal => 'Оригінал';
+
+  @override
+  String get readerQuote => 'Цитата';
+
+  @override
+  String get readerCopy => 'Копіювати';
+
+  @override
+  String get readerNote => 'Позначка';
+
+  @override
+  String get readerNoteHint => 'Позначка до цитати';
+
+  @override
+  String get readerRemove => 'Прибрати';
+
+  @override
+  String get readerRemoved => 'Цитату прибрано';
+
+  @override
+  String get readerGone => 'Оригінал видалено · копію збережено';
+
+  @override
+  String get readerNoCopy =>
+      'Текст статті не зберігся. Його можна відкрити на сайті.';
+
+  @override
+  String get readerImageOff => 'Картинку не збережено';
+
+  @override
+  String get highlightsTitle => 'Цитати';
 }

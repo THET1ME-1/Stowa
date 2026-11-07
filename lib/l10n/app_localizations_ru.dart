@@ -2125,4 +2125,43 @@ class LRu extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String readerOpen(Object count) {
+    return 'Читать · $count мин';
+  }
+
+  @override
+  String get readerOriginal => 'Оригинал';
+
+  @override
+  String get readerQuote => 'Цитата';
+
+  @override
+  String get readerCopy => 'Копировать';
+
+  @override
+  String get readerNote => 'Пометка';
+
+  @override
+  String get readerNoteHint => 'Пометка к цитате';
+
+  @override
+  String get readerRemove => 'Убрать';
+
+  @override
+  String get readerRemoved => 'Цитата убрана';
+
+  @override
+  String get readerGone => 'Оригинал удалён · копия сохранена';
+
+  @override
+  String get readerNoCopy =>
+      'Текст статьи не сохранился. Его можно открыть на сайте.';
+
+  @override
+  String get readerImageOff => 'Картинка не сохранена';
+
+  @override
+  String get highlightsTitle => 'Цитаты';
 }

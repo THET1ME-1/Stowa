@@ -43,6 +43,9 @@ String coverFile(String itemId, String extension) => '$serviceFolder/covers/$ite
 
 String pageCopyFile(String itemId) => '$serviceFolder/pages/$itemId.html.gz';
 
+/// Картинка статьи по номеру среди картинок: формат читает сам декодер, расширение не нужно.
+String articleImageFile(String itemId, int index) => '$serviceFolder/articles/$itemId/$index.img';
+
 String tagIconFile(String fileName) => '$serviceFolder/tag-icons/$fileName';
 
 String trashPath(String notePath) => '$trashFolder/$notePath';

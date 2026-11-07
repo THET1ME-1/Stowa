@@ -2645,5 +2645,53 @@
   "foldersCount": "{count, plural, one{{count} folder} other{{count} folders}}",
   "@foldersCount": {
     "description": "Подпись под именем приложения на главной"
+  },
+  "readerOpen": "Read · {count} min",
+  "@readerOpen": {
+    "description": "Кнопка открыть статью в читалке; count — минут чтения"
+  },
+  "readerOriginal": "Original",
+  "@readerOriginal": {
+    "description": "Открыть статью на сайте"
+  },
+  "readerQuote": "Quote",
+  "@readerQuote": {
+    "description": "Сделать выделенный текст цитатой"
+  },
+  "readerCopy": "Copy",
+  "@readerCopy": {
+    "description": "Скопировать выделенный текст"
+  },
+  "readerNote": "Note",
+  "@readerNote": {
+    "description": "Написать пометку к цитате"
+  },
+  "readerNoteHint": "Note for this quote",
+  "@readerNoteHint": {
+    "description": "Подсказка в поле пометки"
+  },
+  "readerRemove": "Remove",
+  "@readerRemove": {
+    "description": "Убрать цитату"
+  },
+  "readerRemoved": "Quote removed",
+  "@readerRemoved": {
+    "description": "Плашка после удаления цитаты"
+  },
+  "readerGone": "Original removed · copy saved",
+  "@readerGone": {
+    "description": "Сайт удалил страницу, а у нас копия"
+  },
+  "readerNoCopy": "The article text wasn't saved. You can open it on the site.",
+  "@readerNoCopy": {
+    "description": "В читалке нет копии статьи"
+  },
+  "readerImageOff": "Image not saved",
+  "@readerImageOff": {
+    "description": "На месте картинки статьи, которую не скачивали"
+  },
+  "highlightsTitle": "Quotes",
+  "@highlightsTitle": {
+    "description": "Блок цитат на странице заметки"
   }
 }

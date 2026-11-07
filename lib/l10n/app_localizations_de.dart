@@ -2083,4 +2083,43 @@ class LDe extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String readerOpen(Object count) {
+    return 'Lesen · $count Min.';
+  }
+
+  @override
+  String get readerOriginal => 'Original';
+
+  @override
+  String get readerQuote => 'Zitat';
+
+  @override
+  String get readerCopy => 'Kopieren';
+
+  @override
+  String get readerNote => 'Notiz';
+
+  @override
+  String get readerNoteHint => 'Notiz zum Zitat';
+
+  @override
+  String get readerRemove => 'Entfernen';
+
+  @override
+  String get readerRemoved => 'Zitat entfernt';
+
+  @override
+  String get readerGone => 'Original gelöscht · Kopie gespeichert';
+
+  @override
+  String get readerNoCopy =>
+      'Der Artikeltext wurde nicht gespeichert. Du kannst ihn auf der Website öffnen.';
+
+  @override
+  String get readerImageOff => 'Bild nicht gespeichert';
+
+  @override
+  String get highlightsTitle => 'Zitate';
 }

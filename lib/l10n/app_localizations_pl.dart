@@ -2121,4 +2121,43 @@ class LPl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String readerOpen(Object count) {
+    return 'Czytaj · $count min';
+  }
+
+  @override
+  String get readerOriginal => 'Oryginał';
+
+  @override
+  String get readerQuote => 'Cytat';
+
+  @override
+  String get readerCopy => 'Kopiuj';
+
+  @override
+  String get readerNote => 'Notatka';
+
+  @override
+  String get readerNoteHint => 'Notatka do cytatu';
+
+  @override
+  String get readerRemove => 'Usuń';
+
+  @override
+  String get readerRemoved => 'Cytat usunięty';
+
+  @override
+  String get readerGone => 'Oryginał usunięty · kopia zapisana';
+
+  @override
+  String get readerNoCopy =>
+      'Tekst artykułu się nie zapisał. Można go otworzyć na stronie.';
+
+  @override
+  String get readerImageOff => 'Obraz nie zapisany';
+
+  @override
+  String get highlightsTitle => 'Cytaty';
 }

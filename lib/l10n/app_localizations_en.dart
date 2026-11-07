@@ -2078,4 +2078,43 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String readerOpen(Object count) {
+    return 'Read · $count min';
+  }
+
+  @override
+  String get readerOriginal => 'Original';
+
+  @override
+  String get readerQuote => 'Quote';
+
+  @override
+  String get readerCopy => 'Copy';
+
+  @override
+  String get readerNote => 'Note';
+
+  @override
+  String get readerNoteHint => 'Note for this quote';
+
+  @override
+  String get readerRemove => 'Remove';
+
+  @override
+  String get readerRemoved => 'Quote removed';
+
+  @override
+  String get readerGone => 'Original removed · copy saved';
+
+  @override
+  String get readerNoCopy =>
+      'The article text wasn\'t saved. You can open it on the site.';
+
+  @override
+  String get readerImageOff => 'Image not saved';
+
+  @override
+  String get highlightsTitle => 'Quotes';
 }

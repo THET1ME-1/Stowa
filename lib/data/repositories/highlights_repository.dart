@@ -7,7 +7,7 @@ import '../db/database.dart';
 /// Цитаты статьи: выделенный кусок текста и пометка к нему. Файл заметки
 /// обновят триггеры очереди хранилища, поиск — [refreshFactsText] здесь же.
 class HighlightsRepository {
-  HighlightsRepository(this._db, {required DateTime Function() clock}) : _clock = clock;
+  HighlightsRepository(this._db, {required DateTime Function() clock}) : _clock = clock; // ignore: prefer_initializing_formals
 
   final AppDatabase _db;
   final DateTime Function() _clock;

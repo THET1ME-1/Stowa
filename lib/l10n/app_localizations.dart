@@ -3400,6 +3400,78 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} folder} other{{count} folders}}'**
   String foldersCount(num count);
+
+  /// Кнопка открыть статью в читалке; count — минут чтения
+  ///
+  /// In en, this message translates to:
+  /// **'Read · {count} min'**
+  String readerOpen(Object count);
+
+  /// Открыть статью на сайте
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get readerOriginal;
+
+  /// Сделать выделенный текст цитатой
+  ///
+  /// In en, this message translates to:
+  /// **'Quote'**
+  String get readerQuote;
+
+  /// Скопировать выделенный текст
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get readerCopy;
+
+  /// Написать пометку к цитате
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get readerNote;
+
+  /// Подсказка в поле пометки
+  ///
+  /// In en, this message translates to:
+  /// **'Note for this quote'**
+  String get readerNoteHint;
+
+  /// Убрать цитату
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get readerRemove;
+
+  /// Плашка после удаления цитаты
+  ///
+  /// In en, this message translates to:
+  /// **'Quote removed'**
+  String get readerRemoved;
+
+  /// Сайт удалил страницу, а у нас копия
+  ///
+  /// In en, this message translates to:
+  /// **'Original removed · copy saved'**
+  String get readerGone;
+
+  /// В читалке нет копии статьи
+  ///
+  /// In en, this message translates to:
+  /// **'The article text wasn\'t saved. You can open it on the site.'**
+  String get readerNoCopy;
+
+  /// На месте картинки статьи, которую не скачивали
+  ///
+  /// In en, this message translates to:
+  /// **'Image not saved'**
+  String get readerImageOff;
+
+  /// Блок цитат на странице заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Quotes'**
+  String get highlightsTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

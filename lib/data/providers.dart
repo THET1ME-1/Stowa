@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -10,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
+import '../domain/article_text.dart';
 import '../domain/folder_guess.dart';
 import '../domain/models.dart' show FactKind;
 import '../domain/place_groups.dart' show guessHomeAndWork;
@@ -25,6 +27,7 @@ import '../services/facts/facts_pipeline.dart';
 import '../services/facts/web_extractors.dart';
 import '../services/file_keeper.dart';
 import '../services/link_preview_service.dart';
+import '../services/page_cache.dart';
 import '../services/place_channel.dart';
 import '../services/place_service.dart';
 import '../services/reminder_service.dart';
@@ -36,6 +39,7 @@ import '../services/vault/vault_writer.dart';
 import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
 import 'repositories/folders_repository.dart';
+import 'repositories/highlights_repository.dart';
 import 'repositories/items_repository.dart';
 import 'repositories/places_repository.dart';
 import 'repositories/return_repository.dart';
@@ -158,6 +162,22 @@ final factsPipelineProvider = Provider((ref) {
   );
 });
 final foldersRepositoryProvider = Provider((ref) => FoldersRepository(ref.watch(databaseProvider)));
+
+final highlightsRepositoryProvider = Provider((ref) => HighlightsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
+
+/// Цитаты статьи по порядку в тексте.
+final highlightsProvider = StreamProvider.autoDispose.family<List<Highlight>, String>((ref, itemId) => ref.watch(highlightsRepositoryProvider).watch(itemId));
+
+/// Статья из копии страницы для читалки. Разбор — в отдельном потоке: длинная статья не подвешивает экран.
+final articleLoaderProvider = Provider<Future<Article?> Function(String itemId, String url)>((ref) {
+  final root = ref.watch(filesRootProvider);
+  return (itemId, url) async {
+    final html = await readPage(root, itemId);
+    final page = Uri.tryParse(url);
+    if (html == null || page == null) return null;
+    return Isolate.run(() => extractArticle(html, page));
+  };
+});
 final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 
 /// Кэш приложения: туда кладут файлы выбор файлов, камера и «Поделиться». Задаётся в main.

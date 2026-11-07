@@ -300,5 +300,17 @@
   "catalogExpand": "Expandir todo",
   "catalogCollapse": "Contraer todo",
   "catalogOpenFolder": "Abrir carpeta",
-  "foldersCount": "{count, plural, one{{count} carpeta} other{{count} carpetas}}"
+  "foldersCount": "{count, plural, one{{count} carpeta} other{{count} carpetas}}",
+  "readerOpen": "Leer · {count} min",
+  "readerOriginal": "Original",
+  "readerQuote": "Cita",
+  "readerCopy": "Copiar",
+  "readerNote": "Nota",
+  "readerNoteHint": "Nota para la cita",
+  "readerRemove": "Quitar",
+  "readerRemoved": "Cita quitada",
+  "readerGone": "Original eliminado · copia guardada",
+  "readerNoCopy": "El texto del artículo no se guardó. Puedes abrirlo en el sitio.",
+  "readerImageOff": "Imagen no guardada",
+  "highlightsTitle": "Citas"
 }

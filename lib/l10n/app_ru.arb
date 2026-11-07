@@ -548,5 +548,17 @@
   "catalogExpand": "Раскрыть всё",
   "catalogCollapse": "Свернуть всё",
   "catalogOpenFolder": "Открыть папку",
-  "foldersCount": "{count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}"
+  "foldersCount": "{count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}",
+  "readerOpen": "Читать · {count} мин",
+  "readerOriginal": "Оригинал",
+  "readerQuote": "Цитата",
+  "readerCopy": "Копировать",
+  "readerNote": "Пометка",
+  "readerNoteHint": "Пометка к цитате",
+  "readerRemove": "Убрать",
+  "readerRemoved": "Цитата убрана",
+  "readerGone": "Оригинал удалён · копия сохранена",
+  "readerNoCopy": "Текст статьи не сохранился. Его можно открыть на сайте.",
+  "readerImageOff": "Картинка не сохранена",
+  "highlightsTitle": "Цитаты"
 }

@@ -300,5 +300,17 @@
   "catalogExpand": "Rozwiń wszystko",
   "catalogCollapse": "Zwiń wszystko",
   "catalogOpenFolder": "Otwórz folder",
-  "foldersCount": "{count, plural, one{{count} folder} few{{count} foldery} many{{count} folderów} other{{count} folderu}}"
+  "foldersCount": "{count, plural, one{{count} folder} few{{count} foldery} many{{count} folderów} other{{count} folderu}}",
+  "readerOpen": "Czytaj · {count} min",
+  "readerOriginal": "Oryginał",
+  "readerQuote": "Cytat",
+  "readerCopy": "Kopiuj",
+  "readerNote": "Notatka",
+  "readerNoteHint": "Notatka do cytatu",
+  "readerRemove": "Usuń",
+  "readerRemoved": "Cytat usunięty",
+  "readerGone": "Oryginał usunięty · kopia zapisana",
+  "readerNoCopy": "Tekst artykułu się nie zapisał. Można go otworzyć na stronie.",
+  "readerImageOff": "Obraz nie zapisany",
+  "highlightsTitle": "Cytaty"
 }

@@ -492,6 +492,10 @@ WHERE items.deleted_at IS NULL''';
   /// Заметку открыли: «ни разу не открыто» больше не про неё. Время правки и файл не трогаются.
   Future<void> markOpened(String id, DateTime at) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(openedAt: Value(at)));
 
+  /// Где остановился в читалке: доля прокрутки. В файл хранилища не идёт.
+  Future<void> setReadPosition(String id, double position) =>
+      (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(readPosition: Value(position.clamp(0, 1).toDouble())));
+
   Future<void> setReminder(String id, DateTime? at) {
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(reminderAt: Value(at)));
   }

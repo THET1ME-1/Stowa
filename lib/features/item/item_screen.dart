@@ -36,6 +36,8 @@ import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
 import '../map/map_screen.dart';
 import '../tags/tag_picker.dart';
+import '../reader/highlights_block.dart';
+import '../reader/reader_screen.dart';
 import 'copying_bar.dart';
 import 'facts_block.dart';
 import 'page_card.dart';
@@ -417,6 +419,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final text = Theme.of(context).textTheme;
     final full = ref.watch(itemProvider(_id)).value;
     final facts = ref.watch(itemFactsProvider(_id)).value ?? const <Fact>[];
+    final highlights = ref.watch(highlightsProvider(_id)).value ?? const <Highlight>[];
     final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
     final filesRoot = ref.watch(filesRootProvider);
     final now = _clock();
@@ -493,6 +496,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           const SizedBox(height: 18),
                         ] else if (linkLike) ...[
                           LinkPreviewCard(item: item, filesRoot: filesRoot, onOpen: openMain),
+                          // статья сохранена текстом: читать в Stowa, без сети
+                          if (articleMinutes(facts) case final minutes?) ...[
+                            const SizedBox(height: 10),
+                            ReadButton(minutes: minutes, onTap: () => Navigator.of(context).push(readerRoute(_id))),
+                          ],
                           const SizedBox(height: 18),
                         ] else if (cover != null) ...[
                           _PhotoCover(
@@ -615,6 +623,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   )
                                 : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
                           ),
+                        ],
+                        if (!_editing && highlights.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          HighlightsBlock(highlights: highlights, onOpen: (one) => Navigator.of(context).push(readerRoute(_id, highlightId: one.id))),
                         ],
                         if (!_editing && url != null && ChaptersBlock.hasAny(facts)) ...[
                           const SizedBox(height: 12),

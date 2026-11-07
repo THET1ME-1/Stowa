@@ -9,6 +9,7 @@ import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/domain/article_text.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/services/place_channel.dart';
 import 'package:stowa/services/place_service.dart';
@@ -56,6 +57,10 @@ class TestWorld {
   var placeGranted = true;
   var placeAsked = 0;
 
+  /// Копии страниц для читалки: id заметки → HTML. Разбор без отдельного потока —
+  /// у виджет-теста поддельное время, и поток не дождался бы ответа.
+  final pages = <String, String>{};
+
   List<Override> get overrides => [
         notificationPortProvider.overrideWithValue(notifications),
         placeGrantedProvider.overrideWith((ref) async => placeGranted),
@@ -64,6 +69,7 @@ class TestWorld {
           return placeGranted = true;
         }),
         databaseProvider.overrideWithValue(db),
+        articleLoaderProvider.overrideWithValue((id, url) async => pages[id] == null ? null : extractArticle(pages[id]!, Uri.parse(url))),
         startFilesRootProvider.overrideWithValue(files),
         appSupportProvider.overrideWithValue(files),
         vaultAskedProvider.overrideWithValue(vaultAsked),

@@ -2080,4 +2080,43 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String readerOpen(Object count) {
+    return 'Leer · $count min';
+  }
+
+  @override
+  String get readerOriginal => 'Original';
+
+  @override
+  String get readerQuote => 'Cita';
+
+  @override
+  String get readerCopy => 'Copiar';
+
+  @override
+  String get readerNote => 'Nota';
+
+  @override
+  String get readerNoteHint => 'Nota para la cita';
+
+  @override
+  String get readerRemove => 'Quitar';
+
+  @override
+  String get readerRemoved => 'Cita quitada';
+
+  @override
+  String get readerGone => 'Original eliminado · copia guardada';
+
+  @override
+  String get readerNoCopy =>
+      'El texto del artículo no se guardó. Puedes abrirlo en el sitio.';
+
+  @override
+  String get readerImageOff => 'Imagen no guardada';
+
+  @override
+  String get highlightsTitle => 'Citas';
 }
