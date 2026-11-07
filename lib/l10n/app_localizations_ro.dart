@@ -2084,4 +2084,16 @@ class LRo extends L {
 
   @override
   String get catalogOpenFolder => 'Deschide dosarul';
+
+  @override
+  String foldersCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de dosare',
+      few: '$count dosare',
+      one: '$count dosar',
+    );
+    return '$_temp0';
+  }
 }

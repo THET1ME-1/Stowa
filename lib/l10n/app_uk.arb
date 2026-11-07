@@ -299,5 +299,6 @@
   "catalogTitle": "Каталог",
   "catalogExpand": "Розгорнути все",
   "catalogCollapse": "Згорнути все",
-  "catalogOpenFolder": "Відкрити папку"
+  "catalogOpenFolder": "Відкрити папку",
+  "foldersCount": "{count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}"
 }

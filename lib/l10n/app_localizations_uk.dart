@@ -2107,4 +2107,17 @@ class LUk extends L {
 
   @override
   String get catalogOpenFolder => 'Відкрити папку';
+
+  @override
+  String foldersCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count папки',
+      many: '$count папок',
+      few: '$count папки',
+      one: '$count папка',
+    );
+    return '$_temp0';
+  }
 }

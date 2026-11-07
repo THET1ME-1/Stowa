@@ -299,5 +299,6 @@
   "catalogTitle": "Katalog",
   "catalogExpand": "Alle aufklappen",
   "catalogCollapse": "Alle zuklappen",
-  "catalogOpenFolder": "Ordner öffnen"
+  "catalogOpenFolder": "Ordner öffnen",
+  "foldersCount": "{count, plural, one{{count} Ordner} other{{count} Ordner}}"
 }

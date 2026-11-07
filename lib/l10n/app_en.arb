@@ -2641,5 +2641,9 @@
   "catalogOpenFolder": "Open folder",
   "@catalogOpenFolder": {
     "description": "Подсказка стрелки у папки в каталоге"
+  },
+  "foldersCount": "{count, plural, one{{count} folder} other{{count} folders}}",
+  "@foldersCount": {
+    "description": "Подпись под именем приложения на главной"
   }
 }

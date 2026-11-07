@@ -68,6 +68,15 @@ void main() {
     expect(find.text('Переложить в папку'), findsOneWidget);
   });
 
+  testWidgets('под именем приложения — сколько заметок и папок', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'squircle'));
+    for (final id in ['a', 'b', 'c']) {
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: id, kind: ItemKind.note, title: 'Заметка $id', folderId: const Value('home'), createdAt: world.now, updatedAt: world.now));
+    }
+    await open(tester);
+    expect(find.text('3 заметки · 1 папка'), findsOneWidget);
+  });
+
   testWidgets('лента: пункт списка отмечается прямо на главной, остальной текст как был', (tester) async {
     await world.db.into(world.db.items).insert(ItemsCompanion.insert(
           id: 'list',

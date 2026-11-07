@@ -299,5 +299,6 @@
   "catalogTitle": "Catalog",
   "catalogExpand": "Extinde tot",
   "catalogCollapse": "Restrânge tot",
-  "catalogOpenFolder": "Deschide dosarul"
+  "catalogOpenFolder": "Deschide dosarul",
+  "foldersCount": "{count, plural, one{{count} dosar} few{{count} dosare} other{{count} de dosare}}"
 }

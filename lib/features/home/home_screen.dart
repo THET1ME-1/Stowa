@@ -305,32 +305,37 @@ class _Feed extends ConsumerWidget {
           bottom: false,
           sliver: SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 10, Space.screen - 4, 10),
+              padding: const EdgeInsets.fromLTRB(Space.screen, 12, Space.screen, 14),
               child: Row(
                 children: [
-                  Expanded(child: Text(l.appName, style: text.headlineSmall)),
-                  // все папки и заметки деревом, отдельным экраном
-                  IconButton(
-                    tooltip: l.catalogTitle,
-                    onPressed: () => Navigator.of(context).push(catalogRoute()),
-                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
-                    icon: Icon(symbolIcon('account_tree'), size: 20, color: Tokens.onSurface),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.appName, style: text.headlineSmall!.copyWith(fontSize: 24, height: 1.1)),
+                        // итог под именем: сколько всего накопилось
+                        if (ref.watch(notesCountProvider).value case final notes? when notes > 0) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            [l.itemsCount(notes), if (folders.isNotEmpty) l.foldersCount(folders.length)].join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.bodySmall!.copyWith(color: Tokens.muted),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  // где что сохранено
-                  IconButton(
-                    tooltip: l.mapTitle,
-                    onPressed: () => Navigator.of(context).push(mapRoute()),
-                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
-                    icon: Icon(symbolIcon('map'), size: 20, color: Tokens.onSurface),
-                  ),
-                  const SizedBox(width: 8),
-                  // ключ ИИ, теги, папки и правила, язык — как кнопка tune на главной в макете
-                  IconButton(
-                    tooltip: l.settingsTitle,
-                    onPressed: () => Navigator.of(context).push(settingsRoute()),
-                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
-                    icon: Icon(symbolIcon('tune'), size: 20, color: Tokens.onSurface),
+                  // сцепленные кнопки, как «править» и «ещё» на странице заметки
+                  _HeaderGroup(
+                    buttons: [
+                      // все папки и заметки деревом, отдельным экраном
+                      (icon: 'account_tree', tooltip: l.catalogTitle, onTap: () => Navigator.of(context).push(catalogRoute())),
+                      // где что сохранено
+                      (icon: 'map', tooltip: l.mapTitle, onTap: () => Navigator.of(context).push(mapRoute())),
+                      // ключ ИИ, теги, папки и правила, язык
+                      (icon: 'tune', tooltip: l.settingsTitle, onTap: () => Navigator.of(context).push(settingsRoute())),
+                    ],
                   ),
                 ],
               ),
@@ -421,6 +426,43 @@ class _Feed extends ConsumerWidget {
           )
         else
           SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
+      ],
+    );
+  }
+}
+
+/// Кнопки шапки одной группой: крупные углы только снаружи, между кнопками узкий зазор.
+class _HeaderGroup extends StatelessWidget {
+  const _HeaderGroup({required this.buttons});
+
+  final List<({String icon, String tooltip, VoidCallback onTap})> buttons;
+
+  @override
+  Widget build(BuildContext context) {
+    const outer = Radius.circular(24);
+    const inner = Radius.circular(8);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (index, button) in buttons.indexed) ...[
+          if (index > 0) const SizedBox(width: 2),
+          Tooltip(
+            message: button.tooltip,
+            child: Material(
+              color: Tokens.containerHigh,
+              borderRadius: BorderRadius.horizontal(left: index == 0 ? outer : inner, right: index == buttons.length - 1 ? outer : inner),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: button.onTap,
+                child: SizedBox(
+                  width: 50,
+                  height: 48,
+                  child: Icon(symbolIcon(button.icon), size: 21, color: Tokens.onSurface),
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -3394,6 +3394,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Open folder'**
   String get catalogOpenFolder;
+
+  /// Подпись под именем приложения на главной
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} folder} other{{count} folders}}'**
+  String foldersCount(num count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

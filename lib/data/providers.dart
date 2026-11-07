@@ -515,6 +515,12 @@ final vaultQueueProvider = StreamProvider((ref) => ref.watch(databaseProvider).w
 
 final recentItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchRecent());
 
+/// Сколько всего живых заметок: подпись под именем приложения на главной.
+final notesCountProvider = StreamProvider((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.customSelect('SELECT count(*) AS n FROM items WHERE deleted_at IS NULL', readsFrom: {db.items}).watchSingle().map((row) => row.read<int>('n'));
+});
+
 /// Ближайшие напоминания с момента подписки. Главная перечитывает их,
 /// когда приложение возвращается на экран.
 final upcomingProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchUpcoming(ref.watch(clockProvider)()));

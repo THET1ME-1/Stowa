@@ -2067,4 +2067,15 @@ class LEn extends L {
 
   @override
   String get catalogOpenFolder => 'Open folder';
+
+  @override
+  String foldersCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folders',
+      one: '$count folder',
+    );
+    return '$_temp0';
+  }
 }

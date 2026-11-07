@@ -2108,4 +2108,17 @@ class LPl extends L {
 
   @override
   String get catalogOpenFolder => 'Otwórz folder';
+
+  @override
+  String foldersCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folderu',
+      many: '$count folderów',
+      few: '$count foldery',
+      one: '$count folder',
+    );
+    return '$_temp0';
+  }
 }

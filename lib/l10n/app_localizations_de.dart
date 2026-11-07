@@ -2072,4 +2072,15 @@ class LDe extends L {
 
   @override
   String get catalogOpenFolder => 'Ordner öffnen';
+
+  @override
+  String foldersCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ordner',
+      one: '$count Ordner',
+    );
+    return '$_temp0';
+  }
 }

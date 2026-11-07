@@ -299,5 +299,6 @@
   "catalogTitle": "Catálogo",
   "catalogExpand": "Expandir todo",
   "catalogCollapse": "Contraer todo",
-  "catalogOpenFolder": "Abrir carpeta"
+  "catalogOpenFolder": "Abrir carpeta",
+  "foldersCount": "{count, plural, one{{count} carpeta} other{{count} carpetas}}"
 }

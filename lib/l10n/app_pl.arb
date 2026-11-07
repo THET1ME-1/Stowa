@@ -299,5 +299,6 @@
   "catalogTitle": "Katalog",
   "catalogExpand": "Rozwiń wszystko",
   "catalogCollapse": "Zwiń wszystko",
-  "catalogOpenFolder": "Otwórz folder"
+  "catalogOpenFolder": "Otwórz folder",
+  "foldersCount": "{count, plural, one{{count} folder} few{{count} foldery} many{{count} folderów} other{{count} folderu}}"
 }

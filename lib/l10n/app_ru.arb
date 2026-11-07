@@ -547,5 +547,6 @@
   "catalogTitle": "Каталог",
   "catalogExpand": "Раскрыть всё",
   "catalogCollapse": "Свернуть всё",
-  "catalogOpenFolder": "Открыть папку"
+  "catalogOpenFolder": "Открыть папку",
+  "foldersCount": "{count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}"
 }

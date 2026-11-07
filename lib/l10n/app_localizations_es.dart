@@ -2069,4 +2069,15 @@ class LEs extends L {
 
   @override
   String get catalogOpenFolder => 'Abrir carpeta';
+
+  @override
+  String foldersCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count carpetas',
+      one: '$count carpeta',
+    );
+    return '$_temp0';
+  }
 }
