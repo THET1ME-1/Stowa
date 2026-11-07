@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
+import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -167,7 +169,7 @@ class _FolderRow extends StatelessWidget {
             shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
             size: 26,
             color: folder.color,
-            child: Icon(symbolIcon(folder.icon, filled: true), size: 15, color: Tokens.onAccent),
+            child: Icon(symbolIcon(folder.icon, filled: true), size: 15, color: inkOn(folder.color)),
           );
     return InkWell(
       onTap: onTap,
@@ -246,13 +248,13 @@ class _NoteRow extends ConsumerWidget {
                     height: last ? _noteRow / 2 : _noteRow,
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: ColoredBox(color: card.folderColor?.withValues(alpha: 0.45) ?? Tokens.outline, child: const SizedBox.expand()),
+                      child: ColoredBox(color: card.folderColor == null ? Tokens.outline : FolderPalette.ink(card.folderColor!).withValues(alpha: 0.45), child: const SizedBox.expand()),
                     ),
                   ),
                 ),
               ),
             ),
-            Icon(symbolIcon(icon), size: 18, color: card.folderColor ?? Tokens.muted),
+            Icon(symbolIcon(icon), size: 18, color: card.folderColor == null ? Tokens.muted : FolderPalette.ink(card.folderColor!)),
             const SizedBox(width: 10),
             Expanded(
               child: Text(card.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurface)),

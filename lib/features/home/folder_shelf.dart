@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
+import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -116,7 +117,7 @@ class FolderPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = Theme.of(context).textTheme.labelLarge!;
-    final ink = Tokens.onAccent;
+    final ink = inkOn(folder.color);
     return Pressable(
       onTap: onTap,
       pressedScale: 0.94,

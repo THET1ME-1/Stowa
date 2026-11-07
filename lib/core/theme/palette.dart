@@ -2,6 +2,17 @@ import 'dart:ui' show Brightness;
 
 import 'package:flutter/painting.dart';
 
+/// Надпись на заливке любого цвета: из почти чёрной и почти белой та, что
+/// контрастнее. Пастель папок в любой теме получает тёмную.
+Color inkOn(Color fill) {
+  const dark = Color(0xFF141517);
+  const light = Color(0xFFF6F6F4);
+  final lum = fill.computeLuminance();
+  final onDark = (lum + 0.05) / (dark.computeLuminance() + 0.05);
+  final onLight = (light.computeLuminance() + 0.05) / (lum + 0.05);
+  return onDark >= onLight ? dark : light;
+}
+
 /// Цвета одной темы Stowa. Глубина строится ступенями поверхности, а не тенями:
 /// чем выше блок, тем дальше его ступень от фона.
 class StowaPalette {

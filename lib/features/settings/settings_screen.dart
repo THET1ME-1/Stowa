@@ -1004,7 +1004,7 @@ class _IconChip extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(color: FolderPalette.tint(tint, 0.22), shape: BoxShape.circle),
-      child: Icon(symbolIcon(icon, filled: true), size: 22, color: tint),
+      child: Icon(symbolIcon(icon, filled: true), size: 22, color: FolderPalette.ink(tint)),
     );
   }
 }

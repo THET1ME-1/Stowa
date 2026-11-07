@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/core/theme/folder_palette.dart';
 import 'package:stowa/core/theme/palette.dart';
 import 'package:stowa/core/theme/tokens.dart';
 
@@ -49,6 +50,33 @@ void main() {
     expect(black.containerLow, dark.containerLowest);
     expect(black.containerHigh, dark.container);
     expect(StowaPalette.graphiteLight.amoled(), StowaPalette.graphiteLight);
+  });
+
+  test('цвет папки как знак: в тёмной как есть, в светлой темнее и виден на белом', () {
+    for (final color in FolderPalette.colors.values) {
+      expect(FolderPalette.ink(color), color);
+    }
+    Tokens.use(StowaPalette.graphiteLight);
+    for (final MapEntry(key: key, value: color) in FolderPalette.colors.entries) {
+      final ink = FolderPalette.ink(color);
+      expect(contrast(ink, StowaPalette.graphiteLight.background), greaterThanOrEqualTo(3), reason: key);
+      expect(contrast(ink, StowaPalette.graphiteLight.containerHigh), greaterThanOrEqualTo(3), reason: key);
+    }
+  });
+
+  test('надпись на заливке: на пастели и белом тёмная, на чёрном светлая', () {
+    for (final color in [...FolderPalette.colors.values, StowaPalette.graphiteDark.accent]) {
+      expect(inkOn(color).computeLuminance(), lessThan(0.05));
+      expect(contrast(inkOn(color), color), greaterThanOrEqualTo(4.5));
+    }
+    expect(inkOn(StowaPalette.graphiteLight.accent).computeLuminance(), greaterThan(0.8));
+  });
+
+  test('подложка папки ложится на поверхность текущей темы', () {
+    const coral = Color(0xFFFFA098);
+    expect(FolderPalette.tint(coral).computeLuminance(), lessThan(0.1));
+    Tokens.use(StowaPalette.graphiteLight);
+    expect(FolderPalette.tint(coral).computeLuminance(), greaterThan(0.6));
   });
 
   test('Tokens читают текущую палитру', () {

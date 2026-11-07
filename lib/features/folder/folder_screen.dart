@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
+import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
@@ -286,7 +287,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
               shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
               size: 36,
               color: folder.color,
-              child: Icon(symbolIcon(folder.icon, filled: true), size: 19, color: Tokens.onAccent),
+              child: Icon(symbolIcon(folder.icon, filled: true), size: 19, color: inkOn(folder.color)),
             ),
             const SizedBox(width: 12),
           ],

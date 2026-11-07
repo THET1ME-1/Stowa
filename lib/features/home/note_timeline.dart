@@ -9,6 +9,7 @@ import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
+import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/marked_text.dart';
@@ -245,7 +246,7 @@ class _Entry extends StatelessWidget {
             width: 12,
             height: 12,
             decoration: BoxDecoration(
-              color: item.folderColor ?? Tokens.muted,
+              color: item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!),
               shape: BoxShape.circle,
               border: Border.all(color: Tokens.background, width: 2.5),
             ),
@@ -374,7 +375,7 @@ class _CheckRow extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: done ? null : Border.all(color: Tokens.muted, width: 1.6),
               ),
-              child: done ? Icon(symbolIcon('check'), size: 15, color: Tokens.onAccent) : null,
+              child: done ? Icon(symbolIcon('check'), size: 15, color: inkOn(color)) : null,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -493,7 +494,7 @@ class _Attachment extends StatelessWidget {
                 shape: BadgeShape.cookie9,
                 size: 40,
                 color: item.folderColor ?? Tokens.accent,
-                child: Icon(symbolIcon(icon, filled: true), size: 20, color: Tokens.onAccent),
+                child: Icon(symbolIcon(icon, filled: true), size: 20, color: inkOn(item.folderColor ?? Tokens.accent)),
               ),
             ),
           );
@@ -554,7 +555,8 @@ class _Marks extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final waiting = item.folderId == null && (item.sortState == SortState.queued || item.sortState == SortState.pending);
-    final color = item.folderColor;
+    // метка — надпись цветом папки: в светлой теме тёмный тон того же оттенка
+    final color = item.folderColor == null ? null : FolderPalette.ink(item.folderColor!);
     final Widget folder;
     if (aiSorting && waiting) {
       folder = _Chip(

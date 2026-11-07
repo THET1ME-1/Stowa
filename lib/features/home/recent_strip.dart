@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/folder_palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/marked_text.dart';
@@ -185,7 +186,7 @@ class _Where extends StatelessWidget {
     final label = item.folderName ?? L.of(context).folderNone;
     return Row(
       children: [
-        Icon(symbolIcon(icon), size: 15, color: item.folderColor ?? style.color),
+        Icon(symbolIcon(icon), size: 15, color: item.folderColor == null ? style.color : (onPhoto ? item.folderColor : FolderPalette.ink(item.folderColor!))),
         const SizedBox(width: 4),
         Expanded(
           child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),

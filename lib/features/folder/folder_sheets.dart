@@ -5,6 +5,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/icons/icon_words.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
+import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -128,7 +129,7 @@ class _LookSheetState extends State<_LookSheet> {
                 shape: BadgeShape.values.asNameMap()[_shape] ?? BadgeShape.squircle,
                 size: 72,
                 color: _fill,
-                child: Icon(symbolIcon(_icon, filled: true), size: 34, color: Tokens.onAccent),
+                child: Icon(symbolIcon(_icon, filled: true), size: 34, color: inkOn(_fill)),
               ),
             ),
             const SizedBox(height: 16),
@@ -155,7 +156,7 @@ class _LookSheetState extends State<_LookSheet> {
                         // выбранный — кольцом цвета фона внутри: видно на любом цвете
                         border: Border.all(color: color == _fill ? Tokens.onSurface : Colors.transparent, width: 3),
                       ),
-                      child: color == _fill ? Icon(symbolIcon('check'), size: 20, color: Tokens.onAccent) : null,
+                      child: color == _fill ? Icon(symbolIcon('check'), size: 20, color: inkOn(color)) : null,
                     ),
                   ),
               ],

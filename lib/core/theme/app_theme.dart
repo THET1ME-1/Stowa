@@ -1,45 +1,47 @@
 import 'package:flutter/material.dart';
 
+import 'palette.dart';
 import 'tokens.dart';
 
 const displayFont = 'Unbounded';
 const bodyFont = 'Onest';
 
-/// Схема M3 из токенов графита. Сид нужен только для ролей, которых в макете
+/// Схема M3 из палитры. Сид нужен только для ролей, которых в макете
 /// нет (tertiary, fixed), всё видимое задано руками.
-ColorScheme buildColorScheme() {
-  return ColorScheme.fromSeed(seedColor: Tokens.accent, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.monochrome).copyWith(
-    surface: Tokens.background,
-    surfaceDim: Tokens.background,
-    surfaceBright: Tokens.containerHighest,
-    surfaceContainerLowest: Tokens.containerLowest,
-    surfaceContainerLow: Tokens.containerLow,
-    surfaceContainer: Tokens.container,
-    surfaceContainerHigh: Tokens.containerHigh,
-    surfaceContainerHighest: Tokens.containerHighest,
-    onSurface: Tokens.onSurface,
-    onSurfaceVariant: Tokens.onSurfaceVariant,
-    primary: Tokens.accent,
-    onPrimary: Tokens.onAccent,
-    primaryContainer: Tokens.accent,
-    onPrimaryContainer: Tokens.onAccent,
-    secondary: Tokens.onSurfaceVariant,
-    onSecondary: Tokens.onAccent,
-    secondaryContainer: Tokens.graphite,
-    onSecondaryContainer: Tokens.onSurface,
-    tertiary: Tokens.muted,
-    onTertiary: Tokens.onAccent,
-    tertiaryContainer: Tokens.containerHighest,
-    onTertiaryContainer: Tokens.onSurface,
-    outline: Tokens.muted,
-    outlineVariant: Tokens.outline,
-    inverseSurface: Tokens.accent,
-    onInverseSurface: Tokens.onAccent,
-    inversePrimary: Tokens.graphite,
-    error: Tokens.error,
-    onError: Tokens.onError,
+ColorScheme buildColorScheme([StowaPalette? palette]) {
+  final p = palette ?? Tokens.palette;
+  return ColorScheme.fromSeed(seedColor: p.accent, brightness: p.brightness, dynamicSchemeVariant: DynamicSchemeVariant.monochrome).copyWith(
+    surface: p.background,
+    surfaceDim: p.background,
+    surfaceBright: p.containerHighest,
+    surfaceContainerLowest: p.containerLowest,
+    surfaceContainerLow: p.containerLow,
+    surfaceContainer: p.container,
+    surfaceContainerHigh: p.containerHigh,
+    surfaceContainerHighest: p.containerHighest,
+    onSurface: p.onSurface,
+    onSurfaceVariant: p.onSurfaceVariant,
+    primary: p.accent,
+    onPrimary: p.onAccent,
+    primaryContainer: p.accent,
+    onPrimaryContainer: p.onAccent,
+    secondary: p.onSurfaceVariant,
+    onSecondary: p.onAccent,
+    secondaryContainer: p.graphite,
+    onSecondaryContainer: p.onSurface,
+    tertiary: p.muted,
+    onTertiary: p.onAccent,
+    tertiaryContainer: p.containerHighest,
+    onTertiaryContainer: p.onSurface,
+    outline: p.muted,
+    outlineVariant: p.outline,
+    inverseSurface: p.accent,
+    onInverseSurface: p.onAccent,
+    inversePrimary: p.graphite,
+    error: p.error,
+    onError: p.onError,
     shadow: Colors.transparent,
-    scrim: const Color(0xB80C0D0E),
+    scrim: p.scrim,
   );
 }
 
@@ -66,11 +68,12 @@ TextTheme _textTheme(TextTheme base, ColorScheme scheme) {
   );
 }
 
-/// Тема Stowa: тёмный матовый графит и белый, M3 Expressive по ДНК
-/// Togetherly. Теней нет, листы снизу, кнопки пилюлей.
-ThemeData buildAppTheme() {
-  final scheme = buildColorScheme();
-  final base = ThemeData(useMaterial3: true, colorScheme: scheme, brightness: Brightness.dark);
+/// Тема Stowa: матовый графит, M3 Expressive по ДНК Togetherly. Теней нет,
+/// листы снизу, кнопки пилюлей. Без палитры — текущая из [Tokens].
+ThemeData buildAppTheme([StowaPalette? palette]) {
+  final p = palette ?? Tokens.palette;
+  final scheme = buildColorScheme(p);
+  final base = ThemeData(useMaterial3: true, colorScheme: scheme, brightness: p.brightness);
   final text = _textTheme(base.textTheme, scheme);
   const pill = StadiumBorder();
   final buttonText = text.labelLarge!.copyWith(fontSize: 16);
@@ -116,7 +119,7 @@ ThemeData buildAppTheme() {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: scheme.surfaceContainerHighest,
-      hintStyle: text.bodyLarge!.copyWith(color: Tokens.muted),
+      hintStyle: text.bodyLarge!.copyWith(color: p.muted),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(Radii.card), borderSide: BorderSide.none),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(Radii.card), borderSide: BorderSide.none),

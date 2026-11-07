@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/core/theme/app_theme.dart';
+import 'package:stowa/core/theme/palette.dart';
 import 'package:stowa/core/theme/tokens.dart';
 
 void main() {
@@ -13,6 +14,19 @@ void main() {
     expect(theme.colorScheme.onPrimary, const Color(0xFF141517));
     expect(theme.colorScheme.secondaryContainer, Tokens.graphite);
     expect(theme.cardTheme.elevation, 0);
+  });
+
+  test('светлая палитра даёт светлую тему с её цветами', () {
+    const light = StowaPalette.graphiteLight;
+    final theme = buildAppTheme(light);
+    expect(theme.brightness, Brightness.light);
+    expect(theme.colorScheme.brightness, Brightness.light);
+    expect(theme.scaffoldBackgroundColor, light.background);
+    expect(theme.colorScheme.surfaceContainerHigh, light.containerHigh);
+    expect(theme.colorScheme.primary, light.accent);
+    expect(theme.colorScheme.onSurface, light.onSurface);
+    expect(theme.colorScheme.scrim, light.scrim);
+    expect(theme.textTheme.bodyLarge!.color, light.onSurface);
   });
 
   test('текст набран Onest, крупные заголовки Unbounded', () {
