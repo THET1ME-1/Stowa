@@ -62,6 +62,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.appearance.seed, kThemeSeeds.first.toARGB32());
     expect(Tokens.accent, isNot(StowaPalette.graphiteDark.accent));
+    expect(find.text('Коралл'), findsOneWidget);
 
     await tester.scrollUntilVisible(find.byKey(const ValueKey('intensity-faithful')), 100);
     await tester.tap(find.byKey(const ValueKey('intensity-faithful')));
@@ -106,7 +107,7 @@ void main() {
   for (final light in [false, true]) {
     testWidgets('320 точек и крупный шрифт: всё влезает (${light ? 'светлая' : 'тёмная'})', (tester) async {
       if (light) await settings.setAppearance(const Appearance(choice: ThemeChoice.light, seed: 0xFF92BFFF));
-      await open(tester, size: const Size(320, 700), textScale: 1.3, summary: light ? 'Светлая · Свой цвет' : 'Тёмная · Графит');
+      await open(tester, size: const Size(320, 700), textScale: 1.3, summary: light ? 'Светлая · Синий' : 'Тёмная · Графит');
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

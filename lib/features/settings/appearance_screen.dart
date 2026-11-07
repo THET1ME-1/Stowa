@@ -31,13 +31,17 @@ String themeChoiceLabel(L l, ThemeChoice choice) => switch (choice) {
   ThemeChoice.byTime => l.themeByTime,
 };
 
+/// Имя цвета: «Графит», одно из восьми или «Свой цвет».
+String seedLabel(L l, int? seed) {
+  if (seed == null) return l.colorGraphite;
+  final names = [l.colorCoral, l.colorAmber, l.colorLime, l.colorMint, l.colorTeal, l.colorBlue, l.colorViolet, l.colorRose];
+  final index = kThemeSeeds.indexWhere((color) => color.toARGB32() == seed);
+  return index < 0 ? l.colorCustom : names[index];
+}
+
 /// «Тёмная · Графит» — подпись строки «Оформление» в настройках.
 String appearanceSummary(L l, Appearance appearance) {
-  final color = appearance.wallpaper
-      ? l.colorFromWallpaper
-      : appearance.seed == null
-      ? l.colorGraphite
-      : l.colorCustom;
+  final color = appearance.wallpaper ? l.colorFromWallpaper : seedLabel(l, appearance.seed);
   return '${themeChoiceLabel(l, appearance.choice)} · $color';
 }
 
@@ -109,6 +113,7 @@ class AppearanceScreen extends ConsumerWidget {
                       for (final (index, seed) in kThemeSeeds.indexed)
                         _SeedSwatch(
                           key: ValueKey('seed-$index'),
+                          tooltip: seedLabel(l, seed.toARGB32()),
                           seed: seed,
                           selected: appearance.seed == seed.toARGB32(),
                           onTap: () => save(appearance.copyWith(seed: () => seed.toARGB32())),
@@ -125,14 +130,7 @@ class AppearanceScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    appearance.seed == null
-                        ? l.colorGraphite
-                        : kThemeSeeds.any((seed) => seed.toARGB32() == appearance.seed)
-                        ? l.appearanceColor
-                        : l.colorCustom,
-                    style: text.titleMedium,
-                  ),
+                  Text(seedLabel(l, appearance.seed), style: text.titleMedium),
                   if (appearance.seed != null) ...[
                     const SizedBox(height: 14),
                     Row(
@@ -323,9 +321,10 @@ class _GraphiteSwatch extends StatelessWidget {
 
 /// Цвет четырьмя долями схемы от него: светлая и насыщенная, два оттенка.
 class _SeedSwatch extends StatelessWidget {
-  const _SeedSwatch({super.key, required this.seed, required this.selected, required this.onTap});
+  const _SeedSwatch({super.key, required this.seed, required this.tooltip, required this.selected, required this.onTap});
 
   final Color seed;
+  final String tooltip;
   final bool selected;
   final VoidCallback onTap;
 
@@ -335,6 +334,7 @@ class _SeedSwatch extends StatelessWidget {
     return _Swatch(
       selected: selected,
       onTap: onTap,
+      tooltip: tooltip,
       child: CustomPaint(painter: _QuadrantPainter([scheme.primaryContainer, scheme.primary, scheme.tertiaryContainer, scheme.tertiary])),
     );
   }

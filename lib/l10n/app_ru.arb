@@ -601,5 +601,13 @@
   "wallpaperColorsHint": "Цвет темы подстраивается под обои телефона",
   "amoledTitle": "Чёрный фон",
   "amoledHint": "Чистый чёрный для экранов AMOLED, бережёт заряд",
-  "pickerApply": "Готово"
+  "pickerApply": "Готово",
+  "colorCoral": "Коралл",
+  "colorAmber": "Янтарь",
+  "colorLime": "Лайм",
+  "colorMint": "Мята",
+  "colorTeal": "Бирюза",
+  "colorBlue": "Синий",
+  "colorViolet": "Фиалка",
+  "colorRose": "Роза"
 }

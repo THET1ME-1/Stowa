@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
+import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
@@ -429,7 +430,7 @@ class _MarkedTextState extends State<_MarkedText> {
       if (mark.start > at) spans.add(TextSpan(text: widget.text.substring(at, mark.start)));
       final tap = TapGestureRecognizer()..onTap = () => widget.onTap(mark.id);
       _taps.add(tap);
-      spans.add(TextSpan(text: widget.text.substring(mark.start, mark.end), style: TextStyle(backgroundColor: _marker, color: Tokens.onAccent), recognizer: tap));
+      spans.add(TextSpan(text: widget.text.substring(mark.start, mark.end), style: TextStyle(backgroundColor: _marker, color: inkOn(_marker)), recognizer: tap));
       at = mark.end;
     }
     if (at < widget.text.length) spans.add(TextSpan(text: widget.text.substring(at)));
@@ -455,7 +456,7 @@ class _NoteLine extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(symbolIcon('edit_note'), size: 18, color: _marker),
+              Icon(symbolIcon('edit_note'), size: 18, color: FolderPalette.ink(_marker)),
               const SizedBox(width: 8),
               Expanded(child: Text(note, style: TextStyle(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant))),
             ],
@@ -601,7 +602,7 @@ class _RoundAction extends StatelessWidget {
       tooltip: tooltip,
       onPressed: onTap,
       style: IconButton.styleFrom(backgroundColor: marker ? _marker : Tokens.graphite, fixedSize: const Size.square(44)),
-      icon: Icon(symbolIcon(icon), size: 20, color: marker ? Tokens.onAccent : Tokens.onSurface),
+      icon: Icon(symbolIcon(icon), size: 20, color: marker ? inkOn(_marker) : Tokens.onSurface),
     );
   }
 }
@@ -677,7 +678,7 @@ class _HighlightSheetState extends State<_HighlightSheet> {
             constraints: const BoxConstraints(maxHeight: 180),
             child: SingleChildScrollView(
               child: Text.rich(
-                TextSpan(text: widget.highlight.quote, style: TextStyle(backgroundColor: _marker, color: Tokens.onAccent)),
+                TextSpan(text: widget.highlight.quote, style: TextStyle(backgroundColor: _marker, color: inkOn(_marker))),
                 style: const TextStyle(fontSize: 16, height: 1.55),
               ),
             ),

@@ -2254,4 +2254,28 @@ class LEs extends L {
 
   @override
   String get pickerApply => 'Listo';
+
+  @override
+  String get colorCoral => 'Coral';
+
+  @override
+  String get colorAmber => 'Ámbar';
+
+  @override
+  String get colorLime => 'Lima';
+
+  @override
+  String get colorMint => 'Menta';
+
+  @override
+  String get colorTeal => 'Turquesa';
+
+  @override
+  String get colorBlue => 'Azul';
+
+  @override
+  String get colorViolet => 'Violeta';
+
+  @override
+  String get colorRose => 'Rosa';
 }

@@ -353,5 +353,13 @@
   "wallpaperColorsHint": "Die Farbe folgt dem Hintergrundbild",
   "amoledTitle": "Schwarzer Hintergrund",
   "amoledHint": "Reines Schwarz für AMOLED, spart Akku",
-  "pickerApply": "Fertig"
+  "pickerApply": "Fertig",
+  "colorCoral": "Koralle",
+  "colorAmber": "Bernstein",
+  "colorLime": "Limette",
+  "colorMint": "Minze",
+  "colorTeal": "Türkis",
+  "colorBlue": "Blau",
+  "colorViolet": "Violett",
+  "colorRose": "Rosé"
 }

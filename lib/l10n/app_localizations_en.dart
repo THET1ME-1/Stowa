@@ -2252,4 +2252,28 @@ class LEn extends L {
 
   @override
   String get pickerApply => 'Done';
+
+  @override
+  String get colorCoral => 'Coral';
+
+  @override
+  String get colorAmber => 'Amber';
+
+  @override
+  String get colorLime => 'Lime';
+
+  @override
+  String get colorMint => 'Mint';
+
+  @override
+  String get colorTeal => 'Teal';
+
+  @override
+  String get colorBlue => 'Blue';
+
+  @override
+  String get colorViolet => 'Violet';
+
+  @override
+  String get colorRose => 'Rose';
 }

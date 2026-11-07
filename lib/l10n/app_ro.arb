@@ -353,5 +353,13 @@
   "wallpaperColorsHint": "Culoarea temei urmează fundalul telefonului",
   "amoledTitle": "Fundal negru",
   "amoledHint": "Negru pur pentru ecrane AMOLED, economisește bateria",
-  "pickerApply": "Gata"
+  "pickerApply": "Gata",
+  "colorCoral": "Coral",
+  "colorAmber": "Chihlimbar",
+  "colorLime": "Lime",
+  "colorMint": "Mentă",
+  "colorTeal": "Turcoaz",
+  "colorBlue": "Albastru",
+  "colorViolet": "Violet",
+  "colorRose": "Trandafir"
 }

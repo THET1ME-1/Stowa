@@ -353,5 +353,13 @@
   "wallpaperColorsHint": "El color sigue el fondo del teléfono",
   "amoledTitle": "Fondo negro",
   "amoledHint": "Negro puro para pantallas AMOLED, ahorra batería",
-  "pickerApply": "Listo"
+  "pickerApply": "Listo",
+  "colorCoral": "Coral",
+  "colorAmber": "Ámbar",
+  "colorLime": "Lima",
+  "colorMint": "Menta",
+  "colorTeal": "Turquesa",
+  "colorBlue": "Azul",
+  "colorViolet": "Violeta",
+  "colorRose": "Rosa"
 }

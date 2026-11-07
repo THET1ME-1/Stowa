@@ -353,5 +353,13 @@
   "wallpaperColorsHint": "Колір теми підлаштовується під шпалери телефона",
   "amoledTitle": "Чорне тло",
   "amoledHint": "Чистий чорний для екранів AMOLED, береже заряд",
-  "pickerApply": "Готово"
+  "pickerApply": "Готово",
+  "colorCoral": "Корал",
+  "colorAmber": "Бурштин",
+  "colorLime": "Лайм",
+  "colorMint": "М’ята",
+  "colorTeal": "Бірюза",
+  "colorBlue": "Синій",
+  "colorViolet": "Фіалка",
+  "colorRose": "Троянда"
 }

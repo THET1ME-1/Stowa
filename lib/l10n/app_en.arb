@@ -2862,5 +2862,37 @@
   "pickerApply": "Done",
   "@pickerApply": {
     "description": "Применить свой цвет"
+  },
+  "colorCoral": "Coral",
+  "@colorCoral": {
+    "description": "Цвет темы"
+  },
+  "colorAmber": "Amber",
+  "@colorAmber": {
+    "description": "Цвет темы"
+  },
+  "colorLime": "Lime",
+  "@colorLime": {
+    "description": "Цвет темы"
+  },
+  "colorMint": "Mint",
+  "@colorMint": {
+    "description": "Цвет темы"
+  },
+  "colorTeal": "Teal",
+  "@colorTeal": {
+    "description": "Цвет темы"
+  },
+  "colorBlue": "Blue",
+  "@colorBlue": {
+    "description": "Цвет темы"
+  },
+  "colorViolet": "Violet",
+  "@colorViolet": {
+    "description": "Цвет темы"
+  },
+  "colorRose": "Rose",
+  "@colorRose": {
+    "description": "Цвет темы"
   }
 }

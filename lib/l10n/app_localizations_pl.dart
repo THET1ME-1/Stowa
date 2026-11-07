@@ -2297,4 +2297,28 @@ class LPl extends L {
 
   @override
   String get pickerApply => 'Gotowe';
+
+  @override
+  String get colorCoral => 'Koral';
+
+  @override
+  String get colorAmber => 'Bursztyn';
+
+  @override
+  String get colorLime => 'Limonka';
+
+  @override
+  String get colorMint => 'Mięta';
+
+  @override
+  String get colorTeal => 'Turkus';
+
+  @override
+  String get colorBlue => 'Niebieski';
+
+  @override
+  String get colorViolet => 'Fiolet';
+
+  @override
+  String get colorRose => 'Róża';
 }

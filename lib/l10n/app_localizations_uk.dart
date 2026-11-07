@@ -2297,4 +2297,28 @@ class LUk extends L {
 
   @override
   String get pickerApply => 'Готово';
+
+  @override
+  String get colorCoral => 'Корал';
+
+  @override
+  String get colorAmber => 'Бурштин';
+
+  @override
+  String get colorLime => 'Лайм';
+
+  @override
+  String get colorMint => 'М’ята';
+
+  @override
+  String get colorTeal => 'Бірюза';
+
+  @override
+  String get colorBlue => 'Синій';
+
+  @override
+  String get colorViolet => 'Фіалка';
+
+  @override
+  String get colorRose => 'Троянда';
 }

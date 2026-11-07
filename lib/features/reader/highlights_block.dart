@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
+import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../data/db/database.dart';
 import '../../domain/models.dart';
@@ -54,7 +55,7 @@ class HighlightsBlock extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(symbolIcon('format_quote'), size: 20, color: marker),
+              Icon(symbolIcon('format_quote'), size: 20, color: FolderPalette.ink(marker)),
               const SizedBox(width: 8),
               Text(l.highlightsTitle, style: Theme.of(context).textTheme.titleSmall),
               const Spacer(),
@@ -72,7 +73,7 @@ class HighlightsBlock extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text.rich(
-                      TextSpan(text: one.quote, style: TextStyle(backgroundColor: marker, color: Tokens.onAccent)),
+                      TextSpan(text: one.quote, style: TextStyle(backgroundColor: marker, color: inkOn(marker))),
                       maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 15, height: 1.5),

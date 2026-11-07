@@ -2302,4 +2302,28 @@ class LRu extends L {
 
   @override
   String get pickerApply => 'Готово';
+
+  @override
+  String get colorCoral => 'Коралл';
+
+  @override
+  String get colorAmber => 'Янтарь';
+
+  @override
+  String get colorLime => 'Лайм';
+
+  @override
+  String get colorMint => 'Мята';
+
+  @override
+  String get colorTeal => 'Бирюза';
+
+  @override
+  String get colorBlue => 'Синий';
+
+  @override
+  String get colorViolet => 'Фиалка';
+
+  @override
+  String get colorRose => 'Роза';
 }

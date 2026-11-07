@@ -2257,4 +2257,28 @@ class LDe extends L {
 
   @override
   String get pickerApply => 'Fertig';
+
+  @override
+  String get colorCoral => 'Koralle';
+
+  @override
+  String get colorAmber => 'Bernstein';
+
+  @override
+  String get colorLime => 'Limette';
+
+  @override
+  String get colorMint => 'Minze';
+
+  @override
+  String get colorTeal => 'Türkis';
+
+  @override
+  String get colorBlue => 'Blau';
+
+  @override
+  String get colorViolet => 'Violett';
+
+  @override
+  String get colorRose => 'Rosé';
 }

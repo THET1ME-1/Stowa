@@ -2273,4 +2273,28 @@ class LRo extends L {
 
   @override
   String get pickerApply => 'Gata';
+
+  @override
+  String get colorCoral => 'Coral';
+
+  @override
+  String get colorAmber => 'Chihlimbar';
+
+  @override
+  String get colorLime => 'Lime';
+
+  @override
+  String get colorMint => 'Mentă';
+
+  @override
+  String get colorTeal => 'Turcoaz';
+
+  @override
+  String get colorBlue => 'Albastru';
+
+  @override
+  String get colorViolet => 'Violet';
+
+  @override
+  String get colorRose => 'Trandafir';
 }

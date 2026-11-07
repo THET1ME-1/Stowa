@@ -353,5 +353,13 @@
   "wallpaperColorsHint": "Kolor motywu dopasowuje się do tapety",
   "amoledTitle": "Czarne tło",
   "amoledHint": "Czysta czerń dla ekranów AMOLED, oszczędza baterię",
-  "pickerApply": "Gotowe"
+  "pickerApply": "Gotowe",
+  "colorCoral": "Koral",
+  "colorAmber": "Bursztyn",
+  "colorLime": "Limonka",
+  "colorMint": "Mięta",
+  "colorTeal": "Turkus",
+  "colorBlue": "Niebieski",
+  "colorViolet": "Fiolet",
+  "colorRose": "Róża"
 }

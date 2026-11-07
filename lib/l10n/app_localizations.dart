@@ -3718,6 +3718,54 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Done'**
   String get pickerApply;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Coral'**
+  String get colorCoral;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Amber'**
+  String get colorAmber;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Lime'**
+  String get colorLime;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Mint'**
+  String get colorMint;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get colorTeal;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get colorBlue;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get colorViolet;
+
+  /// Цвет темы
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get colorRose;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
