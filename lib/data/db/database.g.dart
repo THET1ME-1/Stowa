@@ -3897,6 +3897,15 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sortOrderMeta = const VerificationMeta(
     'sortOrder',
   );
@@ -3951,6 +3960,7 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
     name,
     icon,
     shape,
+    color,
     sortOrder,
     createdByAi,
     view,
@@ -3996,6 +4006,12 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
       );
     } else if (isInserting) {
       context.missing(_shapeMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
     }
     if (data.containsKey('sort_order')) {
       context.handle(
@@ -4043,6 +4059,10 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
         DriftSqlType.string,
         data['${effectivePrefix}shape'],
       )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -4082,6 +4102,9 @@ class Folder extends DataClass implements Insertable<Folder> {
 
   /// Имя формы значка (BadgeShape.name).
   final String shape;
+
+  /// Цвет из FolderPalette; без выбора — по месту в списке.
+  final String? color;
   final int sortOrder;
   final bool createdByAi;
   final FolderView view;
@@ -4091,6 +4114,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     required this.name,
     required this.icon,
     required this.shape,
+    this.color,
     required this.sortOrder,
     required this.createdByAi,
     required this.view,
@@ -4103,6 +4127,9 @@ class Folder extends DataClass implements Insertable<Folder> {
     map['name'] = Variable<String>(name);
     map['icon'] = Variable<String>(icon);
     map['shape'] = Variable<String>(shape);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
     map['sort_order'] = Variable<int>(sortOrder);
     map['created_by_ai'] = Variable<bool>(createdByAi);
     {
@@ -4120,6 +4147,9 @@ class Folder extends DataClass implements Insertable<Folder> {
       name: Value(name),
       icon: Value(icon),
       shape: Value(shape),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
       sortOrder: Value(sortOrder),
       createdByAi: Value(createdByAi),
       view: Value(view),
@@ -4139,6 +4169,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       name: serializer.fromJson<String>(json['name']),
       icon: serializer.fromJson<String>(json['icon']),
       shape: serializer.fromJson<String>(json['shape']),
+      color: serializer.fromJson<String?>(json['color']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       createdByAi: serializer.fromJson<bool>(json['createdByAi']),
       view: $FoldersTable.$converterview.fromJson(
@@ -4155,6 +4186,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       'name': serializer.toJson<String>(name),
       'icon': serializer.toJson<String>(icon),
       'shape': serializer.toJson<String>(shape),
+      'color': serializer.toJson<String?>(color),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'createdByAi': serializer.toJson<bool>(createdByAi),
       'view': serializer.toJson<String>(
@@ -4169,6 +4201,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     String? name,
     String? icon,
     String? shape,
+    Value<String?> color = const Value.absent(),
     int? sortOrder,
     bool? createdByAi,
     FolderView? view,
@@ -4178,6 +4211,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     name: name ?? this.name,
     icon: icon ?? this.icon,
     shape: shape ?? this.shape,
+    color: color.present ? color.value : this.color,
     sortOrder: sortOrder ?? this.sortOrder,
     createdByAi: createdByAi ?? this.createdByAi,
     view: view ?? this.view,
@@ -4189,6 +4223,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       name: data.name.present ? data.name.value : this.name,
       icon: data.icon.present ? data.icon.value : this.icon,
       shape: data.shape.present ? data.shape.value : this.shape,
+      color: data.color.present ? data.color.value : this.color,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       createdByAi: data.createdByAi.present
           ? data.createdByAi.value
@@ -4205,6 +4240,7 @@ class Folder extends DataClass implements Insertable<Folder> {
           ..write('name: $name, ')
           ..write('icon: $icon, ')
           ..write('shape: $shape, ')
+          ..write('color: $color, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdByAi: $createdByAi, ')
           ..write('view: $view, ')
@@ -4219,6 +4255,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     name,
     icon,
     shape,
+    color,
     sortOrder,
     createdByAi,
     view,
@@ -4232,6 +4269,7 @@ class Folder extends DataClass implements Insertable<Folder> {
           other.name == this.name &&
           other.icon == this.icon &&
           other.shape == this.shape &&
+          other.color == this.color &&
           other.sortOrder == this.sortOrder &&
           other.createdByAi == this.createdByAi &&
           other.view == this.view &&
@@ -4243,6 +4281,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
   final Value<String> name;
   final Value<String> icon;
   final Value<String> shape;
+  final Value<String?> color;
   final Value<int> sortOrder;
   final Value<bool> createdByAi;
   final Value<FolderView> view;
@@ -4253,6 +4292,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     this.name = const Value.absent(),
     this.icon = const Value.absent(),
     this.shape = const Value.absent(),
+    this.color = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.createdByAi = const Value.absent(),
     this.view = const Value.absent(),
@@ -4264,6 +4304,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     required String name,
     required String icon,
     required String shape,
+    this.color = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.createdByAi = const Value.absent(),
     this.view = const Value.absent(),
@@ -4278,6 +4319,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     Expression<String>? name,
     Expression<String>? icon,
     Expression<String>? shape,
+    Expression<String>? color,
     Expression<int>? sortOrder,
     Expression<bool>? createdByAi,
     Expression<String>? view,
@@ -4289,6 +4331,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       if (name != null) 'name': name,
       if (icon != null) 'icon': icon,
       if (shape != null) 'shape': shape,
+      if (color != null) 'color': color,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (createdByAi != null) 'created_by_ai': createdByAi,
       if (view != null) 'view': view,
@@ -4302,6 +4345,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     Value<String>? name,
     Value<String>? icon,
     Value<String>? shape,
+    Value<String?>? color,
     Value<int>? sortOrder,
     Value<bool>? createdByAi,
     Value<FolderView>? view,
@@ -4313,6 +4357,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       name: name ?? this.name,
       icon: icon ?? this.icon,
       shape: shape ?? this.shape,
+      color: color ?? this.color,
       sortOrder: sortOrder ?? this.sortOrder,
       createdByAi: createdByAi ?? this.createdByAi,
       view: view ?? this.view,
@@ -4335,6 +4380,9 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     }
     if (shape.present) {
       map['shape'] = Variable<String>(shape.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
     }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
@@ -4363,6 +4411,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
           ..write('name: $name, ')
           ..write('icon: $icon, ')
           ..write('shape: $shape, ')
+          ..write('color: $color, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdByAi: $createdByAi, ')
           ..write('view: $view, ')
@@ -10906,6 +10955,7 @@ typedef $$FoldersTableCreateCompanionBuilder = FoldersCompanion Function({
   required String name,
   required String icon,
   required String shape,
+  Value<String?> color,
   Value<int> sortOrder,
   Value<bool> createdByAi,
   Value<FolderView> view,
@@ -10917,6 +10967,7 @@ typedef $$FoldersTableUpdateCompanionBuilder = FoldersCompanion Function({
   Value<String> name,
   Value<String> icon,
   Value<String> shape,
+  Value<String?> color,
   Value<int> sortOrder,
   Value<bool> createdByAi,
   Value<FolderView> view,
@@ -10950,6 +11001,11 @@ class $$FoldersTableFilterComposer
 
   ColumnFilters<String> get shape => $composableBuilder(
     column: $table.shape,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11004,6 +11060,11 @@ class $$FoldersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
     builder: (column) => ColumnOrderings(column),
@@ -11045,6 +11106,9 @@ class $$FoldersTableAnnotationComposer
 
   GeneratedColumn<String> get shape =>
       $composableBuilder(column: $table.shape, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
@@ -11093,6 +11157,7 @@ class $$FoldersTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> icon = const Value.absent(),
                 Value<String> shape = const Value.absent(),
+                Value<String?> color = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> createdByAi = const Value.absent(),
                 Value<FolderView> view = const Value.absent(),
@@ -11103,6 +11168,7 @@ class $$FoldersTableTableManager
                 name: name,
                 icon: icon,
                 shape: shape,
+                color: color,
                 sortOrder: sortOrder,
                 createdByAi: createdByAi,
                 view: view,
@@ -11115,6 +11181,7 @@ class $$FoldersTableTableManager
                 required String name,
                 required String icon,
                 required String shape,
+                Value<String?> color = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> createdByAi = const Value.absent(),
                 Value<FolderView> view = const Value.absent(),
@@ -11125,6 +11192,7 @@ class $$FoldersTableTableManager
                 name: name,
                 icon: icon,
                 shape: shape,
+                color: color,
                 sortOrder: sortOrder,
                 createdByAi: createdByAi,
                 view: view,

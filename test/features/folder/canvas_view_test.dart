@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
-import 'package:stowa/features/home/folders_grid.dart';
+import 'package:stowa/features/home/folder_shelf.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -27,7 +27,7 @@ void main() {
     addTearDown(() => tester.pumpWidget(const SizedBox()));
     await tester.pumpWidget(world.app());
     await tester.pumpAndSettle();
-    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Идеи')));
+    await tester.tap(find.descendant(of: find.byType(FolderPill), matching: find.text('Идеи')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Холст'));
     await tester.pumpAndSettle();
@@ -76,7 +76,7 @@ void main() {
     addTearDown(() => tester.pumpWidget(const SizedBox()));
     await tester.pumpWidget(world.app());
     await tester.pumpAndSettle();
-    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Большая')));
+    await tester.tap(find.descendant(of: find.byType(FolderPill), matching: find.text('Большая')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Холст'));
     await tester.pumpAndSettle();
@@ -162,7 +162,7 @@ void main() {
     addTearDown(() => tester.pumpWidget(const SizedBox()));
     await tester.pumpWidget(world.app());
     await tester.pumpAndSettle();
-    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Большая')));
+    await tester.tap(find.descendant(of: find.byType(FolderPill), matching: find.text('Большая')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Холст'));
     await tester.pumpAndSettle();

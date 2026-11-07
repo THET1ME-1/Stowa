@@ -15,7 +15,7 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
-import 'package:stowa/features/home/folders_grid.dart';
+import 'package:stowa/features/home/folder_shelf.dart';
 import 'package:stowa/features/item/item_screen.dart';
 import 'package:stowa/services/capture_service.dart';
 import 'package:stowa/services/facts/facts_pipeline.dart';
@@ -134,6 +134,17 @@ Future<void> _seed(TestWorld world) async {
   for (final (itemId, tagId) in [('f1', 't1'), ('f2', 't1'), ('f3', 't1'), ('c1', 't2'), ('c2', 't2'), ('n1', 't3'), ('w1', 't3')]) {
     await db.into(db.itemTags).insert(ItemTagsCompanion.insert(itemId: itemId, tagId: tagId, source: TagSource.user));
   }
+}
+
+/// Папка с главной: пилюля сверху, а если её спрятало «Ещё» — сперва раскрыть полку.
+Future<void> _openFolder(WidgetTester tester, String name) async {
+  final pill = find.descendant(of: find.byType(FolderPill), matching: find.text(name));
+  if (pill.evaluate().isEmpty) {
+    await tester.tap(find.textContaining('Ещё').first);
+    await tester.pumpAndSettle();
+  }
+  await tester.tap(pill);
+  await tester.pumpAndSettle();
 }
 
 Future<void> _shot(WidgetTester tester, String name) async {
@@ -318,19 +329,14 @@ void main() {
   testWidgets('папка доской', (tester) async {
     await tester.runAsync(() => _seed(world));
     await open(tester);
-    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Рецепты')));
-    await tester.pumpAndSettle();
+    await _openFolder(tester, 'Рецепты');
     await _shot(tester, '13-папка-доска');
   });
 
   testWidgets('папка лентой', (tester) async {
     await tester.runAsync(() => _seed(world));
     await open(tester);
-    // плитка должна выйти из-под строки ввода
-    await tester.drag(find.byWidgetPredicate((widget) => widget is Scrollable && widget.axisDirection == AxisDirection.down).first, const Offset(0, -800));
-    await tester.pumpAndSettle();
-    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Togetherly')));
-    await tester.pumpAndSettle();
+    await _openFolder(tester, 'Togetherly');
     await _shot(tester, '14-папка-лента');
   });
 

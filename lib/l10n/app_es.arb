@@ -292,5 +292,8 @@
   "placesMissingWork": "Tu trabajo aún no está definido: Stowa te avisará cuando lo definas en Lugares",
   "placesMissingShop": "Aún no hay tiendas: guarda al menos una en Lugares",
   "placeChannel": "Recordatorios por lugar",
-  "remindPlaceNeedsAlways": "Te lo recordaré allí si permites la ubicación «siempre»"
+  "remindPlaceNeedsAlways": "Te lo recordaré allí si permites la ubicación «siempre»",
+  "lookColor": "Color",
+  "homeFoldersMore": "{count} más",
+  "homeChecksMore": "{count} más"
 }

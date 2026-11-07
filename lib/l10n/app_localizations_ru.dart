@@ -553,7 +553,7 @@ class LRu extends L {
   String get folderRename => 'Переименовать';
 
   @override
-  String get folderLook => 'Иконка и форма';
+  String get folderLook => 'Цвет и значок';
 
   @override
   String get folderDelete => 'Удалить папку';
@@ -2087,4 +2087,17 @@ class LRu extends L {
   @override
   String get remindPlaceNeedsAlways =>
       'Напомню у места, если разрешишь место «всегда»';
+
+  @override
+  String get lookColor => 'Цвет';
+
+  @override
+  String homeFoldersMore(Object count) {
+    return 'Ещё $count';
+  }
+
+  @override
+  String homeChecksMore(Object count) {
+    return 'ещё $count';
+  }
 }

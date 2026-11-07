@@ -1040,7 +1040,7 @@ abstract class L {
   /// Folder menu
   ///
   /// In en, this message translates to:
-  /// **'Icon and shape'**
+  /// **'Color and icon'**
   String get folderLook;
 
   /// Folder menu
@@ -3352,6 +3352,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'I\'ll remind you there if location is allowed all the time'**
   String get remindPlaceNeedsAlways;
+
+  /// Подпись ряда цветов в листе вида папки
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get lookColor;
+
+  /// Пилюля на главной: показать остальные папки
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more'**
+  String homeFoldersMore(Object count);
+
+  /// Под пунктами списка в ленте главной: сколько пунктов не показано
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more'**
+  String homeChecksMore(Object count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

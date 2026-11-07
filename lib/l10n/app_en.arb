@@ -731,7 +731,7 @@
   "@folderRename": {
     "description": "Folder menu"
   },
-  "folderLook": "Icon and shape",
+  "folderLook": "Color and icon",
   "@folderLook": {
     "description": "Folder menu"
   },
@@ -2613,5 +2613,17 @@
   "remindPlaceNeedsAlways": "I'll remind you there if location is allowed all the time",
   "@remindPlaceNeedsAlways": {
     "description": "Плашка после напоминания по месту, когда нет разрешения на место «всегда»"
+  },
+  "lookColor": "Color",
+  "@lookColor": {
+    "description": "Подпись ряда цветов в листе вида папки"
+  },
+  "homeFoldersMore": "{count} more",
+  "@homeFoldersMore": {
+    "description": "Пилюля на главной: показать остальные папки"
+  },
+  "homeChecksMore": "{count} more",
+  "@homeChecksMore": {
+    "description": "Под пунктами списка в ленте главной: сколько пунктов не показано"
   }
 }

@@ -65,7 +65,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final text = Theme.of(context).textTheme;
     final cards = ref.watch(placedItemsProvider).value;
     final filesRoot = ref.watch(filesRootProvider);
-    final now = ref.read(clockProvider)();
     final byId = {for (final card in cards ?? const <ItemCard>[]) card.id: card};
     final groups = groupPlaces([
       for (final card in cards ?? const <ItemCard>[]) (id: card.id, latitude: card.latitude!, longitude: card.longitude!),
@@ -215,7 +214,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         itemBuilder: (context, index) => RecentCard(
                           item: selectedCards[index],
                           filesRoot: filesRoot,
-                          now: now,
                           onTap: () => Navigator.of(context).push(itemRoute(selectedCards[index].id)),
                         ),
                       ),

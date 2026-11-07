@@ -555,7 +555,7 @@ class LPl extends L {
   String get folderRename => 'Rename';
 
   @override
-  String get folderLook => 'Icon and shape';
+  String get folderLook => 'Color and icon';
 
   @override
   String get folderDelete => 'Delete folder';
@@ -2083,4 +2083,17 @@ class LPl extends L {
   @override
   String get remindPlaceNeedsAlways =>
       'Przypomnę na miejscu, jeśli zezwolisz na lokalizację „zawsze”';
+
+  @override
+  String get lookColor => 'Kolor';
+
+  @override
+  String homeFoldersMore(Object count) {
+    return 'Jeszcze $count';
+  }
+
+  @override
+  String homeChecksMore(Object count) {
+    return 'jeszcze $count';
+  }
 }

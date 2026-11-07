@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/core/theme/folder_palette.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/folders_repository.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
@@ -48,6 +49,27 @@ void main() {
     expect(refs.covers, ['p/2.jpg', 'p/1.jpg']);
     expect(refs.recentTitles.first, 'Вещь 3');
     expect(folders.last.count, 1);
+  });
+
+  test('цвет папки: выбранный из палитры, без выбора — по месту в списке; заметка берёт цвет своей папки', () async {
+    final folders = FoldersRepository(db);
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'a', name: 'Первая', icon: 'folder', shape: 'pill'));
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'b', name: 'Вторая', icon: 'folder', shape: 'pill', sortOrder: const Value(1)));
+    await _item(db, 'n', folder: 'b');
+    await _item(db, 'loose');
+
+    var cards = {for (final card in await folders.watchAll().first) card.id: card};
+    expect(cards['a']!.color, FolderPalette.colors['coral']);
+    expect(cards['b']!.color, FolderPalette.colors['tangerine']);
+
+    await folders.setLook('b', icon: 'eco', shape: 'gem', color: 'mint');
+    cards = {for (final card in await folders.watchAll().first) card.id: card};
+    expect(cards['b']!.colorKey, 'mint');
+    expect(cards['b']!.color, FolderPalette.colors['mint']);
+
+    final recent = {for (final card in await ItemsRepository(db).watchRecent().first) card.id: card};
+    expect(recent['n']!.folderColor, FolderPalette.colors['mint']);
+    expect(recent['loose']!.folderColor, isNull);
   });
 
   test('удалённая папка не показывается', () async {

@@ -23,14 +23,14 @@ import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
 import '../map/map_screen.dart';
 import '../settings/settings_screen.dart';
-import 'folders_grid.dart';
+import '../../domain/note_blocks.dart';
+import 'folder_shelf.dart';
 import 'next_reminder_card.dart';
+import 'note_timeline.dart';
 import 'pinned_tags_row.dart';
 import '../returns/return_screen.dart' show notificationRoute;
 import '../places/place_always_card.dart';
-import 'recent_strip.dart';
 import 'return_pills.dart';
-import 'section_header.dart';
 import 'vault_sync_bar.dart';
 
 /// Место под свёрнутую строку внизу ленты, чтобы последняя плитка не пряталась.
@@ -335,6 +335,19 @@ class _Feed extends ConsumerWidget {
               child: AiPausedBanner(settings: ai, onTap: () => Navigator.of(context).push(settingsRoute())),
             ),
           ),
+        // папки первыми: куда что лежит, видно сразу при открытии
+        if (folders.isNotEmpty || recent.any((card) => card.folderId == null))
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6, bottom: 16),
+              child: FolderShelf(
+                folders: folders,
+                onOpen: (folder) => Navigator.of(context).push(folderRoute(folder.id)),
+                // всё, что ещё не разложено, одной лентой
+                onInbox: recent.any((card) => card.folderId == null) ? () => Navigator.of(context).push(folderRoute(null)) : null,
+              ),
+            ),
+          ),
         if (pinned.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(
@@ -372,17 +385,9 @@ class _Feed extends ConsumerWidget {
         const SliverToBoxAdapter(child: ReturnPills()),
         // снаружи пришло много заметок (Syncthing, компьютер): видно, что приложение их забирает
         SliverToBoxAdapter(child: VaultSyncBar(sync: ref.watch(vaultSyncProvider))),
-        if (recent.isNotEmpty) ...[
+        if (recent.isNotEmpty)
           SliverToBoxAdapter(
-            child: SectionHeader(
-              title: l.homeRecent,
-              // всё, что ещё не разложено, одной лентой
-              action: recent.any((card) => card.folderId == null) ? l.folderNone : null,
-              onAction: () => Navigator.of(context).push(folderRoute(null)),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: RecentStrip(
+            child: NoteTimeline(
               items: recent,
               filesRoot: filesRoot,
               now: now,
@@ -390,15 +395,13 @@ class _Feed extends ConsumerWidget {
               onOpen: (card) => onOpen(card.id),
               onMove: (card) => moveItem(context, ref, card),
               onAct: (card) => showItemActions(context, ref, card),
+              // галочка пункта ставится прямо в ленте, заметку открывать не нужно
+              onToggle: (card, line) {
+                final body = toggleCheckLine(card.body, line);
+                if (body != card.body) items.setBody(card.id, body, ref.read(clockProvider)()).ignore();
+              },
             ),
           ),
-        ],
-        if (folders.isNotEmpty) ...[
-          SliverToBoxAdapter(child: SectionHeader(title: l.homeFolders)),
-          SliverToBoxAdapter(
-            child: FoldersGrid(folders: folders, filesRoot: filesRoot, onOpen: (folder) => Navigator.of(context).push(folderRoute(folder.id))),
-          ),
-        ],
         if (recent.isEmpty && folders.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,

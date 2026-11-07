@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/folder/folder_cards.dart';
-import 'package:stowa/features/home/folders_grid.dart';
+import 'package:stowa/features/home/folder_shelf.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -42,7 +42,7 @@ void main() {
     await tester.pumpWidget(world.app());
     await tester.pumpAndSettle();
     // имя папки есть и в подписях карточек «Только что», жмём по плитке
-    await tester.tap(find.descendant(of: find.byType(FolderTile), matching: find.text('Рецепты')));
+    await tester.tap(find.descendant(of: find.byType(FolderPill), matching: find.text('Рецепты')));
     await tester.pumpAndSettle();
   }
 

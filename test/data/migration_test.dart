@@ -144,6 +144,30 @@ void main() {
     expect(await upgraded.select(upgraded.places).get(), hasLength(1));
   });
 
+  test('v8 → v9: папки на месте без цвета, выбранный цвет пишется и уходит в хранилище', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.folders).insert(FoldersCompanion.insert(id: 'f', name: 'Рецепты', icon: 'folder', shape: 'pill'));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropFolderColor(raw);
+    raw.execute('PRAGMA user_version = 8');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final folder = await upgraded.select(upgraded.folders).getSingle();
+    expect(folder.name, 'Рецепты');
+    expect(folder.color, isNull);
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.folders)..where((t) => t.id.equals('f'))).write(const FoldersCompanion(color: Value('mint')));
+    expect((await upgraded.select(upgraded.folders).getSingle()).color, 'mint');
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['meta:folders']);
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -168,9 +192,13 @@ void main() {
   });
 }
 
+// версия 9: цвет папки
+void _dropFolderColor(Database raw) => raw.execute('ALTER TABLE folders DROP COLUMN color');
+
 // версия 8: открыта ли заметка, напоминание по месту и места. Триггер правки заметки
 // ссылается на поля — без него их можно убрать, миграция ставит его заново
 void _dropPlaces(Database raw) {
+  _dropFolderColor(raw);
   for (final row in raw.select("SELECT name FROM sqlite_master WHERE type = 'trigger' AND (name LIKE 'vault_places_%' OR name = 'vault_items_update')")) {
     raw.execute('DROP TRIGGER ${row['name']}');
   }

@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
+import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
+import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -213,7 +215,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         if (name != null) await repository.rename(folder.id, name);
       case FolderAction.look:
         final look = await showLookSheet(context, folder);
-        if (look != null) await repository.setLook(folder.id, icon: look.icon, shape: look.shape);
+        if (look != null) await repository.setLook(folder.id, icon: look.icon, shape: look.shape, color: look.color);
       case FolderAction.delete:
         final l = L.of(context);
         final messenger = ScaffoldMessenger.of(context);
@@ -278,6 +280,16 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          // значок в цвет папки: тот же цвет, что у пилюли на главной и меток заметок
+          if (folder != null) ...[
+            ShapeBadge(
+              shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
+              size: 36,
+              color: folder.color,
+              child: Icon(symbolIcon(folder.icon, filled: true), size: 19, color: Tokens.onAccent),
+            ),
+            const SizedBox(width: 12),
+          ],
           Expanded(child: Text(folder?.name ?? l.folderNone, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6))),
           const SizedBox(width: 12),
           Padding(

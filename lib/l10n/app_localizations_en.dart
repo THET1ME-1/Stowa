@@ -555,7 +555,7 @@ class LEn extends L {
   String get folderRename => 'Rename';
 
   @override
-  String get folderLook => 'Icon and shape';
+  String get folderLook => 'Color and icon';
 
   @override
   String get folderDelete => 'Delete folder';
@@ -2042,4 +2042,17 @@ class LEn extends L {
   @override
   String get remindPlaceNeedsAlways =>
       'I\'ll remind you there if location is allowed all the time';
+
+  @override
+  String get lookColor => 'Color';
+
+  @override
+  String homeFoldersMore(Object count) {
+    return '$count more';
+  }
+
+  @override
+  String homeChecksMore(Object count) {
+    return '$count more';
+  }
 }

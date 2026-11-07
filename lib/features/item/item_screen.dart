@@ -172,11 +172,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   Future<void> _toggle(Item item, int index) async {
-    final all = item.body.split('\n');
-    final match = checkLine.firstMatch(all[index]);
-    if (match == null) return;
-    all[index] = '- [${match.group(1) == ' ' ? 'x' : ' '}] ${match.group(2)}';
-    await _items.setBody(_id, all.join('\n'), _clock());
+    final body = toggleCheckLine(item.body, index);
+    if (body != item.body) await _items.setBody(_id, body, _clock());
   }
 
   Future<void> _move(Item item, List<FolderCard> folders) async {

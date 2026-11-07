@@ -65,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -132,6 +132,8 @@ class AppDatabase extends _$AppDatabase {
           await customStatement("CREATE TRIGGER vault_places_${event.toLowerCase()}_meta AFTER $event ON places WHEN $_notImporting BEGIN ${_vaultEnqueue("'meta:places'")} END");
         }
       }
+      // 9: цвет папки
+      if (from < 9) await migrator.addColumn(folders, folders.color);
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/painting.dart' show Color;
 import 'package:uuid/uuid.dart';
 
+import '../../core/theme/folder_palette.dart';
 import '../../domain/models.dart';
 import '../db/database.dart';
 
@@ -16,10 +18,20 @@ class FolderCard {
     required this.recentTitles,
     required this.createdByAi,
     this.view = FolderView.auto,
+    this.colorKey,
+    this.order = 0,
   });
 
   /// Как показывать: доска, список или сам по содержимому.
   final FolderView view;
+
+  /// Цвет, выбранный человеком (ключ FolderPalette); null — по месту в списке.
+  final String? colorKey;
+
+  /// Место папки в списке.
+  final int order;
+
+  Color get color => FolderPalette.of(colorKey, order);
 
   final String id;
   final String name;
@@ -75,6 +87,8 @@ ORDER BY folders.sort_order, folders.name''',
                 recentTitles: _split(row.readNullable<String>('recent_titles')),
                 createdByAi: row.read<bool>('created_by_ai'),
                 view: FolderView.values.asNameMap()[row.read<String>('view')] ?? FolderView.auto,
+                colorKey: row.readNullable<String>('color'),
+                order: row.read<int>('sort_order'),
               ),
           ],
         );
@@ -89,7 +103,7 @@ ORDER BY folders.sort_order, folders.name''',
     final id = const Uuid().v4();
     final shape = shapes[count % shapes.length];
     await _db.into(_db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: shape, sortOrder: Value(count)));
-    return FolderCard(id: id, name: name, icon: 'folder', shape: shape, count: 0, covers: const [], recentTitles: const [], createdByAi: false);
+    return FolderCard(id: id, name: name, icon: 'folder', shape: shape, count: 0, covers: const [], recentTitles: const [], createdByAi: false, order: count);
   }
 
   /// Человек открыл папку, которую завёл ИИ: метка «новая» больше не нужна.
@@ -102,9 +116,9 @@ ORDER BY folders.sort_order, folders.name''',
     return (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(name: Value(name)));
   }
 
-  /// Иконка и форма значка папки.
-  Future<void> setLook(String id, {required String icon, required String shape}) {
-    return (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(icon: Value(icon), shape: Value(shape)));
+  /// Иконка, форма значка и цвет папки.
+  Future<void> setLook(String id, {required String icon, required String shape, String? color}) {
+    return (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(icon: Value(icon), shape: Value(shape), color: Value(color)));
   }
 
   Future<void> setView(String id, FolderView view) {

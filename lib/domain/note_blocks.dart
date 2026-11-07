@@ -1,4 +1,5 @@
 import 'item_kind.dart';
+import 'item_title.dart';
 
 /// Кусок текста заметки, как его рисует страница вещи.
 sealed class NoteBlock {
@@ -85,6 +86,43 @@ List<NoteBlock> parseNoteBlocks(String body) {
   }
   flush();
   return blocks;
+}
+
+/// Строка заметки в ленте главной. [done] — галочка пункта, null у обычной строки.
+class NoteLine {
+  const NoteLine({required this.index, required this.text, this.done});
+
+  /// Номер строки в тексте заметки: касание пункта переключает именно её.
+  final int index;
+  final String text;
+  final bool? done;
+}
+
+/// Непустые строки под заголовком с их номерами. Первая пропускается, только если заголовок из неё.
+List<NoteLine> noteLinesUnderTitle(String body, String title) {
+  final lines = body.split('\n');
+  final first = lines.indexWhere((line) => line.trim().isNotEmpty);
+  final skip = first >= 0 && titleIsFirstLine(body, title) ? first : -1;
+  return [
+    for (final (index, line) in lines.indexed)
+      if (index != skip && line.trim().isNotEmpty)
+        if (checkLine.firstMatch(line) case final check?)
+          NoteLine(index: index, text: check.group(2)!, done: check.group(1) != ' ')
+        else
+          NoteLine(index: index, text: line.trim()),
+  ];
+}
+
+final _checkMark = RegExp(r'^(\s*[-*] \[)([ xX])(\] .*)$');
+
+/// Текст с переключённой галочкой в строке [index]; отступ и значок пункта как были.
+String toggleCheckLine(String body, int index) {
+  final lines = body.split('\n');
+  if (index < 0 || index >= lines.length) return body;
+  final match = _checkMark.firstMatch(lines[index]);
+  if (match == null) return body;
+  lines[index] = '${match.group(1)}${match.group(2) == ' ' ? 'x' : ' '}${match.group(3)}';
+  return lines.join('\n');
 }
 
 /// Оформление, которое разметка даёт тексту: значков нет, есть стиль куска.

@@ -292,5 +292,8 @@
   "placesMissingWork": "Die Arbeit ist noch nicht festgelegt: Stowa erinnert dich, sobald du sie unter Orte festlegst",
   "placesMissingShop": "Noch keine Läden: lege mindestens einen unter Orte fest",
   "placeChannel": "Ortserinnerungen",
-  "remindPlaceNeedsAlways": "Ich erinnere dich vor Ort, wenn der Standort „immer“ erlaubt ist"
+  "remindPlaceNeedsAlways": "Ich erinnere dich vor Ort, wenn der Standort „immer“ erlaubt ist",
+  "lookColor": "Farbe",
+  "homeFoldersMore": "{count} weitere",
+  "homeChecksMore": "{count} weitere"
 }

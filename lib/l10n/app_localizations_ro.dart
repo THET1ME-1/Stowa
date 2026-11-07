@@ -555,7 +555,7 @@ class LRo extends L {
   String get folderRename => 'Rename';
 
   @override
-  String get folderLook => 'Icon and shape';
+  String get folderLook => 'Color and icon';
 
   @override
   String get folderDelete => 'Delete folder';
@@ -2059,4 +2059,17 @@ class LRo extends L {
   @override
   String get remindPlaceNeedsAlways =>
       'Îți reamintesc acolo dacă permiți locația „mereu”';
+
+  @override
+  String get lookColor => 'Culoare';
+
+  @override
+  String homeFoldersMore(Object count) {
+    return 'Încă $count';
+  }
+
+  @override
+  String homeChecksMore(Object count) {
+    return 'încă $count';
+  }
 }

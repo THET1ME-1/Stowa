@@ -155,7 +155,7 @@
   "folderSearch": "Искать в папке",
   "folderMore": "Ещё",
   "folderRename": "Переименовать",
-  "folderLook": "Иконка и форма",
+  "folderLook": "Цвет и значок",
   "folderDelete": "Удалить папку",
   "folderNameLabel": "Имя папки",
   "save": "Сохранить",
@@ -540,5 +540,8 @@
   "placesMissingWork": "Работа ещё не отмечена: Stowa напомнит, когда отметишь её в «Местах»",
   "placesMissingShop": "Магазинов ещё нет: отметь хотя бы один в «Местах»",
   "placeChannel": "Напоминания по месту",
-  "remindPlaceNeedsAlways": "Напомню у места, если разрешишь место «всегда»"
+  "remindPlaceNeedsAlways": "Напомню у места, если разрешишь место «всегда»",
+  "lookColor": "Цвет",
+  "homeFoldersMore": "Ещё {count}",
+  "homeChecksMore": "ещё {count}"
 }

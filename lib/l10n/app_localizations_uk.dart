@@ -554,7 +554,7 @@ class LUk extends L {
   String get folderRename => 'Rename';
 
   @override
-  String get folderLook => 'Icon and shape';
+  String get folderLook => 'Color and icon';
 
   @override
   String get folderDelete => 'Delete folder';
@@ -2082,4 +2082,17 @@ class LUk extends L {
   @override
   String get remindPlaceNeedsAlways =>
       'Нагадаю на місці, якщо дозволиш місце «завжди»';
+
+  @override
+  String get lookColor => 'Колір';
+
+  @override
+  String homeFoldersMore(Object count) {
+    return 'Ще $count';
+  }
+
+  @override
+  String homeChecksMore(Object count) {
+    return 'ще $count';
+  }
 }

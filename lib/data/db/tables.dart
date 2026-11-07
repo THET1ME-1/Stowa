@@ -213,6 +213,9 @@ class Folders extends Table {
 
   /// Имя формы значка (BadgeShape.name).
   TextColumn get shape => text()();
+
+  /// Цвет из FolderPalette; без выбора — по месту в списке.
+  TextColumn get color => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   BoolColumn get createdByAi => boolean().withDefault(const Constant(false))();
   TextColumn get view => textEnum<FolderView>().withDefault(Constant(FolderView.auto.name))();

@@ -2,6 +2,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/domain/note_blocks.dart';
 
 void main() {
+  test('строки ленты: без строки-заголовка и пустых, пункты списка со своим номером строки', () {
+    final lines = noteLinesUnderTitle('\nКупить\n- [ ] Молоко\n\n- [x] Хлеб\nв «Линелле»', 'Купить');
+    expect([for (final line in lines) (line.index, line.text, line.done)], [(2, 'Молоко', false), (4, 'Хлеб', true), (5, 'в «Линелле»', null)]);
+    // заголовок не из первой строки (имя файла Obsidian): первая строка — уже текст
+    expect([for (final line in noteLinesUnderTitle('Первая\nВторая', 'Снаружи')) line.text], ['Первая', 'Вторая']);
+  });
+
+  test('отметка пункта переключает только свою строку, остальной текст как был', () {
+    const body = 'Купить\n- [ ] Молоко\n  * [X] Хлеб\nв «Линелле»';
+    expect(toggleCheckLine(body, 1), 'Купить\n- [x] Молоко\n  * [X] Хлеб\nв «Линелле»');
+    expect(toggleCheckLine(body, 2), 'Купить\n- [ ] Молоко\n  * [ ] Хлеб\nв «Линелле»');
+    expect(toggleCheckLine(body, 3), body);
+  });
+
   test('строки подряд — один абзац, пустая строка начинает новый', () {
     final blocks = parseNoteBlocks('Список сокращений через\nBaaS — определение.\n\nРасширить до 40 страниц.');
     expect(blocks, hasLength(2));

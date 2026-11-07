@@ -1,5 +1,8 @@
 import 'package:drift/drift.dart';
 
+import 'package:flutter/painting.dart' show Color;
+
+import '../../core/theme/folder_palette.dart';
 import '../../domain/folder_guess.dart';
 import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
@@ -38,6 +41,7 @@ class ItemCard {
     this.url,
     this.folderName,
     this.folderIcon,
+    this.folderColor,
     this.reminderAt,
     this.thumbPath,
     this.thumbRatio,
@@ -68,6 +72,7 @@ class ItemCard {
     url: url,
     folderName: folderName,
     folderIcon: folderIcon,
+    folderColor: folderColor,
     reminderAt: reminderAt,
     thumbPath: thumbPath,
     thumbRatio: thumbRatio,
@@ -98,6 +103,9 @@ class ItemCard {
   final String? url;
   final String? folderName;
   final String? folderIcon;
+
+  /// Цвет папки из палитры: метка заметки в ленте того же цвета, что и папка.
+  final Color? folderColor;
   final DateTime? reminderAt;
 
   /// Первая картинка вещи, путь от папки приложения.
@@ -158,7 +166,7 @@ class SearchResult {
 
 // карточка целиком: вещь, её папка, первая картинка и теги одним запросом
 const _cardSelect = '''
-SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon,
+SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folders.color AS folder_color, folders.sort_order AS folder_order,
   -- своя картинка главнее, у ссылки и ролика без неё — обложка превью
   coalesce((SELECT attachments.path FROM attachments
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%'
@@ -722,6 +730,7 @@ WHERE items.deleted_at IS NULL''';
       url: item.url,
       folderName: row.readNullable<String>('folder_name'),
       folderIcon: row.readNullable<String>('folder_icon'),
+      folderColor: item.folderId == null ? null : FolderPalette.of(row.readNullable<String>('folder_color'), row.readNullable<int>('folder_order') ?? 0),
       reminderAt: item.reminderAt,
       thumbPath: row.readNullable<String>('thumb_path'),
       thumbRatio: row.readNullable<double>('thumb_ratio'),
