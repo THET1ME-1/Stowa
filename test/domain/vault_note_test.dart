@@ -99,6 +99,29 @@ void main() {
     expect(again.extra, {'aliases': ['a', 'b'], 'cssclass': 'wide'});
   });
 
+  test('цитаты статьи с пометками проходят круг файл → заметка, порядок цел', () {
+    final note = VaultNote(
+      id: 'a',
+      kind: ItemKind.link,
+      title: 'Кофе без турки',
+      body: 'https://blog.example.com/kofe',
+      created: created,
+      updated: updated,
+      url: 'https://blog.example.com/kofe',
+      highlights: [
+        VaultHighlight(quote: 'вода важнее зёрен', note: 'купить фильтр', at: created),
+        VaultHighlight(quote: 'Кофе — «повод» проснуться.\nВторая строка', at: updated),
+      ],
+    );
+    final text = writeVaultNote(note, fileName: 'Кофе без турки.md');
+    final back = readVaultNote(text, fileName: 'Кофе без турки.md', fileModified: DateTime(2000));
+    expect([for (final one in back.highlights) one.quote], ['вода важнее зёрен', 'Кофе — «повод» проснуться.\nВторая строка']);
+    expect([for (final one in back.highlights) one.note], ['купить фильтр', null]);
+    expect([for (final one in back.highlights) one.at], [created, updated]);
+    expect(back.extra, isEmpty, reason: 'цитаты — своё свойство, а не чужое');
+    expect(writeVaultNote(back, fileName: 'Кофе без турки.md'), text);
+  });
+
   test('теги из свойств и из текста', () {
     const text = '---\ntags: [дом]\n---\nКупить плитку #ремонт\n';
     expect(readVaultNote(text, fileName: 'Плитка.md', fileModified: created).tags, ['дом', 'ремонт']);

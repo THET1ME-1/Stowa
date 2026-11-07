@@ -195,12 +195,17 @@ class FactsPipeline {
 
 /// Текст фактов одной строкой для поиска; правка вещи от этого не считается.
 /// Его же пересчитывает читатель хранилища, когда собирает базу из папки.
+/// Цитаты и пометки идут первыми: длинная статья не вытеснит их за предел.
 Future<void> refreshFactsText(AppDatabase db, String itemId) async {
+  final highlights = await (db.select(db.highlights)..where((t) => t.itemId.equals(itemId))).get();
   final facts = await (db.select(db.facts)
         ..where((t) => t.itemId.equals(itemId) & t.kind.isIn([for (final kind in searchableFacts) kind.name]))
         ..orderBy([(t) => OrderingTerm.asc(t.extractor), (t) => OrderingTerm.asc(t.position)]))
       .get();
-  var text = facts.map((fact) => fact.value).join('\n');
+  var text = [
+    for (final one in highlights) ...[one.quote, ?one.note],
+    for (final fact in facts) fact.value,
+  ].join('\n');
   if (text.length > documentTextLimit) text = text.substring(0, documentTextLimit);
   await (db.update(db.items)..where((t) => t.id.equals(itemId))).write(ItemsCompanion(factsText: Value(text)));
 }

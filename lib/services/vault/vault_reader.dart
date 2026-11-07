@@ -289,6 +289,15 @@ class VaultReader {
         await _db.into(_db.itemTags).insertOnConflictUpdate(ItemTagsCompanion.insert(itemId: id, tagId: tagId, source: inline.contains(name) ? TagSource.inline : TagSource.user));
       }
 
+      // цитаты статьи — целиком из файла, и сразу в поиск: файла фактов у них нет
+      await (_db.delete(_db.highlights)..where((t) => t.itemId.equals(id))).go();
+      for (final one in note.highlights) {
+        await _db.into(_db.highlights).insert(
+          HighlightsCompanion.insert(id: const Uuid().v4(), itemId: id, quote: one.quote, note: Value(one.note), position: Value(one.position), createdAt: one.at),
+        );
+      }
+      await refreshFactsText(_db, id);
+
       final rows = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get();
       final byPath = {for (final row in rows) row.path: row};
       for (final row in rows) {

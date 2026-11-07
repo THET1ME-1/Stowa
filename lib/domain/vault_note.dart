@@ -10,6 +10,16 @@ import 'inline_tags.dart';
 import 'models.dart';
 import 'tag_name.dart';
 
+/// Цитата статьи в файле: выделенный текст, пометка, когда выделена, где в статье.
+class VaultHighlight {
+  const VaultHighlight({required this.quote, required this.at, this.note, this.position = 0});
+
+  final String quote;
+  final String? note;
+  final DateTime at;
+  final int position;
+}
+
 /// Всё, что из вещи пишется в файл. Добытое сетью и ИИ лежит отдельно, в `.stowa/facts/`.
 class VaultNote {
   const VaultNote({
@@ -33,6 +43,7 @@ class VaultNote {
     this.remindPlace,
     this.sortedBy,
     this.attachments = const [],
+    this.highlights = const [],
     this.extra = const {},
   });
 
@@ -66,11 +77,14 @@ class VaultNote {
   /// Пути вложений от корня хранилища, по порядку.
   final List<String> attachments;
 
+  /// Цитаты статьи: их выделил человек, поэтому они в файле, а не среди фактов.
+  final List<VaultHighlight> highlights;
+
   /// Чужие свойства (Obsidian и другие): возвращаются в файл как были.
   final Map<String, Object?> extra;
 }
 
-const _known = {'id', 'kind', 'title', 'created', 'updated', 'tags', 'url', 'preview', 'cover', 'duration', 'reminder', 'place', 'remind_place', 'sorted_by'};
+const _known = {'id', 'kind', 'title', 'created', 'updated', 'tags', 'url', 'preview', 'cover', 'duration', 'reminder', 'place', 'remind_place', 'sorted_by', 'highlights'};
 
 // символы, которые Android, Windows (через Syncthing) или Obsidian не пускают в имя
 final _forbidden = RegExp(r'[/\\:*?"<>|#^\[\]\x00-\x1F]');
@@ -122,6 +136,9 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
     put('remind_place', <String, Object?>{'kind': remind.kind.name, 'lat': ?remind.latitude, 'lon': ?remind.longitude, 'name': ?remind.name});
   }
   if (note.sortedBy != null && note.sortedBy != SortedBy.none) put('sorted_by', note.sortedBy!.name);
+  put('highlights', [
+    for (final one in note.highlights) <String, Object?>{'quote': one.quote, 'note': ?one.note, 'at': _time(one.at), if (one.position != 0) 'pos': one.position},
+  ]);
   for (final MapEntry(:key, :value) in note.extra.entries) {
     put(key, value);
   }
@@ -211,6 +228,11 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
         : PlaceReminder(remindKind, latitude: (remind['lat'] as num?)?.toDouble(), longitude: (remind['lon'] as num?)?.toDouble(), name: remind['name'] as String?),
     sortedBy: SortedBy.values.asNameMap()[stringOf('sorted_by')],
     attachments: attachments,
+    highlights: [
+      for (final one in (properties['highlights'] as List? ?? const []).whereType<Map<String, Object?>>())
+        if (one['quote'] case final String quote when quote.isNotEmpty)
+          VaultHighlight(quote: quote, note: one['note'] as String?, at: _parseTime(one['at']) ?? created, position: (one['pos'] as num?)?.round() ?? 0),
+    ],
     extra: {for (final MapEntry(:key, :value) in properties.entries) if (!_known.contains(key)) key: value},
   );
 }

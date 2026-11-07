@@ -157,6 +157,22 @@ void main() {
     expect(await fresh.select(fresh.vaultQueue).get(), isEmpty, reason: 'собранное не пишется обратно');
   });
 
+  test('цитаты статьи переживают переустановку и сразу ищутся по пометке', () async {
+    await db.into(db.items).insert(
+      ItemsCompanion.insert(id: 'a', kind: ItemKind.link, title: 'Кофе без турки', url: const Value('https://blog.example.com/kofe'), createdAt: now, updatedAt: now),
+    );
+    await db.into(db.highlights).insert(HighlightsCompanion.insert(id: 'h1', itemId: 'a', quote: 'вода важнее зёрен', note: const Value('купить фильтр'), position: const Value(120), createdAt: now));
+    await writer().drain();
+
+    final fresh = AppDatabase.memory();
+    addTearDown(fresh.close);
+    await reader(fresh).rebuild();
+    final quotes = await fresh.select(fresh.highlights).get();
+    expect([for (final one in quotes) (one.itemId, one.quote, one.note, one.position)], [('a', 'вода важнее зёрен', 'купить фильтр', 120)]);
+    expect(await fresh.searchIds('фильтр'), ['a']);
+    expect(await fresh.select(fresh.vaultQueue).get(), isEmpty, reason: 'собранное не пишется обратно');
+  });
+
   test('счётчик сборки считает заметки, а не проходы: «… из 3», от нуля до трёх', () async {
     for (final name in ['a', 'b', 'c']) {
       put('$name.md', 'заметка $name');

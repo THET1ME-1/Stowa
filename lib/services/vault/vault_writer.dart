@@ -147,6 +147,10 @@ class VaultWriter {
         )
         .get();
     final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
+    final highlights = await (_db.select(_db.highlights)
+          ..where((t) => t.itemId.equals(id))
+          ..orderBy([(t) => OrderingTerm.asc(t.position), (t) => OrderingTerm.asc(t.createdAt)]))
+        .get();
     final note = VaultNote(
       id: item.id,
       kind: item.kind,
@@ -170,6 +174,7 @@ class VaultWriter {
           : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName),
       sortedBy: item.sortedBy,
       attachments: [for (final attachment in attachments) attachment.path],
+      highlights: [for (final one in highlights) VaultHighlight(quote: one.quote, note: one.note, at: one.createdAt, position: one.position)],
     );
     final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path)));
     final stat = await file.stat();
