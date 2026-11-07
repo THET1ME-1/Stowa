@@ -325,5 +325,7 @@
   "deadLinksCount": "{count, plural, one{{count} öffnet nicht} other{{count} öffnen nicht}}",
   "settingsArticles": "Artikel",
   "articleImages": "Bilder in Artikeln",
-  "articleImagesAbout": "Über WLAN laden, um Artikel mit Bildern offline zu lesen"
+  "articleImagesAbout": "Über WLAN laden, um Artikel mit Bildern offline zu lesen",
+  "foundInArticle": "im Artikel",
+  "foundInQuote": "in einem Zitat"
 }

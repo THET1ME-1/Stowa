@@ -2168,4 +2168,10 @@ class LEs extends L {
   @override
   String get articleImagesAbout =>
       'Descargar con Wi-Fi para leer artículos con imágenes sin conexión';
+
+  @override
+  String get foundInArticle => 'en el artículo';
+
+  @override
+  String get foundInQuote => 'en una cita';
 }

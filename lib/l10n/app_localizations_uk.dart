@@ -2210,4 +2210,10 @@ class LUk extends L {
   @override
   String get articleImagesAbout =>
       'Завантажувати через Wi-Fi, щоб читати статті з картинками без мережі';
+
+  @override
+  String get foundInArticle => 'у статті';
+
+  @override
+  String get foundInQuote => 'у цитаті';
 }

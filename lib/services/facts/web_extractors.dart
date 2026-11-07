@@ -222,8 +222,9 @@ class ArticleImagesExtractor extends Extractor {
 class ArticleExtractor extends Extractor {
   @override
   String get name => 'article';
+  // 2: служебный <link> не рвёт абзац, хвост сайта в заголовке убран
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
   @override

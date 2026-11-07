@@ -61,6 +61,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       if (next.value == null || previous?.value == next.value) return;
       _sortInbox();
     }, fireImmediately: true);
+    // включили картинки статей — качать сразу, а не при следующем открытии приложения
+    ref.listenManual(articleImagesProvider, (previous, next) {
+      if (next.value == true && previous?.value == false) _sweepFacts().ignore();
+    });
     // ссылки без превью, свежие и старые: заголовок страницы и обложка грузятся в фоне
     ref.listenManual(pendingPreviewsProvider, (previous, next) {
       final ids = next.value;

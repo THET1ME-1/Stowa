@@ -11,6 +11,7 @@ import 'package:stowa/services/facts/web_extractors.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/repositories/highlights_repository.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/domain/search_query.dart';
@@ -181,6 +182,22 @@ void main() {
       expect(byIngredient.card.id, recipe);
       expect(byIngredient.hit.foundFact!.part.kind, FactKind.ingredient);
       expect((await find('рецепт')).map((found) => found.card.id), contains(recipe));
+    });
+
+    test('статья находится по слову из своего текста, а цитата — по пометке', () async {
+      final article = await capture.capture(CaptureInput(text: 'https://en.wikipedia.org/wiki/Coffee'));
+      await db.into(db.facts).insert(
+        FactsCompanion.insert(id: 'a', itemId: article, extractor: 'article', kind: FactKind.articleText, value: 'The legend names De Saluberrima potione as the first treatise.'),
+      );
+      await refreshFactsText(db, article);
+      final byText = (await find('Saluberrima')).single;
+      expect(byText.card.id, article);
+      expect(byText.hit.foundFact!.part.kind, FactKind.articleText);
+
+      await HighlightsRepository(db, clock: () => now).add(article, 'first treatise', position: 30, note: 'перечитать про трактат');
+      final byNote = (await find('перечитать')).single;
+      expect(byNote.card.id, article);
+      expect(byNote.hit.foundFact!.part.kind, FactKind.highlight);
     });
 
     test('на карте событие стоит там, где оно, а не где ссылку сохранили', () async {

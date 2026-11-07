@@ -659,6 +659,7 @@ WHERE items.deleted_at IS NULL''';
       FactKind.year,
       FactKind.camera,
       FactKind.pageType,
+      FactKind.articleText,
     ];
     final rows =
         await (_db.select(_db.facts)
@@ -666,6 +667,11 @@ WHERE items.deleted_at IS NULL''';
               ..orderBy([(t) => OrderingTerm.asc(t.extractor), (t) => OrderingTerm.asc(t.position)]))
             .get();
     final parts = <String, List<FactPart>>{};
+    // цитаты статьи с пометками — первыми: их выделил сам человек
+    final highlights = await (_db.select(_db.highlights)..where((t) => t.itemId.isIn(ids))).get();
+    for (final one in highlights) {
+      parts.putIfAbsent(one.itemId, () => []).add(FactPart(FactKind.highlight, [one.quote, ?one.note].join('\n')));
+    }
     for (final fact in rows) {
       final timed = fact.kind == FactKind.subtitle || fact.kind == FactKind.chapter;
       parts.putIfAbsent(fact.itemId, () => []).add(FactPart(fact.kind, fact.value, place: fact.kind == FactKind.fileText ? fact.detail : null, seconds: timed ? fact.number : null));

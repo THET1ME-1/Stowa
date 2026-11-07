@@ -2215,4 +2215,10 @@ class LRu extends L {
   @override
   String get articleImagesAbout =>
       'Скачивать по Wi-Fi, чтобы читать статьи с картинками без сети';
+
+  @override
+  String get foundInArticle => 'в статье';
+
+  @override
+  String get foundInQuote => 'в цитате';
 }

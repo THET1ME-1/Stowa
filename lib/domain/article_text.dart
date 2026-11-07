@@ -71,11 +71,9 @@ final _unlikely = RegExp(
 );
 final _likely = RegExp(r'article|\bbody|content|entry|main|post|story|text|blog', caseSensitive: false);
 
-const _inlineTags = {
-  'a', 'b', 'strong', 'em', 'i', 'u', 's', 'span', 'code', 'small', 'sup', 'sub', 'mark', 'abbr', 'time', 'cite', 'q', 'font', 'del', 'ins', 'kbd', 'var', 'label', //
-};
 const _blockTags = {
   'p', 'div', 'section', 'article', 'main', 'ul', 'ol', 'li', 'blockquote', 'pre', 'figure', 'table', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'picture', 'dl', //
+  'dd', 'dt', 'details', 'summary', 'center', 'address', 'hr',
 };
 final _blockSelector = _blockTags.join(',');
 
@@ -91,10 +89,10 @@ Article? extractArticle(String html, Uri page) {
     return null;
   }
 
-  final title = meta('og:title') ?? _clean(document.querySelector('title')?.text ?? '').nullIfEmpty;
   final author = meta('author') ?? meta('article:author');
   final byline = author == null || author.startsWith('http') ? null : author;
   final site = meta('og:site_name');
+  final title = _withoutSite(meta('og:title') ?? _clean(document.querySelector('title')?.text ?? '').nullIfEmpty, site, page);
   final published = DateTime.tryParse(meta('article:published_time') ?? '');
 
   final body = document.body;
@@ -185,7 +183,7 @@ List<Element> _bestRoot(Element body) {
 
 String _ownText(Element element) => [
   for (final node in element.nodes)
-    if (node is Text) node.text else if (node is Element && _inlineTags.contains(node.localName)) node.text,
+    if (node is Text) node.text else if (node is Element && !_blockTags.contains(node.localName)) node.text,
 ].join(' ');
 
 double _linkDensity(Element element) {
@@ -221,7 +219,8 @@ class _Walker {
         final tag = node.localName;
         if (tag == 'br') {
           buffer.write('\n');
-        } else if (_inlineTags.contains(tag) && node.querySelector(_blockSelector) == null) {
+        } else if (!_blockTags.contains(tag) && node.querySelector(_blockSelector) == null) {
+          // всё, что не блок и блоков внутри не держит, — часть строки: <a>, <i>, служебный <link>
           buffer.write(_textOf(node));
         } else {
           flush();
@@ -340,6 +339,27 @@ String _clean(String text) => text
     .map((line) => line.replaceAll(RegExp(r'[ \t\r\f\v]+'), ' ').trim())
     .where((line) => line.isNotEmpty)
     .join('\n');
+
+// «Coffee - Wikipedia», «Кофе | Блог про кофе»: хвост после разделителя — имя сайта,
+// если он совпал с og:site_name или с адресом; тире внутри самого заголовка не трогается
+String? _withoutSite(String? title, String? site, Uri page) {
+  if (title == null) return null;
+  String plain(String value) => value.toLowerCase().replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), '');
+  var cut = -1;
+  var length = 0;
+  for (final separator in const [' - ', ' | ', ' — ', ' – ', ' · ']) {
+    final at = title.lastIndexOf(separator);
+    if (at > cut) {
+      cut = at;
+      length = separator.length;
+    }
+  }
+  if (cut <= 0) return title;
+  final tail = plain(title.substring(cut + length));
+  final host = plain(page.host);
+  final named = tail.isNotEmpty && ((site != null && plain(site) == tail) || (tail.length >= 3 && host.contains(tail)));
+  return named ? title.substring(0, cut).trim() : title;
+}
 
 bool _same(String text, String? title) {
   if (title == null) return false;

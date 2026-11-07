@@ -325,5 +325,7 @@
   "deadLinksCount": "{count, plural, one{{count} nie działa} few{{count} nie działają} many{{count} nie działa} other{{count} nie działa}}",
   "settingsArticles": "Artykuły",
   "articleImages": "Obrazy w artykułach",
-  "articleImagesAbout": "Pobieraj przez Wi-Fi, żeby czytać artykuły z obrazami bez sieci"
+  "articleImagesAbout": "Pobieraj przez Wi-Fi, żeby czytać artykuły z obrazami bez sieci",
+  "foundInArticle": "w artykule",
+  "foundInQuote": "w cytacie"
 }

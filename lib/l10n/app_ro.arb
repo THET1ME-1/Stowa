@@ -325,5 +325,7 @@
   "deadLinksCount": "{count, plural, one{{count} nu se deschide} few{{count} nu se deschid} other{{count} nu se deschid}}",
   "settingsArticles": "Articole",
   "articleImages": "Imaginile articolelor",
-  "articleImagesAbout": "Descarcă pe Wi-Fi ca să citești articolele cu imagini fără rețea"
+  "articleImagesAbout": "Descarcă pe Wi-Fi ca să citești articolele cu imagini fără rețea",
+  "foundInArticle": "în articol",
+  "foundInQuote": "într-un citat"
 }

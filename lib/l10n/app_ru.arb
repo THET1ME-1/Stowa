@@ -573,5 +573,7 @@
   "deadLinksCount": "{count, plural, one{{count} не открывается} few{{count} не открываются} many{{count} не открываются} other{{count} не открываются}}",
   "settingsArticles": "Статьи",
   "articleImages": "Картинки статей",
-  "articleImagesAbout": "Скачивать по Wi-Fi, чтобы читать статьи с картинками без сети"
+  "articleImagesAbout": "Скачивать по Wi-Fi, чтобы читать статьи с картинками без сети",
+  "foundInArticle": "в статье",
+  "foundInQuote": "в цитате"
 }

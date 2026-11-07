@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/search_rank.dart';
 import 'package:stowa/features/composer/panel_text.dart';
 import 'package:stowa/l10n/app_localizations.dart';
 
@@ -16,5 +18,11 @@ void main() {
     expect(untitledFor(l, mime: 'video/mp4', fileName: 'VID_20261103.mp4', at: day), 'Видео от 3 ноября');
     expect(untitledFor(l, mime: 'audio/ogg', fileName: '1730645112.ogg', at: day), 'Запись от 3 ноября');
     expect(untitledFor(l, mime: 'application/pdf', fileName: '20261103.pdf', at: day), 'Файл от 3 ноября');
+  });
+
+  test('где нашлось в статье: в её тексте или в цитате', () {
+    final l = lookupL(const Locale('ru'));
+    expect(factLabel(l, const FactPart(FactKind.articleText, 'текст')), 'в статье');
+    expect(factLabel(l, const FactPart(FactKind.highlight, 'цитата')), 'в цитате');
   });
 }

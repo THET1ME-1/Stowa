@@ -2166,4 +2166,10 @@ class LEn extends L {
   @override
   String get articleImagesAbout =>
       'Download on Wi-Fi to read articles with images offline';
+
+  @override
+  String get foundInArticle => 'in the article';
+
+  @override
+  String get foundInQuote => 'in a quote';
 }

@@ -120,6 +120,10 @@ String factLabel(L l, FactPart part) {
       return l.foundInPhotoInfo;
     case FactKind.pageType:
       return pageTypeLabel(l, part.text);
+    case FactKind.articleText:
+      return l.foundInArticle;
+    case FactKind.highlight:
+      return l.foundInQuote;
     default:
       return l.foundOnPage;
   }

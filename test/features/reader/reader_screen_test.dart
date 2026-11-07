@@ -125,6 +125,20 @@ void main() {
     expect(position.pixels / position.maxScrollExtent, closeTo(saved!, 0.02));
   });
 
+  testWidgets('время чтения одно и то же на кнопке и в карточке страницы', (tester) async {
+    await link();
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'f', itemId: 'a', extractor: 'article', kind: FactKind.articleText, value: 'текст', number: const Value(320), detail: const Value('2')));
+    // разметка страницы считает слова иначе: её 5 минут не спорят с кнопкой
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'p', itemId: 'a', extractor: 'page', kind: FactKind.pageType, value: 'статья', detail: const Value('article')));
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'r', itemId: 'a', extractor: 'page', kind: FactKind.readingTime, value: '5', number: const Value(5)));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    expect(find.text('Читать · 2 мин'), findsOneWidget);
+    expect(find.text('2 мин чтения'), findsOneWidget);
+    expect(find.text('5 мин чтения'), findsNothing);
+  });
+
   testWidgets('страница ссылки: «Читать · N мин» открывает читалку, цитаты списком с пометкой', (tester) async {
     await link();
     await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'f', itemId: 'a', extractor: 'article', kind: FactKind.articleText, value: 'текст', number: const Value(320), detail: const Value('2')));

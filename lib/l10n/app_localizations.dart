@@ -3550,6 +3550,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Download on Wi-Fi to read articles with images offline'**
   String get articleImagesAbout;
+
+  /// Где нашлось: в сохранённом тексте статьи
+  ///
+  /// In en, this message translates to:
+  /// **'in the article'**
+  String get foundInArticle;
+
+  /// Где нашлось: в цитате или пометке к ней
+  ///
+  /// In en, this message translates to:
+  /// **'in a quote'**
+  String get foundInQuote;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

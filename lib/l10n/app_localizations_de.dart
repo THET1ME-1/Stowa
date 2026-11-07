@@ -2171,4 +2171,10 @@ class LDe extends L {
   @override
   String get articleImagesAbout =>
       'Über WLAN laden, um Artikel mit Bildern offline zu lesen';
+
+  @override
+  String get foundInArticle => 'im Artikel';
+
+  @override
+  String get foundInQuote => 'in einem Zitat';
 }

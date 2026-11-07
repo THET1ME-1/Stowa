@@ -2750,5 +2750,13 @@
   "articleImagesAbout": "Download on Wi-Fi to read articles with images offline",
   "@articleImagesAbout": {
     "description": "Подпись включателя картинок статей"
+  },
+  "foundInArticle": "in the article",
+  "@foundInArticle": {
+    "description": "Где нашлось: в сохранённом тексте статьи"
+  },
+  "foundInQuote": "in a quote",
+  "@foundInQuote": {
+    "description": "Где нашлось: в цитате или пометке к ней"
   }
 }

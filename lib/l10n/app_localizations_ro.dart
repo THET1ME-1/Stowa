@@ -2185,4 +2185,10 @@ class LRo extends L {
   @override
   String get articleImagesAbout =>
       'Descarcă pe Wi-Fi ca să citești articolele cu imagini fără rețea';
+
+  @override
+  String get foundInArticle => 'în articol';
+
+  @override
+  String get foundInQuote => 'într-un citat';
 }

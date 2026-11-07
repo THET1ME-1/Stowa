@@ -98,6 +98,22 @@ void main() {
     expect(article.blocks, hasLength(6));
   });
 
+  test('служебный <link> посреди абзаца (Википедия) не рвёт абзац', () {
+    final html = '<html><body><article>${_body(6)}<p>Трактат <i>De Saluberrima</i><link rel="mw:PageProp/Category" href="./x"/> (Рим, 1671) о кофе.</p></article></body></html>';
+    final article = extractArticle(html, _page)!;
+    expect(article.blocks.last.text, 'Трактат De Saluberrima (Рим, 1671) о кофе.');
+  });
+
+  test('хвост сайта в заголовке убирается: «Coffee - Wikipedia» → «Coffee»', () {
+    final html = '<html><head><title>Coffee - Wikipedia</title></head><body><article>${_body(6)}</article></body></html>';
+    expect(extractArticle(html, Uri.parse('https://en.wikipedia.org/wiki/Coffee'))!.title, 'Coffee');
+    final named = '<html><head><meta property="og:title" content="Кофе без турки | Блог про кофе"><meta property="og:site_name" content="Блог про кофе"></head><body><article>${_body(6)}</article></body></html>';
+    expect(extractArticle(named, _page)!.title, 'Кофе без турки');
+    // тире внутри самого заголовка не трогается
+    final dash = '<html><head><meta property="og:title" content="Кофе — это повод проснуться"></head><body><article>${_body(6)}</article></body></html>';
+    expect(extractArticle(dash, _page)!.title, 'Кофе — это повод проснуться');
+  });
+
   test('перенос <br> внутри абзаца остаётся переносом строки', () {
     final html = '<html><body><article>${_body(6)}<p>Первая строка<br>вторая строка</p></article></body></html>';
     final article = extractArticle(html, _page)!;

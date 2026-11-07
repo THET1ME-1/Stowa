@@ -2211,4 +2211,10 @@ class LPl extends L {
   @override
   String get articleImagesAbout =>
       'Pobieraj przez Wi-Fi, żeby czytać artykuły z obrazami bez sieci';
+
+  @override
+  String get foundInArticle => 'w artykule';
+
+  @override
+  String get foundInQuote => 'w cytacie';
 }

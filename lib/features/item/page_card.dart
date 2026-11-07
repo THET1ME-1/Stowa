@@ -64,7 +64,9 @@ class PageCard extends StatelessWidget {
       if (address.isNotEmpty) _line('location_on', address, onTap: () => _openMap(place, address)),
       if (hours != null) _line('schedule', hours),
       if (type == PageType.article) ...[
-        if (_first(facts, FactKind.readingTime)?.number case final minutes?) _line('schedule', l.readingMinutes(minutes.round())),
+        // сохранённый текст статьи считает минуты точнее разметки: число то же, что на «Читать»
+        if (int.tryParse(_first(facts, FactKind.articleText)?.detail ?? '') ?? _first(facts, FactKind.readingTime)?.number?.round() case final minutes?)
+          _line('schedule', l.readingMinutes(minutes)),
         if (_first(facts, FactKind.published)?.at case final published?) _line('calendar_today', _day(l, published)),
       ],
       if (const {PageType.movie, PageType.series, PageType.comic, PageType.book}.contains(type))

@@ -141,7 +141,7 @@ class SearchHit {
 // чем меньше, тем полезнее подпись: секунда ролика, лист документа, ингредиент — точнее, чем «на странице»
 int _factRank(FactPart part) => switch (part.kind) {
   FactKind.subtitle || FactKind.chapter => 0,
-  FactKind.fileText => 1,
+  FactKind.fileText || FactKind.highlight => 1,
   FactKind.ingredient => 2,
   FactKind.venue || FactKind.address => 3,
   _ => 4,
