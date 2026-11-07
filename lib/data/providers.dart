@@ -5,6 +5,8 @@ import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType, OrderingTerm;
+import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/material.dart' show Brightness, ColorScheme;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -88,6 +90,20 @@ final startScreenProvider = Provider<StartScreen>((ref) => ref.read(settingsRepo
 
 /// Выбор «При запуске» для экрана настроек.
 final startScreenChoiceProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchStartScreen());
+
+/// Оформление, выбранное в настройках.
+final appearanceProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchAppearance());
+
+/// Схемы из обоев (Android 12+). Пусто — система цвета не даёт, строки в настройках нет.
+final wallpaperProvider = FutureProvider<({ColorScheme light, ColorScheme dark})?>((ref) async {
+  try {
+    final core = await DynamicColorPlugin.getCorePalette();
+    if (core == null) return null;
+    return (light: core.toColorScheme(), dark: core.toColorScheme(brightness: Brightness.dark));
+  } catch (_) {
+    return null;
+  }
+});
 
 /// Часы: в тестах подменяются, чтобы «завтра» было предсказуемым.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);

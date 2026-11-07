@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/domain/appearance.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/l10n/app_language.dart';
 import 'package:stowa/services/ai_client.dart';
@@ -72,6 +73,17 @@ void main() {
     await settings.setStartScreen(StartScreen.random);
     expect(settings.startScreen, StartScreen.random);
     expect(await settings.watchStartScreen().first, StartScreen.random);
+  });
+
+  test('оформление: по умолчанию тёмный графит; выбор и цвет сохраняются, цвет снимается', () async {
+    expect(settings.appearance, const Appearance());
+    const chosen = Appearance(choice: ThemeChoice.byTime, seed: 0xFF92BFFF, vibrant: false, wallpaper: true, amoled: true);
+    await settings.setAppearance(chosen);
+    expect(settings.appearance, chosen);
+    expect(await settings.watchAppearance().first, chosen);
+    await settings.setAppearance(chosen.copyWith(seed: () => null));
+    expect(settings.appearance.seed, isNull);
+    expect(settings.appearance.choice, ThemeChoice.byTime);
   });
 
   test('изменения приходят потоком', () async {

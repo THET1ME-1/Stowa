@@ -9,6 +9,7 @@ import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/domain/appearance.dart';
 import 'package:stowa/domain/article_text.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/services/link_checker.dart';
@@ -38,6 +39,9 @@ class TestWorld {
 
   /// Что открывать при запуске.
   var startScreen = StartScreen.home;
+
+  /// Оформление без настоящих настроек.
+  var appearance = const Appearance();
 
   /// Папка хранилища пропала или отозвали доступ.
   var vaultMissing = false;
@@ -85,6 +89,8 @@ class TestWorld {
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
         vaultChannelProvider.overrideWithValue(_TestChannel(this)),
         clockProvider.overrideWithValue(() => now),
+        // обоев в тестах нет: как Android до 12
+        wallpaperProvider.overrideWith((ref) async => null),
         // превью ссылок в тестах без интернета: сеть «молчит», вещь остаётся как есть
         linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
         linkPostProvider.overrideWithValue((uri, body) async => throw const SocketException('тест без сети')),
@@ -114,6 +120,7 @@ class TestWorld {
           showAdultProvider.overrideWith((ref) => Stream.value(showAdult)),
           articleImagesProvider.overrideWith((ref) => Stream.value(false)),
           startScreenProvider.overrideWithValue(startScreen),
+          appearanceProvider.overrideWith((ref) => Stream.value(appearance)),
           startScreenChoiceProvider.overrideWith((ref) => Stream.value(startScreen)),
           // карточку «Возвращать сохранённое?» в чужих тестах уже закрыли
           returnsAskedProvider.overrideWith((ref) => Stream.value(true)),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,9 +8,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
+import 'core/theme/tokens.dart';
 import 'data/db/database.dart';
 import 'data/providers.dart';
 import 'data/settings_repository.dart';
+import 'domain/appearance.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
 import 'services/background.dart';
@@ -40,6 +43,9 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
   final cache = await getTemporaryDirectory();
   final prefs = await SharedPreferences.getInstance();
   final settings = SettingsRepository(prefs, const SecureKeyStore());
+  // палитра до первого кадра: выбравший светлую тему не видит вспышку тёмной; обои подъедут следом
+  final appearance = settings.appearance;
+  Tokens.use(paletteFor(appearance, brightnessFor(appearance, PlatformDispatcher.instance.platformBrightness, DateTime.now())));
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
   final db = AppDatabase();
   final appSupport = await getApplicationSupportDirectory();

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../domain/appearance.dart';
 import '../domain/return_plan.dart';
 import '../l10n/app_language.dart';
 import '../services/ai_client.dart';
@@ -241,6 +242,36 @@ class SettingsRepository {
   }
 
   Future<void> setStartScreen(StartScreen value) => _set(() => _prefs.setString('start_screen', value.name));
+
+  /// Оформление: режим темы, цвет, насыщенность, обои, AMOLED. Живёт на телефоне.
+  Appearance get appearance {
+    final seed = _prefs.getInt('appearance_seed');
+    return Appearance(
+      choice: ThemeChoice.values.asNameMap()[_prefs.getString('appearance_choice')] ?? ThemeChoice.dark,
+      seed: seed,
+      vibrant: _prefs.getBool('appearance_vibrant') ?? true,
+      wallpaper: _prefs.getBool('appearance_wallpaper') ?? false,
+      amoled: _prefs.getBool('appearance_amoled') ?? false,
+    );
+  }
+
+  Stream<Appearance> watchAppearance() async* {
+    yield appearance;
+    yield* _changes.stream.map((_) => appearance).distinct();
+  }
+
+  Future<void> setAppearance(Appearance value) => _set(() async {
+    await _prefs.setString('appearance_choice', value.choice.name);
+    final seed = value.seed;
+    if (seed == null) {
+      await _prefs.remove('appearance_seed');
+    } else {
+      await _prefs.setInt('appearance_seed', seed);
+    }
+    await _prefs.setBool('appearance_vibrant', value.vibrant);
+    await _prefs.setBool('appearance_wallpaper', value.wallpaper);
+    return _prefs.setBool('appearance_amoled', value.amoled);
+  });
 
   /// Язык, выбранный руками. Пусто — язык устройства.
   AppLanguage? get language => switch (_prefs.getString(_language)) {
