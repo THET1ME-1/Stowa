@@ -54,7 +54,7 @@ const _vaultUpsert = 'ON CONFLICT(target) DO UPDATE SET version = version + 1, c
 String _vaultEnqueue(String target) => 'INSERT INTO vault_queue (target) VALUES ($target) $_vaultUpsert;';
 
 @DriftDatabase(
-  tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions, VaultQueue, VaultFiles, VaultFlags, Places],
+  tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions, VaultQueue, VaultFiles, VaultFlags, Places, Highlights],
 )
 class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
@@ -65,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -121,6 +121,8 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(vaultQueue);
         await migrator.createTable(vaultFiles);
         await migrator.createTable(vaultFlags);
+        // триггеры очереди ставятся и на цитаты (v10): таблица нужна до них
+        await migrator.createTable(highlights);
         await _createVaultTriggers();
         await enqueueWholeVault();
       }
@@ -134,6 +136,17 @@ class AppDatabase extends _$AppDatabase {
       }
       // 9: цвет папки
       if (from < 9) await migrator.addColumn(folders, folders.color);
+      // 10: статьи — цитаты, жива ли ссылка, где остановился читать
+      if (from < 10) {
+        for (final column in <GeneratedColumn<Object>>[items.goneAt, items.goneKept, items.linkCheckedAt, items.readPosition]) {
+          await migrator.addColumn(items, column);
+        }
+        // базе младше 7 таблицу и её триггеры уже поставил переход на очередь хранилища
+        if (from >= 7) {
+          await migrator.createTable(highlights);
+          await _createChildTriggers('highlights', 'item:');
+        }
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -178,6 +191,15 @@ class AppDatabase extends _$AppDatabase {
     readsFrom: allTables.toSet(),
   ).watchSingle().map((row) => (row.read<int>('tasks'), row.read<int>('versions')));
 
+  // строки таблицы при вещи: любая их правка ставит в очередь вещь или её факты
+  Future<void> _createChildTriggers(String table, String target) async {
+    Future<void> trigger(String name, String event, String body) =>
+        customStatement('CREATE TRIGGER $name AFTER $event ON $table WHEN $_notImporting BEGIN $body END');
+    await trigger('vault_${table}_insert', 'INSERT', _vaultEnqueue("'$target' || new.item_id"));
+    await trigger('vault_${table}_update', 'UPDATE', '${_vaultEnqueue("'$target' || old.item_id")} ${_vaultEnqueue("'$target' || new.item_id")}');
+    await trigger('vault_${table}_delete', 'DELETE', _vaultEnqueue("'$target' || old.item_id"));
+  }
+
   // любую правку, кто бы её ни сделал, ловит сама база: семьдесят мест записи в коде не трогаются
   Future<void> _createVaultTriggers() async {
     Future<void> trigger(String name, String event, String table, String body) =>
@@ -189,11 +211,9 @@ class AppDatabase extends _$AppDatabase {
     // расшифровка и описание ИИ добыты платным ключом: лежат рядом с фактами
     await trigger('vault_items_derived', 'UPDATE OF transcript, ai_description', 'items', _vaultEnqueue("'facts:' || new.id"));
 
-    // вложения и теги — часть файла вещи; факты и прогоны — её .stowa/facts/<id>.json
-    for (final (table, target) in [('attachments', 'item:'), ('item_tags', 'item:'), ('facts', 'facts:'), ('extractor_runs', 'facts:')]) {
-      await trigger('vault_${table}_insert', 'INSERT', table, _vaultEnqueue("'$target' || new.item_id"));
-      await trigger('vault_${table}_update', 'UPDATE', table, '${_vaultEnqueue("'$target' || old.item_id")} ${_vaultEnqueue("'$target' || new.item_id")}');
-      await trigger('vault_${table}_delete', 'DELETE', table, _vaultEnqueue("'$target' || old.item_id"));
+    // вложения, теги и цитаты — часть файла вещи; факты и прогоны — её .stowa/facts/<id>.json
+    for (final (table, target) in [('attachments', 'item:'), ('item_tags', 'item:'), ('highlights', 'item:'), ('facts', 'facts:'), ('extractor_runs', 'facts:')]) {
+      await _createChildTriggers(table, target);
     }
 
     // переименованная папка меняет путь всех своих вещей, тег — их свойство tags

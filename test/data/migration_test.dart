@@ -168,6 +168,33 @@ void main() {
     expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['meta:folders']);
   });
 
+  test('v9 → v10: ссылки на месте, цитата ставит заметку в очередь, след чтения и проверки — нет', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 7);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.link, title: 'Статья', url: const Value('https://blog.example.com/a'), createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropArticles(raw);
+    raw.execute('PRAGMA user_version = 9');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final item = await upgraded.select(upgraded.items).getSingle();
+    expect(item.goneAt, isNull);
+    expect(item.goneKept, isFalse);
+    expect(item.readPosition, isNull);
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(readPosition: const Value(0.4), goneAt: Value(now), linkCheckedAt: Value(now)));
+    expect(await upgraded.select(upgraded.vaultQueue).get(), isEmpty);
+    await upgraded.into(upgraded.highlights).insert(HighlightsCompanion.insert(id: 'h', itemId: 'a', quote: 'вода важнее зёрен', createdAt: now));
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:a']);
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -192,8 +219,22 @@ void main() {
   });
 }
 
+// версия 10: статьи — цитаты, жива ли ссылка, где остановился читать
+void _dropArticles(Database raw) {
+  for (final row in raw.select("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'vault_highlights_%'")) {
+    raw.execute('DROP TRIGGER ${row['name']}');
+  }
+  raw.execute('DROP TABLE IF EXISTS highlights');
+  for (final column in ['gone_at', 'gone_kept', 'link_checked_at', 'read_position']) {
+    raw.execute('ALTER TABLE items DROP COLUMN $column');
+  }
+}
+
 // версия 9: цвет папки
-void _dropFolderColor(Database raw) => raw.execute('ALTER TABLE folders DROP COLUMN color');
+void _dropFolderColor(Database raw) {
+  _dropArticles(raw);
+  raw.execute('ALTER TABLE folders DROP COLUMN color');
+}
 
 // версия 8: открыта ли заметка, напоминание по месту и места. Триггер правки заметки
 // ссылается на поля — без него их можно убрать, миграция ставит его заново

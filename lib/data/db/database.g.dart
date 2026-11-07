@@ -270,6 +270,53 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _goneAtMeta = const VerificationMeta('goneAt');
+  @override
+  late final GeneratedColumn<DateTime> goneAt = GeneratedColumn<DateTime>(
+    'gone_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _goneKeptMeta = const VerificationMeta(
+    'goneKept',
+  );
+  @override
+  late final GeneratedColumn<bool> goneKept = GeneratedColumn<bool>(
+    'gone_kept',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("gone_kept" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _linkCheckedAtMeta = const VerificationMeta(
+    'linkCheckedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> linkCheckedAt =
+      GeneratedColumn<DateTime>(
+        'link_checked_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _readPositionMeta = const VerificationMeta(
+    'readPosition',
+  );
+  @override
+  late final GeneratedColumn<double> readPosition = GeneratedColumn<double>(
+    'read_position',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _factsTextMeta = const VerificationMeta(
     'factsText',
   );
@@ -342,6 +389,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     remindLongitude,
     remindPlaceName,
     openedAt,
+    goneAt,
+    goneKept,
+    linkCheckedAt,
+    readPosition,
     factsText,
     createdAt,
     updatedAt,
@@ -510,6 +561,36 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         openedAt.isAcceptableOrUnknown(data['opened_at']!, _openedAtMeta),
       );
     }
+    if (data.containsKey('gone_at')) {
+      context.handle(
+        _goneAtMeta,
+        goneAt.isAcceptableOrUnknown(data['gone_at']!, _goneAtMeta),
+      );
+    }
+    if (data.containsKey('gone_kept')) {
+      context.handle(
+        _goneKeptMeta,
+        goneKept.isAcceptableOrUnknown(data['gone_kept']!, _goneKeptMeta),
+      );
+    }
+    if (data.containsKey('link_checked_at')) {
+      context.handle(
+        _linkCheckedAtMeta,
+        linkCheckedAt.isAcceptableOrUnknown(
+          data['link_checked_at']!,
+          _linkCheckedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('read_position')) {
+      context.handle(
+        _readPositionMeta,
+        readPosition.isAcceptableOrUnknown(
+          data['read_position']!,
+          _readPositionMeta,
+        ),
+      );
+    }
     if (data.containsKey('facts_text')) {
       context.handle(
         _factsTextMeta,
@@ -655,6 +736,22 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}opened_at'],
       ),
+      goneAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}gone_at'],
+      ),
+      goneKept: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}gone_kept'],
+      )!,
+      linkCheckedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}link_checked_at'],
+      ),
+      readPosition: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}read_position'],
+      ),
       factsText: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}facts_text'],
@@ -736,6 +833,16 @@ class Item extends DataClass implements Insertable<Item> {
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   final DateTime? openedAt;
 
+  /// Ссылка больше не открывается (v10): сайт ответил 404 или 410, либо адреса нет.
+  /// [goneKept] — человек решил оставить копию, в «Битых ссылках» её больше нет.
+  /// [linkCheckedAt] — когда проверка ссылок ходила по адресу. В файл хранилища не идут.
+  final DateTime? goneAt;
+  final bool goneKept;
+  final DateTime? linkCheckedAt;
+
+  /// Где остановился в читалке: доля прокрутки от 0 до 1. Тоже след чтения, не заметка.
+  final double? readPosition;
+
   /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
   final String factsText;
   final DateTime createdAt;
@@ -767,6 +874,10 @@ class Item extends DataClass implements Insertable<Item> {
     this.remindLongitude,
     this.remindPlaceName,
     this.openedAt,
+    this.goneAt,
+    required this.goneKept,
+    this.linkCheckedAt,
+    this.readPosition,
     required this.factsText,
     required this.createdAt,
     required this.updatedAt,
@@ -850,6 +961,16 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || openedAt != null) {
       map['opened_at'] = Variable<DateTime>(openedAt);
     }
+    if (!nullToAbsent || goneAt != null) {
+      map['gone_at'] = Variable<DateTime>(goneAt);
+    }
+    map['gone_kept'] = Variable<bool>(goneKept);
+    if (!nullToAbsent || linkCheckedAt != null) {
+      map['link_checked_at'] = Variable<DateTime>(linkCheckedAt);
+    }
+    if (!nullToAbsent || readPosition != null) {
+      map['read_position'] = Variable<double>(readPosition);
+    }
     map['facts_text'] = Variable<String>(factsText);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -922,6 +1043,16 @@ class Item extends DataClass implements Insertable<Item> {
       openedAt: openedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(openedAt),
+      goneAt: goneAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(goneAt),
+      goneKept: Value(goneKept),
+      linkCheckedAt: linkCheckedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkCheckedAt),
+      readPosition: readPosition == null && nullToAbsent
+          ? const Value.absent()
+          : Value(readPosition),
       factsText: Value(factsText),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -970,6 +1101,10 @@ class Item extends DataClass implements Insertable<Item> {
       remindLongitude: serializer.fromJson<double?>(json['remindLongitude']),
       remindPlaceName: serializer.fromJson<String?>(json['remindPlaceName']),
       openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
+      goneAt: serializer.fromJson<DateTime?>(json['goneAt']),
+      goneKept: serializer.fromJson<bool>(json['goneKept']),
+      linkCheckedAt: serializer.fromJson<DateTime?>(json['linkCheckedAt']),
+      readPosition: serializer.fromJson<double?>(json['readPosition']),
       factsText: serializer.fromJson<String>(json['factsText']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -1013,6 +1148,10 @@ class Item extends DataClass implements Insertable<Item> {
       'remindLongitude': serializer.toJson<double?>(remindLongitude),
       'remindPlaceName': serializer.toJson<String?>(remindPlaceName),
       'openedAt': serializer.toJson<DateTime?>(openedAt),
+      'goneAt': serializer.toJson<DateTime?>(goneAt),
+      'goneKept': serializer.toJson<bool>(goneKept),
+      'linkCheckedAt': serializer.toJson<DateTime?>(linkCheckedAt),
+      'readPosition': serializer.toJson<double?>(readPosition),
       'factsText': serializer.toJson<String>(factsText),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -1046,6 +1185,10 @@ class Item extends DataClass implements Insertable<Item> {
     Value<double?> remindLongitude = const Value.absent(),
     Value<String?> remindPlaceName = const Value.absent(),
     Value<DateTime?> openedAt = const Value.absent(),
+    Value<DateTime?> goneAt = const Value.absent(),
+    bool? goneKept,
+    Value<DateTime?> linkCheckedAt = const Value.absent(),
+    Value<double?> readPosition = const Value.absent(),
     String? factsText,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -1088,6 +1231,12 @@ class Item extends DataClass implements Insertable<Item> {
         ? remindPlaceName.value
         : this.remindPlaceName,
     openedAt: openedAt.present ? openedAt.value : this.openedAt,
+    goneAt: goneAt.present ? goneAt.value : this.goneAt,
+    goneKept: goneKept ?? this.goneKept,
+    linkCheckedAt: linkCheckedAt.present
+        ? linkCheckedAt.value
+        : this.linkCheckedAt,
+    readPosition: readPosition.present ? readPosition.value : this.readPosition,
     factsText: factsText ?? this.factsText,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -1142,6 +1291,14 @@ class Item extends DataClass implements Insertable<Item> {
           ? data.remindPlaceName.value
           : this.remindPlaceName,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
+      goneAt: data.goneAt.present ? data.goneAt.value : this.goneAt,
+      goneKept: data.goneKept.present ? data.goneKept.value : this.goneKept,
+      linkCheckedAt: data.linkCheckedAt.present
+          ? data.linkCheckedAt.value
+          : this.linkCheckedAt,
+      readPosition: data.readPosition.present
+          ? data.readPosition.value
+          : this.readPosition,
       factsText: data.factsText.present ? data.factsText.value : this.factsText,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -1177,6 +1334,10 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('remindLongitude: $remindLongitude, ')
           ..write('remindPlaceName: $remindPlaceName, ')
           ..write('openedAt: $openedAt, ')
+          ..write('goneAt: $goneAt, ')
+          ..write('goneKept: $goneKept, ')
+          ..write('linkCheckedAt: $linkCheckedAt, ')
+          ..write('readPosition: $readPosition, ')
           ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -1212,6 +1373,10 @@ class Item extends DataClass implements Insertable<Item> {
     remindLongitude,
     remindPlaceName,
     openedAt,
+    goneAt,
+    goneKept,
+    linkCheckedAt,
+    readPosition,
     factsText,
     createdAt,
     updatedAt,
@@ -1246,6 +1411,10 @@ class Item extends DataClass implements Insertable<Item> {
           other.remindLongitude == this.remindLongitude &&
           other.remindPlaceName == this.remindPlaceName &&
           other.openedAt == this.openedAt &&
+          other.goneAt == this.goneAt &&
+          other.goneKept == this.goneKept &&
+          other.linkCheckedAt == this.linkCheckedAt &&
+          other.readPosition == this.readPosition &&
           other.factsText == this.factsText &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -1278,6 +1447,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<double?> remindLongitude;
   final Value<String?> remindPlaceName;
   final Value<DateTime?> openedAt;
+  final Value<DateTime?> goneAt;
+  final Value<bool> goneKept;
+  final Value<DateTime?> linkCheckedAt;
+  final Value<double?> readPosition;
   final Value<String> factsText;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1309,6 +1482,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.remindLongitude = const Value.absent(),
     this.remindPlaceName = const Value.absent(),
     this.openedAt = const Value.absent(),
+    this.goneAt = const Value.absent(),
+    this.goneKept = const Value.absent(),
+    this.linkCheckedAt = const Value.absent(),
+    this.readPosition = const Value.absent(),
     this.factsText = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1341,6 +1518,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.remindLongitude = const Value.absent(),
     this.remindPlaceName = const Value.absent(),
     this.openedAt = const Value.absent(),
+    this.goneAt = const Value.absent(),
+    this.goneKept = const Value.absent(),
+    this.linkCheckedAt = const Value.absent(),
+    this.readPosition = const Value.absent(),
     this.factsText = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -1377,6 +1558,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<double>? remindLongitude,
     Expression<String>? remindPlaceName,
     Expression<DateTime>? openedAt,
+    Expression<DateTime>? goneAt,
+    Expression<bool>? goneKept,
+    Expression<DateTime>? linkCheckedAt,
+    Expression<double>? readPosition,
     Expression<String>? factsText,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1409,6 +1594,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (remindLongitude != null) 'remind_longitude': remindLongitude,
       if (remindPlaceName != null) 'remind_place_name': remindPlaceName,
       if (openedAt != null) 'opened_at': openedAt,
+      if (goneAt != null) 'gone_at': goneAt,
+      if (goneKept != null) 'gone_kept': goneKept,
+      if (linkCheckedAt != null) 'link_checked_at': linkCheckedAt,
+      if (readPosition != null) 'read_position': readPosition,
       if (factsText != null) 'facts_text': factsText,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1443,6 +1632,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<double?>? remindLongitude,
     Value<String?>? remindPlaceName,
     Value<DateTime?>? openedAt,
+    Value<DateTime?>? goneAt,
+    Value<bool>? goneKept,
+    Value<DateTime?>? linkCheckedAt,
+    Value<double?>? readPosition,
     Value<String>? factsText,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1475,6 +1668,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       remindLongitude: remindLongitude ?? this.remindLongitude,
       remindPlaceName: remindPlaceName ?? this.remindPlaceName,
       openedAt: openedAt ?? this.openedAt,
+      goneAt: goneAt ?? this.goneAt,
+      goneKept: goneKept ?? this.goneKept,
+      linkCheckedAt: linkCheckedAt ?? this.linkCheckedAt,
+      readPosition: readPosition ?? this.readPosition,
       factsText: factsText ?? this.factsText,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1569,6 +1766,18 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (openedAt.present) {
       map['opened_at'] = Variable<DateTime>(openedAt.value);
     }
+    if (goneAt.present) {
+      map['gone_at'] = Variable<DateTime>(goneAt.value);
+    }
+    if (goneKept.present) {
+      map['gone_kept'] = Variable<bool>(goneKept.value);
+    }
+    if (linkCheckedAt.present) {
+      map['link_checked_at'] = Variable<DateTime>(linkCheckedAt.value);
+    }
+    if (readPosition.present) {
+      map['read_position'] = Variable<double>(readPosition.value);
+    }
     if (factsText.present) {
       map['facts_text'] = Variable<String>(factsText.value);
     }
@@ -1615,6 +1824,10 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('remindLongitude: $remindLongitude, ')
           ..write('remindPlaceName: $remindPlaceName, ')
           ..write('openedAt: $openedAt, ')
+          ..write('goneAt: $goneAt, ')
+          ..write('goneKept: $goneKept, ')
+          ..write('linkCheckedAt: $linkCheckedAt, ')
+          ..write('readPosition: $readPosition, ')
           ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -9087,6 +9300,410 @@ class PlacesCompanion extends UpdateCompanion<Place> {
   }
 }
 
+class $HighlightsTable extends Highlights
+    with TableInfo<$HighlightsTable, Highlight> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HighlightsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quoteMeta = const VerificationMeta('quote');
+  @override
+  late final GeneratedColumn<String> quote = GeneratedColumn<String>(
+    'quote',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemId,
+    quote,
+    note,
+    position,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'highlights';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Highlight> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('quote')) {
+      context.handle(
+        _quoteMeta,
+        quote.isAcceptableOrUnknown(data['quote']!, _quoteMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quoteMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Highlight map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Highlight(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      quote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quote'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HighlightsTable createAlias(String alias) {
+    return $HighlightsTable(attachedDatabase, alias);
+  }
+}
+
+class Highlight extends DataClass implements Insertable<Highlight> {
+  final String id;
+  final String itemId;
+
+  /// Сам выделенный текст: по нему цитата находится в статье, даже если разбор улучшат.
+  final String quote;
+  final String? note;
+
+  /// Где цитата в тексте статьи, знаков от начала: порядок в списке.
+  final int position;
+  final DateTime createdAt;
+  const Highlight({
+    required this.id,
+    required this.itemId,
+    required this.quote,
+    this.note,
+    required this.position,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['item_id'] = Variable<String>(itemId);
+    map['quote'] = Variable<String>(quote);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['position'] = Variable<int>(position);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  HighlightsCompanion toCompanion(bool nullToAbsent) {
+    return HighlightsCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      quote: Value(quote),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      position: Value(position),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Highlight.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Highlight(
+      id: serializer.fromJson<String>(json['id']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      quote: serializer.fromJson<String>(json['quote']),
+      note: serializer.fromJson<String?>(json['note']),
+      position: serializer.fromJson<int>(json['position']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'itemId': serializer.toJson<String>(itemId),
+      'quote': serializer.toJson<String>(quote),
+      'note': serializer.toJson<String?>(note),
+      'position': serializer.toJson<int>(position),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Highlight copyWith({
+    String? id,
+    String? itemId,
+    String? quote,
+    Value<String?> note = const Value.absent(),
+    int? position,
+    DateTime? createdAt,
+  }) => Highlight(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    quote: quote ?? this.quote,
+    note: note.present ? note.value : this.note,
+    position: position ?? this.position,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Highlight copyWithCompanion(HighlightsCompanion data) {
+    return Highlight(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      quote: data.quote.present ? data.quote.value : this.quote,
+      note: data.note.present ? data.note.value : this.note,
+      position: data.position.present ? data.position.value : this.position,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Highlight(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('quote: $quote, ')
+          ..write('note: $note, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, itemId, quote, note, position, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Highlight &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.quote == this.quote &&
+          other.note == this.note &&
+          other.position == this.position &&
+          other.createdAt == this.createdAt);
+}
+
+class HighlightsCompanion extends UpdateCompanion<Highlight> {
+  final Value<String> id;
+  final Value<String> itemId;
+  final Value<String> quote;
+  final Value<String?> note;
+  final Value<int> position;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const HighlightsCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.quote = const Value.absent(),
+    this.note = const Value.absent(),
+    this.position = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HighlightsCompanion.insert({
+    required String id,
+    required String itemId,
+    required String quote,
+    this.note = const Value.absent(),
+    this.position = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       itemId = Value(itemId),
+       quote = Value(quote),
+       createdAt = Value(createdAt);
+  static Insertable<Highlight> custom({
+    Expression<String>? id,
+    Expression<String>? itemId,
+    Expression<String>? quote,
+    Expression<String>? note,
+    Expression<int>? position,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (quote != null) 'quote': quote,
+      if (note != null) 'note': note,
+      if (position != null) 'position': position,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HighlightsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? itemId,
+    Value<String>? quote,
+    Value<String?>? note,
+    Value<int>? position,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return HighlightsCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      quote: quote ?? this.quote,
+      note: note ?? this.note,
+      position: position ?? this.position,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (quote.present) {
+      map['quote'] = Variable<String>(quote.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HighlightsCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('quote: $quote, ')
+          ..write('note: $note, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -9111,6 +9728,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $VaultFilesTable vaultFiles = $VaultFilesTable(this);
   late final $VaultFlagsTable vaultFlags = $VaultFlagsTable(this);
   late final $PlacesTable places = $PlacesTable(this);
+  late final $HighlightsTable highlights = $HighlightsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9135,6 +9753,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     vaultFiles,
     vaultFlags,
     places,
+    highlights,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -9167,6 +9786,10 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<double?> remindLongitude,
   Value<String?> remindPlaceName,
   Value<DateTime?> openedAt,
+  Value<DateTime?> goneAt,
+  Value<bool> goneKept,
+  Value<DateTime?> linkCheckedAt,
+  Value<double?> readPosition,
   Value<String> factsText,
   required DateTime createdAt,
   required DateTime updatedAt,
@@ -9199,6 +9822,10 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<double?> remindLongitude,
   Value<String?> remindPlaceName,
   Value<DateTime?> openedAt,
+  Value<DateTime?> goneAt,
+  Value<bool> goneKept,
+  Value<DateTime?> linkCheckedAt,
+  Value<double?> readPosition,
   Value<String> factsText,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -9340,6 +9967,26 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get openedAt => $composableBuilder(
     column: $table.openedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get goneAt => $composableBuilder(
+    column: $table.goneAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get goneKept => $composableBuilder(
+    column: $table.goneKept,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get linkCheckedAt => $composableBuilder(
+    column: $table.linkCheckedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get readPosition => $composableBuilder(
+    column: $table.readPosition,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9498,6 +10145,26 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get goneAt => $composableBuilder(
+    column: $table.goneAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get goneKept => $composableBuilder(
+    column: $table.goneKept,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get linkCheckedAt => $composableBuilder(
+    column: $table.linkCheckedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get readPosition => $composableBuilder(
+    column: $table.readPosition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get factsText => $composableBuilder(
     column: $table.factsText,
     builder: (column) => ColumnOrderings(column),
@@ -9626,6 +10293,22 @@ class $$ItemsTableAnnotationComposer
   GeneratedColumn<DateTime> get openedAt =>
       $composableBuilder(column: $table.openedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get goneAt =>
+      $composableBuilder(column: $table.goneAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get goneKept =>
+      $composableBuilder(column: $table.goneKept, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get linkCheckedAt => $composableBuilder(
+    column: $table.linkCheckedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get readPosition => $composableBuilder(
+    column: $table.readPosition,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get factsText =>
       $composableBuilder(column: $table.factsText, builder: (column) => column);
 
@@ -9692,6 +10375,10 @@ class $$ItemsTableTableManager
                 Value<double?> remindLongitude = const Value.absent(),
                 Value<String?> remindPlaceName = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
+                Value<DateTime?> goneAt = const Value.absent(),
+                Value<bool> goneKept = const Value.absent(),
+                Value<DateTime?> linkCheckedAt = const Value.absent(),
+                Value<double?> readPosition = const Value.absent(),
                 Value<String> factsText = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -9723,6 +10410,10 @@ class $$ItemsTableTableManager
                 remindLongitude: remindLongitude,
                 remindPlaceName: remindPlaceName,
                 openedAt: openedAt,
+                goneAt: goneAt,
+                goneKept: goneKept,
+                linkCheckedAt: linkCheckedAt,
+                readPosition: readPosition,
                 factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -9756,6 +10447,10 @@ class $$ItemsTableTableManager
                 Value<double?> remindLongitude = const Value.absent(),
                 Value<String?> remindPlaceName = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
+                Value<DateTime?> goneAt = const Value.absent(),
+                Value<bool> goneKept = const Value.absent(),
+                Value<DateTime?> linkCheckedAt = const Value.absent(),
+                Value<double?> readPosition = const Value.absent(),
                 Value<String> factsText = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -9787,6 +10482,10 @@ class $$ItemsTableTableManager
                 remindLongitude: remindLongitude,
                 remindPlaceName: remindPlaceName,
                 openedAt: openedAt,
+                goneAt: goneAt,
+                goneKept: goneKept,
+                linkCheckedAt: linkCheckedAt,
+                readPosition: readPosition,
                 factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13862,6 +14561,229 @@ typedef $$PlacesTableProcessedTableManager =
       Place,
       PrefetchHooks Function()
     >;
+typedef $$HighlightsTableCreateCompanionBuilder = HighlightsCompanion Function({
+  required String id,
+  required String itemId,
+  required String quote,
+  Value<String?> note,
+  Value<int> position,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$HighlightsTableUpdateCompanionBuilder = HighlightsCompanion Function({
+  Value<String> id,
+  Value<String> itemId,
+  Value<String> quote,
+  Value<String?> note,
+  Value<int> position,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$HighlightsTableFilterComposer
+    extends Composer<_$AppDatabase, $HighlightsTable> {
+  $$HighlightsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get quote => $composableBuilder(
+    column: $table.quote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HighlightsTableOrderingComposer
+    extends Composer<_$AppDatabase, $HighlightsTable> {
+  $$HighlightsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quote => $composableBuilder(
+    column: $table.quote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HighlightsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HighlightsTable> {
+  $$HighlightsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get quote =>
+      $composableBuilder(column: $table.quote, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$HighlightsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HighlightsTable,
+          Highlight,
+          $$HighlightsTableFilterComposer,
+          $$HighlightsTableOrderingComposer,
+          $$HighlightsTableAnnotationComposer,
+          $$HighlightsTableCreateCompanionBuilder,
+          $$HighlightsTableUpdateCompanionBuilder,
+          (
+            Highlight,
+            BaseReferences<_$AppDatabase, $HighlightsTable, Highlight>,
+          ),
+          Highlight,
+          PrefetchHooks Function()
+        > {
+  $$HighlightsTableTableManager(_$AppDatabase db, $HighlightsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HighlightsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HighlightsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HighlightsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> quote = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HighlightsCompanion(
+                id: id,
+                itemId: itemId,
+                quote: quote,
+                note: note,
+                position: position,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String itemId,
+                required String quote,
+                Value<String?> note = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => HighlightsCompanion.insert(
+                id: id,
+                itemId: itemId,
+                quote: quote,
+                note: note,
+                position: position,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$HighlightsTable, Highlight>(table),
+                  BaseReferences<_$AppDatabase, $HighlightsTable, Highlight>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HighlightsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HighlightsTable,
+      Highlight,
+      $$HighlightsTableFilterComposer,
+      $$HighlightsTableOrderingComposer,
+      $$HighlightsTableAnnotationComposer,
+      $$HighlightsTableCreateCompanionBuilder,
+      $$HighlightsTableUpdateCompanionBuilder,
+      (Highlight, BaseReferences<_$AppDatabase, $HighlightsTable, Highlight>),
+      Highlight,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -13903,4 +14825,6 @@ class $AppDatabaseManager {
       $$VaultFlagsTableTableManager(_db, _db.vaultFlags);
   $$PlacesTableTableManager get places =>
       $$PlacesTableTableManager(_db, _db.places);
+  $$HighlightsTableTableManager get highlights =>
+      $$HighlightsTableTableManager(_db, _db.highlights);
 }

@@ -46,11 +46,39 @@ class Items extends Table {
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   DateTimeColumn get openedAt => dateTime().nullable()();
 
+  /// Ссылка больше не открывается (v10): сайт ответил 404 или 410, либо адреса нет.
+  /// [goneKept] — человек решил оставить копию, в «Битых ссылках» её больше нет.
+  /// [linkCheckedAt] — когда проверка ссылок ходила по адресу. В файл хранилища не идут.
+  DateTimeColumn get goneAt => dateTime().nullable()();
+  BoolColumn get goneKept => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get linkCheckedAt => dateTime().nullable()();
+
+  /// Где остановился в читалке: доля прокрутки от 0 до 1. Тоже след чтения, не заметка.
+  RealColumn get readPosition => real().nullable()();
+
   /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
   TextColumn get factsText => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Цитата из статьи (v10): выделенный кусок текста и пометка к нему. Это написал
+/// человек, поэтому цитаты лежат в файле заметки свойством `highlights`.
+class Highlights extends Table {
+  TextColumn get id => text()();
+  TextColumn get itemId => text()();
+
+  /// Сам выделенный текст: по нему цитата находится в статье, даже если разбор улучшат.
+  TextColumn get quote => text()();
+  TextColumn get note => text().nullable()();
+
+  /// Где цитата в тексте статьи, знаков от начала: порядок в списке.
+  IntColumn get position => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};
