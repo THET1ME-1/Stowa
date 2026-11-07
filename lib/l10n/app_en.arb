@@ -2782,5 +2782,85 @@
   "startHint": "Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.",
   "@startHint": {
     "description": "Пояснение под выбором запуска"
+  },
+  "appearanceTitle": "Appearance",
+  "@appearanceTitle": {
+    "description": "Раздел настроек: тема, цвет, AMOLED"
+  },
+  "appearanceTheme": "Theme",
+  "@appearanceTheme": {
+    "description": "Заголовок раздела режима темы"
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "Режим темы"
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Режим темы"
+  },
+  "themeSystem": "Same as system",
+  "@themeSystem": {
+    "description": "Режим темы"
+  },
+  "themeByTime": "By time of day",
+  "@themeByTime": {
+    "description": "Режим темы"
+  },
+  "themeByTimeHint": "Dark from 20:00 to 7:00",
+  "@themeByTimeHint": {
+    "description": "Подсказка под режимом «по времени»"
+  },
+  "appearanceColor": "Color",
+  "@appearanceColor": {
+    "description": "Заголовок раздела цвета темы"
+  },
+  "colorGraphite": "Graphite",
+  "@colorGraphite": {
+    "description": "Цвет темы по умолчанию: серые ступени"
+  },
+  "colorCustom": "Custom color",
+  "@colorCustom": {
+    "description": "Выбор своего цвета темы"
+  },
+  "colorFromWallpaper": "From wallpaper",
+  "@colorFromWallpaper": {
+    "description": "Цвет темы взят с обоев, коротко для подписи"
+  },
+  "colorIntensity": "Intensity",
+  "@colorIntensity": {
+    "description": "Насыщенность цветной темы"
+  },
+  "intensityVibrant": "Vivid",
+  "@intensityVibrant": {
+    "description": "Цвет красит и поверхности"
+  },
+  "intensityFaithful": "Exact",
+  "@intensityFaithful": {
+    "description": "Акцент ровно выбранный цвет, поверхности серые"
+  },
+  "intensityHint": "Vivid tints the background too. Exact keeps it gray and paints buttons in exactly your color.",
+  "@intensityHint": {
+    "description": "Пояснение к насыщенности"
+  },
+  "wallpaperColors": "Wallpaper colors",
+  "@wallpaperColors": {
+    "description": "Material You: цвет темы с обоев"
+  },
+  "wallpaperColorsHint": "The theme follows your phone wallpaper",
+  "@wallpaperColorsHint": {
+    "description": "Подпись к цветам из обоев"
+  },
+  "amoledTitle": "Black background",
+  "@amoledTitle": {
+    "description": "AMOLED: чистый чёрный в тёмной теме"
+  },
+  "amoledHint": "Pure black for AMOLED screens, saves battery",
+  "@amoledHint": {
+    "description": "Подпись к чёрному фону"
+  },
+  "pickerApply": "Done",
+  "@pickerApply": {
+    "description": "Применить свой цвет"
   }
 }

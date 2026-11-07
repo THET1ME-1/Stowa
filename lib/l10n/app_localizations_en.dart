@@ -2191,4 +2191,65 @@ class LEn extends L {
   @override
   String get startHint =>
       'Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.';
+
+  @override
+  String get appearanceTitle => 'Appearance';
+
+  @override
+  String get appearanceTheme => 'Theme';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeSystem => 'Same as system';
+
+  @override
+  String get themeByTime => 'By time of day';
+
+  @override
+  String get themeByTimeHint => 'Dark from 20:00 to 7:00';
+
+  @override
+  String get appearanceColor => 'Color';
+
+  @override
+  String get colorGraphite => 'Graphite';
+
+  @override
+  String get colorCustom => 'Custom color';
+
+  @override
+  String get colorFromWallpaper => 'From wallpaper';
+
+  @override
+  String get colorIntensity => 'Intensity';
+
+  @override
+  String get intensityVibrant => 'Vivid';
+
+  @override
+  String get intensityFaithful => 'Exact';
+
+  @override
+  String get intensityHint =>
+      'Vivid tints the background too. Exact keeps it gray and paints buttons in exactly your color.';
+
+  @override
+  String get wallpaperColors => 'Wallpaper colors';
+
+  @override
+  String get wallpaperColorsHint => 'The theme follows your phone wallpaper';
+
+  @override
+  String get amoledTitle => 'Black background';
+
+  @override
+  String get amoledHint => 'Pure black for AMOLED screens, saves battery';
+
+  @override
+  String get pickerApply => 'Done';
 }

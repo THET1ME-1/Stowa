@@ -2210,4 +2210,67 @@ class LRo extends L {
   @override
   String get startHint =>
       'Ultima: continui de unde ai rămas. La întâmplare: la fiecare pornire îți amintește ceva salvat, așa reții mai bine.';
+
+  @override
+  String get appearanceTitle => 'Aspect';
+
+  @override
+  String get appearanceTheme => 'Temă';
+
+  @override
+  String get themeLight => 'Luminoasă';
+
+  @override
+  String get themeDark => 'Întunecată';
+
+  @override
+  String get themeSystem => 'Ca în sistem';
+
+  @override
+  String get themeByTime => 'După ora zilei';
+
+  @override
+  String get themeByTimeHint => 'Întunecată de la 20:00 la 7:00';
+
+  @override
+  String get appearanceColor => 'Culoare';
+
+  @override
+  String get colorGraphite => 'Grafit';
+
+  @override
+  String get colorCustom => 'Culoare proprie';
+
+  @override
+  String get colorFromWallpaper => 'Din fundal';
+
+  @override
+  String get colorIntensity => 'Intensitate';
+
+  @override
+  String get intensityVibrant => 'Viu';
+
+  @override
+  String get intensityFaithful => 'Exact';
+
+  @override
+  String get intensityHint =>
+      '„Viu” nuanțează și fundalul. „Exact” lasă fundalul gri și colorează butoanele exact în culoarea aleasă.';
+
+  @override
+  String get wallpaperColors => 'Culori din fundal';
+
+  @override
+  String get wallpaperColorsHint =>
+      'Culoarea temei urmează fundalul telefonului';
+
+  @override
+  String get amoledTitle => 'Fundal negru';
+
+  @override
+  String get amoledHint =>
+      'Negru pur pentru ecrane AMOLED, economisește bateria';
+
+  @override
+  String get pickerApply => 'Gata';
 }

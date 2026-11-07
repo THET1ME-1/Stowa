@@ -2235,4 +2235,66 @@ class LUk extends L {
   @override
   String get startHint =>
       'Остання — продовжити з того місця, де зупинилися. Випадкова — кожен запуск нагадує щось зі збереженого, так записане краще запам\'ятовується.';
+
+  @override
+  String get appearanceTitle => 'Оформлення';
+
+  @override
+  String get appearanceTheme => 'Тема';
+
+  @override
+  String get themeLight => 'Світла';
+
+  @override
+  String get themeDark => 'Темна';
+
+  @override
+  String get themeSystem => 'Як у системі';
+
+  @override
+  String get themeByTime => 'За часом доби';
+
+  @override
+  String get themeByTimeHint => 'Темна з 20:00 до 7:00';
+
+  @override
+  String get appearanceColor => 'Колір';
+
+  @override
+  String get colorGraphite => 'Графіт';
+
+  @override
+  String get colorCustom => 'Свій колір';
+
+  @override
+  String get colorFromWallpaper => 'Зі шпалер';
+
+  @override
+  String get colorIntensity => 'Насиченість';
+
+  @override
+  String get intensityVibrant => 'Соковито';
+
+  @override
+  String get intensityFaithful => 'Точнісінько';
+
+  @override
+  String get intensityHint =>
+      '«Соковито» трохи підфарбовує і фон. «Точнісінько» лишає фон сірим, а кнопки фарбує саме вибраним кольором.';
+
+  @override
+  String get wallpaperColors => 'Кольори зі шпалер';
+
+  @override
+  String get wallpaperColorsHint =>
+      'Колір теми підлаштовується під шпалери телефона';
+
+  @override
+  String get amoledTitle => 'Чорне тло';
+
+  @override
+  String get amoledHint => 'Чистий чорний для екранів AMOLED, береже заряд';
+
+  @override
+  String get pickerApply => 'Готово';
 }

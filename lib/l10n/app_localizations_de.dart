@@ -2196,4 +2196,65 @@ class LDe extends L {
   @override
   String get startHint =>
       'Letzte: dort weitermachen, wo du aufgehört hast. Zufällig: Jeder Start erinnert an etwas Gespeichertes, so bleibt es besser hängen.';
+
+  @override
+  String get appearanceTitle => 'Darstellung';
+
+  @override
+  String get appearanceTheme => 'Design';
+
+  @override
+  String get themeLight => 'Hell';
+
+  @override
+  String get themeDark => 'Dunkel';
+
+  @override
+  String get themeSystem => 'Wie im System';
+
+  @override
+  String get themeByTime => 'Nach Tageszeit';
+
+  @override
+  String get themeByTimeHint => 'Dunkel von 20:00 bis 7:00';
+
+  @override
+  String get appearanceColor => 'Farbe';
+
+  @override
+  String get colorGraphite => 'Graphit';
+
+  @override
+  String get colorCustom => 'Eigene Farbe';
+
+  @override
+  String get colorFromWallpaper => 'Vom Hintergrund';
+
+  @override
+  String get colorIntensity => 'Intensität';
+
+  @override
+  String get intensityVibrant => 'Kräftig';
+
+  @override
+  String get intensityFaithful => 'Genau';
+
+  @override
+  String get intensityHint =>
+      '„Kräftig“ färbt auch den Hintergrund leicht. „Genau“ lässt ihn grau und färbt Knöpfe exakt in deiner Farbe.';
+
+  @override
+  String get wallpaperColors => 'Farben vom Hintergrund';
+
+  @override
+  String get wallpaperColorsHint => 'Die Farbe folgt dem Hintergrundbild';
+
+  @override
+  String get amoledTitle => 'Schwarzer Hintergrund';
+
+  @override
+  String get amoledHint => 'Reines Schwarz für AMOLED, spart Akku';
+
+  @override
+  String get pickerApply => 'Fertig';
 }

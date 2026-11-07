@@ -43,6 +43,9 @@ class TestWorld {
   /// Оформление без настоящих настроек.
   var appearance = const Appearance();
 
+  /// Схемы из обоев; пусто — как Android до 12.
+  ({ColorScheme light, ColorScheme dark})? wallpaper;
+
   /// Папка хранилища пропала или отозвали доступ.
   var vaultMissing = false;
 
@@ -90,7 +93,7 @@ class TestWorld {
         vaultChannelProvider.overrideWithValue(_TestChannel(this)),
         clockProvider.overrideWithValue(() => now),
         // обоев в тестах нет: как Android до 12
-        wallpaperProvider.overrideWith((ref) async => null),
+        wallpaperProvider.overrideWith((ref) async => wallpaper),
         // превью ссылок в тестах без интернета: сеть «молчит», вещь остаётся как есть
         linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
         linkPostProvider.overrideWithValue((uri, body) async => throw const SocketException('тест без сети')),

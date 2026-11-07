@@ -2236,4 +2236,65 @@ class LPl extends L {
   @override
   String get startHint =>
       'Ostatnia: wracasz tam, gdzie skończyłeś. Losowa: każde uruchomienie przypomina coś z zapisanych, więc lepiej zostaje w pamięci.';
+
+  @override
+  String get appearanceTitle => 'Wygląd';
+
+  @override
+  String get appearanceTheme => 'Motyw';
+
+  @override
+  String get themeLight => 'Jasny';
+
+  @override
+  String get themeDark => 'Ciemny';
+
+  @override
+  String get themeSystem => 'Jak w systemie';
+
+  @override
+  String get themeByTime => 'Według pory dnia';
+
+  @override
+  String get themeByTimeHint => 'Ciemny od 20:00 do 7:00';
+
+  @override
+  String get appearanceColor => 'Kolor';
+
+  @override
+  String get colorGraphite => 'Grafit';
+
+  @override
+  String get colorCustom => 'Własny kolor';
+
+  @override
+  String get colorFromWallpaper => 'Z tapety';
+
+  @override
+  String get colorIntensity => 'Nasycenie';
+
+  @override
+  String get intensityVibrant => 'Żywo';
+
+  @override
+  String get intensityFaithful => 'Dokładnie';
+
+  @override
+  String get intensityHint =>
+      '„Żywo” lekko barwi też tło. „Dokładnie” zostawia szare tło, a przyciski maluje dokładnie wybranym kolorem.';
+
+  @override
+  String get wallpaperColors => 'Kolory z tapety';
+
+  @override
+  String get wallpaperColorsHint => 'Kolor motywu dopasowuje się do tapety';
+
+  @override
+  String get amoledTitle => 'Czarne tło';
+
+  @override
+  String get amoledHint => 'Czysta czerń dla ekranów AMOLED, oszczędza baterię';
+
+  @override
+  String get pickerApply => 'Gotowe';
 }

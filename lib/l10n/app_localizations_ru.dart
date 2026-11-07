@@ -2240,4 +2240,66 @@ class LRu extends L {
   @override
   String get startHint =>
       'Последняя — продолжить с того места, где остановились. Случайная — каждый запуск напоминает что-то из сохранённого, так записанное лучше запоминается.';
+
+  @override
+  String get appearanceTitle => 'Оформление';
+
+  @override
+  String get appearanceTheme => 'Тема';
+
+  @override
+  String get themeLight => 'Светлая';
+
+  @override
+  String get themeDark => 'Тёмная';
+
+  @override
+  String get themeSystem => 'Как в системе';
+
+  @override
+  String get themeByTime => 'По времени суток';
+
+  @override
+  String get themeByTimeHint => 'Тёмная с 20:00 до 7:00';
+
+  @override
+  String get appearanceColor => 'Цвет';
+
+  @override
+  String get colorGraphite => 'Графит';
+
+  @override
+  String get colorCustom => 'Свой цвет';
+
+  @override
+  String get colorFromWallpaper => 'Из обоев';
+
+  @override
+  String get colorIntensity => 'Насыщенность';
+
+  @override
+  String get intensityVibrant => 'Сочно';
+
+  @override
+  String get intensityFaithful => 'Точь-в-точь';
+
+  @override
+  String get intensityHint =>
+      '«Сочно» слегка подкрашивает и фон. «Точь-в-точь» оставляет фон серым, а кнопки красит ровно выбранным цветом.';
+
+  @override
+  String get wallpaperColors => 'Цвета из обоев';
+
+  @override
+  String get wallpaperColorsHint =>
+      'Цвет темы подстраивается под обои телефона';
+
+  @override
+  String get amoledTitle => 'Чёрный фон';
+
+  @override
+  String get amoledHint => 'Чистый чёрный для экранов AMOLED, бережёт заряд';
+
+  @override
+  String get pickerApply => 'Готово';
 }

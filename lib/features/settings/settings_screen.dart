@@ -11,13 +11,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
+import '../../domain/appearance.dart';
 import '../../domain/models.dart' show PlaceKind;
 import '../../domain/return_plan.dart';
 import '../../l10n/app_language.dart';
@@ -31,6 +31,8 @@ import '../places/reminder_permissions.dart';
 import '../tags/tags_screen.dart';
 import '../vault/vault_actions.dart';
 import 'ai_log_screen.dart';
+import 'appearance_screen.dart';
+import 'settings_blocks.dart';
 import 'telegram_import_action.dart';
 import 'trash_screen.dart';
 
@@ -74,43 +76,49 @@ class SettingsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
-            Row(
+            SettingsHeader(l.settingsTitle),
+            const SizedBox(height: 18),
+            SettingsGroup(
+              tint: settingsTint('rose'),
               children: [
-                _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
-                const SizedBox(width: 12),
-                Expanded(child: Text(l.settingsTitle, style: text.titleLarge!.copyWith(fontSize: 22))),
+                SettingsRow(
+                  icon: 'palette',
+                  title: l.appearanceTitle,
+                  value: appearanceSummary(l, ref.watch(appearanceProvider).value ?? const Appearance()),
+                  onTap: () => Navigator.of(context).push(appearanceRoute()),
+                ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 8),
             _AiCard(settings: ai, queued: queued, busy: ref.watch(aiBusyProvider).value ?? false, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
             const SizedBox(height: 8),
-            _Group(
-              tint: _tint('violet'),
+            SettingsGroup(
+              tint: settingsTint('violet'),
               children: [
-                _Row(icon: 'key', title: l.aiKey, value: ai.hasKey ? l.aiKeySet : l.aiKeyNone, onTap: () => _showKeySheet(context)),
-                _Row(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => _showProviderSheet(context, ai.baseUrl)),
-                _Row(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => _showModelSheet(context, speech: false)),
-                _Row(icon: 'graphic_eq', title: l.aiSpeechModel, value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!), onTap: () => _showModelSheet(context, speech: true)),
-                _Row(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
+                SettingsRow(icon: 'key', title: l.aiKey, value: ai.hasKey ? l.aiKeySet : l.aiKeyNone, onTap: () => _showKeySheet(context)),
+                SettingsRow(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => _showProviderSheet(context, ai.baseUrl)),
+                SettingsRow(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => _showModelSheet(context, speech: false)),
+                SettingsRow(icon: 'graphic_eq', title: l.aiSpeechModel, value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!), onTap: () => _showModelSheet(context, speech: true)),
+                SettingsRow(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
               ],
             ),
-            _Section(l.settingsOutside),
-            _Group(
-              tint: _tint('sky'),
+            SettingsSection(l.settingsOutside),
+            SettingsGroup(
+              tint: settingsTint('sky'),
               children: [
-                _Row(icon: 'send', title: l.tgTitle, value: telegram.botName == null ? l.tgNone : '@${telegram.botName}', onTap: () => _sheet(context, const _BotSheet())),
+                SettingsRow(icon: 'send', title: l.tgTitle, value: telegram.botName == null ? l.tgNone : '@${telegram.botName}', onTap: () => _sheet(context, const _BotSheet())),
               ],
             ),
-            _Section(l.settingsOrder),
-            _Group(
-              tint: _tint('amber'),
-              children: [_Row(icon: 'label', title: l.settingsTooltip, onTap: () => Navigator.of(context).push(tagsRoute()))],
+            SettingsSection(l.settingsOrder),
+            SettingsGroup(
+              tint: settingsTint('amber'),
+              children: [SettingsRow(icon: 'label', title: l.settingsTooltip, onTap: () => Navigator.of(context).push(tagsRoute()))],
             ),
-            _Section(l.settingsData),
-            _Group(
-              tint: _tint('mint'),
+            SettingsSection(l.settingsData),
+            SettingsGroup(
+              tint: settingsTint('mint'),
               children: [
-                _SwitchRow(
+                SettingsSwitchRow(
                   icon: 'location_on',
                   title: l.placeSetting,
                   // без разрешения место не пишется — переключатель так и показывает
@@ -130,10 +138,10 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.placeSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Group(
-              tint: _tint('coral'),
+            SettingsGroup(
+              tint: settingsTint('coral'),
               children: [
-                _SwitchRow(
+                SettingsSwitchRow(
                   icon: 'explicit',
                   title: l.adultSetting,
                   value: ref.watch(showAdultProvider).value ?? false,
@@ -145,23 +153,23 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.adultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Section(l.settingsReturns),
+            SettingsSection(l.settingsReturns),
             const _ReturnGroup(),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.returnSettingsHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Section(l.settingsArticles),
-            _Group(
-              tint: _tint('lemon'),
+            SettingsSection(l.settingsArticles),
+            SettingsGroup(
+              tint: settingsTint('lemon'),
               children: [
-                _SwitchRow(
+                SettingsSwitchRow(
                   icon: 'image',
                   title: l.articleImages,
                   value: ref.watch(articleImagesProvider).value ?? false,
                   onChanged: (on) => ref.read(settingsRepositoryProvider).setArticleImages(on),
                 ),
-                _Row(
+                SettingsRow(
                   icon: 'link_off',
                   title: l.deadLinksTitle,
                   value: deadLinks > 0 ? l.deadLinksCount(deadLinks) : null,
@@ -173,45 +181,45 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.articleImagesAbout, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Section(l.vaultSection),
-            _Group(
-              tint: _tint('teal'),
+            SettingsSection(l.vaultSection),
+            SettingsGroup(
+              tint: settingsTint('teal'),
               children: [
-                _Row(icon: 'folder_open', title: l.vaultFolder, value: _vaultPlace(ref, l), onTap: () => moveVaultElsewhere(context, ref)),
-                _Row(icon: 'drive_file_move', title: l.vaultMoveTo, onTap: () => moveVaultElsewhere(context, ref)),
-                _Row(icon: 'manage_search', title: l.vaultRebuild, onTap: () => rebuildIndex(context, ref)),
+                SettingsRow(icon: 'folder_open', title: l.vaultFolder, value: _vaultPlace(ref, l), onTap: () => moveVaultElsewhere(context, ref)),
+                SettingsRow(icon: 'drive_file_move', title: l.vaultMoveTo, onTap: () => moveVaultElsewhere(context, ref)),
+                SettingsRow(icon: 'manage_search', title: l.vaultRebuild, onTap: () => rebuildIndex(context, ref)),
               ],
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.vaultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Group(
-              tint: _tint('blue'),
+            SettingsGroup(
+              tint: settingsTint('blue'),
               children: [
-                _Row(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
-                _Row(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
-                _Row(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
+                SettingsRow(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
+                SettingsRow(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
+                SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
               ],
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
               child: Text(l.backupSaveHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Section(l.settingsImport),
-            _Group(
-              tint: _tint('sky'),
-              children: [_Row(icon: 'send', title: l.importTelegram, onTap: () => importTelegram(context, ref))],
+            SettingsSection(l.settingsImport),
+            SettingsGroup(
+              tint: settingsTint('sky'),
+              children: [SettingsRow(icon: 'send', title: l.importTelegram, onTap: () => importTelegram(context, ref))],
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
               child: Text(l.importTelegramHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Section(l.settingsStart),
-            _Group(
-              tint: _tint('lime'),
+            SettingsSection(l.settingsStart),
+            SettingsGroup(
+              tint: settingsTint('lime'),
               children: [
-                _Row(
+                SettingsRow(
                   icon: 'start',
                   title: l.startOpen,
                   value: startLabel(l, ref.watch(startScreenChoiceProvider).value ?? StartScreen.home),
@@ -223,10 +231,10 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
               child: Text(l.startHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
-            _Section(l.settingsLanguage),
-            _Group(
-              tint: _tint('orchid'),
-              children: [_Row(icon: 'translate', title: l.settingsLanguage, value: language?.label ?? l.languageSystem, onTap: () => _showLanguageSheet(context, language))],
+            SettingsSection(l.settingsLanguage),
+            SettingsGroup(
+              tint: settingsTint('orchid'),
+              children: [SettingsRow(icon: 'translate', title: l.settingsLanguage, value: language?.label ?? l.languageSystem, onTap: () => _showLanguageSheet(context, language))],
             ),
             const SizedBox(height: 28),
             FutureBuilder(
@@ -318,9 +326,6 @@ Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
   }
 }
 
-/// Цвет значков группы из палитры папок: разделы различаются с первого взгляда.
-Color _tint(String key) => FolderPalette.colors[key]!;
-
 /// «nvidia/nemotron-3.5-super-vl:free» → «nemotron-3.5-super-vl»: поставщик и пометка цены и так видны в списке.
 String _modelLabel(String id) => id.split('/').last.replaceFirst(RegExp(r':free$'), '');
 
@@ -359,7 +364,7 @@ class _AiCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              _IconChip('auto_awesome', color: _tint('violet')),
+              SettingsIconChip('auto_awesome', color: settingsTint('violet')),
               const SizedBox(width: 16),
               Expanded(child: Text(l.settingsAi, style: text.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w600))),
             ],
@@ -931,138 +936,6 @@ class _StartSheet extends ConsumerWidget {
   }
 }
 
-class _Section extends StatelessWidget {
-  const _Section(this.title);
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 26, 8, 10),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.labelMedium!.copyWith(color: Tokens.onSurfaceVariant, fontWeight: FontWeight.w700, letterSpacing: 1.1),
-      ),
-    );
-  }
-}
-
-/// Каждая строка — свой блок: крайние скруглены крупно, средние слегка, между ними щель.
-/// [tint] — цвет круглых значков всей группы, из палитры папок.
-class _Group extends StatelessWidget {
-  const _Group({required this.tint, required this.children});
-
-  final Color tint;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    const outer = Radius.circular(Radii.card);
-    const inner = Radius.circular(8);
-    return _GroupTint(
-      color: tint,
-      child: Column(
-        children: [
-          for (var index = 0; index < children.length; index++)
-            Padding(
-              padding: EdgeInsets.only(top: index == 0 ? 0 : 4),
-              child: ClipRRect(
-                borderRadius: BorderRadius.vertical(top: index == 0 ? outer : inner, bottom: index == children.length - 1 ? outer : inner),
-                child: children[index],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Цвет значков группы для её строк.
-class _GroupTint extends InheritedWidget {
-  const _GroupTint({required this.color, required super.child});
-
-  final Color color;
-
-  static Color of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<_GroupTint>()?.color ?? Tokens.onSurface;
-
-  @override
-  bool updateShouldNotify(_GroupTint old) => old.color != color;
-}
-
-/// Круглый значок строки: цвет группы на его же приглушённой подложке.
-class _IconChip extends StatelessWidget {
-  const _IconChip(this.icon, {this.color});
-
-  final String icon;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final tint = color ?? _GroupTint.of(context);
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(color: FolderPalette.tint(tint, 0.22), shape: BoxShape.circle),
-      child: Icon(symbolIcon(icon, filled: true), size: 22, color: FolderPalette.ink(tint)),
-    );
-  }
-}
-
-/// Заголовок строки крупно, значение подписью под ним.
-class _RowText extends StatelessWidget {
-  const _RowText({required this.title, this.value});
-
-  final String title;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: text.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600)),
-        if (value != null) ...[
-          const SizedBox(height: 2),
-          Text(value!, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
-        ],
-      ],
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({required this.icon, required this.title, this.value, required this.onTap});
-
-  final String icon;
-  final String title;
-  final String? value;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Tokens.containerHigh,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-          child: Row(
-            children: [
-              _IconChip(icon),
-              const SizedBox(width: 16),
-              Expanded(child: _RowText(title: title, value: value)),
-              const SizedBox(width: 8),
-              Icon(symbolIcon('chevron_right'), size: 22, color: Tokens.muted),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// «Возвращать»: виды по одному, с какого часа вечером, тихие часы и день сводки.
 class _ReturnGroup extends ConsumerWidget {
   const _ReturnGroup();
@@ -1118,14 +991,14 @@ class _ReturnGroup extends ConsumerWidget {
       if (day != null) await save(returns.copyWith(weekDay: day));
     }
 
-    return _Group(
-      tint: _tint('tangerine'),
+    return SettingsGroup(
+      tint: settingsTint('tangerine'),
       children: [
-        _SwitchRow(icon: 'smart_display', title: l.returnWatchTitle, value: returns.watchLater, onChanged: (on) => save(returns.copyWith(watchLater: on))),
-        _SwitchRow(icon: 'history', title: l.returnOnThisDay, value: returns.onThisDay, onChanged: (on) => save(returns.copyWith(onThisDay: on))),
-        _SwitchRow(icon: 'calendar_view_week', title: l.returnWeekSetting, value: returns.week, onChanged: (on) => save(returns.copyWith(week: on))),
-        _SwitchRow(icon: 'shopping_basket', title: l.returnShoppingSetting, value: returns.shopping, onChanged: (on) => save(returns.copyWith(shopping: on))),
-        _Row(
+        SettingsSwitchRow(icon: 'smart_display', title: l.returnWatchTitle, value: returns.watchLater, onChanged: (on) => save(returns.copyWith(watchLater: on))),
+        SettingsSwitchRow(icon: 'history', title: l.returnOnThisDay, value: returns.onThisDay, onChanged: (on) => save(returns.copyWith(onThisDay: on))),
+        SettingsSwitchRow(icon: 'calendar_view_week', title: l.returnWeekSetting, value: returns.week, onChanged: (on) => save(returns.copyWith(week: on))),
+        SettingsSwitchRow(icon: 'shopping_basket', title: l.returnShoppingSetting, value: returns.shopping, onChanged: (on) => save(returns.copyWith(shopping: on))),
+        SettingsRow(
           icon: 'schedule',
           title: l.returnEveningRow,
           value: clock(returns.evening),
@@ -1134,7 +1007,7 @@ class _ReturnGroup extends ConsumerWidget {
             if (minutes != null) await save(returns.copyWith(evening: minutes));
           },
         ),
-        _Row(
+        SettingsRow(
           icon: 'bedtime',
           title: l.returnQuietRow,
           value: l.returnRange(clock(returns.quietStart), clock(returns.quietEnd)),
@@ -1145,65 +1018,10 @@ class _ReturnGroup extends ConsumerWidget {
             if (end != null) await save(returns.copyWith(quietStart: start, quietEnd: end));
           },
         ),
-        _Row(icon: 'event_repeat', title: l.returnWeekDayRow, value: weekday(returns.weekDay), onTap: pickWeekDay),
-        _Row(icon: 'location_on', title: l.placesTitle, value: placesSummary(), onTap: () => Navigator.of(context).push(placesRoute())),
+        SettingsRow(icon: 'event_repeat', title: l.returnWeekDayRow, value: weekday(returns.weekDay), onTap: pickWeekDay),
+        SettingsRow(icon: 'location_on', title: l.placesTitle, value: placesSummary(), onTap: () => Navigator.of(context).push(placesRoute())),
       ],
     );
   }
 }
 
-class _SwitchRow extends StatelessWidget {
-  const _SwitchRow({required this.icon, required this.title, required this.value, required this.onChanged});
-
-  final String icon;
-  final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Tokens.containerHigh,
-      child: InkWell(
-        onTap: () => onChanged(!value),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-          child: Row(
-            children: [
-              _IconChip(icon),
-              const SizedBox(width: 16),
-              Expanded(child: _RowText(title: title)),
-              const SizedBox(width: 8),
-              Switch(value: value, onChanged: onChanged),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.icon, required this.tooltip, required this.onTap});
-
-  final String icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Pressable(
-        pressedScale: 0.9,
-        onTap: onTap,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
-          child: Icon(symbolIcon(icon), color: Tokens.onSurface),
-        ),
-      ),
-    );
-  }
-}

@@ -3598,6 +3598,126 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.'**
   String get startHint;
+
+  /// Раздел настроек: тема, цвет, AMOLED
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearanceTitle;
+
+  /// Заголовок раздела режима темы
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get appearanceTheme;
+
+  /// Режим темы
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// Режим темы
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// Режим темы
+  ///
+  /// In en, this message translates to:
+  /// **'Same as system'**
+  String get themeSystem;
+
+  /// Режим темы
+  ///
+  /// In en, this message translates to:
+  /// **'By time of day'**
+  String get themeByTime;
+
+  /// Подсказка под режимом «по времени»
+  ///
+  /// In en, this message translates to:
+  /// **'Dark from 20:00 to 7:00'**
+  String get themeByTimeHint;
+
+  /// Заголовок раздела цвета темы
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get appearanceColor;
+
+  /// Цвет темы по умолчанию: серые ступени
+  ///
+  /// In en, this message translates to:
+  /// **'Graphite'**
+  String get colorGraphite;
+
+  /// Выбор своего цвета темы
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color'**
+  String get colorCustom;
+
+  /// Цвет темы взят с обоев, коротко для подписи
+  ///
+  /// In en, this message translates to:
+  /// **'From wallpaper'**
+  String get colorFromWallpaper;
+
+  /// Насыщенность цветной темы
+  ///
+  /// In en, this message translates to:
+  /// **'Intensity'**
+  String get colorIntensity;
+
+  /// Цвет красит и поверхности
+  ///
+  /// In en, this message translates to:
+  /// **'Vivid'**
+  String get intensityVibrant;
+
+  /// Акцент ровно выбранный цвет, поверхности серые
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get intensityFaithful;
+
+  /// Пояснение к насыщенности
+  ///
+  /// In en, this message translates to:
+  /// **'Vivid tints the background too. Exact keeps it gray and paints buttons in exactly your color.'**
+  String get intensityHint;
+
+  /// Material You: цвет темы с обоев
+  ///
+  /// In en, this message translates to:
+  /// **'Wallpaper colors'**
+  String get wallpaperColors;
+
+  /// Подпись к цветам из обоев
+  ///
+  /// In en, this message translates to:
+  /// **'The theme follows your phone wallpaper'**
+  String get wallpaperColorsHint;
+
+  /// AMOLED: чистый чёрный в тёмной теме
+  ///
+  /// In en, this message translates to:
+  /// **'Black background'**
+  String get amoledTitle;
+
+  /// Подпись к чёрному фону
+  ///
+  /// In en, this message translates to:
+  /// **'Pure black for AMOLED screens, saves battery'**
+  String get amoledHint;
+
+  /// Применить свой цвет
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pickerApply;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

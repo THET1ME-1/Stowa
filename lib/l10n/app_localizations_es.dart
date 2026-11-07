@@ -2193,4 +2193,65 @@ class LEs extends L {
   @override
   String get startHint =>
       'La última: sigues donde lo dejaste. Al azar: cada vez que abres la app te recuerda algo guardado, y así se queda mejor.';
+
+  @override
+  String get appearanceTitle => 'Apariencia';
+
+  @override
+  String get appearanceTheme => 'Tema';
+
+  @override
+  String get themeLight => 'Clara';
+
+  @override
+  String get themeDark => 'Oscura';
+
+  @override
+  String get themeSystem => 'Como el sistema';
+
+  @override
+  String get themeByTime => 'Según la hora';
+
+  @override
+  String get themeByTimeHint => 'Oscura de 20:00 a 7:00';
+
+  @override
+  String get appearanceColor => 'Color';
+
+  @override
+  String get colorGraphite => 'Grafito';
+
+  @override
+  String get colorCustom => 'Color propio';
+
+  @override
+  String get colorFromWallpaper => 'Del fondo';
+
+  @override
+  String get colorIntensity => 'Intensidad';
+
+  @override
+  String get intensityVibrant => 'Vivo';
+
+  @override
+  String get intensityFaithful => 'Exacto';
+
+  @override
+  String get intensityHint =>
+      '«Vivo» tiñe también el fondo. «Exacto» lo deja gris y pinta los botones exactamente con tu color.';
+
+  @override
+  String get wallpaperColors => 'Colores del fondo';
+
+  @override
+  String get wallpaperColorsHint => 'El color sigue el fondo del teléfono';
+
+  @override
+  String get amoledTitle => 'Fondo negro';
+
+  @override
+  String get amoledHint => 'Negro puro para pantallas AMOLED, ahorra batería';
+
+  @override
+  String get pickerApply => 'Listo';
 }
