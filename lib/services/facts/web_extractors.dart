@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io' show File;
 import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:drift/drift.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/database.dart';
@@ -13,8 +15,9 @@ import '../../domain/models.dart';
 import '../../domain/site_sources.dart' show adultSite;
 import '../../domain/structured_page.dart';
 import '../../domain/video_text.dart';
-import '../link_preview_service.dart' show Fetch, Post;
+import '../link_preview_service.dart' show Fetch, FetchWith, Post;
 import '../page_cache.dart';
+import '../vault/vault_layout.dart' show articleImageFile;
 import 'extractor.dart';
 
 /// Слова, по которым находится вид страницы на любом из семи языков: «рецепт» найдёт
@@ -160,6 +163,59 @@ Future<void> _toAdultFolder(AppDatabase db, Item item) async {
 const adultFolderName = '18+';
 
 const _linkItems = "items.url IS NOT NULL AND items.kind IN ('link', 'video')";
+
+/// Картинок статьи больше не храним: остальное — на сайте.
+const _articleImages = 30;
+const _articleImageBytes = 3 * 1024 * 1024;
+
+/// Картинки статьи для читалки без сети. Только по Wi-Fi; включатель в настройках
+/// решает, есть ли этот извлекатель в конвейере вообще. Фактов не даёт.
+class ArticleImagesExtractor extends Extractor {
+  ArticleImagesExtractor({required this.fetch, required this.onWifi});
+
+  final FetchWith fetch;
+  final Future<bool> Function() onWifi;
+
+  @override
+  String get name => 'article_images';
+  @override
+  int get version => 1;
+  @override
+  bool get needsNetwork => true;
+  @override
+  String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
+  @override
+  String get appliesSql => "items.kind = 'link' AND EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind = 'articleText')";
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    // мобильный трафик на картинки не тратим: ошибка — и конвейер попробует позже
+    if (!await onWifi()) throw const HttpException('картинки статьи ждут Wi-Fi');
+    final html = await readPage(input.filesRoot, input.item.id);
+    final page = Uri.tryParse(input.item.url ?? '');
+    if (html == null || page == null) return const [];
+    final sources = await Isolate.run(() => [
+      for (final block in extractArticle(html, page)?.blocks ?? const <ArticleBlock>[])
+        if (block.kind == ArticleBlockKind.image) block.src!,
+    ]);
+    // адрес страницы в Referer, как у браузера: серверы картинок без него часто отвечают 403
+    final referer = {'Referer': '${page.scheme}://${page.host}/'};
+    for (final (index, source) in sources.take(_articleImages).indexed) {
+      final file = File(p.join(input.filesRoot.path, articleImageFile(input.item.id, index)));
+      if (await file.exists()) continue;
+      try {
+        final reply = await fetch(Uri.parse(source), referer);
+        if (!reply.ok || reply.bytes.isEmpty || reply.bytes.length > _articleImageBytes || !(reply.contentType ?? '').startsWith('image/')) continue;
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(reply.bytes, flush: true);
+      } on Object {
+        // одна картинка не скачалась — остальные всё равно пробуем
+        continue;
+      }
+    }
+    return const [];
+  }
+}
 
 /// Текст статьи из копии страницы — для поиска и кнопки «Читать». Ролик читать нечего,
 /// поэтому только ссылки. Разбор в отдельном потоке: длинная статья не подвешивает экран.

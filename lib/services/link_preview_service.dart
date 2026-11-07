@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
@@ -46,6 +47,12 @@ Future<FetchReply> httpPost(Uri uri, String json) async {
   } finally {
     client.close(force: true);
   }
+}
+
+/// Телефон сейчас на Wi-Fi или проводе: картинки статей качаются только так.
+Future<bool> onWifi() async {
+  final kinds = await Connectivity().checkConnectivity();
+  return kinds.contains(ConnectivityResult.wifi) || kinds.contains(ConnectivityResult.ethernet);
 }
 
 /// Страницы тяжелее обрезаются: теги превью всегда в начале.

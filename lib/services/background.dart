@@ -22,7 +22,7 @@ import 'facts/extractors.dart';
 import 'facts/facts_pipeline.dart';
 import 'facts/web_extractors.dart';
 import 'link_checker.dart';
-import 'link_preview_service.dart' show httpFetch, httpPost;
+import 'link_preview_service.dart' show httpFetch, httpFetchWith, httpPost, onWifi;
 import 'file_keeper.dart';
 import 'place_alarms.dart';
 import 'place_channel.dart';
@@ -150,6 +150,7 @@ void backgroundDispatcher() {
           ...defaultExtractors(),
           PageExtractor(),
           ArticleExtractor(),
+          if (settings.articleImages) ArticleImagesExtractor(fetch: httpFetchWith, onWifi: onWifi),
           PageFetchExtractor(fetch: httpFetch),
           SubtitlesExtractor(fetch: httpFetch, post: httpPost, languages: () => subtitleLanguages(settings.language?.code)),
         ],

@@ -157,6 +157,8 @@ final factsPipelineProvider = Provider((ref) {
       ...defaultExtractors(),
       PageExtractor(),
       ArticleExtractor(),
+      // выключены картинки статей — правила нет вовсе: ни прогонов, ни ошибок в очереди
+      if (ref.watch(articleImagesProvider).value ?? false) ArticleImagesExtractor(fetch: ref.watch(linkFetchWithProvider), onWifi: onWifi),
       PageFetchExtractor(fetch: fetch),
       SubtitlesExtractor(fetch: fetch, post: ref.watch(linkPostProvider), languages: () => subtitleLanguages(ref.read(languageProvider).value?.code)),
     ],

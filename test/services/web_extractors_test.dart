@@ -99,6 +99,55 @@ void main() {
     expect(await db.searchIds('кофемашина'), ['a']);
   });
 
+  group('картинки статьи', () {
+    late bool wifi;
+    late List<String> referers;
+    setUp(() {
+      wifi = true;
+      referers = [];
+    });
+
+    FactsPipeline withImages() => FactsPipeline(
+      db,
+      filesRoot: home,
+      clock: () => now,
+      extractors: [
+        ArticleExtractor(),
+        ArticleImagesExtractor(
+          fetch: (uri, headers) async {
+            referers.add(headers['Referer'] ?? '');
+            return fetch(uri);
+          },
+          onWifi: () async => wifi,
+        ),
+      ],
+    );
+
+    String withPictures() => articlePage().replaceFirst('</article>', '<img src="/a.jpg" alt="Чашка"><img src="https://cdn.example.com/b.png"></article>');
+
+    test('по Wi-Fi картинки ложатся по порядку; не скачалась — её место пустое', () async {
+      await link('a', 'https://blog.example.com/kofe');
+      await savePage(home, 'a', withPictures());
+      pages['https://blog.example.com/a.jpg'] = const FetchReply(200, [1, 2, 3], 'image/jpeg');
+      await withImages().runItem('a');
+      await withImages().runItem('a', network: true);
+      expect(File('${home.path}/.stowa/articles/a/0.img').readAsBytesSync(), [1, 2, 3]);
+      expect(File('${home.path}/.stowa/articles/a/1.img').existsSync(), isFalse);
+      expect(referers.first, 'https://blog.example.com/', reason: 'сервер картинок без адреса страницы часто отвечает 403');
+    });
+
+    test('без Wi-Fi не качает ничего и пробует потом', () async {
+      wifi = false;
+      await link('a', 'https://blog.example.com/kofe');
+      await savePage(home, 'a', withPictures());
+      await withImages().runItem('a');
+      await withImages().runItem('a', network: true);
+      expect(asked, isEmpty);
+      final run = await (db.select(db.extractorRuns)..where((t) => t.extractor.equals('article_images'))).getSingle();
+      expect(run.nextTry, isNotNull);
+    });
+  });
+
   test('ролик и товар статьёй не становятся', () async {
     await link('v', 'https://youtu.be/abc', kind: ItemKind.video);
     await savePage(home, 'v', articlePage());
