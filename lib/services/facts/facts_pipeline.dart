@@ -30,6 +30,7 @@ const searchableFacts = {
   FactKind.chapter,
   FactKind.hashtag,
   FactKind.subtitle,
+  FactKind.articleText,
 };
 
 /// За один проход разбирается не больше: остальное — в следующий, экран не ждёт.

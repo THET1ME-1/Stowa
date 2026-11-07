@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/database.dart';
+import '../../domain/article_text.dart';
+import '../../domain/document_text.dart' show documentTextLimit;
 import '../../domain/link_preview.dart' show decodePage;
 import '../../domain/models.dart';
 import '../../domain/site_sources.dart' show adultSite;
@@ -158,6 +161,33 @@ const adultFolderName = '18+';
 
 const _linkItems = "items.url IS NOT NULL AND items.kind IN ('link', 'video')";
 
+/// Текст статьи из копии страницы — для поиска и кнопки «Читать». Ролик читать нечего,
+/// поэтому только ссылки. Разбор в отдельном потоке: длинная статья не подвешивает экран.
+class ArticleExtractor extends Extractor {
+  @override
+  String get name => 'article';
+  @override
+  int get version => 1;
+  @override
+  String get stampSql => "coalesce(items.preview_at, '') || '|' || coalesce(items.url, '')";
+  @override
+  String get appliesSql => "items.url IS NOT NULL AND items.kind = 'link'";
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    final html = await readPage(input.filesRoot, input.item.id);
+    final page = Uri.tryParse(input.item.url ?? '');
+    if (html == null || page == null) return const [];
+    final found = await Isolate.run(() {
+      final article = extractArticle(html, page);
+      return article == null ? null : (text: article.plainText, words: article.words, minutes: article.minutes);
+    });
+    if (found == null) return const [];
+    final text = found.text.length > documentTextLimit ? found.text.substring(0, documentTextLimit) : found.text;
+    return [FactDraft(FactKind.articleText, text, number: found.words.toDouble(), detail: '${found.minutes}')];
+  }
+}
+
 /// Копия страницы для старых ссылок, сохранённых до того, как превью стало её хранить.
 /// Фактов не даёт: скачал — будит [PageExtractor], и тот разбирает уже без сети.
 class PageFetchExtractor extends Extractor {
@@ -188,7 +218,7 @@ class PageFetchExtractor extends Extractor {
   Future<void> after(AppDatabase db, Item item, List<FactDraft> facts, {required bool firstRun, required DateTime now}) async {
     // копия появилась: разбор страницы считается непройденным и пройдёт при следующем местном проходе
     if (!_saved.remove(item.id)) return;
-    await (db.delete(db.extractorRuns)..where((t) => t.itemId.equals(item.id) & t.extractor.equals('page'))).go();
+    await (db.delete(db.extractorRuns)..where((t) => t.itemId.equals(item.id) & t.extractor.isIn(['page', 'article']))).go();
   }
 }
 

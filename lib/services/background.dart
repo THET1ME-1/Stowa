@@ -126,6 +126,7 @@ void backgroundDispatcher() {
         extractors: [
           ...defaultExtractors(),
           PageExtractor(),
+          ArticleExtractor(),
           PageFetchExtractor(fetch: httpFetch),
           SubtitlesExtractor(fetch: httpFetch, post: httpPost, languages: () => subtitleLanguages(settings.language?.code)),
         ],

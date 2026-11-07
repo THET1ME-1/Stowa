@@ -151,6 +151,7 @@ final factsPipelineProvider = Provider((ref) {
     extractors: [
       ...defaultExtractors(),
       PageExtractor(),
+      ArticleExtractor(),
       PageFetchExtractor(fetch: fetch),
       SubtitlesExtractor(fetch: fetch, post: ref.watch(linkPostProvider), languages: () => subtitleLanguages(ref.read(languageProvider).value?.code)),
     ],

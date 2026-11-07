@@ -50,10 +50,19 @@ void main() {
     extractors: [
       LinkExtractor(),
       PageExtractor(),
+      ArticleExtractor(),
       PageFetchExtractor(fetch: fetch),
       SubtitlesExtractor(fetch: fetch, post: post, languages: () => ['ru', 'en']),
     ],
   );
+
+  // статья в 300 с лишним слов: шесть абзацев по ~50
+  String articlePage() => '<html><head><meta property="og:title" content="Кофе без турки"></head><body><article>${[
+        for (var index = 0; index < 6; index++)
+          '<p>Абзац $index о том, как варить кофе дома без турки, если кофемашина дорогая, а вода из-под крана жёсткая, '
+              'и почему помол важнее сорта, когда хочется крепкого утреннего кофе с пенкой, как в кофейне у дома, '
+              'но без очереди и лишних денег за стакан, крышку и трубочку.</p>',
+      ].join()}</article></body></html>';
 
   Future<void> link(String id, String url, {ItemKind kind = ItemKind.link, String? previewText}) => db
       .into(db.items)
@@ -77,6 +86,38 @@ void main() {
     expect((await factsOf('r', FactKind.timeNeeded)).single.number, 25);
     final text = (await item('r')).factsText;
     expect(text, allOf(contains('гуанчиале'), contains('рецепт')));
+  });
+
+  test('статья из копии страницы: текст ищется, слова и минуты чтения — у факта', () async {
+    await link('a', 'https://blog.example.com/kofe');
+    await savePage(home, 'a', articlePage());
+    await pipeline().runItem('a', network: true);
+    final fact = (await factsOf('a', FactKind.articleText)).single;
+    expect(fact.value, contains('помол важнее сорта'));
+    expect(fact.number, greaterThan(250));
+    expect(fact.detail, '${(fact.number! / 200).ceil()}');
+    expect(await db.searchIds('кофемашина'), ['a']);
+  });
+
+  test('ролик и товар статьёй не становятся', () async {
+    await link('v', 'https://youtu.be/abc', kind: ItemKind.video);
+    await savePage(home, 'v', articlePage());
+    await link('p', 'https://shop.md/kofemolka');
+    await savePage(home, 'p', '<html><body><h1>Кофемолка</h1><p>Цена 900 лей</p></body></html>');
+    await pipeline().runItem('v');
+    await pipeline().runItem('p');
+    expect(await factsOf('v', FactKind.articleText), isEmpty);
+    expect(await factsOf('p', FactKind.articleText), isEmpty);
+  });
+
+  test('старой ссылке скачали копию — и статья разбирается заново, без перезапуска', () async {
+    await link('a', 'https://blog.example.com/kofe');
+    await pipeline().runItem('a');
+    expect(await factsOf('a', FactKind.articleText), isEmpty);
+    pages['https://blog.example.com/kofe'] = html(articlePage());
+    await pipeline().runItem('a', network: true);
+    await pipeline().runItem('a');
+    expect(await factsOf('a', FactKind.articleText), hasLength(1));
   });
 
   test('старая ссылка без копии: страница скачивается один раз, сохраняется и тут же разбирается', () async {
