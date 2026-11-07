@@ -160,6 +160,8 @@ class LinkPreviewService {
     }
     LinkPreview? fromPage;
     var gone = false;
+    // 404 и 410 — страницы нет совсем; 403 и прочее — чаще защита от ботов
+    var missing = false;
     try {
       final reply = await _fetch(page);
       final html = reply.ok ? decodePage(reply.bytes, reply.contentType) : '';
@@ -175,6 +177,7 @@ class LinkPreviewService {
         if ((reply.contentType ?? 'text/html').contains('html')) await savePage(_filesRoot, id, html).catchError((_) {});
       } else if (reply.status >= 400 && reply.status < 500) {
         gone = true;
+        missing = reply.status == 404 || reply.status == 410;
       }
     } catch (_) {
       // нет сети или сайт молчит
@@ -187,8 +190,8 @@ class LinkPreviewService {
       return _done(item, LinkPreview(title: rezka.title, siteName: 'HDrezka'));
     }
     final preview = fromOembed != null && fromPage != null ? fromOembed.merge(fromPage) : fromOembed ?? fromPage;
-    if (preview == null) return gone ? _done(item, null) : false;
-    return _done(item, preview);
+    if (preview == null) return gone ? _done(item, null, missing: missing) : false;
+    return _done(item, preview, missing: missing);
   }
 
   // тайтл Lib из их API: название, описание, обложка, автор; закрытый для гостей — имя из адреса
@@ -230,7 +233,8 @@ class LinkPreviewService {
     );
   }
 
-  Future<bool> _done(Item item, LinkPreview? preview) async {
+  /// [missing] — сайт ответил, что страницы нет: ссылка сразу помечена мёртвой.
+  Future<bool> _done(Item item, LinkPreview? preview, {bool missing = false}) async {
     final cover = preview?.imageUrl == null ? null : await _saveCover(item.id, preview!.imageUrl!, page: Uri.tryParse(item.url ?? ''));
     final title = preview?.title;
     await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(
@@ -243,6 +247,7 @@ class LinkPreviewService {
         previewAuthor: Value(preview?.author),
         durationSeconds: Value(preview?.duration?.inSeconds),
         previewAt: Value(_clock()),
+        goneAt: missing ? Value(_clock()) : const Value.absent(),
       ),
     );
     if (preview != null) await onPreviewed?.call(item.id);

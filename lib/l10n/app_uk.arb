@@ -312,5 +312,18 @@
   "readerGone": "Оригінал видалено · копію збережено",
   "readerNoCopy": "Текст статті не зберігся. Його можна відкрити на сайті.",
   "readerImageOff": "Картинку не збережено",
-  "highlightsTitle": "Цитати"
+  "highlightsTitle": "Цитати",
+  "linkGone": "Посилання не відкривається",
+  "deadLinksTitle": "Биті посилання",
+  "deadLinksAbout": "Раз на тиждень через Wi-Fi Stowa перевіряє збережені посилання. Сюди потрапляють сторінки, які сайт видалив.",
+  "deadLinksEmpty": "Усі посилання відкриваються",
+  "deadLinksCheck": "Перевірити зараз",
+  "deadLinksChecking": "Перевіряю посилання…",
+  "deadLinksKeep": "Залишити",
+  "deadLinksDelete": "Видалити",
+  "deadLinksDeleted": "Нотатка в кошику",
+  "deadLinksCount": "{count, plural, one{{count} не відкривається} few{{count} не відкриваються} many{{count} не відкриваються} other{{count} не відкриваються}}",
+  "settingsArticles": "Статті",
+  "articleImages": "Картинки статей",
+  "articleImagesAbout": "Завантажувати через Wi-Fi, щоб читати статті з картинками без мережі"
 }

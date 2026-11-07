@@ -2135,4 +2135,54 @@ class LRo extends L {
 
   @override
   String get highlightsTitle => 'Citate';
+
+  @override
+  String get linkGone => 'Linkul nu se mai deschide';
+
+  @override
+  String get deadLinksTitle => 'Linkuri moarte';
+
+  @override
+  String get deadLinksAbout =>
+      'O dată pe săptămână, pe Wi-Fi, Stowa verifică linkurile salvate. Aici ajung paginile șterse de site.';
+
+  @override
+  String get deadLinksEmpty => 'Toate linkurile se deschid';
+
+  @override
+  String get deadLinksCheck => 'Verifică acum';
+
+  @override
+  String get deadLinksChecking => 'Verific linkurile…';
+
+  @override
+  String get deadLinksKeep => 'Păstrează';
+
+  @override
+  String get deadLinksDelete => 'Șterge';
+
+  @override
+  String get deadLinksDeleted => 'Notița e în coș';
+
+  @override
+  String deadLinksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nu se deschid',
+      few: '$count nu se deschid',
+      one: '$count nu se deschide',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsArticles => 'Articole';
+
+  @override
+  String get articleImages => 'Imaginile articolelor';
+
+  @override
+  String get articleImagesAbout =>
+      'Descarcă pe Wi-Fi ca să citești articolele cu imagini fără rețea';
 }

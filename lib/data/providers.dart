@@ -26,6 +26,7 @@ import '../services/facts/extractors.dart';
 import '../services/facts/facts_pipeline.dart';
 import '../services/facts/web_extractors.dart';
 import '../services/file_keeper.dart';
+import '../services/link_checker.dart';
 import '../services/link_preview_service.dart';
 import '../services/page_cache.dart';
 import '../services/place_channel.dart';
@@ -162,6 +163,16 @@ final factsPipelineProvider = Provider((ref) {
   );
 });
 final foldersRepositoryProvider = Provider((ref) => FoldersRepository(ref.watch(databaseProvider)));
+
+/// Скачивать ли картинки статей по Wi-Fi.
+final articleImagesProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchArticleImages());
+
+/// Как спросить адрес, жив ли он: в тестах — без сети.
+final linkCheckProvider = Provider<LinkCheck>((ref) => httpLinkReply);
+final linkCheckerProvider = Provider((ref) => LinkChecker(ref.watch(databaseProvider), clock: ref.watch(clockProvider), check: ref.watch(linkCheckProvider)));
+
+/// Битые ссылки, которые ещё не решены: «Настройки → Битые ссылки».
+final deadLinksProvider = StreamProvider.autoDispose((ref) => ref.watch(itemsRepositoryProvider).watchDeadLinks());
 
 final highlightsRepositoryProvider = Provider((ref) => HighlightsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 

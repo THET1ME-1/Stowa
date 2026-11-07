@@ -291,6 +291,13 @@ void main() {
     final saved = await item();
     expect(saved.previewAt, now);
     expect(saved.title, 'https://habr.com/gone');
+    expect(saved.goneAt, now, reason: 'сразу видно, что ссылка не открывается');
+  });
+
+  test('403 — защита от ботов, а не пропавшая страница: ссылка не мёртвая', () async {
+    await addLink('https://habr.com/guarded');
+    await service({'https://habr.com/guarded': const FetchReply(403, [], 'text/html')}).fetchFor('a');
+    expect((await item()).goneAt, isNull);
   });
 
   test('обложка не скачалась — превью всё равно записано без неё', () async {

@@ -11,6 +11,7 @@ import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/article_text.dart';
 import 'package:stowa/domain/return_plan.dart';
+import 'package:stowa/services/link_checker.dart';
 import 'package:stowa/services/place_channel.dart';
 import 'package:stowa/services/place_service.dart';
 import 'package:stowa/services/reminder_service.dart';
@@ -61,6 +62,9 @@ class TestWorld {
   /// у виджет-теста поддельное время, и поток не дождался бы ответа.
   final pages = <String, String>{};
 
+  /// Что ответят адреса проверке ссылок; кого нет — живой.
+  final linkReplies = <String, LinkReply>{};
+
   List<Override> get overrides => [
         notificationPortProvider.overrideWithValue(notifications),
         placeGrantedProvider.overrideWith((ref) async => placeGranted),
@@ -70,6 +74,7 @@ class TestWorld {
         }),
         databaseProvider.overrideWithValue(db),
         articleLoaderProvider.overrideWithValue((id, url) async => pages[id] == null ? null : extractArticle(pages[id]!, Uri.parse(url))),
+        linkCheckProvider.overrideWithValue((uri) async => linkReplies['$uri'] ?? LinkReply.alive),
         startFilesRootProvider.overrideWithValue(files),
         appSupportProvider.overrideWithValue(files),
         vaultAskedProvider.overrideWithValue(vaultAsked),
@@ -104,6 +109,7 @@ class TestWorld {
           languageProvider.overrideWith((ref) => Stream.value(null)),
           placeEnabledProvider.overrideWith((ref) => Stream.value(true)),
           showAdultProvider.overrideWith((ref) => Stream.value(showAdult)),
+          articleImagesProvider.overrideWith((ref) => Stream.value(false)),
           // карточку «Возвращать сохранённое?» в чужих тестах уже закрыли
           returnsAskedProvider.overrideWith((ref) => Stream.value(true)),
           returnSettingsProvider.overrideWith((ref) => Stream.value(const ReturnSettings())),

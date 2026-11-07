@@ -2693,5 +2693,62 @@
   "highlightsTitle": "Quotes",
   "@highlightsTitle": {
     "description": "Блок цитат на странице заметки"
+  },
+  "linkGone": "Link no longer opens",
+  "@linkGone": {
+    "description": "Метка мёртвой ссылки без копии статьи"
+  },
+  "deadLinksTitle": "Broken links",
+  "@deadLinksTitle": {
+    "description": "Экран и пункт настроек"
+  },
+  "deadLinksAbout": "Once a week on Wi-Fi, Stowa checks your saved links. Pages the site removed end up here.",
+  "@deadLinksAbout": {
+    "description": "Пояснение над списком битых ссылок"
+  },
+  "deadLinksEmpty": "All links open",
+  "@deadLinksEmpty": {
+    "description": "Битых ссылок нет"
+  },
+  "deadLinksCheck": "Check now",
+  "@deadLinksCheck": {
+    "description": "Проверить все ссылки сейчас"
+  },
+  "deadLinksChecking": "Checking links…",
+  "@deadLinksChecking": {
+    "description": "Идёт проверка ссылок"
+  },
+  "deadLinksKeep": "Keep",
+  "@deadLinksKeep": {
+    "description": "Оставить заметку с копией, убрать из списка битых"
+  },
+  "deadLinksDelete": "Delete",
+  "@deadLinksDelete": {
+    "description": "Удалить заметку с мёртвой ссылкой в корзину"
+  },
+  "deadLinksDeleted": "Note moved to trash",
+  "@deadLinksDeleted": {
+    "description": "Плашка после удаления"
+  },
+  "deadLinksCount": "{count, plural, one{{count} doesn't open} other{{count} don't open}}",
+  "@deadLinksCount": {
+    "description": "Сколько битых ссылок, подпись пункта настроек",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsArticles": "Articles",
+  "@settingsArticles": {
+    "description": "Раздел настроек"
+  },
+  "articleImages": "Article images",
+  "@articleImages": {
+    "description": "Включатель скачивания картинок статей"
+  },
+  "articleImagesAbout": "Download on Wi-Fi to read articles with images offline",
+  "@articleImagesAbout": {
+    "description": "Подпись включателя картинок статей"
   }
 }

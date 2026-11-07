@@ -55,10 +55,16 @@ class ItemCard {
     this.longitude,
     this.placeName,
     this.copying = 0,
+    this.gone = false,
+    this.hasCopy = false,
   });
 
   /// Сколько файлов вещи ещё ложится во вложения.
   final int copying;
+
+  /// Ссылка больше не открывается; [hasCopy] — текст статьи сохранён в Stowa.
+  final bool gone;
+  final bool hasCopy;
 
   /// Та же карточка в другом месте: событие и заведение стоят на карте там, где они есть.
   ItemCard placedAt(double latitude, double longitude, String? name) => ItemCard(
@@ -86,6 +92,8 @@ class ItemCard {
     longitude: longitude,
     placeName: name ?? placeName,
     copying: copying,
+    gone: gone,
+    hasCopy: hasCopy,
   );
 
   /// Где вещь сохранена. Пусто — место не снималось.
@@ -178,7 +186,10 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folder
     WHERE item_tags.item_id = items.id) AS tag_names,
   (SELECT attachments.path || char(31) || attachments.mime || char(31) || attachments.size FROM attachments
     WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS first_file,
-  (SELECT count(*) FROM file_jobs WHERE file_jobs.item_id = items.id) AS copying
+  (SELECT count(*) FROM file_jobs WHERE file_jobs.item_id = items.id) AS copying,
+  -- у мёртвой ссылки — сохранён ли текст статьи; у живой не важно, лишнего запроса нет
+  CASE WHEN items.gone_at IS NULL THEN 0
+    ELSE EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind = 'articleText') END AS has_copy
 FROM items LEFT JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
 WHERE items.deleted_at IS NULL''';
 
@@ -492,6 +503,15 @@ WHERE items.deleted_at IS NULL''';
   /// Заметку открыли: «ни разу не открыто» больше не про неё. Время правки и файл не трогаются.
   Future<void> markOpened(String id, DateTime at) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(openedAt: Value(at)));
 
+  /// Битые ссылки, которые человек ещё не решил: свежие смерти сверху.
+  Stream<List<ItemCard>> watchDeadLinks() => _db
+      .customSelect('$_cardSelect AND items.gone_at IS NOT NULL AND items.gone_kept = 0 ORDER BY items.gone_at DESC', readsFrom: _cardTables)
+      .watch()
+      .map((rows) => [for (final row in rows) _card(row)]);
+
+  /// Оставить заметку с мёртвой ссылкой: из «Битых ссылок» она уходит, пометка на карточке остаётся.
+  Future<void> keepDeadLink(String id) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(goneKept: Value(true)));
+
   /// Где остановился в читалке: доля прокрутки. В файл хранилища не идёт.
   Future<void> setReadPosition(String id, double position) =>
       (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(readPosition: Value(position.clamp(0, 1).toDouble())));
@@ -743,6 +763,8 @@ WHERE items.deleted_at IS NULL''';
       longitude: item.longitude,
       placeName: item.placeName,
       copying: row.readNullable<int>('copying') ?? 0,
+      gone: item.goneAt != null,
+      hasCopy: (row.readNullable<int>('has_copy') ?? 0) == 1,
     );
   }
 

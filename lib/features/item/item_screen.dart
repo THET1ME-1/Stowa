@@ -496,6 +496,22 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           const SizedBox(height: 18),
                         ] else if (linkLike) ...[
                           LinkPreviewCard(item: item, filesRoot: filesRoot, onOpen: openMain),
+                          if (item.goneAt != null)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 10, 8, 0),
+                              child: Row(
+                                children: [
+                                  Icon(symbolIcon('link_off'), size: 16, color: Tokens.onSurfaceVariant),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      articleMinutes(facts) != null ? l.readerGone : l.linkGone,
+                                      style: const TextStyle(fontSize: 13, color: Tokens.onSurfaceVariant),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           // статья сохранена текстом: читать в Stowa, без сети
                           if (articleMinutes(facts) case final minutes?) ...[
                             const SizedBox(height: 10),

@@ -219,6 +219,16 @@ class SettingsRepository {
 
   Future<void> setShowAdult(bool on) => _set(() => _prefs.setBool(_showAdult, on));
 
+  /// Скачивать картинки статей по Wi-Fi. По умолчанию нет: картинки весят в десятки раз больше текста.
+  bool get articleImages => _prefs.getBool('article_images') ?? false;
+
+  Stream<bool> watchArticleImages() async* {
+    yield articleImages;
+    yield* _changes.stream.map((_) => articleImages).distinct();
+  }
+
+  Future<void> setArticleImages(bool on) => _set(() => _prefs.setBool('article_images', on));
+
   /// Язык, выбранный руками. Пусто — язык устройства.
   AppLanguage? get language => switch (_prefs.getString(_language)) {
     final code? => AppLanguage.values.where((language) => language.code == code).firstOrNull,

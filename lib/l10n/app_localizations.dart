@@ -3472,6 +3472,84 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Quotes'**
   String get highlightsTitle;
+
+  /// Метка мёртвой ссылки без копии статьи
+  ///
+  /// In en, this message translates to:
+  /// **'Link no longer opens'**
+  String get linkGone;
+
+  /// Экран и пункт настроек
+  ///
+  /// In en, this message translates to:
+  /// **'Broken links'**
+  String get deadLinksTitle;
+
+  /// Пояснение над списком битых ссылок
+  ///
+  /// In en, this message translates to:
+  /// **'Once a week on Wi-Fi, Stowa checks your saved links. Pages the site removed end up here.'**
+  String get deadLinksAbout;
+
+  /// Битых ссылок нет
+  ///
+  /// In en, this message translates to:
+  /// **'All links open'**
+  String get deadLinksEmpty;
+
+  /// Проверить все ссылки сейчас
+  ///
+  /// In en, this message translates to:
+  /// **'Check now'**
+  String get deadLinksCheck;
+
+  /// Идёт проверка ссылок
+  ///
+  /// In en, this message translates to:
+  /// **'Checking links…'**
+  String get deadLinksChecking;
+
+  /// Оставить заметку с копией, убрать из списка битых
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get deadLinksKeep;
+
+  /// Удалить заметку с мёртвой ссылкой в корзину
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deadLinksDelete;
+
+  /// Плашка после удаления
+  ///
+  /// In en, this message translates to:
+  /// **'Note moved to trash'**
+  String get deadLinksDeleted;
+
+  /// Сколько битых ссылок, подпись пункта настроек
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} doesn\'t open} other{{count} don\'t open}}'**
+  String deadLinksCount(int count);
+
+  /// Раздел настроек
+  ///
+  /// In en, this message translates to:
+  /// **'Articles'**
+  String get settingsArticles;
+
+  /// Включатель скачивания картинок статей
+  ///
+  /// In en, this message translates to:
+  /// **'Article images'**
+  String get articleImages;
+
+  /// Подпись включателя картинок статей
+  ///
+  /// In en, this message translates to:
+  /// **'Download on Wi-Fi to read articles with images offline'**
+  String get articleImagesAbout;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

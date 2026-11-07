@@ -2159,4 +2159,55 @@ class LUk extends L {
 
   @override
   String get highlightsTitle => 'Цитати';
+
+  @override
+  String get linkGone => 'Посилання не відкривається';
+
+  @override
+  String get deadLinksTitle => 'Биті посилання';
+
+  @override
+  String get deadLinksAbout =>
+      'Раз на тиждень через Wi-Fi Stowa перевіряє збережені посилання. Сюди потрапляють сторінки, які сайт видалив.';
+
+  @override
+  String get deadLinksEmpty => 'Усі посилання відкриваються';
+
+  @override
+  String get deadLinksCheck => 'Перевірити зараз';
+
+  @override
+  String get deadLinksChecking => 'Перевіряю посилання…';
+
+  @override
+  String get deadLinksKeep => 'Залишити';
+
+  @override
+  String get deadLinksDelete => 'Видалити';
+
+  @override
+  String get deadLinksDeleted => 'Нотатка в кошику';
+
+  @override
+  String deadLinksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count не відкриваються',
+      many: '$count не відкриваються',
+      few: '$count не відкриваються',
+      one: '$count не відкривається',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsArticles => 'Статті';
+
+  @override
+  String get articleImages => 'Картинки статей';
+
+  @override
+  String get articleImagesAbout =>
+      'Завантажувати через Wi-Fi, щоб читати статті з картинками без мережі';
 }

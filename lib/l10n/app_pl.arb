@@ -312,5 +312,18 @@
   "readerGone": "Oryginał usunięty · kopia zapisana",
   "readerNoCopy": "Tekst artykułu się nie zapisał. Można go otworzyć na stronie.",
   "readerImageOff": "Obraz nie zapisany",
-  "highlightsTitle": "Cytaty"
+  "highlightsTitle": "Cytaty",
+  "linkGone": "Link się nie otwiera",
+  "deadLinksTitle": "Martwe linki",
+  "deadLinksAbout": "Raz w tygodniu przez Wi-Fi Stowa sprawdza zapisane linki. Tu trafiają strony usunięte przez witrynę.",
+  "deadLinksEmpty": "Wszystkie linki działają",
+  "deadLinksCheck": "Sprawdź teraz",
+  "deadLinksChecking": "Sprawdzam linki…",
+  "deadLinksKeep": "Zostaw",
+  "deadLinksDelete": "Usuń",
+  "deadLinksDeleted": "Notatka w koszu",
+  "deadLinksCount": "{count, plural, one{{count} nie działa} few{{count} nie działają} many{{count} nie działa} other{{count} nie działa}}",
+  "settingsArticles": "Artykuły",
+  "articleImages": "Obrazy w artykułach",
+  "articleImagesAbout": "Pobieraj przez Wi-Fi, żeby czytać artykuły z obrazami bez sieci"
 }

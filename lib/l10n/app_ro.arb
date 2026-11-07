@@ -312,5 +312,18 @@
   "readerGone": "Originalul a fost șters · copia e salvată",
   "readerNoCopy": "Textul articolului nu s-a salvat. Îl poți deschide pe site.",
   "readerImageOff": "Imagine nesalvată",
-  "highlightsTitle": "Citate"
+  "highlightsTitle": "Citate",
+  "linkGone": "Linkul nu se mai deschide",
+  "deadLinksTitle": "Linkuri moarte",
+  "deadLinksAbout": "O dată pe săptămână, pe Wi-Fi, Stowa verifică linkurile salvate. Aici ajung paginile șterse de site.",
+  "deadLinksEmpty": "Toate linkurile se deschid",
+  "deadLinksCheck": "Verifică acum",
+  "deadLinksChecking": "Verific linkurile…",
+  "deadLinksKeep": "Păstrează",
+  "deadLinksDelete": "Șterge",
+  "deadLinksDeleted": "Notița e în coș",
+  "deadLinksCount": "{count, plural, one{{count} nu se deschide} few{{count} nu se deschid} other{{count} nu se deschid}}",
+  "settingsArticles": "Articole",
+  "articleImages": "Imaginile articolelor",
+  "articleImagesAbout": "Descarcă pe Wi-Fi ca să citești articolele cu imagini fără rețea"
 }

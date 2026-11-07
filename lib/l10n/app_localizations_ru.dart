@@ -2164,4 +2164,55 @@ class LRu extends L {
 
   @override
   String get highlightsTitle => 'Цитаты';
+
+  @override
+  String get linkGone => 'Ссылка не открывается';
+
+  @override
+  String get deadLinksTitle => 'Битые ссылки';
+
+  @override
+  String get deadLinksAbout =>
+      'Раз в неделю по Wi-Fi Stowa проверяет сохранённые ссылки. Сюда попадают страницы, которые сайт удалил.';
+
+  @override
+  String get deadLinksEmpty => 'Все ссылки открываются';
+
+  @override
+  String get deadLinksCheck => 'Проверить сейчас';
+
+  @override
+  String get deadLinksChecking => 'Проверяю ссылки…';
+
+  @override
+  String get deadLinksKeep => 'Оставить';
+
+  @override
+  String get deadLinksDelete => 'Удалить';
+
+  @override
+  String get deadLinksDeleted => 'Заметка в корзине';
+
+  @override
+  String deadLinksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count не открываются',
+      many: '$count не открываются',
+      few: '$count не открываются',
+      one: '$count не открывается',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsArticles => 'Статьи';
+
+  @override
+  String get articleImages => 'Картинки статей';
+
+  @override
+  String get articleImagesAbout =>
+      'Скачивать по Wi-Fi, чтобы читать статьи с картинками без сети';
 }

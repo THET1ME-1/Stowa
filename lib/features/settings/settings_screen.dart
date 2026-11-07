@@ -24,6 +24,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
 import '../../services/backup_service.dart';
 import '../../services/telegram_service.dart';
+import '../links/dead_links_screen.dart';
 import '../places/places_screen.dart';
 import '../places/reminder_permissions.dart';
 import '../tags/tags_screen.dart';
@@ -64,6 +65,7 @@ class SettingsScreen extends ConsumerWidget {
     final queued = ref.watch(aiQueueProvider).value ?? 0;
     final language = ref.watch(languageProvider).value;
     final trashed = ref.watch(trashProvider).value?.length ?? 0;
+    final deadLinks = ref.watch(deadLinksProvider).value?.length ?? 0;
     final telegram = ref.watch(telegramStateProvider).value ?? const TelegramState();
 
     return Scaffold(
@@ -142,6 +144,27 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.returnSettingsHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
+            _Section(l.settingsArticles),
+            _Group(
+              children: [
+                _SwitchRow(
+                  icon: 'image',
+                  title: l.articleImages,
+                  value: ref.watch(articleImagesProvider).value ?? false,
+                  onChanged: (on) => ref.read(settingsRepositoryProvider).setArticleImages(on),
+                ),
+                _Row(
+                  icon: 'link_off',
+                  title: l.deadLinksTitle,
+                  value: deadLinks > 0 ? l.deadLinksCount(deadLinks) : null,
+                  onTap: () => Navigator.of(context).push(deadLinksRoute()),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+              child: Text(l.articleImagesAbout, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
             _Section(l.vaultSection),
             _Group(

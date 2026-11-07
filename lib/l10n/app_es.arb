@@ -312,5 +312,18 @@
   "readerGone": "Original eliminado · copia guardada",
   "readerNoCopy": "El texto del artículo no se guardó. Puedes abrirlo en el sitio.",
   "readerImageOff": "Imagen no guardada",
-  "highlightsTitle": "Citas"
+  "highlightsTitle": "Citas",
+  "linkGone": "El enlace ya no abre",
+  "deadLinksTitle": "Enlaces rotos",
+  "deadLinksAbout": "Una vez a la semana, con Wi-Fi, Stowa revisa tus enlaces guardados. Aquí llegan las páginas que el sitio borró.",
+  "deadLinksEmpty": "Todos los enlaces abren",
+  "deadLinksCheck": "Comprobar ahora",
+  "deadLinksChecking": "Comprobando enlaces…",
+  "deadLinksKeep": "Conservar",
+  "deadLinksDelete": "Eliminar",
+  "deadLinksDeleted": "Nota en la papelera",
+  "deadLinksCount": "{count, plural, one{{count} no abre} other{{count} no abren}}",
+  "settingsArticles": "Artículos",
+  "articleImages": "Imágenes de artículos",
+  "articleImagesAbout": "Descargar con Wi-Fi para leer artículos con imágenes sin conexión"
 }

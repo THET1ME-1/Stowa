@@ -560,5 +560,18 @@
   "readerGone": "Оригинал удалён · копия сохранена",
   "readerNoCopy": "Текст статьи не сохранился. Его можно открыть на сайте.",
   "readerImageOff": "Картинка не сохранена",
-  "highlightsTitle": "Цитаты"
+  "highlightsTitle": "Цитаты",
+  "linkGone": "Ссылка не открывается",
+  "deadLinksTitle": "Битые ссылки",
+  "deadLinksAbout": "Раз в неделю по Wi-Fi Stowa проверяет сохранённые ссылки. Сюда попадают страницы, которые сайт удалил.",
+  "deadLinksEmpty": "Все ссылки открываются",
+  "deadLinksCheck": "Проверить сейчас",
+  "deadLinksChecking": "Проверяю ссылки…",
+  "deadLinksKeep": "Оставить",
+  "deadLinksDelete": "Удалить",
+  "deadLinksDeleted": "Заметка в корзине",
+  "deadLinksCount": "{count, plural, one{{count} не открывается} few{{count} не открываются} many{{count} не открываются} other{{count} не открываются}}",
+  "settingsArticles": "Статьи",
+  "articleImages": "Картинки статей",
+  "articleImagesAbout": "Скачивать по Wi-Fi, чтобы читать статьи с картинками без сети"
 }

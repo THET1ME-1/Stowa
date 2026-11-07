@@ -21,6 +21,7 @@ import 'capture_service.dart';
 import 'facts/extractors.dart';
 import 'facts/facts_pipeline.dart';
 import 'facts/web_extractors.dart';
+import 'link_checker.dart';
 import 'link_preview_service.dart' show httpFetch, httpPost;
 import 'file_keeper.dart';
 import 'place_alarms.dart';
@@ -38,6 +39,9 @@ const _fileTask = 'stowa-files';
 
 /// Вернуть сохранённое: вечернее окно проверяется раз в 15 минут, сеть не нужна.
 const _returnTask = 'stowa-return';
+
+/// Битые ссылки: раз в неделю по Wi-Fi.
+const _linksTask = 'stowa-links';
 
 /// Чужая задача держится столько после последнего знака жизни: фон ждёт её и забирает.
 const _abandoned = Duration(seconds: 16);
@@ -75,6 +79,14 @@ Future<void> scheduleBackgroundWork() async {
   );
   // без сети: «посмотреть потом» и «в этот день» решаются по базе на телефоне
   await Workmanager().registerPeriodicTask(_returnTask, _returnTask, frequency: const Duration(minutes: 15), existingWorkPolicy: ExistingPeriodicWorkPolicy.keep);
+  // битые ссылки — раз в неделю и только по Wi-Fi: мобильный трафик на это не тратится
+  await Workmanager().registerPeriodicTask(
+    _linksTask,
+    _linksTask,
+    frequency: linkCheckInterval,
+    constraints: Constraints(networkType: NetworkType.unmetered),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+  );
 }
 
 /// Проход возврата в фоне: решить и, если пора, показать одно тихое уведомление.
@@ -99,6 +111,17 @@ void backgroundDispatcher() {
     if (task == _returnTask) {
       try {
         await returnInBackground(db, prefs, settings);
+        return true;
+      } catch (_) {
+        return false;
+      } finally {
+        await db.close();
+      }
+    }
+    // проверка ссылок пишет только в базу: файлы хранилища она не меняет
+    if (task == _linksTask) {
+      try {
+        await LinkChecker(db, clock: DateTime.now).run();
         return true;
       } catch (_) {
         return false;

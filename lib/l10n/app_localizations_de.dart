@@ -2122,4 +2122,53 @@ class LDe extends L {
 
   @override
   String get highlightsTitle => 'Zitate';
+
+  @override
+  String get linkGone => 'Link öffnet nicht mehr';
+
+  @override
+  String get deadLinksTitle => 'Tote Links';
+
+  @override
+  String get deadLinksAbout =>
+      'Einmal pro Woche prüft Stowa über WLAN deine gespeicherten Links. Hier landen Seiten, die die Website gelöscht hat.';
+
+  @override
+  String get deadLinksEmpty => 'Alle Links funktionieren';
+
+  @override
+  String get deadLinksCheck => 'Jetzt prüfen';
+
+  @override
+  String get deadLinksChecking => 'Prüfe Links…';
+
+  @override
+  String get deadLinksKeep => 'Behalten';
+
+  @override
+  String get deadLinksDelete => 'Löschen';
+
+  @override
+  String get deadLinksDeleted => 'Notiz im Papierkorb';
+
+  @override
+  String deadLinksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count öffnen nicht',
+      one: '$count öffnet nicht',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsArticles => 'Artikel';
+
+  @override
+  String get articleImages => 'Bilder in Artikeln';
+
+  @override
+  String get articleImagesAbout =>
+      'Über WLAN laden, um Artikel mit Bildern offline zu lesen';
 }

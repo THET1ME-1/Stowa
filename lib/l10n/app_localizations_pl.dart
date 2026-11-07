@@ -2160,4 +2160,55 @@ class LPl extends L {
 
   @override
   String get highlightsTitle => 'Cytaty';
+
+  @override
+  String get linkGone => 'Link się nie otwiera';
+
+  @override
+  String get deadLinksTitle => 'Martwe linki';
+
+  @override
+  String get deadLinksAbout =>
+      'Raz w tygodniu przez Wi-Fi Stowa sprawdza zapisane linki. Tu trafiają strony usunięte przez witrynę.';
+
+  @override
+  String get deadLinksEmpty => 'Wszystkie linki działają';
+
+  @override
+  String get deadLinksCheck => 'Sprawdź teraz';
+
+  @override
+  String get deadLinksChecking => 'Sprawdzam linki…';
+
+  @override
+  String get deadLinksKeep => 'Zostaw';
+
+  @override
+  String get deadLinksDelete => 'Usuń';
+
+  @override
+  String get deadLinksDeleted => 'Notatka w koszu';
+
+  @override
+  String deadLinksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nie działa',
+      many: '$count nie działa',
+      few: '$count nie działają',
+      one: '$count nie działa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsArticles => 'Artykuły';
+
+  @override
+  String get articleImages => 'Obrazy w artykułach';
+
+  @override
+  String get articleImagesAbout =>
+      'Pobieraj przez Wi-Fi, żeby czytać artykuły z obrazami bez sieci';
 }

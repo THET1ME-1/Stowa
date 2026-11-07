@@ -51,6 +51,25 @@ void main() {
     expect(folders.last.count, 1);
   });
 
+  test('мёртвая ссылка на карточке: с копией статьи и без неё; живая — без пометки', () async {
+    for (final id in ['copy', 'bare', 'alive']) {
+      await db.into(db.items).insert(ItemsCompanion.insert(
+            id: id,
+            kind: ItemKind.link,
+            title: id,
+            url: Value('https://$id.md'),
+            goneAt: Value(id == 'alive' ? null : _day),
+            createdAt: _day,
+            updatedAt: _day,
+          ));
+    }
+    await db.into(db.facts).insert(FactsCompanion.insert(id: 'f', itemId: 'copy', extractor: 'article', kind: FactKind.articleText, value: 'текст'));
+    final cards = {for (final card in await ItemsRepository(db).watchRecent().first) card.id: card};
+    expect((cards['copy']!.gone, cards['copy']!.hasCopy), (true, true));
+    expect((cards['bare']!.gone, cards['bare']!.hasCopy), (true, false));
+    expect(cards['alive']!.gone, isFalse);
+  });
+
   test('цвет папки: выбранный из палитры, без выбора — по месту в списке; заметка берёт цвет своей папки', () async {
     final folders = FoldersRepository(db);
     await db.into(db.folders).insert(FoldersCompanion.insert(id: 'a', name: 'Первая', icon: 'folder', shape: 'pill'));

@@ -2119,4 +2119,53 @@ class LEs extends L {
 
   @override
   String get highlightsTitle => 'Citas';
+
+  @override
+  String get linkGone => 'El enlace ya no abre';
+
+  @override
+  String get deadLinksTitle => 'Enlaces rotos';
+
+  @override
+  String get deadLinksAbout =>
+      'Una vez a la semana, con Wi-Fi, Stowa revisa tus enlaces guardados. Aquí llegan las páginas que el sitio borró.';
+
+  @override
+  String get deadLinksEmpty => 'Todos los enlaces abren';
+
+  @override
+  String get deadLinksCheck => 'Comprobar ahora';
+
+  @override
+  String get deadLinksChecking => 'Comprobando enlaces…';
+
+  @override
+  String get deadLinksKeep => 'Conservar';
+
+  @override
+  String get deadLinksDelete => 'Eliminar';
+
+  @override
+  String get deadLinksDeleted => 'Nota en la papelera';
+
+  @override
+  String deadLinksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count no abren',
+      one: '$count no abre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsArticles => 'Artículos';
+
+  @override
+  String get articleImages => 'Imágenes de artículos';
+
+  @override
+  String get articleImagesAbout =>
+      'Descargar con Wi-Fi para leer artículos con imágenes sin conexión';
 }

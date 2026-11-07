@@ -2117,4 +2117,53 @@ class LEn extends L {
 
   @override
   String get highlightsTitle => 'Quotes';
+
+  @override
+  String get linkGone => 'Link no longer opens';
+
+  @override
+  String get deadLinksTitle => 'Broken links';
+
+  @override
+  String get deadLinksAbout =>
+      'Once a week on Wi-Fi, Stowa checks your saved links. Pages the site removed end up here.';
+
+  @override
+  String get deadLinksEmpty => 'All links open';
+
+  @override
+  String get deadLinksCheck => 'Check now';
+
+  @override
+  String get deadLinksChecking => 'Checking links…';
+
+  @override
+  String get deadLinksKeep => 'Keep';
+
+  @override
+  String get deadLinksDelete => 'Delete';
+
+  @override
+  String get deadLinksDeleted => 'Note moved to trash';
+
+  @override
+  String deadLinksCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count don\'t open',
+      one: '$count doesn\'t open',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsArticles => 'Articles';
+
+  @override
+  String get articleImages => 'Article images';
+
+  @override
+  String get articleImagesAbout =>
+      'Download on Wi-Fi to read articles with images offline';
 }

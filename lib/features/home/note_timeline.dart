@@ -599,6 +599,13 @@ class _Marks extends StatelessWidget {
             lead: Icon(symbolIcon('alarm'), size: 14, color: Tokens.onSurfaceVariant),
             label: formatReminderShort(l, at, now),
           ),
+        if (item.gone)
+          _Chip(
+            fill: Tokens.containerHigh,
+            ink: Tokens.onSurfaceVariant,
+            lead: Icon(symbolIcon('link_off'), size: 14, color: Tokens.onSurfaceVariant),
+            label: item.hasCopy ? l.readerGone : l.linkGone,
+          ),
       ],
     );
   }

@@ -312,5 +312,18 @@
   "readerGone": "Original gelöscht · Kopie gespeichert",
   "readerNoCopy": "Der Artikeltext wurde nicht gespeichert. Du kannst ihn auf der Website öffnen.",
   "readerImageOff": "Bild nicht gespeichert",
-  "highlightsTitle": "Zitate"
+  "highlightsTitle": "Zitate",
+  "linkGone": "Link öffnet nicht mehr",
+  "deadLinksTitle": "Tote Links",
+  "deadLinksAbout": "Einmal pro Woche prüft Stowa über WLAN deine gespeicherten Links. Hier landen Seiten, die die Website gelöscht hat.",
+  "deadLinksEmpty": "Alle Links funktionieren",
+  "deadLinksCheck": "Jetzt prüfen",
+  "deadLinksChecking": "Prüfe Links…",
+  "deadLinksKeep": "Behalten",
+  "deadLinksDelete": "Löschen",
+  "deadLinksDeleted": "Notiz im Papierkorb",
+  "deadLinksCount": "{count, plural, one{{count} öffnet nicht} other{{count} öffnen nicht}}",
+  "settingsArticles": "Artikel",
+  "articleImages": "Bilder in Artikeln",
+  "articleImagesAbout": "Über WLAN laden, um Artikel mit Bildern offline zu lesen"
 }
