@@ -327,5 +327,11 @@
   "articleImages": "Imágenes de artículos",
   "articleImagesAbout": "Descargar con Wi-Fi para leer artículos con imágenes sin conexión",
   "foundInArticle": "en el artículo",
-  "foundInQuote": "en una cita"
+  "foundInQuote": "en una cita",
+  "settingsStart": "Al abrir",
+  "startOpen": "Abrir",
+  "startHome": "Inicio",
+  "startLast": "La última nota",
+  "startRandom": "Una nota al azar",
+  "startHint": "La última: sigues donde lo dejaste. Al azar: cada vez que abres la app te recuerda algo guardado, y así se queda mejor."
 }

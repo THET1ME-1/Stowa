@@ -2191,4 +2191,23 @@ class LRo extends L {
 
   @override
   String get foundInQuote => 'într-un citat';
+
+  @override
+  String get settingsStart => 'La pornire';
+
+  @override
+  String get startOpen => 'Deschide';
+
+  @override
+  String get startHome => 'Pagina principală';
+
+  @override
+  String get startLast => 'Ultima notiță';
+
+  @override
+  String get startRandom => 'O notiță la întâmplare';
+
+  @override
+  String get startHint =>
+      'Ultima: continui de unde ai rămas. La întâmplare: la fiecare pornire îți amintește ceva salvat, așa reții mai bine.';
 }

@@ -3562,6 +3562,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'in a quote'**
   String get foundInQuote;
+
+  /// Раздел настроек: что открывается при запуске
+  ///
+  /// In en, this message translates to:
+  /// **'On launch'**
+  String get settingsStart;
+
+  /// Строка настроек: что открывать при запуске
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get startOpen;
+
+  /// При запуске открывать главную
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get startHome;
+
+  /// При запуске открывать последнюю открытую заметку
+  ///
+  /// In en, this message translates to:
+  /// **'Last note'**
+  String get startLast;
+
+  /// При запуске открывать случайную заметку
+  ///
+  /// In en, this message translates to:
+  /// **'Random note'**
+  String get startRandom;
+
+  /// Пояснение под выбором запуска
+  ///
+  /// In en, this message translates to:
+  /// **'Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.'**
+  String get startHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

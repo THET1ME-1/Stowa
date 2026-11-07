@@ -2221,4 +2221,23 @@ class LRu extends L {
 
   @override
   String get foundInQuote => 'в цитате';
+
+  @override
+  String get settingsStart => 'Запуск';
+
+  @override
+  String get startOpen => 'Открывать';
+
+  @override
+  String get startHome => 'Главную';
+
+  @override
+  String get startLast => 'Последнюю заметку';
+
+  @override
+  String get startRandom => 'Случайную заметку';
+
+  @override
+  String get startHint =>
+      'Последняя — продолжить с того места, где остановились. Случайная — каждый запуск напоминает что-то из сохранённого, так записанное лучше запоминается.';
 }

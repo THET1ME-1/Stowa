@@ -98,6 +98,19 @@ void main() {
     expect(settings.showAdult, isTrue);
   });
 
+  testWidgets('«Запуск»: по умолчанию главная, выбор из листа сохраняется', (tester) async {
+    await open(tester, keyStatus: 200);
+    await tester.scrollUntilVisible(find.text('Открывать'), 200);
+    await tester.pumpAndSettle();
+    expect(find.text('Главную'), findsOneWidget);
+    await tester.tap(find.text('Открывать'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Случайную заметку'));
+    await tester.pumpAndSettle();
+    expect(settings.startScreen, StartScreen.random);
+    expect(find.text('Случайную заметку'), findsOneWidget);
+  });
+
   testWidgets('раздел «Хранилище»: где лежит, перенос и «Пересобрать указатель»', (tester) async {
     await open(tester, keyStatus: 200);
     // экран теста короткий: заголовок и строки раздела на нём разом не видны

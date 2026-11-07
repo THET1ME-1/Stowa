@@ -2177,4 +2177,23 @@ class LDe extends L {
 
   @override
   String get foundInQuote => 'in einem Zitat';
+
+  @override
+  String get settingsStart => 'Beim Start';
+
+  @override
+  String get startOpen => 'Öffnen';
+
+  @override
+  String get startHome => 'Startseite';
+
+  @override
+  String get startLast => 'Letzte Notiz';
+
+  @override
+  String get startRandom => 'Zufällige Notiz';
+
+  @override
+  String get startHint =>
+      'Letzte: dort weitermachen, wo du aufgehört hast. Zufällig: Jeder Start erinnert an etwas Gespeichertes, so bleibt es besser hängen.';
 }

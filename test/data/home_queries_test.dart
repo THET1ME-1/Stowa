@@ -150,4 +150,21 @@ void main() {
     expect(await handleReminderAction(items, actionId: reminderDone, itemId: '1', now: _day), isNull);
     expect(await items.watchReminders().first, isEmpty);
   });
+
+  test('заметка для запуска: последняя открытая живая, случайная только из живых', () async {
+    final items = ItemsRepository(db);
+    expect(await items.lastOpenedId(), isNull);
+    expect(await items.randomId(), isNull);
+
+    await _item(db, '1');
+    await _item(db, '2');
+    await _item(db, '3', deleted: true);
+    await items.markOpened('1', _day.add(const Duration(hours: 2)));
+    await items.markOpened('2', _day.add(const Duration(hours: 1)));
+    await items.markOpened('3', _day.add(const Duration(hours: 3)));
+    expect(await items.lastOpenedId(), '1');
+
+    final seen = {for (var round = 0; round < 30; round++) await items.randomId()};
+    expect(seen, {'1', '2'});
+  });
 }

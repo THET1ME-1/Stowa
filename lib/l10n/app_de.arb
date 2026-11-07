@@ -327,5 +327,11 @@
   "articleImages": "Bilder in Artikeln",
   "articleImagesAbout": "Über WLAN laden, um Artikel mit Bildern offline zu lesen",
   "foundInArticle": "im Artikel",
-  "foundInQuote": "in einem Zitat"
+  "foundInQuote": "in einem Zitat",
+  "settingsStart": "Beim Start",
+  "startOpen": "Öffnen",
+  "startHome": "Startseite",
+  "startLast": "Letzte Notiz",
+  "startRandom": "Zufällige Notiz",
+  "startHint": "Letzte: dort weitermachen, wo du aufgehört hast. Zufällig: Jeder Start erinnert an etwas Gespeichertes, so bleibt es besser hängen."
 }

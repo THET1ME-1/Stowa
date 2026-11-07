@@ -83,6 +83,12 @@ final vaultLocationProvider = Provider(
 /// Место хранилища уже выбирали на экране первого запуска.
 final vaultAskedProvider = Provider<bool>((ref) => ref.watch(settingsRepositoryProvider).vaultAsked);
 
+/// Что открыть при этом запуске: читается один раз, смена в настройках сработает со следующего.
+final startScreenProvider = Provider<StartScreen>((ref) => ref.read(settingsRepositoryProvider).startScreen);
+
+/// Выбор «При запуске» для экрана настроек.
+final startScreenChoiceProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchStartScreen());
+
 /// Часы: в тестах подменяются, чтобы «завтра» было предсказуемым.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 

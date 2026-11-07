@@ -327,5 +327,11 @@
   "articleImages": "Obrazy w artykułach",
   "articleImagesAbout": "Pobieraj przez Wi-Fi, żeby czytać artykuły z obrazami bez sieci",
   "foundInArticle": "w artykule",
-  "foundInQuote": "w cytacie"
+  "foundInQuote": "w cytacie",
+  "settingsStart": "Uruchamianie",
+  "startOpen": "Otwieraj",
+  "startHome": "Ekran główny",
+  "startLast": "Ostatnią notatkę",
+  "startRandom": "Losową notatkę",
+  "startHint": "Ostatnia: wracasz tam, gdzie skończyłeś. Losowa: każde uruchomienie przypomina coś z zapisanych, więc lepiej zostaje w pamięci."
 }

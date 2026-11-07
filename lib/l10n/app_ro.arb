@@ -327,5 +327,11 @@
   "articleImages": "Imaginile articolelor",
   "articleImagesAbout": "Descarcă pe Wi-Fi ca să citești articolele cu imagini fără rețea",
   "foundInArticle": "în articol",
-  "foundInQuote": "într-un citat"
+  "foundInQuote": "într-un citat",
+  "settingsStart": "La pornire",
+  "startOpen": "Deschide",
+  "startHome": "Pagina principală",
+  "startLast": "Ultima notiță",
+  "startRandom": "O notiță la întâmplare",
+  "startHint": "Ultima: continui de unde ai rămas. La întâmplare: la fiecare pornire îți amintește ceva salvat, așa reții mai bine."
 }

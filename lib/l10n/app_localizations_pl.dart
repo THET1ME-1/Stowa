@@ -2217,4 +2217,23 @@ class LPl extends L {
 
   @override
   String get foundInQuote => 'w cytacie';
+
+  @override
+  String get settingsStart => 'Uruchamianie';
+
+  @override
+  String get startOpen => 'Otwieraj';
+
+  @override
+  String get startHome => 'Ekran główny';
+
+  @override
+  String get startLast => 'Ostatnią notatkę';
+
+  @override
+  String get startRandom => 'Losową notatkę';
+
+  @override
+  String get startHint =>
+      'Ostatnia: wracasz tam, gdzie skończyłeś. Losowa: każde uruchomienie przypomina coś z zapisanych, więc lepiej zostaje w pamięci.';
 }

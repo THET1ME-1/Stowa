@@ -67,6 +67,13 @@ void main() {
     expect(settings.returnsAsked, isTrue);
   });
 
+  test('при запуске по умолчанию главная; выбор сохраняется', () async {
+    expect(settings.startScreen, StartScreen.home);
+    await settings.setStartScreen(StartScreen.random);
+    expect(settings.startScreen, StartScreen.random);
+    expect(await settings.watchStartScreen().first, StartScreen.random);
+  });
+
   test('изменения приходят потоком', () async {
     final seen = <bool>[];
     final subscription = settings.watchAi().listen((ai) => seen.add(ai.hasKey));

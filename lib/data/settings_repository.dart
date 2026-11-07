@@ -42,6 +42,9 @@ class MemoryKeyStore implements KeyStore {
 /// или внутри приложения (без разрешений, удаляется вместе с ним).
 enum VaultMode { device, app }
 
+/// Что открывается при запуске: главная, последняя открытая заметка или случайная.
+enum StartScreen { home, last, random }
+
 class AiSettings {
   const AiSettings({
     this.baseUrl = defaultAiBaseUrl,
@@ -228,6 +231,16 @@ class SettingsRepository {
   }
 
   Future<void> setArticleImages(bool on) => _set(() => _prefs.setBool('article_images', on));
+
+  /// Что открывать при запуске. По умолчанию главная.
+  StartScreen get startScreen => StartScreen.values.asNameMap()[_prefs.getString('start_screen')] ?? StartScreen.home;
+
+  Stream<StartScreen> watchStartScreen() async* {
+    yield startScreen;
+    yield* _changes.stream.map((_) => startScreen).distinct();
+  }
+
+  Future<void> setStartScreen(StartScreen value) => _set(() => _prefs.setString('start_screen', value.name));
 
   /// Язык, выбранный руками. Пусто — язык устройства.
   AppLanguage? get language => switch (_prefs.getString(_language)) {

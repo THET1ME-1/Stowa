@@ -197,6 +197,21 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
               child: Text(l.importTelegramHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
+            _Section(l.settingsStart),
+            _Group(
+              children: [
+                _Row(
+                  icon: 'start',
+                  title: l.startOpen,
+                  value: startLabel(l, ref.watch(startScreenChoiceProvider).value ?? StartScreen.home),
+                  onTap: () => _sheet(context, const _StartSheet()),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+              child: Text(l.startHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
             _Section(l.settingsLanguage),
             _Group(
               children: [_Row(icon: 'translate', title: l.settingsLanguage, value: language?.label ?? l.languageSystem, onTap: () => _showLanguageSheet(context, language))],
@@ -870,6 +885,36 @@ class _LanguageSheet extends ConsumerWidget {
         children: [
           _ModelTile(title: l.languageSystem, selected: current == null, onTap: () => pick(null)),
           for (final language in AppLanguage.values) _ModelTile(title: language.label, selected: language == current, onTap: () => pick(language)),
+        ],
+      ),
+    );
+  }
+}
+
+String startLabel(L l, StartScreen start) => switch (start) {
+  StartScreen.home => l.startHome,
+  StartScreen.last => l.startLast,
+  StartScreen.random => l.startRandom,
+};
+
+class _StartSheet extends ConsumerWidget {
+  const _StartSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L.of(context);
+    final current = ref.watch(startScreenChoiceProvider).value ?? StartScreen.home;
+    Future<void> pick(StartScreen start) async {
+      await ref.read(settingsRepositoryProvider).setStartScreen(start);
+      if (context.mounted) Navigator.pop(context);
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final start in StartScreen.values) _ModelTile(title: startLabel(l, start), selected: start == current, onTap: () => pick(start)),
         ],
       ),
     );

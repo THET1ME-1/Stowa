@@ -2758,5 +2758,29 @@
   "foundInQuote": "in a quote",
   "@foundInQuote": {
     "description": "Где нашлось: в цитате или пометке к ней"
+  },
+  "settingsStart": "On launch",
+  "@settingsStart": {
+    "description": "Раздел настроек: что открывается при запуске"
+  },
+  "startOpen": "Open",
+  "@startOpen": {
+    "description": "Строка настроек: что открывать при запуске"
+  },
+  "startHome": "Home",
+  "@startHome": {
+    "description": "При запуске открывать главную"
+  },
+  "startLast": "Last note",
+  "@startLast": {
+    "description": "При запуске открывать последнюю открытую заметку"
+  },
+  "startRandom": "Random note",
+  "@startRandom": {
+    "description": "При запуске открывать случайную заметку"
+  },
+  "startHint": "Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.",
+  "@startHint": {
+    "description": "Пояснение под выбором запуска"
   }
 }

@@ -2216,4 +2216,23 @@ class LUk extends L {
 
   @override
   String get foundInQuote => 'у цитаті';
+
+  @override
+  String get settingsStart => 'Запуск';
+
+  @override
+  String get startOpen => 'Відкривати';
+
+  @override
+  String get startHome => 'Головну';
+
+  @override
+  String get startLast => 'Останню нотатку';
+
+  @override
+  String get startRandom => 'Випадкову нотатку';
+
+  @override
+  String get startHint =>
+      'Остання — продовжити з того місця, де зупинилися. Випадкова — кожен запуск нагадує щось зі збереженого, так записане краще запам\'ятовується.';
 }

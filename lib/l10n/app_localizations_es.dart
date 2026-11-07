@@ -2174,4 +2174,23 @@ class LEs extends L {
 
   @override
   String get foundInQuote => 'en una cita';
+
+  @override
+  String get settingsStart => 'Al abrir';
+
+  @override
+  String get startOpen => 'Abrir';
+
+  @override
+  String get startHome => 'Inicio';
+
+  @override
+  String get startLast => 'La última nota';
+
+  @override
+  String get startRandom => 'Una nota al azar';
+
+  @override
+  String get startHint =>
+      'La última: sigues donde lo dejaste. Al azar: cada vez que abres la app te recuerda algo guardado, y así se queda mejor.';
 }

@@ -2172,4 +2172,23 @@ class LEn extends L {
 
   @override
   String get foundInQuote => 'in a quote';
+
+  @override
+  String get settingsStart => 'On launch';
+
+  @override
+  String get startOpen => 'Open';
+
+  @override
+  String get startHome => 'Home';
+
+  @override
+  String get startLast => 'Last note';
+
+  @override
+  String get startRandom => 'Random note';
+
+  @override
+  String get startHint =>
+      'Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.';
 }

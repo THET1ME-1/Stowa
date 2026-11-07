@@ -503,6 +503,21 @@ WHERE items.deleted_at IS NULL''';
   /// Заметку открыли: «ни разу не открыто» больше не про неё. Время правки и файл не трогаются.
   Future<void> markOpened(String id, DateTime at) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(openedAt: Value(at)));
 
+  /// Последняя открытая заметка не из корзины: с неё продолжается работа при запуске.
+  Future<String?> lastOpenedId() async {
+    final query = _db.select(_db.items)
+      ..where((t) => t.openedAt.isNotNull() & t.deletedAt.isNull())
+      ..orderBy([(t) => OrderingTerm.desc(t.openedAt)])
+      ..limit(1);
+    return (await query.getSingleOrNull())?.id;
+  }
+
+  /// Любая заметка не из корзины: запуск напоминает что-то из сохранённого.
+  Future<String?> randomId() async {
+    final row = await _db.customSelect('SELECT id FROM items WHERE deleted_at IS NULL ORDER BY RANDOM() LIMIT 1', readsFrom: {_db.items}).getSingleOrNull();
+    return row?.read<String>('id');
+  }
+
   /// Битые ссылки, которые человек ещё не решил: свежие смерти сверху.
   Stream<List<ItemCard>> watchDeadLinks() => _db
       .customSelect('$_cardSelect AND items.gone_at IS NOT NULL AND items.gone_kept = 0 ORDER BY items.gone_at DESC', readsFrom: _cardTables)

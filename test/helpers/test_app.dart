@@ -36,6 +36,9 @@ class TestWorld {
   /// Место хранилища уже выбрано: по умолчанию сразу главная, без экрана первого запуска.
   var vaultAsked = true;
 
+  /// Что открывать при запуске.
+  var startScreen = StartScreen.home;
+
   /// Папка хранилища пропала или отозвали доступ.
   var vaultMissing = false;
 
@@ -110,6 +113,8 @@ class TestWorld {
           placeEnabledProvider.overrideWith((ref) => Stream.value(true)),
           showAdultProvider.overrideWith((ref) => Stream.value(showAdult)),
           articleImagesProvider.overrideWith((ref) => Stream.value(false)),
+          startScreenProvider.overrideWithValue(startScreen),
+          startScreenChoiceProvider.overrideWith((ref) => Stream.value(startScreen)),
           // карточку «Возвращать сохранённое?» в чужих тестах уже закрыли
           returnsAskedProvider.overrideWith((ref) => Stream.value(true)),
           returnSettingsProvider.overrideWith((ref) => Stream.value(const ReturnSettings())),
