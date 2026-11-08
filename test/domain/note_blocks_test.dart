@@ -64,6 +64,14 @@ void main() {
     expect([for (final (_, _, kind) in shown.styles) kind], [MarkupStyle.italic, MarkupStyle.strike, MarkupStyle.code]);
   });
 
+  test('в подсказке строки-картинки не видны, отметки совпадений едут следом', () {
+    const text = 'Море у дома\n![[sea.jpg]]\nкупаться утром';
+    final shown = renderMarkup(text, [(text.indexOf('утром'), 5)]);
+    expect(shown.text, 'Море у дома\nкупаться утром');
+    expect([for (final (start, length) in shown.marks) shown.text.substring(start, start + length)], ['утром']);
+    expect(renderMarkup('Море\n![[sea.jpg]]', const []).text, 'Море');
+  });
+
   test('одиночная звёздочка или подчёркивание в слове — не разметка', () {
     expect(parseInline('snake_case и 2*3').single.text, 'snake_case и 2*3');
   });

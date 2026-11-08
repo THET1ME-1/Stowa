@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'item_kind.dart';
 import 'item_title.dart';
 
@@ -190,6 +192,12 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
 
   for (final line in text.split('\n')) {
     final lineEnd = from + line.length;
+    // строка-картинка в подсказке не видна: у карточки своё фото
+    if (embedLine.hasMatch(line)) {
+      drop(from, min(lineEnd + 1, text.length));
+      from = lineEnd + 1;
+      continue;
+    }
     final lead = _leadKinds.firstMatch(line);
     var at = from;
     MarkupStyle? lineStyle;
@@ -235,13 +243,19 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
   }
   moved[text.length] = out.length;
   styles.sort((a, b) => a.$1.compareTo(b.$1));
+  // картинка последней строкой оставила бы перенос в конце
+  var shown = out.toString();
+  while (shown.endsWith('\n') && !text.endsWith('\n')) {
+    shown = shown.substring(0, shown.length - 1);
+  }
+  int clamp(int value) => min(value, shown.length);
   return (
-    text: out.toString(),
+    text: shown,
     marks: [
       for (final (start, length) in marks)
-        if (start >= 0 && start + length <= text.length) (moved[start], moved[start + length] - moved[start]),
+        if (start >= 0 && start + length <= text.length) (clamp(moved[start]), clamp(moved[start + length]) - clamp(moved[start])),
     ],
-    styles: styles,
+    styles: [for (final (start, length, kind) in styles) if (start < shown.length) (start, clamp(start + length) - start, kind)],
   );
 }
 
