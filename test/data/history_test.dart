@@ -43,6 +43,16 @@ void main() {
     expect(saved.first.body, 'Ремонт\nкупить клей${'!' * 29}');
   });
 
+  test('открытый список версий видит снимок, который записал триггер', () async {
+    final seen = <int>[];
+    final subscription = history.watch('a').listen((list) => seen.add(list.length));
+    addTearDown(subscription.cancel);
+    await pumpEventQueue();
+    await edit('Ремонт\nплитка', start.add(const Duration(minutes: 15)));
+    await pumpEventQueue();
+    expect(seen, [0, 1]);
+  });
+
   test('без правки текста снимка нет', () async {
     await (db.update(db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(reminderAt: Value(start), updatedAt: Value(start.add(const Duration(days: 1)))));
     expect(await versions(), isEmpty);

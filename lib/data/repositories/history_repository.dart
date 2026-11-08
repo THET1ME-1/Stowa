@@ -12,12 +12,16 @@ class HistoryRepository {
   final AppDatabase _db;
   final ItemsRepository _items;
 
-  /// Версии заметки, новая первой.
-  Stream<List<NoteVersion>> watch(String itemId) =>
-      (_db.select(_db.noteVersions)
-            ..where((t) => t.itemId.equals(itemId))
-            ..orderBy([(t) => OrderingTerm.desc(t.savedAt)]))
-          .watch();
+  /// Версии заметки, новая первой. Снимки пишет триггер, а drift о нём не знает:
+  /// запрос пересчитывается и от правки заметок — снимок встаёт только вместе с ней.
+  Stream<List<NoteVersion>> watch(String itemId) => _db
+      .customSelect(
+        'SELECT * FROM note_versions WHERE item_id = ? ORDER BY saved_at DESC',
+        variables: [Variable.withString(itemId)],
+        readsFrom: {_db.noteVersions, _db.items},
+      )
+      .watch()
+      .map((rows) => [for (final row in rows) _db.noteVersions.map(row.data)]);
 
   /// Самый свежий снимок: после возврата версии это то, что было до него.
   Future<NoteVersion?> latest(String itemId) =>
