@@ -58,6 +58,9 @@ void main() {
 
   test('оттенок для доски: цветное по кругу, серое в конце', () {
     expect(boardHue('#DC1E1E'), lessThan(boardHue('#28AA3C')));
+    // красный с синевой (тон 356°) — тоже красный, в начале круга, а не после синего
+    expect(boardHue('#C81E28'), lessThan(boardHue('#1E3CC8')));
+    expect(boardHue('#C81E28'), lessThan(boardHue('#F08C14')));
     expect(boardHue('#28AA3C'), lessThan(boardHue('#1E3CC8')));
     expect(boardHue('#808080'), greaterThan(boardHue('#F078B4')));
     expect(boardHue(null), greaterThan(boardHue('#808080')));

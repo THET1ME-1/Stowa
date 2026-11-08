@@ -105,5 +105,6 @@ double boardHue(String? hex) {
   if (value == null) return 1000;
   final (hue, saturation, brightness) = _hsv(value >> 16 & 0xFF, value >> 8 & 0xFF, value & 0xFF);
   if (saturation < 0.15 || brightness < 0.2) return 400 + (1 - brightness) * 100;
-  return hue;
+  // красный с синевой (345°–360°) — тот же красный: в начало круга
+  return hue >= 345 ? hue - 360 : hue;
 }
