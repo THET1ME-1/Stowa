@@ -2326,4 +2326,24 @@ class LDe extends L {
 
   @override
   String get sortByColor => 'Nach Farbe';
+
+  @override
+  String qrWifi(String network) {
+    return 'WLAN „$network“';
+  }
+
+  @override
+  String get qrCopyPassword => 'WLAN-Passwort kopieren';
+
+  @override
+  String get qrPasswordCopied => 'Passwort kopiert';
+
+  @override
+  String get qrOpenLink => 'Link aus dem QR-Code öffnen';
+
+  @override
+  String get qrCopyText => 'Text des QR-Codes kopieren';
+
+  @override
+  String get foundInQr => 'im QR-Code';
 }

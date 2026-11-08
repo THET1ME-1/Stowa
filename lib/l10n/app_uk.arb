@@ -375,5 +375,11 @@
   "historyDiffHint": "Закреслено — було в цій версії, підсвічено — з'явилося після",
   "historyRestore": "Повернути цю версію",
   "historyRestored": "Версію повернено",
-  "sortByColor": "За кольором"
+  "sortByColor": "За кольором",
+  "qrWifi": "Wi-Fi «{network}»",
+  "qrCopyPassword": "Скопіювати пароль Wi-Fi",
+  "qrPasswordCopied": "Пароль скопійовано",
+  "qrOpenLink": "Відкрити посилання з QR-коду",
+  "qrCopyText": "Скопіювати текст QR-коду",
+  "foundInQr": "у QR-коді"
 }

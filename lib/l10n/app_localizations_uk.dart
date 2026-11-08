@@ -2366,4 +2366,24 @@ class LUk extends L {
 
   @override
   String get sortByColor => 'За кольором';
+
+  @override
+  String qrWifi(String network) {
+    return 'Wi-Fi «$network»';
+  }
+
+  @override
+  String get qrCopyPassword => 'Скопіювати пароль Wi-Fi';
+
+  @override
+  String get qrPasswordCopied => 'Пароль скопійовано';
+
+  @override
+  String get qrOpenLink => 'Відкрити посилання з QR-коду';
+
+  @override
+  String get qrCopyText => 'Скопіювати текст QR-коду';
+
+  @override
+  String get foundInQr => 'у QR-коді';
 }

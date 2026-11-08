@@ -2366,4 +2366,24 @@ class LPl extends L {
 
   @override
   String get sortByColor => 'Według koloru';
+
+  @override
+  String qrWifi(String network) {
+    return 'Wi-Fi „$network”';
+  }
+
+  @override
+  String get qrCopyPassword => 'Kopiuj hasło Wi-Fi';
+
+  @override
+  String get qrPasswordCopied => 'Hasło skopiowane';
+
+  @override
+  String get qrOpenLink => 'Otwórz link z kodu QR';
+
+  @override
+  String get qrCopyText => 'Kopiuj tekst kodu QR';
+
+  @override
+  String get foundInQr => 'w kodzie QR';
 }

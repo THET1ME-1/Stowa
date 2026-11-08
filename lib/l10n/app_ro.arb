@@ -375,5 +375,11 @@
   "historyDiffHint": "Tăiat: era în această versiune. Evidențiat: adăugat ulterior",
   "historyRestore": "Restabilește această versiune",
   "historyRestored": "Versiune restabilită",
-  "sortByColor": "După culoare"
+  "sortByColor": "După culoare",
+  "qrWifi": "Wi-Fi „{network}”",
+  "qrCopyPassword": "Copiază parola Wi-Fi",
+  "qrPasswordCopied": "Parola a fost copiată",
+  "qrOpenLink": "Deschide linkul din codul QR",
+  "qrCopyText": "Copiază textul codului QR",
+  "foundInQr": "în codul QR"
 }

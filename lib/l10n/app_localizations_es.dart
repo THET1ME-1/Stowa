@@ -2323,4 +2323,24 @@ class LEs extends L {
 
   @override
   String get sortByColor => 'Por color';
+
+  @override
+  String qrWifi(String network) {
+    return 'Wi-Fi «$network»';
+  }
+
+  @override
+  String get qrCopyPassword => 'Copiar la contraseña del Wi-Fi';
+
+  @override
+  String get qrPasswordCopied => 'Contraseña copiada';
+
+  @override
+  String get qrOpenLink => 'Abrir el enlace del código QR';
+
+  @override
+  String get qrCopyText => 'Copiar el texto del código QR';
+
+  @override
+  String get foundInQr => 'en un código QR';
 }

@@ -8,6 +8,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../domain/models.dart';
+import '../../domain/qr.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Что нашлось в тексте вещи: касанием позвонить, написать, открыть, скопировать сумму.
@@ -17,7 +18,7 @@ class FactsChips extends StatelessWidget {
   final List<Fact> facts;
   final Future<void> Function(String url) onLink;
 
-  static const _shown = {FactKind.phone, FactKind.email, FactKind.link, FactKind.price};
+  static const _shown = {FactKind.qr, FactKind.phone, FactKind.email, FactKind.link, FactKind.price};
 
   /// Есть ли что показать: без этого блок не занимает места.
   static bool hasAny(List<Fact> facts) => facts.any((fact) => _shown.contains(fact.kind));
@@ -27,7 +28,7 @@ class FactsChips extends StatelessWidget {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final ordered = [
-      for (final kind in [FactKind.phone, FactKind.email, FactKind.price, FactKind.link])
+      for (final kind in [FactKind.qr, FactKind.phone, FactKind.email, FactKind.price, FactKind.link])
         for (final fact in facts)
           if (fact.kind == kind) fact,
     ];
@@ -36,36 +37,54 @@ class FactsChips extends StatelessWidget {
       if (!opened) showNote(messenger, l.linkOpenFailed, overDock: true);
     }
 
+    Future<void> copy(String text, String note) async {
+      await Clipboard.setData(ClipboardData(text: text));
+      showNote(messenger, note, overDock: true);
+    }
+
+    // QR с фото: Wi-Fi — имя сети, касание копирует пароль; ссылка открывается; текст копируется
+    Widget qrChip(Fact fact) {
+      final code = parseQr(fact.value);
+      return switch (code.kind) {
+        QrKind.wifi => _FactChip(icon: 'wifi', label: l.qrWifi(code.network!), tooltip: l.qrCopyPassword, onTap: () => copy(code.password ?? '', l.qrPasswordCopied)),
+        QrKind.url => _FactChip(icon: 'qr_code_2', label: _shortLink(code.text), tooltip: l.qrOpenLink, onTap: () => onLink(code.text)),
+        QrKind.text => _FactChip(icon: 'qr_code_2', label: code.text, tooltip: l.qrCopyText, onTap: () => copy(code.text, l.itemCopied)),
+      };
+    }
+
     return Wrap(
       key: const ValueKey('item-facts'),
       spacing: 8,
       runSpacing: 8,
       children: [
         for (final fact in ordered)
-          _FactChip(
-            icon: switch (fact.kind) {
-              FactKind.phone => 'call',
-              FactKind.email => 'mail',
-              FactKind.price => 'payments',
-              _ => 'link',
-            },
-            label: fact.kind == FactKind.link ? _shortLink(fact.value) : fact.value,
-            tooltip: switch (fact.kind) {
-              FactKind.phone => l.factCall,
-              FactKind.email => l.factWrite,
-              FactKind.price => l.factCopy,
-              _ => l.itemOpenLink,
-            },
-            onTap: switch (fact.kind) {
-              FactKind.phone => () => open(Uri(scheme: 'tel', path: fact.detail ?? fact.value)),
-              FactKind.email => () => open(Uri(scheme: 'mailto', path: fact.value)),
-              FactKind.price => () async {
-                await Clipboard.setData(ClipboardData(text: fact.value));
-                showNote(messenger, l.itemCopied, overDock: true);
+          if (fact.kind == FactKind.qr)
+            qrChip(fact)
+          else
+            _FactChip(
+              icon: switch (fact.kind) {
+                FactKind.phone => 'call',
+                FactKind.email => 'mail',
+                FactKind.price => 'payments',
+                _ => 'link',
               },
-              _ => () => onLink(fact.value),
-            },
-          ),
+              label: fact.kind == FactKind.link ? _shortLink(fact.value) : fact.value,
+              tooltip: switch (fact.kind) {
+                FactKind.phone => l.factCall,
+                FactKind.email => l.factWrite,
+                FactKind.price => l.factCopy,
+                _ => l.itemOpenLink,
+              },
+              onTap: switch (fact.kind) {
+                FactKind.phone => () => open(Uri(scheme: 'tel', path: fact.detail ?? fact.value)),
+                FactKind.email => () => open(Uri(scheme: 'mailto', path: fact.value)),
+                FactKind.price => () async {
+                  await Clipboard.setData(ClipboardData(text: fact.value));
+                  showNote(messenger, l.itemCopied, overDock: true);
+                },
+                _ => () => onLink(fact.value),
+              },
+            ),
       ],
     );
   }

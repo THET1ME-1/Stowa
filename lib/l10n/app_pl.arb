@@ -375,5 +375,11 @@
   "historyDiffHint": "Przekreślone — było w tej wersji, podświetlone — doszło później",
   "historyRestore": "Przywróć tę wersję",
   "historyRestored": "Wersja przywrócona",
-  "sortByColor": "Według koloru"
+  "sortByColor": "Według koloru",
+  "qrWifi": "Wi-Fi „{network}”",
+  "qrCopyPassword": "Kopiuj hasło Wi-Fi",
+  "qrPasswordCopied": "Hasło skopiowane",
+  "qrOpenLink": "Otwórz link z kodu QR",
+  "qrCopyText": "Kopiuj tekst kodu QR",
+  "foundInQr": "w kodzie QR"
 }

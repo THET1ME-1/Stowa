@@ -2342,4 +2342,24 @@ class LRo extends L {
 
   @override
   String get sortByColor => 'După culoare';
+
+  @override
+  String qrWifi(String network) {
+    return 'Wi-Fi „$network”';
+  }
+
+  @override
+  String get qrCopyPassword => 'Copiază parola Wi-Fi';
+
+  @override
+  String get qrPasswordCopied => 'Parola a fost copiată';
+
+  @override
+  String get qrOpenLink => 'Deschide linkul din codul QR';
+
+  @override
+  String get qrCopyText => 'Copiază textul codului QR';
+
+  @override
+  String get foundInQr => 'în codul QR';
 }

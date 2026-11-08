@@ -2321,4 +2321,24 @@ class LEn extends L {
 
   @override
   String get sortByColor => 'By color';
+
+  @override
+  String qrWifi(String network) {
+    return 'Wi-Fi “$network”';
+  }
+
+  @override
+  String get qrCopyPassword => 'Copy Wi-Fi password';
+
+  @override
+  String get qrPasswordCopied => 'Password copied';
+
+  @override
+  String get qrOpenLink => 'Open the link from the QR code';
+
+  @override
+  String get qrCopyText => 'Copy the QR code text';
+
+  @override
+  String get foundInQr => 'in a QR code';
 }

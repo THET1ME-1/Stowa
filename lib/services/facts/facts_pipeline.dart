@@ -31,6 +31,8 @@ const searchableFacts = {
   FactKind.hashtag,
   FactKind.subtitle,
   FactKind.articleText,
+  // «пароль от wifi», адрес сайта с билета
+  FactKind.qr,
 };
 
 /// За один проход разбирается не больше: остальное — в следующий, экран не ждёт.

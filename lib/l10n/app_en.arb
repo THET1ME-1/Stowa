@@ -2950,5 +2950,34 @@
   "sortByColor": "By color",
   "@sortByColor": {
     "description": "Folder sort: by main color of pictures"
+  },
+  "qrWifi": "Wi-Fi “{network}”",
+  "@qrWifi": {
+    "description": "Chip for a Wi-Fi QR code on a photo",
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "qrCopyPassword": "Copy Wi-Fi password",
+  "@qrCopyPassword": {
+    "description": "Tooltip of the Wi-Fi QR chip"
+  },
+  "qrPasswordCopied": "Password copied",
+  "@qrPasswordCopied": {
+    "description": "Note after copying a Wi-Fi password from a QR code"
+  },
+  "qrOpenLink": "Open the link from the QR code",
+  "@qrOpenLink": {
+    "description": "Tooltip of the link QR chip"
+  },
+  "qrCopyText": "Copy the QR code text",
+  "@qrCopyText": {
+    "description": "Tooltip of the text QR chip"
+  },
+  "foundInQr": "in a QR code",
+  "@foundInQr": {
+    "description": "Search hit: found in a QR code on a photo"
   }
 }

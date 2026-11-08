@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
@@ -180,5 +181,27 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.byType(LinePanel), matching: find.textContaining('в файле, лист «Ремонт»')), findsOneWidget);
+  });
+
+  testWidgets('QR на фото: Wi-Fi копирует пароль, ссылка открывается', (tester) async {
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.setData') copied = (call.arguments as Map)['text'] as String?;
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'q', kind: ItemKind.image, title: 'Роутер', createdAt: world.now, updatedAt: world.now));
+    await fact('q', FactKind.qr, r'WIFI:T:WPA;S:Дача;P:sun\;flower;;', detail: 'wifi');
+    await fact('q', FactKind.qr, 'https://tickets.md/e/42', detail: 'url', position: 1);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'q')));
+    await tester.pumpAndSettle();
+    final chips = find.byKey(const ValueKey('item-facts'));
+    expect(find.descendant(of: chips, matching: find.text('Wi-Fi «Дача»')), findsOneWidget);
+    expect(find.descendant(of: chips, matching: find.text('tickets.md/e/42')), findsOneWidget);
+    await tester.tap(find.text('Wi-Fi «Дача»'));
+    await tester.pumpAndSettle();
+    expect(copied, 'sun;flower');
+    expect(find.text('Пароль скопирован'), findsOneWidget);
   });
 }

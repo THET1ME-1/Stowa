@@ -124,6 +124,8 @@ String factLabel(L l, FactPart part) {
       return l.foundInArticle;
     case FactKind.highlight:
       return l.foundInQuote;
+    case FactKind.qr:
+      return l.foundInQr;
     default:
       return l.foundOnPage;
   }

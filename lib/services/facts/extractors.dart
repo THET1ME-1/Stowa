@@ -13,11 +13,12 @@ import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../domain/money.dart';
 import '../../domain/photo_facts.dart';
+import '../../domain/qr.dart';
 import '../../domain/video_text.dart' show hashtagsIn;
 import 'extractor.dart';
 
 /// Местные извлекатели: работают без сети. Сетевые добавляет тот, кто знает, чем ходить в сеть.
-List<Extractor> defaultExtractors() => [TextExtractor(), FileTextExtractor(), PhotoExtractor(), FingerprintExtractor(), ColorsExtractor(), LinkExtractor()];
+List<Extractor> defaultExtractors() => [TextExtractor(), FileTextExtractor(), PhotoExtractor(), FingerprintExtractor(), ColorsExtractor(), QrExtractor(), LinkExtractor()];
 
 const _attachmentsStamp = "coalesce((SELECT group_concat(attachments.id) FROM attachments WHERE attachments.item_id = items.id), '')";
 
@@ -195,16 +196,54 @@ class ColorsExtractor extends Extractor {
 }
 
 /// Точки RGBA картинки, сжатой системным декодером до [width]×[height]; не прочиталась — null.
-Future<Uint8List?> smallPixels(File file, int width, int height) async {
+Future<Uint8List?> smallPixels(File file, int width, int height) async => (await _decoded(file, width: width, height: height))?.rgba;
+
+// картинка системным декодером: точки RGBA и её размер после сжатия
+Future<({Uint8List rgba, int width, int height})?> _decoded(File file, {int? width, int? height}) async {
   try {
     final codec = await ui.instantiateImageCodec(await file.readAsBytes(), targetWidth: width, targetHeight: height);
     final frame = await codec.getNextFrame();
-    final pixels = await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
-    frame.image.dispose();
+    final image = frame.image;
+    final pixels = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    final size = (width: image.width, height: image.height);
+    image.dispose();
     codec.dispose();
-    return pixels?.buffer.asUint8List();
+    return pixels == null ? null : (rgba: pixels.buffer.asUint8List(), width: size.width, height: size.height);
   } on Exception {
     return null;
+  }
+}
+
+/// QR-код на фото: билет, Wi-Fi, ссылка. Картинка сжимается до 1000 точек по длинной
+/// стороне: мельче код теряется, крупнее — поиск долгий. Сам поиск — в своём потоке.
+class QrExtractor extends Extractor {
+  @override
+  String get name => 'qr';
+  @override
+  int get version => 1;
+  @override
+  String get stampSql => _attachmentsStamp;
+  @override
+  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%')";
+
+  static const _side = 1000;
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    final facts = <FactDraft>[];
+    for (final attachment in input.files.where((file) => file.mime.startsWith('image/'))) {
+      final file = input.fileOf(attachment);
+      if (!await file.exists()) continue;
+      final width = attachment.width ?? _side;
+      final height = attachment.height ?? _side;
+      final wide = width >= height;
+      final image = await _decoded(file, width: wide && width > _side ? _side : null, height: !wide && height > _side ? _side : null);
+      if (image == null) continue;
+      final text = await Isolate.run(() => scanQr(image.rgba, image.width, image.height));
+      if (text == null || text.trim().isEmpty) continue;
+      facts.add(FactDraft(FactKind.qr, text.trim(), detail: parseQr(text).kind.name));
+    }
+    return facts;
   }
 }
 

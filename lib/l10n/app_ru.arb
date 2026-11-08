@@ -623,5 +623,11 @@
   "historyDiffHint": "Зачёркнуто — было в этой версии, подсвечено — появилось после",
   "historyRestore": "Вернуть эту версию",
   "historyRestored": "Версия возвращена",
-  "sortByColor": "По цвету"
+  "sortByColor": "По цвету",
+  "qrWifi": "Wi-Fi «{network}»",
+  "qrCopyPassword": "Скопировать пароль Wi-Fi",
+  "qrPasswordCopied": "Пароль скопирован",
+  "qrOpenLink": "Открыть ссылку из QR-кода",
+  "qrCopyText": "Скопировать текст QR-кода",
+  "foundInQr": "в QR-коде"
 }

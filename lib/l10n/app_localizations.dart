@@ -3850,6 +3850,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'By color'**
   String get sortByColor;
+
+  /// Chip for a Wi-Fi QR code on a photo
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi “{network}”'**
+  String qrWifi(String network);
+
+  /// Tooltip of the Wi-Fi QR chip
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Wi-Fi password'**
+  String get qrCopyPassword;
+
+  /// Note after copying a Wi-Fi password from a QR code
+  ///
+  /// In en, this message translates to:
+  /// **'Password copied'**
+  String get qrPasswordCopied;
+
+  /// Tooltip of the link QR chip
+  ///
+  /// In en, this message translates to:
+  /// **'Open the link from the QR code'**
+  String get qrOpenLink;
+
+  /// Tooltip of the text QR chip
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the QR code text'**
+  String get qrCopyText;
+
+  /// Search hit: found in a QR code on a photo
+  ///
+  /// In en, this message translates to:
+  /// **'in a QR code'**
+  String get foundInQr;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

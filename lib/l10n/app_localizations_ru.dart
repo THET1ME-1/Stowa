@@ -2371,4 +2371,24 @@ class LRu extends L {
 
   @override
   String get sortByColor => 'По цвету';
+
+  @override
+  String qrWifi(String network) {
+    return 'Wi-Fi «$network»';
+  }
+
+  @override
+  String get qrCopyPassword => 'Скопировать пароль Wi-Fi';
+
+  @override
+  String get qrPasswordCopied => 'Пароль скопирован';
+
+  @override
+  String get qrOpenLink => 'Открыть ссылку из QR-кода';
+
+  @override
+  String get qrCopyText => 'Скопировать текст QR-кода';
+
+  @override
+  String get foundInQr => 'в QR-коде';
 }

@@ -375,5 +375,11 @@
   "historyDiffHint": "Durchgestrichen: stand in dieser Version. Hervorgehoben: kam danach dazu",
   "historyRestore": "Diese Version wiederherstellen",
   "historyRestored": "Version wiederhergestellt",
-  "sortByColor": "Nach Farbe"
+  "sortByColor": "Nach Farbe",
+  "qrWifi": "WLAN „{network}“",
+  "qrCopyPassword": "WLAN-Passwort kopieren",
+  "qrPasswordCopied": "Passwort kopiert",
+  "qrOpenLink": "Link aus dem QR-Code öffnen",
+  "qrCopyText": "Text des QR-Codes kopieren",
+  "foundInQr": "im QR-Code"
 }

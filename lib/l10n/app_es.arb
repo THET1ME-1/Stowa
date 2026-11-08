@@ -375,5 +375,11 @@
   "historyDiffHint": "Tachado: estaba en esta versión. Resaltado: se añadió después",
   "historyRestore": "Restaurar esta versión",
   "historyRestored": "Versión restaurada",
-  "sortByColor": "Por color"
+  "sortByColor": "Por color",
+  "qrWifi": "Wi-Fi «{network}»",
+  "qrCopyPassword": "Copiar la contraseña del Wi-Fi",
+  "qrPasswordCopied": "Contraseña copiada",
+  "qrOpenLink": "Abrir el enlace del código QR",
+  "qrCopyText": "Copiar el texto del código QR",
+  "foundInQr": "en un código QR"
 }
