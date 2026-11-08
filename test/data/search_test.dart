@@ -210,6 +210,26 @@ void main() {
       expect((card.latitude, card.longitude, card.placeName), (47.02, 28.83, 'Palatul Național'));
     });
 
+    test('на карте фото стоит там, где снято, а не где сохранено; без места съёмки — где сохранено', () async {
+      final trip = await capture.capture(const CaptureInput(text: 'Чай в горах'));
+      final plain = await capture.capture(const CaptureInput(text: 'Чек из магазина'));
+      for (final id in [trip, plain]) {
+        await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(latitude: Value(46.0), longitude: Value(30.0), placeName: Value('Дом')));
+      }
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 't1', itemId: trip, extractor: 'photo', kind: FactKind.takenPlace, value: '48.3,24.5', number: const Value(48.3), detail: const Value('24.5')));
+      final placed = await items.watchPlaced().first;
+      final card = placed.firstWhere((card) => card.id == trip);
+      // имя места сохранения к месту съёмки не относится
+      expect((card.latitude, card.longitude, card.placeName), (48.3, 24.5, null));
+      expect(placed.firstWhere((card) => card.id == plain).latitude, 46.0);
+    });
+
+    test('фото без места сохранения, но с местом съёмки — тоже на карте', () async {
+      final trip = await capture.capture(const CaptureInput(text: 'Озеро'));
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 't1', itemId: trip, extractor: 'photo', kind: FactKind.takenPlace, value: '48.3,24.5', number: const Value(48.3), detail: const Value('24.5')));
+      expect((await items.watchPlaced().first).map((card) => card.id), contains(trip));
+    });
+
     test('слово находит по месту и по транслиту', () async {
       expect((await find('kishinev')).single.hit.where, SearchField.place);
       expect((await find('rjat')).single.card.title, 'Купить кофе на рынке');

@@ -67,6 +67,8 @@ class ItemCard {
   final bool hasCopy;
 
   /// Та же карточка в другом месте: событие и заведение стоят на карте там, где они есть.
+  /// Та же карточка в другой точке. [name] null — имя места не известно: прежнее имя
+  /// места сохранения к новой точке не относится и тоже снимается.
   ItemCard placedAt(double latitude, double longitude, String? name) => ItemCard(
     id: id,
     title: title,
@@ -90,7 +92,7 @@ class ItemCard {
     durationSeconds: durationSeconds,
     latitude: latitude,
     longitude: longitude,
-    placeName: name ?? placeName,
+    placeName: name,
     copying: copying,
     gone: gone,
     hasCopy: hasCopy,
@@ -790,10 +792,11 @@ WHERE items.deleted_at IS NULL''';
   }
 
   /// Всё, у чего есть место: точки карты заметок.
-  /// Вещи на карте. Ссылка на событие или заведение стоит там, где оно, а не где её сохранили.
+  /// Вещи на карте. Ссылка на событие или заведение стоит там, где оно, а не где её сохранили;
+  /// фото — там, где снято (место из EXIF).
   Stream<List<ItemCard>> watchPlaced() => _db
       .customSelect(
-        "$_cardSelect AND (items.latitude IS NOT NULL OR EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind = 'venuePlace')) "
+        "$_cardSelect AND (items.latitude IS NOT NULL OR EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind IN ('venuePlace', 'takenPlace'))) "
         'ORDER BY items.created_at DESC',
         readsFrom: {..._cardTables, _db.facts},
       )
@@ -802,13 +805,14 @@ WHERE items.deleted_at IS NULL''';
         final cards = [for (final row in rows) _card(row)];
         final ids = [for (final card in cards) card.id];
         final venues =
-            await (_db.select(_db.facts)..where((t) => t.itemId.isIn(ids) & t.kind.isIn([FactKind.venuePlace.name, FactKind.venue.name]))).get();
+            await (_db.select(_db.facts)..where((t) => t.itemId.isIn(ids) & t.kind.isIn([FactKind.venuePlace.name, FactKind.venue.name, FactKind.takenPlace.name]))).get();
         final points = <String, (double, double)>{};
         final names = <String, String>{};
-        for (final fact in venues) {
+        // событие главнее места съёмки: афиша с фото зала стоит у зала
+        for (final fact in venues.where((fact) => fact.kind == FactKind.takenPlace).followedBy(venues.where((fact) => fact.kind != FactKind.takenPlace))) {
           if (fact.kind == FactKind.venue) names[fact.itemId] = fact.value;
           final longitude = double.tryParse(fact.detail ?? '');
-          if (fact.kind == FactKind.venuePlace && fact.number != null && longitude != null) points[fact.itemId] = (fact.number!, longitude);
+          if (fact.kind != FactKind.venue && fact.number != null && longitude != null) points[fact.itemId] = (fact.number!, longitude);
         }
         return [
           for (final card in cards)
