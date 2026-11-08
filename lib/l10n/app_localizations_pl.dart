@@ -2321,4 +2321,17 @@ class LPl extends L {
 
   @override
   String get colorRose => 'Róża';
+
+  @override
+  String get folderNewInside => 'Nowy folder w środku';
+
+  @override
+  String get folderMoveTo => 'Przenieś do…';
+
+  @override
+  String get folderMoveTop => 'Na górę';
+
+  @override
+  String get folderMoveNone =>
+      'Nie ma dokąd przenieść: foldery zagnieżdżają się do trzech poziomów';
 }

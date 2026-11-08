@@ -35,6 +35,9 @@ const _noteRow = 42.0;
 /// Отступ заметок внутри папки: под значком папки.
 const _branch = Space.screen + 26.0;
 
+/// Шаг вложенной папки: её стрелка встаёт под значок родителя.
+const _level = 26.0;
+
 /// Каталог: все папки деревом, заметки внутри. Отдельный экран, не боковое меню.
 class CatalogScreen extends ConsumerStatefulWidget {
   const CatalogScreen({super.key});
@@ -58,24 +61,37 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     final text = Theme.of(context).textTheme;
     final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
     final loose = ref.watch(folderItemsProvider(null)).value ?? const <ItemCard>[];
-    final total = folders.fold(0, (sum, folder) => sum + folder.count) + loose.length;
+    // у папки число с вложенными: всего — по своим заметкам каждой, иначе посчитали бы дважды
+    final total = folders.fold(0, (sum, folder) => sum + folder.ownCount) + loose.length;
     bool opened(String key) => _all || _open.contains(key);
 
     // дерево одним плоским списком: длинная папка строится по мере прокрутки
     final rows = <Widget>[];
-    void branch(List<ItemCard> notes) {
+    void branch(List<ItemCard> notes, int depth) {
       for (final (index, card) in notes.indexed) {
-        rows.add(_NoteRow(card: card, last: index == notes.length - 1));
+        rows.add(_NoteRow(card: card, last: index == notes.length - 1, depth: depth));
       }
     }
 
-    for (final folder in folders) {
-      rows.add(_FolderRow(folder: folder, open: opened(folder.id), onTap: () => _toggle(folder.id), onOpen: () => Navigator.of(context).push(folderRoute(folder.id))));
-      if (opened(folder.id)) branch(ref.watch(folderItemsProvider(folder.id)).value ?? const []);
+    // вложенные папки сперва, заметки папки под ними, как в дереве файлов
+    final ids = {for (final folder in folders) folder.id};
+    void folderBranch(String? parentId, int depth) {
+      for (final folder in folders) {
+        final parent = ids.contains(folder.parentId) ? folder.parentId : null;
+        if (parent != parentId) continue;
+        rows.add(
+          _FolderRow(folder: folder, depth: depth, open: opened(folder.id), onTap: () => _toggle(folder.id), onOpen: () => Navigator.of(context).push(folderRoute(folder.id))),
+        );
+        if (!opened(folder.id)) continue;
+        folderBranch(folder.id, depth + 1);
+        branch(ref.watch(folderItemsProvider(folder.id)).value ?? const [], depth);
+      }
     }
+
+    folderBranch(null, 0);
     if (loose.isNotEmpty) {
       rows.add(_FolderRow(inboxCount: loose.length, open: opened(_inbox), onTap: () => _toggle(_inbox), onOpen: () => Navigator.of(context).push(folderRoute(null))));
-      if (opened(_inbox)) branch(loose);
+      if (opened(_inbox)) branch(loose, 0);
     }
 
     return Scaffold(
@@ -148,10 +164,13 @@ class _HeaderButton extends StatelessWidget {
 
 /// Строка папки: стрелка, значок в цвет папки, имя, число заметок и переход в саму папку.
 class _FolderRow extends StatelessWidget {
-  const _FolderRow({this.folder, this.inboxCount = 0, required this.open, required this.onTap, required this.onOpen});
+  const _FolderRow({this.folder, this.inboxCount = 0, this.depth = 0, required this.open, required this.onTap, required this.onOpen});
 
   /// null — «Без папки».
   final FolderCard? folder;
+
+  /// Уровень вложенности: у верхней 0.
+  final int depth;
   final int inboxCount;
   final bool open;
   final VoidCallback onTap;
@@ -177,7 +196,7 @@ class _FolderRow extends StatelessWidget {
         height: _folderRow,
         child: Row(
           children: [
-            const SizedBox(width: Space.screen - 6),
+            SizedBox(width: Space.screen - 6 + depth * _level),
             AnimatedRotation(
               turns: open ? 0.25 : 0,
               duration: Motion.short,
@@ -206,9 +225,12 @@ class _FolderRow extends StatelessWidget {
 
 /// Строка заметки под папкой: значок вида, заголовок, день. Слева линия ветки, как в дереве файлов.
 class _NoteRow extends ConsumerWidget {
-  const _NoteRow({required this.card, required this.last});
+  const _NoteRow({required this.card, required this.last, this.depth = 0});
 
   final ItemCard card;
+
+  /// Уровень папки, в которой лежит заметка: ветка сдвигается вместе с ней.
+  final int depth;
 
   /// Последняя в папке: линия ветки кончается на ней.
   final bool last;
@@ -237,12 +259,12 @@ class _NoteRow extends ConsumerWidget {
           children: [
             // линия ветки под значком папки
             SizedBox(
-              width: _branch + 18,
+              width: _branch + 18 + depth * _level,
               child: Align(
                 // у последней половина линии сверху: ветка доходит до неё и кончается
                 alignment: last ? AlignmentDirectional.topStart : AlignmentDirectional.centerStart,
                 child: Padding(
-                  padding: const EdgeInsetsDirectional.only(start: _branch + 8),
+                  padding: EdgeInsetsDirectional.only(start: _branch + 8 + depth * _level),
                   child: SizedBox(
                     width: 1.5,
                     height: last ? _noteRow / 2 : _noteRow,

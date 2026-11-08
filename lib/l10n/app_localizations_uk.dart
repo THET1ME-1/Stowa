@@ -2321,4 +2321,17 @@ class LUk extends L {
 
   @override
   String get colorRose => 'Троянда';
+
+  @override
+  String get folderNewInside => 'Нова папка всередині';
+
+  @override
+  String get folderMoveTo => 'Перекласти в…';
+
+  @override
+  String get folderMoveTop => 'Нагору';
+
+  @override
+  String get folderMoveNone =>
+      'Перекласти нікуди: папки вкладаються не глибше трьох рівнів';
 }

@@ -2894,5 +2894,21 @@
   "colorRose": "Rose",
   "@colorRose": {
     "description": "Цвет темы"
+  },
+  "folderNewInside": "New folder inside",
+  "@folderNewInside": {
+    "description": "Folder menu: create a subfolder"
+  },
+  "folderMoveTo": "Move to…",
+  "@folderMoveTo": {
+    "description": "Folder menu: put this folder inside another one"
+  },
+  "folderMoveTop": "To the top",
+  "@folderMoveTop": {
+    "description": "Move target: make the folder top-level"
+  },
+  "folderMoveNone": "Nowhere to move: folders nest up to three levels",
+  "@folderMoveNone": {
+    "description": "Move sheet: no valid targets"
   }
 }

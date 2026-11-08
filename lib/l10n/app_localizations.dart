@@ -3766,6 +3766,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Rose'**
   String get colorRose;
+
+  /// Folder menu: create a subfolder
+  ///
+  /// In en, this message translates to:
+  /// **'New folder inside'**
+  String get folderNewInside;
+
+  /// Folder menu: put this folder inside another one
+  ///
+  /// In en, this message translates to:
+  /// **'Move to…'**
+  String get folderMoveTo;
+
+  /// Move target: make the folder top-level
+  ///
+  /// In en, this message translates to:
+  /// **'To the top'**
+  String get folderMoveTop;
+
+  /// Move sheet: no valid targets
+  ///
+  /// In en, this message translates to:
+  /// **'Nowhere to move: folders nest up to three levels'**
+  String get folderMoveNone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

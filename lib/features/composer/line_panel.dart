@@ -423,7 +423,8 @@ class _RowView extends StatelessWidget {
       case FolderRow(:final folder):
         thumb = _badge(folder.shape, folder.icon, selected);
         title = Text(folder.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
-        sub = Text(l.itemsCount(folder.count), style: subStyle);
+        // у вложенной — где она лежит: две «Кухни» в разных папках различимы
+        sub = Text([?folder.parentsLabel, l.itemsCount(folder.count)].join(' · '), maxLines: 1, overflow: TextOverflow.ellipsis, style: subStyle);
       case NewFolderRow(:final name):
         thumb = _badge('squircle', 'create_new_folder', selected);
         title = Text(l.folderCreate(name), maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);

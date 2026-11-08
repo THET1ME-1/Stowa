@@ -361,5 +361,9 @@
   "colorTeal": "Turquesa",
   "colorBlue": "Azul",
   "colorViolet": "Violeta",
-  "colorRose": "Rosa"
+  "colorRose": "Rosa",
+  "folderNewInside": "Nueva carpeta dentro",
+  "folderMoveTo": "Mover a…",
+  "folderMoveTop": "Arriba del todo",
+  "folderMoveNone": "No hay a dónde moverla: las carpetas se anidan hasta tres niveles"
 }

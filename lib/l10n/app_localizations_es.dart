@@ -2278,4 +2278,17 @@ class LEs extends L {
 
   @override
   String get colorRose => 'Rosa';
+
+  @override
+  String get folderNewInside => 'Nueva carpeta dentro';
+
+  @override
+  String get folderMoveTo => 'Mover a…';
+
+  @override
+  String get folderMoveTop => 'Arriba del todo';
+
+  @override
+  String get folderMoveNone =>
+      'No hay a dónde moverla: las carpetas se anidan hasta tres niveles';
 }

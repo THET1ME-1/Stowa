@@ -70,6 +70,24 @@ class FolderCard {
   final bool createdByAi;
 }
 
+/// Папки деревом: каждая вложенная сразу под своим родителем, порядок внутри уровня прежний.
+/// Папка, чьего родителя нет в списке, стоит как верхняя.
+List<FolderCard> inTreeOrder(List<FolderCard> folders) {
+  final ids = {for (final folder in folders) folder.id};
+  final ordered = <FolderCard>[];
+  void add(String? parent) {
+    for (final folder in folders) {
+      final own = folder.parentId != null && ids.contains(folder.parentId) ? folder.parentId : null;
+      if (own != parent || ordered.contains(folder)) continue;
+      ordered.add(folder);
+      add(folder.id);
+    }
+  }
+
+  add(null);
+  return ordered;
+}
+
 /// Что подняла удалённая папка: её заметки и вложенные папки. «Вернуть» кладёт их обратно.
 class FolderRemoval {
   const FolderRemoval({required this.itemIds, required this.childIds});

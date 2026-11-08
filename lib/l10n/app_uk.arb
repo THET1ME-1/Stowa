@@ -361,5 +361,9 @@
   "colorTeal": "Бірюза",
   "colorBlue": "Синій",
   "colorViolet": "Фіалка",
-  "colorRose": "Троянда"
+  "colorRose": "Троянда",
+  "folderNewInside": "Нова папка всередині",
+  "folderMoveTo": "Перекласти в…",
+  "folderMoveTop": "Нагору",
+  "folderMoveNone": "Перекласти нікуди: папки вкладаються не глибше трьох рівнів"
 }

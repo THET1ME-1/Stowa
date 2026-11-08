@@ -2281,4 +2281,17 @@ class LDe extends L {
 
   @override
   String get colorRose => 'Rosé';
+
+  @override
+  String get folderNewInside => 'Neuer Ordner darin';
+
+  @override
+  String get folderMoveTo => 'Verschieben nach…';
+
+  @override
+  String get folderMoveTop => 'Nach oben';
+
+  @override
+  String get folderMoveNone =>
+      'Kein Ziel: Ordner lassen sich höchstens drei Ebenen tief verschachteln';
 }

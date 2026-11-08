@@ -1187,11 +1187,12 @@ class FolderPickerSheet extends StatelessWidget {
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
               children: [
-                if (allowNone) _FolderOption(icon: 'inbox', shape: 'squircle', name: noneLabel ?? '', onTap: () => Navigator.pop(context, null)),
-                for (final folder in folders)
-                  _FolderOption(icon: folder.icon, shape: folder.shape, name: folder.name, onTap: () => Navigator.pop(context, folder)),
+                if (allowNone) FolderOption(icon: 'inbox', shape: 'squircle', name: noneLabel ?? '', onTap: () => Navigator.pop(context, null)),
+                // деревом: вложенная сразу под родителем, путь родителей мелко под именем
+                for (final folder in inTreeOrder(folders))
+                  FolderOption(icon: folder.icon, shape: folder.shape, name: folder.name, path: folder.parentsLabel, onTap: () => Navigator.pop(context, folder)),
                 if (onNew != null)
-                  _FolderOption(
+                  FolderOption(
                     icon: 'create_new_folder',
                     shape: 'squircle',
                     name: L.of(context).folderPickNew,
@@ -1209,12 +1210,16 @@ class FolderPickerSheet extends StatelessWidget {
   }
 }
 
-class _FolderOption extends StatelessWidget {
-  const _FolderOption({required this.icon, required this.shape, required this.name, required this.onTap});
+/// Строка выбора папки: значок, имя и, у вложенной, путь родителей под ним.
+class FolderOption extends StatelessWidget {
+  const FolderOption({super.key, required this.icon, required this.shape, required this.name, this.path, required this.onTap});
 
   final String icon;
   final String shape;
   final String name;
+
+  /// «Дом / Ремонт» у вложенной папки; у верхней — null.
+  final String? path;
   final VoidCallback onTap;
 
   @override
@@ -1233,7 +1238,17 @@ class _FolderOption extends StatelessWidget {
               child: Icon(symbolIcon(icon), color: Tokens.onSurface),
             ),
             const SizedBox(width: 14),
-            Expanded(child: Text(name, style: Theme.of(context).textTheme.titleMedium)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(name, style: Theme.of(context).textTheme.titleMedium),
+                  if (path case final path?)
+                    Text(path, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted)),
+                ],
+              ),
+            ),
           ],
         ),
       ),

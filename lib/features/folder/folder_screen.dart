@@ -17,11 +17,13 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../data/repositories/tags_repository.dart';
+import '../../domain/folder_tree.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
 import '../graph/graph_screen.dart';
+import '../home/folder_shelf.dart';
 import '../item/item_screen.dart';
 import '../sort/sort_screen.dart';
 import '../tags/tag_picker.dart';
@@ -30,8 +32,11 @@ import 'folder_cards.dart';
 import 'folder_sheets.dart';
 import 'folder_view.dart';
 
+String folderRouteName(String? folderId) => 'folder/${folderId ?? ''}';
+
 /// Папка въезжает справа, как страница вещи.
 Route<void> folderRoute(String? folderId) => PageRouteBuilder(
+  settings: RouteSettings(name: folderRouteName(folderId)),
   transitionDuration: const Duration(milliseconds: 500),
   reverseTransitionDuration: Motion.medium,
   pageBuilder: (context, animation, secondary) => FolderScreen(folderId: folderId),
@@ -62,11 +67,21 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
 
   FolderOrder _order = FolderOrder.newest;
 
+  /// Папки, чьи экраны сейчас открыты: путь родителей ведёт назад к ним, а не открывает второй.
+  static final _opened = <String?>[];
+
   @override
   void initState() {
     super.initState();
+    _opened.add(widget.folderId);
     final id = widget.folderId;
     if (id != null) ref.read(foldersRepositoryProvider).markSeen(id).ignore();
+  }
+
+  @override
+  void dispose() {
+    _opened.remove(widget.folderId);
+    super.dispose();
   }
 
   /// Выбранные вещи. Пусто — обычный режим: касание открывает, долгое нажатие начинает выбор.
@@ -206,11 +221,15 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
 
   Future<void> _menu(FolderCard folder) async {
     final repository = ref.read(foldersRepositoryProvider);
-    final action = await showFolderMenu(context);
+    final action = await showFolderMenu(context, canNest: folder.depth < maxFolderDepth);
     if (!mounted || action == null) return;
     switch (action) {
       case FolderAction.graph:
         await Navigator.of(context).push(graphRoute(folderId: folder.id, title: folder.name));
+      case FolderAction.nest:
+        await askNewFolder(context, ref, parentId: folder.id);
+      case FolderAction.move:
+        await _moveFolder(folder);
       case FolderAction.rename:
         final name = await showRenameSheet(context, folder.name);
         if (name != null) await repository.rename(folder.id, name);
@@ -227,12 +246,73 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     }
   }
 
+  /// Лист «Переложить в…»: папки, куда эта влезает (не в себя, не в свою вложенную,
+  /// не глубже трёх уровней), и «Наверх» у вложенной.
+  Future<void> _moveFolder(FolderCard folder) async {
+    final l = L.of(context);
+    final folders = ref.read(foldersProvider).value ?? const <FolderCard>[];
+    final tree = FolderTree([for (final one in folders) FolderNode(id: one.id, name: one.name, parentId: one.parentId)]);
+    final targets = [
+      for (final one in inTreeOrder(folders))
+        if (one.id != folder.parentId && tree.canMoveInto(folder.id, one.id)) one,
+    ];
+    final top = folder.parentId != null && tree.canMoveInto(folder.id, null);
+    final picked = await showModalBottomSheet<({String? parentId})>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheet) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(Space.screen + 8, 0, Space.screen, 8),
+              child: Text(l.folderMoveTo, style: Theme.of(sheet).textTheme.titleMedium),
+            ),
+            if (targets.isEmpty && !top)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Space.screen + 8, 0, Space.screen + 8, Space.screen),
+                child: Text(l.folderMoveNone, style: Theme.of(sheet).textTheme.bodyMedium!.copyWith(color: Tokens.muted)),
+              ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
+                children: [
+                  if (top) FolderOption(icon: 'vertical_align_top', shape: 'squircle', name: l.folderMoveTop, onTap: () => Navigator.pop(sheet, (parentId: null))),
+                  for (final one in targets)
+                    FolderOption(icon: one.icon, shape: one.shape, name: one.name, path: one.parentsLabel, onTap: () => Navigator.pop(sheet, (parentId: one.id))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null) await ref.read(foldersRepositoryProvider).move(folder.id, picked.parentId);
+  }
+
+  /// Касание по пути родителей: родитель уже открыт под этим экраном — к нему назад,
+  /// иначе он встаёт на место этого экрана. Экраны одной папки не копятся.
+  void _openParent(String parentId) {
+    final navigator = Navigator.of(context);
+    if (_FolderScreenState._opened.contains(parentId)) {
+      navigator.popUntil((route) => route.settings.name == folderRouteName(parentId) || route.isFirst);
+    } else {
+      navigator.pushReplacement(folderRoute(parentId));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final folders = ref.watch(foldersProvider).value ?? const [];
     final folder = folders.where((one) => one.id == widget.folderId).firstOrNull;
+    final children = folder == null ? const <FolderCard>[] : [for (final one in folders) if (one.parentId == folder.id) one];
     final cards = ref.watch(folderItemsProvider(widget.folderId)).value ?? const [];
     final filesRoot = ref.watch(filesRootProvider);
     final now = ref.read(clockProvider)();
@@ -276,33 +356,63 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
               ],
             ),
     );
+    final parents = folder?.parentsLabel;
     final titleRow = Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // значок в цвет папки: тот же цвет, что у пилюли на главной и меток заметок
-          if (folder != null) ...[
-            ShapeBadge(
-              shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
-              size: 36,
-              color: folder.color,
-              child: Icon(symbolIcon(folder.icon, filled: true), size: 19, color: inkOn(folder.color)),
+          // путь родителей над именем: касание ведёт к ближайшему
+          if ((parents, folder?.parentId) case (final String parents, final String parentId))
+            Pressable(
+              onTap: () => _openParent(parentId),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(symbolIcon('subdirectory_arrow_right'), size: 16, color: Tokens.muted),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(parents, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelLarge!.copyWith(color: Tokens.onSurfaceVariant)),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
-          ],
-          Expanded(child: Text(folder?.name ?? l.folderNone, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6))),
-          const SizedBox(width: 12),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 3),
-            child: Text(
-              '${cards.length}',
-              style: text.titleSmall!.copyWith(fontFamily: 'Unbounded', fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.muted),
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // значок в цвет папки: тот же цвет, что у пилюли на главной и меток заметок
+              if (folder != null) ...[
+                ShapeBadge(
+                  shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
+                  size: 36,
+                  color: folder.color,
+                  child: Icon(symbolIcon(folder.icon, filled: true), size: 19, color: inkOn(folder.color)),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(child: Text(folder?.name ?? l.folderNone, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6))),
+              const SizedBox(width: 12),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  '${cards.length}',
+                  style: text.titleSmall!.copyWith(fontFamily: 'Unbounded', fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.muted),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+    final shelf = children.isEmpty
+        ? null
+        : Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: FolderShelf(folders: children, onOpen: (child) => Navigator.of(context).push(folderRoute(child.id))),
+          );
     final viewSwitch = folder == null || cards.isEmpty
         ? null
         : Padding(
@@ -331,6 +441,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                 children: [
                   SafeArea(bottom: false, child: headerRow),
                   titleRow,
+                  ?shelf,
                   ?viewSwitch,
                   const SizedBox(height: 12),
                   Expanded(
@@ -343,6 +454,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                 slivers: [
                   SliverSafeArea(bottom: false, sliver: SliverToBoxAdapter(child: headerRow)),
                   SliverToBoxAdapter(child: titleRow),
+                  if (shelf != null) SliverToBoxAdapter(child: shelf),
                   // «Без папки»: разложить по одной карточке
                   if (widget.folderId == null && cards.isNotEmpty)
                     SliverToBoxAdapter(
@@ -371,7 +483,10 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                       ),
                     ),
                   const SliverToBoxAdapter(child: SizedBox(height: 12)),
-                  if (cards.isEmpty)
+                  // в папке только вложенные: «пусто» было бы неправдой
+                  if (cards.isEmpty && children.isNotEmpty)
+                    SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom))
+                  else if (cards.isEmpty)
                     SliverFillRemaining(
                       hasScrollBody: false,
                       child: Padding(

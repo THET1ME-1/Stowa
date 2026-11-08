@@ -11,6 +11,7 @@ import 'package:uuid/uuid.dart';
 import '../data/db/database.dart';
 import '../data/settings_repository.dart';
 import '../domain/ai_contract.dart';
+import '../domain/folder_tree.dart';
 import '../domain/models.dart';
 import '../domain/related.dart';
 import '../domain/tag_name.dart';
@@ -271,18 +272,22 @@ class AiWorker {
   Future<List<FolderForAi>> _foldersForAi() async {
     final rows = await _db
         .customSelect(
-          'SELECT folders.id, folders.name, '
+          'SELECT folders.id, folders.name, folders.parent_id, '
           '(SELECT group_concat(name, char(31)) FROM (SELECT tags.name AS name FROM item_tags JOIN tags ON tags.id = item_tags.tag_id '
           'JOIN items ON items.id = item_tags.item_id WHERE items.folder_id = folders.id AND items.deleted_at IS NULL '
           'GROUP BY tags.name ORDER BY count(*) DESC LIMIT 3)) AS top_tags '
           'FROM folders WHERE folders.deleted_at IS NULL ORDER BY folders.sort_order',
         )
         .get();
+    // вложенная папка — полным путём: «Дом / Ремонт / Кухня», а не голая «Кухня»
+    final tree = FolderTree([
+      for (final row in rows) FolderNode(id: row.read<String>('id'), name: row.read<String>('name'), parentId: row.readNullable<String>('parent_id')),
+    ]);
     return [
       for (final row in rows)
         FolderForAi(
           id: row.read<String>('id'),
-          name: row.read<String>('name'),
+          name: tree.pathLabel(row.read<String>('id')),
           topTags: (row.readNullable<String>('top_tags') ?? '').split('\x1f').where((tag) => tag.isNotEmpty).toList(),
         ),
     ];

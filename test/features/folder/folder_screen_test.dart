@@ -210,6 +210,98 @@ void main() {
     expect(top('Как варить кофе в турке'), lessThan(top('Тарт с малиной')));
   });
 
+  Future<void> nest() async {
+    final db = world.db;
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'soup', name: 'Супы', icon: 'soup_kitchen', shape: 'pill', parentId: const Value('food')));
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'cold', name: 'Холодные', icon: 'ac_unit', shape: 'pill', parentId: const Value('soup')));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'ok', kind: ItemKind.note, title: 'Окрошка на квасе', folderId: const Value('cold'), createdAt: world.now, updatedAt: world.now));
+  }
+
+  Finder pill(String name) => find.descendant(of: find.byType(FolderPill), matching: find.text(name));
+
+  testWidgets('вложенная папка: пилюлей в родителе, не на главной; внутри путь родителей', (tester) async {
+    await seed();
+    await nest();
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    expect(pill('Супы'), findsNothing);
+    // на главной число с вложенными: три своих и одна в «Холодных»
+    expect(find.descendant(of: find.byType(FolderPill), matching: find.text('4')), findsOneWidget);
+
+    await tester.tap(pill('Рецепты'));
+    await tester.pumpAndSettle();
+    expect(pill('Супы'), findsOneWidget);
+    expect(pill('Холодные'), findsNothing);
+    await tester.tap(pill('Супы'));
+    await tester.pumpAndSettle();
+    await tester.tap(pill('Холодные'));
+    await tester.pumpAndSettle();
+    expect(find.text('Окрошка на квасе'), findsOneWidget);
+    expect(find.text('Рецепты / Супы'), findsOneWidget);
+
+    // путь ведёт к родителю, а не копит экраны
+    await tester.tap(find.text('Рецепты / Супы'));
+    await tester.pumpAndSettle();
+    expect(pill('Холодные'), findsOneWidget);
+  });
+
+  testWidgets('«Новая папка внутри» заводит вложенную; на третьем уровне пункта нет', (tester) async {
+    await seed();
+    await nest();
+    await openFolder(tester);
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Новая папка внутри'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'выпечка');
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+    final created = await (world.db.select(world.db.folders)..where((t) => t.name.equals('Выпечка'))).getSingle();
+    expect(created.parentId, 'food');
+    expect(pill('Выпечка'), findsOneWidget);
+
+    await tester.tap(pill('Супы'));
+    await tester.pumpAndSettle();
+    await tester.tap(pill('Холодные'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    expect(find.text('Новая папка внутри'), findsNothing);
+  });
+
+  testWidgets('«Переложить в…»: без себя и своих вложенных, «Наверх» делает верхней', (tester) async {
+    await seed();
+    await nest();
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'pill', sortOrder: const Value(1)));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    await tester.tap(pill('Рецепты'));
+    await tester.pumpAndSettle();
+    await tester.tap(pill('Супы'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Переложить в…'));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    expect(find.descendant(of: sheet, matching: find.text('Холодные')), findsNothing);
+    expect(find.descendant(of: sheet, matching: find.text('Супы')), findsNothing);
+    await tester.tap(find.descendant(of: sheet, matching: find.text('Дом')));
+    await tester.pumpAndSettle();
+    expect((await (world.db.select(world.db.folders)..where((t) => t.id.equals('soup'))).getSingle()).parentId, 'home');
+    expect(find.text('Дом'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Переложить в…'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Наверх'));
+    await tester.pumpAndSettle();
+    expect((await (world.db.select(world.db.folders)..where((t) => t.id.equals('soup'))).getSingle()).parentId, isNull);
+  });
+
   testWidgets('папка влезает в 320 точек при крупном шрифте', (tester) async {
     tester.view.physicalSize = const Size(320, 640);
     tester.view.devicePixelRatio = 1;
@@ -217,7 +309,13 @@ void main() {
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await seed();
+    await nest();
     await openFolder(tester);
+    expect(tester.takeException(), isNull);
+    await tester.tap(pill('Супы'));
+    await tester.pumpAndSettle();
+    await tester.tap(pill('Холодные'));
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 }

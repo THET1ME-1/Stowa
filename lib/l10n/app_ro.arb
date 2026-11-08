@@ -361,5 +361,9 @@
   "colorTeal": "Turcoaz",
   "colorBlue": "Albastru",
   "colorViolet": "Violet",
-  "colorRose": "Trandafir"
+  "colorRose": "Trandafir",
+  "folderNewInside": "Dosar nou în interior",
+  "folderMoveTo": "Mută în…",
+  "folderMoveTop": "Sus, la nivelul de bază",
+  "folderMoveNone": "Nu are unde fi mutat: dosarele se pot încadra pe cel mult trei niveluri"
 }

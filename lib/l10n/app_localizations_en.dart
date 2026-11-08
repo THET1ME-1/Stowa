@@ -2276,4 +2276,17 @@ class LEn extends L {
 
   @override
   String get colorRose => 'Rose';
+
+  @override
+  String get folderNewInside => 'New folder inside';
+
+  @override
+  String get folderMoveTo => 'Move to…';
+
+  @override
+  String get folderMoveTop => 'To the top';
+
+  @override
+  String get folderMoveNone =>
+      'Nowhere to move: folders nest up to three levels';
 }

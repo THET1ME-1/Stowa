@@ -2326,4 +2326,17 @@ class LRu extends L {
 
   @override
   String get colorRose => 'Роза';
+
+  @override
+  String get folderNewInside => 'Новая папка внутри';
+
+  @override
+  String get folderMoveTo => 'Переложить в…';
+
+  @override
+  String get folderMoveTop => 'Наверх';
+
+  @override
+  String get folderMoveNone =>
+      'Переложить некуда: глубже трёх уровней папки не вкладываются';
 }

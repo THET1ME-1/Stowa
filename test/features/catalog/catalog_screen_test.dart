@@ -69,4 +69,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ItemScreen), findsOneWidget);
   });
+
+  testWidgets('вложенные папки — ветками внутри родителя, заметки не считаются дважды', (tester) async {
+    await seed();
+    final db = world.db;
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'soup', name: 'Супы', icon: 'soup_kitchen', shape: 'pill', parentId: const Value('food')));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'sh', kind: ItemKind.note, title: 'Щи', folderId: const Value('soup'), createdAt: world.now, updatedAt: world.now));
+    await open(tester);
+    expect(inCatalog('Супы'), findsNothing);
+    // всего пять заметок, а не шесть: «Щи» в «Супах» и в числе «Рецептов»
+    expect(inCatalog('5'), findsOneWidget);
+    expect(inCatalog('3'), findsOneWidget);
+
+    await tester.tap(inCatalog('Рецепты'));
+    await tester.pumpAndSettle();
+    expect(inCatalog('Супы'), findsOneWidget);
+    expect(inCatalog('Щи'), findsNothing);
+    // вложенная папка стоит выше заметок родителя и с отступом
+    expect(tester.getTopLeft(inCatalog('Супы')).dy, lessThan(tester.getTopLeft(inCatalog('Борщ')).dy));
+    expect(tester.getTopLeft(inCatalog('Супы')).dx, greaterThan(tester.getTopLeft(inCatalog('Рецепты')).dx));
+
+    await tester.tap(inCatalog('Супы'));
+    await tester.pumpAndSettle();
+    expect(inCatalog('Щи'), findsOneWidget);
+  });
 }

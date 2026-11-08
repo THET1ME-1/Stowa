@@ -609,5 +609,9 @@
   "colorTeal": "Бирюза",
   "colorBlue": "Синий",
   "colorViolet": "Фиалка",
-  "colorRose": "Роза"
+  "colorRose": "Роза",
+  "folderNewInside": "Новая папка внутри",
+  "folderMoveTo": "Переложить в…",
+  "folderMoveTop": "Наверх",
+  "folderMoveNone": "Переложить некуда: глубже трёх уровней папки не вкладываются"
 }

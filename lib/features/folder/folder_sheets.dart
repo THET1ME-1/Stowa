@@ -13,13 +13,13 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
 
-enum FolderAction { graph, rename, look, delete }
+enum FolderAction { graph, nest, move, rename, look, delete }
 
-/// Спросить имя и завести папку. Отказался — null.
-Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref) async {
+/// Спросить имя и завести папку, с [parentId] — внутри той. Отказался — null.
+Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref, {String? parentId}) async {
   final name = await showRenameSheet(context, '');
   if (name == null) return null;
-  return ref.read(foldersRepositoryProvider).create(name);
+  return ref.read(foldersRepositoryProvider).create(name, parentId: parentId);
 }
 
 Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet<T>(
@@ -34,8 +34,9 @@ Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet
   ),
 );
 
-/// Меню папки снизу: переименовать, иконка и форма, удалить.
-Future<FolderAction?> showFolderMenu(BuildContext context) {
+/// Меню папки снизу: связи, папка внутри, переложить, переименовать, иконка и форма, удалить.
+/// [canNest] — папка не на третьем уровне, внутрь неё можно завести ещё одну.
+Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true}) {
   final l = L.of(context);
   Widget row(String icon, String label, FolderAction action, {bool danger = false}) => ListTile(
     leading: Icon(symbolIcon(icon), color: danger ? Tokens.error : Tokens.onSurface),
@@ -50,6 +51,8 @@ Future<FolderAction?> showFolderMenu(BuildContext context) {
         mainAxisSize: MainAxisSize.min,
         children: [
           row('hub', l.graphTitle, FolderAction.graph),
+          if (canNest) row('create_new_folder', l.folderNewInside, FolderAction.nest),
+          row('drive_file_move', l.folderMoveTo, FolderAction.move),
           row('edit', l.folderRename, FolderAction.rename),
           row('palette', l.folderLook, FolderAction.look),
           row('delete', l.folderDelete, FolderAction.delete, danger: true),

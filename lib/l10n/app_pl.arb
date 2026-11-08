@@ -361,5 +361,9 @@
   "colorTeal": "Turkus",
   "colorBlue": "Niebieski",
   "colorViolet": "Fiolet",
-  "colorRose": "Róża"
+  "colorRose": "Róża",
+  "folderNewInside": "Nowy folder w środku",
+  "folderMoveTo": "Przenieś do…",
+  "folderMoveTop": "Na górę",
+  "folderMoveNone": "Nie ma dokąd przenieść: foldery zagnieżdżają się do trzech poziomów"
 }

@@ -2297,4 +2297,17 @@ class LRo extends L {
 
   @override
   String get colorRose => 'Trandafir';
+
+  @override
+  String get folderNewInside => 'Dosar nou în interior';
+
+  @override
+  String get folderMoveTo => 'Mută în…';
+
+  @override
+  String get folderMoveTop => 'Sus, la nivelul de bază';
+
+  @override
+  String get folderMoveNone =>
+      'Nu are unde fi mutat: dosarele se pot încadra pe cel mult trei niveluri';
 }

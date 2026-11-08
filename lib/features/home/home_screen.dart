@@ -359,7 +359,8 @@ class _Feed extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.only(top: 6, bottom: 16),
               child: FolderShelf(
-                folders: folders,
+                // только верхние: вложенные видны внутри своей папки
+                folders: [for (final folder in folders) if (folder.parentId == null) folder],
                 onOpen: (folder) => Navigator.of(context).push(folderRoute(folder.id)),
                 // всё, что ещё не разложено, одной лентой
                 onInbox: recent.any((card) => card.folderId == null) ? () => Navigator.of(context).push(folderRoute(null)) : null,
