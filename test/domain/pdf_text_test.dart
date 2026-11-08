@@ -146,6 +146,18 @@ end''';
     expect(pdfPages(bytes), ['Packed text']);
   });
 
+  test('текст внутри формы (Do) со своими ресурсами, как у Chrome и TeX', () {
+    final bytes = _pdf([
+      const _Object('<< /Type /Catalog /Pages 2 0 R >>'),
+      const _Object('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'),
+      const _Object('<< /Type /Page /Parent 2 0 R /Resources << /XObject << /Fm1 5 0 R >> >> /Contents 4 0 R >>'),
+      _Object('<< >>', stream: _text('q 1 0 0 1 0 0 cm /Fm1 Do Q')),
+      _Object('<< /Type /XObject /Subtype /Form /BBox [0 0 600 800] /Resources << /Font << /F1 6 0 R >> >> >>', stream: _text('BT /F1 12 Tf (Inside form) Tj ET'), zip: true),
+      const _Object('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'),
+    ]);
+    expect(pdfPages(bytes), ['Inside form']);
+  });
+
   test('зашифрованный PDF и мусор — пусто, без ошибки', () {
     expect(pdfPages(_pdf(_onePage('BT /F1 12 Tf (Secret) Tj ET'), trailerExtra: '/Encrypt 9 0 R ')), isEmpty);
     expect(pdfPages(Uint8List.fromList(utf8.encode('not a pdf at all'))), isEmpty);
