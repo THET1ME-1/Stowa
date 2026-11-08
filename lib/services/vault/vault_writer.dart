@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
 import '../../data/db/database.dart';
+import '../../domain/folder_tree.dart';
 import '../../domain/models.dart';
 import '../../domain/vault_note.dart';
 import 'vault_layout.dart';
@@ -131,8 +132,7 @@ class VaultWriter {
       }
     }
 
-    final folder = item.folderId == null ? null : await (_db.select(_db.folders)..where((t) => t.id.equals(item.folderId!))).getSingleOrNull();
-    var wanted = notePath(folderName: folder == null || folder.deletedAt != null ? null : folder.name, fileName: '${vaultFileName(item.title)}.md');
+    var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(item.title)}.md');
     if (item.deletedAt != null) wanted = trashPath(wanted);
     // «Купить молоко 2.md» остаётся «2», пока заголовок тот же: файл не прыгает между именами
     final path = known != null && _sameName(known.path, wanted) ? known.path : (known == null ? await _ownFile(wanted, id) : null) ?? await _free(wanted, id);
@@ -179,6 +179,13 @@ class VaultWriter {
     final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path)));
     final stat = await file.stat();
     await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+  }
+
+  /// Имена папок от верхней до папки вещи. Удалённая папка — как будто её нет.
+  Future<List<String>> _folderPath(String? folderId) async {
+    if (folderId == null) return const [];
+    final rows = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
+    return FolderTree([for (final row in rows) FolderNode(id: row.id, name: row.name, parentId: row.parentId)]).path(folderId);
   }
 
   bool _sameName(String current, String wanted) {

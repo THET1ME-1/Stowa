@@ -64,4 +64,21 @@ void main() {
     await settle();
     expect(changes, 1);
   });
+
+  test('вложенные папки под слежкой: и готовые, и новые; каталог вложений — нет', () async {
+    Directory(p.join(root.path, 'Рецепты', 'Супы')).createSync();
+    File(p.join(root.path, 'Рецепты', 'Борщ.md')).writeAsStringSync('свёкла');
+    Directory(p.join(root.path, 'Рецепты', 'Борщ')).createSync();
+    watch.start();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    File(p.join(root.path, 'Рецепты', 'Супы', 'Щи.md')).writeAsStringSync('капуста');
+    await settle();
+    expect(changes, 1);
+    Directory(p.join(root.path, 'Рецепты', 'Супы', 'Холодные')).createSync();
+    await settle();
+    File(p.join(root.path, 'Рецепты', 'Супы', 'Холодные', 'Окрошка.md')).writeAsStringSync('квас');
+    await settle();
+    expect(changes, 2);
+    expect(watch.watched, isNot(contains(p.join(root.path, 'Рецепты', 'Борщ'))));
+  });
 }

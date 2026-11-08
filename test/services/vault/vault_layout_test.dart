@@ -9,9 +9,11 @@ import 'package:stowa/services/vault/vault_layout.dart';
 void main() {
   test('вещь без папки — в корне, с папкой — в каталоге папки', () {
     expect(notePath(fileName: 'Купить молоко.md'), 'Купить молоко.md');
-    expect(notePath(folderName: 'Рецепты', fileName: 'Карбонара.md'), 'Рецепты/Карбонара.md');
+    expect(notePath(folders: ['Рецепты'], fileName: 'Карбонара.md'), 'Рецепты/Карбонара.md');
+    // вложенная папка — подкаталог
+    expect(notePath(folders: ['Дом', 'Ремонт', 'Кухня'], fileName: 'Плитка.md'), 'Дом/Ремонт/Кухня/Плитка.md');
     // имя папки чистится так же, как имя файла
-    expect(notePath(folderName: 'Дом/Сад', fileName: 'Грядки.md'), 'Дом Сад/Грядки.md');
+    expect(notePath(folders: ['Дом/Сад'], fileName: 'Грядки.md'), 'Дом Сад/Грядки.md');
     expect(attachmentsDir('Рецепты/Карбонара.md'), 'Рецепты/Карбонара');
   });
 

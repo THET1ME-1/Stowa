@@ -76,15 +76,31 @@ void main() {
     expect((await item('a'))!.deletedAt, isNotNull);
   });
 
-  test('папка, созданная в файловом менеджере, — папка Stowa; вложенная подпапка — в верхнюю', () async {
+  test('папка, созданная в файловом менеджере, — папка Stowa; подпапка — вложенная папка любой глубины', () async {
     put('Сад/Грядки.md', 'Посадить чеснок');
     put('Сад/Весна/Рассада.md', 'Томаты');
+    put('Сад/Весна/Март/Апрель/Полив.md', 'Через день');
+    put('Дача/Весна/Окна.md', 'Помыть');
     put('.obsidian/workspace.md', 'служебное Obsidian');
     await reader().reconcile();
-    final folders = await db.select(db.folders).get();
-    expect(folders.map((folder) => folder.name), ['Сад']);
-    expect((await items()).map((one) => one.folderId).toSet(), {folders.single.id});
-    expect((await items()).map((one) => one.title), unorderedEquals(['Грядки', 'Рассада']));
+    final folders = {for (final folder in await db.select(db.folders).get()) folder.id: folder};
+    String pathOf(String? id) {
+      final names = <String>[];
+      for (var current = id; current != null; current = folders[current]!.parentId) {
+        names.insert(0, folders[current]!.name);
+      }
+      return names.join('/');
+    }
+
+    expect(folders.values.map((folder) => pathOf(folder.id)), unorderedEquals(['Сад', 'Сад/Весна', 'Сад/Весна/Март', 'Сад/Весна/Март/Апрель', 'Дача', 'Дача/Весна']));
+    final byTitle = {for (final one in await items()) one.title: pathOf(one.folderId)};
+    expect(byTitle, {'Грядки': 'Сад', 'Рассада': 'Сад/Весна', 'Полив': 'Сад/Весна/Март/Апрель', 'Окна': 'Дача/Весна'});
+
+    // повторная сверка и запись не плодят папок и не двигают файлы
+    await writer().drain();
+    await reader().reconcile();
+    expect(await db.select(db.folders).get(), hasLength(6));
+    expect(file('Сад/Весна/Март/Апрель/Полив.md').existsSync(), isTrue);
   });
 
   test('[[Заметка]] — ручная связь, ![[фото.jpg]] рядом с заметкой — вложение', () async {

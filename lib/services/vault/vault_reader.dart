@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/database.dart';
+import '../../domain/folder_tree.dart';
 import '../../domain/inline_tags.dart';
 import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
@@ -212,8 +213,11 @@ class VaultReader {
   /// теги берутся из памяти, новые заводятся по ходу, и их файлы просятся отдельно.
   Future<void> _store(List<_Incoming> incoming, {void Function(int done)? progress}) async {
     if (incoming.isEmpty) return;
+    // ключ — путь каталога папки в нижнем регистре: «дом/ремонт» и «дача/ремонт» — разные папки
+    final rows = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
+    final tree = FolderTree([for (final row in rows) FolderNode(id: row.id, name: row.name, parentId: row.parentId)]);
     final folders = {
-      for (final folder in await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get()) vaultFileName(folder.name).toLowerCase(): folder.id,
+      for (final row in rows) [for (final name in tree.path(row.id)) vaultFileName(name)].join('/').toLowerCase(): row.id,
     };
     final tags = {for (final tag in await _db.select(_db.tags).get()) tag.name: tag.id};
     final created = <String>{};
@@ -355,20 +359,29 @@ class VaultReader {
     return found;
   }
 
-  /// Папка Stowa по каталогу верхнего уровня; нет такой — заводится.
+  /// Папка Stowa по каталогу заметки: каждый каталог пути — папка, подкаталог — вложенная.
+  /// Нет такой — заводится вся цепочка. Глубина из файлов любая: чужое не перекладываем.
   Future<String?> _folderFor(String relative, Map<String, String> folders, Set<String> created) async {
     final parts = relative.split('/');
-    if (parts.length < 2) return null;
-    final name = parts.first;
-    final known = folders[name.toLowerCase()];
-    if (known != null) return known;
-    final id = const Uuid().v4();
-    final count = await _db.folders.count().getSingle();
-    const shapes = ['cookie9', 'squircle', 'gem', 'pill', 'cookie6'];
-    await _db.into(_db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: shapes[count % shapes.length], sortOrder: Value(count)));
-    folders[name.toLowerCase()] = id;
-    created.add('meta:folders');
-    return id;
+    String? parent;
+    for (var level = 1; level < parts.length; level++) {
+      final key = parts.sublist(0, level).join('/').toLowerCase();
+      final known = folders[key];
+      if (known != null) {
+        parent = known;
+        continue;
+      }
+      final id = const Uuid().v4();
+      final count = await _db.folders.count().getSingle();
+      const shapes = ['cookie9', 'squircle', 'gem', 'pill', 'cookie6'];
+      await _db.into(_db.folders).insert(
+        FoldersCompanion.insert(id: id, name: parts[level - 1], icon: 'folder', shape: shapes[count % shapes.length], sortOrder: Value(count), parentId: Value(parent)),
+      );
+      folders[key] = id;
+      created.add('meta:folders');
+      parent = id;
+    }
+    return parent;
   }
 
   Future<String> _newTag(String name, Set<String> created) async {

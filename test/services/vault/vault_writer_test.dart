@@ -91,6 +91,25 @@ void main() {
     expect(Directory(p.join(root.path, 'Рецепты')).existsSync(), isFalse);
   });
 
+  test('вложенная папка — подкаталог; переименование и перенос родителя везут и вложенные', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'soup', name: 'Супы', icon: 'folder', shape: 'pill', parentId: const Value('recipes')));
+    await note('a', 'Борщ', folder: 'soup');
+    await writer().drain();
+    expect(file('Рецепты/Супы/Борщ.md').existsSync(), isTrue);
+    expect(await pathOf('a'), 'Рецепты/Супы/Борщ.md');
+
+    await (db.update(db.folders)..where((t) => t.id.equals('recipes'))).write(const FoldersCompanion(name: Value('Кухня')));
+    await writer().drain();
+    expect(file('Кухня/Супы/Борщ.md').existsSync(), isTrue);
+    expect(Directory(p.join(root.path, 'Рецепты')).existsSync(), isFalse);
+
+    await (db.update(db.folders)..where((t) => t.id.equals('soup'))).write(const FoldersCompanion(parentId: Value('food')));
+    await writer().drain();
+    expect(file('Еда/Супы/Борщ.md').existsSync(), isTrue);
+    expect(Directory(p.join(root.path, 'Кухня')).existsSync(), isFalse);
+    expect(await queue(), isEmpty);
+  });
+
   test('одинаковые заголовки — «… 2.md»; смена заголовка переименовывает файл, повторная запись имён не меняет', () async {
     await note('a', 'Купить молоко');
     await note('b', 'Купить молоко');

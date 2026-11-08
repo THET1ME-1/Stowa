@@ -10,8 +10,9 @@ const serviceFolder = '.stowa';
 /// Корзина: удалённые вещи тем же видом, 30 дней.
 const trashFolder = '.trash';
 
-/// Файл вещи: в корне или в каталоге своей папки.
-String notePath({String? folderName, required String fileName}) => folderName == null ? fileName : '${vaultFileName(folderName)}/$fileName';
+/// Файл вещи: в корне или в каталоге своей папки; вложенная папка — подкаталог.
+/// [folders] — имена от верхней папки до своей.
+String notePath({List<String> folders = const [], required String fileName}) => [for (final name in folders) vaultFileName(name), fileName].join('/');
 
 /// Каталог вложений вещи: рядом с файлом, тем же именем без `.md`.
 String attachmentsDir(String notePath) => notePath.endsWith('.md') ? notePath.substring(0, notePath.length - 3) : notePath;

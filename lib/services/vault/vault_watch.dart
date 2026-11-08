@@ -8,7 +8,8 @@ import 'vault_layout.dart';
 
 /// Пока приложение открыто, следит за папкой хранилища: заметку поправили в Obsidian
 /// или её привёз Syncthing — сверка без перезапуска. Слежка без рекурсии (на Android
-/// рекурсивной нет): корень и каждая папка верхнего уровня отдельно.
+/// рекурсивной нет): корень и каждая папка на любой глубине отдельно, кроме каталогов
+/// вложений (рядом лежит одноимённая заметка) — их тысячи, а заметок в них нет.
 class VaultWatch {
   VaultWatch(this._db, {required Directory? root, required Future<void> Function() onChange, Duration settle = const Duration(milliseconds: 500)})
     : _root = root, // ignore: prefer_initializing_formals
@@ -29,11 +30,20 @@ class VaultWatch {
   void start() {
     final root = _root;
     if (root == null || !root.existsSync() || _subscriptions.isNotEmpty) return;
-    _watch(root);
-    for (final entity in root.listSync(followLinks: false)) {
-      if (entity is Directory && !p.basename(entity.path).startsWith('.')) _watch(entity);
+    _watchTree(root);
+  }
+
+  /// Какие каталоги под слежкой — для тестов.
+  Iterable<String> get watched => _subscriptions.keys;
+
+  void _watchTree(Directory folder) {
+    _watch(folder);
+    for (final entity in folder.listSync(followLinks: false)) {
+      if (entity is Directory && _isFolder(entity)) _watchTree(entity);
     }
   }
+
+  static bool _isFolder(Directory dir) => !p.basename(dir.path).startsWith('.') && !File('${dir.path}.md').existsSync();
 
   Future<void> stop() async {
     _timer?.cancel();
@@ -53,9 +63,10 @@ class VaultWatch {
   void _heard(FileSystemEvent event) {
     final relative = p.relative(event.path, from: _root!.path).split(p.separator).join('/');
     if (isServicePath(relative)) return;
-    // новая папка верхнего уровня — тоже под слежку
+    // новая папка на любой глубине — тоже под слежку, с тем, что в неё уже положили
     if (event.isDirectory) {
-      if (event.type == FileSystemEvent.create && !relative.contains('/')) _watch(Directory(event.path));
+      final dir = Directory(event.path);
+      if (event.type == FileSystemEvent.create && dir.existsSync() && _isFolder(dir)) _watchTree(dir);
       return;
     }
     if (!relative.endsWith('.md')) return;
