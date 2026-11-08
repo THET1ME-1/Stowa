@@ -67,4 +67,29 @@ void main() {
   test('одиночная звёздочка или подчёркивание в слове — не разметка', () {
     expect(parseInline('snake_case и 2*3').single.text, 'snake_case и 2*3');
   });
+
+  test('строка ![[имя]] — картинка между абзацами; размер Obsidian после | не мешает', () {
+    final blocks = parseNoteBlocks('Плитка\n![[IMG-20261108-101500.jpg]]\nклей\n\n![[Кухня/фото.png|300]]');
+    expect(blocks[0], isA<ParagraphBlock>());
+    expect((blocks[1] as ImageBlock).name, 'IMG-20261108-101500.jpg');
+    expect((blocks[2] as ParagraphBlock).text, 'клей');
+    expect((blocks[3] as ImageBlock).name, 'Кухня/фото.png');
+    // посреди строки — не картинка
+    expect(parseNoteBlocks('смотри ![[x.jpg]] тут').single, isA<ParagraphBlock>());
+  });
+
+  test('имена картинок в тексте и путь вложения по имени', () {
+    expect(embedNames('а\n![[a.jpg]]\nб\n![[Кухня/b.png|200]]'), ['a.jpg', 'Кухня/b.png']);
+    const paths = ['Ремонт/Плитка/IMG-1.jpg', '.stowa/incoming/x/3_IMG-2.jpg', 'Ремонт/Плитка/Кухня.png'];
+    expect(embedPath('IMG-1.jpg', paths), 'Ремонт/Плитка/IMG-1.jpg');
+    // во входящих файл ждёт с номером порядка: имя то же
+    expect(embedPath('IMG-2.jpg', paths), '.stowa/incoming/x/3_IMG-2.jpg');
+    expect(embedPath('img-1.JPG', paths), 'Ремонт/Плитка/IMG-1.jpg');
+    expect(embedPath('Ремонт/Плитка/Кухня.png', paths), 'Ремонт/Плитка/Кухня.png');
+    expect(embedPath('нет.jpg', paths), isNull);
+  });
+
+  test('строки ленты без картинок из текста', () {
+    expect([for (final line in noteLinesUnderTitle('Плитка\n![[a.jpg]]\nклей', 'Плитка')) line.text], ['клей']);
+  });
 }

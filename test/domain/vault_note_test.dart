@@ -156,4 +156,27 @@ void main() {
     final back = readVaultNote(text, fileName: 'Текст.md', fileModified: created);
     expect(back.body, contains('Текст'));
   });
+
+  test('картинка в конце текста остаётся в тексте: хвост — только строки с путём', () {
+    final note = VaultNote(
+      id: 'a',
+      kind: ItemKind.note,
+      title: 'Плитка',
+      body: 'Плитка\nвот так\n![[IMG-1.jpg]]',
+      created: created,
+      updated: updated,
+      attachments: ['Плитка/скан.pdf'],
+    );
+    final text = writeVaultNote(note, fileName: 'Плитка.md');
+    expect(text, endsWith('вот так\n![[IMG-1.jpg]]\n\n![[Плитка/скан.pdf]]\n'));
+    final back = readVaultNote(text, fileName: 'Плитка.md', fileModified: created);
+    expect(back.body, 'Плитка\nвот так\n![[IMG-1.jpg]]');
+    expect(back.attachments, ['Плитка/скан.pdf']);
+  });
+
+  test('заметка Obsidian с картинкой в конце: картинка в тексте на своём месте', () {
+    final back = readVaultNote('Ремонт\n![[Pasted image 20261108.png]]\n', fileName: 'Ремонт.md', fileModified: created);
+    expect(back.body, 'Ремонт\n![[Pasted image 20261108.png]]');
+    expect(back.attachments, isEmpty);
+  });
 }

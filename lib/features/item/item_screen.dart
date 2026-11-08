@@ -25,7 +25,7 @@ import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart';
 import '../../l10n/app_localizations.dart';
-import '../../services/capture_service.dart' show CaptureInput;
+import '../../services/capture_service.dart' show CaptureInput, PickedFile;
 import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
@@ -349,14 +349,31 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     showUndo(messenger, message: l.shoppingReady, label: l.actionOpen, onUndo: () => navigator.push(itemRoute(id)), overDock: true);
   }
 
+  /// Фото в правке встают в текст на место курсора строками `![[имя]]`, как в Obsidian.
+  /// Имя своё и с датой: на него ссылается текст, а у галереи имена вроде «1000012345.jpg».
   Future<void> _addPhotos() async {
+    final caret = _body.value;
     // клавиатура под системным окном выбора только мешает
     FocusScope.of(context).unfocus();
     try {
       final picked = await ImagePicker().pickMultiImage();
       if (picked.isEmpty) return;
-      final files = [for (final file in picked) await pickedFrom(file.path, hint: file.mimeType)];
+      final taken = {
+        for (final file in ref.read(itemProvider(_id)).value?.attachments ?? const <Attachment>[]) p.basename(file.path).replaceFirst(RegExp(r'^\d+_'), '').toLowerCase(),
+      };
+      final now = _clock();
+      final files = <PickedFile>[];
+      for (final file in picked) {
+        final extension = p.extension(file.path).replaceFirst('.', '').toLowerCase();
+        final name = photoFileName(now, extension.isEmpty ? 'jpg' : extension, taken);
+        taken.add(name.toLowerCase());
+        final one = await pickedFrom(file.path, hint: file.mimeType);
+        files.add(PickedFile(path: one.path, mime: one.mime, size: one.size, name: name));
+      }
       await ref.read(captureServiceProvider).attach(_id, files);
+      if (!mounted) return;
+      _body.value = insertImageLines(caret, [for (final file in files) file.name!]);
+      _bodyFocus.requestFocus();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(L.of(context).attachFailed)));
     }
@@ -455,6 +472,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final item = full.item;
     final folder = folders.where((one) => one.id == item.folderId).firstOrNull;
     final images = full.attachments.where((file) => file.mime.startsWith('image/')).toList();
+    // фото, вставленные в текст, стоят на своём месте в тексте, а не крупно над заголовком
+    final attachmentPaths = [for (final file in full.attachments) file.path];
+    final inline = {for (final name in embedNames(item.body)) ?embedPath(name, attachmentPaths)};
+    final gallery = [for (final image in images) if (!inline.contains(image.path)) image];
     final url = item.url;
     // ссылка и ролик по адресу живут превью; свой ролик — файлом с обложкой и «Смотреть»
     final linkLike = url != null && (item.kind == ItemKind.link || item.kind == ItemKind.video);
@@ -473,7 +494,20 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final titleStyle = text.headlineSmall!.copyWith(fontSize: 25, height: 1.2, letterSpacing: -0.4);
     final bodyStyle = text.bodyLarge!.copyWith(fontSize: 16, height: 1.5, color: Tokens.onSurface);
     final bottom = MediaQuery.paddingOf(context).bottom;
-    final cover = images.isEmpty ? null : images[_cover.clamp(0, images.length - 1)];
+    final cover = gallery.isEmpty ? null : gallery[_cover.clamp(0, gallery.length - 1)];
+    // картинка из текста по имени; касание открывает просмотр всех фото заметки на ней
+    Widget inlineImage(String name) {
+      final path = embedPath(name, attachmentPaths);
+      final image = images.where((one) => one.path == path).firstOrNull;
+      if (image == null) return MissingImage(name: name);
+      return _PhotoCover(
+        image: image,
+        filesRoot: filesRoot,
+        radius: Radii.tile,
+        onOpen: () => PhotoViewer.open(context, [for (final one in images) p.join(filesRoot.path, one.path)], images.indexOf(image)),
+      );
+    }
+
 
     // в шапке вид вещи («заметка», «3 фото»), пока правка — что всё сохраняется; дата и место — строкой под заголовком
     final what = images.isNotEmpty ? l.itemPhotos(images.length) : kindLabel(l, item.kind);
@@ -550,11 +584,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           _PhotoCover(
                             image: cover,
                             filesRoot: filesRoot,
-                            onOpen: () => PhotoViewer.open(context, [for (final image in images) p.join(filesRoot.path, image.path)], _cover.clamp(0, images.length - 1)),
+                            onOpen: () => PhotoViewer.open(context, [for (final image in gallery) p.join(filesRoot.path, image.path)], _cover.clamp(0, gallery.length - 1)),
                           ),
-                          if (images.length > 1) ...[
+                          if (gallery.length > 1) ...[
                             const SizedBox(height: 8),
-                            _Thumbs(images: images, filesRoot: filesRoot, selected: _cover, onPick: (index) => setState(() => _cover = index)),
+                            _Thumbs(images: gallery, filesRoot: filesRoot, selected: _cover, onPick: (index) => setState(() => _cover = index)),
                           ],
                           const SizedBox(height: 18),
                         ] else
@@ -665,7 +699,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     style: bodyStyle,
                                     decoration: _bare(l.itemBodyHint),
                                   )
-                                : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink),
+                                : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink, image: inlineImage),
                           ),
                         ],
                         if (!_editing && highlights.isNotEmpty) ...[
@@ -1159,11 +1193,14 @@ class _ReminderBlock extends StatelessWidget {
 /// Снимок на странице вещи в своих пропорциях: обрезаются только очень вытянутые.
 /// Касание открывает его во весь экран.
 class _PhotoCover extends StatelessWidget {
-  const _PhotoCover({required this.image, required this.filesRoot, required this.onOpen});
+  const _PhotoCover({required this.image, required this.filesRoot, required this.onOpen, this.radius = Radii.card});
 
   final Attachment image;
   final Directory filesRoot;
   final VoidCallback onOpen;
+
+  /// Крупно над заголовком — скругление карточки, в тексте — плитки: она внутри карточки текста.
+  final double radius;
 
   @override
   Widget build(BuildContext context) {
@@ -1174,7 +1211,7 @@ class _PhotoCover extends StatelessWidget {
     return GestureDetector(
       onTap: onOpen,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(Radii.card),
+        borderRadius: BorderRadius.circular(radius),
         child: AspectRatio(
           // высота к ширине от 9:16 до 5:4: длинный скриншот не съедает весь экран
           aspectRatio: 1 / ratio.clamp(0.5625, 1.25),

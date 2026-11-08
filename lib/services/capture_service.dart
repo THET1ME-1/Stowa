@@ -32,11 +32,15 @@ List<Directory> ownTemporaryFolders(Directory filesRoot, [Directory? cache]) => 
 ];
 
 class PickedFile {
-  const PickedFile({required this.path, required this.mime, required this.size, this.seconds});
+  const PickedFile({required this.path, required this.mime, required this.size, this.seconds, this.name});
 
   final String path;
   final String mime;
   final int size;
+
+  /// Под каким именем файл ляжет к заметке; null — как назван у источника.
+  /// Фото, вставленное в текст, получает своё: на него ссылается строка `![[имя]]`.
+  final String? name;
 
   /// Длина записи, если её знает тот, кто записывал: голосовое строки.
   final int? seconds;

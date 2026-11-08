@@ -176,12 +176,13 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
     }
   }
 
-  // хвост из строк ![[…]] — вложения, остальное — текст
+  // хвост из строк ![[путь/…]] — вложения, остальное — текст. Хвост Stowa пишет путями
+  // от корня, а картинку в тексте — коротким именем: та остаётся в тексте на своём месте
   final lines = content.trimRight().split('\n');
   final attachments = <String>[];
   while (lines.isNotEmpty) {
     final match = _embed.firstMatch(lines.last.trim());
-    if (match == null) break;
+    if (match == null || !match.group(1)!.contains('/')) break;
     attachments.insert(0, match.group(1)!);
     lines.removeLast();
   }

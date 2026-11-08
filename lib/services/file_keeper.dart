@@ -149,7 +149,7 @@ class FileKeeper {
               source: file.path,
               // папку заметки при сохранении ещё не знаешь: файл ждёт во входящих, писатель хранилища
               // переносит его к заметке под настоящим именем
-              target: incomingFile(itemId, '${index}_${p.basename(file.path)}'),
+              target: incomingFile(itemId, '${index}_${file.name ?? p.basename(file.path)}'),
               mime: file.mime,
               size: file.size,
               createdAt: now,

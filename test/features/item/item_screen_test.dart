@@ -378,6 +378,37 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('фото между абзацами — в тексте на своём месте, над заголовком только остальные', (tester) async {
+      await show(
+        tester,
+        ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.note,
+          title: 'Плитка',
+          body: const Value('Плитка\nвот так легла\n![[IMG-1.jpg]]\nклей серый\n![[нет.jpg]]'),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ),
+        files: [
+          AttachmentsCompanion.insert(id: 'p1', itemId: 'a', path: 'Плитка/IMG-1.jpg', mime: 'image/jpeg', size: 1, width: const Value(400), height: const Value(300)),
+          AttachmentsCompanion.insert(id: 'p2', itemId: 'a', path: 'Плитка/скан.jpg', mime: 'image/jpeg', size: 1, position: const Value(1)),
+        ],
+      );
+      // крупно над заголовком — только фото, которого нет в тексте
+      expect(find.byType(Image), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('клей серый'), 200, scrollable: find.byType(Scrollable).first);
+      await tester.pumpAndSettle();
+      final card = find.byKey(const ValueKey('item-body-card'));
+      expect(find.descendant(of: card, matching: find.byType(Image)), findsOneWidget);
+      expect(find.textContaining('![['), findsNothing);
+      // картинка стоит между своими строками
+      final photo = tester.getTopLeft(find.descendant(of: card, matching: find.byType(Image))).dy;
+      expect(photo, greaterThan(tester.getTopLeft(find.textContaining('вот так легла')).dy));
+      expect(photo, lessThan(tester.getTopLeft(find.text('клей серый')).dy));
+      // файла нет — тихая плашка с именем
+      expect(find.text('нет.jpg'), findsOneWidget);
+    });
+
     testWidgets('ссылка: превью с сайтом и описанием, адрес не повторяется текстом, главная кнопка «Открыть»', (tester) async {
       await show(
         tester,

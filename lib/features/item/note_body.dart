@@ -10,12 +10,15 @@ const _markWidth = 32.0;
 /// Текст заметки на странице вещи: абзацы, заголовки, списки, галочки, цитаты.
 /// Касание по тексту открывает правку, по галочке — отмечает дело, по ссылке — открывает её.
 class NoteBody extends StatelessWidget {
-  const NoteBody({super.key, required this.blocks, required this.onToggle, required this.onEdit, required this.onLink});
+  const NoteBody({super.key, required this.blocks, required this.onToggle, required this.onEdit, required this.onLink, this.image});
 
   final List<NoteBlock> blocks;
   final ValueChanged<int> onToggle;
   final VoidCallback onEdit;
   final ValueChanged<String> onLink;
+
+  /// Картинка между абзацами по имени из `![[имя]]`. Нет — тихая плашка с именем файла.
+  final Widget Function(String name)? image;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +108,7 @@ class NoteBody extends StatelessWidget {
           ),
         ),
       ),
+      ImageBlock(:final name) => image?.call(name) ?? MissingImage(name: name),
       QuoteBlock(text: final value) => GestureDetector(
         onTap: onEdit,
         child: Container(
@@ -114,6 +118,32 @@ class NoteBody extends StatelessWidget {
         ),
       ),
     };
+  }
+}
+
+/// Картинка из текста, которой нет среди вложений (ещё копируется или файл убрали):
+/// значок и имя файла, текст вокруг не прыгает.
+class MissingImage extends StatelessWidget {
+  const MissingImage({super.key, required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.tile)),
+      child: Row(
+        children: [
+          Icon(symbolIcon('image'), size: 20, color: Tokens.muted),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(name.split('/').last, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Tokens.muted)),
+          ),
+        ],
+      ),
+    );
   }
 }
 

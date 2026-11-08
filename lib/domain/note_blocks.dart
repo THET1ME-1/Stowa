@@ -42,6 +42,38 @@ class QuoteBlock extends NoteBlock {
   final String text;
 }
 
+/// Картинка между абзацами: строка `![[имя]]`, как пишет Obsidian. [name] — короткое
+/// имя файла вложения или путь от корня хранилища.
+class ImageBlock extends NoteBlock {
+  const ImageBlock(this.name);
+  final String name;
+}
+
+/// Строка-картинка целиком; размер Obsidian (`|300`) отбрасывается.
+final embedLine = RegExp(r'^\s*!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]\s*$');
+
+/// Имена картинок в тексте заметки по порядку.
+List<String> embedNames(String body) => [
+  for (final line in body.split('\n'))
+    if (embedLine.firstMatch(line) case final match?) match.group(1)!.trim(),
+];
+
+final _order = RegExp(r'^\d+_');
+
+/// Путь вложения, на которое ссылается картинка в тексте: по пути целиком или по имени
+/// файла без регистра. Во входящих файл ждёт с номером порядка («3_имя») — имя то же.
+String? embedPath(String name, List<String> paths) {
+  final wanted = name.toLowerCase();
+  for (final path in paths) {
+    if (path.toLowerCase() == wanted) return path;
+  }
+  for (final path in paths) {
+    final base = path.split('/').last.replaceFirst(_order, '').toLowerCase();
+    if (base == wanted || path.toLowerCase().endsWith('/$wanted')) return path;
+  }
+  return null;
+}
+
 final checkLine = RegExp(r'^\s*[-*] \[([ xX])\] (.*)$');
 final _heading = RegExp(r'^(#{1,3}) (.+)$');
 final _bullet = RegExp(r'^\s*[-*•] (.+)$');
@@ -65,7 +97,10 @@ List<NoteBlock> parseNoteBlocks(String body) {
       flush();
       continue;
     }
-    if (checkLine.firstMatch(line) case final check?) {
+    if (embedLine.firstMatch(line) case final embed?) {
+      flush();
+      blocks.add(ImageBlock(embed.group(1)!.trim()));
+    } else if (checkLine.firstMatch(line) case final check?) {
       flush();
       blocks.add(CheckBlock(text: check.group(2)!, done: check.group(1) != ' ', line: index));
     } else if (_heading.firstMatch(line) case final heading?) {
@@ -105,7 +140,8 @@ List<NoteLine> noteLinesUnderTitle(String body, String title) {
   final skip = first >= 0 && titleIsFirstLine(body, title) ? first : -1;
   return [
     for (final (index, line) in lines.indexed)
-      if (index != skip && line.trim().isNotEmpty)
+      // картинка из текста в ленте — фото карточки, а не строка `![[…]]`
+      if (index != skip && line.trim().isNotEmpty && !embedLine.hasMatch(line))
         if (checkLine.firstMatch(line) case final check?)
           NoteLine(index: index, text: check.group(2)!, done: check.group(1) != ' ')
         else

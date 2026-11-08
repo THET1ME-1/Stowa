@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import '../../data/db/database.dart';
 import '../../domain/folder_tree.dart';
 import '../../domain/models.dart';
+import '../../domain/note_blocks.dart' show embedNames, embedPath;
 import '../../domain/vault_note.dart';
 import 'vault_layout.dart';
 import 'vault_meta.dart';
@@ -142,7 +143,16 @@ class VaultWriter {
     final path = known != null && _sameName(known.path, wanted) ? known.path : (known == null ? await _ownFile(wanted, id) : null) ?? await _free(wanted, id);
 
     if (known != null && known.path != path) await _move(id, known.path, path);
-    await _gather(id, attachmentsDir(path));
+    final renamed = await _gather(id, attachmentsDir(path));
+    // картинка в тексте ссылается на имя файла: занятое имя получило номер — текст следом
+    var body = item.body;
+    for (final MapEntry(key: before, value: after) in renamed.entries) {
+      body = body.replaceAll('![[$before]]', '![[$after]]');
+    }
+    if (body != item.body) {
+      final fixed = body;
+      await _quietly(() => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(fixed))));
+    }
 
     final tags = await _db
         .customSelect(
@@ -155,11 +165,14 @@ class VaultWriter {
           ..where((t) => t.itemId.equals(id))
           ..orderBy([(t) => OrderingTerm.asc(t.position), (t) => OrderingTerm.asc(t.createdAt)]))
         .get();
+    // картинки из текста стоят в тексте, в хвост вложений они не повторяются
+    final paths = [for (final attachment in attachments) attachment.path];
+    final inline = {for (final name in embedNames(body)) ?embedPath(name, paths)};
     final note = VaultNote(
       id: item.id,
       kind: item.kind,
       title: item.title,
-      body: item.body,
+      body: body,
       created: item.createdAt,
       updated: item.updatedAt,
       tags: [for (final row in tags) row.read<String>('name')],
@@ -177,7 +190,7 @@ class VaultWriter {
           ? null
           : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName),
       sortedBy: item.sortedBy,
-      attachments: [for (final attachment in attachments) attachment.path],
+      attachments: [for (final path in paths) if (!inline.contains(path)) path],
       highlights: [for (final one in highlights) VaultHighlight(quote: one.quote, note: one.note, at: one.createdAt, position: one.position)],
     );
     final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path)));
@@ -260,10 +273,12 @@ class VaultWriter {
 
   /// Вложения, которые лежат не у заметки (входящие, старое место `attachments/`), переезжают
   /// в её папку под своим именем без номера порядка; одинаковые имена — «фото 2.jpg».
-  Future<void> _gather(String id, String dir) async {
+  /// Отдаёт имена, которые пришлось сменить: старое → новое.
+  Future<Map<String, String>> _gather(String id, String dir) async {
     final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
     final used = {for (final attachment in attachments) if (attachment.path.startsWith('$dir/')) p.posix.basename(attachment.path).toLowerCase()};
     final moved = <String, String>{};
+    final renamed = <String, String>{};
     for (final attachment in attachments) {
       if (attachment.path.startsWith('$dir/')) continue;
       final source = File(_absolute(attachment.path));
@@ -277,14 +292,16 @@ class VaultWriter {
       await Directory(p.dirname(_absolute(target))).create(recursive: true);
       await source.rename(_absolute(target));
       moved[attachment.id] = target;
+      if (p.posix.basename(target) != name) renamed[name] = p.posix.basename(target);
       await _prune(p.posix.dirname(attachment.path));
     }
-    if (moved.isEmpty) return;
+    if (moved.isEmpty) return renamed;
     await _quietly(() async {
       for (final MapEntry(key: attachmentId, value: path) in moved.entries) {
         await (_db.update(_db.attachments)..where((t) => t.id.equals(attachmentId))).write(AttachmentsCompanion(path: Value(path)));
       }
     });
+    return renamed;
   }
 
   /// Своя правка базы, которую не надо писать обратно в файлы: флаг глушит триггеры.

@@ -98,6 +98,7 @@ class HistoryScreen extends ConsumerWidget {
     for (final block in parseNoteBlocks(body)) {
       final line = switch (block) {
         ParagraphBlock(:final text) || HeadingBlock(:final text) || BulletBlock(:final text) || NumberedBlock(:final text) || CheckBlock(:final text) || QuoteBlock(:final text) => text,
+        ImageBlock() => '',
       };
       final plain = parseInline(line).map((piece) => piece.text).join().trim();
       if (plain.isNotEmpty && plain != title) return plain;

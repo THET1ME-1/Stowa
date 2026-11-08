@@ -22,4 +22,24 @@ void main() {
     expect(empty.text, 'a ``');
     expect(empty.selection.baseOffset, 3);
   });
+
+  test('картинки встают на место курсора отдельными строками, курсор — после них', () {
+    final middle = insertImageLines(_at('Плитка\nклей', 6), ['a.jpg', 'b.jpg']);
+    expect(middle.text, 'Плитка\n![[a.jpg]]\n![[b.jpg]]\nклей');
+    expect(middle.selection.baseOffset, 'Плитка\n![[a.jpg]]\n![[b.jpg]]\n'.length);
+
+    // посреди строки — строка разрывается
+    expect(insertImageLines(_at('Плиткаклей', 6), ['a.jpg']).text, 'Плитка\n![[a.jpg]]\nклей');
+    // в начале пустой строки и в конце текста — без лишних переносов
+    expect(insertImageLines(_at('Плитка\n', 7), ['a.jpg']).text, 'Плитка\n![[a.jpg]]\n');
+    expect(insertImageLines(_at('', 0), ['a.jpg']).text, '![[a.jpg]]\n');
+    // выделенное заменяется
+    expect(insertImageLines(_at('Плитка старое клей', 7, 13), ['a.jpg']).text, 'Плитка \n![[a.jpg]]\n клей');
+  });
+
+  test('имя вставленного фото: дата и время, без повторов в заметке', () {
+    final at = DateTime(2026, 11, 8, 10, 15, 0);
+    expect(photoFileName(at, 'jpg', const {}), 'IMG-20261108-101500.jpg');
+    expect(photoFileName(at, 'png', const {'img-20261108-101500.png'}), 'IMG-20261108-101500-2.png');
+  });
 }

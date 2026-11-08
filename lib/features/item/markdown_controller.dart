@@ -41,6 +41,12 @@ class MarkdownController extends TextEditingController {
     final children = <InlineSpan>[];
     final lines = text.split('\n');
     for (final (index, line) in lines.indexed) {
+      // строка-картинка приглушена целиком: подчёркивания в имени файла — не курсив
+      if (embedLine.hasMatch(line)) {
+        children.add(TextSpan(text: line, style: TextStyle(color: Tokens.muted, fontSize: 14)));
+        if (index < lines.length - 1) children.add(const TextSpan(text: '\n'));
+        continue;
+      }
       final lead = _lineMark.firstMatch(line)?.group(0) ?? '';
       final rest = line.substring(lead.length);
       var restStyle = const TextStyle();

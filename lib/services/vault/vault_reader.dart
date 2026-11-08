@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 import '../../data/db/database.dart';
 import '../../domain/folder_tree.dart';
 import '../../domain/inline_tags.dart';
+import '../../domain/note_blocks.dart' show embedNames;
 import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
 import '../../domain/vault_note.dart';
@@ -367,7 +368,8 @@ class VaultReader {
     final dir = attachmentsDir(relative);
     final near = p.posix.dirname(relative);
     final found = <String>[];
-    for (final link in note.attachments) {
+    // хвост и картинки из текста: и те, и другие — вложения заметки
+    for (final link in [...note.attachments, ...embedNames(note.body)]) {
       for (final candidate in [link, '$dir/$link', if (near != '.') '$near/$link']) {
         if (await File(_absolute(candidate)).exists()) {
           if (!found.contains(candidate)) found.add(candidate);

@@ -166,6 +166,28 @@ void main() {
     expect((json['runs'] as List).single, containsPair('version', 2));
   });
 
+  test('фото в тексте: файл у заметки, в хвост не повторяется; занятое имя меняется и в тексте', () async {
+    await note('a', 'Плитка', body: 'Плитка\nвот так\n![[IMG-1.jpg]]\nи так\n![[IMG-2.jpg]]');
+    // на месте второго уже лежит чужой файл с тем же именем
+    file('Плитка/IMG-2.jpg')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('чужой');
+    for (final (id, name, position) in [('p1', 'IMG-1.jpg', 0), ('p2', 'IMG-2.jpg', 1)]) {
+      final path = '.stowa/incoming/a/${position}_$name';
+      file(path)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(id);
+      await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: id, itemId: 'a', path: path, mime: 'image/jpeg', size: 2, position: Value(position)));
+    }
+    await writer().drain();
+    final text = file('Плитка.md').readAsStringSync();
+    expect(text, endsWith('Плитка\nвот так\n![[IMG-1.jpg]]\nи так\n![[IMG-2 2.jpg]]\n'));
+    expect(file('Плитка/IMG-1.jpg').readAsStringSync(), 'p1');
+    expect(file('Плитка/IMG-2 2.jpg').readAsStringSync(), 'p2');
+    expect((await (db.select(db.items)..where((t) => t.id.equals('a'))).getSingle()).body, contains('![[IMG-2 2.jpg]]'));
+    expect(await queue(), isEmpty);
+  });
+
   test('история правок — в .stowa/history/<id>.json, стёртая заметка уносит и её', () async {
     await note('a', 'Плитка', body: 'Плитка\n20×20');
     await edit('a', ItemsCompanion(body: const Value('Плитка\n30×30'), updatedAt: Value(now.add(const Duration(hours: 1)))));
