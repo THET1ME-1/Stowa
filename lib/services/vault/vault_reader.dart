@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show min;
@@ -49,7 +50,70 @@ class VaultReader {
 
   /// Сверить файлы с базой по времени и размеру и забрать изменённое. Сперва читаются
   /// файлы, потом всё прочитанное ложится в базу пачками.
-  Future<VaultScan> reconcile({void Function(int done, int total)? progress}) async {
+  Future<VaultScan> reconcile({void Function(int done, int total)? progress}) => _exclusively(() => _reconcile(progress: progress));
+
+  /// Сверка одна на всю базу: окно, «Поделиться» и фоновая задача держат свою очередь,
+  /// а читают одни файлы. Две сверки разом читали новый файл без id обе и заводили
+  /// заметку и папку дважды. Метка `reading` в базе — аренда: оборвался проход —
+  /// метка истекает сама, живой проход её продлевает.
+  Future<T> _exclusively<T>(Future<T> Function() work) async {
+    final root = _root;
+    if (root == null) return work();
+    // в одном движке сверки той же папки встают друг за другом, без опроса базы
+    final queue = _queues[_db] ??= {};
+    final previous = queue[root.path] ?? Future<void>.value();
+    final finished = Completer<void>();
+    queue[root.path] = finished.future;
+    await previous;
+    final owner = const Uuid().v4();
+    try {
+      // метка чужого движка: ждать, пока тот закончит или его метка истечёт
+      while (!await _claim(owner)) {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+      _owner = owner;
+      _renewed.reset();
+      _renewed.start();
+      return await work();
+    } finally {
+      _owner = null;
+      await _db.customUpdate('DELETE FROM vault_flags WHERE name = ? AND value LIKE ?', variables: [Variable.withString(_flag), Variable.withString('%|$owner')], updates: {_db.vaultFlags});
+      finished.complete();
+    }
+  }
+
+  /// Хвосты очередей сверок этого движка: своя у каждой базы и папки хранилища.
+  static final _queues = Expando<Map<String, Future<void>>>();
+
+  /// Метка в базе — на папку: перенос читает новую папку, пока старая ещё сверяется.
+  String get _flag => 'reading:${_root!.path}';
+
+  String? _owner;
+  final _renewed = Stopwatch();
+
+  /// Долгий проход (тысяча заметок из Telegram) продлевает метку по ходу, раз в несколько секунд.
+  Future<void> _keepLease() async {
+    final owner = _owner;
+    if (owner == null || _renewed.elapsed < const Duration(seconds: 5)) return;
+    _renewed.reset();
+    await _claim(owner);
+  }
+
+  static const _lease = Duration(seconds: 30);
+
+  // метка «срок|хозяин»: занять свободную, истёкшую или свою
+  Future<bool> _claim(String owner) async {
+    final now = _clock().millisecondsSinceEpoch;
+    final changed = await _db.customUpdate(
+      'INSERT INTO vault_flags (name, value) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value = excluded.value '
+      "WHERE CAST(substr(vault_flags.value, 1, instr(vault_flags.value, '|') - 1) AS INTEGER) < ? OR vault_flags.value LIKE ?",
+      variables: [Variable.withString(_flag), Variable.withString('${now + _lease.inMilliseconds}|$owner'), Variable.withInt(now), Variable.withString('%|$owner')],
+      updates: {_db.vaultFlags},
+    );
+    return changed > 0;
+  }
+
+  Future<VaultScan> _reconcile({void Function(int done, int total)? progress}) async {
     final scan = VaultScan();
     if (_root == null || !await _root.exists()) return scan;
     final known = await _db.select(_db.vaultFiles).get();
@@ -74,6 +138,7 @@ class VaultReader {
 
     for (final (index, (relative, stat)) in changed.indexed) {
       progress?.call(index ~/ 2, total);
+      await _keepLease();
       final file = File(_absolute(relative));
       final before = byPath[relative];
 
@@ -150,16 +215,19 @@ class VaultReader {
   }
 
   /// Собрать базу из папки: служебное из `.stowa/`, заметки, корзину, добытое о вещах.
-  Future<VaultScan> rebuild({void Function(int done, int total)? progress}) async {
+  Future<VaultScan> rebuild({void Function(int done, int total)? progress}) => _exclusively(() => _rebuild(progress: progress));
+
+  Future<VaultScan> _rebuild({void Function(int done, int total)? progress}) async {
     if (_root == null || !await _root.exists()) return VaultScan();
     // папки, теги и правила — до заметок: заметки ищут свою папку по имени
     for (final name in ['folders', 'tags', 'rules']) {
       await _restoreMeta(name);
     }
-    final scan = await reconcile(progress: progress);
+    final scan = await _reconcile(progress: progress);
     final ids = {for (final row in await (_db.selectOnly(_db.items)..addColumns([_db.items.id])).get()) row.read(_db.items.id)!};
     final trashed = <_Incoming>[];
     for (final relative in await _notes(trash: true)) {
+      await _keepLease();
       final file = File(_absolute(relative));
       final stat = await file.stat();
       final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
@@ -203,6 +271,7 @@ class VaultReader {
     if (!await dir.exists()) return;
     await for (final entity in dir.list()) {
       if (entity is! File || !entity.path.endsWith('.json')) continue;
+      await _keepLease();
       final id = p.basenameWithoutExtension(entity.path);
       if (await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) continue;
       final json = jsonDecode(await entity.readAsString()) as Map<String, Object?>;
@@ -243,6 +312,7 @@ class VaultReader {
     final created = <String>{};
     for (var start = 0; start < incoming.length; start += _batch) {
       final chunk = incoming.sublist(start, min(start + _batch, incoming.length));
+      await _keepLease();
       await _quietly(() async {
         for (final one in chunk) {
           await _storeOne(one, folders, tags, created);
@@ -508,6 +578,7 @@ class VaultReader {
     if (!await dir.exists()) return;
     await for (final entity in dir.list()) {
       if (entity is! File || !entity.path.endsWith('.json')) continue;
+      await _keepLease();
       final id = p.basenameWithoutExtension(entity.path);
       if (await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) continue;
       final json = jsonDecode(await entity.readAsString()) as Map<String, Object?>;

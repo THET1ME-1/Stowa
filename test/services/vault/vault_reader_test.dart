@@ -214,6 +214,22 @@ void main() {
     expect((await db.select(db.noteVersions).getSingle()).body, 'Плитка\nкупить клей');
   });
 
+  test('две сверки разом (окно и фоновая задача) не заводят заметку и папку дважды', () async {
+    put('Сад/Грядки.md', 'Посадить чеснок');
+    put('Сад/Рассада.md', 'Томаты');
+    // у фона своя очередь сверки, общая у них только база
+    await Future.wait([reader().reconcile(), reader().reconcile()]);
+    expect((await items()).map((one) => one.title), unorderedEquals(['Грядки', 'Рассада']));
+    expect(await db.select(db.folders).get(), hasLength(1));
+  });
+
+  test('чужая сверка оборвалась посреди прохода — её метка не держит вечно', () async {
+    await db.into(db.vaultFlags).insert(VaultFlagsCompanion.insert(name: 'reading:${root.path}', value: Value('${now.subtract(const Duration(minutes: 5)).millisecondsSinceEpoch}|оборвался')));
+    put('Идеи.md', 'Полка');
+    await reader().reconcile().timeout(const Duration(seconds: 5));
+    expect((await items()).single.title, 'Идеи');
+  });
+
   test('счётчик сборки считает заметки, а не проходы: «… из 3», от нуля до трёх', () async {
     for (final name in ['a', 'b', 'c']) {
       put('$name.md', 'заметка $name');
