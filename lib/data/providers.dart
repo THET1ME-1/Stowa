@@ -26,10 +26,12 @@ import '../services/background.dart';
 import '../services/capture_service.dart';
 import '../services/facts/extractors.dart';
 import '../services/facts/facts_pipeline.dart';
+import '../services/facts/video_extractor.dart';
 import '../services/facts/web_extractors.dart';
 import '../services/file_keeper.dart';
 import '../services/link_checker.dart';
 import '../services/link_preview_service.dart';
+import '../services/media_probe.dart';
 import '../services/page_cache.dart';
 import '../services/place_channel.dart';
 import '../services/place_service.dart';
@@ -167,6 +169,9 @@ final itemFactsProvider = StreamProvider.autoDispose.family<List<Fact>, String>(
       .watch();
 });
 
+/// Длина и кадры своего ролика: в тестах подменяется.
+final mediaProbeProvider = Provider<MediaProbe>((ref) => const ChannelMediaProbe());
+
 /// Конвейер извлекателей: деньги, контакты, текст документов, EXIF, автор и сайт ссылки.
 /// Один на окно и зависит только от неизменного, как хранитель файлов.
 final factsPipelineProvider = Provider((ref) {
@@ -178,6 +183,8 @@ final factsPipelineProvider = Provider((ref) {
     online: () async => ref.read(onlineProvider).value ?? true,
     extractors: [
       ...defaultExtractors(),
+      // кадры своего ролика достаёт система через канал окна: в фоновом движке правила нет
+      VideoExtractor(probe: ref.watch(mediaProbeProvider)),
       PageExtractor(),
       ArticleExtractor(),
       // выключены картинки статей — правила нет вовсе: ни прогонов, ни ошибок в очереди

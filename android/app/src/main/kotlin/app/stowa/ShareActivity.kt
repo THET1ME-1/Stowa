@@ -14,5 +14,6 @@ class ShareActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         registerVaultChannel(flutterEngine, this)
+        registerMediaChannel(flutterEngine)
     }
 }

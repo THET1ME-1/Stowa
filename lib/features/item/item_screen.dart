@@ -555,6 +555,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             source: videoLink ? source : null,
                             duration: duration,
                           ),
+                          if (facts.where((fact) => fact.kind == FactKind.frame).toList() case final frames when frames.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            VideoFrames(frames: frames, filesRoot: filesRoot, onPlay: openMain),
+                          ],
                           const SizedBox(height: 18),
                         ] else if (linkLike) ...[
                           LinkPreviewCard(item: item, filesRoot: filesRoot, onOpen: openMain),

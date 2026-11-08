@@ -96,8 +96,12 @@ ORDER BY items.deleted_at DESC''',
     for (final path in paths) {
       await _remove(File(p.join(_filesRoot.path, path)));
     }
-    // папки вложений по старому месту и входящие; папку заметки стирает писатель хранилища
-    for (final folder in [Directory(p.join(_filesRoot.path, 'attachments', id)), Directory(p.join(_filesRoot.path, incomingDir(id)))]) {
+    // папки вложений по старому месту, входящие и кадры ролика; папку заметки стирает писатель хранилища
+    for (final folder in [
+      Directory(p.join(_filesRoot.path, 'attachments', id)),
+      Directory(p.join(_filesRoot.path, incomingDir(id))),
+      Directory(p.joinAll([_filesRoot.path, ...framesDir(id).split('/')])),
+    ]) {
       if (await folder.exists()) await folder.delete(recursive: true).catchError((_) => folder);
     }
     // копия страницы ссылки тоже уходит

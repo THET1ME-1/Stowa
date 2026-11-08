@@ -45,6 +45,9 @@ String historyFile(String itemId) => '$serviceFolder/history/$itemId.json';
 
 String coverFile(String itemId, String extension) => '$serviceFolder/covers/$itemId.$extension';
 
+/// Кадры своего ролика по шкале: `0.jpg` … `5.jpg`.
+String framesDir(String itemId) => '$serviceFolder/frames/$itemId';
+
 String pageCopyFile(String itemId) => '$serviceFolder/pages/$itemId.html.gz';
 
 /// Картинка статьи по номеру среди картинок: формат читает сам декодер, расширение не нужно.

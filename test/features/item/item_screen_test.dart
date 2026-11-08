@@ -378,6 +378,30 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('свой ролик: обложка с длиной и кадры по шкале со временем, касание кадра — смотреть', (tester) async {
+      await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'f0', itemId: 'a', extractor: 'video', kind: FactKind.frame, value: '.stowa/frames/a/0.jpg', number: const Value(10)));
+      await world.db.into(world.db.facts).insert(
+        FactsCompanion.insert(id: 'f1', itemId: 'a', extractor: 'video', kind: FactKind.frame, value: '.stowa/frames/a/1.jpg', number: const Value(95), position: const Value(1)),
+      );
+      await show(
+        tester,
+        ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.video,
+          title: 'Отпуск',
+          coverPath: const Value('.stowa/covers/a.jpg'),
+          durationSeconds: const Value(120),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ),
+        files: [AttachmentsCompanion.insert(id: 'v', itemId: 'a', path: 'Отпуск/clip.mp4', mime: 'video/mp4', size: 1)],
+      );
+      expect(find.text('2:00'), findsOneWidget);
+      expect(find.text('0:10'), findsOneWidget);
+      expect(find.text('1:35'), findsOneWidget);
+      expect(find.byKey(const ValueKey('video-frames')), findsOneWidget);
+    });
+
     testWidgets('фото между абзацами — в тексте на своём месте, над заголовком только остальные', (tester) async {
       await show(
         tester,

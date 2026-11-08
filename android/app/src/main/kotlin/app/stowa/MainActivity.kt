@@ -24,6 +24,7 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         registerVaultChannel(flutterEngine, this)
         registerPlaceChannel(flutterEngine, this)
+        registerMediaChannel(flutterEngine)
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/launch").apply {
             setMethodCallHandler { call, result ->
                 if (call.method == "initial") {

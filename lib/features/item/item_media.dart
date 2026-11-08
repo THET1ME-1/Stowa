@@ -219,6 +219,54 @@ class VideoCover extends StatelessWidget {
   }
 }
 
+/// Кадры своего ролика по шкале под обложкой: что в нём, видно без запуска.
+/// Под каждым — секунда кадра; касание открывает ролик.
+class VideoFrames extends StatelessWidget {
+  const VideoFrames({super.key, required this.frames, required this.filesRoot, required this.onPlay});
+
+  /// Факты `frame`: путь кадра и его секунда.
+  final List<Fact> frames;
+  final Directory filesRoot;
+  final VoidCallback onPlay;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Theme.of(context).textTheme.labelSmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()]);
+    return Row(
+      key: const ValueKey('video-frames'),
+      children: [
+        for (final (index, frame) in frames.indexed) ...[
+          if (index > 0) const SizedBox(width: 6),
+          Expanded(
+            child: Pressable(
+              onTap: onPlay,
+              pressedScale: 0.95,
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: AspectRatio(
+                      aspectRatio: 3 / 4,
+                      child: Image.file(
+                        File(p.joinAll([filesRoot.path, ...frame.value.split('/')])),
+                        fit: BoxFit.cover,
+                        cacheWidth: 240,
+                        errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(formatClock(Duration(seconds: (frame.number ?? 0).round())), style: label),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 /// Приложенный файл строкой: значок по типу, имя, вес. Касание открывает в системе.
 class FileTile extends StatelessWidget {
   const FileTile({super.key, required this.file, required this.filesRoot});

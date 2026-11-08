@@ -13,6 +13,7 @@ import 'package:stowa/domain/appearance.dart';
 import 'package:stowa/domain/article_text.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/services/link_checker.dart';
+import 'package:stowa/services/media_probe.dart';
 import 'package:stowa/services/place_channel.dart';
 import 'package:stowa/services/place_service.dart';
 import 'package:stowa/services/reminder_service.dart';
@@ -98,6 +99,8 @@ class TestWorld {
         linkFetchProvider.overrideWithValue((uri) async => throw const SocketException('тест без сети')),
         linkPostProvider.overrideWithValue((uri, body) async => throw const SocketException('тест без сети')),
         linkFetchWithProvider.overrideWithValue((uri, headers) async => throw const SocketException('тест без сети')),
+        // Android нет: система роликов не читает, кадров нет
+        mediaProbeProvider.overrideWithValue(const _NoMedia()),
         // очередь ИИ в тестах не ходит в сеть сама, плашек разбора не бывает
         aiDrainProvider.overrideWithValue(() async {}),
         aiSortedProvider.overrideWith((ref) => const Stream.empty()),
@@ -210,6 +213,16 @@ class FakePlaceChannel implements PlaceChannel {
 }
 
 /// Разрешение «Доступ ко всем файлам» из [TestWorld.allFiles]; просьба его сразу даёт.
+class _NoMedia implements MediaProbe {
+  const _NoMedia();
+
+  @override
+  Future<VideoInfo?> probe(String path) async => null;
+
+  @override
+  Future<List<bool>> frames(String path, List<Duration> at, List<String> outs, {int maxSide = 720}) async => [for (final _ in at) false];
+}
+
 class _TestChannel implements VaultChannel {
   _TestChannel(this.world);
 
