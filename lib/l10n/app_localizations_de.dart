@@ -2346,4 +2346,9 @@ class LDe extends L {
 
   @override
   String get foundInQr => 'im QR-Code';
+
+  @override
+  String documentPage(String number) {
+    return 'S. $number';
+  }
 }

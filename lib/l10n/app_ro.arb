@@ -381,5 +381,6 @@
   "qrPasswordCopied": "Parola a fost copiată",
   "qrOpenLink": "Deschide linkul din codul QR",
   "qrCopyText": "Copiază textul codului QR",
-  "foundInQr": "în codul QR"
+  "foundInQr": "în codul QR",
+  "documentPage": "pag. {number}"
 }

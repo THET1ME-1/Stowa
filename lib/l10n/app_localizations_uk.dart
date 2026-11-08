@@ -2386,4 +2386,9 @@ class LUk extends L {
 
   @override
   String get foundInQr => 'у QR-коді';
+
+  @override
+  String documentPage(String number) {
+    return 'стор. $number';
+  }
 }

@@ -2343,4 +2343,9 @@ class LEs extends L {
 
   @override
   String get foundInQr => 'en un código QR';
+
+  @override
+  String documentPage(String number) {
+    return 'pág. $number';
+  }
 }

@@ -159,6 +159,7 @@ String? documentPlace(L l, String? place) {
     'sheet' => l.documentSheet(value),
     'slide' => l.documentSlide(value),
     'chapter' => l.documentChapter(value),
+    'page' => l.documentPage(value),
     _ => null,
   };
 }

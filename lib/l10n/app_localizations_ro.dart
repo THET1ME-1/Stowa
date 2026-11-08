@@ -2362,4 +2362,9 @@ class LRo extends L {
 
   @override
   String get foundInQr => 'în codul QR';
+
+  @override
+  String documentPage(String number) {
+    return 'pag. $number';
+  }
 }

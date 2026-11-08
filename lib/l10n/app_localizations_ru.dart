@@ -2391,4 +2391,9 @@ class LRu extends L {
 
   @override
   String get foundInQr => 'в QR-коде';
+
+  @override
+  String documentPage(String number) {
+    return 'стр. $number';
+  }
 }

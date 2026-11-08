@@ -1,10 +1,14 @@
 /// Текст из документов без движков: DOCX, XLSX, PPTX, ODT, ODS, ODP и EPUB — это
-/// zip с XML внутри; TXT, MD, CSV, JSON, XML и HTML читаются как есть.
+/// zip с XML внутри; TXT, MD, CSV, JSON, XML и HTML читаются как есть; PDF — свой
+/// разбор текстового слоя (`pdf_text.dart`).
 library;
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+
+import 'pdf_text.dart';
 
 /// Больше текста одной вещи поиску не нужно, а индекс не раздувается.
 const documentTextLimit = 200000;
@@ -24,7 +28,7 @@ const _zipped = {'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp', 'epub'};
 /// Читается ли текст файла с таким именем.
 bool hasDocumentText(String name) {
   final extension = _extensionOf(name);
-  return _plain.contains(extension) || _markup.contains(extension) || _zipped.contains(extension);
+  return _plain.contains(extension) || _markup.contains(extension) || _zipped.contains(extension) || extension == 'pdf';
 }
 
 String _extensionOf(String name) {
@@ -44,6 +48,8 @@ List<DocumentPart> documentText(List<int> bytes, {required String name}) {
       'pptx' => _pptx(ZipDecoder().decodeBytes(bytes)),
       'odt' || 'ods' || 'odp' => _openDocument(ZipDecoder().decodeBytes(bytes)),
       'epub' => _epub(ZipDecoder().decodeBytes(bytes)),
+      // текстовый слой по страницам; скан без текста — пусто
+      'pdf' => [for (final (index, page) in pdfPages(Uint8List.fromList(bytes)).indexed) DocumentPart(page, place: 'page:${index + 1}')],
       _ => const <DocumentPart>[],
     };
     return _limited([for (final part in parts) if (part.text.isNotEmpty) part]);

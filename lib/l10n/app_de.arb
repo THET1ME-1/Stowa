@@ -381,5 +381,6 @@
   "qrPasswordCopied": "Passwort kopiert",
   "qrOpenLink": "Link aus dem QR-Code öffnen",
   "qrCopyText": "Text des QR-Codes kopieren",
-  "foundInQr": "im QR-Code"
+  "foundInQr": "im QR-Code",
+  "documentPage": "S. {number}"
 }

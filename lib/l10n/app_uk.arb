@@ -381,5 +381,6 @@
   "qrPasswordCopied": "Пароль скопійовано",
   "qrOpenLink": "Відкрити посилання з QR-коду",
   "qrCopyText": "Скопіювати текст QR-коду",
-  "foundInQr": "у QR-коді"
+  "foundInQr": "у QR-коді",
+  "documentPage": "стор. {number}"
 }

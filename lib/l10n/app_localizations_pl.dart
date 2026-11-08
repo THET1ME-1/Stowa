@@ -2386,4 +2386,9 @@ class LPl extends L {
 
   @override
   String get foundInQr => 'w kodzie QR';
+
+  @override
+  String documentPage(String number) {
+    return 'str. $number';
+  }
 }

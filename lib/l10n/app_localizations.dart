@@ -3886,6 +3886,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'in a QR code'**
   String get foundInQr;
+
+  /// Where in a PDF the search hit is
+  ///
+  /// In en, this message translates to:
+  /// **'page {number}'**
+  String documentPage(String number);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

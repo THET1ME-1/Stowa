@@ -629,5 +629,6 @@
   "qrPasswordCopied": "Пароль скопирован",
   "qrOpenLink": "Открыть ссылку из QR-кода",
   "qrCopyText": "Скопировать текст QR-кода",
-  "foundInQr": "в QR-коде"
+  "foundInQr": "в QR-коде",
+  "documentPage": "стр. {number}"
 }

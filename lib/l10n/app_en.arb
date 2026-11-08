@@ -2979,5 +2979,14 @@
   "foundInQr": "in a QR code",
   "@foundInQr": {
     "description": "Search hit: found in a QR code on a photo"
+  },
+  "documentPage": "page {number}",
+  "@documentPage": {
+    "description": "Where in a PDF the search hit is",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
   }
 }
