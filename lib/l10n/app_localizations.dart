@@ -3790,6 +3790,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Nowhere to move: folders nest up to three levels'**
   String get folderMoveNone;
+
+  /// Note menu item and screen title: earlier versions of the note
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get historyTitle;
+
+  /// History: the current state of the note
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get historyNow;
+
+  /// History screen: how versions are made
+  ///
+  /// In en, this message translates to:
+  /// **'The earlier text is kept when you edit the note after a break. The last 50 versions or all from 30 days are kept.'**
+  String get historyHint;
+
+  /// History: version text equals current, only the title differs
+  ///
+  /// In en, this message translates to:
+  /// **'Same text'**
+  String get historyNoChanges;
+
+  /// Version screen tab: full text of the version
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get historyText;
+
+  /// Version screen tab: what changed between the version and now
+  ///
+  /// In en, this message translates to:
+  /// **'Changes'**
+  String get historyDiff;
+
+  /// Version screen: legend of the diff
+  ///
+  /// In en, this message translates to:
+  /// **'Struck out: was in this version. Highlighted: added since'**
+  String get historyDiffHint;
+
+  /// Version screen button
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this version'**
+  String get historyRestore;
+
+  /// Snackbar after restoring a version
+  ///
+  /// In en, this message translates to:
+  /// **'Version restored'**
+  String get historyRestored;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

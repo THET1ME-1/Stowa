@@ -40,6 +40,9 @@ String incomingFile(String itemId, String fileName) => '${incomingDir(itemId)}/$
 
 String factsFile(String itemId) => '$serviceFolder/facts/$itemId.json';
 
+/// История правок заметки: снимки переживают переустановку, как факты.
+String historyFile(String itemId) => '$serviceFolder/history/$itemId.json';
+
 String coverFile(String itemId, String extension) => '$serviceFolder/covers/$itemId.$extension';
 
 String pageCopyFile(String itemId) => '$serviceFolder/pages/$itemId.html.gz';

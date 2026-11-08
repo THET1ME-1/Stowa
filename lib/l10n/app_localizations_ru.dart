@@ -2339,4 +2339,33 @@ class LRu extends L {
   @override
   String get folderMoveNone =>
       'Переложить некуда: глубже трёх уровней папки не вкладываются';
+
+  @override
+  String get historyTitle => 'История';
+
+  @override
+  String get historyNow => 'Сейчас';
+
+  @override
+  String get historyHint =>
+      'Прежний текст сохраняется, когда заметку правят после перерыва. Хранятся 50 последних версий или все за 30 дней.';
+
+  @override
+  String get historyNoChanges => 'Текст тот же';
+
+  @override
+  String get historyText => 'Текст';
+
+  @override
+  String get historyDiff => 'Разница';
+
+  @override
+  String get historyDiffHint =>
+      'Зачёркнуто — было в этой версии, подсвечено — появилось после';
+
+  @override
+  String get historyRestore => 'Вернуть эту версию';
+
+  @override
+  String get historyRestored => 'Версия возвращена';
 }

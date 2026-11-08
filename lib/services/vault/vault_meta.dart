@@ -30,6 +30,12 @@ Future<String> metaJson(AppDatabase db, String name) async {
   return _pretty.convert({for (final table in tables) table: await _rows(db, 'SELECT * FROM $table')});
 }
 
+/// Текст `.stowa/history/<id>.json` или null, если снимков нет.
+Future<String?> historyJson(AppDatabase db, String itemId) async {
+  final versions = await _rows(db, 'SELECT * FROM note_versions WHERE item_id = ? ORDER BY saved_at', [Variable.withString(itemId)]);
+  return versions.isEmpty ? null : _pretty.convert({'versions': versions});
+}
+
 /// Текст `.stowa/facts/<id>.json` или null, если добытого нет и файл не нужен.
 /// Прогоны извлекателей идут вместе с фактами: после переустановки конвейер не переделывает добытое.
 Future<String?> factsJson(AppDatabase db, String itemId) async {

@@ -365,5 +365,14 @@
   "folderNewInside": "Neuer Ordner darin",
   "folderMoveTo": "Verschieben nach…",
   "folderMoveTop": "Nach oben",
-  "folderMoveNone": "Kein Ziel: Ordner lassen sich höchstens drei Ebenen tief verschachteln"
+  "folderMoveNone": "Kein Ziel: Ordner lassen sich höchstens drei Ebenen tief verschachteln",
+  "historyTitle": "Verlauf",
+  "historyNow": "Jetzt",
+  "historyHint": "Der frühere Text bleibt erhalten, wenn du die Notiz nach einer Pause bearbeitest. Gespeichert werden die letzten 50 Versionen oder alle der letzten 30 Tage.",
+  "historyNoChanges": "Gleicher Text",
+  "historyText": "Text",
+  "historyDiff": "Unterschiede",
+  "historyDiffHint": "Durchgestrichen: stand in dieser Version. Hervorgehoben: kam danach dazu",
+  "historyRestore": "Diese Version wiederherstellen",
+  "historyRestored": "Version wiederhergestellt"
 }

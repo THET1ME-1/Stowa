@@ -54,7 +54,29 @@ const _vaultUpsert = 'ON CONFLICT(target) DO UPDATE SET version = version + 1, c
 String _vaultEnqueue(String target) => 'INSERT INTO vault_queue (target) VALUES ($target) $_vaultUpsert;';
 
 @DriftDatabase(
-  tables: [Items, Attachments, FileJobs, Facts, ExtractorRuns, Folders, Tags, ItemTags, Rules, Links, AiJobs, AiLog, WordStats, Corrections, CanvasPositions, VaultQueue, VaultFiles, VaultFlags, Places, Highlights],
+  tables: [
+    Items,
+    Attachments,
+    FileJobs,
+    Facts,
+    ExtractorRuns,
+    Folders,
+    Tags,
+    ItemTags,
+    Rules,
+    Links,
+    AiJobs,
+    AiLog,
+    WordStats,
+    Corrections,
+    CanvasPositions,
+    VaultQueue,
+    VaultFiles,
+    VaultFlags,
+    Places,
+    Highlights,
+    NoteVersions,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
@@ -65,7 +87,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -74,6 +96,7 @@ class AppDatabase extends _$AppDatabase {
       await _createSearch();
       await _createFactIndexes();
       await _createVaultTriggers();
+      await _createHistory();
     },
     onUpgrade: (migrator, from, to) async {
       // 2: превью ссылок и роликов
@@ -116,6 +139,8 @@ class AppDatabase extends _$AppDatabase {
       }
       // 11: папка в папке. До очереди хранилища: её триггер переименования смотрит на parent_id
       if (from < 11) await migrator.addColumn(folders, folders.parentId);
+      // 12: история правок. Таблица до очереди хранилища: та ставит в очередь и историю
+      if (from < 12) await migrator.createTable(noteVersions);
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
         // до очереди: файлы хранилища сразу пишутся с целым текстом
@@ -154,6 +179,8 @@ class AppDatabase extends _$AppDatabase {
         await customStatement('DROP TRIGGER IF EXISTS vault_folders_rename');
         await _createFolderMoveTrigger();
       }
+      // 12: триггеры истории последними: они пишут в очередь хранилища
+      if (from < 12) await _createHistory();
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -184,6 +211,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> enqueueWholeVault() async {
     await customStatement("INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE true $_vaultUpsert");
     await customStatement("INSERT INTO vault_queue (target) SELECT 'facts:' || id FROM items WHERE true $_vaultUpsert");
+    await customStatement("INSERT INTO vault_queue (target) SELECT DISTINCT 'history:' || item_id FROM note_versions WHERE true $_vaultUpsert");
     for (final target in _vaultMetaTargets) {
       await customStatement(_vaultEnqueue("'$target'"));
     }
@@ -197,6 +225,30 @@ class AppDatabase extends _$AppDatabase {
     'SELECT count(*) AS tasks, coalesce(sum(version), 0) AS versions FROM vault_queue',
     readsFrom: allTables.toSet(),
   ).watchSingle().map((row) => (row.read<int>('tasks'), row.read<int>('versions')));
+
+  // снимок заметки — прежнее состояние, если прошлая правка была 10 минут назад и раньше:
+  // автосохранение пишет каждую секунду, а версия нужна одна на сессию правки. Снимок
+  // ставит историю в очередь хранилища и при чтении файлов: правка из Obsidian тоже версия.
+  // Там же чистка: старше 30 дней и не среди 50 последних
+  Future<void> _createHistory() async {
+    await customStatement('CREATE INDEX IF NOT EXISTS note_versions_item ON note_versions (item_id, saved_at)');
+    await customStatement(
+      'CREATE TRIGGER items_history AFTER UPDATE OF title, body ON items '
+      'WHEN (old.title IS NOT new.title OR old.body IS NOT new.body) AND julianday(new.updated_at) - julianday(old.updated_at) >= 10.0 / 1440 BEGIN '
+      'INSERT INTO note_versions (id, item_id, title, body, saved_at) VALUES (lower(hex(randomblob(16))), old.id, old.title, old.body, old.updated_at); '
+      'DELETE FROM note_versions WHERE item_id = old.id AND julianday(saved_at) < julianday(new.updated_at) - 30 '
+      'AND id NOT IN (SELECT id FROM note_versions WHERE item_id = old.id ORDER BY saved_at DESC LIMIT 50); '
+      "${_vaultEnqueue("'history:' || old.id")} END",
+    );
+    // свои снимки и чистка из приложения (возврат версии, стирание заметки)
+    for (final (event, row) in [('INSERT', 'new'), ('DELETE', 'old')]) {
+      await customStatement(
+        'CREATE TRIGGER vault_note_versions_${event.toLowerCase()} AFTER $event ON note_versions WHEN $_notImporting BEGIN '
+        "${_vaultEnqueue("'history:' || $row.item_id")} END",
+      );
+    }
+    await customStatement('CREATE TRIGGER items_history_purge AFTER DELETE ON items BEGIN DELETE FROM note_versions WHERE item_id = old.id; END');
+  }
 
   // переименованная или переложенная папка меняет путь вещей в ней и во всех вложенных.
   // WITH в триггере SQLite не умеет: вложенные перечислены подзапросами на восемь уровней

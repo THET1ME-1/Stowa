@@ -365,5 +365,14 @@
   "folderNewInside": "Nueva carpeta dentro",
   "folderMoveTo": "Mover a…",
   "folderMoveTop": "Arriba del todo",
-  "folderMoveNone": "No hay a dónde moverla: las carpetas se anidan hasta tres niveles"
+  "folderMoveNone": "No hay a dónde moverla: las carpetas se anidan hasta tres niveles",
+  "historyTitle": "Historial",
+  "historyNow": "Ahora",
+  "historyHint": "El texto anterior se guarda cuando editas la nota tras una pausa. Se conservan las últimas 50 versiones o todas las de 30 días.",
+  "historyNoChanges": "Mismo texto",
+  "historyText": "Texto",
+  "historyDiff": "Cambios",
+  "historyDiffHint": "Tachado: estaba en esta versión. Resaltado: se añadió después",
+  "historyRestore": "Restaurar esta versión",
+  "historyRestored": "Versión restaurada"
 }

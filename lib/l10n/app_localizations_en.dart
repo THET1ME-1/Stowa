@@ -2289,4 +2289,33 @@ class LEn extends L {
   @override
   String get folderMoveNone =>
       'Nowhere to move: folders nest up to three levels';
+
+  @override
+  String get historyTitle => 'History';
+
+  @override
+  String get historyNow => 'Now';
+
+  @override
+  String get historyHint =>
+      'The earlier text is kept when you edit the note after a break. The last 50 versions or all from 30 days are kept.';
+
+  @override
+  String get historyNoChanges => 'Same text';
+
+  @override
+  String get historyText => 'Text';
+
+  @override
+  String get historyDiff => 'Changes';
+
+  @override
+  String get historyDiffHint =>
+      'Struck out: was in this version. Highlighted: added since';
+
+  @override
+  String get historyRestore => 'Restore this version';
+
+  @override
+  String get historyRestored => 'Version restored';
 }

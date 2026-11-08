@@ -2294,4 +2294,33 @@ class LDe extends L {
   @override
   String get folderMoveNone =>
       'Kein Ziel: Ordner lassen sich höchstens drei Ebenen tief verschachteln';
+
+  @override
+  String get historyTitle => 'Verlauf';
+
+  @override
+  String get historyNow => 'Jetzt';
+
+  @override
+  String get historyHint =>
+      'Der frühere Text bleibt erhalten, wenn du die Notiz nach einer Pause bearbeitest. Gespeichert werden die letzten 50 Versionen oder alle der letzten 30 Tage.';
+
+  @override
+  String get historyNoChanges => 'Gleicher Text';
+
+  @override
+  String get historyText => 'Text';
+
+  @override
+  String get historyDiff => 'Unterschiede';
+
+  @override
+  String get historyDiffHint =>
+      'Durchgestrichen: stand in dieser Version. Hervorgehoben: kam danach dazu';
+
+  @override
+  String get historyRestore => 'Diese Version wiederherstellen';
+
+  @override
+  String get historyRestored => 'Version wiederhergestellt';
 }

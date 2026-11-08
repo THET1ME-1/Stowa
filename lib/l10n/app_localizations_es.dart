@@ -2291,4 +2291,33 @@ class LEs extends L {
   @override
   String get folderMoveNone =>
       'No hay a dónde moverla: las carpetas se anidan hasta tres niveles';
+
+  @override
+  String get historyTitle => 'Historial';
+
+  @override
+  String get historyNow => 'Ahora';
+
+  @override
+  String get historyHint =>
+      'El texto anterior se guarda cuando editas la nota tras una pausa. Se conservan las últimas 50 versiones o todas las de 30 días.';
+
+  @override
+  String get historyNoChanges => 'Mismo texto';
+
+  @override
+  String get historyText => 'Texto';
+
+  @override
+  String get historyDiff => 'Cambios';
+
+  @override
+  String get historyDiffHint =>
+      'Tachado: estaba en esta versión. Resaltado: se añadió después';
+
+  @override
+  String get historyRestore => 'Restaurar esta versión';
+
+  @override
+  String get historyRestored => 'Versión restaurada';
 }

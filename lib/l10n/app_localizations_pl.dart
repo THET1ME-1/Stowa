@@ -2334,4 +2334,33 @@ class LPl extends L {
   @override
   String get folderMoveNone =>
       'Nie ma dokąd przenieść: foldery zagnieżdżają się do trzech poziomów';
+
+  @override
+  String get historyTitle => 'Historia';
+
+  @override
+  String get historyNow => 'Teraz';
+
+  @override
+  String get historyHint =>
+      'Poprzedni tekst zostaje, gdy edytujesz notatkę po przerwie. Przechowywanych jest 50 ostatnich wersji albo wszystkie z 30 dni.';
+
+  @override
+  String get historyNoChanges => 'Ten sam tekst';
+
+  @override
+  String get historyText => 'Tekst';
+
+  @override
+  String get historyDiff => 'Różnice';
+
+  @override
+  String get historyDiffHint =>
+      'Przekreślone — było w tej wersji, podświetlone — doszło później';
+
+  @override
+  String get historyRestore => 'Przywróć tę wersję';
+
+  @override
+  String get historyRestored => 'Wersja przywrócona';
 }

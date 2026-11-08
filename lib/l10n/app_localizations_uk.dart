@@ -2334,4 +2334,33 @@ class LUk extends L {
   @override
   String get folderMoveNone =>
       'Перекласти нікуди: папки вкладаються не глибше трьох рівнів';
+
+  @override
+  String get historyTitle => 'Історія';
+
+  @override
+  String get historyNow => 'Зараз';
+
+  @override
+  String get historyHint =>
+      'Попередній текст зберігається, коли нотатку правлять після перерви. Зберігаються 50 останніх версій або всі за 30 днів.';
+
+  @override
+  String get historyNoChanges => 'Текст той самий';
+
+  @override
+  String get historyText => 'Текст';
+
+  @override
+  String get historyDiff => 'Різниця';
+
+  @override
+  String get historyDiffHint =>
+      'Закреслено — було в цій версії, підсвічено — з\'явилося після';
+
+  @override
+  String get historyRestore => 'Повернути цю версію';
+
+  @override
+  String get historyRestored => 'Версію повернено';
 }

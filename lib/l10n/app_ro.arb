@@ -365,5 +365,14 @@
   "folderNewInside": "Dosar nou în interior",
   "folderMoveTo": "Mută în…",
   "folderMoveTop": "Sus, la nivelul de bază",
-  "folderMoveNone": "Nu are unde fi mutat: dosarele se pot încadra pe cel mult trei niveluri"
+  "folderMoveNone": "Nu are unde fi mutat: dosarele se pot încadra pe cel mult trei niveluri",
+  "historyTitle": "Istoric",
+  "historyNow": "Acum",
+  "historyHint": "Textul anterior se păstrează când editezi notița după o pauză. Se păstrează ultimele 50 de versiuni sau toate din ultimele 30 de zile.",
+  "historyNoChanges": "Același text",
+  "historyText": "Text",
+  "historyDiff": "Diferențe",
+  "historyDiffHint": "Tăiat: era în această versiune. Evidențiat: adăugat ulterior",
+  "historyRestore": "Restabilește această versiune",
+  "historyRestored": "Versiune restabilită"
 }

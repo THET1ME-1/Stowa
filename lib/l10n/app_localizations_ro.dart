@@ -2310,4 +2310,33 @@ class LRo extends L {
   @override
   String get folderMoveNone =>
       'Nu are unde fi mutat: dosarele se pot încadra pe cel mult trei niveluri';
+
+  @override
+  String get historyTitle => 'Istoric';
+
+  @override
+  String get historyNow => 'Acum';
+
+  @override
+  String get historyHint =>
+      'Textul anterior se păstrează când editezi notița după o pauză. Se păstrează ultimele 50 de versiuni sau toate din ultimele 30 de zile.';
+
+  @override
+  String get historyNoChanges => 'Același text';
+
+  @override
+  String get historyText => 'Text';
+
+  @override
+  String get historyDiff => 'Diferențe';
+
+  @override
+  String get historyDiffHint =>
+      'Tăiat: era în această versiune. Evidențiat: adăugat ulterior';
+
+  @override
+  String get historyRestore => 'Restabilește această versiune';
+
+  @override
+  String get historyRestored => 'Versiune restabilită';
 }

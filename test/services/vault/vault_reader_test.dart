@@ -48,7 +48,8 @@ void main() {
     expect(scan.changed, 1);
     expect((await item('a'))!.body, 'Плитка\nкупить затирку');
     expect(await db.searchIds('затирку'), ['a']);
-    expect(await queue(), isEmpty);
+    // сама заметка назад не пишется; прежний текст ушёл в историю
+    expect(await queue(), ['history:a']);
   });
 
   test('новый файл из Obsidian становится вещью, id дописан в файл, остальное как было', () async {
@@ -187,6 +188,30 @@ void main() {
     expect([for (final one in quotes) (one.itemId, one.quote, one.note, one.position)], [('a', 'вода важнее зёрен', 'купить фильтр', 120)]);
     expect(await fresh.searchIds('фильтр'), ['a']);
     expect(await fresh.select(fresh.vaultQueue).get(), isEmpty, reason: 'собранное не пишется обратно');
+  });
+
+  test('история правок переживает переустановку и назад не пишется', () async {
+    await note('a', 'Плитка', body: 'Плитка\n20×20');
+    await (db.update(db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(body: const Value('Плитка\n30×30'), updatedAt: Value(now.add(const Duration(hours: 1)))));
+    await writer().drain();
+
+    final fresh = AppDatabase.memory();
+    addTearDown(fresh.close);
+    await reader(fresh).rebuild();
+    final versions = await fresh.select(fresh.noteVersions).get();
+    expect([for (final one in versions) (one.itemId, one.body, one.savedAt)], [('a', 'Плитка\n20×20', now)]);
+    expect(await fresh.select(fresh.vaultQueue).get(), isEmpty);
+  });
+
+  test('правка в Obsidian получает время файла и оставляет прежний текст в истории', () async {
+    await note('a', 'Плитка', body: 'Плитка\nкупить клей');
+    await writer().drain();
+    // Obsidian меняет текст, а свойство updated в файле остаётся прежним
+    touch('Плитка.md', file('Плитка.md').readAsStringSync().replaceFirst('купить клей', 'купить затирку'));
+    await reader().reconcile();
+    final edited = (await item('a'))!;
+    expect(edited.updatedAt.isAfter(now), isTrue);
+    expect((await db.select(db.noteVersions).getSingle()).body, 'Плитка\nкупить клей');
   });
 
   test('счётчик сборки считает заметки, а не проходы: «… из 3», от нуля до трёх', () async {

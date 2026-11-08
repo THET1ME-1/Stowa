@@ -166,6 +166,18 @@ void main() {
     expect((json['runs'] as List).single, containsPair('version', 2));
   });
 
+  test('история правок — в .stowa/history/<id>.json, стёртая заметка уносит и её', () async {
+    await note('a', 'Плитка', body: 'Плитка\n20×20');
+    await edit('a', ItemsCompanion(body: const Value('Плитка\n30×30'), updatedAt: Value(now.add(const Duration(hours: 1)))));
+    await writer().drain();
+    final json = jsonDecode(file('.stowa/history/a.json').readAsStringSync()) as Map<String, Object?>;
+    expect([for (final row in json['versions'] as List) (row as Map)['body']], ['Плитка\n20×20']);
+
+    await (db.delete(db.items)..where((t) => t.id.equals('a'))).go();
+    await writer().drain();
+    expect(file('.stowa/history/a.json').existsSync(), isFalse);
+  });
+
   test('теги, правила, папки, связи, выученное и холст — в .stowa/*.json', () async {
     await db.into(db.tags).insert(TagsCompanion.insert(id: 't', name: 'паста', createdAt: now));
     await db.into(db.rules).insert(RulesCompanion.insert(id: 'r', conditionKind: RuleConditionKind.hasTag, conditionValue: 'паста', actionKind: RuleActionKind.toFolder, actionValue: 'recipes'));

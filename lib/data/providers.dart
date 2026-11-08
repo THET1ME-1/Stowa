@@ -43,6 +43,7 @@ import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/highlights_repository.dart';
+import 'repositories/history_repository.dart';
 import 'repositories/items_repository.dart';
 import 'repositories/places_repository.dart';
 import 'repositories/return_repository.dart';
@@ -202,6 +203,11 @@ final highlightsRepositoryProvider = Provider((ref) => HighlightsRepository(ref.
 
 /// Цитаты статьи по порядку в тексте.
 final highlightsProvider = StreamProvider.autoDispose.family<List<Highlight>, String>((ref, itemId) => ref.watch(highlightsRepositoryProvider).watch(itemId));
+
+final historyRepositoryProvider = Provider((ref) => HistoryRepository(ref.watch(databaseProvider), ref.watch(itemsRepositoryProvider)));
+
+/// Снимки заметки, новый первым: «История» в меню заметки.
+final noteVersionsProvider = StreamProvider.autoDispose.family<List<NoteVersion>, String>((ref, itemId) => ref.watch(historyRepositoryProvider).watch(itemId));
 
 /// Статья из копии страницы для читалки. Разбор — в отдельном потоке: длинная статья не подвешивает экран.
 final articleLoaderProvider = Provider<Future<Article?> Function(String itemId, String url)>((ref) {

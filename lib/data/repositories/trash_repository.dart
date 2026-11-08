@@ -88,6 +88,7 @@ ORDER BY items.deleted_at DESC''',
       await (_db.delete(_db.aiLog)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.corrections)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.canvasPositions)..where((t) => t.itemId.equals(id))).go();
+      await (_db.delete(_db.noteVersions)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.items)..where((t) => t.id.equals(id))).go();
     });
     // файлы — после базы: упадёт удаление файла, вещь всё равно стёрта

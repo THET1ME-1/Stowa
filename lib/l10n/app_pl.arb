@@ -365,5 +365,14 @@
   "folderNewInside": "Nowy folder w środku",
   "folderMoveTo": "Przenieś do…",
   "folderMoveTop": "Na górę",
-  "folderMoveNone": "Nie ma dokąd przenieść: foldery zagnieżdżają się do trzech poziomów"
+  "folderMoveNone": "Nie ma dokąd przenieść: foldery zagnieżdżają się do trzech poziomów",
+  "historyTitle": "Historia",
+  "historyNow": "Teraz",
+  "historyHint": "Poprzedni tekst zostaje, gdy edytujesz notatkę po przerwie. Przechowywanych jest 50 ostatnich wersji albo wszystkie z 30 dni.",
+  "historyNoChanges": "Ten sam tekst",
+  "historyText": "Tekst",
+  "historyDiff": "Różnice",
+  "historyDiffHint": "Przekreślone — było w tej wersji, podświetlone — doszło później",
+  "historyRestore": "Przywróć tę wersję",
+  "historyRestored": "Wersja przywrócona"
 }

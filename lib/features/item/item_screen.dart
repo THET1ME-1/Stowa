@@ -40,6 +40,7 @@ import '../reader/highlights_block.dart';
 import '../reader/reader_screen.dart';
 import 'copying_bar.dart';
 import 'facts_block.dart';
+import 'history_screen.dart';
 import 'page_card.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
@@ -71,7 +72,7 @@ const _markdownStrip = 52.0;
 /// а пустая строка в конце сохраняться не должна.
 final _trailingSpace = RegExp(r'\s+$');
 
-enum _MenuAction { copy, delete }
+enum _MenuAction { copy, history, delete }
 
 /// Вещь целиком, по образцу поста Togetherly: шапка с пилюлей папки, заголовок,
 /// теги и напоминание отдельными блоками, текст своей карточкой, внизу плавающая
@@ -398,19 +399,44 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   Future<void> _menu(Item item) async {
+    final hasHistory = (ref.read(noteVersionsProvider(_id)).value ?? const []).isNotEmpty;
     final action = await showModalBottomSheet<_MenuAction>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
-      builder: (sheet) => _ItemMenu(title: item.title),
+      builder: (sheet) => _ItemMenu(title: item.title, history: hasHistory),
     );
     if (action == null || !mounted) return;
     switch (action) {
       case _MenuAction.copy:
         await _copy(item);
+      case _MenuAction.history:
+        await _history();
       case _MenuAction.delete:
         await _delete();
     }
+  }
+
+  /// История правок. Вернули версию — плашка «Отменить» возвращает то, что было до неё:
+  /// оно лежит в истории самым свежим снимком.
+  Future<void> _history() async {
+    if (_editing) await _finish();
+    if (!mounted) return;
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final restored = await Navigator.of(context).push(historyRoute(_id));
+    if (restored != true) return;
+    final history = ref.read(historyRepositoryProvider);
+    showUndo(
+      messenger,
+      message: l.historyRestored,
+      label: l.undo,
+      onUndo: () async {
+        final latest = await history.latest(_id);
+        if (latest != null) await history.restore(latest, _clock());
+      },
+      overDock: true,
+    );
   }
 
   @override
@@ -420,6 +446,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final full = ref.watch(itemProvider(_id)).value;
     final facts = ref.watch(itemFactsProvider(_id)).value ?? const <Fact>[];
     final highlights = ref.watch(highlightsProvider(_id)).value ?? const <Highlight>[];
+    // история держится живой, пока заметка открыта: меню «⋮» решает по ней сразу
+    ref.watch(noteVersionsProvider(_id));
     final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
     final filesRoot = ref.watch(filesRootProvider);
     final now = _clock();
@@ -1309,9 +1337,12 @@ class _Dock extends StatelessWidget {
 
 /// Лист «⋮»: скопировать текст и удалить. Блоки сцеплены, как в настройках.
 class _ItemMenu extends StatelessWidget {
-  const _ItemMenu({required this.title});
+  const _ItemMenu({required this.title, this.history = false});
 
   final String title;
+
+  /// Есть хоть один снимок: пункт «История».
+  final bool history;
 
   @override
   Widget build(BuildContext context) {
@@ -1357,6 +1388,10 @@ class _ItemMenu extends StatelessWidget {
             ),
             row(_MenuAction.copy, 'content_copy', l.itemCopy, const BorderRadius.vertical(top: Radius.circular(24), bottom: Radius.circular(8))),
             const SizedBox(height: 4),
+            if (history) ...[
+              row(_MenuAction.history, 'history', l.historyTitle, const BorderRadius.all(Radius.circular(8))),
+              const SizedBox(height: 4),
+            ],
             row(_MenuAction.delete, 'delete', l.itemDelete, const BorderRadius.vertical(top: Radius.circular(8), bottom: Radius.circular(24)), danger: true),
           ],
         ),

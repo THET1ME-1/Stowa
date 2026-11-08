@@ -192,7 +192,26 @@ class VaultReader {
       await _restoreMeta(name);
     }
     await _restoreFacts();
+    await _restoreHistory();
     return scan;
+  }
+
+  /// Снимки заметок из `.stowa/history/<id>.json`: история переживает переустановку.
+  Future<void> _restoreHistory() async {
+    final dir = Directory(_absolute('$serviceFolder/history'));
+    if (!await dir.exists()) return;
+    await for (final entity in dir.list()) {
+      if (entity is! File || !entity.path.endsWith('.json')) continue;
+      final id = p.basenameWithoutExtension(entity.path);
+      if (await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) continue;
+      final json = jsonDecode(await entity.readAsString()) as Map<String, Object?>;
+      await _quietly(() async {
+        await (_db.delete(_db.noteVersions)..where((t) => t.itemId.equals(id))).go();
+        for (final row in (json['versions'] as List? ?? const []).whereType<Map<String, Object?>>()) {
+          await _insertRow('note_versions', row);
+        }
+      });
+    }
   }
 
   /// Пути заметок от корня: без служебного, или только корзина.
@@ -250,6 +269,16 @@ class VaultReader {
       tagIds[name] = tags[name] ??= await _newTag(name, created);
     }
     final now = _clock();
+    // Obsidian свойство updated не трогает: правленный снаружи текст получает время файла,
+    // иначе заметка выглядела бы старой и история не сняла бы прежнюю версию
+    var updated = note.updated;
+    if (exists && !deleted) {
+      final current = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (current != null && (current.body != note.body || current.title != note.title)) {
+        final modified = (await File(_absolute(one.relative)).stat()).modified;
+        if (modified.isAfter(updated) && modified.isAfter(current.updatedAt)) updated = modified;
+      }
+    }
     {
       final fields = ItemsCompanion(
         kind: Value(note.kind),
@@ -272,7 +301,7 @@ class VaultReader {
         remindLongitude: Value(note.remindPlace?.longitude),
         remindPlaceName: Value(note.remindPlace?.name),
         createdAt: Value(note.created),
-        updatedAt: Value(note.updated),
+        updatedAt: Value(updated),
         deletedAt: Value(deleted ? now : null),
       );
       if (exists) {

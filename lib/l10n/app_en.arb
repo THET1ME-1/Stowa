@@ -2910,5 +2910,41 @@
   "folderMoveNone": "Nowhere to move: folders nest up to three levels",
   "@folderMoveNone": {
     "description": "Move sheet: no valid targets"
+  },
+  "historyTitle": "History",
+  "@historyTitle": {
+    "description": "Note menu item and screen title: earlier versions of the note"
+  },
+  "historyNow": "Now",
+  "@historyNow": {
+    "description": "History: the current state of the note"
+  },
+  "historyHint": "The earlier text is kept when you edit the note after a break. The last 50 versions or all from 30 days are kept.",
+  "@historyHint": {
+    "description": "History screen: how versions are made"
+  },
+  "historyNoChanges": "Same text",
+  "@historyNoChanges": {
+    "description": "History: version text equals current, only the title differs"
+  },
+  "historyText": "Text",
+  "@historyText": {
+    "description": "Version screen tab: full text of the version"
+  },
+  "historyDiff": "Changes",
+  "@historyDiff": {
+    "description": "Version screen tab: what changed between the version and now"
+  },
+  "historyDiffHint": "Struck out: was in this version. Highlighted: added since",
+  "@historyDiffHint": {
+    "description": "Version screen: legend of the diff"
+  },
+  "historyRestore": "Restore this version",
+  "@historyRestore": {
+    "description": "Version screen button"
+  },
+  "historyRestored": "Version restored",
+  "@historyRestored": {
+    "description": "Snackbar after restoring a version"
   }
 }

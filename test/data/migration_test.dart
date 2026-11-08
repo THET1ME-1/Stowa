@@ -223,6 +223,26 @@ void main() {
     expect({for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target}, {'item:tile', 'meta:folders'});
   });
 
+  test('v11 → v12: заметки на месте, правка после перерыва даёт снимок', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 8);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Плитка', body: const Value('Плитка\n20×20'), createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropHistory(raw);
+    raw.execute('PRAGMA user_version = 11');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(body: const Value('Плитка\n30×30'), updatedAt: Value(now.add(const Duration(hours: 1)))));
+    expect((await upgraded.select(upgraded.noteVersions).getSingle()).body, 'Плитка\n20×20');
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -249,7 +269,16 @@ void main() {
 
 // версия 10: статьи — цитаты, жива ли ссылка, где остановился читать
 // версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
+// версия 12: история правок
+void _dropHistory(Database raw) {
+  for (final trigger in ['items_history', 'items_history_purge', 'vault_note_versions_insert', 'vault_note_versions_delete']) {
+    raw.execute('DROP TRIGGER IF EXISTS $trigger');
+  }
+  raw.execute('DROP TABLE IF EXISTS note_versions');
+}
+
 void _dropNesting(Database raw) {
+  _dropHistory(raw);
   raw.execute('DROP TRIGGER IF EXISTS vault_folders_rename');
   raw.execute('ALTER TABLE folders DROP COLUMN parent_id');
 }

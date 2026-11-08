@@ -82,7 +82,7 @@ class VaultWriter {
     return done;
   }
 
-  static int _order(String target) => target.startsWith('item:') ? 0 : (target.startsWith('facts:') ? 1 : 2);
+  static int _order(String target) => target.startsWith('item:') ? 0 : (target.startsWith('facts:') || target.startsWith('history:') ? 1 : 2);
 
   Future<bool> _claim(VaultQueueData task) async {
     final now = _clock().millisecondsSinceEpoch;
@@ -104,6 +104,9 @@ class VaultWriter {
       case 'facts':
         final text = await factsJson(_db, name);
         text == null ? await _remove(factsFile(name)) : await _write(factsFile(name), text);
+      case 'history':
+        final text = await historyJson(_db, name);
+        text == null ? await _remove(historyFile(name)) : await _write(historyFile(name), text);
       case 'meta':
         if (vaultMetaTables.containsKey(name)) await _write(metaFile(name), await metaJson(_db, name));
     }
@@ -122,6 +125,7 @@ class VaultWriter {
         await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(id))).go();
       }
       await _remove(factsFile(id));
+      await _remove(historyFile(id));
       return;
     }
     if (known != null) {

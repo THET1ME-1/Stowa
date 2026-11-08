@@ -84,6 +84,21 @@ class Highlights extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Снимок заметки (v12): заголовок и текст, какими были до правки после перерыва.
+/// Пишет триггер `items_history`, хранятся 50 последних или все за 30 дней.
+class NoteVersions extends Table {
+  TextColumn get id => text()();
+  TextColumn get itemId => text()();
+  TextColumn get title => text()();
+  TextColumn get body => text()();
+
+  /// Когда заметка была такой: время её прошлой правки.
+  DateTimeColumn get savedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Что извлекатель узнал о вещи: сумма, телефон, текст документа, дата съёмки.
 /// Факты одного извлекателя заменяются целиком при каждом его прогоне.
 class Facts extends Table {
