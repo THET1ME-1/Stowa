@@ -65,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -114,6 +114,8 @@ class AppDatabase extends _$AppDatabase {
         }
         await migrator.createTable(places);
       }
+      // 11: папка в папке. До очереди хранилища: её триггер переименования смотрит на parent_id
+      if (from < 11) await migrator.addColumn(folders, folders.parentId);
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
         // до очереди: файлы хранилища сразу пишутся с целым текстом
@@ -146,6 +148,11 @@ class AppDatabase extends _$AppDatabase {
           await migrator.createTable(highlights);
           await _createChildTriggers('highlights', 'item:');
         }
+      }
+      // 11 у базы с очередью: переименование и перенос папки двигают и заметки вложенных
+      if (from >= 7 && from < 11) {
+        await customStatement('DROP TRIGGER IF EXISTS vault_folders_rename');
+        await _createFolderMoveTrigger();
       }
     },
     beforeOpen: (details) async {
@@ -191,6 +198,21 @@ class AppDatabase extends _$AppDatabase {
     readsFrom: allTables.toSet(),
   ).watchSingle().map((row) => (row.read<int>('tasks'), row.read<int>('versions')));
 
+  // переименованная или переложенная папка меняет путь вещей в ней и во всех вложенных.
+  // WITH в триггере SQLite не умеет: вложенные перечислены подзапросами на восемь уровней
+  Future<void> _createFolderMoveTrigger() async {
+    var level = 'SELECT new.id';
+    final levels = [level];
+    for (var depth = 0; depth < 8; depth++) {
+      level = 'SELECT id FROM folders WHERE parent_id IN ($level)';
+      levels.add(level);
+    }
+    await customStatement(
+      'CREATE TRIGGER vault_folders_rename AFTER UPDATE OF name, parent_id ON folders WHEN $_notImporting BEGIN '
+      "INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE folder_id IN (${levels.join(' UNION ')}) $_vaultUpsert; END",
+    );
+  }
+
   // строки таблицы при вещи: любая их правка ставит в очередь вещь или её факты
   Future<void> _createChildTriggers(String table, String target) async {
     Future<void> trigger(String name, String event, String body) =>
@@ -217,12 +239,7 @@ class AppDatabase extends _$AppDatabase {
     }
 
     // переименованная папка меняет путь всех своих вещей, тег — их свойство tags
-    await trigger(
-      'vault_folders_rename',
-      'UPDATE OF name',
-      'folders',
-      "INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE folder_id = new.id $_vaultUpsert;",
-    );
+    await _createFolderMoveTrigger();
     await trigger(
       'vault_tags_rename',
       'UPDATE OF name',

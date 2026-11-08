@@ -244,6 +244,9 @@ class Folders extends Table {
 
   /// Цвет из FolderPalette; без выбора — по месту в списке.
   TextColumn get color => text().nullable()();
+
+  /// Папка, в которой лежит эта (v11); null — верхняя. Глубина руками до трёх (`FolderTree`).
+  TextColumn get parentId => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   BoolColumn get createdByAi => boolean().withDefault(const Constant(false))();
   TextColumn get view => textEnum<FolderView>().withDefault(Constant(FolderView.auto.name))();

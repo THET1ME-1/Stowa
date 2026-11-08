@@ -195,6 +195,34 @@ void main() {
     expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:a']);
   });
 
+  test('v10 → v11: папки верхние, перенос папки ставит в очередь заметки её и вложенных', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 8);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    for (final (id, name) in [('home', 'Дом'), ('fix', 'Ремонт'), ('kitchen', 'Кухня')]) {
+      await fresh.into(fresh.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: 'pill'));
+    }
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'tile', kind: ItemKind.note, title: 'Плитка', folderId: const Value('kitchen'), createdAt: now, updatedAt: now));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'other', kind: ItemKind.note, title: 'Другое', folderId: const Value('home'), createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropNesting(raw);
+    raw.execute("CREATE TRIGGER vault_folders_rename AFTER UPDATE OF name ON folders BEGIN SELECT 1; END");
+    raw.execute('PRAGMA user_version = 10');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    expect([for (final folder in await upgraded.select(upgraded.folders).get()) folder.parentId], [null, null, null]);
+    await (upgraded.update(upgraded.folders)..where((t) => t.id.equals('kitchen'))).write(const FoldersCompanion(parentId: Value('fix')));
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.folders)..where((t) => t.id.equals('fix'))).write(const FoldersCompanion(parentId: Value('home')));
+    expect({for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target}, {'item:tile', 'meta:folders'});
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -220,7 +248,14 @@ void main() {
 }
 
 // версия 10: статьи — цитаты, жива ли ссылка, где остановился читать
+// версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
+void _dropNesting(Database raw) {
+  raw.execute('DROP TRIGGER IF EXISTS vault_folders_rename');
+  raw.execute('ALTER TABLE folders DROP COLUMN parent_id');
+}
+
 void _dropArticles(Database raw) {
+  _dropNesting(raw);
   for (final row in raw.select("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'vault_highlights_%'")) {
     raw.execute('DROP TRIGGER ${row['name']}');
   }

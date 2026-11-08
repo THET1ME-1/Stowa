@@ -92,4 +92,56 @@ void main() {
     await folders.restore('food', moved);
     expect((await folders.watchAll().first).single.count, 2);
   });
+
+  test('папка внутри папки: путь, глубина, счёт с вложенными', () async {
+    final soup = await folders.create('супы', parentId: 'food');
+    final cold = await folders.create('Холодные', parentId: soup.id);
+    await item('a', folder: 'food');
+    await item('b', folder: soup.id);
+    await item('c', folder: cold.id);
+    final cards = {for (final card in await folders.watchAll().first) card.id: card};
+    expect(cards[soup.id]!.name, 'Супы');
+    expect(cards[soup.id]!.parentId, 'food');
+    expect(cards[cold.id]!.path, ['Рецепты', 'Супы', 'Холодные']);
+    expect((cards['food']!.count, cards['food']!.ownCount), (3, 1));
+    expect((cards[soup.id]!.count, cards[soup.id]!.ownCount), (2, 1));
+    expect(cards[cold.id]!.count, 1);
+  });
+
+  test('переложить папку: в другую и наверх', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'home', name: 'Дом', icon: 'home', shape: 'pill'));
+    final soup = await folders.create('Супы', parentId: 'food');
+    await folders.move(soup.id, 'home');
+    expect((await folders.watchAll().first).firstWhere((card) => card.id == soup.id).path, ['Дом', 'Супы']);
+    await folders.move(soup.id, null);
+    expect((await folders.watchAll().first).firstWhere((card) => card.id == soup.id).parentId, isNull);
+  });
+
+  test('удалить папку с вложенными: всё поднимается к родителю, «Вернуть» возвращает на место', () async {
+    final soup = await folders.create('Супы', parentId: 'food');
+    final cold = await folders.create('Холодные', parentId: soup.id);
+    await item('a', folder: soup.id);
+    await item('b', folder: cold.id);
+
+    final removal = await folders.delete(soup.id, at);
+    expect((await items.get('a'))!.item.folderId, 'food');
+    var cards = {for (final card in await folders.watchAll().first) card.id: card};
+    expect(cards.containsKey(soup.id), isFalse);
+    expect(cards[cold.id]!.parentId, 'food');
+
+    await folders.restore(soup.id, removal);
+    cards = {for (final card in await folders.watchAll().first) card.id: card};
+    expect((await items.get('a'))!.item.folderId, soup.id);
+    expect(cards[cold.id]!.parentId, soup.id);
+    expect(cards['food']!.count, 2);
+  });
+
+  test('удалить верхнюю папку: вложенные становятся верхними, заметки — без папки', () async {
+    final soup = await folders.create('Супы', parentId: 'food');
+    await item('a', folder: 'food');
+    await folders.delete('food', at);
+    expect((await items.get('a'))!.item.folderId, isNull);
+    expect((await folders.watchAll().first).single.id, soup.id);
+    expect((await folders.watchAll().first).single.parentId, isNull);
+  });
 }
