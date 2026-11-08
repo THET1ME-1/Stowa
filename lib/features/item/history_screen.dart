@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
@@ -211,8 +214,26 @@ class _VersionScreenState extends ConsumerState<VersionScreen> {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final version = widget.version;
-    final current = ref.watch(itemProvider(version.itemId)).value?.item;
+    final full = ref.watch(itemProvider(version.itemId)).value;
+    final current = full?.item;
+    final filesRoot = ref.watch(filesRootProvider);
     final now = ref.read(clockProvider)();
+    // картинка версии — тот же файл вложения, если он ещё при заметке
+    Widget image(String name) {
+      final paths = [for (final file in full?.attachments ?? const <Attachment>[]) file.path];
+      final path = embedPath(name, paths);
+      if (path == null) return MissingImage(name: name);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(Radii.tile),
+        child: Image.file(
+          File(p.join(filesRoot.path, path)),
+          fit: BoxFit.cover,
+          cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
+          errorBuilder: (_, _, _) => MissingImage(name: name),
+        ),
+      );
+    }
+
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
       body: SafeArea(
@@ -244,7 +265,7 @@ class _VersionScreenState extends ConsumerState<VersionScreen> {
                     decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
                     child: _diff && current != null
                         ? _DiffView(lines: diffLines(version.body, current.body))
-                        : NoteBody(blocks: parseNoteBlocks(version.body), onToggle: (_) {}, onEdit: () {}, onLink: (_) {}),
+                        : NoteBody(blocks: parseNoteBlocks(version.body), onToggle: (_) {}, onEdit: () {}, onLink: (_) {}, image: image),
                   ),
                   if (_diff) ...[
                     const SizedBox(height: 10),
@@ -312,12 +333,33 @@ class _DiffView extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                    line.text,
-                    style: line.kind == DiffKind.removed
-                        ? body.copyWith(color: Tokens.onSurfaceVariant, decoration: TextDecoration.lineThrough, decorationColor: Tokens.onSurfaceVariant)
-                        : body,
-                  ),
+                  child: switch (embedLine.firstMatch(line.text)) {
+                    // картинка — значком и именем файла, без скобок разметки
+                    final embed? => Row(
+                      children: [
+                        Icon(symbolIcon('image'), size: 18, color: Tokens.muted),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            embed.group(1)!.trim().split('/').last,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: body.copyWith(
+                              color: Tokens.muted,
+                              decoration: line.kind == DiffKind.removed ? TextDecoration.lineThrough : null,
+                              decorationColor: Tokens.muted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    _ => Text(
+                      line.text,
+                      style: line.kind == DiffKind.removed
+                          ? body.copyWith(color: Tokens.onSurfaceVariant, decoration: TextDecoration.lineThrough, decorationColor: Tokens.onSurfaceVariant)
+                          : body,
+                    ),
+                  },
                 ),
               ],
             ),
