@@ -3844,6 +3844,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Version restored'**
   String get historyRestored;
+
+  /// Folder sort: by main color of pictures
+  ///
+  /// In en, this message translates to:
+  /// **'By color'**
+  String get sortByColor;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

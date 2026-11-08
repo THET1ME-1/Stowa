@@ -2946,5 +2946,9 @@
   "historyRestored": "Version restored",
   "@historyRestored": {
     "description": "Snackbar after restoring a version"
+  },
+  "sortByColor": "By color",
+  "@sortByColor": {
+    "description": "Folder sort: by main color of pictures"
   }
 }

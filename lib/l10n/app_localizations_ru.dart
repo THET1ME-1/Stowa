@@ -2368,4 +2368,7 @@ class LRu extends L {
 
   @override
   String get historyRestored => 'Версия возвращена';
+
+  @override
+  String get sortByColor => 'По цвету';
 }

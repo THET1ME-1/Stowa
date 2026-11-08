@@ -9,6 +9,7 @@ library;
 
 import 'dart:math';
 
+import 'image_colors.dart';
 import 'models.dart';
 import 'money.dart';
 import 'word_forms.dart';
@@ -47,10 +48,14 @@ class SearchQuery {
     this.maxPrice,
     this.currency,
     this.screenshots = false,
+    this.colors = const {},
     this.at,
     this.understood = const [],
     this.plainWords = const [],
   });
+
+  /// «синее», «red»: главный цвет картинки или обложки.
+  final Set<ColorFamily> colors;
 
   /// «дома», «на работе».
   final PlaceMark? at;
@@ -105,6 +110,7 @@ class SearchQuery {
       minPrice != null ||
       maxPrice != null ||
       screenshots ||
+      colors.isNotEmpty ||
       at != null;
 
   bool get isEmpty => words.isEmpty && !hasFilters;
@@ -124,9 +130,12 @@ class SearchQuery {
     Set<PlaceMark> marks = const {},
     List<(double, String)> prices = const [],
     bool screenshot = false,
+    Set<String> colors = const {},
   }) {
     if (at != null && !marks.contains(at)) return false;
     if (screenshots && !screenshot) return false;
+    // [colors] вещи — имена семей её главных цветов
+    if (this.colors.isNotEmpty && !this.colors.any((family) => colors.contains(family.name))) return false;
     if (minPrice != null || maxPrice != null) {
       final fits = prices.any(
         (price) => (currency == null || price.$2 == currency) && (minPrice == null || price.$1 >= minPrice!) && (maxPrice == null || price.$1 <= maxPrice!),
@@ -340,6 +349,49 @@ final _currencySign = RegExp(r'[$€£₽₴]');
 // скриншоты отдельно от фото: их отличает извлекатель
 final _screenshotWords = _Words('', 'скрин скрін screenshot bildschirmfoto captur zrzut');
 
+// формы прилагательного: «синее», «синей», «синюю» — одно слово цвета. Перечислены целиком:
+// начало «черн» поймало бы и «чернику», «бел» — «белку»
+String _ruForms(String stem, {bool soft = false}) => [
+  for (final ending in soft ? ['ий', 'ее', 'яя', 'ие', 'их', 'им', 'ими', 'юю', 'его', 'ей', 'ему', 'ем'] : ['ый', 'ое', 'ая', 'ые', 'ых', 'ым', 'ыми', 'ую', 'ого', 'ой', 'ому', 'ом'])
+    '$stem$ending',
+].join(' ');
+
+String _ukForms(String stem, {bool soft = false}) => [
+  for (final ending in soft ? ['ій', 'є', 'я', 'і', 'іх', 'ім', 'іми', 'ю', 'ього', 'ьої', 'ьому'] : ['ий', 'е', 'а', 'і', 'их', 'им', 'ими', 'у', 'ого', 'ої', 'ому', 'ій'])
+    '$stem$ending',
+].join(' ');
+
+String _plForms(String stem) => [for (final ending in ['y', 'i', 'a', 'e', 'ego', 'ej', 'ym', 'im', 'ych', 'ich', 'ą', 'ymi', 'imi']) '$stem$ending'].join(' ');
+
+String _deForms(String stem) => [for (final ending in ['', 'e', 'er', 'es', 'en', 'em']) '$stem$ending'].join(' ');
+
+String _esForms(String stem) => [for (final ending in ['o', 'a', 'os', 'as']) '$stem$ending'].join(' ');
+
+// слова цвета на семи языках: «синее платье», «red dress», «rote Jacke», «vestido rojo»
+final _colorWords = <ColorFamily, _Words>{
+  ColorFamily.red: _Words(
+    '${_ruForms('красн')} ${_ukForms('червон')} red ${_deForms('rot')} ${_esForms('roj')} roșu roșie roșii rosu rosie rosii ${_plForms('czerwon')}',
+  ),
+  ColorFamily.orange: _Words(
+    '${_ruForms('оранжев')} ${_ukForms('помаранчев')} ${_ukForms('оранжев')} orange orangene orangener orangenes orangenen naranja naranjas ${_esForms('anaranjad')} portocaliu portocalie portocalii ${_plForms('pomarańczow')}',
+  ),
+  ColorFamily.yellow: _Words('${_ruForms('желт')} ${_ukForms('жовт')} yellow ${_deForms('gelb')} ${_esForms('amarill')} galben galbenă galbena galbeni galbene ${_plForms('żółt')}'),
+  ColorFamily.green: _Words('${_ruForms('зелен')} ${_ukForms('зелен')} green ${_deForms('grün')} verde verdes verzi ${_plForms('zielon')}'),
+  ColorFamily.teal: _Words('${_ruForms('бирюзов')} ${_ukForms('бірюзов')} teal turquoise türkis turquesa turquesas turcoaz ${_plForms('turkusow')}'),
+  ColorFamily.sky: _Words('${_ruForms('голуб')} ${_ukForms('блакитн')} cyan azure ${_deForms('hellblau')} celeste celestes bleu ${_plForms('błękitn')}'),
+  ColorFamily.blue: _Words(
+    '${_ruForms('син', soft: true)} ${_ukForms('син', soft: true)} blue ${_deForms('blau')} azul azules albastru albastră albastra albaștri albastri albastre ${_plForms('niebiesk')}',
+  ),
+  ColorFamily.purple: _Words(
+    '${_ruForms('фиолетов')} ${_ruForms('сиренев')} ${_ruForms('лилов')} ${_ukForms('фіолетов')} ${_ukForms('бузков')} purple violet lila ${_deForms('violett')} ${_esForms('morad')} violeta violetas púrpura mov ${_plForms('fioletow')}',
+  ),
+  ColorFamily.pink: _Words('${_ruForms('розов')} ${_ukForms('рожев')} pink rosa ${_esForms('rosad')} roz ${_plForms('różow')}'),
+  ColorFamily.brown: _Words('${_ruForms('коричнев')} ${_ukForms('коричнев')} brown ${_deForms('braun')} marrón marrones maro ${_plForms('brązow')}'),
+  ColorFamily.white: _Words('${_ruForms('бел')} ${_ukForms('біл')} white weiß weiße weißer weißes weißen weiss weisse ${_esForms('blanc')} alb albă alba albi albe ${_plForms('biał')}'),
+  ColorFamily.gray: _Words('${_ruForms('сер')} ${_ukForms('сір')} gray grey ${_deForms('grau')} gris grises gri ${_plForms('szar')}'),
+  ColorFamily.black: _Words('${_ruForms('черн')} ${_ukForms('чорн')} black ${_deForms('schwarz')} ${_esForms('negr')} negru neagră neagra negri negre ${_plForms('czarn')}'),
+};
+
 List<List<String>> _phrases(String list) {
   final phrases = [for (final phrase in list.split('|')) [for (final word in phrase.split(' ')) _clean(word)]];
   return phrases..sort((a, b) => b.length.compareTo(a.length));
@@ -468,6 +520,7 @@ class _Parser {
   double? maxPrice;
   String? currency;
   var screenshots = false;
+  final colors = <ColorFamily>{};
   int? minSeconds;
   int? maxSeconds;
   var near = false;
@@ -492,7 +545,7 @@ class _Parser {
 
     final plain = _wordsOf([for (var index = 0; index < tokens.length; index++) if (!_quantityTokens.contains(index)) index]);
     var free = _wordsOf([for (var index = 0; index < tokens.length; index++) if (!used[index]) index]);
-    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near || at != null || minPrice != null || maxPrice != null || screenshots;
+    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near || at != null || minPrice != null || maxPrice != null || screenshots || colors.isNotEmpty;
     // запрос из одних служебных слов ищется как есть
     if (free.isEmpty && !filtered) free = _wordsOf(List.generate(tokens.length, (index) => index), keepStop: true);
     _understood.sort((a, b) => a.$1.compareTo(b.$1));
@@ -512,6 +565,7 @@ class _Parser {
       maxPrice: maxPrice,
       currency: currency,
       screenshots: screenshots,
+      colors: colors,
       at: at,
       understood: [for (final entry in _understood) entry.$2],
       plainWords: plain.isEmpty ? free : plain,
@@ -536,7 +590,7 @@ class _Parser {
   }
 
   int _match(int index) {
-    for (final matcher in [_duration, _price, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _screenshot, _kind, _shortLong]) {
+    for (final matcher in [_duration, _price, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _screenshot, _color, _kind, _shortLong]) {
       final taken = matcher(index);
       if (taken > 0) return taken;
     }
@@ -628,6 +682,16 @@ class _Parser {
         currency = found.currency;
         return _take(index, index + phrase.length + found.words, endChar: found.end, quantity: true);
       }
+    }
+    return 0;
+  }
+
+  // «синее», «red», «rote»: главный цвет картинки или обложки
+  int _color(int index) {
+    for (final MapEntry(key: family, value: words) in _colorWords.entries) {
+      if (!_is(index, words)) continue;
+      colors.add(family);
+      return _take(index, index + 1);
     }
     return 0;
   }

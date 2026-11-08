@@ -2323,4 +2323,7 @@ class LDe extends L {
 
   @override
   String get historyRestored => 'Version wiederhergestellt';
+
+  @override
+  String get sortByColor => 'Nach Farbe';
 }

@@ -374,5 +374,6 @@
   "historyDiff": "Różnice",
   "historyDiffHint": "Przekreślone — było w tej wersji, podświetlone — doszło później",
   "historyRestore": "Przywróć tę wersję",
-  "historyRestored": "Wersja przywrócona"
+  "historyRestored": "Wersja przywrócona",
+  "sortByColor": "Według koloru"
 }

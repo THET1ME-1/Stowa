@@ -374,5 +374,6 @@
   "historyDiff": "Unterschiede",
   "historyDiffHint": "Durchgestrichen: stand in dieser Version. Hervorgehoben: kam danach dazu",
   "historyRestore": "Diese Version wiederherstellen",
-  "historyRestored": "Version wiederhergestellt"
+  "historyRestored": "Version wiederhergestellt",
+  "sortByColor": "Nach Farbe"
 }

@@ -163,6 +163,16 @@ void main() {
       expect((await find('скрины')), hasLength(1));
     });
 
+    test('по цвету: «синее» находит вещь с синим главным цветом, а не красную', () async {
+      final sea = await capture.capture(const CaptureInput(text: 'Море в Одессе'));
+      final dress = await capture.capture(const CaptureInput(text: 'Платье на выпускной'));
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'c1', itemId: sea, extractor: 'colors', kind: FactKind.color, value: 'blue', number: const Value(0.7), detail: const Value('#1E3CC8')));
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'c2', itemId: dress, extractor: 'colors', kind: FactKind.color, value: 'red', number: const Value(0.6), detail: const Value('#DC1E1E')));
+      expect((await find('синее')).map((found) => found.card.id), [sea]);
+      expect((await find('red')).map((found) => found.card.id), [dress]);
+      expect((await find('красное платье')).map((found) => found.card.id), [dress]);
+    });
+
     test('статьи по времени чтения, рецепт по ингредиенту и по слову «рецепт»', () async {
       Future<String> link(String title, String url) => capture.capture(CaptureInput(text: '$title\n$url'));
       final short = await link('Короткая заметка о поиске', 'https://habr.com/a/1');

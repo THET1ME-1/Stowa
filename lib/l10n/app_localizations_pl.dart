@@ -2363,4 +2363,7 @@ class LPl extends L {
 
   @override
   String get historyRestored => 'Wersja przywrócona';
+
+  @override
+  String get sortByColor => 'Według koloru';
 }

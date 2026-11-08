@@ -2320,4 +2320,7 @@ class LEs extends L {
 
   @override
   String get historyRestored => 'Versión restaurada';
+
+  @override
+  String get sortByColor => 'Por color';
 }

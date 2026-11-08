@@ -374,5 +374,6 @@
   "historyDiff": "Різниця",
   "historyDiffHint": "Закреслено — було в цій версії, підсвічено — з'явилося після",
   "historyRestore": "Повернути цю версію",
-  "historyRestored": "Версію повернено"
+  "historyRestored": "Версію повернено",
+  "sortByColor": "За кольором"
 }

@@ -1,9 +1,13 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
+
+import 'package:path/path.dart' as p;
 
 import '../../domain/contacts.dart';
 import '../../domain/document_text.dart';
+import '../../domain/image_colors.dart';
 import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
@@ -13,7 +17,7 @@ import '../../domain/video_text.dart' show hashtagsIn;
 import 'extractor.dart';
 
 /// Местные извлекатели: работают без сети. Сетевые добавляет тот, кто знает, чем ходить в сеть.
-List<Extractor> defaultExtractors() => [TextExtractor(), FileTextExtractor(), PhotoExtractor(), FingerprintExtractor(), LinkExtractor()];
+List<Extractor> defaultExtractors() => [TextExtractor(), FileTextExtractor(), PhotoExtractor(), FingerprintExtractor(), ColorsExtractor(), LinkExtractor()];
 
 const _attachmentsStamp = "coalesce((SELECT group_concat(attachments.id) FROM attachments WHERE attachments.item_id = items.id), '')";
 
@@ -158,6 +162,49 @@ class FingerprintExtractor extends Extractor {
       }
     }
     return facts;
+  }
+}
+
+/// Главные цвета картинок и обложки ссылки или ролика: «синее», «красная обложка»,
+/// доска «по цвету». Картинку сжимает до 32×32 системный декодер.
+class ColorsExtractor extends Extractor {
+  @override
+  String get name => 'colors';
+  @override
+  int get version => 1;
+  @override
+  String get stampSql => "$_attachmentsStamp || '|' || coalesce(items.cover_path, '')";
+  @override
+  String get appliesSql => "items.cover_path IS NOT NULL OR EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%')";
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    final files = [
+      for (final attachment in input.files.where((file) => file.mime.startsWith('image/'))) input.fileOf(attachment),
+      if (input.item.coverPath case final cover?) File(p.join(input.filesRoot.path, cover)),
+    ];
+    // цвета заметки — по первой картинке, которая прочиталась: она и стоит крупно
+    for (final file in files) {
+      if (!await file.exists()) continue;
+      final pixels = await smallPixels(file, 32, 32);
+      if (pixels == null) continue;
+      return [for (final color in mainColors(pixels)) FactDraft(FactKind.color, color.family.name, number: color.share, detail: color.hex)];
+    }
+    return const [];
+  }
+}
+
+/// Точки RGBA картинки, сжатой системным декодером до [width]×[height]; не прочиталась — null.
+Future<Uint8List?> smallPixels(File file, int width, int height) async {
+  try {
+    final codec = await ui.instantiateImageCodec(await file.readAsBytes(), targetWidth: width, targetHeight: height);
+    final frame = await codec.getNextFrame();
+    final pixels = await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    frame.image.dispose();
+    codec.dispose();
+    return pixels?.buffer.asUint8List();
+  } on Exception {
+    return null;
   }
 }
 

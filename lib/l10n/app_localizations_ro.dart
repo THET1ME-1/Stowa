@@ -2339,4 +2339,7 @@ class LRo extends L {
 
   @override
   String get historyRestored => 'Versiune restabilită';
+
+  @override
+  String get sortByColor => 'După culoare';
 }

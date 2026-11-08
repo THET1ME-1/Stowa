@@ -374,5 +374,6 @@
   "historyDiff": "Cambios",
   "historyDiffHint": "Tachado: estaba en esta versión. Resaltado: se añadió después",
   "historyRestore": "Restaurar esta versión",
-  "historyRestored": "Versión restaurada"
+  "historyRestored": "Versión restaurada",
+  "sortByColor": "Por color"
 }

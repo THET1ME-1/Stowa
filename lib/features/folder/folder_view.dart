@@ -1,4 +1,5 @@
 import '../../data/repositories/items_repository.dart';
+import '../../domain/image_colors.dart';
 import '../../domain/models.dart';
 
 /// Доска, когда в папке почти одни картинки, иначе лента вперемешку.
@@ -32,7 +33,7 @@ double boardTileHeight(ItemCard card) => (card.thumbPath == null ? 0.75 : card.t
   return (left: left, right: right);
 }
 
-enum FolderOrder { newest, oldest, name }
+enum FolderOrder { newest, oldest, name, color }
 
 /// Порядок карточек по кнопке в шапке папки.
 List<ItemCard> orderCards(Iterable<ItemCard> cards, FolderOrder order) {
@@ -44,6 +45,12 @@ List<ItemCard> orderCards(Iterable<ItemCard> cards, FolderOrder order) {
       list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     case FolderOrder.name:
       list.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    // как в PureRef: по кругу тонов, одного тона — новые первыми
+    case FolderOrder.color:
+      list.sort((a, b) {
+        final byHue = boardHue(a.mainColor).compareTo(boardHue(b.mainColor));
+        return byHue != 0 ? byHue : b.createdAt.compareTo(a.createdAt);
+      });
   }
   return list;
 }

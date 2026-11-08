@@ -195,7 +195,8 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     );
   }
 
-  Future<void> _pickOrder() async {
+  /// [colored] — у картинок папки уже есть главные цвета: можно разложить по цвету.
+  Future<void> _pickOrder({required bool colored}) async {
     final l = L.of(context);
     final picked = await showModalBottomSheet<FolderOrder>(
       context: context,
@@ -206,7 +207,12 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final (order, label) in [(FolderOrder.newest, l.sortNewest), (FolderOrder.oldest, l.sortOldest), (FolderOrder.name, l.sortByName)])
+            for (final (order, label) in [
+              (FolderOrder.newest, l.sortNewest),
+              (FolderOrder.oldest, l.sortOldest),
+              (FolderOrder.name, l.sortByName),
+              if (colored) (FolderOrder.color, l.sortByColor),
+            ])
               ListTile(
                 title: Text(label),
                 trailing: order == _order ? Icon(symbolIcon('check'), color: Tokens.accent) : null,
@@ -351,7 +357,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                 _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
                 const Spacer(),
                 _RoundButton(icon: 'search', tooltip: l.folderSearch, onTap: () => _dock.currentState?.focusLine()),
-                if (cards.length > 1 && !canvas) ...[const SizedBox(width: 8), _RoundButton(icon: 'sort', tooltip: l.sortTooltip, onTap: _pickOrder)],
+                if (cards.length > 1 && !canvas) ...[const SizedBox(width: 8), _RoundButton(icon: 'sort', tooltip: l.sortTooltip, onTap: () => _pickOrder(colored: cards.any((card) => card.mainColor != null)))],
                 if (folder != null) ...[const SizedBox(width: 8), _RoundButton(icon: 'more_vert', tooltip: l.folderMore, onTap: () => _menu(folder))],
               ],
             ),

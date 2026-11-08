@@ -48,4 +48,11 @@ void main() {
     expect(titles(FolderOrder.oldest), ['Арбуз', 'банан', 'вишня']);
     expect(titles(FolderOrder.name), ['Арбуз', 'банан', 'вишня']);
   });
+
+  test('по цвету: по кругу тонов от красного, серое и без цвета в конце, внутри — новые первыми', () {
+    ItemCard colored(String title, String? hex, int day) =>
+        ItemCard(id: title, title: title, kind: ItemKind.image, folderId: 'f', sortState: SortState.sorted, createdAt: DateTime(2026, 1, day), mainColor: hex);
+    final cards = [colored('без цвета', null, 5), colored('синее', '#1E3CC8', 1), colored('серое', '#808080', 2), colored('красное', '#DC1E1E', 3), colored('зелёное', '#28AA3C', 4)];
+    expect([for (final card in orderCards(cards, FolderOrder.color)) card.title], ['красное', 'зелёное', 'синее', 'серое', 'без цвета']);
+  });
 }

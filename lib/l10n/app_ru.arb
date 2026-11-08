@@ -622,5 +622,6 @@
   "historyDiff": "Разница",
   "historyDiffHint": "Зачёркнуто — было в этой версии, подсвечено — появилось после",
   "historyRestore": "Вернуть эту версию",
-  "historyRestored": "Версия возвращена"
+  "historyRestored": "Версия возвращена",
+  "sortByColor": "По цвету"
 }

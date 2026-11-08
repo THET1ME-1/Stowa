@@ -2318,4 +2318,7 @@ class LEn extends L {
 
   @override
   String get historyRestored => 'Version restored';
+
+  @override
+  String get sortByColor => 'By color';
 }

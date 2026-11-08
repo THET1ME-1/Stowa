@@ -2363,4 +2363,7 @@ class LUk extends L {
 
   @override
   String get historyRestored => 'Версію повернено';
+
+  @override
+  String get sortByColor => 'За кольором';
 }

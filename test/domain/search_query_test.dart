@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/domain/image_colors.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/search_query.dart';
 
@@ -342,5 +343,46 @@ void main() {
   test('служебные слова не ищутся', () {
     expect(free(parseSearch('рецепт для пасты и соуса', now)), ['рецепт', 'пасты', 'соуса']);
     expect(free(parseSearch('Rezept für die Pasta', now)), ['rezept', 'pasta']);
+  });
+
+  group('цвет', () {
+    test('слово цвета в любой форме и на семи языках — фильтр по главному цвету', () {
+      final samples = {
+        'синее платье': ColorFamily.blue,
+        'красная обложка': ColorFamily.red,
+        'жёлтые цветы': ColorFamily.yellow,
+        'зелёного дивана': ColorFamily.green,
+        'голубое небо': ColorFamily.sky,
+        'чорна сукня': ColorFamily.black,
+        'blue dress': ColorFamily.blue,
+        'grey sofa': ColorFamily.gray,
+        'rote Jacke': ColorFamily.red,
+        'vestido rojo': ColorFamily.red,
+        'rochie neagră': ColorFamily.black,
+        'różowa sukienka': ColorFamily.pink,
+        'бирюзовая ваза': ColorFamily.teal,
+        'коричневые ботинки': ColorFamily.brown,
+      };
+      for (final MapEntry(key: text, value: family) in samples.entries) {
+        final query = parseSearch(text, now);
+        expect(query.colors, {family}, reason: text);
+        expect(query.words, hasLength(1), reason: text);
+        expect(query.hasFilters, isTrue, reason: text);
+      }
+      expect(parseSearch('синее платье', now).understood, ['синее']);
+    });
+
+    test('похожие слова — не цвет', () {
+      for (final text in ['Красноярск', 'белка', 'сериал', 'синица', 'роток', 'Белград', 'Rotterdam']) {
+        expect(parseSearch(text, now).colors, isEmpty, reason: text);
+      }
+    });
+
+    test('цвет пропускает только вещи с этим главным цветом', () {
+      final query = parseSearch('синее', now);
+      expect(query.admits(createdAt: now, kind: ItemKind.image, colors: const {'blue', 'white'}), isTrue);
+      expect(query.admits(createdAt: now, kind: ItemKind.image, colors: const {'red'}), isFalse);
+      expect(query.admits(createdAt: now, kind: ItemKind.note), isFalse);
+    });
   });
 }

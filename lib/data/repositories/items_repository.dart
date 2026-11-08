@@ -57,7 +57,11 @@ class ItemCard {
     this.copying = 0,
     this.gone = false,
     this.hasCopy = false,
+    this.mainColor,
   });
+
+  /// Главный цвет картинки или обложки «#1E3CC8»: доска «по цвету». Нет картинки — null.
+  final String? mainColor;
 
   /// Сколько файлов вещи ещё ложится во вложения.
   final int copying;
@@ -96,6 +100,7 @@ class ItemCard {
     copying: copying,
     gone: gone,
     hasCopy: hasCopy,
+    mainColor: mainColor,
   );
 
   /// Где вещь сохранена. Пусто — место не снималось.
@@ -191,7 +196,9 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folder
   (SELECT count(*) FROM file_jobs WHERE file_jobs.item_id = items.id) AS copying,
   -- у мёртвой ссылки — сохранён ли текст статьи; у живой не важно, лишнего запроса нет
   CASE WHEN items.gone_at IS NULL THEN 0
-    ELSE EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind = 'articleText') END AS has_copy
+    ELSE EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind = 'articleText') END AS has_copy,
+  (SELECT facts.detail FROM facts WHERE facts.item_id = items.id AND facts.extractor = 'colors'
+    ORDER BY facts.position LIMIT 1) AS main_color
 FROM items LEFT JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
 WHERE items.deleted_at IS NULL''';
 
@@ -717,12 +724,15 @@ WHERE items.deleted_at IS NULL''';
     final prices = <String, List<(double, String)>>{};
     final screenshots = <String>{};
     final reading = <String, int>{};
+    final colors = <String, Set<String>>{};
     final byLength = query.minSeconds != null || query.maxSeconds != null;
-    if (query.minPrice != null || query.maxPrice != null || query.screenshots || byLength) {
-      final kinds = [FactKind.price, FactKind.screenshot, if (byLength) FactKind.readingTime];
+    if (query.minPrice != null || query.maxPrice != null || query.screenshots || byLength || query.colors.isNotEmpty) {
+      final kinds = [FactKind.price, FactKind.screenshot, if (byLength) FactKind.readingTime, if (query.colors.isNotEmpty) FactKind.color];
       final facts = await (_db.select(_db.facts)..where((t) => t.kind.isIn([for (final kind in kinds) kind.name]))).get();
       for (final fact in facts) {
-        if (fact.kind == FactKind.screenshot) {
+        if (fact.kind == FactKind.color) {
+          colors.putIfAbsent(fact.itemId, () => {}).add(fact.value);
+        } else if (fact.kind == FactKind.screenshot) {
           screenshots.add(fact.itemId);
         } else if (fact.kind == FactKind.readingTime && fact.number != null) {
           reading[fact.itemId] = (fact.number! * 60).round();
@@ -750,6 +760,7 @@ WHERE items.deleted_at IS NULL''';
         marks: marks,
         prices: prices[item.id] ?? const [],
         screenshot: screenshots.contains(item.id),
+        colors: colors[item.id] ?? const {},
       );
       if (admitted) ids.add(item.id);
       if (ids.length >= 500) break;
@@ -788,6 +799,7 @@ WHERE items.deleted_at IS NULL''';
       copying: row.readNullable<int>('copying') ?? 0,
       gone: item.goneAt != null,
       hasCopy: (row.readNullable<int>('has_copy') ?? 0) == 1,
+      mainColor: row.data.containsKey('main_color') ? row.readNullable<String>('main_color') : null,
     );
   }
 
