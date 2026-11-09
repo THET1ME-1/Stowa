@@ -405,5 +405,19 @@
   "smartSaved": "Intelligenter Ordner „{name}“ ist auf dem Startbildschirm",
   "smartEmpty": "Noch passt nichts zu dieser Suche",
   "smartDelete": "Intelligenten Ordner löschen",
-  "smartDeleted": "Ordner „{name}“ gelöscht, Notizen bleiben"
+  "smartDeleted": "Ordner „{name}“ gelöscht, Notizen bleiben",
+  "suggestSite": "{count, plural, one{{count} Link} other{{count} Links}} von {site} ohne Ordner",
+  "suggestScreenshots": "{count, plural, one{{count} Screenshot} other{{count} Screenshots}} ohne Ordner",
+  "suggestVideos": "{count, plural, one{{count} Video} other{{count} Videos}} ohne Ordner",
+  "suggestFiles": "{count, plural, one{{count} Datei} other{{count} Dateien}} ohne Ordner",
+  "suggestVoices": "{count, plural, one{{count} Sprachnotiz} other{{count} Sprachnotizen}} ohne Ordner",
+  "suggestSiteBody": "Ordner „{name}“ anlegen? Neue Links von dieser Seite landen dort von selbst.",
+  "suggestBody": "Ordner „{name}“ anlegen und sie dorthin verschieben?",
+  "suggestYes": "Anlegen",
+  "suggestNo": "Nein danke",
+  "suggestDone": "Ordner „{name}“: {count, plural, one{{count} Notiz} other{{count} Notizen}}",
+  "suggestScreenshotsName": "Screenshots",
+  "suggestVideosName": "Videos",
+  "suggestFilesName": "Dateien",
+  "suggestVoicesName": "Sprachnotizen"
 }

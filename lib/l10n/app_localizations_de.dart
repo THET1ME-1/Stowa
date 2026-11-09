@@ -2433,4 +2433,98 @@ class LDe extends L {
   String smartDeleted(String name) {
     return 'Ordner „$name“ gelöscht, Notizen bleiben';
   }
+
+  @override
+  String suggestSite(int count, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Links',
+      one: '$count Link',
+    );
+    return '$_temp0 von $site ohne Ordner';
+  }
+
+  @override
+  String suggestScreenshots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Screenshots',
+      one: '$count Screenshot',
+    );
+    return '$_temp0 ohne Ordner';
+  }
+
+  @override
+  String suggestVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Videos',
+      one: '$count Video',
+    );
+    return '$_temp0 ohne Ordner';
+  }
+
+  @override
+  String suggestFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien',
+      one: '$count Datei',
+    );
+    return '$_temp0 ohne Ordner';
+  }
+
+  @override
+  String suggestVoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sprachnotizen',
+      one: '$count Sprachnotiz',
+    );
+    return '$_temp0 ohne Ordner';
+  }
+
+  @override
+  String suggestSiteBody(String name) {
+    return 'Ordner „$name“ anlegen? Neue Links von dieser Seite landen dort von selbst.';
+  }
+
+  @override
+  String suggestBody(String name) {
+    return 'Ordner „$name“ anlegen und sie dorthin verschieben?';
+  }
+
+  @override
+  String get suggestYes => 'Anlegen';
+
+  @override
+  String get suggestNo => 'Nein danke';
+
+  @override
+  String suggestDone(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Notizen',
+      one: '$count Notiz',
+    );
+    return 'Ordner „$name“: $_temp0';
+  }
+
+  @override
+  String get suggestScreenshotsName => 'Screenshots';
+
+  @override
+  String get suggestVideosName => 'Videos';
+
+  @override
+  String get suggestFilesName => 'Dateien';
+
+  @override
+  String get suggestVoicesName => 'Sprachnotizen';
 }

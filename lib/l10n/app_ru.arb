@@ -653,5 +653,19 @@
   "smartSaved": "Умная папка «{name}» — на главной",
   "smartEmpty": "Пока ничего не подходит под этот запрос",
   "smartDelete": "Удалить умную папку",
-  "smartDeleted": "Умная папка «{name}» удалена, заметки на месте"
+  "smartDeleted": "Умная папка «{name}» удалена, заметки на месте",
+  "suggestSite": "{count, plural, one{{count} ссылка} few{{count} ссылки} many{{count} ссылок} other{{count} ссылки}} с {site} без папки",
+  "suggestScreenshots": "{count, plural, one{{count} скриншот} few{{count} скриншота} many{{count} скриншотов} other{{count} скриншота}} без папки",
+  "suggestVideos": "{count, plural, one{{count} ролик} few{{count} ролика} many{{count} роликов} other{{count} ролика}} без папки",
+  "suggestFiles": "{count, plural, one{{count} файл} few{{count} файла} many{{count} файлов} other{{count} файла}} без папки",
+  "suggestVoices": "{count, plural, one{{count} голосовое} few{{count} голосовых} many{{count} голосовых} other{{count} голосового}} без папки",
+  "suggestSiteBody": "Сделать папку «{name}»? Новые ссылки с этого сайта будут ложиться туда сами.",
+  "suggestBody": "Сделать папку «{name}» и переложить их туда?",
+  "suggestYes": "Сделать",
+  "suggestNo": "Не надо",
+  "suggestDone": "Папка «{name}»: {count, plural, one{{count} заметка} few{{count} заметки} many{{count} заметок} other{{count} заметки}}",
+  "suggestScreenshotsName": "Скриншоты",
+  "suggestVideosName": "Ролики",
+  "suggestFilesName": "Файлы",
+  "suggestVoicesName": "Голосовые"
 }

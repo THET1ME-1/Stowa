@@ -405,5 +405,19 @@
   "smartSaved": "Carpeta inteligente «{name}» en la pantalla principal",
   "smartEmpty": "Todavía nada coincide con esta búsqueda",
   "smartDelete": "Eliminar carpeta inteligente",
-  "smartDeleted": "Carpeta «{name}» eliminada, las notas siguen"
+  "smartDeleted": "Carpeta «{name}» eliminada, las notas siguen",
+  "suggestSite": "{count, plural, one{{count} enlace} other{{count} enlaces}} de {site} sin carpeta",
+  "suggestScreenshots": "{count, plural, one{{count} captura} other{{count} capturas}} sin carpeta",
+  "suggestVideos": "{count, plural, one{{count} vídeo} other{{count} vídeos}} sin carpeta",
+  "suggestFiles": "{count, plural, one{{count} archivo} other{{count} archivos}} sin carpeta",
+  "suggestVoices": "{count, plural, one{{count} nota de voz} other{{count} notas de voz}} sin carpeta",
+  "suggestSiteBody": "¿Crear la carpeta «{name}»? Los enlaces nuevos de este sitio irán allí solos.",
+  "suggestBody": "¿Crear la carpeta «{name}» y moverlos allí?",
+  "suggestYes": "Crear",
+  "suggestNo": "No, gracias",
+  "suggestDone": "Carpeta «{name}»: {count, plural, one{{count} nota} other{{count} notas}}",
+  "suggestScreenshotsName": "Capturas",
+  "suggestVideosName": "Vídeos",
+  "suggestFilesName": "Archivos",
+  "suggestVoicesName": "Notas de voz"
 }

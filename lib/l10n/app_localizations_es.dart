@@ -2430,4 +2430,98 @@ class LEs extends L {
   String smartDeleted(String name) {
     return 'Carpeta «$name» eliminada, las notas siguen';
   }
+
+  @override
+  String suggestSite(int count, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enlaces',
+      one: '$count enlace',
+    );
+    return '$_temp0 de $site sin carpeta';
+  }
+
+  @override
+  String suggestScreenshots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count capturas',
+      one: '$count captura',
+    );
+    return '$_temp0 sin carpeta';
+  }
+
+  @override
+  String suggestVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vídeos',
+      one: '$count vídeo',
+    );
+    return '$_temp0 sin carpeta';
+  }
+
+  @override
+  String suggestFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos',
+      one: '$count archivo',
+    );
+    return '$_temp0 sin carpeta';
+  }
+
+  @override
+  String suggestVoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notas de voz',
+      one: '$count nota de voz',
+    );
+    return '$_temp0 sin carpeta';
+  }
+
+  @override
+  String suggestSiteBody(String name) {
+    return '¿Crear la carpeta «$name»? Los enlaces nuevos de este sitio irán allí solos.';
+  }
+
+  @override
+  String suggestBody(String name) {
+    return '¿Crear la carpeta «$name» y moverlos allí?';
+  }
+
+  @override
+  String get suggestYes => 'Crear';
+
+  @override
+  String get suggestNo => 'No, gracias';
+
+  @override
+  String suggestDone(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notas',
+      one: '$count nota',
+    );
+    return 'Carpeta «$name»: $_temp0';
+  }
+
+  @override
+  String get suggestScreenshotsName => 'Capturas';
+
+  @override
+  String get suggestVideosName => 'Vídeos';
+
+  @override
+  String get suggestFilesName => 'Archivos';
+
+  @override
+  String get suggestVoicesName => 'Notas de voz';
 }

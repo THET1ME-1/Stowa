@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -34,6 +35,10 @@ class TestWorld {
 
   /// Включён ли показ 18+ в настройках.
   var showAdult = false;
+
+  /// Предложения папки, на которые уже ответили.
+  var dismissedSuggestions = <String>{};
+  final _dismissed = StreamController<Set<String>>.broadcast();
 
   /// Место хранилища уже выбрано: по умолчанию сразу главная, без экрана первого запуска.
   var vaultAsked = true;
@@ -134,6 +139,14 @@ class TestWorld {
           titleDateProvider.overrideWith((ref) => Stream.value(TitleDate.shot)),
           // карточку «Возвращать сохранённое?» в чужих тестах уже закрыли
           returnsAskedProvider.overrideWith((ref) => Stream.value(true)),
+          dismissedSuggestionsProvider.overrideWith((ref) async* {
+            yield dismissedSuggestions;
+            yield* _dismissed.stream;
+          }),
+          dismissSuggestionProvider.overrideWithValue((key) async {
+            dismissedSuggestions = {...dismissedSuggestions, key};
+            _dismissed.add(dismissedSuggestions);
+          }),
           returnSettingsProvider.overrideWith((ref) => Stream.value(const ReturnSettings())),
         ],
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
@@ -164,6 +177,7 @@ class TestWorld {
       );
 
   Future<void> dispose() async {
+    await _dismissed.close();
     await db.close();
     if (files.existsSync()) files.deleteSync(recursive: true);
   }

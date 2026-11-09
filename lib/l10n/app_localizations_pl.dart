@@ -2473,4 +2473,110 @@ class LPl extends L {
   String smartDeleted(String name) {
     return 'Usunięto folder „$name”, notatki zostały';
   }
+
+  @override
+  String suggestSite(int count, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count linku',
+      many: '$count linków',
+      few: '$count linki',
+      one: '$count link',
+    );
+    return '$_temp0 z $site bez folderu';
+  }
+
+  @override
+  String suggestScreenshots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zrzutu',
+      many: '$count zrzutów',
+      few: '$count zrzuty',
+      one: '$count zrzut',
+    );
+    return '$_temp0 bez folderu';
+  }
+
+  @override
+  String suggestVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filmu',
+      many: '$count filmów',
+      few: '$count filmy',
+      one: '$count film',
+    );
+    return '$_temp0 bez folderu';
+  }
+
+  @override
+  String suggestFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pliku',
+      many: '$count plików',
+      few: '$count pliki',
+      one: '$count plik',
+    );
+    return '$_temp0 bez folderu';
+  }
+
+  @override
+  String suggestVoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notatki głosowej',
+      many: '$count notatek głosowych',
+      few: '$count notatki głosowe',
+      one: '$count notatka głosowa',
+    );
+    return '$_temp0 bez folderu';
+  }
+
+  @override
+  String suggestSiteBody(String name) {
+    return 'Utworzyć folder „$name”? Nowe linki z tej strony trafią tam same.';
+  }
+
+  @override
+  String suggestBody(String name) {
+    return 'Utworzyć folder „$name” i przenieść je tam?';
+  }
+
+  @override
+  String get suggestYes => 'Utwórz';
+
+  @override
+  String get suggestNo => 'Nie trzeba';
+
+  @override
+  String suggestDone(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notatki',
+      many: '$count notatek',
+      few: '$count notatki',
+      one: '$count notatka',
+    );
+    return 'Folder „$name”: $_temp0';
+  }
+
+  @override
+  String get suggestScreenshotsName => 'Zrzuty ekranu';
+
+  @override
+  String get suggestVideosName => 'Filmy';
+
+  @override
+  String get suggestFilesName => 'Pliki';
+
+  @override
+  String get suggestVoicesName => 'Notatki głosowe';
 }

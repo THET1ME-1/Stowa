@@ -4030,6 +4030,90 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Smart folder “{name}” deleted, notes are untouched'**
   String smartDeleted(String name);
+
+  /// suggestSite
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} link} other{{count} links}} from {site} without a folder'**
+  String suggestSite(int count, String site);
+
+  /// suggestScreenshots
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} screenshot} other{{count} screenshots}} without a folder'**
+  String suggestScreenshots(int count);
+
+  /// suggestVideos
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video} other{{count} videos}} without a folder'**
+  String suggestVideos(int count);
+
+  /// suggestFiles
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file} other{{count} files}} without a folder'**
+  String suggestFiles(int count);
+
+  /// suggestVoices
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} voice note} other{{count} voice notes}} without a folder'**
+  String suggestVoices(int count);
+
+  /// suggestSiteBody
+  ///
+  /// In en, this message translates to:
+  /// **'Make a folder “{name}”? New links from this site will go there on their own.'**
+  String suggestSiteBody(String name);
+
+  /// suggestBody
+  ///
+  /// In en, this message translates to:
+  /// **'Make a folder “{name}” and move them there?'**
+  String suggestBody(String name);
+
+  /// suggestYes
+  ///
+  /// In en, this message translates to:
+  /// **'Make it'**
+  String get suggestYes;
+
+  /// suggestNo
+  ///
+  /// In en, this message translates to:
+  /// **'No thanks'**
+  String get suggestNo;
+
+  /// suggestDone
+  ///
+  /// In en, this message translates to:
+  /// **'Folder “{name}”: {count, plural, one{{count} note} other{{count} notes}}'**
+  String suggestDone(String name, int count);
+
+  /// suggestScreenshotsName
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshots'**
+  String get suggestScreenshotsName;
+
+  /// suggestVideosName
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get suggestVideosName;
+
+  /// suggestFilesName
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get suggestFilesName;
+
+  /// suggestVoicesName
+  ///
+  /// In en, this message translates to:
+  /// **'Voice notes'**
+  String get suggestVoicesName;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

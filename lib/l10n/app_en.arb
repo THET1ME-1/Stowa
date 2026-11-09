@@ -3110,5 +3110,107 @@
         "type": "String"
       }
     }
+  },
+  "suggestSite": "{count, plural, one{{count} link} other{{count} links}} from {site} without a folder",
+  "@suggestSite": {
+    "description": "suggestSite",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestScreenshots": "{count, plural, one{{count} screenshot} other{{count} screenshots}} without a folder",
+  "@suggestScreenshots": {
+    "description": "suggestScreenshots",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestVideos": "{count, plural, one{{count} video} other{{count} videos}} without a folder",
+  "@suggestVideos": {
+    "description": "suggestVideos",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestFiles": "{count, plural, one{{count} file} other{{count} files}} without a folder",
+  "@suggestFiles": {
+    "description": "suggestFiles",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestVoices": "{count, plural, one{{count} voice note} other{{count} voice notes}} without a folder",
+  "@suggestVoices": {
+    "description": "suggestVoices",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestSiteBody": "Make a folder “{name}”? New links from this site will go there on their own.",
+  "@suggestSiteBody": {
+    "description": "suggestSiteBody",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestBody": "Make a folder “{name}” and move them there?",
+  "@suggestBody": {
+    "description": "suggestBody",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestYes": "Make it",
+  "@suggestYes": {
+    "description": "suggestYes"
+  },
+  "suggestNo": "No thanks",
+  "@suggestNo": {
+    "description": "suggestNo"
+  },
+  "suggestDone": "Folder “{name}”: {count, plural, one{{count} note} other{{count} notes}}",
+  "@suggestDone": {
+    "description": "suggestDone",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestScreenshotsName": "Screenshots",
+  "@suggestScreenshotsName": {
+    "description": "suggestScreenshotsName"
+  },
+  "suggestVideosName": "Videos",
+  "@suggestVideosName": {
+    "description": "suggestVideosName"
+  },
+  "suggestFilesName": "Files",
+  "@suggestFilesName": {
+    "description": "suggestFilesName"
+  },
+  "suggestVoicesName": "Voice notes",
+  "@suggestVoicesName": {
+    "description": "suggestVoicesName"
   }
 }

@@ -2449,4 +2449,104 @@ class LRo extends L {
   String smartDeleted(String name) {
     return 'Dosarul „$name” a fost șters, notițele au rămas';
   }
+
+  @override
+  String suggestSite(int count, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de linkuri',
+      few: '$count linkuri',
+      one: '$count link',
+    );
+    return '$_temp0 de pe $site fără dosar';
+  }
+
+  @override
+  String suggestScreenshots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de capturi',
+      few: '$count capturi',
+      one: '$count captură',
+    );
+    return '$_temp0 fără dosar';
+  }
+
+  @override
+  String suggestVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de videoclipuri',
+      few: '$count videoclipuri',
+      one: '$count videoclip',
+    );
+    return '$_temp0 fără dosar';
+  }
+
+  @override
+  String suggestFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de fișiere',
+      few: '$count fișiere',
+      one: '$count fișier',
+    );
+    return '$_temp0 fără dosar';
+  }
+
+  @override
+  String suggestVoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de mesaje vocale',
+      few: '$count mesaje vocale',
+      one: '$count mesaj vocal',
+    );
+    return '$_temp0 fără dosar';
+  }
+
+  @override
+  String suggestSiteBody(String name) {
+    return 'Faci dosarul „$name”? Linkurile noi de pe acest site vor ajunge acolo singure.';
+  }
+
+  @override
+  String suggestBody(String name) {
+    return 'Faci dosarul „$name” și le muți acolo?';
+  }
+
+  @override
+  String get suggestYes => 'Fă-l';
+
+  @override
+  String get suggestNo => 'Nu, mersi';
+
+  @override
+  String suggestDone(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de notițe',
+      few: '$count notițe',
+      one: '$count notiță',
+    );
+    return 'Dosarul „$name”: $_temp0';
+  }
+
+  @override
+  String get suggestScreenshotsName => 'Capturi';
+
+  @override
+  String get suggestVideosName => 'Videoclipuri';
+
+  @override
+  String get suggestFilesName => 'Fișiere';
+
+  @override
+  String get suggestVoicesName => 'Mesaje vocale';
 }

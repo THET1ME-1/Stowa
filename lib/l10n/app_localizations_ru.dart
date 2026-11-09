@@ -2478,4 +2478,110 @@ class LRu extends L {
   String smartDeleted(String name) {
     return 'Умная папка «$name» удалена, заметки на месте';
   }
+
+  @override
+  String suggestSite(int count, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ссылки',
+      many: '$count ссылок',
+      few: '$count ссылки',
+      one: '$count ссылка',
+    );
+    return '$_temp0 с $site без папки';
+  }
+
+  @override
+  String suggestScreenshots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count скриншота',
+      many: '$count скриншотов',
+      few: '$count скриншота',
+      one: '$count скриншот',
+    );
+    return '$_temp0 без папки';
+  }
+
+  @override
+  String suggestVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ролика',
+      many: '$count роликов',
+      few: '$count ролика',
+      one: '$count ролик',
+    );
+    return '$_temp0 без папки';
+  }
+
+  @override
+  String suggestFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла',
+      many: '$count файлов',
+      few: '$count файла',
+      one: '$count файл',
+    );
+    return '$_temp0 без папки';
+  }
+
+  @override
+  String suggestVoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count голосового',
+      many: '$count голосовых',
+      few: '$count голосовых',
+      one: '$count голосовое',
+    );
+    return '$_temp0 без папки';
+  }
+
+  @override
+  String suggestSiteBody(String name) {
+    return 'Сделать папку «$name»? Новые ссылки с этого сайта будут ложиться туда сами.';
+  }
+
+  @override
+  String suggestBody(String name) {
+    return 'Сделать папку «$name» и переложить их туда?';
+  }
+
+  @override
+  String get suggestYes => 'Сделать';
+
+  @override
+  String get suggestNo => 'Не надо';
+
+  @override
+  String suggestDone(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count заметки',
+      many: '$count заметок',
+      few: '$count заметки',
+      one: '$count заметка',
+    );
+    return 'Папка «$name»: $_temp0';
+  }
+
+  @override
+  String get suggestScreenshotsName => 'Скриншоты';
+
+  @override
+  String get suggestVideosName => 'Ролики';
+
+  @override
+  String get suggestFilesName => 'Файлы';
+
+  @override
+  String get suggestVoicesName => 'Голосовые';
 }

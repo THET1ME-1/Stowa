@@ -405,5 +405,19 @@
   "smartSaved": "Dosarul inteligent „{name}” e pe ecranul principal",
   "smartEmpty": "Încă nimic nu se potrivește",
   "smartDelete": "Șterge dosarul inteligent",
-  "smartDeleted": "Dosarul „{name}” a fost șters, notițele au rămas"
+  "smartDeleted": "Dosarul „{name}” a fost șters, notițele au rămas",
+  "suggestSite": "{count, plural, one{{count} link} few{{count} linkuri} other{{count} de linkuri}} de pe {site} fără dosar",
+  "suggestScreenshots": "{count, plural, one{{count} captură} few{{count} capturi} other{{count} de capturi}} fără dosar",
+  "suggestVideos": "{count, plural, one{{count} videoclip} few{{count} videoclipuri} other{{count} de videoclipuri}} fără dosar",
+  "suggestFiles": "{count, plural, one{{count} fișier} few{{count} fișiere} other{{count} de fișiere}} fără dosar",
+  "suggestVoices": "{count, plural, one{{count} mesaj vocal} few{{count} mesaje vocale} other{{count} de mesaje vocale}} fără dosar",
+  "suggestSiteBody": "Faci dosarul „{name}”? Linkurile noi de pe acest site vor ajunge acolo singure.",
+  "suggestBody": "Faci dosarul „{name}” și le muți acolo?",
+  "suggestYes": "Fă-l",
+  "suggestNo": "Nu, mersi",
+  "suggestDone": "Dosarul „{name}”: {count, plural, one{{count} notiță} few{{count} notițe} other{{count} de notițe}}",
+  "suggestScreenshotsName": "Capturi",
+  "suggestVideosName": "Videoclipuri",
+  "suggestFilesName": "Fișiere",
+  "suggestVoicesName": "Mesaje vocale"
 }

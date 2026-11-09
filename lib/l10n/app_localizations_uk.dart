@@ -2473,4 +2473,110 @@ class LUk extends L {
   String smartDeleted(String name) {
     return 'Розумну теку «$name» видалено, нотатки на місці';
   }
+
+  @override
+  String suggestSite(int count, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count посилання',
+      many: '$count посилань',
+      few: '$count посилання',
+      one: '$count посилання',
+    );
+    return '$_temp0 з $site без теки';
+  }
+
+  @override
+  String suggestScreenshots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count скриншота',
+      many: '$count скриншотів',
+      few: '$count скриншоти',
+      one: '$count скриншот',
+    );
+    return '$_temp0 без теки';
+  }
+
+  @override
+  String suggestVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ролика',
+      many: '$count роликів',
+      few: '$count ролики',
+      one: '$count ролик',
+    );
+    return '$_temp0 без теки';
+  }
+
+  @override
+  String suggestFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файлу',
+      many: '$count файлів',
+      few: '$count файли',
+      one: '$count файл',
+    );
+    return '$_temp0 без теки';
+  }
+
+  @override
+  String suggestVoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count голосового',
+      many: '$count голосових',
+      few: '$count голосових',
+      one: '$count голосове',
+    );
+    return '$_temp0 без теки';
+  }
+
+  @override
+  String suggestSiteBody(String name) {
+    return 'Зробити теку «$name»? Нові посилання з цього сайту лягатимуть туди самі.';
+  }
+
+  @override
+  String suggestBody(String name) {
+    return 'Зробити теку «$name» і перекласти їх туди?';
+  }
+
+  @override
+  String get suggestYes => 'Зробити';
+
+  @override
+  String get suggestNo => 'Не треба';
+
+  @override
+  String suggestDone(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count нотатки',
+      many: '$count нотаток',
+      few: '$count нотатки',
+      one: '$count нотатка',
+    );
+    return 'Тека «$name»: $_temp0';
+  }
+
+  @override
+  String get suggestScreenshotsName => 'Скриншоти';
+
+  @override
+  String get suggestVideosName => 'Ролики';
+
+  @override
+  String get suggestFilesName => 'Файли';
+
+  @override
+  String get suggestVoicesName => 'Голосові';
 }

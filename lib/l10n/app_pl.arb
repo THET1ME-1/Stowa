@@ -405,5 +405,19 @@
   "smartSaved": "Inteligentny folder „{name}” jest na ekranie głównym",
   "smartEmpty": "Na razie nic nie pasuje do tego wyszukiwania",
   "smartDelete": "Usuń inteligentny folder",
-  "smartDeleted": "Usunięto folder „{name}”, notatki zostały"
+  "smartDeleted": "Usunięto folder „{name}”, notatki zostały",
+  "suggestSite": "{count, plural, one{{count} link} few{{count} linki} many{{count} linków} other{{count} linku}} z {site} bez folderu",
+  "suggestScreenshots": "{count, plural, one{{count} zrzut} few{{count} zrzuty} many{{count} zrzutów} other{{count} zrzutu}} bez folderu",
+  "suggestVideos": "{count, plural, one{{count} film} few{{count} filmy} many{{count} filmów} other{{count} filmu}} bez folderu",
+  "suggestFiles": "{count, plural, one{{count} plik} few{{count} pliki} many{{count} plików} other{{count} pliku}} bez folderu",
+  "suggestVoices": "{count, plural, one{{count} notatka głosowa} few{{count} notatki głosowe} many{{count} notatek głosowych} other{{count} notatki głosowej}} bez folderu",
+  "suggestSiteBody": "Utworzyć folder „{name}”? Nowe linki z tej strony trafią tam same.",
+  "suggestBody": "Utworzyć folder „{name}” i przenieść je tam?",
+  "suggestYes": "Utwórz",
+  "suggestNo": "Nie trzeba",
+  "suggestDone": "Folder „{name}”: {count, plural, one{{count} notatka} few{{count} notatki} many{{count} notatek} other{{count} notatki}}",
+  "suggestScreenshotsName": "Zrzuty ekranu",
+  "suggestVideosName": "Filmy",
+  "suggestFilesName": "Pliki",
+  "suggestVoicesName": "Notatki głosowe"
 }

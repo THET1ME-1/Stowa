@@ -43,6 +43,7 @@ import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
 import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
+import 'repositories/folder_suggestions.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/highlights_repository.dart';
 import 'repositories/history_repository.dart';
@@ -127,6 +128,31 @@ final returnRepositoryProvider = Provider((ref) => ReturnRepository(ref.watch(da
 
 /// Карточку «Возвращать сохранённое?» уже показывали.
 final returnsAskedProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchReturnsAsked());
+
+/// Предложения папки, на которые человек уже ответил. Тесты подменяют.
+final dismissedSuggestionsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchDismissedSuggestions());
+
+/// Запомнить ответ на предложение папки. Тесты подменяют.
+final dismissSuggestionProvider = Provider<Future<void> Function(String key)>((ref) => (key) => ref.read(settingsRepositoryProvider).dismissSuggestion(key));
+
+final folderSuggestionsProvider = Provider((ref) => FolderSuggestions(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
+
+/// Карточка «12 ссылок с habr.com без папки — сделать папку?»: самая большая группа,
+/// пересчитывается при правках заметок и ответах человека.
+final folderSuggestionProvider = StreamProvider<FolderSuggestion?>((ref) {
+  final dismissed = ref.watch(dismissedSuggestionsProvider).value;
+  if (dismissed == null) return const Stream.empty();
+  final db = ref.watch(databaseProvider);
+  final suggestions = ref.watch(folderSuggestionsProvider);
+  return db
+      .customSelect(
+        'SELECT (SELECT count(*) FROM items WHERE folder_id IS NULL AND deleted_at IS NULL) AS loose, '
+        "(SELECT count(*) FROM facts WHERE kind = 'screenshot') AS shots, (SELECT max(updated_at) FROM items) AS edited",
+        readsFrom: {db.items, db.facts},
+      )
+      .watch()
+      .asyncMap((_) => suggestions.find(dismissed: dismissed));
+});
 
 /// Очередь «посмотреть потом», «в этот день», неделя и покупки — живые: экраны и пилюли главной.
 final watchLaterProvider = StreamProvider.autoDispose((ref) {

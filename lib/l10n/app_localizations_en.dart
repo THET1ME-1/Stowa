@@ -2428,4 +2428,98 @@ class LEn extends L {
   String smartDeleted(String name) {
     return 'Smart folder “$name” deleted, notes are untouched';
   }
+
+  @override
+  String suggestSite(int count, String site) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count links',
+      one: '$count link',
+    );
+    return '$_temp0 from $site without a folder';
+  }
+
+  @override
+  String suggestScreenshots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count screenshots',
+      one: '$count screenshot',
+    );
+    return '$_temp0 without a folder';
+  }
+
+  @override
+  String suggestVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '$count video',
+    );
+    return '$_temp0 without a folder';
+  }
+
+  @override
+  String suggestFiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '$count file',
+    );
+    return '$_temp0 without a folder';
+  }
+
+  @override
+  String suggestVoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voice notes',
+      one: '$count voice note',
+    );
+    return '$_temp0 without a folder';
+  }
+
+  @override
+  String suggestSiteBody(String name) {
+    return 'Make a folder “$name”? New links from this site will go there on their own.';
+  }
+
+  @override
+  String suggestBody(String name) {
+    return 'Make a folder “$name” and move them there?';
+  }
+
+  @override
+  String get suggestYes => 'Make it';
+
+  @override
+  String get suggestNo => 'No thanks';
+
+  @override
+  String suggestDone(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '$count note',
+    );
+    return 'Folder “$name”: $_temp0';
+  }
+
+  @override
+  String get suggestScreenshotsName => 'Screenshots';
+
+  @override
+  String get suggestVideosName => 'Videos';
+
+  @override
+  String get suggestFilesName => 'Files';
+
+  @override
+  String get suggestVoicesName => 'Voice notes';
 }

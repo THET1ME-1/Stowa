@@ -405,5 +405,19 @@
   "smartSaved": "Розумна тека «{name}» — на головній",
   "smartEmpty": "Поки нічого не підходить під цей запит",
   "smartDelete": "Видалити розумну теку",
-  "smartDeleted": "Розумну теку «{name}» видалено, нотатки на місці"
+  "smartDeleted": "Розумну теку «{name}» видалено, нотатки на місці",
+  "suggestSite": "{count, plural, one{{count} посилання} few{{count} посилання} many{{count} посилань} other{{count} посилання}} з {site} без теки",
+  "suggestScreenshots": "{count, plural, one{{count} скриншот} few{{count} скриншоти} many{{count} скриншотів} other{{count} скриншота}} без теки",
+  "suggestVideos": "{count, plural, one{{count} ролик} few{{count} ролики} many{{count} роликів} other{{count} ролика}} без теки",
+  "suggestFiles": "{count, plural, one{{count} файл} few{{count} файли} many{{count} файлів} other{{count} файлу}} без теки",
+  "suggestVoices": "{count, plural, one{{count} голосове} few{{count} голосових} many{{count} голосових} other{{count} голосового}} без теки",
+  "suggestSiteBody": "Зробити теку «{name}»? Нові посилання з цього сайту лягатимуть туди самі.",
+  "suggestBody": "Зробити теку «{name}» і перекласти їх туди?",
+  "suggestYes": "Зробити",
+  "suggestNo": "Не треба",
+  "suggestDone": "Тека «{name}»: {count, plural, one{{count} нотатка} few{{count} нотатки} many{{count} нотаток} other{{count} нотатки}}",
+  "suggestScreenshotsName": "Скриншоти",
+  "suggestVideosName": "Ролики",
+  "suggestFilesName": "Файли",
+  "suggestVoicesName": "Голосові"
 }

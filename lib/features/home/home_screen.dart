@@ -20,6 +20,7 @@ import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
 import '../smart/smart_folder_screen.dart';
+import 'folder_suggest_card.dart';
 import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
@@ -406,6 +407,8 @@ class _Feed extends ConsumerWidget {
           ),
         // спросить про уведомления один раз, когда уже есть что возвращать
         if (recent.isNotEmpty && ref.watch(returnsAskedProvider).value == false) const SliverToBoxAdapter(child: ReturnsAskCard()),
+        // «12 ссылок с habr.com без папки — сделать папку?»
+        if (ref.watch(folderSuggestionProvider).value case final suggestion?) SliverToBoxAdapter(child: FolderSuggestCard(suggestion: suggestion)),
         // напоминание по месту поставлено, а без места «всегда» оно не сработает
         const SliverToBoxAdapter(child: PlaceAlwaysCard()),
         const SliverToBoxAdapter(child: ReturnPills()),

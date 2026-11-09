@@ -238,6 +238,16 @@ class SettingsRepository {
 
   Future<void> setArticleImages(bool on) => _set(() => _prefs.setBool('article_images', on));
 
+  /// Предложения папки, на которые ответили («Не надо» или «Сделать»): «site:habr.com», «kind:screenshot».
+  Set<String> get dismissedSuggestions => (_prefs.getStringList('folder_suggest_dismissed') ?? const []).toSet();
+
+  Stream<Set<String>> watchDismissedSuggestions() async* {
+    yield dismissedSuggestions;
+    yield* _changes.stream.map((_) => dismissedSuggestions).distinct((a, b) => a.length == b.length && a.containsAll(b));
+  }
+
+  Future<void> dismissSuggestion(String key) => _set(() => _prefs.setStringList('folder_suggest_dismissed', [...dismissedSuggestions, key]));
+
   /// Конец рабочего дня для «после работы», в минутах от полуночи. По умолчанию 18:00.
   int get workEnd => _prefs.getInt('work_end') ?? defaultWorkEnd;
 
