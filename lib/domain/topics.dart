@@ -144,16 +144,17 @@ const _words = <Topic, String>{
       'musik konzert sänger gitarre canción canciones música concierto cantante guitarra '
       'cântec melodie muzică concert chitară piosenka muzyka koncert gitara',
   Topic.travel:
-      'поездка поездку путешествие отпуск билеты самолет самолёт рейс аэропорт отель гостиница виза паспорт чемодан '
+      // билетов нет: они и в кино, и на концерт — поездку видно по самолёту, поезду, отелю
+      'поездка поездку путешествие отпуск самолет самолёт рейс аэропорт отель гостиница виза паспорт чемодан '
       'маршрут пляж экскурсия хостел '
-      'подорож відпустка квиток квитки літак рейс аеропорт готель віза паспорт валіза '
+      'подорож відпустка потяг літак рейс аеропорт готель віза паспорт валіза '
       'trip travel vacation flight airport hotel visa passport luggage itinerary beach hostel booking '
       'reise urlaub flug flughafen visum reisepass koffer strand viaje vacaciones vuelo aeropuerto visado pasaporte maleta playa '
       'călătorie vacanță zbor aeroport viză pașaport valiză plajă podróż wakacje lotnisko wiza paszport walizka plaża '
-      'vacances aéroport valise plage albergo volo vacanze aeroporto biglietto valigia spiaggia treno '
+      'vacances aéroport valise plage albergo volo vacanze aeroporto valigia spiaggia treno '
       'поезд поезда поезде '
       'viagem férias voo aeroporto passaporte praia '
-      'uçak uçuş bilet bileti tatil otel rezervasyon rezervasyonu havalimanı pasaport vize bavul plaj',
+      'uçak uçuş tatil otel rezervasyon rezervasyonu havalimanı pasaport vize bavul plaj',
   Topic.work:
       'работа работе созвон митинг дедлайн проект клиент отчет отчёт презентация коллега начальник офис '
       'собеседование резюме '
@@ -282,9 +283,12 @@ final _wordIndex = _index(_words);
 
 Set<Topic> _lookup(_Index index, String word) {
   final folded = normalizeQuery(word);
+  // слово есть в словаре целиком — основа не нужна: «treno» и польское «trening»
+  // сходятся в «tren», но поезд — не тренировка
+  if (index.whole[folded] case final topics?) return topics;
   final base = stem(folded);
   final verb = index.forms[base]?.any((form) => isVerbOf(folded, form)) ?? false;
-  return {...?index.whole[folded], if (!verb) ...?index.stems[base]};
+  return verb ? const {} : {...?index.stems[base]};
 }
 
 // «18+», «NSFW 🔞»: цифры и знаки словами не разобрать
