@@ -116,7 +116,7 @@ final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
 final itemsRepositoryProvider = Provider((ref) {
   final facts = ref.watch(factsPipelineProvider);
-  return ItemsRepository(ref.watch(databaseProvider))..onEdited = (id) => facts.runItem(id).ignore();
+  return ItemsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider))..onEdited = (id) => facts.runItem(id).ignore();
 });
 
 /// Показывать ли обложки и описания 18+: решает человек в настройках.
@@ -587,7 +587,7 @@ final linkFetchWithProvider = Provider<FetchWith>((ref) => httpFetchWith);
 final linkPostProvider = Provider<Post>((ref) => httpPost);
 
 /// Разбор без ИИ после сохранения: «Без папки» заново и теги соседей.
-final autoSorterProvider = Provider((ref) => AutoSorter(ref.watch(databaseProvider)));
+final autoSorterProvider = Provider((ref) => AutoSorter(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 
 final linkPreviewServiceProvider = Provider((ref) {
   final sorter = ref.watch(autoSorterProvider);

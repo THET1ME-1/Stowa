@@ -185,7 +185,7 @@ class CaptureService {
     await _db.transaction(() async {
       final rules = await RulesRepository(_db).enabled();
       FolderIndex? index;
-      Future<FolderIndex> folders() async => index ??= FolderIndex(await ItemsRepository(_db).folderDocs());
+      Future<FolderIndex> folders() async => index ??= FolderIndex(await ItemsRepository(_db, clock: _clock).folderDocs());
       for (final input in inputs) {
         ids.add(await _insert(input, rules, folders));
       }

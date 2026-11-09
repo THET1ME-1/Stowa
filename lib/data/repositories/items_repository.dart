@@ -215,7 +215,10 @@ FROM items LEFT JOIN folders ON folders.id = items.folder_id AND folders.deleted
 WHERE items.deleted_at IS NULL''';
 
 class ItemsRepository {
-  ItemsRepository(this._db);
+  ItemsRepository(this._db, {DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
+
+  /// Сейчас: догадка угадывателя становится образцом через неделю ([folderDocs]).
+  final DateTime Function() _clock;
 
   final AppDatabase _db;
 
@@ -338,13 +341,23 @@ SELECT items.folder_id AS folder_id, items.kind AS kind, items.url AS url,
   coalesce(items.preview_text, '') || ' ' ||
   coalesce((SELECT group_concat(tags.name, ' ') FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
     WHERE item_tags.item_id = items.id), '') AS text,
-  (SELECT attachments.path FROM attachments WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS file_path
+  (SELECT attachments.path FROM attachments WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS file_path,
+  -- кто разложил и подтвердил ли человек: догадки угадывателя образцом идут не сразу
+  items.sorted_by AS sorted_by, items.opened_at AS opened_at, items.created_at AS created_at
 FROM items JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
-WHERE items.deleted_at IS NULL
-  -- свои догадки угадыватель образцом не берёт: одна ошибка («смета» к статьям)
-  -- иначе тянет за собой следующие по тем же приметам, и так по кругу
-  AND items.sorted_by <> 'similar'
-''';
+WHERE items.deleted_at IS NULL''';
+
+  /// Догадка угадывателя (`similar`) становится образцом папки, когда человек её подтвердил:
+  /// открыл заметку и оставил там или неделю не перекладывал. Неподтверждённая — не образец:
+  /// одна ошибка («смета» к статьям) иначе тянет следующие по тем же приметам, и так по кругу.
+  static const _confirmAfter = Duration(days: 7);
+
+  bool _isSample(QueryRow row, DateTime now) {
+    if (row.read<String>('sorted_by') != SortedBy.similar.name) return true;
+    if (row.data['opened_at'] != null) return true;
+    final created = _db.typeMapping.read(DriftSqlType.dateTime, row.data['created_at'])!;
+    return now.difference(created) >= _confirmAfter;
+  }
 
   FolderDoc _folderDoc(QueryRow row) => FolderDoc(
     folderId: row.read<String>('folder_id'),
@@ -353,12 +366,18 @@ WHERE items.deleted_at IS NULL
   );
 
   /// Всё, что уже разложено по живым папкам: из этого учится угадыватель папки.
-  Future<List<FolderDoc>> folderDocs() async => [for (final row in await _db.customSelect(_folderDocsSql).get()) _folderDoc(row)];
+  Future<List<FolderDoc>> folderDocs() async {
+    final now = _clock();
+    return [for (final row in await _db.customSelect(_folderDocsSql).get()) if (_isSample(row, now)) _folderDoc(row)];
+  }
 
   Stream<List<FolderDoc>> watchFolderDocs() => _db
       .customSelect(_folderDocsSql, readsFrom: {_db.items, _db.folders, _db.itemTags, _db.tags})
       .watch()
-      .map((rows) => [for (final row in rows) _folderDoc(row)]);
+      .map((rows) {
+        final now = _clock();
+        return [for (final row in rows) if (_isSample(row, now)) _folderDoc(row)];
+      });
 
   /// Вещи, связанные с [id] общими редкими словами или сайтом, с причиной.
   /// Пересчитываются, когда меняются вещи или человек отклонил связь.

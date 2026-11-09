@@ -12,7 +12,7 @@ void main() {
 
   setUp(() async {
     db = AppDatabase.memory();
-    sorter = AutoSorter(db);
+    sorter = AutoSorter(db, clock: () => now);
     for (final (id, name) in [('read', 'Чтение'), ('car', 'Машина')]) {
       await db.into(db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'book', shape: 'squircle'));
     }
@@ -71,6 +71,31 @@ void main() {
     await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a-pdf', itemId: pdf, path: 'Скан/скан.pdf', mime: 'application/pdf', size: 1));
     expect(await sorter.sortInbox(), isEmpty);
     expect((await item(pdf)).folderId, isNull);
+  });
+
+  group('догадку подтвердил человек — она образец', () {
+    // смета у статей — догадка; скан договора без папки ждёт, куда его положить
+    Future<(String, String)> setup() async {
+      await seed();
+      final estimate = await add('Смета ремонта', folder: 'read', kind: ItemKind.file, by: SortedBy.similar);
+      await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a-est', itemId: estimate, path: 'Смета/смета.pdf', mime: 'application/pdf', size: 1));
+      final pdf = await add('Скан договора', kind: ItemKind.file);
+      await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a-pdf', itemId: pdf, path: 'Скан/скан.pdf', mime: 'application/pdf', size: 1));
+      return (estimate, pdf);
+    }
+
+    test('открыл и оставил в папке — образец', () async {
+      final (estimate, pdf) = await setup();
+      await (db.update(db.items)..where((t) => t.id.equals(estimate))).write(ItemsCompanion(openedAt: Value(now)));
+      expect(await sorter.sortInbox(), [pdf]);
+      expect((await item(pdf)).folderId, 'read');
+    });
+
+    test('неделя прошла, не перекладывал — образец; раньше — нет', () async {
+      final (_, pdf) = await setup();
+      expect(await AutoSorter(db, clock: () => now.add(const Duration(days: 6))).sortInbox(), isEmpty);
+      expect(await AutoSorter(db, clock: () => now.add(const Duration(days: 7, minutes: 1))).sortInbox(), [pdf]);
+    });
   });
 
   test('что человек сам оставил без папки, алгоритм не трогает', () async {

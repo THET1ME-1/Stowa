@@ -18,9 +18,12 @@ const _maxAutoTags = 2;
 /// в папках появились похожие вещи, а вещь получает теги своих соседей. Всё,
 /// что он сделал, помечено `similar` и отменяется.
 class AutoSorter {
-  AutoSorter(this._db);
+  AutoSorter(this._db, {DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
 
   final AppDatabase _db;
+
+  /// Сейчас: своя догадка становится образцом, когда неделю не перекладывали.
+  final DateTime Function() _clock;
 
   /// Что человек вернул «Отменить» в этом запуске: второй раз не тащим.
   final _undone = <String>{};
@@ -28,7 +31,7 @@ class AutoSorter {
   /// Разложить вещи без папки, которые человек не оставлял там сам. Вернёт
   /// id переложенных: по ним «Отменить» вернёт всё как было.
   Future<List<String>> sortInbox({String? onlyId, Iterable<String> skip = const []}) async {
-    final index = FolderIndex(await ItemsRepository(_db).folderDocs());
+    final index = FolderIndex(await ItemsRepository(_db, clock: _clock).folderDocs());
     final rows = await _db
         .customSelect(
           'SELECT items.id, items.kind, items.url, $_itemText AS text, $_firstFile AS file_path FROM items '
