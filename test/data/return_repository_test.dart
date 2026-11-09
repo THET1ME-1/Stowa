@@ -132,6 +132,12 @@ void main() {
         'купить молоко, хлеб и яйца': ['молоко', 'хлеб', 'яйца'],
       });
     });
+
+    test('«купить …» со своим напоминанием звенит своим, а не ещё и у магазина', () async {
+      await note('купить кофе', now, body: 'купить кофе');
+      await (db.update(db.items)..where((t) => t.id.equals('купить кофе'))).write(ItemsCompanion(reminderAt: Value(now.add(const Duration(hours: 2)))));
+      expect(await returns.shopping(), isEmpty);
+    });
   });
 
   test('после полуночи пересчитывает без правок в базе: приложение открыто сутками', () async {

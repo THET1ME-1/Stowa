@@ -175,8 +175,10 @@ class ReturnRepository {
       final open = [for (final line in lines) if (!line.done) line.text];
       final byTag = tagged.contains(item.id);
       final byTitle = _shoppingTitle.hasMatch(item.title.trim());
-      // «купить молоко, хлеб и яйца» без галочек — пункты из самой строки
-      final byText = lines.isEmpty && isShoppingStart(item.body);
+      // «купить молоко, хлеб и яйца» без галочек — пункты из самой строки. Своё напоминание
+      // (время или место) звенит само: у магазина вторая тревога о том же — шум
+      final ownReminder = item.reminderAt != null || item.remindPlace != null;
+      final byText = lines.isEmpty && !ownReminder && isShoppingStart(item.body);
       if (!byTag && !byTitle && !byText) continue;
       // список есть и весь отмечен — уже купили
       if (lines.isNotEmpty && open.isEmpty) continue;
