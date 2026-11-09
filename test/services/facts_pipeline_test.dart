@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -34,6 +35,34 @@ class CountingExtractor extends Extractor {
     runs++;
     if (fail) throw const SocketException('нет сети');
     return [FactDraft(FactKind.description, 'прогон $runs')];
+  }
+}
+
+/// Извлекатель, который читает вложения, как настоящие: нет файла на месте — пропускает.
+/// Перед первым чтением может переложить файл, как писатель хранилища.
+class ReadingExtractor extends Extractor {
+  ReadingExtractor({this.beforeFirstRead});
+
+  final Future<void> Function()? beforeFirstRead;
+  int runs = 0;
+
+  @override
+  String get name => 'reading';
+  @override
+  int get version => 1;
+  @override
+  String get stampSql => "coalesce((SELECT group_concat(attachments.id) FROM attachments WHERE attachments.item_id = items.id), '')";
+  @override
+  String get appliesSql => 'EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id)';
+
+  @override
+  Future<List<FactDraft>> extract(ExtractInput input) async {
+    runs++;
+    if (runs == 1) await beforeFirstRead?.call();
+    return [
+      for (final attachment in input.files)
+        if (await input.fileOf(attachment).exists()) FactDraft(FactKind.description, input.nameOf(attachment)),
+    ];
   }
 }
 
@@ -158,6 +187,52 @@ void main() {
       final counting = CountingExtractor();
       await pipeline([counting]).sweep();
       expect(counting.runs, 0);
+    });
+  });
+
+  group('файл переехал посреди разбора', () {
+    // писатель хранилища: файл переименован сразу, путь в базе — через [lag]
+    Future<void> moveAttachment(String id, String name, {Duration lag = Duration.zero}) async {
+      final row = await (db.select(db.attachments)..where((t) => t.id.equals('$id-$name'))).getSingle();
+      final target = p.join('Заметка', name);
+      await Directory(p.join(home.path, 'Заметка')).create(recursive: true);
+      await File(p.join(home.path, row.path)).rename(p.join(home.path, target));
+      Future<void> write() => (db.update(db.attachments)..where((t) => t.id.equals(row.id))).write(AttachmentsCompanion(path: Value(target)));
+      if (lag == Duration.zero) {
+        await write();
+      } else {
+        unawaited(Future.delayed(lag, write));
+      }
+    }
+
+    test('правило разбирает файл на новом месте, а не записывает «пусто»', () async {
+      await note('a', '');
+      await attach('a', 'море.jpg', [1, 2, 3], 'image/jpeg');
+      final reading = ReadingExtractor(beforeFirstRead: () => moveAttachment('a', 'море.jpg'));
+      await pipeline([reading]).runItem('a');
+      expect([for (final fact in await factsOf('a')) fact.value], ['море.jpg']);
+      expect(reading.runs, 2);
+    });
+
+    test('путь в базе пишется позже переименования — правило дожидается его', () async {
+      await note('a', '');
+      await attach('a', 'море.jpg', [1, 2, 3], 'image/jpeg');
+      final reading = ReadingExtractor(beforeFirstRead: () => moveAttachment('a', 'море.jpg', lag: const Duration(milliseconds: 400)));
+      await pipeline([reading]).runItem('a');
+      expect([for (final fact in await factsOf('a')) fact.value], ['море.jpg']);
+    });
+
+    test('файла нет совсем — один прогон с ожиданием, без зацикливания', () async {
+      await note('a', '');
+      await attach('a', 'море.jpg', [1, 2, 3], 'image/jpeg');
+      await File(p.join(home.path, 'attachments', 'a', '0_море.jpg')).delete();
+      final reading = ReadingExtractor();
+      final facts = pipeline([reading]);
+      await facts.runItem('a');
+      await facts.sweep();
+      expect(reading.runs, 1);
+      expect(await factsOf('a'), isEmpty);
+      expect(await (db.select(db.extractorRuns)..where((t) => t.extractor.equals('reading'))).getSingleOrNull(), isNotNull);
     });
   });
 

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/database.dart';
@@ -38,6 +39,11 @@ const searchableFacts = {
 /// За один проход разбирается не больше: остальное — в следующий, экран не ждёт.
 const _batch = 50;
 const _sweepLimit = 1000;
+
+/// Сколько раз правило перечитывает вещь, чьи файлы переехали посреди разбора,
+/// и сколько ждёт новый путь пропавшего файла.
+const _moveRetries = 3;
+const _moveWait = Duration(milliseconds: 1500);
 
 /// Конвейер извлекателей: каждая вещь проходит все правила, факты ложатся в базу и в поиск.
 ///
@@ -137,12 +143,26 @@ class FactsPipeline {
     final previous = await (_db.select(_db.extractorRuns)..where((t) => t.itemId.equals(itemId) & t.extractor.equals(extractor.name))).getSingleOrNull();
     // упавший прежде прогон фактов не дал: для последствий это тоже первый раз
     final firstRun = previous == null || previous.error != null;
-    final List<FactDraft> drafts;
-    try {
-      drafts = await extractor.extract(ExtractInput(item: item, files: files, filesRoot: _filesRoot));
-    } catch (error) {
-      await _failed(extractor, itemId, stamp, error);
-      return;
+    // писатель хранилища переносит вложения (из входящих к заметке, при смене папки),
+    // пока правило их читает: файл ушёл из-под рук — разбор заново по новым путям
+    var seen = files;
+    List<FactDraft> drafts;
+    for (var attempt = 1; ; attempt++) {
+      final last = attempt == _moveRetries;
+      try {
+        drafts = await extractor.extract(ExtractInput(item: item, files: seen, filesRoot: _filesRoot));
+      } catch (error) {
+        final moved = last ? null : await _movedFiles(itemId, seen);
+        if (moved != null) {
+          seen = moved;
+          continue;
+        }
+        await _failed(extractor, itemId, stamp, error);
+        return;
+      }
+      final moved = last ? null : await _movedFiles(itemId, seen);
+      if (moved == null) break;
+      seen = moved;
     }
     final saved = await _db.transaction(() async {
       // вещь стёрли, пока правило работало: фактам негде жить
@@ -173,6 +193,29 @@ class FactsPipeline {
       return true;
     });
     if (saved) await extractor.after(_db, item, drafts, firstRun: firstRun, now: _clock()).catchError((_) {});
+  }
+
+  /// Новые вложения вещи, если файлы, которые видело правило, переехали; иначе null.
+  /// Писатель сперва переименовывает файл, путь в базе пишет следом, иногда из другого
+  /// окна, — поэтому пропавший файл ждёт новый путь до [_moveWait]. Путь не сменился —
+  /// файла правда нет (стёрли снаружи), разбор остаётся как есть.
+  Future<List<Attachment>?> _movedFiles(String itemId, List<Attachment> seen) async {
+    final missing = [
+      for (final file in seen)
+        if (!await File(p.join(_filesRoot.path, file.path)).exists()) file,
+    ];
+    if (missing.isEmpty) return null;
+    final deadline = DateTime.now().add(_moveWait);
+    while (true) {
+      final now = await (_db.select(_db.attachments)
+            ..where((t) => t.itemId.equals(itemId))
+            ..orderBy([(t) => OrderingTerm.asc(t.position)]))
+          .get();
+      final paths = {for (final file in now) file.id: file.path};
+      if (missing.any((file) => paths[file.id] != file.path)) return now;
+      if (DateTime.now().isAfter(deadline)) return null;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
   }
 
   // местное правило упало — не повторять, пока вещь не изменится; сетевое — повторить позже
