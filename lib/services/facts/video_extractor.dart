@@ -15,15 +15,16 @@ class VideoExtractor extends Extractor {
 
   final MediaProbe _probe;
 
-  /// Что узнал [extract] для [after]: длина и записалась ли обложка.
-  final _found = <String, ({Duration length, String? cover})>{};
+  /// Что узнал [extract] для [after]: длина, записалась ли обложка, какой ролик и его размер.
+  final _found = <String, ({Duration length, String? cover, String video, int? width, int? height})>{};
 
   static const _frames = 6;
 
   @override
   String get name => 'video';
+  // 2: кадр на своей секунде, а не ближайший ключевой (подпись «0:04» стояла под кадром 0:00)
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   String get stampSql => "coalesce((SELECT group_concat(attachments.id) FROM attachments WHERE attachments.item_id = items.id), '')";
   @override
@@ -46,7 +47,7 @@ class VideoExtractor extends Extractor {
       [info.length * 0.1, ...moments],
       [for (final one in [cover, ...relative]) p.joinAll([input.filesRoot.path, ...one.split('/')])],
     );
-    _found[id] = (length: info.length, cover: written.firstOrNull == true ? cover : null);
+    _found[id] = (length: info.length, cover: written.firstOrNull == true ? cover : null, video: video.id, width: info.width, height: info.height);
     return [
       for (var index = 0; index < _frames; index++)
         if (written.length > index + 1 && written[index + 1]) FactDraft(FactKind.frame, relative[index], number: moments[index].inMilliseconds / 1000),
@@ -54,6 +55,7 @@ class VideoExtractor extends Extractor {
   }
 
   /// Длина и обложка — в саму заметку, если их там ещё нет: своё не перезаписывается.
+  /// Размер — во вложение ролика: по нему доска знает высоту обложки, как у фото.
   @override
   Future<void> after(AppDatabase db, Item item, List<FactDraft> facts, {required bool firstRun, required DateTime now}) async {
     final found = _found.remove(item.id);
@@ -64,5 +66,8 @@ class VideoExtractor extends Extractor {
         coverPath: item.coverPath == null && found.cover != null ? Value(found.cover) : const Value.absent(),
       ),
     );
+    if (found.width case final width? when width > 0 && (found.height ?? 0) > 0) {
+      await (db.update(db.attachments)..where((t) => t.id.equals(found.video))).write(AttachmentsCompanion(width: Value(width), height: Value(found.height)));
+    }
   }
 }

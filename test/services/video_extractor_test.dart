@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/services/facts/facts_pipeline.dart';
 import 'package:stowa/services/facts/video_extractor.dart';
@@ -68,6 +69,15 @@ void main() {
     expect(frames.map((fact) => fact.number), [10.0, 30.0, 50.0, 70.0, 90.0, 110.0]);
     expect(frames.first.value, '.stowa/frames/v/0.jpg');
     expect(File(p.join(home.path, frames.last.value)).existsSync(), isTrue);
+  });
+
+  test('размер ролика ложится во вложение: доска знает высоту обложки вертикального видео', () async {
+    await sweep(_FakeProbe(const Duration(minutes: 2)));
+    final video = await (db.select(db.attachments)..where((t) => t.id.equals('a'))).getSingle();
+    expect((video.width, video.height), (1080, 1920));
+    final card = (await ItemsRepository(db).watchCards(['v']).first).single;
+    expect(card.thumbPath, '.stowa/covers/v.jpg');
+    expect(card.thumbRatio, closeTo(1920 / 1080, 0.001));
   });
 
   test('своя обложка и известная длина не перезаписываются', () async {

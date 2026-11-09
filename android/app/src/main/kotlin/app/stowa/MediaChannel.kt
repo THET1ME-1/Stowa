@@ -1,6 +1,8 @@
 package app.stowa
 
 import android.graphics.Bitmap
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Handler
@@ -59,16 +61,29 @@ private fun probe(path: String): Map<String, Any>? {
     }
 }
 
-// кадры ближайшие к ключевым: точный кадр в середине длинного ролика декодер ищет секундами
+/** Ключевой кадр ближе этого к нужной секунде — берём его: подпись под кадром не соврёт. */
+private const val NEAR_SYNC_US = 500_000L
+
+// кадр на нужной секунде. Ключевой рядом (снятое телефоном: ключевой каждую секунду) —
+// берём его, это быстро. Ключевой далеко (скачанное, пересжатое: раз в 5–10 секунд) —
+// просим точный кадр: декодер идёт к нему от ключевого, зато подпись «0:11» — правда
 private fun frames(path: String, times: List<Long>, outs: List<String>, maxSide: Int): List<Boolean> {
     val retriever = MediaMetadataRetriever()
+    val syncs = SyncTimes(path)
     try {
         retriever.setDataSource(path)
         return times.mapIndexed { index, ms ->
-            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                retriever.getScaledFrameAtTime(ms * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, maxSide, maxSide)
+            val wanted = ms * 1000
+            val sync = syncs.nearest(wanted)
+            val option = if (sync != null && Math.abs(sync - wanted) <= NEAR_SYNC_US) {
+                MediaMetadataRetriever.OPTION_CLOSEST_SYNC
             } else {
-                retriever.getFrameAtTime(ms * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                MediaMetadataRetriever.OPTION_CLOSEST
+            }
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                retriever.getScaledFrameAtTime(wanted, option, maxSide, maxSide)
+            } else {
+                retriever.getFrameAtTime(wanted, option)
             }
             if (bitmap == null) return@mapIndexed false
             val out = File(outs[index])
@@ -79,5 +94,35 @@ private fun frames(path: String, times: List<Long>, outs: List<String>, maxSide:
         }
     } finally {
         retriever.release()
+        syncs.release()
+    }
+}
+
+/** Время ключевых кадров видеодорожки без декодирования: только переход по индексу файла. */
+private class SyncTimes(path: String) {
+    private val extractor: MediaExtractor? = runCatching {
+        val one = MediaExtractor()
+        try {
+            one.setDataSource(path)
+            val track = (0 until one.trackCount).first { one.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true }
+            one.selectTrack(track)
+            one
+        } catch (error: Exception) {
+            one.release()
+            throw error
+        }
+    }.getOrNull()
+
+    /** Ближайший к [us] ключевой кадр в микросекундах; не узнать — null. */
+    fun nearest(us: Long): Long? {
+        val one = extractor ?: return null
+        return runCatching {
+            one.seekTo(us, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+            one.sampleTime.takeIf { it >= 0 }
+        }.getOrNull()
+    }
+
+    fun release() {
+        extractor?.release()
     }
 }
