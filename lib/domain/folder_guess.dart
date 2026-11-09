@@ -300,6 +300,9 @@ class FolderIndex {
         final shown = shownOf[stem]!;
         // «работал на врага» — не про папку «Работа»: глагол от её имени
         if (_nameForms[folder]!.any((form) => isVerbOf(normalizeQuery(shown), form))) continue;
+        // слово уже тянет сюда как слово темы папки: «машине» у «Машины» не считается дважды.
+        // Имя без темы («Дача») — по-прежнему сильный знак
+        if (topicsOfWord(shown).any((topic) => _topics[folder]?.containsKey(topic) ?? false)) continue;
         push(folder, shown, _nameMatchWeight);
       }
     }
