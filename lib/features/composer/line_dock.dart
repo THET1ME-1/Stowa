@@ -232,6 +232,12 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           _now.difference(shot.createDateTime) > const Duration(minutes: 30)) {
         return;
       }
+      // скриншот уже сохранили из галереи: второй раз не зовём
+      final items = ref.read(itemsRepositoryProvider);
+      final name = shot.title ?? '';
+      if (name.isNotEmpty && (await items.hasPicture(name, shot.width, shot.height) || await items.hasPicture(name, shot.height, shot.width))) {
+        return;
+      }
       final thumb = await galleryThumb(shot);
       if (mounted) {
         setState(() {

@@ -58,4 +58,20 @@ void main() {
     expect(await items.repeatOf('now'), isNull);
     expect(await items.repeatOf('alone'), isNull);
   });
+
+  test('скриншот из галереи уже лежит заметкой — по имени и размеру, во входящих и у заметки', () async {
+    await note('shot', DateTime(2026, 11, 9));
+    await note('gone', DateTime(2026, 11, 9), deleted: true);
+    Future<void> picture(String id, String item, String path, int width, int height) => db.into(db.attachments).insert(
+          AttachmentsCompanion.insert(id: id, itemId: item, path: path, mime: 'image/png', size: 1, width: Value(width), height: Value(height)),
+        );
+    await picture('a', 'shot', '.stowa/incoming/shot/0_Screenshot_20261106-141205.png', 1080, 2400);
+    await picture('b', 'gone', 'Скриншот/Screenshot_20261101-090000.png', 1080, 2400);
+
+    expect(await items.hasPicture('Screenshot_20261106-141205.png', 1080, 2400), isTrue);
+    await (db.update(db.attachments)..where((t) => t.id.equals('a'))).write(const AttachmentsCompanion(path: Value('Скриншот от 9 ноября/Screenshot_20261106-141205.png')));
+    expect(await items.hasPicture('Screenshot_20261106-141205.png', 1080, 2400), isTrue);
+    expect(await items.hasPicture('Screenshot_20261106-141205.png', 720, 1600), isFalse, reason: 'другой снимок с тем же именем');
+    expect(await items.hasPicture('Screenshot_20261101-090000.png', 1080, 2400), isFalse, reason: 'заметка в корзине');
+  });
 }
