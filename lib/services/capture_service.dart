@@ -14,14 +14,40 @@ import '../domain/inline_tags.dart';
 import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
 import '../domain/models.dart';
+import '../domain/photo_facts.dart' show photoFactsOf;
 import '../domain/place_cue.dart';
 import '../domain/reminder_parser.dart';
+import '../domain/shot_date.dart';
 import '../domain/sort_rules.dart';
 import '../domain/tag_name.dart';
 import 'ai_worker.dart' show aiSortJob;
 import 'file_keeper.dart';
 
 export 'file_keeper.dart' show CopyFailure;
+
+/// Сколько читать с начала JPEG ради даты съёмки: сегмент EXIF не длиннее 64 КБ,
+/// перед ним бывает JFIF и XMP — с запасом вдвое, это доли миллисекунды.
+const _exifHead = 128 * 1024;
+
+/// Когда снят файл: дата из EXIF у JPEG, иначе из имени («VID_20261012_154510.mp4»).
+/// Не узнать — null, подпись тогда по дню сохранения.
+Future<DateTime?> shotDateOf(PickedFile? file) async {
+  if (file == null) return null;
+  if (file.mime == 'image/jpeg') {
+    try {
+      final handle = await File(file.path).open();
+      try {
+        final taken = photoFactsOf(await handle.read(_exifHead))?.takenAt;
+        if (taken != null) return taken;
+      } finally {
+        await handle.close();
+      }
+    } on FileSystemException {
+      // файл не читается: остаётся дата из имени
+    }
+  }
+  return shotDateFromName(file.name ?? p.basename(file.path));
+}
 
 /// Временные папки самого приложения: файл оттуда переносится во вложения, а не копируется.
 /// Голосовые пишутся в `tmp`, файлы бота — в `telegram_inbox`; кэш выбора и «Поделиться» добавляет main.
@@ -81,7 +107,8 @@ class CaptureInput {
   final String? title;
 
   /// Подпись, если ни текст, ни имя файла заголовка не дали: «Фото от 3 ноября».
-  final String? untitled;
+  /// День — когда снято (EXIF, имя файла), а не когда сохранено: фото июля — «от 15 июля».
+  final String Function(DateTime at)? untitled;
 
   final String text;
   final List<PickedFile> files;
@@ -175,7 +202,8 @@ class CaptureService {
     final place = input.forcedPlace ?? (cue == null ? null : PlaceReminder(cue.kind));
     if (cue != null && cue.restOf(titleSource).isNotEmpty) titleSource = cue.restOf(titleSource);
     final fromContent = titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path));
-    final title = fromContent.isEmpty ? (input.untitled ?? '') : fromContent;
+    final untitled = input.untitled;
+    final title = fromContent.isNotEmpty || untitled == null ? fromContent : untitled(await shotDateOf(firstFile) ?? input.at ?? now);
     final kind = detectKind(text: text, mime: firstFile?.mime);
     final url = firstUrl(text);
     final ownTags = [...input.forcedTagNames.map(normalizeTagName), ...extractInlineTags(text)];
@@ -279,6 +307,30 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
       final createdAt = _db.typeMapping.read(DriftSqlType.dateTime, row.data['created_at'])!;
       final title = fromName.isNotEmpty ? fromName : untitled(mime: row.read<String>('mime'), fileName: fileName, at: createdAt);
       await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(title)));
+    }
+  }
+
+  /// Подписи по дню сохранения («Фото от 9 ноября» у снимка июля) — по дню съёмки:
+  /// из EXIF (факт `takenAt`) или из имени файла. Подпись, которую человек поменял,
+  /// не совпадает с подписью дня сохранения и остаётся как есть.
+  Future<void> retitleByShotDate(String Function({required String mime, required String fileName, required DateTime at}) untitled) async {
+    final rows = await _db.customSelect('''
+SELECT items.id AS id, items.title AS title, items.created_at AS created_at, attachments.path AS path, attachments.mime AS mime,
+  (SELECT facts.value FROM facts WHERE facts.item_id = items.id AND facts.kind = 'takenAt' LIMIT 1) AS taken
+FROM items JOIN attachments ON attachments.item_id = items.id AND attachments.position = 0
+WHERE items.deleted_at IS NULL AND trim(items.body) = ''
+''', readsFrom: {_db.items, _db.attachments, _db.facts}).get();
+    for (final row in rows) {
+      final fileName = p.basename(row.read<String>('path')).replaceFirst(RegExp(r'^\d+_'), '');
+      final mime = row.read<String>('mime');
+      final shot = DateTime.tryParse(row.readNullable<String>('taken') ?? '') ?? shotDateFromName(fileName);
+      if (shot == null) continue;
+      final createdAt = _db.typeMapping.read(DriftSqlType.dateTime, row.data['created_at'])!;
+      final title = row.read<String>('title');
+      if (title != untitled(mime: mime, fileName: fileName, at: createdAt)) continue;
+      final byShot = untitled(mime: mime, fileName: fileName, at: shot);
+      if (byShot == title) continue;
+      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(byShot)));
     }
   }
 

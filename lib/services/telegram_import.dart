@@ -89,7 +89,9 @@ class TelegramImport {
           continue;
         }
         final first = files.firstOrNull;
-        final label = first == null ? null : untitled?.call(mime: first.mime, fileName: p.basename(first.path), at: note.at);
+        final named = untitled;
+        // день — по снимку, если он его знает, иначе по сообщению (CaptureInput.at)
+        final label = first == null || named == null ? null : (DateTime at) => named(mime: first.mime, fileName: p.basename(first.path), at: at);
         // старое «напомни дома» из «Избранного» не оживает: ни времени, ни места
         inputs.add(CaptureInput(text: note.text, files: files, at: note.at, here: false, detectReminder: false, detectPlace: false, untitled: label));
       }

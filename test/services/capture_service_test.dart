@@ -11,6 +11,8 @@ import 'package:stowa/domain/models.dart';
 import 'package:stowa/services/capture_service.dart';
 import 'package:path/path.dart' as p;
 
+import '../domain/photo_facts_test.dart' show jpegWithExif;
+
 void main() {
   late AppDatabase db;
   late Directory home;
@@ -214,9 +216,47 @@ void main() {
     final camera = await source.copy(p.join(source.parent.path, 'IMG_20261103_154512.jpg'));
     final id = await capture.capture(CaptureInput(
       files: [PickedFile(path: camera.path, mime: 'image/jpeg', size: await camera.length())],
-      untitled: 'Фото от 3 ноября',
+      untitled: (at) => 'Фото от ${at.day}.${at.month}',
     ));
-    expect((await items.get(id))!.item.title, 'Фото от 3 ноября');
+    // EXIF нет — день съёмки из имени файла, а не день сохранения (2 ноября)
+    expect((await items.get(id))!.item.title, 'Фото от 3.11');
+  });
+
+  test('подпись по дню съёмки: EXIF главнее имени, без даты — день сохранения', () async {
+    String untitled(DateTime at) => 'от ${at.day}.${at.month}';
+    Future<String> save(String name, List<int> bytes, String mime) async {
+      final file = await File(p.join(home.path, name)).writeAsBytes(bytes);
+      final id = await capture.capture(CaptureInput(files: [PickedFile(path: file.path, mime: mime, size: bytes.length)], untitled: untitled));
+      return (await items.get(id))!.item.title;
+    }
+
+    expect(await save('IMG_20261101_090000.jpg', jpegWithExif(taken: '2026:07:15 18:30:12'), 'image/jpeg'), 'от 15.7');
+    expect(await save('VID_20261012_154510.mp4', [0, 0, 0, 24], 'video/mp4'), 'от 12.10');
+    expect(await save('Screenshot_20261106-141205.png', [137, 80, 78, 71], 'image/png'), 'от 6.11');
+    expect(await save('1730645112.jpg', jpegWithExif(), 'image/jpeg'), 'от 2.11');
+  });
+
+  test('при запуске: подпись по дню сохранения меняется на день съёмки, своё не трогается', () async {
+    String untitled({required String mime, required String fileName, required DateTime at}) => 'Фото от ${at.day}.${at.month}';
+    Future<void> old(String id, String title, String file, {String? taken}) async {
+      await db.into(db.items).insert(ItemsCompanion.insert(id: id, kind: ItemKind.image, title: title, createdAt: DateTime(2026, 11, 9, 17), updatedAt: DateTime(2026, 11, 9, 17)));
+      await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: '$id-a', itemId: id, path: 'Фото/$file', mime: 'image/jpeg', size: 1));
+      if (taken != null) {
+        await db.into(db.facts).insert(FactsCompanion.insert(id: '$id-t', itemId: id, extractor: 'photo', kind: FactKind.takenAt, value: taken, at: Value(DateTime.parse(taken))));
+      }
+    }
+
+    await old('exif', 'Фото от 9.11', 'IMG_20261109_170000.jpg', taken: '2026-07-15T18:30:12.000');
+    await old('name', 'Фото от 9.11', 'VID_20261012_154510.mp4');
+    await old('mine', 'Море в Лиссабоне', 'IMG_20260715_183012.jpg', taken: '2026-07-15T18:30:12.000');
+    await old('today', 'Фото от 9.11', 'IMG_20261109_101010.jpg');
+
+    await capture.retitleByShotDate(untitled);
+    Future<String> title(String id) async => (await items.get(id))!.item.title;
+    expect(await title('exif'), 'Фото от 15.7');
+    expect(await title('name'), 'Фото от 12.10');
+    expect(await title('mine'), 'Море в Лиссабоне');
+    expect(await title('today'), 'Фото от 9.11');
   });
 
   test('теги из текста ставятся с источником inline, выбранные руками — user', () async {

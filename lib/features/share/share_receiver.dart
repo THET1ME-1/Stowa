@@ -121,6 +121,6 @@ Future<String?> saveShared(WidgetRef ref, List<SharedPiece> pieces, {L? l}) asyn
   }
   if (shared.text.isEmpty && files.isEmpty) return null;
   final first = files.firstOrNull;
-  final untitled = l == null || first == null ? null : untitledFor(l, mime: first.mime, fileName: p.basename(first.path), at: ref.read(clockProvider)());
+  final untitled = l == null || first == null ? null : (DateTime at) => untitledFor(l, mime: first.mime, fileName: p.basename(first.path), at: at);
   return ref.read(captureServiceProvider).capture(CaptureInput(text: shared.text, files: files, untitled: untitled));
 }
