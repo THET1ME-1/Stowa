@@ -61,6 +61,8 @@ const _nameMatchWeight = 4.0;
 // слово темы папки: «молоко» и папка «Продукты»; больше трёх слов одной темы не копится
 const _topicWeight = 1.1;
 const _topicCap = 4;
+// слово ребёнка или питомца весит вдвое: всё, что для них, — в их папку
+const _ownerWeight = 2.0;
 // две прошлые заметки подряд легли в одну папку: заметка без единого признака уходит
 // туда же (идея книги без «книжных» слов), а любой признак другой папки серию перебивает
 const _seriesWeight = 1.0;
@@ -327,8 +329,10 @@ class FolderIndex {
       for (final MapEntry(key: topic, value: affinity) in topics.entries) {
         final found = topicWords[topic];
         if (found == null) continue;
+        // вещь ребёнка или зверя — в его папку: «сыну форму для футбола», «котёнку прививку»
+        final owner = topic == Topic.kids || topic == Topic.pets ? _ownerWeight : 1.0;
         for (final shown in found.take(_topicCap)) {
-          push(folder, shown, _topicWeight * affinity);
+          push(folder, shown, _topicWeight * affinity * owner);
         }
       }
     }

@@ -82,7 +82,7 @@ const _words = <Topic, String>{
       'концовка рукопись черновик повесть рассказ писатель предательство предать предаст предал '
       'предала влюбится влюбилась королевство дракон дракона магия заклинание пророчество ведьма эльф '
       'перечитать дочитать роман таверна таверне наемник наёмник рыцарь рыцаря принцесса трон империя гильдия орк '
-      'заговор флешбэк '
+      'заговор флешбэк читатель читателя читателю читатели '
       'герой героїня персонаж сюжет лиходій рукопис чернетка зрада зрадить королівство дракон магія '
       'novel chapter chapters character characters protagonist antagonist villain plot subplot prologue epilogue '
       'manuscript storyline worldbuilding heroine betray betrays betrayed betrayal kingdom dragon wizard prophecy reread '
@@ -219,9 +219,12 @@ const _words = <Topic, String>{
       'loyer impôts impots facture banque virement prêt dette hypothèque affitto bolletta banca bonifico prestito mutuo debito '
       'aluguel aluguer impostos dívida empréstimo '
       'vergi vergiler fatura borç kredi '
-      'аренда аренду коммуналка коммуналку квартплата оренда rent landlord miete alquiler chirie chiria czynsz',
+      'аренда аренду коммуналка коммуналку квартплата оренда rent landlord miete alquiler chirie chiria czynsz '
+      'налоговая налоговую налоговой декларация декларацию',
   Topic.kids:
       'ребенок ребёнок дети сын дочка садик детсад утренник игрушки подгузники педиатр коляска '
+      // «сын» из трёх букв по основе не узнаётся: падежи списком
+      'сына сыну сыном дочке дочку дочки дочери дочь ребенку ребёнку ребенка ребёнка детям детей малыша малышу '
       'дитина діти син донька садочок іграшки '
       'kids child children son daughter kindergarten toys diapers pediatrician stroller '
       'kinder kindergarten spielzeug windeln niños hijo hija guardería juguetes pañales '
