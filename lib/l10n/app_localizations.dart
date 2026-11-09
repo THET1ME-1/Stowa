@@ -3914,8 +3914,62 @@ abstract class L {
   /// titleDateHint
   ///
   /// In en, this message translates to:
-  /// **'A photo without a caption is named “Photo from July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.'**
+  /// **'A photo without a caption is named “Photo, July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.'**
   String get titleDateHint;
+
+  /// Кнопка пароля из текста: сам пароль спрятан точками
+  ///
+  /// In en, this message translates to:
+  /// **'Password ••••••'**
+  String get factPassword;
+
+  /// Пароль с именем сети рядом
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi “{network}” ••••••'**
+  String factPasswordFor(String network);
+
+  /// factCopyPassword
+  ///
+  /// In en, this message translates to:
+  /// **'Copy password'**
+  String get factCopyPassword;
+
+  /// Карта лояльности: последние четыре цифры
+  ///
+  /// In en, this message translates to:
+  /// **'Card ••{last}'**
+  String factCard(String last);
+
+  /// factCopyCard
+  ///
+  /// In en, this message translates to:
+  /// **'Copy card number'**
+  String get factCopyCard;
+
+  /// factPromo
+  ///
+  /// In en, this message translates to:
+  /// **'Promo code {code}'**
+  String factPromo(String code);
+
+  /// factCopyPromo
+  ///
+  /// In en, this message translates to:
+  /// **'Copy promo code'**
+  String get factCopyPromo;
+
+  /// factTrack
+  ///
+  /// In en, this message translates to:
+  /// **'Track parcel'**
+  String get factTrack;
+
+  /// factOnMap
+  ///
+  /// In en, this message translates to:
+  /// **'Open in maps'**
+  String get factOnMap;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

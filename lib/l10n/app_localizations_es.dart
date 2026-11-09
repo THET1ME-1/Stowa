@@ -2360,5 +2360,38 @@ class LEs extends L {
 
   @override
   String get titleDateHint =>
-      'Una foto sin descripción se llama «Foto del 15 de julio». La fecha de captura sale de la propia foto o del nombre del archivo; si no está, se usa la fecha de guardado. Los nombres que pusiste tú no cambian.';
+      'Una foto sin descripción lleva en el nombre un día. La fecha de captura sale de la propia foto o del nombre del archivo; si no está, se usa la fecha de guardado. Los nombres que pusiste tú no cambian.';
+
+  @override
+  String get factPassword => 'Contraseña ••••••';
+
+  @override
+  String factPasswordFor(String network) {
+    return 'Wi-Fi «$network» ••••••';
+  }
+
+  @override
+  String get factCopyPassword => 'Copiar contraseña';
+
+  @override
+  String factCard(String last) {
+    return 'Tarjeta ••$last';
+  }
+
+  @override
+  String get factCopyCard => 'Copiar número de tarjeta';
+
+  @override
+  String factPromo(String code) {
+    return 'Código $code';
+  }
+
+  @override
+  String get factCopyPromo => 'Copiar código';
+
+  @override
+  String get factTrack => 'Seguir el paquete';
+
+  @override
+  String get factOnMap => 'Abrir en el mapa';
 }

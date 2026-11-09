@@ -2379,5 +2379,38 @@ class LRo extends L {
 
   @override
   String get titleDateHint =>
-      'O fotografie fără descriere se numește „Fotografie din 15 iulie”. Data fotografierii se ia din imagine sau din numele fișierului; dacă nu există, se folosește data salvării. Numele date de dvs. nu se schimbă.';
+      'O fotografie fără descriere primește o dată în nume. Data fotografierii se ia din imagine sau din numele fișierului; dacă nu există, se folosește data salvării. Numele date de dvs. nu se schimbă.';
+
+  @override
+  String get factPassword => 'Parolă ••••••';
+
+  @override
+  String factPasswordFor(String network) {
+    return 'Wi-Fi „$network” ••••••';
+  }
+
+  @override
+  String get factCopyPassword => 'Copiază parola';
+
+  @override
+  String factCard(String last) {
+    return 'Card ••$last';
+  }
+
+  @override
+  String get factCopyCard => 'Copiază numărul cardului';
+
+  @override
+  String factPromo(String code) {
+    return 'Cod $code';
+  }
+
+  @override
+  String get factCopyPromo => 'Copiază codul';
+
+  @override
+  String get factTrack => 'Urmărește coletul';
+
+  @override
+  String get factOnMap => 'Deschide pe hartă';
 }

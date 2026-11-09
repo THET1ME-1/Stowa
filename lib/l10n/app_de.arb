@@ -386,5 +386,14 @@
   "titleDateSetting": "Namen von Fotos und Videos",
   "titleDateShot": "Nach Aufnahmedatum",
   "titleDateSaved": "Nach Speicherdatum",
-  "titleDateHint": "Ein Foto ohne Beschriftung trägt ein Datum im Namen. Das Aufnahmedatum kommt aus dem Bild selbst oder aus dem Dateinamen; fehlt es, gilt das Speicherdatum. Selbst vergebene Namen bleiben."
+  "titleDateHint": "Ein Foto ohne Beschriftung trägt ein Datum im Namen. Das Aufnahmedatum kommt aus dem Bild selbst oder aus dem Dateinamen; fehlt es, gilt das Speicherdatum. Selbst vergebene Namen bleiben.",
+  "factPassword": "Passwort ••••••",
+  "factPasswordFor": "WLAN „{network}“ ••••••",
+  "factCopyPassword": "Passwort kopieren",
+  "factCard": "Karte ••{last}",
+  "factCopyCard": "Kartennummer kopieren",
+  "factPromo": "Code {code}",
+  "factCopyPromo": "Code kopieren",
+  "factTrack": "Sendung verfolgen",
+  "factOnMap": "In Karten öffnen"
 }

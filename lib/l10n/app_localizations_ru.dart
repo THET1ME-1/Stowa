@@ -2409,4 +2409,37 @@ class LRu extends L {
   @override
   String get titleDateHint =>
       'Фото без подписи называется «Фото от 15 июля». День съёмки берётся из самого снимка или из имени файла, а если его там нет — день сохранения. Названия, которые вы дали сами, не меняются.';
+
+  @override
+  String get factPassword => 'Пароль ••••••';
+
+  @override
+  String factPasswordFor(String network) {
+    return 'Wi-Fi «$network» ••••••';
+  }
+
+  @override
+  String get factCopyPassword => 'Скопировать пароль';
+
+  @override
+  String factCard(String last) {
+    return 'Карта ••$last';
+  }
+
+  @override
+  String get factCopyCard => 'Скопировать номер карты';
+
+  @override
+  String factPromo(String code) {
+    return 'Промокод $code';
+  }
+
+  @override
+  String get factCopyPromo => 'Скопировать промокод';
+
+  @override
+  String get factTrack => 'Отследить посылку';
+
+  @override
+  String get factOnMap => 'Открыть на карте';
 }

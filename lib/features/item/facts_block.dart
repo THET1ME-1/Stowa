@@ -18,19 +18,34 @@ class FactsChips extends StatelessWidget {
   final List<Fact> facts;
   final Future<void> Function(String url) onLink;
 
-  static const _shown = {FactKind.qr, FactKind.phone, FactKind.email, FactKind.link, FactKind.price};
+  // порядок кнопок: то, ради чего заметку открывают у роутера или на кассе, — первым
+  static const _order = [
+    FactKind.qr,
+    FactKind.password,
+    FactKind.loyaltyCard,
+    FactKind.promoCode,
+    FactKind.tracking,
+    FactKind.phone,
+    FactKind.email,
+    FactKind.address,
+    FactKind.price,
+    FactKind.link,
+  ];
+
+  // адрес — только найденный в тексте: адрес страницы показывает её карточка
+  static bool _shows(Fact fact) => _order.contains(fact.kind) && (fact.kind != FactKind.address || fact.detail == 'text');
 
   /// Есть ли что показать: без этого блок не занимает места.
-  static bool hasAny(List<Fact> facts) => facts.any((fact) => _shown.contains(fact.kind));
+  static bool hasAny(List<Fact> facts) => facts.any(_shows);
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final ordered = [
-      for (final kind in [FactKind.qr, FactKind.phone, FactKind.email, FactKind.price, FactKind.link])
+      for (final kind in _order)
         for (final fact in facts)
-          if (fact.kind == kind) fact,
+          if (fact.kind == kind && _shows(fact)) fact,
     ];
     Future<void> open(Uri uri) async {
       final opened = await launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) => false);
@@ -52,6 +67,36 @@ class FactsChips extends StatelessWidget {
       };
     }
 
+    // из текста: пароль и карта копируются, не показывая себя; трек — у 17track, адрес — в картах
+    Widget? textChip(Fact fact) => switch (fact.kind) {
+      FactKind.password => _FactChip(
+        icon: fact.detail == null ? 'key' : 'wifi',
+        label: fact.detail == null ? l.factPassword : l.factPasswordFor(fact.detail!),
+        tooltip: l.factCopyPassword,
+        onTap: () => copy(fact.value, l.qrPasswordCopied),
+      ),
+      FactKind.loyaltyCard => _FactChip(
+        icon: 'loyalty',
+        label: l.factCard(fact.value.substring(fact.value.length - 4)),
+        tooltip: l.factCopyCard,
+        onTap: () => copy(fact.value, l.itemCopied),
+      ),
+      FactKind.promoCode => _FactChip(icon: 'sell', label: l.factPromo(fact.value), tooltip: l.factCopyPromo, onTap: () => copy(fact.value, l.itemCopied)),
+      FactKind.tracking => _FactChip(
+        icon: 'local_shipping',
+        label: fact.value,
+        tooltip: l.factTrack,
+        onTap: () => open(Uri.parse('https://t.17track.net/${_trackLanguage(l.localeName)}#nums=${fact.value}')),
+      ),
+      FactKind.address => _FactChip(
+        icon: 'map',
+        label: fact.value,
+        tooltip: l.factOnMap,
+        onTap: () => open(Uri.parse('geo:0,0?q=${Uri.encodeComponent(fact.value)}')),
+      ),
+      _ => null,
+    };
+
     return Wrap(
       key: const ValueKey('item-facts'),
       spacing: 8,
@@ -60,6 +105,8 @@ class FactsChips extends StatelessWidget {
         for (final fact in ordered)
           if (fact.kind == FactKind.qr)
             qrChip(fact)
+          else if (textChip(fact) case final chip?)
+            chip
           else
             _FactChip(
               icon: switch (fact.kind) {
@@ -88,6 +135,9 @@ class FactsChips extends StatelessWidget {
       ],
     );
   }
+
+  // 17track говорит на этих языках; остальным — по-английски
+  String _trackLanguage(String locale) => const {'ru', 'de', 'es', 'pl', 'uk'}.contains(locale) ? locale : 'en';
 
   // адрес без схемы и «www.», длинный — с многоточием в конце
   String _shortLink(String url) {

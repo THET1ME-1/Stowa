@@ -2358,5 +2358,38 @@ class LEn extends L {
 
   @override
   String get titleDateHint =>
-      'A photo without a caption is named “Photo from July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.';
+      'A photo without a caption is named “Photo, July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.';
+
+  @override
+  String get factPassword => 'Password ••••••';
+
+  @override
+  String factPasswordFor(String network) {
+    return 'Wi-Fi “$network” ••••••';
+  }
+
+  @override
+  String get factCopyPassword => 'Copy password';
+
+  @override
+  String factCard(String last) {
+    return 'Card ••$last';
+  }
+
+  @override
+  String get factCopyCard => 'Copy card number';
+
+  @override
+  String factPromo(String code) {
+    return 'Promo code $code';
+  }
+
+  @override
+  String get factCopyPromo => 'Copy promo code';
+
+  @override
+  String get factTrack => 'Track parcel';
+
+  @override
+  String get factOnMap => 'Open in maps';
 }

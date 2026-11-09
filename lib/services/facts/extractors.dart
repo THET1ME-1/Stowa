@@ -14,6 +14,7 @@ import '../../domain/models.dart';
 import '../../domain/money.dart';
 import '../../domain/photo_facts.dart';
 import '../../domain/qr.dart';
+import '../../domain/text_places.dart';
 import '../../domain/video_text.dart' show hashtagsIn;
 import 'extractor.dart';
 
@@ -26,8 +27,9 @@ const _attachmentsStamp = "coalesce((SELECT group_concat(attachments.id) FROM at
 class TextExtractor extends Extractor {
   @override
   String get name => 'text';
+  // 2: адрес, трек-номер, промокод, пароль, карта лояльности
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   String get stampSql => "items.updated_at || '|' || coalesce(length(items.transcript), 0)";
 
@@ -40,8 +42,20 @@ class TextExtractor extends Extractor {
     for (final money in findMoney(text)) {
       facts.add(FactDraft(FactKind.price, text.substring(money.start, money.end).trim(), detail: money.currency, number: money.amount));
     }
+    final places = findTextPlaces(text);
+    for (final place in places) {
+      facts.add(switch (place.kind) {
+        TextPlaceKind.address => FactDraft(FactKind.address, place.value, detail: 'text'),
+        TextPlaceKind.tracking => FactDraft(FactKind.tracking, place.value),
+        TextPlaceKind.promoCode => FactDraft(FactKind.promoCode, place.value),
+        TextPlaceKind.password => FactDraft(FactKind.password, place.value, detail: place.label),
+        TextPlaceKind.loyaltyCard => FactDraft(FactKind.loyaltyCard, place.value),
+      });
+    }
     final seen = <String>{};
     for (final phone in findPhones(text)) {
+      // номер карты и трек — цифры подряд, телефоном они не становятся
+      if (places.any((place) => phone.start < place.end && place.start < phone.end)) continue;
       if (seen.add(phone.dial)) facts.add(FactDraft(FactKind.phone, phone.text.trim(), detail: phone.dial));
     }
     for (final email in findEmails(text)) {

@@ -204,4 +204,35 @@ void main() {
     expect(copied, 'sun;flower');
     expect(find.text('Пароль скопирован'), findsOneWidget);
   });
+
+  testWidgets('из текста: пароль точками копирует себя, карта — последние цифры, трек, промокод, адрес', (tester) async {
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.setData') copied = (call.arguments as Map)['text'] as String?;
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 't', kind: ItemKind.note, title: 'Дача', body: const Value('всё про дачу'), createdAt: world.now, updatedAt: world.now));
+    await fact('t', FactKind.password, 'zelenyi-chai-77', detail: 'Keenetic');
+    await fact('t', FactKind.loyaltyCard, '2900123456789', position: 1);
+    await fact('t', FactKind.promoCode, 'SALE20', position: 2);
+    await fact('t', FactKind.tracking, 'RR123456785CN', position: 3);
+    await fact('t', FactKind.address, 'ул. Пушкина 12', detail: 'text', position: 4);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 't')));
+    await tester.pumpAndSettle();
+    final chips = find.byKey(const ValueKey('item-facts'));
+    for (final label in ['Wi-Fi «Keenetic» ••••••', 'Карта ••6789', 'Промокод SALE20', 'RR123456785CN', 'ул. Пушкина 12']) {
+      expect(find.descendant(of: chips, matching: find.text(label)), findsOneWidget, reason: label);
+    }
+    expect(find.textContaining('zelenyi'), findsNothing, reason: 'пароль на экране не виден');
+    await tester.tap(find.text('Wi-Fi «Keenetic» ••••••'));
+    await tester.pumpAndSettle();
+    expect(copied, 'zelenyi-chai-77');
+    await tester.tap(find.text('Карта ••6789'));
+    await tester.pumpAndSettle();
+    expect(copied, '2900123456789');
+    expect(find.byTooltip('Отследить посылку'), findsOneWidget);
+    expect(find.byTooltip('Открыть на карте'), findsOneWidget);
+  });
 }

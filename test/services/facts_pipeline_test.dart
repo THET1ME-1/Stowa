@@ -250,6 +250,19 @@ void main() {
       expect(await factsText('a'), contains('4 500 лей'));
     });
 
+    test('текст: адрес, трек, промокод, пароль с сетью, карта — номер карты не телефон', () async {
+      await note('a', 'Сеть Keenetic, пароль zelenyi-chai-77\nКарта Linella 2900123456789\nТрек RR123456785CN, промокод SALE20\nЗабрать: ул. Пушкина 12');
+      await pipeline([TextExtractor()]).runItem('a');
+      final facts = await factsOf('a');
+      Fact one(FactKind kind) => facts.singleWhere((fact) => fact.kind == kind);
+      expect((one(FactKind.password).value, one(FactKind.password).detail), ('zelenyi-chai-77', 'Keenetic'));
+      expect(one(FactKind.loyaltyCard).value, '2900123456789');
+      expect(one(FactKind.tracking).value, 'RR123456785CN');
+      expect(one(FactKind.promoCode).value, 'SALE20');
+      expect((one(FactKind.address).value, one(FactKind.address).detail), ('ул. Пушкина 12', 'text'));
+      expect(facts.where((fact) => fact.kind == FactKind.phone), isEmpty);
+    });
+
     test('текст: адрес самой ссылки фактом не дублируется', () async {
       await note('a', 'https://habr.com/ru/articles/1/', kind: ItemKind.link, url: 'https://habr.com/ru/articles/1/');
       await pipeline([TextExtractor()]).runItem('a');

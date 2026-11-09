@@ -386,5 +386,14 @@
   "titleDateSetting": "Numele fotografiilor și videoclipurilor",
   "titleDateShot": "După data fotografierii",
   "titleDateSaved": "După data salvării",
-  "titleDateHint": "O fotografie fără descriere primește o dată în nume. Data fotografierii se ia din imagine sau din numele fișierului; dacă nu există, se folosește data salvării. Numele date de dvs. nu se schimbă."
+  "titleDateHint": "O fotografie fără descriere primește o dată în nume. Data fotografierii se ia din imagine sau din numele fișierului; dacă nu există, se folosește data salvării. Numele date de dvs. nu se schimbă.",
+  "factPassword": "Parolă ••••••",
+  "factPasswordFor": "Wi-Fi „{network}” ••••••",
+  "factCopyPassword": "Copiază parola",
+  "factCard": "Card ••{last}",
+  "factCopyCard": "Copiază numărul cardului",
+  "factPromo": "Cod {code}",
+  "factCopyPromo": "Copiază codul",
+  "factTrack": "Urmărește coletul",
+  "factOnMap": "Deschide pe hartă"
 }

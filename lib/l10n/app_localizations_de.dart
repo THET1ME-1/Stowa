@@ -2363,5 +2363,38 @@ class LDe extends L {
 
   @override
   String get titleDateHint =>
-      'Ein Foto ohne Beschriftung heißt „Foto vom 15. Juli“. Das Aufnahmedatum kommt aus dem Bild selbst oder aus dem Dateinamen; fehlt es, gilt das Speicherdatum. Selbst vergebene Namen bleiben.';
+      'Ein Foto ohne Beschriftung trägt ein Datum im Namen. Das Aufnahmedatum kommt aus dem Bild selbst oder aus dem Dateinamen; fehlt es, gilt das Speicherdatum. Selbst vergebene Namen bleiben.';
+
+  @override
+  String get factPassword => 'Passwort ••••••';
+
+  @override
+  String factPasswordFor(String network) {
+    return 'WLAN „$network“ ••••••';
+  }
+
+  @override
+  String get factCopyPassword => 'Passwort kopieren';
+
+  @override
+  String factCard(String last) {
+    return 'Karte ••$last';
+  }
+
+  @override
+  String get factCopyCard => 'Kartennummer kopieren';
+
+  @override
+  String factPromo(String code) {
+    return 'Code $code';
+  }
+
+  @override
+  String get factCopyPromo => 'Code kopieren';
+
+  @override
+  String get factTrack => 'Sendung verfolgen';
+
+  @override
+  String get factOnMap => 'In Karten öffnen';
 }

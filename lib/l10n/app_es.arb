@@ -386,5 +386,14 @@
   "titleDateSetting": "Nombre de fotos y vídeos",
   "titleDateShot": "Por fecha de captura",
   "titleDateSaved": "Por fecha de guardado",
-  "titleDateHint": "Una foto sin descripción lleva en el nombre un día. La fecha de captura sale de la propia foto o del nombre del archivo; si no está, se usa la fecha de guardado. Los nombres que pusiste tú no cambian."
+  "titleDateHint": "Una foto sin descripción lleva en el nombre un día. La fecha de captura sale de la propia foto o del nombre del archivo; si no está, se usa la fecha de guardado. Los nombres que pusiste tú no cambian.",
+  "factPassword": "Contraseña ••••••",
+  "factPasswordFor": "Wi-Fi «{network}» ••••••",
+  "factCopyPassword": "Copiar contraseña",
+  "factCard": "Tarjeta ••{last}",
+  "factCopyCard": "Copiar número de tarjeta",
+  "factPromo": "Código {code}",
+  "factCopyPromo": "Copiar código",
+  "factTrack": "Seguir el paquete",
+  "factOnMap": "Abrir en el mapa"
 }

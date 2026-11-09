@@ -3004,5 +3004,56 @@
   "titleDateHint": "A photo without a caption is named “Photo, July 15”. The date taken comes from the photo itself or its file name; if it isn't there, the date saved is used. Names you gave yourself don't change.",
   "@titleDateHint": {
     "description": "titleDateHint"
+  },
+  "factPassword": "Password ••••••",
+  "@factPassword": {
+    "description": "Кнопка пароля из текста: сам пароль спрятан точками"
+  },
+  "factPasswordFor": "Wi-Fi “{network}” ••••••",
+  "@factPasswordFor": {
+    "description": "Пароль с именем сети рядом",
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "factCopyPassword": "Copy password",
+  "@factCopyPassword": {
+    "description": "factCopyPassword"
+  },
+  "factCard": "Card ••{last}",
+  "@factCard": {
+    "description": "Карта лояльности: последние четыре цифры",
+    "placeholders": {
+      "last": {
+        "type": "String"
+      }
+    }
+  },
+  "factCopyCard": "Copy card number",
+  "@factCopyCard": {
+    "description": "factCopyCard"
+  },
+  "factPromo": "Promo code {code}",
+  "@factPromo": {
+    "description": "factPromo",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "factCopyPromo": "Copy promo code",
+  "@factCopyPromo": {
+    "description": "factCopyPromo"
+  },
+  "factTrack": "Track parcel",
+  "@factTrack": {
+    "description": "factTrack"
+  },
+  "factOnMap": "Open in maps",
+  "@factOnMap": {
+    "description": "factOnMap"
   }
 }

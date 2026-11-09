@@ -2403,5 +2403,38 @@ class LPl extends L {
 
   @override
   String get titleDateHint =>
-      'Zdjęcie bez podpisu nazywa się „Zdjęcie z 15 lipca”. Datę zrobienia bierzemy z samego zdjęcia albo z nazwy pliku, a jeśli jej tam nie ma — datę zapisania. Nazwy nadane przez Ciebie się nie zmieniają.';
+      'Zdjęcie bez podpisu dostaje w nazwie dzień. Datę zrobienia bierzemy z samego zdjęcia albo z nazwy pliku, a jeśli jej tam nie ma — datę zapisania. Nazwy nadane przez Ciebie się nie zmieniają.';
+
+  @override
+  String get factPassword => 'Hasło ••••••';
+
+  @override
+  String factPasswordFor(String network) {
+    return 'Wi-Fi „$network” ••••••';
+  }
+
+  @override
+  String get factCopyPassword => 'Kopiuj hasło';
+
+  @override
+  String factCard(String last) {
+    return 'Karta ••$last';
+  }
+
+  @override
+  String get factCopyCard => 'Kopiuj numer karty';
+
+  @override
+  String factPromo(String code) {
+    return 'Kod $code';
+  }
+
+  @override
+  String get factCopyPromo => 'Kopiuj kod';
+
+  @override
+  String get factTrack => 'Śledź przesyłkę';
+
+  @override
+  String get factOnMap => 'Otwórz na mapie';
 }

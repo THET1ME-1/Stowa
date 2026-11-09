@@ -2403,5 +2403,38 @@ class LUk extends L {
 
   @override
   String get titleDateHint =>
-      'Фото без підпису називається «Фото від 15 липня». День зйомки береться з самого знімка або з назви файлу, а якщо його там немає — день збереження. Назви, які ви дали самі, не змінюються.';
+      'Фото без підпису отримує в назві день. День зйомки береться з самого знімка або з назви файлу, а якщо його там немає — день збереження. Назви, які ви дали самі, не змінюються.';
+
+  @override
+  String get factPassword => 'Пароль ••••••';
+
+  @override
+  String factPasswordFor(String network) {
+    return 'Wi-Fi «$network» ••••••';
+  }
+
+  @override
+  String get factCopyPassword => 'Скопіювати пароль';
+
+  @override
+  String factCard(String last) {
+    return 'Картка ••$last';
+  }
+
+  @override
+  String get factCopyCard => 'Скопіювати номер картки';
+
+  @override
+  String factPromo(String code) {
+    return 'Промокод $code';
+  }
+
+  @override
+  String get factCopyPromo => 'Скопіювати промокод';
+
+  @override
+  String get factTrack => 'Відстежити посилку';
+
+  @override
+  String get factOnMap => 'Відкрити на мапі';
 }

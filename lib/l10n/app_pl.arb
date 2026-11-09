@@ -386,5 +386,14 @@
   "titleDateSetting": "Nazwy zdjęć i filmów",
   "titleDateShot": "Według daty zrobienia",
   "titleDateSaved": "Według daty zapisania",
-  "titleDateHint": "Zdjęcie bez podpisu dostaje w nazwie dzień. Datę zrobienia bierzemy z samego zdjęcia albo z nazwy pliku, a jeśli jej tam nie ma — datę zapisania. Nazwy nadane przez Ciebie się nie zmieniają."
+  "titleDateHint": "Zdjęcie bez podpisu dostaje w nazwie dzień. Datę zrobienia bierzemy z samego zdjęcia albo z nazwy pliku, a jeśli jej tam nie ma — datę zapisania. Nazwy nadane przez Ciebie się nie zmieniają.",
+  "factPassword": "Hasło ••••••",
+  "factPasswordFor": "Wi-Fi „{network}” ••••••",
+  "factCopyPassword": "Kopiuj hasło",
+  "factCard": "Karta ••{last}",
+  "factCopyCard": "Kopiuj numer karty",
+  "factPromo": "Kod {code}",
+  "factCopyPromo": "Kopiuj kod",
+  "factTrack": "Śledź przesyłkę",
+  "factOnMap": "Otwórz na mapie"
 }
