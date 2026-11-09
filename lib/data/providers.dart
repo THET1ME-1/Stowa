@@ -50,6 +50,7 @@ import 'repositories/items_repository.dart';
 import 'repositories/places_repository.dart';
 import 'repositories/return_repository.dart';
 import 'repositories/rules_repository.dart';
+import 'repositories/smart_folders_repository.dart';
 import 'repositories/tags_repository.dart';
 import 'repositories/trash_repository.dart';
 import 'settings_repository.dart';
@@ -313,6 +314,16 @@ final placeStampProvider = Provider<Future<void> Function(String itemId)>((ref) 
 
 /// Вещи с местом: точки карты.
 final placedItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchPlaced());
+
+final smartFoldersRepositoryProvider = Provider((ref) => SmartFoldersRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
+
+/// Умные папки по порядку: пилюли на главной после обычных.
+final smartFoldersProvider = StreamProvider((ref) => ref.watch(smartFoldersRepositoryProvider).watchAll());
+
+/// Найденное по запросу умной папки на сегодня; пересчитывается, когда меняются заметки.
+final smartResultsProvider = StreamProvider.family<SearchFound, String>(
+  (ref, query) => ref.watch(itemsRepositoryProvider).watchSearch(query, ref.watch(clockProvider)),
+);
 
 /// Деньги в заметках папки и вложенных по валютам: строка «Всего …» на экране папки.
 final folderTotalProvider = StreamProvider.family<List<(double, String)>, String>((ref, folderId) => ref.watch(itemsRepositoryProvider).watchFolderTotal(folderId));

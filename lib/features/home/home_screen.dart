@@ -19,6 +19,7 @@ import '../catalog/catalog_screen.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
+import '../smart/smart_folder_screen.dart';
 import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
@@ -303,6 +304,7 @@ class _Feed extends ConsumerWidget {
     final upcoming = ref.watch(upcomingProvider).value ?? const [];
     final recent = ref.watch(recentItemsProvider).value ?? const [];
     final folders = ref.watch(foldersProvider).value ?? const [];
+    final smart = ref.watch(smartFoldersProvider).value ?? const [];
     final items = ref.read(itemsRepositoryProvider);
     final bottom = MediaQuery.paddingOf(context).bottom;
 
@@ -357,7 +359,7 @@ class _Feed extends ConsumerWidget {
             ),
           ),
         // папки первыми: куда что лежит, видно сразу при открытии
-        if (folders.isNotEmpty || recent.any((card) => card.folderId == null))
+        if (folders.isNotEmpty || smart.isNotEmpty || recent.any((card) => card.folderId == null))
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 6, bottom: 16),
@@ -365,6 +367,8 @@ class _Feed extends ConsumerWidget {
                 // только верхние: вложенные видны внутри своей папки
                 folders: [for (final folder in folders) if (folder.parentId == null) folder],
                 onOpen: (folder) => Navigator.of(context).push(folderRoute(folder.id)),
+                smart: smart,
+                onSmart: (one) => Navigator.of(context).push(smartFolderRoute(one.id)),
                 // всё, что ещё не разложено, одной лентой
                 onInbox: recent.any((card) => card.folderId == null) ? () => Navigator.of(context).push(folderRoute(null)) : null,
               ),

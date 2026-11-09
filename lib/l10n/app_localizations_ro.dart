@@ -2430,4 +2430,23 @@ class LRo extends L {
   String folderTotal(String sum) {
     return 'Total $sum';
   }
+
+  @override
+  String get smartSave => 'Dosar inteligent';
+
+  @override
+  String smartSaved(String name) {
+    return 'Dosarul inteligent „$name” e pe ecranul principal';
+  }
+
+  @override
+  String get smartEmpty => 'Încă nimic nu se potrivește';
+
+  @override
+  String get smartDelete => 'Șterge dosarul inteligent';
+
+  @override
+  String smartDeleted(String name) {
+    return 'Dosarul „$name” a fost șters, notițele au rămas';
+  }
 }

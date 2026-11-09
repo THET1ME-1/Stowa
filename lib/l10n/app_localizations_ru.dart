@@ -2459,4 +2459,23 @@ class LRu extends L {
   String folderTotal(String sum) {
     return 'Всего $sum';
   }
+
+  @override
+  String get smartSave => 'Умная папка';
+
+  @override
+  String smartSaved(String name) {
+    return 'Умная папка «$name» — на главной';
+  }
+
+  @override
+  String get smartEmpty => 'Пока ничего не подходит под этот запрос';
+
+  @override
+  String get smartDelete => 'Удалить умную папку';
+
+  @override
+  String smartDeleted(String name) {
+    return 'Умная папка «$name» удалена, заметки на месте';
+  }
 }

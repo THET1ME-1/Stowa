@@ -648,5 +648,10 @@
   "toChecklist": "Списком покупок",
   "toChecklistHint": "Сделать пункты галочками",
   "toChecklistDone": "Список покупок готов",
-  "folderTotal": "Всего {sum}"
+  "folderTotal": "Всего {sum}",
+  "smartSave": "Умная папка",
+  "smartSaved": "Умная папка «{name}» — на главной",
+  "smartEmpty": "Пока ничего не подходит под этот запрос",
+  "smartDelete": "Удалить умную папку",
+  "smartDeleted": "Умная папка «{name}» удалена, заметки на месте"
 }

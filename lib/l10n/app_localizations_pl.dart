@@ -2454,4 +2454,23 @@ class LPl extends L {
   String folderTotal(String sum) {
     return 'Razem $sum';
   }
+
+  @override
+  String get smartSave => 'Inteligentny folder';
+
+  @override
+  String smartSaved(String name) {
+    return 'Inteligentny folder „$name” jest na ekranie głównym';
+  }
+
+  @override
+  String get smartEmpty => 'Na razie nic nie pasuje do tego wyszukiwania';
+
+  @override
+  String get smartDelete => 'Usuń inteligentny folder';
+
+  @override
+  String smartDeleted(String name) {
+    return 'Usunięto folder „$name”, notatki zostały';
+  }
 }

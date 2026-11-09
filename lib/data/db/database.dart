@@ -35,6 +35,7 @@ const _vaultItemColumns =
 // всё, что пишется в .stowa/*.json: таблица → цель очереди
 const _vaultMetaTables = {
   'folders': 'meta:folders',
+  'smart_folders': 'meta:folders',
   'tags': 'meta:tags',
   'rules': 'meta:rules',
   'links': 'meta:links',
@@ -76,6 +77,8 @@ String _vaultEnqueue(String target) => 'INSERT INTO vault_queue (target) VALUES 
     Places,
     Highlights,
     NoteVersions,
+    SmartFolders,
+    RuleHits,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -87,7 +90,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -148,8 +151,9 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(vaultQueue);
         await migrator.createTable(vaultFiles);
         await migrator.createTable(vaultFlags);
-        // триггеры очереди ставятся и на цитаты (v10): таблица нужна до них
+        // триггеры очереди ставятся и на цитаты (v10) и умные папки (v13): таблицы нужны до них
         await migrator.createTable(highlights);
+        await migrator.createTable(smartFolders);
         await _createVaultTriggers();
         await enqueueWholeVault();
       }
@@ -181,6 +185,19 @@ class AppDatabase extends _$AppDatabase {
       }
       // 12: триггеры истории последними: они пишут в очередь хранилища
       if (from < 12) await _createHistory();
+      // 13: умные папки и учёт правил по фактам; у базы с очередью — триггеры умных папок
+      if (from < 13) {
+        await migrator.createTable(ruleHits);
+        // базе младше 7 таблицу и её триггеры уже поставил переход на очередь хранилища
+        if (from >= 7) {
+          await migrator.createTable(smartFolders);
+          for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+            await customStatement(
+              "CREATE TRIGGER vault_smart_folders_${event.toLowerCase()}_meta AFTER $event ON smart_folders WHEN $_notImporting BEGIN ${_vaultEnqueue("'meta:folders'")} END",
+            );
+          }
+        }
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

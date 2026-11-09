@@ -400,5 +400,10 @@
   "toChecklist": "Ca listă de cumpărături",
   "toChecklistHint": "Transformă în bife",
   "toChecklistDone": "Lista de cumpărături e gata",
-  "folderTotal": "Total {sum}"
+  "folderTotal": "Total {sum}",
+  "smartSave": "Dosar inteligent",
+  "smartSaved": "Dosarul inteligent „{name}” e pe ecranul principal",
+  "smartEmpty": "Încă nimic nu se potrivește",
+  "smartDelete": "Șterge dosarul inteligent",
+  "smartDeleted": "Dosarul „{name}” a fost șters, notițele au rămas"
 }

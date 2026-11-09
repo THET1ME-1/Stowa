@@ -3080,5 +3080,35 @@
         "type": "String"
       }
     }
+  },
+  "smartSave": "Smart folder",
+  "@smartSave": {
+    "description": "Кнопка у «Ищу: …»: сохранить запрос умной папкой на главной"
+  },
+  "smartSaved": "Smart folder “{name}” is on the home screen",
+  "@smartSaved": {
+    "description": "smartSaved",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "smartEmpty": "Nothing matches this search yet",
+  "@smartEmpty": {
+    "description": "smartEmpty"
+  },
+  "smartDelete": "Delete smart folder",
+  "@smartDelete": {
+    "description": "smartDelete"
+  },
+  "smartDeleted": "Smart folder “{name}” deleted, notes are untouched",
+  "@smartDeleted": {
+    "description": "smartDeleted",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

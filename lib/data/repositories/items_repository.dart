@@ -627,6 +627,20 @@ WHERE items.deleted_at IS NULL''';
     return SearchFound(await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit), query);
   }
 
+  /// Поиск умной папки: запрос разбирается заново на сегодня при каждой правке заметок,
+  /// их фактов и папок. Поток смотрит на счётчики, которые меняет любая правка.
+  Stream<SearchFound> watchSearch(String text, DateTime Function() clock) => _db
+      .customSelect(
+        'SELECT (SELECT count(*) FROM items WHERE deleted_at IS NULL) AS alive, (SELECT max(updated_at) FROM items) AS edited, '
+        '(SELECT count(*) FROM facts) AS facts, (SELECT group_concat(folder_id) FROM items) AS placed',
+        readsFrom: {_db.items, _db.facts, _db.folders},
+      )
+      .watch()
+      .asyncMap((_) {
+        final now = clock();
+        return search(query: parseSearch(text, now), now: now, limit: 500);
+      });
+
   // «потратил на ремонт»: слово с именем папки становится папкой (с вложенными), итог — по всем
   // подходящим заметкам, а не по тем, что влезли в панель. Без папки итог только у голого «потратил»
   Future<SearchFound> _searchSpent(SearchQuery query, {required List<String> tags, String? folderId, required DateTime now, (double, double)? here, required int limit}) async {

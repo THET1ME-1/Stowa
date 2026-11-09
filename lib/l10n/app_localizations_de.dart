@@ -2414,4 +2414,23 @@ class LDe extends L {
   String folderTotal(String sum) {
     return 'Gesamt $sum';
   }
+
+  @override
+  String get smartSave => 'Intelligenter Ordner';
+
+  @override
+  String smartSaved(String name) {
+    return 'Intelligenter Ordner „$name“ ist auf dem Startbildschirm';
+  }
+
+  @override
+  String get smartEmpty => 'Noch passt nichts zu dieser Suche';
+
+  @override
+  String get smartDelete => 'Intelligenten Ordner löschen';
+
+  @override
+  String smartDeleted(String name) {
+    return 'Ordner „$name“ gelöscht, Notizen bleiben';
+  }
 }

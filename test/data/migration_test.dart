@@ -243,6 +243,29 @@ void main() {
     expect((await upgraded.select(upgraded.noteVersions).getSingle()).body, 'Плитка\n20×20');
   });
 
+  test('v12 → v13: умные папки идут в .stowa/folders.json, учёт правил по фактам на месте', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 9);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Плитка', createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropSmart(raw);
+    raw.execute('PRAGMA user_version = 12');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await upgraded.into(upgraded.smartFolders).insert(SmartFoldersCompanion.insert(id: 's', name: 'Скрины за неделю', query: 'скрины за неделю', createdAt: now));
+    expect({for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target}, {'meta:folders'});
+    await upgraded.into(upgraded.ruleHits).insert(RuleHitsCompanion.insert(itemId: 'a', ruleId: 'r'));
+    expect(await upgraded.select(upgraded.ruleHits).get(), hasLength(1));
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -269,8 +292,18 @@ void main() {
 
 // версия 10: статьи — цитаты, жива ли ссылка, где остановился читать
 // версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
+// версия 13: умные папки и учёт правил по фактам
+void _dropSmart(Database raw) {
+  for (final event in ['insert', 'update', 'delete']) {
+    raw.execute('DROP TRIGGER IF EXISTS vault_smart_folders_${event}_meta');
+  }
+  raw.execute('DROP TABLE IF EXISTS smart_folders');
+  raw.execute('DROP TABLE IF EXISTS rule_hits');
+}
+
 // версия 12: история правок
 void _dropHistory(Database raw) {
+  _dropSmart(raw);
   for (final trigger in ['items_history', 'items_history_purge', 'vault_note_versions_insert', 'vault_note_versions_delete']) {
     raw.execute('DROP TRIGGER IF EXISTS $trigger');
   }

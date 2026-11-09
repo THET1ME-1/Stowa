@@ -10107,6 +10107,663 @@ class NoteVersionsCompanion extends UpdateCompanion<NoteVersion> {
   }
 }
 
+class $SmartFoldersTable extends SmartFolders
+    with TableInfo<$SmartFoldersTable, SmartFolder> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SmartFoldersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _queryMeta = const VerificationMeta('query');
+  @override
+  late final GeneratedColumn<String> query = GeneratedColumn<String>(
+    'query',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('manage_search'),
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    query,
+    icon,
+    color,
+    sortOrder,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'smart_folders';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SmartFolder> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('query')) {
+      context.handle(
+        _queryMeta,
+        query.isAcceptableOrUnknown(data['query']!, _queryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_queryMeta);
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SmartFolder map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SmartFolder(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      query: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}query'],
+      )!,
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SmartFoldersTable createAlias(String alias) {
+    return $SmartFoldersTable(attachedDatabase, alias);
+  }
+}
+
+class SmartFolder extends DataClass implements Insertable<SmartFolder> {
+  final String id;
+  final String name;
+  final String query;
+
+  /// Имя иконки Material Symbols.
+  final String icon;
+
+  /// Цвет из FolderPalette; без выбора — по месту в списке.
+  final String? color;
+  final int sortOrder;
+  final DateTime createdAt;
+  const SmartFolder({
+    required this.id,
+    required this.name,
+    required this.query,
+    required this.icon,
+    this.color,
+    required this.sortOrder,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['query'] = Variable<String>(query);
+    map['icon'] = Variable<String>(icon);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SmartFoldersCompanion toCompanion(bool nullToAbsent) {
+    return SmartFoldersCompanion(
+      id: Value(id),
+      name: Value(name),
+      query: Value(query),
+      icon: Value(icon),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SmartFolder.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SmartFolder(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      query: serializer.fromJson<String>(json['query']),
+      icon: serializer.fromJson<String>(json['icon']),
+      color: serializer.fromJson<String?>(json['color']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'query': serializer.toJson<String>(query),
+      'icon': serializer.toJson<String>(icon),
+      'color': serializer.toJson<String?>(color),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SmartFolder copyWith({
+    String? id,
+    String? name,
+    String? query,
+    String? icon,
+    Value<String?> color = const Value.absent(),
+    int? sortOrder,
+    DateTime? createdAt,
+  }) => SmartFolder(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    query: query ?? this.query,
+    icon: icon ?? this.icon,
+    color: color.present ? color.value : this.color,
+    sortOrder: sortOrder ?? this.sortOrder,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SmartFolder copyWithCompanion(SmartFoldersCompanion data) {
+    return SmartFolder(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      query: data.query.present ? data.query.value : this.query,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      color: data.color.present ? data.color.value : this.color,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartFolder(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('query: $query, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, query, icon, color, sortOrder, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SmartFolder &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.query == this.query &&
+          other.icon == this.icon &&
+          other.color == this.color &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class SmartFoldersCompanion extends UpdateCompanion<SmartFolder> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> query;
+  final Value<String> icon;
+  final Value<String?> color;
+  final Value<int> sortOrder;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SmartFoldersCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.query = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.color = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SmartFoldersCompanion.insert({
+    required String id,
+    required String name,
+    required String query,
+    this.icon = const Value.absent(),
+    this.color = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       query = Value(query),
+       createdAt = Value(createdAt);
+  static Insertable<SmartFolder> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? query,
+    Expression<String>? icon,
+    Expression<String>? color,
+    Expression<int>? sortOrder,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (query != null) 'query': query,
+      if (icon != null) 'icon': icon,
+      if (color != null) 'color': color,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SmartFoldersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? query,
+    Value<String>? icon,
+    Value<String?>? color,
+    Value<int>? sortOrder,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SmartFoldersCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      query: query ?? this.query,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (query.present) {
+      map['query'] = Variable<String>(query.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartFoldersCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('query: $query, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RuleHitsTable extends RuleHits with TableInfo<$RuleHitsTable, RuleHit> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RuleHitsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ruleIdMeta = const VerificationMeta('ruleId');
+  @override
+  late final GeneratedColumn<String> ruleId = GeneratedColumn<String>(
+    'rule_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [itemId, ruleId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'rule_hits';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RuleHit> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('rule_id')) {
+      context.handle(
+        _ruleIdMeta,
+        ruleId.isAcceptableOrUnknown(data['rule_id']!, _ruleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ruleIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {itemId, ruleId};
+  @override
+  RuleHit map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RuleHit(
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      ruleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rule_id'],
+      )!,
+    );
+  }
+
+  @override
+  $RuleHitsTable createAlias(String alias) {
+    return $RuleHitsTable(attachedDatabase, alias);
+  }
+}
+
+class RuleHit extends DataClass implements Insertable<RuleHit> {
+  final String itemId;
+  final String ruleId;
+  const RuleHit({required this.itemId, required this.ruleId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['item_id'] = Variable<String>(itemId);
+    map['rule_id'] = Variable<String>(ruleId);
+    return map;
+  }
+
+  RuleHitsCompanion toCompanion(bool nullToAbsent) {
+    return RuleHitsCompanion(itemId: Value(itemId), ruleId: Value(ruleId));
+  }
+
+  factory RuleHit.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RuleHit(
+      itemId: serializer.fromJson<String>(json['itemId']),
+      ruleId: serializer.fromJson<String>(json['ruleId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'itemId': serializer.toJson<String>(itemId),
+      'ruleId': serializer.toJson<String>(ruleId),
+    };
+  }
+
+  RuleHit copyWith({String? itemId, String? ruleId}) =>
+      RuleHit(itemId: itemId ?? this.itemId, ruleId: ruleId ?? this.ruleId);
+  RuleHit copyWithCompanion(RuleHitsCompanion data) {
+    return RuleHit(
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      ruleId: data.ruleId.present ? data.ruleId.value : this.ruleId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RuleHit(')
+          ..write('itemId: $itemId, ')
+          ..write('ruleId: $ruleId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(itemId, ruleId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RuleHit &&
+          other.itemId == this.itemId &&
+          other.ruleId == this.ruleId);
+}
+
+class RuleHitsCompanion extends UpdateCompanion<RuleHit> {
+  final Value<String> itemId;
+  final Value<String> ruleId;
+  final Value<int> rowid;
+  const RuleHitsCompanion({
+    this.itemId = const Value.absent(),
+    this.ruleId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RuleHitsCompanion.insert({
+    required String itemId,
+    required String ruleId,
+    this.rowid = const Value.absent(),
+  }) : itemId = Value(itemId),
+       ruleId = Value(ruleId);
+  static Insertable<RuleHit> custom({
+    Expression<String>? itemId,
+    Expression<String>? ruleId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (itemId != null) 'item_id': itemId,
+      if (ruleId != null) 'rule_id': ruleId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RuleHitsCompanion copyWith({
+    Value<String>? itemId,
+    Value<String>? ruleId,
+    Value<int>? rowid,
+  }) {
+    return RuleHitsCompanion(
+      itemId: itemId ?? this.itemId,
+      ruleId: ruleId ?? this.ruleId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (ruleId.present) {
+      map['rule_id'] = Variable<String>(ruleId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RuleHitsCompanion(')
+          ..write('itemId: $itemId, ')
+          ..write('ruleId: $ruleId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10133,6 +10790,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PlacesTable places = $PlacesTable(this);
   late final $HighlightsTable highlights = $HighlightsTable(this);
   late final $NoteVersionsTable noteVersions = $NoteVersionsTable(this);
+  late final $SmartFoldersTable smartFolders = $SmartFoldersTable(this);
+  late final $RuleHitsTable ruleHits = $RuleHitsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10159,6 +10818,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     places,
     highlights,
     noteVersions,
+    smartFolders,
+    ruleHits,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -15417,6 +16078,392 @@ typedef $$NoteVersionsTableProcessedTableManager =
       NoteVersion,
       PrefetchHooks Function()
     >;
+typedef $$SmartFoldersTableCreateCompanionBuilder =
+    SmartFoldersCompanion Function({
+      required String id,
+      required String name,
+      required String query,
+      Value<String> icon,
+      Value<String?> color,
+      Value<int> sortOrder,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$SmartFoldersTableUpdateCompanionBuilder =
+    SmartFoldersCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> query,
+      Value<String> icon,
+      Value<String?> color,
+      Value<int> sortOrder,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$SmartFoldersTableFilterComposer
+    extends Composer<_$AppDatabase, $SmartFoldersTable> {
+  $$SmartFoldersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get query => $composableBuilder(
+    column: $table.query,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SmartFoldersTableOrderingComposer
+    extends Composer<_$AppDatabase, $SmartFoldersTable> {
+  $$SmartFoldersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get query => $composableBuilder(
+    column: $table.query,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SmartFoldersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SmartFoldersTable> {
+  $$SmartFoldersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get query =>
+      $composableBuilder(column: $table.query, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$SmartFoldersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SmartFoldersTable,
+          SmartFolder,
+          $$SmartFoldersTableFilterComposer,
+          $$SmartFoldersTableOrderingComposer,
+          $$SmartFoldersTableAnnotationComposer,
+          $$SmartFoldersTableCreateCompanionBuilder,
+          $$SmartFoldersTableUpdateCompanionBuilder,
+          (
+            SmartFolder,
+            BaseReferences<_$AppDatabase, $SmartFoldersTable, SmartFolder>,
+          ),
+          SmartFolder,
+          PrefetchHooks Function()
+        > {
+  $$SmartFoldersTableTableManager(_$AppDatabase db, $SmartFoldersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SmartFoldersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SmartFoldersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SmartFoldersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> query = const Value.absent(),
+                Value<String> icon = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SmartFoldersCompanion(
+                id: id,
+                name: name,
+                query: query,
+                icon: icon,
+                color: color,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String query,
+                Value<String> icon = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SmartFoldersCompanion.insert(
+                id: id,
+                name: name,
+                query: query,
+                icon: icon,
+                color: color,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SmartFoldersTable, SmartFolder>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SmartFoldersTable,
+                    SmartFolder
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SmartFoldersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SmartFoldersTable,
+      SmartFolder,
+      $$SmartFoldersTableFilterComposer,
+      $$SmartFoldersTableOrderingComposer,
+      $$SmartFoldersTableAnnotationComposer,
+      $$SmartFoldersTableCreateCompanionBuilder,
+      $$SmartFoldersTableUpdateCompanionBuilder,
+      (
+        SmartFolder,
+        BaseReferences<_$AppDatabase, $SmartFoldersTable, SmartFolder>,
+      ),
+      SmartFolder,
+      PrefetchHooks Function()
+    >;
+typedef $$RuleHitsTableCreateCompanionBuilder = RuleHitsCompanion Function({
+  required String itemId,
+  required String ruleId,
+  Value<int> rowid,
+});
+typedef $$RuleHitsTableUpdateCompanionBuilder = RuleHitsCompanion Function({
+  Value<String> itemId,
+  Value<String> ruleId,
+  Value<int> rowid,
+});
+
+class $$RuleHitsTableFilterComposer
+    extends Composer<_$AppDatabase, $RuleHitsTable> {
+  $$RuleHitsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ruleId => $composableBuilder(
+    column: $table.ruleId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RuleHitsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RuleHitsTable> {
+  $$RuleHitsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ruleId => $composableBuilder(
+    column: $table.ruleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RuleHitsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RuleHitsTable> {
+  $$RuleHitsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get ruleId =>
+      $composableBuilder(column: $table.ruleId, builder: (column) => column);
+}
+
+class $$RuleHitsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RuleHitsTable,
+          RuleHit,
+          $$RuleHitsTableFilterComposer,
+          $$RuleHitsTableOrderingComposer,
+          $$RuleHitsTableAnnotationComposer,
+          $$RuleHitsTableCreateCompanionBuilder,
+          $$RuleHitsTableUpdateCompanionBuilder,
+          (RuleHit, BaseReferences<_$AppDatabase, $RuleHitsTable, RuleHit>),
+          RuleHit,
+          PrefetchHooks Function()
+        > {
+  $$RuleHitsTableTableManager(_$AppDatabase db, $RuleHitsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RuleHitsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RuleHitsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RuleHitsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> itemId = const Value.absent(),
+            Value<String> ruleId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => RuleHitsCompanion(itemId: itemId, ruleId: ruleId, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required String itemId,
+                required String ruleId,
+                Value<int> rowid = const Value.absent(),
+              }) => RuleHitsCompanion.insert(
+                itemId: itemId,
+                ruleId: ruleId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RuleHitsTable, RuleHit>(table),
+                  BaseReferences<_$AppDatabase, $RuleHitsTable, RuleHit>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RuleHitsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RuleHitsTable,
+      RuleHit,
+      $$RuleHitsTableFilterComposer,
+      $$RuleHitsTableOrderingComposer,
+      $$RuleHitsTableAnnotationComposer,
+      $$RuleHitsTableCreateCompanionBuilder,
+      $$RuleHitsTableUpdateCompanionBuilder,
+      (RuleHit, BaseReferences<_$AppDatabase, $RuleHitsTable, RuleHit>),
+      RuleHit,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -15462,4 +16509,8 @@ class $AppDatabaseManager {
       $$HighlightsTableTableManager(_db, _db.highlights);
   $$NoteVersionsTableTableManager get noteVersions =>
       $$NoteVersionsTableTableManager(_db, _db.noteVersions);
+  $$SmartFoldersTableTableManager get smartFolders =>
+      $$SmartFoldersTableTableManager(_db, _db.smartFolders);
+  $$RuleHitsTableTableManager get ruleHits =>
+      $$RuleHitsTableTableManager(_db, _db.ruleHits);
 }

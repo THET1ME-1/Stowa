@@ -400,5 +400,10 @@
   "toChecklist": "Jako lista zakupów",
   "toChecklistHint": "Zamień na pola wyboru",
   "toChecklistDone": "Lista zakupów gotowa",
-  "folderTotal": "Razem {sum}"
+  "folderTotal": "Razem {sum}",
+  "smartSave": "Inteligentny folder",
+  "smartSaved": "Inteligentny folder „{name}” jest na ekranie głównym",
+  "smartEmpty": "Na razie nic nie pasuje do tego wyszukiwania",
+  "smartDelete": "Usuń inteligentny folder",
+  "smartDeleted": "Usunięto folder „{name}”, notatki zostały"
 }

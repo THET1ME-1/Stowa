@@ -10,7 +10,7 @@ import '../../data/db/database.dart';
 
 /// Какие таблицы лежат в каком файле `.stowa/<имя>.json`.
 const vaultMetaTables = {
-  'folders': ['folders'],
+  'folders': ['folders', 'smart_folders'],
   'tags': ['tags'],
   'rules': ['rules'],
   'links': ['links'],

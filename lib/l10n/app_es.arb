@@ -400,5 +400,10 @@
   "toChecklist": "Como lista de la compra",
   "toChecklistHint": "Convertir en casillas",
   "toChecklistDone": "Lista de la compra lista",
-  "folderTotal": "Total {sum}"
+  "folderTotal": "Total {sum}",
+  "smartSave": "Carpeta inteligente",
+  "smartSaved": "Carpeta inteligente «{name}» en la pantalla principal",
+  "smartEmpty": "Todavía nada coincide con esta búsqueda",
+  "smartDelete": "Eliminar carpeta inteligente",
+  "smartDeleted": "Carpeta «{name}» eliminada, las notas siguen"
 }

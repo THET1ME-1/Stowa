@@ -2454,4 +2454,23 @@ class LUk extends L {
   String folderTotal(String sum) {
     return 'Усього $sum';
   }
+
+  @override
+  String get smartSave => 'Розумна тека';
+
+  @override
+  String smartSaved(String name) {
+    return 'Розумна тека «$name» — на головній';
+  }
+
+  @override
+  String get smartEmpty => 'Поки нічого не підходить під цей запит';
+
+  @override
+  String get smartDelete => 'Видалити розумну теку';
+
+  @override
+  String smartDeleted(String name) {
+    return 'Розумну теку «$name» видалено, нотатки на місці';
+  }
 }

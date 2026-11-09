@@ -5,6 +5,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
+import '../../data/db/database.dart' show SmartFolder;
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -16,10 +17,14 @@ const _height = 38.0;
 
 /// Папки на главной цветными пилюлями. Переносятся на новую строку, вбок не листаются.
 class FolderShelf extends StatefulWidget {
-  const FolderShelf({super.key, required this.folders, required this.onOpen, this.onInbox});
+  const FolderShelf({super.key, required this.folders, required this.onOpen, this.onInbox, this.smart = const [], this.onSmart});
 
   final List<FolderCard> folders;
   final ValueChanged<FolderCard> onOpen;
+
+  /// Умные папки: сохранённые запросы, графитовыми пилюлями со значком поиска после обычных.
+  final List<SmartFolder> smart;
+  final ValueChanged<SmartFolder>? onSmart;
 
   /// Есть неразложенное: в конце серая пилюля «Без папки».
   final VoidCallback? onInbox;
@@ -35,6 +40,8 @@ class _FolderShelfState extends State<FolderShelf> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final folders = widget.folders;
+    final smart = widget.smart;
+    final total = folders.length + smart.length;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Space.screen),
       child: LayoutBuilder(
@@ -46,8 +53,9 @@ class _FolderShelfState extends State<FolderShelf> {
           // сколько папок влезает в две строки, если в конце ещё «Без папки» и «Ещё N»
           // метка «новая» мельче имени: её ширина с запасом по шрифту имени
           double pill(FolderCard folder) => FolderPill.widthFor(width(folder.name), width('${folder.count}')) + (folder.createdByAi ? 6 + 14 + width(l.folderNewBadge) : 0);
-          final fit = _open ? folders.length : _fitting(folders, box.maxWidth, inbox, pill, (hidden) => _PlainPill.widthFor(width(l.homeFoldersMore(hidden))));
-          final folded = fit < folders.length;
+          final pills = [for (final folder in folders) pill(folder), for (final one in smart) _PlainPill.widthFor(width(one.name).clamp(0, FolderPill._nameMax))];
+          final fit = _open ? total : _fitting(pills, box.maxWidth, inbox, (hidden) => _PlainPill.widthFor(width(l.homeFoldersMore(hidden))));
+          final folded = fit < total;
           return AnimatedSize(
             duration: Motion.medium,
             curve: Motion.emphasized,
@@ -57,9 +65,11 @@ class _FolderShelfState extends State<FolderShelf> {
               runSpacing: _gap,
               children: [
                 for (final folder in folders.take(fit)) FolderPill(folder: folder, onTap: () => widget.onOpen(folder)),
+                for (final one in smart.take((fit - folders.length).clamp(0, smart.length)))
+                  _PlainPill(icon: 'manage_search', label: one.name, onTap: () => widget.onSmart?.call(one)),
                 if (widget.onInbox case final onInbox?) _PlainPill(icon: 'inbox', label: l.folderNone, onTap: onInbox),
                 if (folded)
-                  _PlainPill(icon: 'expand_more', label: l.homeFoldersMore(folders.length - fit), onTap: () => setState(() => _open = true))
+                  _PlainPill(icon: 'expand_more', label: l.homeFoldersMore(total - fit), onTap: () => setState(() => _open = true))
                 else if (_open)
                   _PlainPill(icon: 'expand_less', label: l.fullCollapse, onTap: () => setState(() => _open = false)),
               ],
@@ -70,13 +80,14 @@ class _FolderShelfState extends State<FolderShelf> {
     );
   }
 
-  /// Число папок, которые вместе с хвостом («Без папки», «Ещё N») ложатся в [_rows] строк.
-  static int _fitting(List<FolderCard> folders, double max, double inbox, double Function(FolderCard) pill, double Function(int hidden) more) {
+  /// Число пилюль (папки, потом умные), которые вместе с хвостом («Без папки», «Ещё N»)
+  /// ложатся в [_rows] строк. [pills] — их ширины по порядку.
+  static int _fitting(List<double> pills, double max, double inbox, double Function(int hidden) more) {
     bool fits(int count) {
       final widths = [
-        for (final folder in folders.take(count)) pill(folder),
+        ...pills.take(count),
         if (inbox > 0) inbox,
-        if (count < folders.length) more(folders.length - count),
+        if (count < pills.length) more(pills.length - count),
       ];
       var rows = 1;
       var line = 0.0;
@@ -92,8 +103,8 @@ class _FolderShelfState extends State<FolderShelf> {
       return rows <= _rows;
     }
 
-    if (fits(folders.length)) return folders.length;
-    var count = folders.length - 1;
+    if (fits(pills.length)) return pills.length;
+    var count = pills.length - 1;
     // хотя бы одна папка видна всегда, даже на узком экране с крупным шрифтом
     while (count > 1 && !fits(count)) {
       count--;
@@ -177,7 +188,11 @@ class _PlainPill extends StatelessWidget {
           children: [
             Icon(symbolIcon(icon), size: 18, color: Tokens.onSurfaceVariant),
             const SizedBox(width: 6),
-            Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: Tokens.onSurface)),
+            // имя умной папки бывает длинным запросом: обрезается, как имя обычной
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: FolderPill._nameMax),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: Tokens.onSurface)),
+            ),
           ],
         ),
       ),

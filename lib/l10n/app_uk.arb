@@ -400,5 +400,10 @@
   "toChecklist": "Списком покупок",
   "toChecklistHint": "Зробити пункти галочками",
   "toChecklistDone": "Список покупок готовий",
-  "folderTotal": "Усього {sum}"
+  "folderTotal": "Усього {sum}",
+  "smartSave": "Розумна тека",
+  "smartSaved": "Розумна тека «{name}» — на головній",
+  "smartEmpty": "Поки нічого не підходить під цей запит",
+  "smartDelete": "Видалити розумну теку",
+  "smartDeleted": "Розумну теку «{name}» видалено, нотатки на місці"
 }

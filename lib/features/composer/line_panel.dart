@@ -38,7 +38,11 @@ class LinePanel extends StatefulWidget {
     required this.onFilter,
     required this.onTap,
     required this.onAppend,
+    this.onSmartFolder,
   });
+
+  /// Поиск понял фильтр: запрос можно сохранить умной папкой.
+  final VoidCallback? onSmartFolder;
 
   final PanelState state;
   final int selected;
@@ -203,6 +207,7 @@ class _LinePanelState extends State<LinePanel> {
                 padding: const EdgeInsets.only(right: 12),
                 child: Text(looking, style: text.labelMedium!.copyWith(fontSize: 13, color: Tokens.onSurfaceVariant)),
               ),
+            if (looking != null && widget.onSmartFolder != null) _FilterChip(icon: 'add', label: l.smartSave, on: false, onTap: widget.onSmartFolder!),
             if (state.kinds.isNotEmpty) ...[
               _FilterChip(label: l.filterAll, on: widget.filter == null, onTap: () => widget.onFilter(null)),
               for (final kind in state.kinds) _FilterChip(label: kindsLabel(l, kind), on: widget.filter == kind, onTap: () => widget.onFilter(kind)),
@@ -215,11 +220,14 @@ class _LinePanelState extends State<LinePanel> {
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.on, required this.onTap});
+  const _FilterChip({required this.label, required this.on, required this.onTap, this.icon});
 
   final String label;
   final bool on;
   final VoidCallback onTap;
+
+  /// Значок перед подписью: у «+ Умная папка».
+  final String? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +241,13 @@ class _FilterChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           alignment: Alignment.center,
           decoration: BoxDecoration(color: on ? Tokens.accent : Tokens.containerHighest, borderRadius: BorderRadius.circular(15)),
-          child: Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: on ? Tokens.onAccent : Tokens.onSurface)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon case final icon?) ...[Icon(symbolIcon(icon), size: 16, color: on ? Tokens.onAccent : Tokens.onSurface), const SizedBox(width: 4)],
+              Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: on ? Tokens.onAccent : Tokens.onSurface)),
+            ],
+          ),
         ),
       ),
     );

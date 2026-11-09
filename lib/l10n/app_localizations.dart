@@ -4000,6 +4000,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Total {sum}'**
   String folderTotal(String sum);
+
+  /// Кнопка у «Ищу: …»: сохранить запрос умной папкой на главной
+  ///
+  /// In en, this message translates to:
+  /// **'Smart folder'**
+  String get smartSave;
+
+  /// smartSaved
+  ///
+  /// In en, this message translates to:
+  /// **'Smart folder “{name}” is on the home screen'**
+  String smartSaved(String name);
+
+  /// smartEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches this search yet'**
+  String get smartEmpty;
+
+  /// smartDelete
+  ///
+  /// In en, this message translates to:
+  /// **'Delete smart folder'**
+  String get smartDelete;
+
+  /// smartDeleted
+  ///
+  /// In en, this message translates to:
+  /// **'Smart folder “{name}” deleted, notes are untouched'**
+  String smartDeleted(String name);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -2411,4 +2411,23 @@ class LEs extends L {
   String folderTotal(String sum) {
     return 'Total $sum';
   }
+
+  @override
+  String get smartSave => 'Carpeta inteligente';
+
+  @override
+  String smartSaved(String name) {
+    return 'Carpeta inteligente «$name» en la pantalla principal';
+  }
+
+  @override
+  String get smartEmpty => 'Todavía nada coincide con esta búsqueda';
+
+  @override
+  String get smartDelete => 'Eliminar carpeta inteligente';
+
+  @override
+  String smartDeleted(String name) {
+    return 'Carpeta «$name» eliminada, las notas siguen';
+  }
 }

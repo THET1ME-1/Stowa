@@ -2409,4 +2409,23 @@ class LEn extends L {
   String folderTotal(String sum) {
     return 'Total $sum';
   }
+
+  @override
+  String get smartSave => 'Smart folder';
+
+  @override
+  String smartSaved(String name) {
+    return 'Smart folder “$name” is on the home screen';
+  }
+
+  @override
+  String get smartEmpty => 'Nothing matches this search yet';
+
+  @override
+  String get smartDelete => 'Delete smart folder';
+
+  @override
+  String smartDeleted(String name) {
+    return 'Smart folder “$name” deleted, notes are untouched';
+  }
 }

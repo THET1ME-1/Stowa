@@ -26,6 +26,7 @@ import '../../domain/money.dart' show formatTotal;
 import '../../domain/search_query.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
+import '../../core/widgets/undo_snack.dart' show showNote;
 import '../folder/folder_sheets.dart';
 import '../home/saved_toast.dart';
 import '../places/reminder_permissions.dart';
@@ -375,6 +376,18 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _usedSuggestions.add(shot.id);
     setState(() => _shot = null);
     _toggleAsset(shot, _shotThumb);
+  }
+
+  /// Запрос с фильтром — умной папкой на главную: имя по умолчанию сам запрос с заглавной.
+  Future<void> _saveSmart() async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final query = _line.text.trim();
+    if (query.isEmpty) return;
+    final name = await showRenameSheet(context, '${query[0].toUpperCase()}${query.substring(1)}');
+    if (name == null || !mounted) return;
+    await ref.read(smartFoldersRepositoryProvider).create(name: name, query: query);
+    showNote(messenger, l.smartSaved(name.trim()), overDock: true);
   }
 
   // ———————————————— действия
@@ -775,6 +788,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                                             }),
                                             onTap: (index) => _actRow(rows[index]),
                                             onAppend: _append,
+                                            onSmartFolder: _found.query.hasFilters && _found.results.isNotEmpty ? _saveSmart : null,
                                           ),
                                   ),
                           ),

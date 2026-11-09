@@ -86,6 +86,35 @@ class Highlights extends Table {
 
 /// Снимок заметки (v12): заголовок и текст, какими были до правки после перерыва.
 /// Пишет триггер `items_history`, хранятся 50 последних или все за 30 дней.
+/// Умная папка (v13): сохранённый запрос поиска, а не список заметок. Открылась —
+/// запрос разбирается заново на сегодня, поэтому «за неделю» — всегда последняя неделя.
+class SmartFolders extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get query => text()();
+
+  /// Имя иконки Material Symbols.
+  TextColumn get icon => text().withDefault(const Constant('manage_search'))();
+
+  /// Цвет из FolderPalette; без выбора — по месту в списке.
+  TextColumn get color => text().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Правило по фактам уже сработало для заметки (v13): что человек потом поменял руками,
+/// правило не вернёт. Только в базе: после переустановки разбор и так не повторяется.
+class RuleHits extends Table {
+  TextColumn get itemId => text()();
+  TextColumn get ruleId => text()();
+
+  @override
+  Set<Column> get primaryKey => {itemId, ruleId};
+}
+
 class NoteVersions extends Table {
   TextColumn get id => text()();
   TextColumn get itemId => text()();
