@@ -419,5 +419,15 @@
   "suggestScreenshotsName": "Zrzuty ekranu",
   "suggestVideosName": "Filmy",
   "suggestFilesName": "Pliki",
-  "suggestVoicesName": "Notatki głosowe"
+  "suggestVoicesName": "Notatki głosowe",
+  "ruleIfPage": "strona to",
+  "ruleIfPriceAbove": "cena powyżej",
+  "ruleIfPriceBelow": "cena poniżej",
+  "ruleValuePrice": "Kwota, np. 1000",
+  "rulePriceAboveValue": "powyżej {value}",
+  "rulePriceBelowValue": "poniżej {value}",
+  "ruleThenRemind": "przypomnij",
+  "remindHourBefore": "godzinę przed",
+  "remindDayBefore": "dzień przed",
+  "remindWeekBefore": "tydzień przed"
 }

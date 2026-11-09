@@ -667,5 +667,15 @@
   "suggestScreenshotsName": "Скриншоты",
   "suggestVideosName": "Ролики",
   "suggestFilesName": "Файлы",
-  "suggestVoicesName": "Голосовые"
+  "suggestVoicesName": "Голосовые",
+  "ruleIfPage": "это страница",
+  "ruleIfPriceAbove": "цена больше",
+  "ruleIfPriceBelow": "цена меньше",
+  "ruleValuePrice": "Сумма, например 1000",
+  "rulePriceAboveValue": "дороже {value}",
+  "rulePriceBelowValue": "дешевле {value}",
+  "ruleThenRemind": "напомнить",
+  "remindHourBefore": "за час",
+  "remindDayBefore": "за день",
+  "remindWeekBefore": "за неделю"
 }

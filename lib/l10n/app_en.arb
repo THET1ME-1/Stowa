@@ -3212,5 +3212,55 @@
   "suggestVoicesName": "Voice notes",
   "@suggestVoicesName": {
     "description": "suggestVoicesName"
+  },
+  "ruleIfPage": "page is a",
+  "@ruleIfPage": {
+    "description": "Условие правила после «Если»: вид страницы ссылки — рецепт, товар, событие"
+  },
+  "ruleIfPriceAbove": "price over",
+  "@ruleIfPriceAbove": {
+    "description": "ruleIfPriceAbove"
+  },
+  "ruleIfPriceBelow": "price under",
+  "@ruleIfPriceBelow": {
+    "description": "ruleIfPriceBelow"
+  },
+  "ruleValuePrice": "Amount, e.g. 1000",
+  "@ruleValuePrice": {
+    "description": "ruleValuePrice"
+  },
+  "rulePriceAboveValue": "over {value}",
+  "@rulePriceAboveValue": {
+    "description": "rulePriceAboveValue",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "rulePriceBelowValue": "under {value}",
+  "@rulePriceBelowValue": {
+    "description": "rulePriceBelowValue",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleThenRemind": "remind",
+  "@ruleThenRemind": {
+    "description": "ruleThenRemind"
+  },
+  "remindHourBefore": "an hour before",
+  "@remindHourBefore": {
+    "description": "remindHourBefore"
+  },
+  "remindDayBefore": "a day before",
+  "@remindDayBefore": {
+    "description": "remindDayBefore"
+  },
+  "remindWeekBefore": "a week before",
+  "@remindWeekBefore": {
+    "description": "remindWeekBefore"
   }
 }

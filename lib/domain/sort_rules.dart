@@ -32,6 +32,8 @@ bool _matches(SortRule rule, {required List<String> words, required List<String>
     RuleConditionKind.domain => host != null && (host == value || host.endsWith('.$value')),
     RuleConditionKind.keyword => words.any((word) => word.startsWith(stem(normalizeQuery(value)))),
     RuleConditionKind.kind => kind.name == value,
+    // фактов при сохранении ещё нет: такие правила применяет FactRules после разбора
+    RuleConditionKind.pageType || RuleConditionKind.priceAbove || RuleConditionKind.priceBelow => false,
   };
 }
 

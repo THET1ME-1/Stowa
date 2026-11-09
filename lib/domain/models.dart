@@ -15,9 +15,14 @@ enum FolderView { auto, board, canvas, list }
 
 enum TagIconKind { symbol, emoji, image }
 
-enum RuleConditionKind { hasTag, domain, keyword, kind }
+/// pageType, priceAbove, priceBelow — условия по фактам: срабатывают после разбора, а не при сохранении.
+enum RuleConditionKind { hasTag, domain, keyword, kind, pageType, priceAbove, priceBelow }
 
-enum RuleActionKind { toFolder, addTag }
+/// remindBefore — напоминание за столько минут до начала события.
+enum RuleActionKind { toFolder, addTag, remindBefore }
+
+/// Условие правила смотрит на факты, которые появляются после разбора.
+bool isFactCondition(RuleConditionKind kind) => kind == RuleConditionKind.pageType || kind == RuleConditionKind.priceAbove || kind == RuleConditionKind.priceBelow;
 
 /// Откуда у вещи тег.
 /// similar — алгоритм на телефоне поставил тег, который есть у похожих вещей.

@@ -17,6 +17,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
+import '../../domain/structured_page.dart' show PageType;
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
@@ -356,11 +357,15 @@ class _RuleCard extends StatelessWidget {
       RuleConditionKind.keyword => iconLabel('text_fields', '«${rule.conditionValue}»'),
       RuleConditionKind.kind => iconLabel(kindIcon(ItemKind.values.asNameMap()[rule.conditionValue] ?? ItemKind.note),
           kindsLabel(l, ItemKind.values.asNameMap()[rule.conditionValue] ?? ItemKind.note)),
+      RuleConditionKind.pageType => iconLabel('article', pageTypeName(l, PageType.values.asNameMap()[rule.conditionValue])),
+      RuleConditionKind.priceAbove => iconLabel('payments', l.rulePriceAboveValue(rule.conditionValue)),
+      RuleConditionKind.priceBelow => iconLabel('payments', l.rulePriceBelowValue(rule.conditionValue)),
     };
     final folder = folders.where((one) => one.id == rule.actionValue).firstOrNull;
     final action = switch (rule.actionKind) {
       RuleActionKind.addTag => tagPill(rule.actionValue),
       RuleActionKind.toFolder => folder == null ? iconLabel('block', l.ruleStays, color: Tokens.muted) : iconLabel(folder.icon, folder.name),
+      RuleActionKind.remindBefore => iconLabel('alarm', remindBeforeLabel(l, int.tryParse(rule.actionValue) ?? 1440)),
     };
     return Pressable(
       onTap: onTap,

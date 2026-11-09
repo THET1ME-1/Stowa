@@ -24,6 +24,7 @@ import '../services/auto_sorter.dart';
 import '../services/backup_service.dart';
 import '../services/background.dart';
 import '../services/capture_service.dart';
+import '../services/fact_rules.dart';
 import '../services/facts/extractors.dart';
 import '../services/facts/facts_pipeline.dart';
 import '../services/facts/video_extractor.dart';
@@ -203,11 +204,14 @@ final mediaProbeProvider = Provider<MediaProbe>((ref) => const ChannelMediaProbe
 /// Один на окно и зависит только от неизменного, как хранитель файлов.
 final factsPipelineProvider = Provider((ref) {
   final fetch = ref.watch(linkFetchProvider);
+  final rules = FactRules(ref.watch(databaseProvider), clock: ref.watch(clockProvider));
   return FactsPipeline(
     ref.watch(databaseProvider),
     filesRoot: ref.watch(filesRootProvider),
     clock: ref.watch(clockProvider),
     online: () async => ref.read(onlineProvider).value ?? true,
+    // «рецепт → в „Рецепты“»: правила по фактам — когда факты появились
+    onFacts: (id) => rules.apply(id).ignore(),
     extractors: [
       ...defaultExtractors(),
       // кадры своего ролика достаёт система через канал окна: в фоновом движке правила нет

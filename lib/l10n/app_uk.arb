@@ -419,5 +419,15 @@
   "suggestScreenshotsName": "Скриншоти",
   "suggestVideosName": "Ролики",
   "suggestFilesName": "Файли",
-  "suggestVoicesName": "Голосові"
+  "suggestVoicesName": "Голосові",
+  "ruleIfPage": "це сторінка",
+  "ruleIfPriceAbove": "ціна більша",
+  "ruleIfPriceBelow": "ціна менша",
+  "ruleValuePrice": "Сума, наприклад 1000",
+  "rulePriceAboveValue": "дорожче {value}",
+  "rulePriceBelowValue": "дешевше {value}",
+  "ruleThenRemind": "нагадати",
+  "remindHourBefore": "за годину",
+  "remindDayBefore": "за день",
+  "remindWeekBefore": "за тиждень"
 }

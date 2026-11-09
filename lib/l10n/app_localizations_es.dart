@@ -2524,4 +2524,38 @@ class LEs extends L {
 
   @override
   String get suggestVoicesName => 'Notas de voz';
+
+  @override
+  String get ruleIfPage => 'la página es';
+
+  @override
+  String get ruleIfPriceAbove => 'precio mayor';
+
+  @override
+  String get ruleIfPriceBelow => 'precio menor';
+
+  @override
+  String get ruleValuePrice => 'Importe, p. ej. 1000';
+
+  @override
+  String rulePriceAboveValue(String value) {
+    return 'más de $value';
+  }
+
+  @override
+  String rulePriceBelowValue(String value) {
+    return 'menos de $value';
+  }
+
+  @override
+  String get ruleThenRemind => 'recordar';
+
+  @override
+  String get remindHourBefore => 'una hora antes';
+
+  @override
+  String get remindDayBefore => 'un día antes';
+
+  @override
+  String get remindWeekBefore => 'una semana antes';
 }

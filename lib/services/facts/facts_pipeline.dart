@@ -57,6 +57,7 @@ class FactsPipeline {
     required DateTime Function() clock,
     List<Extractor>? extractors,
     Future<bool> Function()? online,
+    this.onFacts,
   }) : _filesRoot = filesRoot, // ignore: prefer_initializing_formals
        _clock = clock, // ignore: prefer_initializing_formals
        _extractors = extractors ?? defaultExtractors(),
@@ -68,6 +69,9 @@ class FactsPipeline {
   final List<Extractor> _extractors;
   final Future<bool> Function() _online;
   Future<void>? _sweeping;
+
+  /// Факты заметки записаны: здесь срабатывают правила, которые смотрят на факты.
+  final void Function(String itemId)? onFacts;
 
   /// Разобрать одну вещь местными правилами: после сохранения, правки, когда легли файлы.
   /// С [network] — и сетевыми, если сеть есть: превью страницы только что пришло.
@@ -192,7 +196,9 @@ class FactsPipeline {
       await _refreshText(itemId);
       return true;
     });
-    if (saved) await extractor.after(_db, item, drafts, firstRun: firstRun, now: _clock()).catchError((_) {});
+    if (!saved) return;
+    await extractor.after(_db, item, drafts, firstRun: firstRun, now: _clock()).catchError((_) {});
+    onFacts?.call(itemId);
   }
 
   /// Новые вложения вещи, если файлы, которые видело правило, переехали; иначе null.

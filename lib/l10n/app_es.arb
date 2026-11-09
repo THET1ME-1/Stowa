@@ -419,5 +419,15 @@
   "suggestScreenshotsName": "Capturas",
   "suggestVideosName": "Vídeos",
   "suggestFilesName": "Archivos",
-  "suggestVoicesName": "Notas de voz"
+  "suggestVoicesName": "Notas de voz",
+  "ruleIfPage": "la página es",
+  "ruleIfPriceAbove": "precio mayor",
+  "ruleIfPriceBelow": "precio menor",
+  "ruleValuePrice": "Importe, p. ej. 1000",
+  "rulePriceAboveValue": "más de {value}",
+  "rulePriceBelowValue": "menos de {value}",
+  "ruleThenRemind": "recordar",
+  "remindHourBefore": "una hora antes",
+  "remindDayBefore": "un día antes",
+  "remindWeekBefore": "una semana antes"
 }

@@ -9,6 +9,7 @@ import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
+import '../../domain/structured_page.dart' show PageType;
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
 import '../folder/folder_sheets.dart';
@@ -40,12 +41,29 @@ class RuleSheet extends ConsumerStatefulWidget {
 
 class _RuleSheetState extends ConsumerState<RuleSheet> {
   late RuleConditionKind _condition = widget.rule?.conditionKind ?? RuleConditionKind.hasTag;
-  late final _value = TextEditingController(text: widget.rule?.conditionKind == RuleConditionKind.kind ? '' : widget.rule?.conditionValue ?? '');
+  late final _value = TextEditingController(
+    text: widget.rule?.conditionKind == RuleConditionKind.kind || widget.rule?.conditionKind == RuleConditionKind.pageType ? '' : widget.rule?.conditionValue ?? '',
+  );
   late ItemKind _kind = ItemKind.values.asNameMap()[widget.rule?.conditionValue] ?? ItemKind.link;
+  late PageType _page = PageType.values.asNameMap()[widget.rule?.conditionValue] ?? PageType.recipe;
   late RuleActionKind _action = widget.rule?.actionKind ?? RuleActionKind.toFolder;
   late String? _folderId = widget.rule?.actionKind == RuleActionKind.toFolder ? widget.rule?.actionValue : null;
   late final _tag = TextEditingController(text: widget.rule?.actionKind == RuleActionKind.addTag ? widget.rule?.actionValue : '');
+  late int _remind = widget.rule?.actionKind == RuleActionKind.remindBefore ? int.tryParse(widget.rule!.actionValue) ?? _day : _day;
   late bool _enabled = widget.rule?.enabled ?? true;
+
+  static const _hour = 60;
+  static const _day = 24 * 60;
+  static const _week = 7 * 24 * 60;
+
+  // напомнить можно только о событии: у него есть начало
+  bool get _canRemind => _condition == RuleConditionKind.pageType && _page == PageType.event;
+
+  void _setCondition(RuleConditionKind condition, {PageType? page}) => setState(() {
+    _condition = condition;
+    if (page != null) _page = page;
+    if (_action == RuleActionKind.remindBefore && !_canRemind) _action = RuleActionKind.toFolder;
+  });
 
   @override
   void dispose() {
@@ -54,9 +72,25 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
     super.dispose();
   }
 
-  String get _conditionValue => _condition == RuleConditionKind.kind ? _kind.name : _value.text.trim().replaceFirst('#', '');
+  String get _conditionValue => switch (_condition) {
+    RuleConditionKind.kind => _kind.name,
+    RuleConditionKind.pageType => _page.name,
+    // «1 000», «1000,50» — числом; не число — пусто, сохранить нельзя
+    RuleConditionKind.priceAbove || RuleConditionKind.priceBelow => _price(_value.text)?.toString() ?? '',
+    _ => _value.text.trim().replaceFirst('#', ''),
+  };
 
-  String? get _actionValue => _action == RuleActionKind.toFolder ? _folderId : (_tag.text.trim().isEmpty ? null : _tag.text.trim());
+  static num? _price(String text) {
+    final number = double.tryParse(text.replaceAll(RegExp(r'[\s  ]'), '').replaceAll(',', '.'));
+    if (number == null || number < 0) return null;
+    return number == number.roundToDouble() ? number.round() : number;
+  }
+
+  String? get _actionValue => switch (_action) {
+    RuleActionKind.toFolder => _folderId,
+    RuleActionKind.remindBefore => '$_remind',
+    RuleActionKind.addTag => _tag.text.trim().isEmpty ? null : _tag.text.trim(),
+  };
 
   bool get _ready => _conditionValue.isNotEmpty && _actionValue != null;
 
@@ -92,6 +126,9 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
       RuleConditionKind.domain: ('link', l.ruleIfDomain),
       RuleConditionKind.keyword: ('text_fields', l.ruleIfWord),
       RuleConditionKind.kind: ('category', l.ruleIfKind),
+      RuleConditionKind.pageType: ('article', l.ruleIfPage),
+      RuleConditionKind.priceAbove: ('trending_up', l.ruleIfPriceAbove),
+      RuleConditionKind.priceBelow: ('trending_down', l.ruleIfPriceBelow),
     };
     return ListView(
       shrinkWrap: true,
@@ -105,11 +142,27 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
           runSpacing: 8,
           children: [
             for (final MapEntry(key: kind, value: (icon, label)) in conditions.entries)
-              _Choice(icon: icon, label: label, on: _condition == kind, onTap: () => setState(() => _condition = kind)),
+              _Choice(icon: icon, label: label, on: _condition == kind, onTap: () => _setCondition(kind)),
           ],
         ),
         const SizedBox(height: 10),
-        if (_condition == RuleConditionKind.kind)
+        if (_condition == RuleConditionKind.pageType)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final page in PageType.values)
+                _Choice(label: pageTypeName(l, page), on: _page == page, onTap: () => _setCondition(RuleConditionKind.pageType, page: page)),
+            ],
+          )
+        else if (_condition == RuleConditionKind.priceAbove || _condition == RuleConditionKind.priceBelow)
+          TextField(
+            controller: _value,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(hintText: l.ruleValuePrice),
+          )
+        else if (_condition == RuleConditionKind.kind)
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -139,10 +192,21 @@ class _RuleSheetState extends ConsumerState<RuleSheet> {
           children: [
             _Choice(icon: 'folder', label: l.ruleThenFolder, on: _action == RuleActionKind.toFolder, onTap: () => setState(() => _action = RuleActionKind.toFolder)),
             _Choice(icon: 'tag', label: l.ruleThenTag, on: _action == RuleActionKind.addTag, onTap: () => setState(() => _action = RuleActionKind.addTag)),
+            if (_canRemind)
+              _Choice(icon: 'alarm', label: l.ruleThenRemind, on: _action == RuleActionKind.remindBefore, onTap: () => setState(() => _action = RuleActionKind.remindBefore)),
           ],
         ),
         const SizedBox(height: 10),
-        if (_action == RuleActionKind.toFolder)
+        if (_action == RuleActionKind.remindBefore)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final minutes in const [_hour, _day, _week])
+                _Choice(label: remindBeforeLabel(l, minutes), on: _remind == minutes, onTap: () => setState(() => _remind = minutes)),
+            ],
+          )
+        else if (_action == RuleActionKind.toFolder)
           Wrap(
             spacing: 8,
             runSpacing: 8,

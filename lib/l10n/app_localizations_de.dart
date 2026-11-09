@@ -2527,4 +2527,38 @@ class LDe extends L {
 
   @override
   String get suggestVoicesName => 'Sprachnotizen';
+
+  @override
+  String get ruleIfPage => 'Seite ist';
+
+  @override
+  String get ruleIfPriceAbove => 'Preis über';
+
+  @override
+  String get ruleIfPriceBelow => 'Preis unter';
+
+  @override
+  String get ruleValuePrice => 'Betrag, z. B. 1000';
+
+  @override
+  String rulePriceAboveValue(String value) {
+    return 'über $value';
+  }
+
+  @override
+  String rulePriceBelowValue(String value) {
+    return 'unter $value';
+  }
+
+  @override
+  String get ruleThenRemind => 'erinnern';
+
+  @override
+  String get remindHourBefore => 'eine Stunde vorher';
+
+  @override
+  String get remindDayBefore => 'einen Tag vorher';
+
+  @override
+  String get remindWeekBefore => 'eine Woche vorher';
 }

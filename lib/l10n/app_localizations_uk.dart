@@ -2579,4 +2579,38 @@ class LUk extends L {
 
   @override
   String get suggestVoicesName => 'Голосові';
+
+  @override
+  String get ruleIfPage => 'це сторінка';
+
+  @override
+  String get ruleIfPriceAbove => 'ціна більша';
+
+  @override
+  String get ruleIfPriceBelow => 'ціна менша';
+
+  @override
+  String get ruleValuePrice => 'Сума, наприклад 1000';
+
+  @override
+  String rulePriceAboveValue(String value) {
+    return 'дорожче $value';
+  }
+
+  @override
+  String rulePriceBelowValue(String value) {
+    return 'дешевше $value';
+  }
+
+  @override
+  String get ruleThenRemind => 'нагадати';
+
+  @override
+  String get remindHourBefore => 'за годину';
+
+  @override
+  String get remindDayBefore => 'за день';
+
+  @override
+  String get remindWeekBefore => 'за тиждень';
 }

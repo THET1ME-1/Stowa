@@ -419,5 +419,15 @@
   "suggestScreenshotsName": "Capturi",
   "suggestVideosName": "Videoclipuri",
   "suggestFilesName": "Fișiere",
-  "suggestVoicesName": "Mesaje vocale"
+  "suggestVoicesName": "Mesaje vocale",
+  "ruleIfPage": "pagina e",
+  "ruleIfPriceAbove": "preț peste",
+  "ruleIfPriceBelow": "preț sub",
+  "ruleValuePrice": "Suma, de ex. 1000",
+  "rulePriceAboveValue": "peste {value}",
+  "rulePriceBelowValue": "sub {value}",
+  "ruleThenRemind": "amintește",
+  "remindHourBefore": "cu o oră înainte",
+  "remindDayBefore": "cu o zi înainte",
+  "remindWeekBefore": "cu o săptămână înainte"
 }

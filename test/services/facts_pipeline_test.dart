@@ -181,6 +181,16 @@ void main() {
       expect((await factsOf('a')).single.value, 'прогон 2');
     });
 
+    test('факты записаны — конвейер зовёт onFacts: правила по фактам срабатывают после разбора', () async {
+      await note('a', 'кофе 35 лей');
+      final told = <String>[];
+      final facts = FactsPipeline(db, filesRoot: home, clock: () => now, extractors: [TextExtractor()], onFacts: told.add);
+      await facts.runItem('a');
+      expect(told, ['a']);
+      await facts.runItem('a');
+      expect(told, ['a'], reason: 'ничего не менялось — разбора и зова нет');
+    });
+
     test('удалённые вещи не разбираются', () async {
       await note('a', 'кофе 35 лей');
       await ItemsRepository(db).softDelete('a', now);

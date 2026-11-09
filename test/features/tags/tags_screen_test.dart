@@ -84,6 +84,52 @@ void main() {
     expect(find.text('tiktok.com'), findsOneWidget);
   });
 
+  testWidgets('правило по фактам: «напомнить» только у события, сохраняется сроком в минутах', (tester) async {
+    await open(tester);
+    await openTags(tester);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Новое правило'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Новое правило'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('это страница'));
+    await tester.pumpAndSettle();
+    expect(find.text('напомнить'), findsNothing, reason: 'рецепт по умолчанию — у него нет начала');
+    await tester.tap(find.text('событие'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('напомнить'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('за неделю'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    final rule = await world.db.select(world.db.rules).getSingle();
+    expect((rule.conditionKind, rule.conditionValue, rule.actionKind, rule.actionValue), (RuleConditionKind.pageType, 'event', RuleActionKind.remindBefore, '10080'));
+    expect(find.text('за неделю'), findsOneWidget, reason: 'карточка правила на экране');
+  });
+
+  testWidgets('правило «цена больше 1000» сохраняется числом', (tester) async {
+    await open(tester);
+    await openTags(tester);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Новое правило'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Новое правило'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('цена больше'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '1 000');
+    await tester.tap(find.text('поставить тег'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'дорого');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    final rule = await world.db.select(world.db.rules).getSingle();
+    expect((rule.conditionKind, rule.conditionValue, rule.actionValue), (RuleConditionKind.priceAbove, '1000', 'дорого'));
+    expect(find.text('дороже 1000'), findsOneWidget);
+  });
+
   testWidgets('правило в новую папку, когда папок ещё нет', (tester) async {
     await open(tester);
     await openTags(tester);

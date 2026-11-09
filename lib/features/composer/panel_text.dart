@@ -132,8 +132,17 @@ String factLabel(L l, FactPart part) {
 }
 
 /// Что за страница словами: «рецепт», «товар», «событие». По слову из факта вида страницы.
-String pageTypeLabel(L l, String keywords) {
-  final type = PageType.values.where((type) => pageTypeWords[type] == keywords).firstOrNull;
+String pageTypeLabel(L l, String keywords) => pageTypeName(l, PageType.values.where((type) => pageTypeWords[type] == keywords).firstOrNull);
+
+/// «Напомнить за день»: срок напоминания правила о событии.
+String remindBeforeLabel(L l, int minutes) => switch (minutes) {
+  60 => l.remindHourBefore,
+  10080 => l.remindWeekBefore,
+  _ => l.remindDayBefore,
+};
+
+/// Вид страницы словом на языке человека; неизвестный — «на странице».
+String pageTypeName(L l, PageType? type) {
   return switch (type) {
     PageType.recipe => l.pageRecipe,
     PageType.product => l.pageProduct,

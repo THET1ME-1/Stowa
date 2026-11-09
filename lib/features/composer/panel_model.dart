@@ -229,6 +229,8 @@ SavePlan planSave(PanelInput input, {required LineCommand? command, required Str
             RuleConditionKind.keyword => SaveReason.word,
             RuleConditionKind.domain => SaveReason.domain,
             RuleConditionKind.kind => SaveReason.kind,
+            // правила по фактам при сохранении не срабатывают: сюда они не доходят
+            RuleConditionKind.pageType || RuleConditionKind.priceAbove || RuleConditionKind.priceBelow => SaveReason.none,
           }
         : guessFolder != null
         ? (guess!.byName ? SaveReason.name : SaveReason.similar)

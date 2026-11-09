@@ -2522,4 +2522,38 @@ class LEn extends L {
 
   @override
   String get suggestVoicesName => 'Voice notes';
+
+  @override
+  String get ruleIfPage => 'page is a';
+
+  @override
+  String get ruleIfPriceAbove => 'price over';
+
+  @override
+  String get ruleIfPriceBelow => 'price under';
+
+  @override
+  String get ruleValuePrice => 'Amount, e.g. 1000';
+
+  @override
+  String rulePriceAboveValue(String value) {
+    return 'over $value';
+  }
+
+  @override
+  String rulePriceBelowValue(String value) {
+    return 'under $value';
+  }
+
+  @override
+  String get ruleThenRemind => 'remind';
+
+  @override
+  String get remindHourBefore => 'an hour before';
+
+  @override
+  String get remindDayBefore => 'a day before';
+
+  @override
+  String get remindWeekBefore => 'a week before';
 }

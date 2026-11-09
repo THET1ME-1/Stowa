@@ -4114,6 +4114,66 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Voice notes'**
   String get suggestVoicesName;
+
+  /// Условие правила после «Если»: вид страницы ссылки — рецепт, товар, событие
+  ///
+  /// In en, this message translates to:
+  /// **'page is a'**
+  String get ruleIfPage;
+
+  /// ruleIfPriceAbove
+  ///
+  /// In en, this message translates to:
+  /// **'price over'**
+  String get ruleIfPriceAbove;
+
+  /// ruleIfPriceBelow
+  ///
+  /// In en, this message translates to:
+  /// **'price under'**
+  String get ruleIfPriceBelow;
+
+  /// ruleValuePrice
+  ///
+  /// In en, this message translates to:
+  /// **'Amount, e.g. 1000'**
+  String get ruleValuePrice;
+
+  /// rulePriceAboveValue
+  ///
+  /// In en, this message translates to:
+  /// **'over {value}'**
+  String rulePriceAboveValue(String value);
+
+  /// rulePriceBelowValue
+  ///
+  /// In en, this message translates to:
+  /// **'under {value}'**
+  String rulePriceBelowValue(String value);
+
+  /// ruleThenRemind
+  ///
+  /// In en, this message translates to:
+  /// **'remind'**
+  String get ruleThenRemind;
+
+  /// remindHourBefore
+  ///
+  /// In en, this message translates to:
+  /// **'an hour before'**
+  String get remindHourBefore;
+
+  /// remindDayBefore
+  ///
+  /// In en, this message translates to:
+  /// **'a day before'**
+  String get remindDayBefore;
+
+  /// remindWeekBefore
+  ///
+  /// In en, this message translates to:
+  /// **'a week before'**
+  String get remindWeekBefore;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

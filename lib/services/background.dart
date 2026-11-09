@@ -18,6 +18,7 @@ import '../l10n/app_localizations.dart';
 import 'ai_image.dart';
 import 'ai_worker.dart';
 import 'capture_service.dart';
+import 'fact_rules.dart';
 import 'facts/extractors.dart';
 import 'facts/facts_pipeline.dart';
 import 'facts/web_extractors.dart';
@@ -141,11 +142,14 @@ void backgroundDispatcher() {
       // и сразу в файлы хранилища: приложение могли закрыть, не дописав очередь
       final vault = VaultSync(reader: VaultReader(db, root: place.vault, clock: DateTime.now), writer: VaultWriter(db, root: place.vault, clock: DateTime.now));
       await vault.run().catchError((_) {});
-      // легли файлы или вышла новая версия извлекателей: разобрать, пока приложение закрыто
+      // легли файлы или вышла новая версия извлекателей: разобрать, пока приложение закрыто.
+      // Правила по фактам — после разбора и по очереди: фоновая задача не ждёт брошенных
+      final touched = <String>{};
       final facts = FactsPipeline(
         db,
         filesRoot: filesRoot,
         clock: DateTime.now,
+        onFacts: touched.add,
         extractors: [
           ...defaultExtractors(),
           PageExtractor(),
@@ -155,12 +159,22 @@ void backgroundDispatcher() {
           SubtitlesExtractor(fetch: httpFetch, post: httpPost, languages: () => subtitleLanguages(settings.language?.code)),
         ],
       );
+      final rules = FactRules(db);
+      Future<void> applyRules() async {
+        for (final id in [...touched]) {
+          await rules.apply(id).catchError((_) {});
+        }
+        touched.clear();
+      }
+
       await facts.sweep().catchError((_) {});
+      await applyRules();
       if (task == _fileTask) return filesDone;
       // страницы и субтитры — только при сети: периодическая задача её и требует; скачанные
       // копии страниц тут же разбираются местным правилом
       await facts.sweepNetwork().catchError((_) {});
       await facts.sweep().catchError((_) {});
+      await applyRules();
       // сперва то, что переслали боту, потом разбор: новое сразу разложится
       final capture = CaptureService(
         db,

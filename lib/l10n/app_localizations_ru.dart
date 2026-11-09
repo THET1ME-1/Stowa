@@ -2584,4 +2584,38 @@ class LRu extends L {
 
   @override
   String get suggestVoicesName => 'Голосовые';
+
+  @override
+  String get ruleIfPage => 'это страница';
+
+  @override
+  String get ruleIfPriceAbove => 'цена больше';
+
+  @override
+  String get ruleIfPriceBelow => 'цена меньше';
+
+  @override
+  String get ruleValuePrice => 'Сумма, например 1000';
+
+  @override
+  String rulePriceAboveValue(String value) {
+    return 'дороже $value';
+  }
+
+  @override
+  String rulePriceBelowValue(String value) {
+    return 'дешевле $value';
+  }
+
+  @override
+  String get ruleThenRemind => 'напомнить';
+
+  @override
+  String get remindHourBefore => 'за час';
+
+  @override
+  String get remindDayBefore => 'за день';
+
+  @override
+  String get remindWeekBefore => 'за неделю';
 }

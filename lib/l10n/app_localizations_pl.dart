@@ -2579,4 +2579,38 @@ class LPl extends L {
 
   @override
   String get suggestVoicesName => 'Notatki głosowe';
+
+  @override
+  String get ruleIfPage => 'strona to';
+
+  @override
+  String get ruleIfPriceAbove => 'cena powyżej';
+
+  @override
+  String get ruleIfPriceBelow => 'cena poniżej';
+
+  @override
+  String get ruleValuePrice => 'Kwota, np. 1000';
+
+  @override
+  String rulePriceAboveValue(String value) {
+    return 'powyżej $value';
+  }
+
+  @override
+  String rulePriceBelowValue(String value) {
+    return 'poniżej $value';
+  }
+
+  @override
+  String get ruleThenRemind => 'przypomnij';
+
+  @override
+  String get remindHourBefore => 'godzinę przed';
+
+  @override
+  String get remindDayBefore => 'dzień przed';
+
+  @override
+  String get remindWeekBefore => 'tydzień przed';
 }

@@ -2549,4 +2549,38 @@ class LRo extends L {
 
   @override
   String get suggestVoicesName => 'Mesaje vocale';
+
+  @override
+  String get ruleIfPage => 'pagina e';
+
+  @override
+  String get ruleIfPriceAbove => 'preț peste';
+
+  @override
+  String get ruleIfPriceBelow => 'preț sub';
+
+  @override
+  String get ruleValuePrice => 'Suma, de ex. 1000';
+
+  @override
+  String rulePriceAboveValue(String value) {
+    return 'peste $value';
+  }
+
+  @override
+  String rulePriceBelowValue(String value) {
+    return 'sub $value';
+  }
+
+  @override
+  String get ruleThenRemind => 'amintește';
+
+  @override
+  String get remindHourBefore => 'cu o oră înainte';
+
+  @override
+  String get remindDayBefore => 'cu o zi înainte';
+
+  @override
+  String get remindWeekBefore => 'cu o săptămână înainte';
 }
