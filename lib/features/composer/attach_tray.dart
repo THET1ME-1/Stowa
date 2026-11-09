@@ -8,6 +8,10 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../l10n/app_localizations.dart';
 
+/// Доступ к галерее с местом съёмки: фото встаёт на карту там, где снято.
+/// Отдельного окна у места нет, Android даёт его вместе с фото.
+const galleryPermission = PermissionRequestOption(androidPermission: AndroidPermission(type: RequestType.common, mediaLocation: true));
+
 /// Миниатюры галереи живут, пока открыто приложение: повторно лоток открывается мгновенно.
 final _thumbs = <String, Uint8List?>{};
 
@@ -55,8 +59,10 @@ class _AttachTrayState extends State<AttachTray> {
 
   Future<void> _load({required bool request}) async {
     try {
+      // вместе с фото просим место съёмки: иначе Android отдаёт снимки без координат.
+      // Проверка без него — галерея открывается и тем, кто место не дал
       final permission = request
-          ? await PhotoManager.requestPermissionExtend()
+          ? await PhotoManager.requestPermissionExtend(requestOption: galleryPermission)
           : await PhotoManager.getPermissionState(requestOption: const PermissionRequestOption());
       var assets = const <AssetEntity>[];
       if (permission.hasAccess) {
