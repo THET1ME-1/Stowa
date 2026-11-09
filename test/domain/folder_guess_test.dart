@@ -142,6 +142,12 @@ void main() {
       expect(index.guess('молоко и хлеб', series: 'book')?.folderId, 'food');
     });
 
+    test('папка «Тренировки»: «в зал в 7, ноги и пресс» — туда', () {
+      final index = FolderIndex(const [], labels: [...labels, const FolderLabel('gym', 'Тренировки')]);
+      expect(index.guess('в зал в 7, ноги и пресс')?.folderId, 'gym');
+      expect(index.guess('мыть ноги'), isNull);
+    });
+
     test('серия не тянет короткое дело: «позвонить маме вечером» после книги — без папки', () {
       final index = FolderIndex(const [], labels: [...labels, const FolderLabel('book', 'Книга')]);
       for (final task in ['позвонить маме вечером', 'call mom tonight', 'забрать посылку', 'ключи у соседки']) {

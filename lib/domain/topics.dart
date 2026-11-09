@@ -244,6 +244,26 @@ const _words = <Topic, String>{
       'порно эротика секс nsfw porn porno xxx hentai onlyfans erotik erotica',
 };
 
+/// Слова, двусмысленные поодиночке, но ясные парой: «зал» бывает концертным, «ноги» —
+/// у кого угодно, а «зал, ноги и пресс» — тренировка.
+const _weakWords = <Topic, String>{
+  Topic.sport:
+      'зал зале ноги ног ногам пресс спина спину плечи грудь подход подхода подходов подходы повторений жим тяга '
+      'зал залі ноги прес спина плечі груди підходи '
+      'legs abs chest shoulders sets reps bench '
+      'beine bauch brust rücken schultern sätze '
+      'piernas abdominales pecho espalda hombros '
+      'picioare abdomene piept spate umeri '
+      'nogi brzuch klatka plecy barki serie '
+      'jambes abdos pectoraux épaules gambe addominali petto spalle pernas abdominais peito costas ombros '
+      'bacak karın göğüs sırt omuz',
+};
+
+final _weakIndex = _index(_weakWords);
+
+/// Темы, которые слово даёт только в паре с другим таким же (см. [_weakWords]).
+Set<Topic> weakTopicsOfWord(String word) => _lookup(_weakIndex, word);
+
 /// Основа короче этого совпадает с обычными словами других языков: «per» (итальянское
 /// «для») — основа испанского «perro», «back» — немецкого «backen». Такие слова
 /// сравниваются целиком, а не по основе.

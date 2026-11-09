@@ -314,6 +314,19 @@ class FolderIndex {
         topicWords.putIfAbsent(topic, () => []).add(shown);
       }
     }
+    // слабые слова: по одному ничего не решают, «зал, ноги и пресс» вместе — тренировка.
+    // Есть явное слово другой темы («болит спина и ноги») — слабые молчат
+    final weak = <Topic, List<String>>{};
+    for (final shown in shownOf.values) {
+      for (final topic in weakTopicsOfWord(shown)) {
+        weak.putIfAbsent(topic, () => []).add(shown);
+      }
+    }
+    for (final MapEntry(key: topic, value: found) in weak.entries) {
+      final backed = topicWords.containsKey(topic);
+      final alone = found.length >= 2 && topicWords.keys.every((other) => other == topic);
+      if (backed || alone) topicWords.putIfAbsent(topic, () => []).addAll(found);
+    }
     // 18+ перебивает всё: «nsfw арт посмотреть» — не кино
     if (topicWords[Topic.adult] case final adult?) {
       topicWords
