@@ -121,7 +121,9 @@ class FolderPill extends StatelessWidget {
   final VoidCallback onTap;
 
   /// Ширина пилюли по ширине имени и числа: по ней полка решает, что влезает в две строки.
-  static double widthFor(double name, double count) => 12 + 18 + 6 + name.clamp(0, _nameMax) + 7 + count + 14 + 14;
+  // отступ 12, значок 18, щель 6, имя, щель 7, число, отступ 14 и 2 точки запаса на округление:
+  // лишние 14 сверху прятали в «Ещё» папку, которая на экране влезала
+  static double widthFor(double name, double count) => 12 + 18 + 6 + name.clamp(0, _nameMax) + 7 + count + 14 + 2;
 
   static const _nameMax = 180.0;
 

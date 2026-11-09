@@ -294,6 +294,14 @@ class FolderIndex {
         topicWords.putIfAbsent(topic, () => []).add(shown);
       }
     }
+    // готовка делает продукты ингредиентами: «сырники: творог, мука, жарить» — рецепт
+    if ((topicWords[Topic.cooking]?.length ?? 0) >= 2 && topicWords.containsKey(Topic.groceries)) {
+      topicWords[Topic.cooking]!.addAll(topicWords.remove(Topic.groceries)!);
+    }
+    // «купить», «заказать» — о покупке чего-то: видно, чего именно, — решает это
+    if (topicWords.containsKey(Topic.shopping) && topicWords.keys.any((topic) => topic != Topic.shopping)) {
+      topicWords.remove(Topic.shopping);
+    }
     for (final MapEntry(key: folder, value: topics) in _topics.entries) {
       for (final MapEntry(key: topic, value: affinity) in topics.entries) {
         final found = topicWords[topic];
