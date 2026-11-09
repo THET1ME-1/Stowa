@@ -8,6 +8,7 @@ import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/models.dart';
 import '../../domain/place_groups.dart';
+import '../../domain/qr.dart' show QrKind, parseQr;
 import '../../domain/related.dart';
 import '../../domain/search_query.dart';
 import '../../domain/search_rank.dart';
@@ -718,9 +719,16 @@ WHERE items.deleted_at IS NULL''';
     }
     for (final fact in rows) {
       final timed = fact.kind == FactKind.subtitle || fact.kind == FactKind.chapter;
-      parts.putIfAbsent(fact.itemId, () => []).add(FactPart(fact.kind, fact.value, place: fact.kind == FactKind.fileText ? fact.detail : null, seconds: timed ? fact.number : null));
+      parts.putIfAbsent(fact.itemId, () => []).add(FactPart(fact.kind, _shownFact(fact), place: fact.kind == FactKind.fileText ? fact.detail : null, seconds: timed ? fact.number : null));
     }
     return parts;
+  }
+
+  // как факт виден под найденным: Wi-Fi из QR — именем сети, как на кнопке, без пароля
+  String _shownFact(Fact fact) {
+    if (fact.kind != FactKind.qr) return fact.value;
+    final payload = parseQr(fact.value);
+    return payload.kind == QrKind.wifi ? 'WiFi «${payload.network}»' : fact.value;
   }
 
   // вещи под фильтры запроса, свежие первыми; полей мало, поэтому проход по всем дешёвый

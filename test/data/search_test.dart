@@ -221,6 +221,8 @@ void main() {
       final byNetwork = (await find('dacha')).single;
       expect(byNetwork.card.id, wifi);
       expect(byNetwork.hit.foundFact!.part.kind, FactKind.qr);
+      // под найденным — сеть словами, как на кнопке; пароль в выдачу не попадает
+      expect(byNetwork.hit.foundFact!.part.text, 'WiFi «Dacha_5G»');
       expect((await find('wifi')).map((found) => found.card.id), contains(wifi));
       expect((await find('effective')).single.card.id, ticket);
     });
