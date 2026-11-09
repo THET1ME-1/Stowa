@@ -129,6 +129,14 @@ List<_Word> _words(String raw) {
   return words;
 }
 
+/// Продолжение мысли, а не дело: от пяти слов и не начинается с глагола-дела
+/// («позвонить», «забрать»).
+bool _continues(String text) {
+  final tokens = [for (final match in _token.allMatches(text)) normalizeQuery(match.group(0)!)];
+  if (tokens.length < 5) return false;
+  return !RegExp(r'(ть|ться|чь)$').hasMatch(tokens.first);
+}
+
 /// Значимые слова текста: основа для сравнения и слово, как написано.
 List<({String stem, String original})> meaningfulWords(String text) => [for (final word in _words(text)) (stem: word.stem, original: word.original)];
 
@@ -325,8 +333,9 @@ class FolderIndex {
       }
     }
 
-    // серия: две прошлые заметки легли сюда — у этой папки фора
-    if (series != null) push(series, '', _seriesWeight);
+    // серия: две прошлые заметки легли сюда — у этой папки фора. Одной форы хватает только
+    // продолжению мысли: короткое дело («позвонить маме») просто записали следом
+    if (series != null && (scores.containsKey(series) || _continues(text))) push(series, '', _seriesWeight);
 
     // слова заметок, которые человек из папки вынул, от неё отталкивают
     for (final MapEntry(key: folder, value: pushes) in _rejected.entries) {
