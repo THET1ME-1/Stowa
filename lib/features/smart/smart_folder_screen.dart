@@ -8,6 +8,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
+import '../../domain/money.dart' show formatTotal;
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_cards.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
@@ -130,6 +131,15 @@ class SmartFolderScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            // запрос трат: «Всего 23 150 лей · €40», как на экране папки
+            if (found != null && found.total.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  key: const ValueKey('smart-total'),
+                  padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 16),
+                  child: Text(l.folderTotal(formatTotal(found.total, l.localeName)), style: text.bodyMedium!.copyWith(fontSize: 15, color: Tokens.onSurface)),
+                ),
+              ),
             if (found != null && cards.isEmpty)
               SliverToBoxAdapter(
                 child: Padding(

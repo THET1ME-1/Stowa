@@ -51,6 +51,25 @@ void main() {
     expect(find.text('Купить малину'), findsNothing);
   });
 
+  testWidgets('умная папка трат показывает итог, как экран папки', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'repair', name: 'Ремонт', icon: 'build', shape: 'squircle'));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'p',
+          kind: ItemKind.note,
+          title: 'Штукатурка 4 200 лей',
+          folderId: const Value('repair'),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'p-1', itemId: 'p', extractor: 'text', kind: FactKind.price, value: '4 200 лей', number: const Value(4200), detail: const Value('MDL')));
+    await SmartFoldersRepository(world.db, clock: () => world.now).create(name: 'Ремонт: траты', query: 'потратил на ремонт');
+    await open(tester);
+    await tester.tap(pill('Ремонт: траты'));
+    await tester.pumpAndSettle();
+    final total = find.byKey(const ValueKey('smart-total'));
+    expect(tester.widget<Text>(find.descendant(of: total, matching: find.byType(Text))).data!.replaceAll(' ', ' '), 'Всего 4 200 лей');
+  });
+
   testWidgets('удалить из меню — с «Отменить»', (tester) async {
     await SmartFoldersRepository(world.db, clock: () => world.now).create(name: 'Ролики', query: 'видео');
     await open(tester);
