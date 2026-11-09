@@ -24,6 +24,7 @@ import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart';
+import '../../domain/shopping.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show CaptureInput, PickedFile;
 import '../composer/line_dock.dart';
@@ -172,6 +173,15 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   void _markdown(MarkdownAction action) {
     _body.value = applyMarkdown(_body.value, action);
     _bodyFocus.requestFocus();
+  }
+
+  /// «купить молоко, хлеб и яйца» — «Купить:» и пункты галочками; «Отменить» возвращает как было.
+  Future<void> _toChecklist(Item item, String checklist) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final (title, body) = (item.title, item.body);
+    await _items.setTitleBody(_id, title: titleFor(checklist), body: checklist, at: _clock());
+    showUndo(messenger, message: l.toChecklistDone, label: l.undo, overDock: true, onUndo: () => _items.setTitleBody(_id, title: title, body: body, at: _clock()));
   }
 
   Future<void> _toggle(Item item, int index) async {
@@ -486,6 +496,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     // адрес уже стоит в превью: строкой в тексте он не повторяется
     final shownBody = linkLike ? item.body.split('\n').where((line) => line.trim() != url).join('\n') : item.body;
     final blocks = parseNoteBlocks(shownBody);
+    // «купить молоко, хлеб и яйца» можно одним касанием сделать галочками
+    final checklist = item.kind == ItemKind.note ? shoppingChecklist(item.body) : null;
     // заголовок из первой строки над ней же не повторяется: заметка видна, как её написали
     final showTitle = _editing || linkLike || !titleIsFirstLine(shownBody, item.title);
     final source = url == null ? null : sourceName(Uri.tryParse(url)?.host ?? '');
@@ -715,11 +727,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           ChaptersBlock(facts: facts, url: url),
                         ],
                         // телефон, почта, сумма и ссылки из текста — кнопками; в правке не мешают
-                        if (!_editing && FactsChips.hasAny(facts)) ...[
+                        if (!_editing && (FactsChips.hasAny(facts) || checklist != null)) ...[
                           const SizedBox(height: 12),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: FactsChips(facts: facts, onLink: _openLink),
+                            child: FactsChips(facts: facts, onLink: _openLink, onShoppingList: checklist == null ? null : () => _toChecklist(item, checklist)),
                           ),
                         ],
                         if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),

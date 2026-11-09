@@ -396,5 +396,8 @@
   "factCopyPromo": "Copiar código",
   "factTrack": "Seguir el paquete",
   "factOnMap": "Abrir en el mapa",
-  "workEndRow": "Trabajo hasta"
+  "workEndRow": "Trabajo hasta",
+  "toChecklist": "Como lista de la compra",
+  "toChecklistHint": "Convertir en casillas",
+  "toChecklistDone": "Lista de la compra lista"
 }

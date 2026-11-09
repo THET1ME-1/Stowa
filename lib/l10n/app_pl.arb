@@ -396,5 +396,8 @@
   "factCopyPromo": "Kopiuj kod",
   "factTrack": "Śledź przesyłkę",
   "factOnMap": "Otwórz na mapie",
-  "workEndRow": "Praca do"
+  "workEndRow": "Praca do",
+  "toChecklist": "Jako lista zakupów",
+  "toChecklistHint": "Zamień na pola wyboru",
+  "toChecklistDone": "Lista zakupów gotowa"
 }

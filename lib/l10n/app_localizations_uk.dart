@@ -2440,4 +2440,13 @@ class LUk extends L {
 
   @override
   String get workEndRow => 'Робота до';
+
+  @override
+  String get toChecklist => 'Списком покупок';
+
+  @override
+  String get toChecklistHint => 'Зробити пункти галочками';
+
+  @override
+  String get toChecklistDone => 'Список покупок готовий';
 }

@@ -2395,4 +2395,13 @@ class LEn extends L {
 
   @override
   String get workEndRow => 'Work ends at';
+
+  @override
+  String get toChecklist => 'Make a shopping list';
+
+  @override
+  String get toChecklistHint => 'Turn items into checkboxes';
+
+  @override
+  String get toChecklistDone => 'Shopping list ready';
 }

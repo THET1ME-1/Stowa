@@ -396,5 +396,8 @@
   "factCopyPromo": "Скопіювати промокод",
   "factTrack": "Відстежити посилку",
   "factOnMap": "Відкрити на мапі",
-  "workEndRow": "Робота до"
+  "workEndRow": "Робота до",
+  "toChecklist": "Списком покупок",
+  "toChecklistHint": "Зробити пункти галочками",
+  "toChecklistDone": "Список покупок готовий"
 }

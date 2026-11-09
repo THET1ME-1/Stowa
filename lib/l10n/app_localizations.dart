@@ -3976,6 +3976,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Work ends at'**
   String get workEndRow;
+
+  /// Кнопка: «купить молоко, хлеб и яйца» превращается в список галочек
+  ///
+  /// In en, this message translates to:
+  /// **'Make a shopping list'**
+  String get toChecklist;
+
+  /// toChecklistHint
+  ///
+  /// In en, this message translates to:
+  /// **'Turn items into checkboxes'**
+  String get toChecklistHint;
+
+  /// toChecklistDone
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list ready'**
+  String get toChecklistDone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

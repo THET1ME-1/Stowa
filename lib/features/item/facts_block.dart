@@ -13,10 +13,13 @@ import '../../l10n/app_localizations.dart';
 
 /// Что нашлось в тексте вещи: касанием позвонить, написать, открыть, скопировать сумму.
 class FactsChips extends StatelessWidget {
-  const FactsChips({super.key, required this.facts, required this.onLink});
+  const FactsChips({super.key, required this.facts, required this.onLink, this.onShoppingList});
 
   final List<Fact> facts;
   final Future<void> Function(String url) onLink;
+
+  /// «купить молоко, хлеб и яйца» ещё не галочками: кнопка «Списком покупок» первой.
+  final VoidCallback? onShoppingList;
 
   // порядок кнопок: то, ради чего заметку открывают у роутера или на кассе, — первым
   static const _order = [
@@ -102,6 +105,7 @@ class FactsChips extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
+        if (onShoppingList case final toList?) _FactChip(icon: 'checklist', label: l.toChecklist, tooltip: l.toChecklistHint, onTap: toList),
         for (final fact in ordered)
           if (fact.kind == FactKind.qr)
             qrChip(fact)

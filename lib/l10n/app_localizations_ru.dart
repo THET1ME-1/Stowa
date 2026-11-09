@@ -2445,4 +2445,13 @@ class LRu extends L {
 
   @override
   String get workEndRow => 'Работа до';
+
+  @override
+  String get toChecklist => 'Списком покупок';
+
+  @override
+  String get toChecklistHint => 'Сделать пункты галочками';
+
+  @override
+  String get toChecklistDone => 'Список покупок готов';
 }

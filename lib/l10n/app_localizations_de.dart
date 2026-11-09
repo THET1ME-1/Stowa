@@ -2400,4 +2400,13 @@ class LDe extends L {
 
   @override
   String get workEndRow => 'Arbeit bis';
+
+  @override
+  String get toChecklist => 'Als Einkaufsliste';
+
+  @override
+  String get toChecklistHint => 'Punkte zum Abhaken';
+
+  @override
+  String get toChecklistDone => 'Einkaufsliste fertig';
 }

@@ -3059,5 +3059,17 @@
   "workEndRow": "Work ends at",
   "@workEndRow": {
     "description": "Конец рабочего дня: «после работы» в строке ставит напоминание на это время"
+  },
+  "toChecklist": "Make a shopping list",
+  "@toChecklist": {
+    "description": "Кнопка: «купить молоко, хлеб и яйца» превращается в список галочек"
+  },
+  "toChecklistHint": "Turn items into checkboxes",
+  "@toChecklistHint": {
+    "description": "toChecklistHint"
+  },
+  "toChecklistDone": "Shopping list ready",
+  "@toChecklistDone": {
+    "description": "toChecklistDone"
   }
 }

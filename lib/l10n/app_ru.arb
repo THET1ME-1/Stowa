@@ -644,5 +644,8 @@
   "factCopyPromo": "Скопировать промокод",
   "factTrack": "Отследить посылку",
   "factOnMap": "Открыть на карте",
-  "workEndRow": "Работа до"
+  "workEndRow": "Работа до",
+  "toChecklist": "Списком покупок",
+  "toChecklistHint": "Сделать пункты галочками",
+  "toChecklistDone": "Список покупок готов"
 }

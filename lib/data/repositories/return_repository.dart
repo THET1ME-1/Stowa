@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart' show checkLine;
 import '../../domain/return_plan.dart';
+import '../../domain/shopping.dart';
 import '../../domain/tag_name.dart';
 import '../db/database.dart';
 
@@ -174,11 +175,14 @@ class ReturnRepository {
       final open = [for (final line in lines) if (!line.done) line.text];
       final byTag = tagged.contains(item.id);
       final byTitle = _shoppingTitle.hasMatch(item.title.trim());
-      if (!byTag && !byTitle) continue;
+      // «купить молоко, хлеб и яйца» без галочек — пункты из самой строки
+      final byText = lines.isEmpty && isShoppingStart(item.body);
+      if (!byTag && !byTitle && !byText) continue;
       // список есть и весь отмечен — уже купили
       if (lines.isNotEmpty && open.isEmpty) continue;
-      if (!byTag && open.isEmpty) continue;
-      lists.add(ShoppingList(id: item.id, title: item.title, items: open));
+      final items = byText ? shoppingItems(item.body) : open;
+      if (!byTag && items.isEmpty) continue;
+      lists.add(ShoppingList(id: item.id, title: item.title, items: items));
     }
     return lists;
   }

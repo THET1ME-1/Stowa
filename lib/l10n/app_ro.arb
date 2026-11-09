@@ -396,5 +396,8 @@
   "factCopyPromo": "Copiază codul",
   "factTrack": "Urmărește coletul",
   "factOnMap": "Deschide pe hartă",
-  "workEndRow": "Program până la"
+  "workEndRow": "Program până la",
+  "toChecklist": "Ca listă de cumpărături",
+  "toChecklistHint": "Transformă în bife",
+  "toChecklistDone": "Lista de cumpărături e gata"
 }

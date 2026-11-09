@@ -396,5 +396,8 @@
   "factCopyPromo": "Code kopieren",
   "factTrack": "Sendung verfolgen",
   "factOnMap": "In Karten öffnen",
-  "workEndRow": "Arbeit bis"
+  "workEndRow": "Arbeit bis",
+  "toChecklist": "Als Einkaufsliste",
+  "toChecklistHint": "Punkte zum Abhaken",
+  "toChecklistDone": "Einkaufsliste fertig"
 }

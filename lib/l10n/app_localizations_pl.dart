@@ -2440,4 +2440,13 @@ class LPl extends L {
 
   @override
   String get workEndRow => 'Praca do';
+
+  @override
+  String get toChecklist => 'Jako lista zakupów';
+
+  @override
+  String get toChecklistHint => 'Zamień na pola wyboru';
+
+  @override
+  String get toChecklistDone => 'Lista zakupów gotowa';
 }

@@ -2397,4 +2397,13 @@ class LEs extends L {
 
   @override
   String get workEndRow => 'Trabajo hasta';
+
+  @override
+  String get toChecklist => 'Como lista de la compra';
+
+  @override
+  String get toChecklistHint => 'Convertir en casillas';
+
+  @override
+  String get toChecklistDone => 'Lista de la compra lista';
 }

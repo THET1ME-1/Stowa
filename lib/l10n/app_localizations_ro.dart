@@ -2416,4 +2416,13 @@ class LRo extends L {
 
   @override
   String get workEndRow => 'Program până la';
+
+  @override
+  String get toChecklist => 'Ca listă de cumpărături';
+
+  @override
+  String get toChecklistHint => 'Transformă în bife';
+
+  @override
+  String get toChecklistDone => 'Lista de cumpărături e gata';
 }

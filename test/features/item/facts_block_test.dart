@@ -205,6 +205,23 @@ void main() {
     expect(find.text('Пароль скопирован'), findsOneWidget);
   });
 
+  testWidgets('«купить молоко, хлеб и яйца» — кнопкой в список галочек, с «Отменить»', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 's', kind: ItemKind.note, title: 'купить молоко, хлеб и яйца', body: const Value('купить молоко, хлеб и яйца'), createdAt: world.now, updatedAt: world.now));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 's')));
+    await tester.pumpAndSettle();
+    Future<Item> saved() => (world.db.select(world.db.items)..where((t) => t.id.equals('s'))).getSingle();
+
+    await tester.tap(find.text('Списком покупок'));
+    await tester.pumpAndSettle();
+    expect((await saved()).body, 'Купить:\n- [ ] молоко\n- [ ] хлеб\n- [ ] яйца');
+    expect(find.text('Списком покупок'), findsNothing, reason: 'уже галочки — кнопка не нужна');
+
+    await tester.tap(find.text('Отменить'));
+    await tester.pumpAndSettle();
+    expect(((await saved()).title, (await saved()).body), ('купить молоко, хлеб и яйца', 'купить молоко, хлеб и яйца'));
+  });
+
   testWidgets('из текста: пароль точками копирует себя, карта — последние цифры, трек, промокод, адрес', (tester) async {
     String? copied;
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
