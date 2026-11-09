@@ -123,6 +123,16 @@ void main() {
     });
   });
 
+  test('траты: «потратил на ремонт», «spent on», «расходы» — фильтр по цене, папку ищет репозиторий', () {
+    final query = parseSearch('потратил на ремонт', now);
+    expect(query.spending, isTrue);
+    expect(query.understood, ['потратил на']);
+    expect(free(query), ['ремонт']);
+    expect(parseSearch('spent on renovation', now).spending, isTrue);
+    expect(free(parseSearch('расходы машина', now)), ['машина']);
+    expect(parseSearch('потратила', now).hasFilters, isTrue);
+  });
+
   test('рядом на всех языках', () {
     for (final phrase in ['кофе рядом', 'кава поруч', 'coffee nearby', 'Kaffee in der Nähe', 'café cerca', 'cafea aproape', 'kawa w pobliżu']) {
       final query = parseSearch(phrase, now);

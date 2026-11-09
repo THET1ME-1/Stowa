@@ -22,6 +22,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
+import '../../domain/money.dart' show formatTotal;
 import '../../domain/search_query.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
@@ -680,7 +681,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         folders: ref.watch(foldersProvider).value ?? const [],
         rules: ref.watch(rulesProvider).value ?? const [],
         found: _found.results,
-        understood: _found.query.hasFilters ? _found.query.understood : const [],
+        // «Ищу: потратил на · Ремонт · 23 150 лей»
+        understood: _found.query.hasFilters
+            ? [..._found.query.understood, ?_found.spentFolder, if (_found.total.isNotEmpty) formatTotal(_found.total, L.of(context).localeName)]
+            : const [],
         filter: _filter,
         remindAt: _line.reminder?.at,
         folderIndex: ref.watch(folderIndexProvider).value,

@@ -51,4 +51,14 @@ void main() {
     expect(findMoney('глава 5 руководства'), isEmpty);
     expect(findMoney('прочитал 2 леммы'), isEmpty);
   });
+
+  test('итог по валютам: большая сумма первой, вывод как пишут люди', () {
+    final total = sumByCurrency([(4200, 'MDL'), (40, 'EUR'), (18950, 'MDL')]);
+    expect(total, [(23150.0, 'MDL'), (40.0, 'EUR')]);
+    // разряды — неразрывным пробелом: сумма не рвётся на две строки
+    String plain(String text) => text.replaceAll(' ', ' ');
+    expect(plain(formatTotal(total, 'ru')), '23 150 лей · €40');
+    expect(plain(formatTotal([(19.5, 'USD'), (300, 'UAH')], 'en')), r'$19.50 · 300 ₴');
+    expect(formatTotal(const [], 'ru'), '');
+  });
 }

@@ -2406,4 +2406,9 @@ class LEs extends L {
 
   @override
   String get toChecklistDone => 'Lista de la compra lista';
+
+  @override
+  String folderTotal(String sum) {
+    return 'Total $sum';
+  }
 }

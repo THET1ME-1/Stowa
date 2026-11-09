@@ -6,7 +6,9 @@ import '../../core/theme/folder_palette.dart';
 import '../../domain/folder_guess.dart';
 import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
+import '../../domain/line_query.dart' show searchWords;
 import '../../domain/models.dart';
+import '../../domain/money.dart' show sumByCurrency;
 import '../../domain/place_groups.dart';
 import '../../domain/qr.dart' show QrKind, parseQr;
 import '../../domain/related.dart';
@@ -164,12 +166,16 @@ const _markMeters = 250.0;
 
 /// Что нашёл поиск и каким запросом: с фильтрами или, если они ничего не дали, простыми словами.
 class SearchFound {
-  const SearchFound(this.results, this.query);
+  const SearchFound(this.results, this.query, {this.spentFolder, this.total = const []});
 
   static const none = SearchFound([], SearchQuery());
 
   final List<SearchResult> results;
   final SearchQuery query;
+
+  /// «Потратил на ремонт»: папка, которую узнал поиск, и итог по валютам всех её заметок с ценой.
+  final String? spentFolder;
+  final List<(double, String)> total;
 }
 
 /// Найденная вещь: карточка и что в ней совпало.
@@ -606,6 +612,12 @@ WHERE items.deleted_at IS NULL''';
   /// отбирают вещи сами; не нашли ничего — запрос ищется простыми словами.
   /// [here] — где сейчас телефон, для «рядом».
   Future<SearchFound> search({required SearchQuery query, List<String> tags = const [], String? folderId, required DateTime now, (double, double)? here, int limit = 6}) async {
+    if (query.spending) {
+      final spent = await _searchSpent(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit);
+      if (spent.results.isNotEmpty) return spent;
+      final plain = query.withoutFilters();
+      return SearchFound(await _searchOnce(plain, tags: tags, folderId: folderId, now: now, here: here, limit: limit), plain);
+    }
     if (query.hasFilters) {
       final results = await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit);
       if (results.isNotEmpty) return SearchFound(results, query);
@@ -615,14 +627,86 @@ WHERE items.deleted_at IS NULL''';
     return SearchFound(await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit), query);
   }
 
+  // «потратил на ремонт»: слово с именем папки становится папкой (с вложенными), итог — по всем
+  // подходящим заметкам, а не по тем, что влезли в панель. Без папки итог только у голого «потратил»
+  Future<SearchFound> _searchSpent(SearchQuery query, {required List<String> tags, String? folderId, required DateTime now, (double, double)? here, required int limit}) async {
+    final match = await _spentFolder(query.words);
+    final restricted = match == null ? query : query.withWords([for (final word in query.words) if (word != match.word) word]);
+    final inFolders = match == null ? null : await _folderTree(match.folder.id);
+    final results = await _searchOnce(restricted, tags: tags, folderId: folderId, now: now, here: here, limit: limit, inFolders: inFolders);
+    final counted = match != null || restricted.words.isEmpty;
+    final total = counted ? await _priceTotal(await _admitted(restricted, here, inFolders: inFolders)) : const <(double, String)>[];
+    return SearchFound(results, restricted, spentFolder: match?.folder.name, total: total);
+  }
+
+  // папка, чьё имя — одно из слов запроса в любой форме: «ремонт», «ремонте» — папка «Ремонт»
+  Future<({Folder folder, QueryWord word})?> _spentFolder(List<QueryWord> words) async {
+    if (words.isEmpty) return null;
+    final folders = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
+    for (final word in words) {
+      final stems = {for (final variant in word.variants) stemOf(variant.text)};
+      for (final folder in folders) {
+        final name = searchWords(folder.name);
+        if (name.isNotEmpty && stems.contains(stemOf(name.first))) return (folder: folder, word: word);
+      }
+    }
+    return null;
+  }
+
+  /// Папка и все вложенные в неё на любой глубине.
+  Future<Set<String>> _folderTree(String folderId) async {
+    final rows = await _db
+        .customSelect(
+          'WITH RECURSIVE tree(id) AS (SELECT ? UNION SELECT folders.id FROM folders JOIN tree ON folders.parent_id = tree.id) SELECT id FROM tree',
+          variables: [Variable.withString(folderId)],
+          readsFrom: {_db.folders},
+        )
+        .get();
+    return {for (final row in rows) row.read<String>('id')};
+  }
+
+  // все цены заметок, сложенные по валютам
+  Future<List<(double, String)>> _priceTotal(Iterable<String> ids) async {
+    final list = ids.toList();
+    if (list.isEmpty) return const [];
+    final facts = await (_db.select(_db.facts)..where((t) => t.kind.equals(FactKind.price.name) & t.itemId.isIn(list) & t.number.isNotNull())).get();
+    return sumByCurrency([for (final fact in facts) (fact.number!, fact.detail ?? '')]);
+  }
+
+  // цены заметок папки и вложенных, сложенные по валютам прямо в базе: поток смотрит на сам итог
+  Selectable<(double, String)> _folderTotalQuery(String folderId) => _db
+      .customSelect(
+        'WITH RECURSIVE tree(id) AS (SELECT ? UNION SELECT folders.id FROM folders JOIN tree ON folders.parent_id = tree.id) '
+        'SELECT coalesce(facts.detail, \'\') AS currency, sum(facts.number) AS amount FROM facts JOIN items ON items.id = facts.item_id '
+        "WHERE facts.kind = 'price' AND facts.number IS NOT NULL AND items.deleted_at IS NULL AND items.folder_id IN (SELECT id FROM tree) "
+        'GROUP BY coalesce(facts.detail, \'\') ORDER BY amount DESC',
+        variables: [Variable.withString(folderId)],
+        readsFrom: {_db.items, _db.facts, _db.folders},
+      )
+      .map((row) => (row.read<double>('amount'), row.read<String>('currency')));
+
+  /// Сколько денег в заметках папки и вложенных: «Всего 23 150 лей · €40» на её экране.
+  Future<List<(double, String)>> folderTotal(String folderId) => _folderTotalQuery(folderId).get();
+
+  /// [folderTotal], пересчитанный при любой правке заметок, фактов и папок.
+  Stream<List<(double, String)>> watchFolderTotal(String folderId) => _folderTotalQuery(folderId).watch();
+
   // кандидаты: с фильтрами — все подходящие под них, без фильтров — из индекса по основам
   // всех вариантов слов и последние вещи (там ловятся опечатки и имена папок); порядок решает [rankSearch]
-  Future<List<SearchResult>> _searchOnce(SearchQuery query, {required List<String> tags, String? folderId, required DateTime now, (double, double)? here, required int limit}) async {
+  Future<List<SearchResult>> _searchOnce(
+    SearchQuery query, {
+    required List<String> tags,
+    String? folderId,
+    required DateTime now,
+    (double, double)? here,
+    required int limit,
+    Set<String>? inFolders,
+  }) async {
     final words = query.words;
     if (query.isEmpty && tags.isEmpty && folderId == null) return const [];
     final ids = <String>{};
     if (query.hasFilters) {
-      ids.addAll(await _admitted(query, here));
+      ids.addAll(await _admitted(query, here, inFolders: inFolders));
     } else {
       if (words.isNotEmpty) {
         final stems = {for (final word in words) for (final variant in word.variants) stemOf(variant.text)};
@@ -732,11 +816,15 @@ WHERE items.deleted_at IS NULL''';
   }
 
   // вещи под фильтры запроса, свежие первыми; полей мало, поэтому проход по всем дешёвый
-  Future<List<String>> _admitted(SearchQuery query, (double, double)? here) async {
+  // [inFolders] — только эти папки: траты по папке вместе с вложенными
+  Future<List<String>> _admitted(SearchQuery query, (double, double)? here, {Set<String>? inFolders}) async {
     final rows = await _db
         .customSelect(
           'SELECT items.*, (SELECT attachments.path FROM attachments WHERE attachments.item_id = items.id '
-          'ORDER BY attachments.position LIMIT 1) AS first_path FROM items WHERE items.deleted_at IS NULL ORDER BY items.created_at DESC',
+          'ORDER BY attachments.position LIMIT 1) AS first_path FROM items WHERE items.deleted_at IS NULL '
+          '${inFolders == null ? '' : 'AND items.folder_id IN (${List.filled(inFolders.length, '?').join(',')}) '}'
+          'ORDER BY items.created_at DESC',
+          variables: [for (final id in inFolders ?? const <String>{}) Variable.withString(id)],
           readsFrom: {_db.items, _db.attachments},
         )
         .get();
@@ -754,7 +842,7 @@ WHERE items.deleted_at IS NULL''';
     final reading = <String, int>{};
     final colors = <String, Set<String>>{};
     final byLength = query.minSeconds != null || query.maxSeconds != null;
-    if (query.minPrice != null || query.maxPrice != null || query.screenshots || byLength || query.colors.isNotEmpty) {
+    if (query.minPrice != null || query.maxPrice != null || query.spending || query.screenshots || byLength || query.colors.isNotEmpty) {
       final kinds = [FactKind.price, FactKind.screenshot, if (byLength) FactKind.readingTime, if (query.colors.isNotEmpty) FactKind.color];
       final facts = await (_db.select(_db.facts)..where((t) => t.kind.isIn([for (final kind in kinds) kind.name]))).get();
       for (final fact in facts) {

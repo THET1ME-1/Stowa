@@ -194,6 +194,41 @@ void main() {
       expect((await find('рецепт')).map((found) => found.card.id), contains(recipe));
     });
 
+    group('траты по папке', () {
+      Future<String> priced(String text, String folder, double amount, String currency) async {
+        final id = await capture.capture(CaptureInput(text: text, forcedFolderId: folder));
+        await db.into(db.facts).insert(FactsCompanion.insert(id: '$id-p', itemId: id, extractor: 'text', kind: FactKind.price, value: '$amount', number: Value(amount), detail: Value(currency)));
+        return id;
+      }
+
+      setUp(() async {
+        await db.into(db.folders).insert(FoldersCompanion.insert(id: 'repair', name: 'Ремонт', icon: 'build', shape: 'squircle'));
+        await db.into(db.folders).insert(FoldersCompanion.insert(id: 'kitchen', name: 'Кухня', icon: 'kitchen', shape: 'squircle', parentId: const Value('repair')));
+      });
+
+      test('«потратил на ремонт» — заметки папки и вложенных с ценой, итог по валютам', () async {
+        final plaster = await priced('Штукатурка Rotband 4 200 лей', 'repair', 4200, 'MDL');
+        final tiles = await priced('Плитка на кухню 18 950 лей', 'kitchen', 18950, 'MDL');
+        final mixer = await priced('Смеситель Grohe €40', 'kitchen', 40, 'EUR');
+        await priced('Кофе 35 лей', 'home', 35, 'MDL');
+        await capture.capture(const CaptureInput(text: 'Позвонить прорабу', forcedFolderId: 'repair'));
+
+        final found = await items.search(query: parseSearch('потратил на ремонт', now), now: now, limit: 20);
+        expect(found.results.map((one) => one.card.id).toSet(), {plaster, tiles, mixer});
+        expect(found.spentFolder, 'Ремонт');
+        expect(found.total, [(23150.0, 'MDL'), (40.0, 'EUR')]);
+        expect(await items.folderTotal('repair'), [(23150.0, 'MDL'), (40.0, 'EUR')]);
+        expect(await items.folderTotal('kitchen'), [(18950.0, 'MDL'), (40.0, 'EUR')]);
+      });
+
+      test('папки с таким именем нет — заметки с ценой и этим словом, без итога', () async {
+        await priced('Ремонт телефона 600 лей', 'home', 600, 'MDL');
+        final found = await items.search(query: parseSearch('потратил на телефон', now), now: now);
+        expect(found.results.single.card.title, 'Ремонт телефона 600 лей');
+        expect(found.spentFolder, isNull);
+      });
+    });
+
     test('статья находится по слову из своего текста, а цитата — по пометке', () async {
       final article = await capture.capture(CaptureInput(text: 'https://en.wikipedia.org/wiki/Coffee'));
       await db.into(db.facts).insert(

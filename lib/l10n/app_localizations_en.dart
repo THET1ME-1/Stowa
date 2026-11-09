@@ -2404,4 +2404,9 @@ class LEn extends L {
 
   @override
   String get toChecklistDone => 'Shopping list ready';
+
+  @override
+  String folderTotal(String sum) {
+    return 'Total $sum';
+  }
 }

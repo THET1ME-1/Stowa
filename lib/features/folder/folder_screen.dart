@@ -19,6 +19,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../data/repositories/tags_repository.dart';
 import '../../domain/folder_tree.dart';
 import '../../domain/models.dart';
+import '../../domain/money.dart' show formatTotal;
 import '../../l10n/app_localizations.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
@@ -318,6 +319,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     final text = Theme.of(context).textTheme;
     final folders = ref.watch(foldersProvider).value ?? const [];
     final folder = folders.where((one) => one.id == widget.folderId).firstOrNull;
+    final total = folder == null ? const <(double, String)>[] : ref.watch(folderTotalProvider(folder.id)).value ?? const <(double, String)>[];
     final children = folder == null ? const <FolderCard>[] : [for (final one in folders) if (one.parentId == folder.id) one];
     final cards = ref.watch(folderItemsProvider(widget.folderId)).value ?? const [];
     final filesRoot = ref.watch(filesRootProvider);
@@ -410,6 +412,13 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
               ),
             ],
           ),
+          // деньги из заметок папки и вложенных: «Всего 23 150 лей · €40»
+          if (folder != null && total.isNotEmpty)
+            Padding(
+              key: const ValueKey('folder-total'),
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(l.folderTotal(formatTotal(total, l.localeName)), style: text.bodyMedium!.copyWith(fontSize: 15, color: Tokens.onSurfaceVariant)),
+            ),
         ],
       ),
     );

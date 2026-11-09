@@ -3994,6 +3994,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Shopping list ready'**
   String get toChecklistDone;
+
+  /// Сумма цен из заметок папки под её заголовком
+  ///
+  /// In en, this message translates to:
+  /// **'Total {sum}'**
+  String folderTotal(String sum);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -2409,4 +2409,9 @@ class LDe extends L {
 
   @override
   String get toChecklistDone => 'Einkaufsliste fertig';
+
+  @override
+  String folderTotal(String sum) {
+    return 'Gesamt $sum';
+  }
 }

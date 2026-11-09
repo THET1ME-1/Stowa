@@ -3,6 +3,8 @@
 /// Сумма без валюты деньгами не считается: «500» может быть чем угодно.
 library;
 
+import 'package:intl/intl.dart';
+
 import 'word_forms.dart';
 
 /// Найденная сумма и её место в тексте вместе с валютой.
@@ -98,3 +100,28 @@ List<Money> findMoney(String text) {
   }
   return found;
 }
+
+/// Суммы по валютам: «4 200 лей» и «18 950 лей» — «23 150 лей». Большая сумма первой.
+List<(double, String)> sumByCurrency(Iterable<(double, String)> prices) {
+  final sums = <String, double>{};
+  for (final (amount, currency) in prices) {
+    sums[currency] = (sums[currency] ?? 0) + amount;
+  }
+  return [for (final entry in sums.entries) (entry.value, entry.key)]..sort((a, b) => b.$1.compareTo(a.$1));
+}
+
+// знак перед суммой, как пишут доллары и евро; остальные валюты — после
+const _signBefore = {'USD': r'$', 'EUR': '€', 'GBP': '£'};
+const _signAfter = {'RUB': '₽', 'UAH': '₴', 'PLN': 'zł', 'RON': 'lei'};
+
+/// Итог для человека: «23 150 лей · €40». Целое — без копеек.
+String formatTotal(List<(double, String)> total, String locale) => [
+  for (final (amount, currency) in total)
+    () {
+      final number = NumberFormat(amount == amount.roundToDouble() ? '#,##0' : '#,##0.00', locale).format(amount);
+      if (_signBefore[currency] case final sign?) return '$sign$number';
+      // лей по-русски и по-украински — «лей», на остальных — «lei»
+      final after = currency == 'MDL' ? (locale.startsWith('ru') || locale.startsWith('uk') ? 'лей' : 'lei') : _signAfter[currency] ?? currency;
+      return '$number $after';
+    }(),
+].join(' · ');

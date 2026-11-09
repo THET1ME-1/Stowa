@@ -3071,5 +3071,14 @@
   "toChecklistDone": "Shopping list ready",
   "@toChecklistDone": {
     "description": "toChecklistDone"
+  },
+  "folderTotal": "Total {sum}",
+  "@folderTotal": {
+    "description": "Сумма цен из заметок папки под её заголовком",
+    "placeholders": {
+      "sum": {
+        "type": "String"
+      }
+    }
   }
 }

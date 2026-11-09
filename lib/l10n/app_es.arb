@@ -399,5 +399,6 @@
   "workEndRow": "Trabajo hasta",
   "toChecklist": "Como lista de la compra",
   "toChecklistHint": "Convertir en casillas",
-  "toChecklistDone": "Lista de la compra lista"
+  "toChecklistDone": "Lista de la compra lista",
+  "folderTotal": "Total {sum}"
 }

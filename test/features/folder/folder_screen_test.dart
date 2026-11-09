@@ -56,6 +56,18 @@ void main() {
     expect(find.text('TikTok'), findsOneWidget);
   });
 
+  testWidgets('деньги в заметках папки — строкой «Всего …» под заголовком; без цен строки нет', (tester) async {
+    await seed();
+    await openFolder(tester);
+    expect(find.byKey(const ValueKey('folder-total')), findsNothing);
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'p1', itemId: 'n', extractor: 'text', kind: FactKind.price, value: '250 лей', number: const Value(250), detail: const Value('MDL')));
+    await world.db.into(world.db.facts).insert(FactsCompanion.insert(id: 'p2', itemId: 'l', extractor: 'text', kind: FactKind.price, value: '1 000 лей', number: const Value(1000), detail: const Value('MDL')));
+    await tester.pumpAndSettle();
+    final shown = find.byKey(const ValueKey('folder-total'));
+    expect(shown, findsOneWidget);
+    expect(tester.widget<Text>(find.descendant(of: shown, matching: find.byType(Text))).data!.replaceAll(' ', ' '), 'Всего 1 250 лей');
+  });
+
   testWidgets('ролик без обложки — строкой, как ссылка, а не пустой плиткой', (tester) async {
     await seed();
     await openFolder(tester);

@@ -48,11 +48,15 @@ class SearchQuery {
     this.maxPrice,
     this.currency,
     this.screenshots = false,
+    this.spending = false,
     this.colors = const {},
     this.at,
     this.understood = const [],
     this.plainWords = const [],
   });
+
+  /// «Потратил на ремонт»: только заметки с ценой; папку по слову находит репозиторий.
+  final bool spending;
 
   /// «синее», «red»: главный цвет картинки или обложки.
   final Set<ColorFamily> colors;
@@ -110,6 +114,7 @@ class SearchQuery {
       minPrice != null ||
       maxPrice != null ||
       screenshots ||
+      spending ||
       colors.isNotEmpty ||
       at != null;
 
@@ -117,6 +122,30 @@ class SearchQuery {
 
   /// Тот же запрос простыми словами, без фильтров.
   SearchQuery withoutFilters() => SearchQuery(words: plainWords, plainWords: plainWords);
+
+  /// Тот же запрос с другими словами поиска: слово-папку трат репозиторий забирает себе.
+  SearchQuery withWords(List<QueryWord> words) => SearchQuery(
+    words: words,
+    from: from,
+    to: to,
+    fromHour: fromHour,
+    toHour: toHour,
+    kinds: kinds,
+    extensions: extensions,
+    hosts: hosts,
+    minSeconds: minSeconds,
+    maxSeconds: maxSeconds,
+    near: near,
+    minPrice: minPrice,
+    maxPrice: maxPrice,
+    currency: currency,
+    screenshots: screenshots,
+    spending: spending,
+    colors: colors,
+    at: at,
+    understood: understood,
+    plainWords: plainWords,
+  );
 
   /// Подходит ли вещь под фильтры. Слова проверяет ранжирование.
   /// [marks] — где вещь сохранена: дома, на работе.
@@ -134,6 +163,7 @@ class SearchQuery {
   }) {
     if (at != null && !marks.contains(at)) return false;
     if (screenshots && !screenshot) return false;
+    if (spending && prices.isEmpty) return false;
     // [colors] вещи — имена семей её главных цветов
     if (this.colors.isNotEmpty && !this.colors.any((family) => colors.contains(family.name))) return false;
     if (minPrice != null || maxPrice != null) {
@@ -349,6 +379,13 @@ final _currencySign = RegExp(r'[$€£₽₴]');
 // скриншоты отдельно от фото: их отличает извлекатель
 final _screenshotWords = _Words('', 'скрин скрін screenshot bildschirmfoto captur zrzut');
 
+// «потратил на ремонт», «расходы», «spent on»: заметки с ценой, папку по слову находит репозиторий
+final _spentWords = _Words(
+  'траты трат расходы расход spent spending expenses ausgaben gastos gasté gastado gastamos wydatki cheltuieli витрати',
+  'потрат потрач израсход витрат wydał wydal ausgegeb cheltuit',
+);
+final _spentLinks = _Words('на для в on for pe na für auf en para');
+
 // формы прилагательного: «синее», «синей», «синюю» — одно слово цвета. Перечислены целиком:
 // начало «черн» поймало бы и «чернику», «бел» — «белку»
 String _ruForms(String stem, {bool soft = false}) => [
@@ -520,6 +557,7 @@ class _Parser {
   double? maxPrice;
   String? currency;
   var screenshots = false;
+  var spending = false;
   final colors = <ColorFamily>{};
   int? minSeconds;
   int? maxSeconds;
@@ -545,7 +583,7 @@ class _Parser {
 
     final plain = _wordsOf([for (var index = 0; index < tokens.length; index++) if (!_quantityTokens.contains(index)) index]);
     var free = _wordsOf([for (var index = 0; index < tokens.length; index++) if (!used[index]) index]);
-    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near || at != null || minPrice != null || maxPrice != null || screenshots || colors.isNotEmpty;
+    final filtered = from != null || to != null || fromHour != null || kinds.isNotEmpty || extensions.isNotEmpty || hosts.isNotEmpty || minSeconds != null || maxSeconds != null || near || at != null || minPrice != null || maxPrice != null || screenshots || spending || colors.isNotEmpty;
     // запрос из одних служебных слов ищется как есть
     if (free.isEmpty && !filtered) free = _wordsOf(List.generate(tokens.length, (index) => index), keepStop: true);
     _understood.sort((a, b) => a.$1.compareTo(b.$1));
@@ -565,6 +603,7 @@ class _Parser {
       maxPrice: maxPrice,
       currency: currency,
       screenshots: screenshots,
+      spending: spending,
       colors: colors,
       at: at,
       understood: [for (final entry in _understood) entry.$2],
@@ -590,7 +629,7 @@ class _Parser {
   }
 
   int _match(int index) {
-    for (final matcher in [_duration, _price, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _screenshot, _color, _kind, _shortLong]) {
+    for (final matcher in [_spent, _duration, _price, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _screenshot, _color, _kind, _shortLong]) {
       final taken = matcher(index);
       if (taken > 0) return taken;
     }
@@ -694,6 +733,13 @@ class _Parser {
       return _take(index, index + 1);
     }
     return 0;
+  }
+
+  // «потратил на», «spent on»: предлог после слова трат — часть фразы, а не слово поиска
+  int _spent(int index) {
+    if (!_is(index, _spentWords)) return 0;
+    spending = true;
+    return _take(index, _is(index + 1, _spentLinks) ? index + 2 : index + 1);
   }
 
   // «скрины», «screenshots», «capturas»: картинки, которые извлекатель признал скриншотами

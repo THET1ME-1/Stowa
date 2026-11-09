@@ -399,5 +399,6 @@
   "workEndRow": "Program până la",
   "toChecklist": "Ca listă de cumpărături",
   "toChecklistHint": "Transformă în bife",
-  "toChecklistDone": "Lista de cumpărături e gata"
+  "toChecklistDone": "Lista de cumpărături e gata",
+  "folderTotal": "Total {sum}"
 }

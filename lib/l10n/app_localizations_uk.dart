@@ -2449,4 +2449,9 @@ class LUk extends L {
 
   @override
   String get toChecklistDone => 'Список покупок готовий';
+
+  @override
+  String folderTotal(String sum) {
+    return 'Усього $sum';
+  }
 }

@@ -399,5 +399,6 @@
   "workEndRow": "Praca do",
   "toChecklist": "Jako lista zakupów",
   "toChecklistHint": "Zamień na pola wyboru",
-  "toChecklistDone": "Lista zakupów gotowa"
+  "toChecklistDone": "Lista zakupów gotowa",
+  "folderTotal": "Razem {sum}"
 }

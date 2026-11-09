@@ -2454,4 +2454,9 @@ class LRu extends L {
 
   @override
   String get toChecklistDone => 'Список покупок готов';
+
+  @override
+  String folderTotal(String sum) {
+    return 'Всего $sum';
+  }
 }

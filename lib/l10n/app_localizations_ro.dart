@@ -2425,4 +2425,9 @@ class LRo extends L {
 
   @override
   String get toChecklistDone => 'Lista de cumpărături e gata';
+
+  @override
+  String folderTotal(String sum) {
+    return 'Total $sum';
+  }
 }

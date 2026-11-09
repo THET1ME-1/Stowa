@@ -2449,4 +2449,9 @@ class LPl extends L {
 
   @override
   String get toChecklistDone => 'Lista zakupów gotowa';
+
+  @override
+  String folderTotal(String sum) {
+    return 'Razem $sum';
+  }
 }

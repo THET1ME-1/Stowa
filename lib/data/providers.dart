@@ -314,6 +314,9 @@ final placeStampProvider = Provider<Future<void> Function(String itemId)>((ref) 
 /// Вещи с местом: точки карты.
 final placedItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchPlaced());
 
+/// Деньги в заметках папки и вложенных по валютам: строка «Всего …» на экране папки.
+final folderTotalProvider = StreamProvider.family<List<(double, String)>, String>((ref, folderId) => ref.watch(itemsRepositoryProvider).watchFolderTotal(folderId));
+
 /// Где человек сейчас: кнопка «где я» на карте. Тесты подменяют.
 final whereAmIProvider = Provider<Future<(double, double)?> Function()>(
   (ref) => () async {

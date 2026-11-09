@@ -399,5 +399,6 @@
   "workEndRow": "Arbeit bis",
   "toChecklist": "Als Einkaufsliste",
   "toChecklistHint": "Punkte zum Abhaken",
-  "toChecklistDone": "Einkaufsliste fertig"
+  "toChecklistDone": "Einkaufsliste fertig",
+  "folderTotal": "Gesamt {sum}"
 }

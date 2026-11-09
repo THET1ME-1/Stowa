@@ -399,5 +399,6 @@
   "workEndRow": "Робота до",
   "toChecklist": "Списком покупок",
   "toChecklistHint": "Зробити пункти галочками",
-  "toChecklistDone": "Список покупок готовий"
+  "toChecklistDone": "Список покупок готовий",
+  "folderTotal": "Усього {sum}"
 }
