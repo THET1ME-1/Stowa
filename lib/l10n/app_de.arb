@@ -382,5 +382,9 @@
   "qrOpenLink": "Link aus dem QR-Code öffnen",
   "qrCopyText": "Text des QR-Codes kopieren",
   "foundInQr": "im QR-Code",
-  "documentPage": "S. {number}"
+  "documentPage": "S. {number}",
+  "titleDateSetting": "Namen von Fotos und Videos",
+  "titleDateShot": "Nach Aufnahmedatum",
+  "titleDateSaved": "Nach Speicherdatum",
+  "titleDateHint": "Ein Foto ohne Beschriftung trägt ein Datum im Namen. Das Aufnahmedatum kommt aus dem Bild selbst oder aus dem Dateinamen; fehlt es, gilt das Speicherdatum. Selbst vergebene Namen bleiben."
 }

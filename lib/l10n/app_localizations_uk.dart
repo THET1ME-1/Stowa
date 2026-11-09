@@ -2391,4 +2391,17 @@ class LUk extends L {
   String documentPage(String number) {
     return 'стор. $number';
   }
+
+  @override
+  String get titleDateSetting => 'Назва фото й відео';
+
+  @override
+  String get titleDateShot => 'За днем зйомки';
+
+  @override
+  String get titleDateSaved => 'За днем збереження';
+
+  @override
+  String get titleDateHint =>
+      'Фото без підпису називається «Фото від 15 липня». День зйомки береться з самого знімка або з назви файлу, а якщо його там немає — день збереження. Назви, які ви дали самі, не змінюються.';
 }

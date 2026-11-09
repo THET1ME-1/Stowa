@@ -129,15 +129,26 @@ class CaptureInput {
 /// файлы становятся задачами [FileKeeper] в той же транзакции и докладываются
 /// после возврата: вещь видна сразу, вложение дорисуется и не потеряется.
 class CaptureService {
-  CaptureService(this._db, {required TagsRepository tags, required Directory filesRoot, DateTime Function()? clock, Uuid? uuid, FileKeeper? files})
-    : _tags = tags, // ignore: prefer_initializing_formals
-      _filesRoot = filesRoot, // ignore: prefer_initializing_formals
-      _clock = clock ?? DateTime.now,
-      _uuid = uuid ?? const Uuid(),
-      files = files ?? FileKeeper(_db, filesRoot: filesRoot, movable: ownTemporaryFolders(filesRoot), clock: clock ?? DateTime.now);
+  CaptureService(
+    this._db, {
+    required TagsRepository tags,
+    required Directory filesRoot,
+    DateTime Function()? clock,
+    Uuid? uuid,
+    FileKeeper? files,
+    bool Function()? titleByShot,
+  }) : _tags = tags, // ignore: prefer_initializing_formals
+       _filesRoot = filesRoot, // ignore: prefer_initializing_formals
+       _clock = clock ?? DateTime.now,
+       _uuid = uuid ?? const Uuid(),
+       _titleByShot = titleByShot ?? (() => true),
+       files = files ?? FileKeeper(_db, filesRoot: filesRoot, movable: ownTemporaryFolders(filesRoot), clock: clock ?? DateTime.now);
 
   final AppDatabase _db;
   final TagsRepository _tags;
+
+  /// Подпись «Фото от …» по дню съёмки (по умолчанию) или по дню сохранения — выбор в настройках.
+  final bool Function() _titleByShot;
 
   // заметки с «напомни тут» из текущей пачки: им нужна точка с телефона
   final _wantsHere = <String>{};
@@ -203,7 +214,8 @@ class CaptureService {
     if (cue != null && cue.restOf(titleSource).isNotEmpty) titleSource = cue.restOf(titleSource);
     final fromContent = titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path));
     final untitled = input.untitled;
-    final title = fromContent.isNotEmpty || untitled == null ? fromContent : untitled(await shotDateOf(firstFile) ?? input.at ?? now);
+    final shot = fromContent.isEmpty && untitled != null && _titleByShot() ? await shotDateOf(firstFile) : null;
+    final title = fromContent.isNotEmpty || untitled == null ? fromContent : untitled(shot ?? input.at ?? now);
     final kind = detectKind(text: text, mime: firstFile?.mime);
     final url = firstUrl(text);
     final ownTags = [...input.forcedTagNames.map(normalizeTagName), ...extractInlineTags(text)];
@@ -310,10 +322,10 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
     }
   }
 
-  /// Подписи по дню сохранения («Фото от 9 ноября» у снимка июля) — по дню съёмки:
-  /// из EXIF (факт `takenAt`) или из имени файла. Подпись, которую человек поменял,
-  /// не совпадает с подписью дня сохранения и остаётся как есть.
-  Future<void> retitleByShotDate(String Function({required String mime, required String fileName, required DateTime at}) untitled) async {
+  /// Подписи «Фото от …» — по выбранному дню: [byShot] — съёмки (EXIF, факт `takenAt`,
+  /// или имя файла), иначе сохранения. Трогается только подпись, которую дало приложение
+  /// (по одному из двух дней): название, которое человек поменял, остаётся как есть.
+  Future<void> retitleUntitled(String Function({required String mime, required String fileName, required DateTime at}) untitled, {required bool byShot}) async {
     final rows = await _db.customSelect('''
 SELECT items.id AS id, items.title AS title, items.created_at AS created_at, attachments.path AS path, attachments.mime AS mime,
   (SELECT facts.value FROM facts WHERE facts.item_id = items.id AND facts.kind = 'takenAt' LIMIT 1) AS taken
@@ -327,10 +339,12 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
       if (shot == null) continue;
       final createdAt = _db.typeMapping.read(DriftSqlType.dateTime, row.data['created_at'])!;
       final title = row.read<String>('title');
-      if (title != untitled(mime: mime, fileName: fileName, at: createdAt)) continue;
-      final byShot = untitled(mime: mime, fileName: fileName, at: shot);
-      if (byShot == title) continue;
-      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(byShot)));
+      final bySaved = untitled(mime: mime, fileName: fileName, at: createdAt);
+      final byShotTitle = untitled(mime: mime, fileName: fileName, at: shot);
+      if (title != bySaved && title != byShotTitle) continue;
+      final wanted = byShot ? byShotTitle : bySaved;
+      if (wanted == title) continue;
+      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(wanted)));
     }
   }
 

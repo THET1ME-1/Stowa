@@ -382,5 +382,9 @@
   "qrOpenLink": "Abrir el enlace del código QR",
   "qrCopyText": "Copiar el texto del código QR",
   "foundInQr": "en un código QR",
-  "documentPage": "pág. {number}"
+  "documentPage": "pág. {number}",
+  "titleDateSetting": "Nombre de fotos y vídeos",
+  "titleDateShot": "Por fecha de captura",
+  "titleDateSaved": "Por fecha de guardado",
+  "titleDateHint": "Una foto sin descripción lleva en el nombre un día. La fecha de captura sale de la propia foto o del nombre del archivo; si no está, se usa la fecha de guardado. Los nombres que pusiste tú no cambian."
 }

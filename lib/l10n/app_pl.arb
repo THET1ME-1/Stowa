@@ -382,5 +382,9 @@
   "qrOpenLink": "Otwórz link z kodu QR",
   "qrCopyText": "Kopiuj tekst kodu QR",
   "foundInQr": "w kodzie QR",
-  "documentPage": "str. {number}"
+  "documentPage": "str. {number}",
+  "titleDateSetting": "Nazwy zdjęć i filmów",
+  "titleDateShot": "Według daty zrobienia",
+  "titleDateSaved": "Według daty zapisania",
+  "titleDateHint": "Zdjęcie bez podpisu dostaje w nazwie dzień. Datę zrobienia bierzemy z samego zdjęcia albo z nazwy pliku, a jeśli jej tam nie ma — datę zapisania. Nazwy nadane przez Ciebie się nie zmieniają."
 }

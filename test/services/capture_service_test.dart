@@ -251,12 +251,26 @@ void main() {
     await old('mine', 'Море в Лиссабоне', 'IMG_20260715_183012.jpg', taken: '2026-07-15T18:30:12.000');
     await old('today', 'Фото от 9.11', 'IMG_20261109_101010.jpg');
 
-    await capture.retitleByShotDate(untitled);
+    await capture.retitleUntitled(untitled, byShot: true);
     Future<String> title(String id) async => (await items.get(id))!.item.title;
     expect(await title('exif'), 'Фото от 15.7');
     expect(await title('name'), 'Фото от 12.10');
     expect(await title('mine'), 'Море в Лиссабоне');
     expect(await title('today'), 'Фото от 9.11');
+
+    // человек выбрал «по дню сохранения»: подписи возвращаются, своё по-прежнему не трогается
+    await capture.retitleUntitled(untitled, byShot: false);
+    expect(await title('exif'), 'Фото от 9.11');
+    expect(await title('name'), 'Фото от 9.11');
+    expect(await title('mine'), 'Море в Лиссабоне');
+  });
+
+  test('«по дню сохранения»: новое фото с EXIF июля — подпись дня сохранения', () async {
+    final saved = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => DateTime(2026, 11, 2, 12), titleByShot: () => false);
+    final bytes = jpegWithExif(taken: '2026:07:15 18:30:12');
+    final file = await File(p.join(home.path, 'IMG_20260715_183012.jpg')).writeAsBytes(bytes);
+    final id = await saved.capture(CaptureInput(files: [PickedFile(path: file.path, mime: 'image/jpeg', size: bytes.length)], untitled: (at) => 'от ${at.day}.${at.month}'));
+    expect((await items.get(id))!.item.title, 'от 2.11');
   });
 
   test('теги из текста ставятся с источником inline, выбранные руками — user', () async {

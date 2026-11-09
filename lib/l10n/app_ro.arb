@@ -382,5 +382,9 @@
   "qrOpenLink": "Deschide linkul din codul QR",
   "qrCopyText": "Copiază textul codului QR",
   "foundInQr": "în codul QR",
-  "documentPage": "pag. {number}"
+  "documentPage": "pag. {number}",
+  "titleDateSetting": "Numele fotografiilor și videoclipurilor",
+  "titleDateShot": "După data fotografierii",
+  "titleDateSaved": "După data salvării",
+  "titleDateHint": "O fotografie fără descriere primește o dată în nume. Data fotografierii se ia din imagine sau din numele fișierului; dacă nu există, se folosește data salvării. Numele date de dvs. nu se schimbă."
 }

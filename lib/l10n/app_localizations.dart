@@ -3892,6 +3892,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'page {number}'**
   String documentPage(String number);
+
+  /// Пункт настроек: по какому дню называть фото без подписи
+  ///
+  /// In en, this message translates to:
+  /// **'Photo and video names'**
+  String get titleDateSetting;
+
+  /// titleDateShot
+  ///
+  /// In en, this message translates to:
+  /// **'By date taken'**
+  String get titleDateShot;
+
+  /// titleDateSaved
+  ///
+  /// In en, this message translates to:
+  /// **'By date saved'**
+  String get titleDateSaved;
+
+  /// titleDateHint
+  ///
+  /// In en, this message translates to:
+  /// **'A photo without a caption is named “Photo from July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.'**
+  String get titleDateHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

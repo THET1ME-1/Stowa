@@ -2396,4 +2396,17 @@ class LRu extends L {
   String documentPage(String number) {
     return 'стр. $number';
   }
+
+  @override
+  String get titleDateSetting => 'Название фото и видео';
+
+  @override
+  String get titleDateShot => 'По дню съёмки';
+
+  @override
+  String get titleDateSaved => 'По дню сохранения';
+
+  @override
+  String get titleDateHint =>
+      'Фото без подписи называется «Фото от 15 июля». День съёмки берётся из самого снимка или из имени файла, а если его там нет — день сохранения. Названия, которые вы дали сами, не меняются.';
 }

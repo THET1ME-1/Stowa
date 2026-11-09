@@ -46,6 +46,10 @@ enum VaultMode { device, app }
 /// Что открывается при запуске: главная, последняя открытая заметка или случайная.
 enum StartScreen { home, last, random }
 
+/// По какому дню подпись фото и ролика без названия: «Фото от 15 июля» — когда снято
+/// или когда сохранено.
+enum TitleDate { shot, saved }
+
 class AiSettings {
   const AiSettings({
     this.baseUrl = defaultAiBaseUrl,
@@ -232,6 +236,16 @@ class SettingsRepository {
   }
 
   Future<void> setArticleImages(bool on) => _set(() => _prefs.setBool('article_images', on));
+
+  /// Подпись фото и ролика — по дню съёмки (по умолчанию) или сохранения.
+  TitleDate get titleDate => TitleDate.values.asNameMap()[_prefs.getString('title_date')] ?? TitleDate.shot;
+
+  Stream<TitleDate> watchTitleDate() async* {
+    yield titleDate;
+    yield* _changes.stream.map((_) => titleDate).distinct();
+  }
+
+  Future<void> setTitleDate(TitleDate value) => _set(() => _prefs.setString('title_date', value.name));
 
   /// Что открывать при запуске. По умолчанию главная.
   StartScreen get startScreen => StartScreen.values.asNameMap()[_prefs.getString('start_screen')] ?? StartScreen.home;

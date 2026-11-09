@@ -111,6 +111,19 @@ void main() {
     expect(find.text('Случайную заметку'), findsOneWidget);
   });
 
+  testWidgets('«Название фото и видео»: по умолчанию по дню съёмки, можно выбрать день сохранения', (tester) async {
+    await open(tester, keyStatus: 200);
+    await tester.scrollUntilVisible(find.text('Название фото и видео'), 200);
+    await tester.pumpAndSettle();
+    expect(find.text('По дню съёмки'), findsOneWidget);
+    await tester.tap(find.text('Название фото и видео'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('По дню сохранения'));
+    await tester.pumpAndSettle();
+    expect(settings.titleDate, TitleDate.saved);
+    expect(find.text('По дню сохранения'), findsOneWidget);
+  });
+
   testWidgets('раздел «Хранилище»: где лежит, перенос и «Пересобрать указатель»', (tester) async {
     await open(tester, keyStatus: 200);
     // экран теста короткий: заголовок и строки раздела на нём разом не видны

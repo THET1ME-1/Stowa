@@ -2367,4 +2367,17 @@ class LRo extends L {
   String documentPage(String number) {
     return 'pag. $number';
   }
+
+  @override
+  String get titleDateSetting => 'Numele fotografiilor și videoclipurilor';
+
+  @override
+  String get titleDateShot => 'După data fotografierii';
+
+  @override
+  String get titleDateSaved => 'După data salvării';
+
+  @override
+  String get titleDateHint =>
+      'O fotografie fără descriere se numește „Fotografie din 15 iulie”. Data fotografierii se ia din imagine sau din numele fișierului; dacă nu există, se folosește data salvării. Numele date de dvs. nu se schimbă.';
 }

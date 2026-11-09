@@ -2391,4 +2391,17 @@ class LPl extends L {
   String documentPage(String number) {
     return 'str. $number';
   }
+
+  @override
+  String get titleDateSetting => 'Nazwy zdjęć i filmów';
+
+  @override
+  String get titleDateShot => 'Według daty zrobienia';
+
+  @override
+  String get titleDateSaved => 'Według daty zapisania';
+
+  @override
+  String get titleDateHint =>
+      'Zdjęcie bez podpisu nazywa się „Zdjęcie z 15 lipca”. Datę zrobienia bierzemy z samego zdjęcia albo z nazwy pliku, a jeśli jej tam nie ma — datę zapisania. Nazwy nadane przez Ciebie się nie zmieniają.';
 }

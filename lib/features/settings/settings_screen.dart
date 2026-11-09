@@ -17,6 +17,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
+import '../composer/panel_text.dart' show untitledFor;
 import '../../domain/appearance.dart';
 import '../../domain/models.dart' show PlaceKind;
 import '../../domain/return_plan.dart';
@@ -152,6 +153,21 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.adultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+            ),
+            SettingsGroup(
+              tint: settingsTint('sky'),
+              children: [
+                SettingsRow(
+                  icon: 'calendar_month',
+                  title: l.titleDateSetting,
+                  value: titleDateLabel(l, ref.watch(titleDateProvider).value ?? TitleDate.shot),
+                  onTap: () => _sheet(context, const _TitleDateSheet()),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+              child: Text(l.titleDateHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
             SettingsSection(l.settingsReturns),
             const _ReturnGroup(),
@@ -900,6 +916,38 @@ class _LanguageSheet extends ConsumerWidget {
         children: [
           _ModelTile(title: l.languageSystem, selected: current == null, onTap: () => pick(null)),
           for (final language in AppLanguage.values) _ModelTile(title: language.label, selected: language == current, onTap: () => pick(language)),
+        ],
+      ),
+    );
+  }
+}
+
+String titleDateLabel(L l, TitleDate date) => switch (date) {
+  TitleDate.shot => l.titleDateShot,
+  TitleDate.saved => l.titleDateSaved,
+};
+
+/// По какому дню подпись фото: выбор сразу переименовывает уже сохранённые подписи.
+class _TitleDateSheet extends ConsumerWidget {
+  const _TitleDateSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L.of(context);
+    final current = ref.watch(titleDateProvider).value ?? TitleDate.shot;
+    Future<void> pick(TitleDate date) async {
+      await ref.read(settingsRepositoryProvider).setTitleDate(date);
+      String untitled({required String mime, required String fileName, required DateTime at}) => untitledFor(l, mime: mime, fileName: fileName, at: at);
+      ref.read(captureServiceProvider).retitleUntitled(untitled, byShot: date == TitleDate.shot).ignore();
+      if (context.mounted) Navigator.pop(context);
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final date in TitleDate.values) _ModelTile(title: titleDateLabel(l, date), selected: date == current, onTap: () => pick(date)),
         ],
       ),
     );

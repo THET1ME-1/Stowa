@@ -2351,4 +2351,17 @@ class LDe extends L {
   String documentPage(String number) {
     return 'S. $number';
   }
+
+  @override
+  String get titleDateSetting => 'Namen von Fotos und Videos';
+
+  @override
+  String get titleDateShot => 'Nach Aufnahmedatum';
+
+  @override
+  String get titleDateSaved => 'Nach Speicherdatum';
+
+  @override
+  String get titleDateHint =>
+      'Ein Foto ohne Beschriftung heißt „Foto vom 15. Juli“. Das Aufnahmedatum kommt aus dem Bild selbst oder aus dem Dateinamen; fehlt es, gilt das Speicherdatum. Selbst vergebene Namen bleiben.';
 }

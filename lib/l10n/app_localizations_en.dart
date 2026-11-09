@@ -2346,4 +2346,17 @@ class LEn extends L {
   String documentPage(String number) {
     return 'page $number';
   }
+
+  @override
+  String get titleDateSetting => 'Photo and video names';
+
+  @override
+  String get titleDateShot => 'By date taken';
+
+  @override
+  String get titleDateSaved => 'By date saved';
+
+  @override
+  String get titleDateHint =>
+      'A photo without a caption is named “Photo from July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.';
 }

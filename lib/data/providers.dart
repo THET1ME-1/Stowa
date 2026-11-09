@@ -260,6 +260,7 @@ final captureServiceProvider = Provider((ref) {
     filesRoot: ref.watch(filesRootProvider),
     clock: ref.watch(clockProvider),
     files: ref.watch(fileKeeperProvider),
+    titleByShot: ref.watch(titleByShotProvider),
   )
     // теги соседей и разбор ИИ идут после сохранения: строка не ждёт ни того, ни другого
     ..afterCapture = (id) {
@@ -276,6 +277,16 @@ final captureServiceProvider = Provider((ref) {
     }
     ..stampPlace = (id) => stamp(id).ignore();
 });
+
+/// Подпись «Фото от …» по дню съёмки: читается в момент сохранения, смена в настройках
+/// действует сразу. Тесты подменяют: настоящих настроек там нет.
+final titleByShotProvider = Provider<bool Function()>((ref) {
+  final settings = ref.watch(settingsRepositoryProvider);
+  return () => settings.titleDate == TitleDate.shot;
+});
+
+/// Выбор дня подписи для экрана настроек.
+final titleDateProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchTitleDate());
 
 /// Поставить вещи место. Тесты подменяют пустышкой: GPS там нет.
 final placeStampProvider = Provider<Future<void> Function(String itemId)>((ref) {

@@ -2348,4 +2348,17 @@ class LEs extends L {
   String documentPage(String number) {
     return 'pág. $number';
   }
+
+  @override
+  String get titleDateSetting => 'Nombre de fotos y vídeos';
+
+  @override
+  String get titleDateShot => 'Por fecha de captura';
+
+  @override
+  String get titleDateSaved => 'Por fecha de guardado';
+
+  @override
+  String get titleDateHint =>
+      'Una foto sin descripción se llama «Foto del 15 de julio». La fecha de captura sale de la propia foto o del nombre del archivo; si no está, se usa la fecha de guardado. Los nombres que pusiste tú no cambian.';
 }

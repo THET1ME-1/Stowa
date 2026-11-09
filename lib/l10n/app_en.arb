@@ -2988,5 +2988,21 @@
         "type": "String"
       }
     }
+  },
+  "titleDateSetting": "Photo and video names",
+  "@titleDateSetting": {
+    "description": "Пункт настроек: по какому дню называть фото без подписи"
+  },
+  "titleDateShot": "By date taken",
+  "@titleDateShot": {
+    "description": "titleDateShot"
+  },
+  "titleDateSaved": "By date saved",
+  "@titleDateSaved": {
+    "description": "titleDateSaved"
+  },
+  "titleDateHint": "A photo without a caption is named “Photo, July 15”. The date taken comes from the photo itself or its file name; if it isn't there, the date saved is used. Names you gave yourself don't change.",
+  "@titleDateHint": {
+    "description": "titleDateHint"
   }
 }

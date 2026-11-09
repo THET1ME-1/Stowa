@@ -135,9 +135,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       capture.fillImageSizes().ignore();
       capture.reclassifyNotes().ignore();
       capture.shortenPlaceNames().ignore();
-      // сперва подпись вместо имени файла, потом её день — по дню съёмки
+      // сперва подпись вместо имени файла, потом её день — съёмки или сохранения, как выбрано
       String untitled({required String mime, required String fileName, required DateTime at}) => untitledFor(l, mime: mime, fileName: fileName, at: at);
-      capture.retitleFileNames(untitled).then((_) => capture.retitleByShotDate(untitled)).ignore();
+      final byShot = ref.read(titleByShotProvider)();
+      capture.retitleFileNames(untitled).then((_) => capture.retitleUntitled(untitled, byShot: byShot)).ignore();
     });
   }
 
