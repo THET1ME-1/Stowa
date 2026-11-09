@@ -150,7 +150,8 @@ const _words = <Topic, String>{
       'trip travel vacation flight airport hotel visa passport luggage itinerary beach hostel booking '
       'reise urlaub flug flughafen visum reisepass koffer strand viaje vacaciones vuelo aeropuerto visado pasaporte maleta playa '
       'călătorie vacanță zbor aeroport viză pașaport valiză plajă podróż wakacje lotnisko wiza paszport walizka plaża '
-      'vacances aéroport valise plage albergo volo vacanze aeroporto biglietto valigia spiaggia '
+      'vacances aéroport valise plage albergo volo vacanze aeroporto biglietto valigia spiaggia treno '
+      'поезд поезда поезде '
       'viagem férias voo aeroporto passaporte praia '
       'uçak uçuş bilet bileti tatil otel rezervasyon rezervasyonu havalimanı pasaport vize bavul plaj',
   Topic.work:
@@ -165,6 +166,9 @@ const _words = <Topic, String>{
   Topic.study:
       'учеба учёба лекция семинар экзамен зачет зачёт сессия курсовая диплом домашка преподаватель университет колледж '
       'конспект лабораторная '
+      // «зачёт» стеммер режет до «зач»: падежи списком
+      'зачета зачёта зачету зачёту лаба лабу лабы лабораторку препод препода преподу физика физике физику химия химии '
+      'алгебра алгебре геометрия матанализ '
       'навчання лекція семінар іспит залік курсова диплом університет коледж конспект '
       'lecture seminar exam homework thesis professor university college '
       'vorlesung prüfung hausaufgaben universität examen deberes universidad apuntes '
@@ -191,13 +195,14 @@ const _words = <Topic, String>{
       'antrenman şınav mekik koşu',
   Topic.home:
       'ремонт плитка плитку обои краска покрасить шпаклевка штукатурка ламинат розетка смеситель сантехник электрик '
-      'мебель диван шкаф ванная квартира аренда коммуналка '
-      'ремонт плитка шпалери фарба сантехнік меблі диван ванна квартира оренда '
-      'renovation repair tiles wallpaper paint plumber electrician furniture sofa wardrobe bathroom apartment rent '
-      'renovierung reparatur fliesen tapete farbe klempner möbel sofa wohnung miete '
-      'reforma reparación azulejos pintura fontanero muebles sofá baño piso alquiler '
-      'renovare reparație faianță tapet vopsea instalator mobilă canapea baie apartament chirie '
-      'remont płytki tapeta farba hydraulik meble kanapa łazienka mieszkanie czynsz',
+      // аренда и коммуналка — платежи, они у денег
+      'мебель диван шкаф ванная квартира '
+      'ремонт плитка шпалери фарба сантехнік меблі диван ванна квартира '
+      'renovation repair tiles wallpaper paint plumber electrician furniture sofa wardrobe bathroom apartment '
+      'renovierung reparatur fliesen tapete farbe klempner möbel sofa wohnung '
+      'reforma reparación azulejos pintura fontanero muebles sofá baño piso '
+      'renovare reparație faianță tapet vopsea instalator mobilă canapea baie apartament '
+      'remont płytki tapeta farba hydraulik meble kanapa łazienka mieszkanie',
   Topic.car:
       'машина машину автомобиль шины резина моторное техосмотр страховка бензин заправка гараж автосервис '
       'автомобіль шини бензин гараж '
@@ -213,7 +218,8 @@ const _words = <Topic, String>{
       // итальянского «tasse» нет: по-немецки это чашка
       'loyer impôts impots facture banque virement prêt dette hypothèque affitto bolletta banca bonifico prestito mutuo debito '
       'aluguel aluguer impostos dívida empréstimo '
-      'vergi vergiler fatura borç kredi',
+      'vergi vergiler fatura borç kredi '
+      'аренда аренду коммуналка коммуналку квартплата оренда rent landlord miete alquiler chirie chiria czynsz',
   Topic.kids:
       'ребенок ребёнок дети сын дочка садик детсад утренник игрушки подгузники педиатр коляска '
       'дитина діти син донька садочок іграшки '

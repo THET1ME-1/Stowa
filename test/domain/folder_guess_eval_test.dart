@@ -45,6 +45,11 @@ const _cases = <(String, String?)>[
   ('The detective finally realizes the butler lied about the knife', 'Книга'),
   ('lait, pain et fromage', 'Продукты'),
   ('latte, pane e formaggio', 'Продукты'),
+  // промахи третьей пачки
+  ('лабу по физике сдать преподу до зачёта', 'Учёба'),
+  ('transfer rent to landlord before the 1st', 'Финансы'),
+  ('plătește chiria și factura la internet', 'Финансы'),
+  ('biglietto del treno per Milano', 'Путешествия'),
   ('позвонить маме', null),
   ('пароль от вайфая на даче dacha2026', null),
   ('мысль: всё временно', null),
