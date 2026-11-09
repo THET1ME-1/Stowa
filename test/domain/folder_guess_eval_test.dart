@@ -38,6 +38,13 @@ const _cases = <(String, String?)>[
   ('купить подгузники', 'Дети'),
   ('buy cat litter', 'Питомцы'),
   ('купить зарядку для телефона', 'Покупки'),
+  // промахи второй пачки на эмуляторе
+  ('Героиня узнаёт, что отец всё это время работал на врага', 'Книга'),
+  ('Бег 5 км, потом планка 2 минуты', 'Спорт'),
+  ('nsfw арт посмотреть позже', '18+'),
+  ('The detective finally realizes the butler lied about the knife', 'Книга'),
+  ('lait, pain et fromage', 'Продукты'),
+  ('latte, pane e formaggio', 'Продукты'),
   ('позвонить маме', null),
   ('пароль от вайфая на даче dacha2026', null),
   ('мысль: всё временно', null),
@@ -103,6 +110,44 @@ const _foreign = <(String, String?)>[
   ('Reunião com o cliente na sexta', 'Работа'),
   ('Je pense à toi', null),
   ('Ci vediamo dopo', null),
+];
+
+// языки без перевода интерфейса: французский, итальянский, португальский, турецкий
+const _moreLanguages = <(String, String?)>[
+  ('Acheter des œufs, du beurre et de la farine', 'Продукты'),
+  ('Réserver le vol et l’hôtel pour les vacances', 'Путешествия'),
+  ('Rendez-vous chez le médecin, prendre les médicaments', 'Здоровье'),
+  ('Réunion avec le client lundi, préparer le rapport', 'Работа'),
+  ('Payer le loyer et les impôts', 'Финансы'),
+  ('Le héros trahit le roi dans le dernier chapitre', 'Книга'),
+  ('Regarder la nouvelle série ce soir', 'Кино'),
+  ('Séance de sport: pompes et squats', 'Спорт'),
+  ('Comprare uova, burro e farina', 'Продукты'),
+  ('Prenotare l’albergo e il volo per Roma', 'Путешествия'),
+  ('Appuntamento dal medico, comprare le medicine in farmacia', 'Здоровье'),
+  ('Riunione con il cliente lunedì', 'Работа'),
+  ('Pagare l’affitto e le tasse', 'Финансы'),
+  ('L’eroina scopre il tradimento del re', 'Книга'),
+  ('Allenamento: flessioni e squat in palestra', 'Спорт'),
+  ('Il gatto deve andare dal veterinario', 'Питомцы'),
+  ('Comprar ovos, manteiga e farinha', 'Продукты'),
+  ('Consulta no dentista na terça', 'Здоровье'),
+  ('Pagar o aluguel e os impostos', 'Финансы'),
+  ('A heroína descobre a traição do rei', 'Книга'),
+  ('Treino: flexões e agachamentos na academia', 'Спорт'),
+  ('Ver o novo filme no cinema', 'Кино'),
+  ('Süt, ekmek, peynir ve yumurta al', 'Продукты'),
+  ('Uçak bileti ve otel rezervasyonu', 'Путешествия'),
+  ('Doktor randevusu, eczaneden ilaç', 'Здоровье'),
+  ('Müşteriyle toplantı, rapor hazırla', 'Работа'),
+  ('Kira ve vergiler ödenecek', 'Финансы'),
+  ('Kahraman kralı son bölümde aldatıyor', 'Книга'),
+  ('Spor salonu: şınav ve mekik', 'Спорт'),
+  ('Kediye mama ve veteriner', 'Питомцы'),
+  ('À demain alors', null),
+  ('Ci sentiamo stasera', null),
+  ('Até logo, beijos', null),
+  ('Yarın ararım', null),
 ];
 
 // бытовое на всех языках: папки нет, и угадыватель не должен её придумать
@@ -233,6 +278,14 @@ void main() {
     // ignore: avoid_print
     print('чужие языки, ошибки: $wrong');
     expect(wrong, isEmpty);
+  });
+
+  test('языки без перевода интерфейса тоже раскладываются', () {
+    final (:right, :wrong, :misses) = _run(index, _moreLanguages);
+    // ignore: avoid_print
+    print('ещё языки: верно $right из ${_moreLanguages.length}, в чужую папку $wrong\n${misses.join('\n')}');
+    expect(wrong, 0);
+    expect(right / _moreLanguages.length, greaterThanOrEqualTo(0.85));
   });
 
   test('бытовое на десяти языках остаётся без папки', () {

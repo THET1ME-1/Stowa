@@ -158,6 +158,7 @@ class FolderIndex {
     // тема папки — по имени, а без него по тому, про что её заметки
     for (final label in labels) {
       _nameStems[label.id] = {for (final word in _words(label.name)) if (word.stem.length >= 3) word.stem};
+      _nameForms[label.id] = {for (final word in _words(label.name)) normalizeQuery(word.original)};
       for (final topic in topicsOfName(label.name)) {
         _topics.putIfAbsent(label.id, () => {})[topic] = 1.0;
       }
@@ -198,6 +199,9 @@ class FolderIndex {
 
   /// Основы слов имени папки.
   final _nameStems = <String, Set<String>>{};
+
+  /// Слова имени папки целиком: от них отличается глагол с той же основой.
+  final _nameForms = <String, Set<String>>{};
 
   /// Темы папки и насколько папка про них: по имени — 1, по заметкам — их доля.
   final _topics = <String, Map<Topic, double>>{};
@@ -283,7 +287,10 @@ class FolderIndex {
     final shownOf = <String, String>{for (final word in words.reversed) word.stem: word.original};
     for (final MapEntry(key: folder, value: stems) in _nameStems.entries) {
       for (final stem in stems.where(shownOf.containsKey)) {
-        push(folder, shownOf[stem]!, _nameMatchWeight);
+        final shown = shownOf[stem]!;
+        // «работал на врага» — не про папку «Работа»: глагол от её имени
+        if (_nameForms[folder]!.any((form) => isVerbOf(normalizeQuery(shown), form))) continue;
+        push(folder, shown, _nameMatchWeight);
       }
     }
 
@@ -293,6 +300,12 @@ class FolderIndex {
       for (final topic in topicsOfWord(shown)) {
         topicWords.putIfAbsent(topic, () => []).add(shown);
       }
+    }
+    // 18+ перебивает всё: «nsfw арт посмотреть» — не кино
+    if (topicWords[Topic.adult] case final adult?) {
+      topicWords
+        ..clear()
+        ..[Topic.adult] = adult;
     }
     // готовка делает продукты ингредиентами: «сырники: творог, мука, жарить» — рецепт
     if ((topicWords[Topic.cooking]?.length ?? 0) >= 2 && topicWords.containsKey(Topic.groceries)) {

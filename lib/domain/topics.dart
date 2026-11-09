@@ -1,4 +1,5 @@
-/// Темы без ИИ: словари на семи языках (ru, uk, en, de, es, ro, pl). По имени папки
+/// Темы без ИИ: словари на семи языках интерфейса (ru, uk, en, de, es, ro, pl) и
+/// словами — ещё на французском, итальянском, португальском и турецком. По имени папки
 /// видно, про что она («Продукты», «Groceries», «Zakupy spożywcze» — продукты),
 /// по словам заметки — про что она («молоко», «eggs», «Brot»). Совпали — заметка
 /// тянется в папку с первого дня, даже пока в папке ничего нет.
@@ -88,7 +89,14 @@ const _words = <Topic, String>{
       'kapitel figur figuren protagonist bösewicht handlung prolog epilog manuskript heldin verrat verrät drache zauber '
       'novela capítulo personaje personajes protagonista villano trama prólogo epílogo manuscrito heroína traición traiciona dragón hechizo '
       'capitol personaj personaje protagonist răufăcător intrigă prolog epilog manuscris eroină trădare trădează dragon vrajă '
-      'powieść rozdział postać postacie bohater bohaterka protagonista złoczyńca fabuła prolog epilog rękopis zdrada zdradzi smok zaklęcie',
+      'powieść rozdział postać postacie bohater bohaterka protagonista złoczyńca fabuła prolog epilog rękopis zdrada zdradzi smok zaklęcie '
+      'враг врага врагу врагом врагов детектив убийца '
+      'detective murderer killer suspect '
+      // «roi» — ещё и окупаемость, «roman» — имя: их нет
+      'héros héroïne chapitre personnage intrigue trahit trahison méchant royaume sorcière '
+      'eroina eroe capitolo personaggio trama romanzo tradimento tradisce cattivo regno strega '
+      'herói capítulo personagem enredo traição vilão reino bruxa '
+      'kahraman kahramanı bölüm bölümde bölümü ihanet kral kralı aldatıyor ejderha büyücü',
   Topic.groceries:
       'молоко хлеб батон яйца яиц сыр творог кефир йогурт сметана ряженка мука сахар соль гречка макароны '
       'курица куриное фарш колбаса сосиски овощи фрукты картошка картофель морковь чеснок помидоры огурцы '
@@ -101,7 +109,12 @@ const _words = <Topic, String>{
       'leche huevos queso mantequilla harina azúcar arroz pollo salchichas yogur verduras frutas patatas zanahorias '
       'cebollas tomates pepinos manzanas plátanos zumo '
       'lapte pâine ouă brânză făină zahăr orez pui cârnați iaurt legume fructe cartofi morcovi ceapă usturoi roșii castraveți mere banane '
-      'mleko chleb jajka mąka cukier ryż kurczak kiełbasa jogurt warzywa owoce ziemniaki marchew cebula czosnek pomidory ogórki jabłka banany',
+      'mleko chleb jajka mąka cukier ryż kurczak kiełbasa jogurt warzywa owoce ziemniaki marchew cebula czosnek pomidory ogórki jabłka banany '
+      // французское «pain» — ещё и английская боль: его нет
+      'lait fromage oeufs œufs beurre farine sucre poulet légumes pommes baguette '
+      'latte pane formaggio uova burro farina zucchero riso pollo verdure frutta patate '
+      'leite pão queijo ovos manteiga farinha açúcar frango legumes batatas maçãs '
+      'süt ekmek peynir yumurta tereyağı şeker pirinç tavuk sebze meyve patates elma',
   Topic.cooking:
       'рецепт варить сварить жарить пожарить запечь запекать духовке духовка сковороде сковорода кастрюле тесто '
       'начинка приправа специи нарезать обжарить тушить блины суп борщ салат пирог торт выпечка ингредиенты '
@@ -127,7 +140,8 @@ const _words = <Topic, String>{
       'песня песни музыка альбом трек треки плейлист концерт исполнитель гитара аккорды '
       'пісня музика альбом концерт гітара '
       'song songs music album playlist concert singer guitar chords lyrics spotify '
-      ' lieder musik konzert sänger gitarre canción canciones música concierto cantante guitarra '
+      // «lieder» нет: его основа «lied» — английское «солгал»
+      'musik konzert sänger gitarre canción canciones música concierto cantante guitarra '
       'cântec melodie muzică concert chitară piosenka muzyka koncert gitara',
   Topic.travel:
       'поездка поездку путешествие отпуск билеты самолет самолёт рейс аэропорт отель гостиница виза паспорт чемодан '
@@ -135,14 +149,19 @@ const _words = <Topic, String>{
       'подорож відпустка квиток квитки літак рейс аеропорт готель віза паспорт валіза '
       'trip travel vacation flight airport hotel visa passport luggage itinerary beach hostel booking '
       'reise urlaub flug flughafen visum reisepass koffer strand viaje vacaciones vuelo aeropuerto visado pasaporte maleta playa '
-      'călătorie vacanță zbor aeroport viză pașaport valiză plajă podróż wakacje lotnisko wiza paszport walizka plaża',
+      'călătorie vacanță zbor aeroport viză pașaport valiză plajă podróż wakacje lotnisko wiza paszport walizka plaża '
+      'vacances aéroport valise plage albergo volo vacanze aeroporto biglietto valigia spiaggia '
+      'viagem férias voo aeroporto passaporte praia '
+      'uçak uçuş bilet bileti tatil otel rezervasyon rezervasyonu havalimanı pasaport vize bavul plaj',
   Topic.work:
       'работа работе созвон митинг дедлайн проект клиент отчет отчёт презентация коллега начальник офис '
       'собеседование резюме '
       'робота зустріч дедлайн проєкт клієнт звіт презентація колега офіс '
       'meeting deadline project client report presentation colleague manager office interview '
       'arbeit besprechung projekt kunde bericht präsentation kollege büro trabajo reunión proyecto cliente informe presentación colega oficina '
-      'muncă ședință proiect client raport prezentare coleg birou praca projekt klient raport prezentacja biuro',
+      'muncă ședință proiect client raport prezentare coleg birou praca projekt klient raport prezentacja biuro '
+      'réunion rapport bureau collègue riunione progetto rapporto ufficio collega reunião projeto relatório escritório '
+      'toplantı toplantısı müşteri müşteriyle rapor sunum proje ofis',
   Topic.study:
       'учеба учёба лекция семинар экзамен зачет зачёт сессия курсовая диплом домашка преподаватель университет колледж '
       'конспект лабораторная '
@@ -156,14 +175,20 @@ const _words = <Topic, String>{
       'лікар лікарня аптека таблетки ліки стоматолог щеплення '
       'doctor hospital clinic pharmacy pills medicine prescription dentist vaccine vitamins symptoms '
       'arzt krankenhaus apotheke tabletten medikament zahnarzt impfung médico hospital farmacia pastillas medicamento dentista vacuna '
-      'medic spital farmacie pastile medicament dentist vaccin lekarz szpital apteka tabletki lekarstwo dentysta szczepienie',
+      'medic spital farmacie pastile medicament dentist vaccin lekarz szpital apteka tabletki lekarstwo dentysta szczepienie '
+      'médecin médicaments pharmacie dentiste hôpital medico medicine farmacia ospedale dentista '
+      'remédio farmácia hospital '
+      'doktor doktora eczane eczaneden ilaç hastane',
   Topic.sport:
       'тренировка тренировку спортзал пробежка пробежку отжимания приседания подтягивания бицепс растяжка йога '
       'футбол бассейн калории протеин '
       'тренування спортзал біг віджимання присідання йога '
       'workout gym running pushups squats yoga football swimming calories protein '
       'training fitnessstudio liegestütze kniebeugen entrenamiento gimnasio flexiones sentadillas '
-      'antrenament alergare flotări genuflexiuni trening siłownia bieganie pompki przysiady',
+      'antrenament alergare flotări genuflexiuni trening siłownia bieganie pompki przysiady '
+      'бег бегать планка планку кардио '
+      'pompes musculation allenamento palestra flessioni treino flexões agachamentos '
+      'antrenman şınav mekik koşu',
   Topic.home:
       'ремонт плитка плитку обои краска покрасить шпаклевка штукатурка ламинат розетка смеситель сантехник электрик '
       'мебель диван шкаф ванная квартира аренда коммуналка '
@@ -184,7 +209,11 @@ const _words = <Topic, String>{
       'гроші борг кредит іпотека банк переказ оплата бюджет податки '
       'money debt loan mortgage bank transfer payment budget expenses income taxes savings invest '
       'geld schulden kredit überweisung zahlung rechnung steuern dinero deuda préstamo hipoteca banco transferencia pago factura impuestos '
-      'bani datorie credit ipotecă bancă plată factură taxe pieniądze dług kredyt przelew płatność rachunek podatki',
+      'bani datorie credit ipotecă bancă plată factură taxe pieniądze dług kredyt przelew płatność rachunek podatki '
+      // итальянского «tasse» нет: по-немецки это чашка
+      'loyer impôts impots facture banque virement prêt dette hypothèque affitto bolletta banca bonifico prestito mutuo debito '
+      'aluguel aluguer impostos dívida empréstimo '
+      'vergi vergiler fatura borç kredi',
   Topic.kids:
       'ребенок ребёнок дети сын дочка садик детсад утренник игрушки подгузники педиатр коляска '
       'дитина діти син донька садочок іграшки '
@@ -197,7 +226,10 @@ const _words = <Topic, String>{
       'котёнку ветеринар ветеринару корм лоток поводок поводка ошейник '
       'кіт кішка собака цуценя ветеринар корм '
       'cat cats dog dogs puppy kitten vet litter '
-      'katze hund welpe tierarzt futter gato perro cachorro veterinario pienso pisică câine cățel veterinar kot szczeniak weterynarz ',
+      'katze hund welpe tierarzt futter gato perro cachorro veterinario pienso pisică câine cățel veterinar kot szczeniak weterynarz '
+      // «chat» по-английски разговор, «cane» — трость, «mele» по-румынски «мои»: их нет
+      'chien chiot vétérinaire gatto cucciolo veterinario cão cachorro '
+      'kedi kediye köpek köpeğe veteriner',
   Topic.adult:
       'порно эротика секс nsfw porn porno xxx hentai onlyfans erotik erotica',
 };
@@ -207,27 +239,43 @@ const _words = <Topic, String>{
 /// сравниваются целиком, а не по основе.
 const _shortStem = 4;
 
-({Map<String, Set<Topic>> stems, Map<String, Set<Topic>> whole}) _index(Map<Topic, String> source) {
+// окончания глагола, приставленные к целому существительному: «работа» → «работал»,
+// «работает»; «кот» → «котла» (котёл) — тоже не кот
+const _verbTails = {'л', 'ла', 'ли', 'ло', 'ть', 'ться', 'ет', 'ют', 'ем', 'ешь', 'ете', 'лся', 'лась', 'лись', 'ed', 'ing'};
+
+/// [word] — глагол от существительного [noun] (оба свёрнуты `normalizeQuery`):
+/// у них одна основа, но «работал на врага» не про работу.
+bool isVerbOf(String word, String noun) => word.length > noun.length && word.startsWith(noun) && _verbTails.contains(word.substring(noun.length));
+
+typedef _Index = ({Map<String, Set<Topic>> stems, Map<String, Set<Topic>> whole, Map<String, Set<String>> forms});
+
+_Index _index(Map<Topic, String> source) {
   final stems = <String, Set<Topic>>{};
   final whole = <String, Set<Topic>>{};
+  final forms = <String, Set<String>>{};
   for (final MapEntry(key: topic, value: words) in source.entries) {
     for (final word in words.split(RegExp(r'\s+'))) {
       if (word.isEmpty) continue;
       final folded = normalizeQuery(word);
       final base = stem(folded);
-      if (base.length >= _shortStem) stems.putIfAbsent(base, () => {}).add(topic);
+      if (base.length >= _shortStem) {
+        stems.putIfAbsent(base, () => {}).add(topic);
+        forms.putIfAbsent(base, () => {}).add(folded);
+      }
       whole.putIfAbsent(folded, () => {}).add(topic);
     }
   }
-  return (stems: stems, whole: whole);
+  return (stems: stems, whole: whole, forms: forms);
 }
 
 final _nameIndex = _index(_names);
 final _wordIndex = _index(_words);
 
-Set<Topic> _lookup(({Map<String, Set<Topic>> stems, Map<String, Set<Topic>> whole}) index, String word) {
+Set<Topic> _lookup(_Index index, String word) {
   final folded = normalizeQuery(word);
-  return {...?index.whole[folded], ...?index.stems[stem(folded)]};
+  final base = stem(folded);
+  final verb = index.forms[base]?.any((form) => isVerbOf(folded, form)) ?? false;
+  return {...?index.whole[folded], if (!verb) ...?index.stems[base]};
 }
 
 // «18+», «NSFW 🔞»: цифры и знаки словами не разобрать
