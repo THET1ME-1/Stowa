@@ -62,6 +62,17 @@ void main() {
     expect((await item(unknown)).folderId, isNull);
   });
 
+  test('своя догадка — не образец: PDF, переложенная по похожести, не тянет за собой другие PDF', () async {
+    await seed();
+    // угадыватель однажды ошибся: смету положил к статьям
+    final estimate = await add('Смета ремонта', folder: 'read', kind: ItemKind.file, by: SortedBy.similar);
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a-est', itemId: estimate, path: 'Смета/смета.pdf', mime: 'application/pdf', size: 1));
+    final pdf = await add('Скан договора', kind: ItemKind.file);
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a-pdf', itemId: pdf, path: 'Скан/скан.pdf', mime: 'application/pdf', size: 1));
+    expect(await sorter.sortInbox(), isEmpty);
+    expect((await item(pdf)).folderId, isNull);
+  });
+
   test('что человек сам оставил без папки, алгоритм не трогает', () async {
     await seed();
     final kept = await add('Масло для дома', by: SortedBy.user);

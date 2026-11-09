@@ -340,7 +340,11 @@ SELECT items.folder_id AS folder_id, items.kind AS kind, items.url AS url,
     WHERE item_tags.item_id = items.id), '') AS text,
   (SELECT attachments.path FROM attachments WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS file_path
 FROM items JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
-WHERE items.deleted_at IS NULL''';
+WHERE items.deleted_at IS NULL
+  -- свои догадки угадыватель образцом не берёт: одна ошибка («смета» к статьям)
+  -- иначе тянет за собой следующие по тем же приметам, и так по кругу
+  AND items.sorted_by <> 'similar'
+''';
 
   FolderDoc _folderDoc(QueryRow row) => FolderDoc(
     folderId: row.read<String>('folder_id'),
