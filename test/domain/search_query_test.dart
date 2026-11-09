@@ -123,6 +123,22 @@ void main() {
     });
   });
 
+  test('срок назад от сегодня: «за неделю», «за последние 3 дня», «last 7 days»', () {
+    // сегодня среда, 4 ноября: неделя — с 29 октября по сегодня включительно
+    final week = parseSearch('скрины за неделю', now);
+    expect((week.from, week.to), (DateTime(2026, 10, 29), DateTime(2026, 11, 5)));
+    expect(week.understood, ['скрины', 'за неделю']);
+    expect(free(week), isEmpty);
+    expect(parseSearch('за последние 3 дня', now).from, DateTime(2026, 11, 2));
+    expect(parseSearch('за месяц', now).from, DateTime(2026, 10, 5));
+    expect(parseSearch('последний год', now).from, DateTime(2025, 11, 5));
+    expect(parseSearch('videos last 7 days', now).from, DateTime(2026, 10, 29));
+    // «last week» без числа — прошлая календарная неделя, как было
+    expect(parseSearch('last week', now).from, DateTime(2026, 10, 26));
+    // голое слово — не время
+    expect(free(parseSearch('неделю отпуска', now)), ['неделю', 'отпуска']);
+  });
+
   test('траты: «потратил на ремонт», «spent on», «расходы» — фильтр по цене, папку ищет репозиторий', () {
     final query = parseSearch('потратил на ремонт', now);
     expect(query.spending, isTrue);

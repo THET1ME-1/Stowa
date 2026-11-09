@@ -258,6 +258,10 @@ final _yearNouns = _Words('год году года рік році року yea
 
 // время назад: «3 дня назад», «vor 2 Tagen», «hace un mes», «rok temu»
 final _agoAfter = _Words('назад тому ago temu');
+
+// «за неделю», «за последние 3 дня», «last 7 days», «în ultima lună»: срок назад от сегодня
+final _withinLead = _Words('за in în w en über');
+final _recentWords = _Words('last past', 'последн останн ultim últim ostatni letzt');
 final _agoBefore = _Words('vor hace acum');
 
 enum _Unit { minute, hour, day, week, month, year }
@@ -629,7 +633,7 @@ class _Parser {
   }
 
   int _match(int index) {
-    for (final matcher in [_spent, _duration, _price, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _screenshot, _color, _kind, _shortLong]) {
+    for (final matcher in [_spent, _duration, _price, _within, _ago, _period, _season, _month, _weekday, _dayWord, _dayTime, _year, _near, _placeMark, _site, _screenshot, _color, _kind, _shortLong]) {
       final taken = matcher(index);
       if (taken > 0) return taken;
     }
@@ -890,6 +894,35 @@ class _Parser {
       _Unit.year => (DateTime(day.year - count, day.month - 1, day.day), DateTime(day.year - count, day.month + 1, day.day)),
     };
     return _takeDate(index, at, begin, finish);
+  }
+
+  // «за неделю», «за последние 3 дня», «последний месяц», «last 7 days»: от сегодня назад,
+  // сегодня включительно. «last week» без числа — прошлая календарная неделя ([_period]),
+  // голое «неделю» — просто слово
+  int _within(int index) {
+    var at = index;
+    final lead = _is(at, _withinLead);
+    if (lead) at++;
+    final recentAt = at;
+    final recent = _is(at, _recentWords);
+    if (recent) at++;
+    final number = _number(at);
+    if (number != null) at += number.$2;
+    final unit = _agoUnit(at);
+    if (unit == null) return 0;
+    final ambiguous = recent && _is(recentAt, _lastWords) && number == null;
+    if (!(lead || recent) || ambiguous) return 0;
+    final count = number?.$1 ?? 1;
+    final day = _day;
+    final begin = switch (unit) {
+      _Unit.minute => now.subtract(Duration(minutes: count)),
+      _Unit.hour => now.subtract(Duration(hours: count)),
+      _Unit.day => DateTime(day.year, day.month, day.day - count + 1),
+      _Unit.week => DateTime(day.year, day.month, day.day - count * 7 + 1),
+      _Unit.month => DateTime(day.year, day.month - count, day.day + 1),
+      _Unit.year => DateTime(day.year - count, day.month, day.day + 1),
+    };
+    return _takeDate(index, at + 1, begin, DateTime(day.year, day.month, day.day + 1));
   }
 
   // «на прошлой неделе», «this month», «la semana pasada», «anul trecut»
