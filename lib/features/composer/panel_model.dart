@@ -168,6 +168,7 @@ class PanelInput {
     this.filter,
     this.remindAt,
     this.folderIndex,
+    this.series,
   });
 
   /// Фразы запроса, которыми поиск отобрал [found]. Пусто — искал просто словами.
@@ -175,6 +176,9 @@ class PanelInput {
 
   /// Что уже лежит по папкам: угадыватель без сети.
   final FolderIndex? folderIndex;
+
+  /// Папка серии: две прошлые заметки подряд легли в неё (`seriesFolder`).
+  final String? series;
 
   final String text;
   final int caret;
@@ -216,7 +220,7 @@ SavePlan planSave(PanelInput input, {required LineCommand? command, required Str
   final ruleFolder = outcome.folderId == null ? null : folderById(outcome.folderId!);
   final rule = outcome.folderRule;
   // ни выбора, ни правила — угадыватель по словам, которые уже лежат в папках
-  final guess = chosen == null && ruleFolder == null ? input.folderIndex?.guess(rest, signals: itemSignals(kind: kind, url: url?.toString())) : null;
+  final guess = chosen == null && ruleFolder == null ? input.folderIndex?.guess(rest, signals: itemSignals(kind: kind, url: url?.toString()), series: input.series) : null;
   final guessFolder = guess == null ? null : folderById(guess.folderId);
   return SavePlan(
     kind: kind,

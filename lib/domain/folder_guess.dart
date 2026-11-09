@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'line_query.dart';
 import 'models.dart';
+import 'topics.dart';
 
 /// Вещь в папке глазами угадывателя: весь её текст одной строкой и приметы,
 /// которых в тексте нет: сайт ссылки, вид вещи, тип файла ([itemSignals]).
@@ -33,6 +34,40 @@ double _signalWeight(String signal) => switch (signal.split(':').first) {
 };
 
 int _signalMinHits(String signal) => signal.startsWith('kind:') ? 2 : 1;
+
+/// Сколько длится серия: две заметки подряд за это время в одной папке.
+const seriesWindow = Duration(minutes: 15);
+
+/// Папка серии: две последние заметки (новые первыми) легли в неё за [seriesWindow] —
+/// следующая мысль, скорее всего, оттуда же: идеи книги пишутся пачкой. Нет серии — null.
+String? seriesOf(List<({String? folderId, DateTime at})> latest, DateTime now) {
+  if (latest.length < 2) return null;
+  final folder = latest.first.folderId;
+  if (folder == null || latest[1].folderId != folder) return null;
+  return now.difference(latest[1].at) <= seriesWindow ? folder : null;
+}
+
+/// Папка с именем: по имени видно, про что она, ещё до первой заметки в ней.
+class FolderLabel {
+  const FolderLabel(this.id, this.name);
+
+  final String id;
+  final String name;
+}
+
+// слово заметки — имя папки в любой форме: «плитка для ремонта» и папка «Ремонт».
+// Самый сильный знак намерения: перевешивает и пару слов чужой темы («на даче огурцы»)
+const _nameMatchWeight = 4.0;
+// слово темы папки: «молоко» и папка «Продукты»; больше трёх слов одной темы не копится
+const _topicWeight = 1.1;
+const _topicCap = 4;
+// две прошлые заметки подряд легли в одну папку: заметка без единого признака уходит
+// туда же (идея книги без «книжных» слов), а любой признак другой папки серию перебивает
+const _seriesWeight = 1.0;
+// человек вынул из папки заметку с этим словом: слово отталкивает от неё
+const _rejectWeight = 0.8;
+// тема папки по её заметкам: не меньше двух заметок и такая доля из них
+const _topicShare = 0.4;
 
 /// Куда, скорее всего, относится новая заметка, и по каким словам это видно.
 class FolderGuess {
@@ -101,20 +136,74 @@ List<({String stem, String original})> meaningfulWords(String text) => [for (fin
 /// есть только в одной папке, тянет туда сильно, общее для всех — почти никак,
 /// имя героя — вдвое сильнее обычного слова.
 class FolderIndex {
-  FolderIndex(List<FolderDoc> docs) : _docs = docs.length {
+  /// [labels] — имена папок: по ним темы и совпадение с именем. [rejected] — заметки,
+  /// которые человек вынул из этих папок: их слова от папки отталкивают.
+  FolderIndex(List<FolderDoc> docs, {List<FolderLabel> labels = const [], List<FolderDoc> rejected = const []}) : _docs = docs.length {
+    final docTopics = <String, Map<Topic, int>>{};
     for (final doc in docs) {
       _sizes[doc.folderId] = (_sizes[doc.folderId] ?? 0) + 1;
+      final words = _words(doc.text);
       // приметы живут рядом со словами: с двоеточием они ни с одной основой не совпадут
-      final stems = {for (final word in _words(doc.text)) word.stem, ...doc.signals};
+      final stems = {for (final word in words) word.stem, ...doc.signals};
       for (final stem in stems) {
         _spread[stem] = (_spread[stem] ?? 0) + 1;
         final hits = _hits.putIfAbsent(doc.folderId, () => {});
         hits[stem] = (hits[stem] ?? 0) + 1;
       }
+      if (_mainTopic(words) case final topic?) {
+        final counts = docTopics.putIfAbsent(doc.folderId, () => {});
+        counts[topic] = (counts[topic] ?? 0) + 1;
+      }
+    }
+    // тема папки — по имени, а без него по тому, про что её заметки
+    for (final label in labels) {
+      _nameStems[label.id] = {for (final word in _words(label.name)) if (word.stem.length >= 3) word.stem};
+      for (final topic in topicsOfName(label.name)) {
+        _topics.putIfAbsent(label.id, () => {})[topic] = 1.0;
+      }
+    }
+    for (final MapEntry(key: folder, value: counts) in docTopics.entries) {
+      final size = _sizes[folder] ?? 0;
+      if (size < 2) continue;
+      for (final MapEntry(key: topic, value: count) in counts.entries) {
+        final share = count / size;
+        final topics = _topics.putIfAbsent(folder, () => {});
+        if (share >= _topicShare && share > (topics[topic] ?? 0)) topics[topic] = share;
+      }
+    }
+    for (final doc in rejected) {
+      final pushes = _rejected.putIfAbsent(doc.folderId, () => {});
+      for (final stem in {for (final word in _words(doc.text)) word.stem}) {
+        pushes[stem] = (pushes[stem] ?? 0) + 1;
+      }
     }
   }
 
+  // про что заметка: тема, у которой больше всего слов; ничьей и пустоты нет
+  static Topic? _mainTopic(List<_Word> words) {
+    final counts = <Topic, int>{};
+    final seen = <String>{};
+    for (final word in words) {
+      if (!seen.add(word.stem)) continue;
+      for (final topic in topicsOfWord(word.original)) {
+        counts[topic] = (counts[topic] ?? 0) + 1;
+      }
+    }
+    if (counts.isEmpty) return null;
+    final ranked = counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    return ranked.length > 1 && ranked[1].value == ranked.first.value ? null : ranked.first.key;
+  }
+
   final int _docs;
+
+  /// Основы слов имени папки.
+  final _nameStems = <String, Set<String>>{};
+
+  /// Темы папки и насколько папка про них: по имени — 1, по заметкам — их доля.
+  final _topics = <String, Map<Topic, double>>{};
+
+  /// Сколько вынутых человеком заметок папки несли основу.
+  final _rejected = <String, Map<String, int>>{};
 
   /// Сколько вещей у каждого ярлыка.
   final _sizes = <String, int>{};
@@ -125,8 +214,9 @@ class FolderIndex {
   /// Сколько вещей папки содержат основу.
   final _hits = <String, Map<String, int>>{};
 
-  FolderGuess? guess(String text, {List<String> signals = const []}) {
-    final (:scores, :evidence) = _score(text, signals);
+  /// [series] — папка, куда легли две прошлые заметки подряд: мысль, скорее всего, оттуда же.
+  FolderGuess? guess(String text, {List<String> signals = const [], String? series}) {
+    final (:scores, :evidence) = _score(text, signals, series: series);
     if (scores.isEmpty) return null;
     final ranked = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final best = ranked.first;
@@ -158,32 +248,69 @@ class FolderIndex {
     return [for (final entry in scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value))) entry.key];
   }
 
-  ({Map<String, double> scores, Map<String, List<(String, double, bool)>> evidence}) _score(String text, List<String> signals) {
+  ({Map<String, double> scores, Map<String, List<(String, double, bool)>> evidence}) _score(String text, List<String> signals, {String? series}) {
     final scores = <String, double>{};
     final evidence = <String, List<(String, double, bool)>>{};
-    if (_docs == 0) return (scores: scores, evidence: evidence);
+    void push(String folder, String shown, double weight, {bool name = false}) {
+      scores[folder] = (scores[folder] ?? 0) + weight;
+      evidence.putIfAbsent(folder, () => []).add((shown, weight, name));
+    }
+
     void add(String stem, String shown, double factor, {bool name = false, int minHits = 1}) {
       final spread = _spread[stem];
-      if (spread == null) return;
+      if (spread == null || _docs == 0) return;
       // редкость слова по всей базе
       final rarity = log((_docs + 1) / spread);
       for (final MapEntry(key: folder, value: hits) in _hits.entries) {
         final count = hits[stem];
         if (count == null || count < minHits) continue;
         // какая доля вещей с этим словом лежит именно в этой папке
-        final weight = rarity * (count / spread) * factor;
-        scores[folder] = (scores[folder] ?? 0) + weight;
-        evidence.putIfAbsent(folder, () => []).add((shown, weight, name));
+        push(folder, shown, rarity * (count / spread) * factor, name: name);
       }
     }
 
+    final words = _words(text);
     final seen = <String>{};
-    for (final word in _words(text)) {
+    for (final word in words) {
       if (!seen.add(word.stem)) continue;
       add(word.stem, word.original, word.name ? _nameWeight : 1, name: word.name);
     }
     for (final signal in signals.toSet()) {
       add(signal, signal.startsWith('site:') ? signal.substring(5) : '', _signalWeight(signal), minHits: _signalMinHits(signal));
+    }
+
+    // имя папки прямо в заметке: «плитка для ремонта» — папка «Ремонт»
+    final shownOf = <String, String>{for (final word in words.reversed) word.stem: word.original};
+    for (final MapEntry(key: folder, value: stems) in _nameStems.entries) {
+      for (final stem in stems.where(shownOf.containsKey)) {
+        push(folder, shownOf[stem]!, _nameMatchWeight);
+      }
+    }
+
+    // тема: «молоко» тянет в папку продуктов, «предаст» и «злодей» — в книгу
+    final topicWords = <Topic, List<String>>{};
+    for (final shown in shownOf.values) {
+      for (final topic in topicsOfWord(shown)) {
+        topicWords.putIfAbsent(topic, () => []).add(shown);
+      }
+    }
+    for (final MapEntry(key: folder, value: topics) in _topics.entries) {
+      for (final MapEntry(key: topic, value: affinity) in topics.entries) {
+        final found = topicWords[topic];
+        if (found == null) continue;
+        for (final shown in found.take(_topicCap)) {
+          push(folder, shown, _topicWeight * affinity);
+        }
+      }
+    }
+
+    // серия: две прошлые заметки легли сюда — у этой папки фора
+    if (series != null) push(series, '', _seriesWeight);
+
+    // слова заметок, которые человек из папки вынул, от неё отталкивают
+    for (final MapEntry(key: folder, value: pushes) in _rejected.entries) {
+      final against = [for (final stem in shownOf.keys) ?pushes[stem]].fold(0, (sum, count) => sum + count);
+      if (against > 0 && scores.containsKey(folder)) scores[folder] = scores[folder]! - _rejectWeight * min(against, _topicCap);
     }
     return (scores: scores, evidence: evidence);
   }

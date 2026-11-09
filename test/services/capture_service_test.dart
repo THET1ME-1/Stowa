@@ -236,6 +236,44 @@ void main() {
     expect(await save('1730645112.jpg', jpegWithExif(), 'image/jpeg'), 'от 2.11');
   });
 
+  group('раскладка без ИИ при сохранении', () {
+    Future<void> folder(String id, String name) => db.into(db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: 'squircle'));
+
+    test('пустая папка «Продукты» с первого дня принимает «молоко, хлеб»', () async {
+      await folder('food', 'Продукты');
+      final id = await capture.capture(const CaptureInput(text: 'молоко, хлеб'));
+      final saved = (await items.get(id))!.item;
+      expect((saved.folderId, saved.sortedBy), ('food', SortedBy.similar));
+    });
+
+    test('серия: две идеи в «Книгу» подряд — третья без признаков туда же; через час — нет', () async {
+      await folder('book', 'Книга');
+      var clock = DateTime(2026, 11, 2, 12);
+      final writing = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => clock);
+      await writing.capture(const CaptureInput(text: 'Мира скрывает письмо', forcedFolderId: 'book'));
+      clock = clock.add(const Duration(minutes: 3));
+      await writing.capture(const CaptureInput(text: 'сцена на мосту ночью', forcedFolderId: 'book'));
+      clock = clock.add(const Duration(minutes: 4));
+      final idea = await writing.capture(const CaptureInput(text: 'а что если всё окажется сном'));
+      expect((await items.get(idea))!.item.folderId, 'book');
+
+      clock = clock.add(const Duration(hours: 1));
+      final later = await writing.capture(const CaptureInput(text: 'а что если уехать на море'));
+      expect((await items.get(later))!.item.folderId, isNull);
+    });
+
+    test('вынул из папки в «Без папки» — это исправление, слово больше туда не тянет', () async {
+      await folder('work', 'Работа');
+      final first = await capture.capture(const CaptureInput(text: 'отчёт школьный у сына'));
+      expect((await items.get(first))!.item.folderId, 'work');
+      await items.moveToFolder(first, null, DateTime(2026, 11, 2, 12, 5));
+      final correction = await db.select(db.corrections).getSingle();
+      expect((correction.fromFolderId, correction.toFolderId), ('work', noFolder));
+      final second = await capture.capture(const CaptureInput(text: 'отчёт по чтению у сына'));
+      expect((await items.get(second))!.item.folderId, isNull);
+    });
+  });
+
   test('«после работы» в заметке — по концу рабочего дня из настроек', () async {
     final mine = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => DateTime(2026, 11, 2, 12), workEnd: () => 19 * 60);
     final id = await mine.capture(const CaptureInput(text: 'после работы забрать посылку'));

@@ -111,4 +111,47 @@ void main() {
       expect(itemSignals(kind: ItemKind.link, url: 'https://www.youtube.com/watch?v=1'), ['site:youtube.com', 'kind:link']);
     });
   });
+
+  group('имя папки, тема, серия, исправления', () {
+    const labels = [FolderLabel('dacha', 'Дача'), FolderLabel('food', 'Продукты'), FolderLabel('work', 'Работа')];
+
+    test('имя папки в заметке главнее темы: огурцы на дачу, а не в продукты', () {
+      final index = FolderIndex(const [], labels: labels);
+      expect(index.guess('на даче посадить огурцы и помидоры')?.folderId, 'dacha');
+      expect(index.guess('огурцы и помидоры к ужину')?.folderId, 'food');
+    });
+
+    test('тема папки без говорящего имени — по её заметкам: «Лена» про кошек', () {
+      final index = FolderIndex(
+        const [
+          FolderDoc(folderId: 'lena', text: 'Кошке корм и лоток'),
+          FolderDoc(folderId: 'lena', text: 'Кошку к ветеринару в четверг'),
+          FolderDoc(folderId: 'lena', text: 'Лена любит мандарины'),
+        ],
+        labels: [...labels, const FolderLabel('lena', 'Лена')],
+      );
+      expect(index.guess('собаке новый ошейник')?.folderId, 'lena');
+    });
+
+    test('серия: две заметки подряд в книгу — третья без единого признака туда же, без серии — никуда', () {
+      final index = FolderIndex(const [], labels: [...labels, const FolderLabel('book', 'Книга')]);
+      const idea = 'а что если в конце всё окажется сном';
+      expect(index.guess(idea), isNull);
+      expect(index.guess(idea, series: 'book')?.folderId, 'book');
+      // явный признак другой папки серию перебивает
+      expect(index.guess('молоко и хлеб', series: 'book')?.folderId, 'food');
+    });
+
+    test('человек дважды вынул из «Работы» заметки про отчёт — отчёт туда больше не тянет', () {
+      final plain = FolderIndex(const [], labels: labels);
+      expect(plain.guess('отчёт по даче')?.folderId, isNot('work'));
+      expect(plain.guess('отчёт за квартал')?.folderId, 'work');
+      final corrected = FolderIndex(
+        const [],
+        labels: labels,
+        rejected: const [FolderDoc(folderId: 'work', text: 'отчёт школьный у сына'), FolderDoc(folderId: 'work', text: 'отчёт о поездке')],
+      );
+      expect(corrected.guess('отчёт за квартал'), isNull);
+    });
+  });
 }

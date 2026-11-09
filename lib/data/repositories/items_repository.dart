@@ -164,6 +164,9 @@ class RepeatNote {
 /// Вещь сохранена дома или на работе, если не дальше этого от их середины: двор и офисное здание.
 const _markMeters = 250.0;
 
+/// Куда переложили, если в «Без папки»: в исправлениях это пустая строка, а не id папки.
+const noFolder = '';
+
 /// Что нашёл поиск и каким запросом: с фильтрами или, если они ничего не дали, простыми словами.
 class SearchFound {
   const SearchFound(this.results, this.query, {this.spentFolder, this.total = const []});
@@ -365,6 +368,37 @@ WHERE items.deleted_at IS NULL''';
     signals: itemSignals(kind: ItemKind.values.byName(row.read<String>('kind')), url: row.readNullable<String>('url'), fileName: row.readNullable<String>('file_path')),
   );
 
+  /// Имена живых папок: по ним угадыватель видит тему ещё пустой папки.
+  Future<List<FolderLabel>> folderLabels() async => [
+    for (final folder in await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get()) FolderLabel(folder.id, folder.name),
+  ];
+
+  // заметки, которые человек вынул из папки и не вернул: их слова от неё отталкивают
+  static const _rejectedSql = '''
+SELECT corrections.from_folder_id AS folder_id, items.title || ' ' || items.body AS text
+FROM corrections JOIN items ON items.id = corrections.item_id
+WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
+  AND items.folder_id IS NOT corrections.from_folder_id''';
+
+  Future<List<FolderDoc>> rejectedDocs() async => [
+    for (final row in await _db.customSelect(_rejectedSql).get()) FolderDoc(folderId: row.read<String>('folder_id'), text: row.read<String>('text')),
+  ];
+
+  /// Угадыватель целиком: заметки папок, их имена и вынутое человеком.
+  Future<FolderIndex> folderIndex() async => FolderIndex(await folderDocs(), labels: await folderLabels(), rejected: await rejectedDocs());
+
+  /// [folderIndex], пересобранный при правке заметок, папок и исправлениях: строка ввода
+  /// показывает, куда ляжет заметка, ещё до «Закинуть». Поток смотрит на сами строки
+  /// всех трёх источников: одинаковый результат drift не повторяет.
+  Stream<FolderIndex> watchFolderIndex() => _db
+      .customSelect(
+        'SELECT (SELECT count(*) FROM items WHERE deleted_at IS NULL) AS alive, (SELECT max(updated_at) FROM items) AS edited, '
+        '(SELECT group_concat(id || name || coalesce(deleted_at, \'\')) FROM folders) AS folders, (SELECT count(*) FROM corrections) AS corrected',
+        readsFrom: {_db.items, _db.folders, _db.corrections, _db.itemTags},
+      )
+      .watch()
+      .asyncMap((_) => folderIndex());
+
   /// Всё, что уже разложено по живым папкам: из этого учится угадыватель папки.
   Future<List<FolderDoc>> folderDocs() async {
     final now = _clock();
@@ -526,11 +560,12 @@ WHERE items.deleted_at IS NULL''';
       await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
         ItemsCompanion(folderId: Value(folderId), sortedBy: const Value(SortedBy.user), sortState: const Value(SortState.sorted), updatedAt: Value(at)),
       );
-      if (folderId != null && folderId != item.folderId) {
+      // и «вынул в „Без папки“» — тоже урок: эта заметка не для той папки ([noFolder])
+      if (folderId != item.folderId) {
         await _db
             .into(_db.corrections)
             .insert(
-              CorrectionsCompanion.insert(id: '$id-${at.microsecondsSinceEpoch}', itemId: id, fromFolderId: Value(item.folderId), toFolderId: folderId, at: at),
+              CorrectionsCompanion.insert(id: '$id-${at.microsecondsSinceEpoch}', itemId: id, fromFolderId: Value(item.folderId), toFolderId: folderId ?? noFolder, at: at),
               // «Отменить» сразу после переноса приходит в тот же миг: последнее решение и есть пример
               mode: InsertMode.insertOrReplace,
             );

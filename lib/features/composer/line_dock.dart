@@ -19,6 +19,7 @@ import '../../core/widgets/tag_tile.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
+import '../../domain/folder_guess.dart' show seriesOf;
 import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
@@ -701,6 +702,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         filter: _filter,
         remindAt: _line.reminder?.at,
         folderIndex: ref.watch(folderIndexProvider).value,
+        // две прошлые заметки подряд в одной папке: подсказка видит серию, как и сохранение
+        series: seriesOf([for (final card in (ref.watch(recentItemsProvider).value ?? const []).take(2)) (folderId: card.folderId, at: card.createdAt)], now),
       ),
     );
     final rows = _panel.rows;

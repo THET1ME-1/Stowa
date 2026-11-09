@@ -14,7 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
 import '../domain/article_text.dart';
-import '../domain/folder_guess.dart';
 import '../domain/models.dart' show FactKind;
 import '../domain/place_groups.dart' show guessHomeAndWork;
 import '../domain/related.dart';
@@ -665,7 +664,7 @@ final pinnedTagsProvider = StreamProvider((ref) => ref.watch(tagsRepositoryProvi
 final allTagsProvider = StreamProvider((ref) => ref.watch(tagsRepositoryProvider).watchAll());
 
 /// Угадыватель папки по тому, что уже разложено. Пересобирается вместе с базой.
-final folderIndexProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchFolderDocs().map(FolderIndex.new));
+final folderIndexProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchFolderIndex());
 
 final rulesRepositoryProvider = Provider((ref) => RulesRepository(ref.watch(databaseProvider)));
 final rulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider).watchEnabled());

@@ -49,6 +49,16 @@ Future<DateTime?> shotDateOf(PickedFile? file) async {
   return shotDateFromName(file.name ?? p.basename(file.path));
 }
 
+/// Папка серии по двум последним заметкам базы ([seriesOf]).
+Future<String?> seriesFolder(AppDatabase db, DateTime now) async {
+  final last = await (db.select(db.items)
+        ..where((t) => t.deletedAt.isNull())
+        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+        ..limit(2))
+      .get();
+  return seriesOf([for (final item in last) (folderId: item.folderId, at: item.createdAt)], now);
+}
+
 /// Временные папки самого приложения: файл оттуда переносится во вложения, а не копируется.
 /// Голосовые пишутся в `tmp`, файлы бота — в `telegram_inbox`; кэш выбора и «Поделиться» добавляет main.
 List<Directory> ownTemporaryFolders(Directory filesRoot, [Directory? cache]) => [
@@ -185,7 +195,7 @@ class CaptureService {
     await _db.transaction(() async {
       final rules = await RulesRepository(_db).enabled();
       FolderIndex? index;
-      Future<FolderIndex> folders() async => index ??= FolderIndex(await ItemsRepository(_db, clock: _clock).folderDocs());
+      Future<FolderIndex> folders() async => index ??= await ItemsRepository(_db, clock: _clock).folderIndex();
       for (final input in inputs) {
         ids.add(await _insert(input, rules, folders));
       }
@@ -231,7 +241,9 @@ class CaptureService {
     // правила молчат — угадыватель смотрит, в какой папке уже живут слова заметки,
     // ссылки с того же сайта и такие же фото и файлы
     final signals = itemSignals(kind: kind, url: url?.toString(), fileName: firstFile == null ? null : p.basename(firstFile.path));
-    final guess = byHand || byRule ? null : (await folders()).guess(text, signals: signals);
+    // серия — только у живого ввода: у переноса из Telegram время сообщений старое
+    final series = byHand || byRule || input.at != null ? null : await seriesFolder(_db, now);
+    final guess = byHand || byRule ? null : (await folders()).guess(text, signals: signals, series: series);
     final sorted = byHand || byRule || guess != null;
     await _db
         .into(_db.items)

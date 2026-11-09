@@ -98,6 +98,18 @@ void main() {
     });
   });
 
+  test('«Отменить» после раскладки — исправление: заметка не возвращается туда при следующей', () async {
+    await seed();
+    final oil = await add('Купить масло на зиму');
+    final moved = await sorter.sortInbox();
+    expect(moved, [oil]);
+    await sorter.undoSort(moved);
+    final correction = await db.select(db.corrections).getSingle();
+    expect((correction.itemId, correction.fromFolderId, correction.toFolderId), (oil, 'car', ''));
+    // новый запуск (другой сеанс): память «Отменить» пропала, урок — нет
+    expect(await AutoSorter(db, clock: () => now).sortInbox(), isEmpty);
+  });
+
   test('что человек сам оставил без папки, алгоритм не трогает', () async {
     await seed();
     final kept = await add('Масло для дома', by: SortedBy.user);

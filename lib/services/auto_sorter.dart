@@ -31,7 +31,7 @@ class AutoSorter {
   /// Разложить вещи без папки, которые человек не оставлял там сам. Вернёт
   /// id переложенных: по ним «Отменить» вернёт всё как было.
   Future<List<String>> sortInbox({String? onlyId, Iterable<String> skip = const []}) async {
-    final index = FolderIndex(await ItemsRepository(_db, clock: _clock).folderDocs());
+    final index = await ItemsRepository(_db, clock: _clock).folderIndex();
     final rows = await _db
         .customSelect(
           'SELECT items.id, items.kind, items.url, $_itemText AS text, $_firstFile AS file_path FROM items '
@@ -58,9 +58,20 @@ class AutoSorter {
   /// Вернуть разложенное в «Без папки». Что человек успел переложить сам, остаётся.
   Future<void> undoSort(List<String> ids) async {
     _undone.addAll(ids);
-    await (_db.update(_db.items)..where((t) => t.id.isIn(ids) & t.sortedBy.equalsValue(SortedBy.similar))).write(
-      const ItemsCompanion(folderId: Value(null), sortedBy: Value(SortedBy.none), sortState: Value(SortState.pending)),
-    );
+    final placed = await (_db.select(_db.items)..where((t) => t.id.isIn(ids) & t.sortedBy.equalsValue(SortedBy.similar))).get();
+    final now = _clock();
+    await _db.transaction(() async {
+      await (_db.update(_db.items)..where((t) => t.id.isIn(ids) & t.sortedBy.equalsValue(SortedBy.similar))).write(
+        const ItemsCompanion(folderId: Value(null), sortedBy: Value(SortedBy.none), sortState: Value(SortState.pending)),
+      );
+      // «Отменить» — человек сказал «не сюда»: урок угадывателю, как перенос руками
+      for (final item in placed) {
+        await _db.into(_db.corrections).insert(
+          CorrectionsCompanion.insert(id: '${item.id}-${now.microsecondsSinceEpoch}', itemId: item.id, fromFolderId: Value(item.folderId), toFolderId: noFolder, at: now),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
   }
 
   /// Поставить вещи теги, которые стоят у похожих на неё. Учится только на
