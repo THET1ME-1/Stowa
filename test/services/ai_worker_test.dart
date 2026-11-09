@@ -80,15 +80,15 @@ void main() {
     expect(await db.select(db.aiJobs).get(), isEmpty);
   });
 
-  test('ответ пришёл после ручного переноса — папка и теги не тронуты, описание записано', () async {
+  test('разложено до запроса — руками, правилом или по похожести — модель не зовётся, задача снята', () async {
     reply = (_) => answer({'folder_id': 'food', 'tags': ['рецепт']});
-    final id = await add('Борщ', folder: 'mine', by: SortedBy.user);
+    final byHand = await add('Борщ', folder: 'mine', by: SortedBy.user);
+    final bySimilar = await add('Плов', folder: 'food', by: SortedBy.similar);
+    final byRule = await add('Котлеты', folder: 'food', by: SortedBy.rule);
     await worker().runOnce();
-    final saved = await item(id);
-    expect(saved.folderId, 'mine');
-    expect(saved.sortedBy, SortedBy.user);
-    expect(saved.aiDescription, isNotNull);
-    expect(await db.select(db.itemTags).get(), isEmpty);
+    expect(calls, 0);
+    expect(await db.select(db.aiJobs).get(), isEmpty);
+    expect(((await item(byHand)).folderId, (await item(bySimilar)).folderId, (await item(byRule)).folderId), ('mine', 'food', 'food'));
   });
 
   test('401 ставит очередь на паузу и больше не зовёт клиента', () async {
@@ -253,6 +253,17 @@ void main() {
       expect(saved.transcript, 'купить рассаду томатов');
       expect(saved.folderId, 'food');
       expect(sent, contains('рассаду томатов'));
+    });
+
+    test('разложенное голосовое с моделью речи только расшифровывается: разбор не нужен', () async {
+      await settings.setSpeechModel('openai/whisper-1');
+      reply = (_) => answer({'folder_id': 'food'});
+      final id = await addVoice(folder: 'mine', by: SortedBy.similar);
+      final paths = <String>[];
+      await voiceWorker(paths).runOnce();
+      expect(paths, [endsWith('/audio/transcriptions')]);
+      expect(((await item(id)).transcript, (await item(id)).folderId), ('купить рассаду томатов', 'mine'));
+      expect(await db.select(db.aiJobs).get(), isEmpty);
     });
 
     test('без модели речи разложенное голосовое не тратит запрос', () async {

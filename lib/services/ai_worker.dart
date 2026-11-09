@@ -143,8 +143,12 @@ class AiWorker {
         }
         final speechModel = _settings.ai.speechModel;
         final voice = item.kind == ItemKind.voice && item.transcript == null;
-        // голосовое без слов, уже разложенное: модели нечего описать, а расшифровать нечем
-        if (voice && speechModel == null && (item.folderId != null || item.sortedBy == SortedBy.user)) {
+        // уже разложено — руками, правилом, похожестью: платный разбор дал бы одно описание,
+        // а текст и так ищется. Как при сохранении: разложенное без ИИ в очередь не встаёт.
+        // Голосовое без слов при модели речи только расшифровывается — расшифровку ищет поиск
+        final placed = item.folderId != null || item.sortedBy == SortedBy.user;
+        final transcribeOnly = placed && voice && speechModel != null;
+        if (placed && !transcribeOnly) {
           await _dropJob(item.id);
           continue;
         }
@@ -154,6 +158,10 @@ class AiWorker {
         try {
           // сперва слова голосового: по ним модель и разложит, и найдёт потом поиск
           if (voice && speechModel != null) item = await _transcribe(client, item, speechModel);
+          if (transcribeOnly) {
+            await _dropJob(item.id);
+            continue;
+          }
           context = await _context(item);
           messages = buildSortMessages(context);
           content = await client.chat(model: _settings.ai.sortModel, messages: messages, responseFormat: sortResponseFormat());
