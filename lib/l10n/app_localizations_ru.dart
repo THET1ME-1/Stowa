@@ -2442,4 +2442,7 @@ class LRu extends L {
 
   @override
   String get factOnMap => 'Открыть на карте';
+
+  @override
+  String get workEndRow => 'Работа до';
 }

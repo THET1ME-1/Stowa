@@ -2397,4 +2397,7 @@ class LDe extends L {
 
   @override
   String get factOnMap => 'In Karten öffnen';
+
+  @override
+  String get workEndRow => 'Arbeit bis';
 }

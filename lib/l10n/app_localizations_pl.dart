@@ -2437,4 +2437,7 @@ class LPl extends L {
 
   @override
   String get factOnMap => 'Otwórz na mapie';
+
+  @override
+  String get workEndRow => 'Praca do';
 }

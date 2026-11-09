@@ -395,5 +395,6 @@
   "factPromo": "Code {code}",
   "factCopyPromo": "Code kopieren",
   "factTrack": "Sendung verfolgen",
-  "factOnMap": "In Karten öffnen"
+  "factOnMap": "In Karten öffnen",
+  "workEndRow": "Arbeit bis"
 }

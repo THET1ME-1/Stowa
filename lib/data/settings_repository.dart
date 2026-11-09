@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/appearance.dart';
+import '../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../domain/return_plan.dart';
 import '../l10n/app_language.dart';
 import '../services/ai_client.dart';
@@ -236,6 +237,16 @@ class SettingsRepository {
   }
 
   Future<void> setArticleImages(bool on) => _set(() => _prefs.setBool('article_images', on));
+
+  /// Конец рабочего дня для «после работы», в минутах от полуночи. По умолчанию 18:00.
+  int get workEnd => _prefs.getInt('work_end') ?? defaultWorkEnd;
+
+  Stream<int> watchWorkEnd() async* {
+    yield workEnd;
+    yield* _changes.stream.map((_) => workEnd).distinct();
+  }
+
+  Future<void> setWorkEnd(int minutes) => _set(() => _prefs.setInt('work_end', minutes));
 
   /// Подпись фото и ролика — по дню съёмки (по умолчанию) или сохранения.
   TitleDate get titleDate => TitleDate.values.asNameMap()[_prefs.getString('title_date')] ?? TitleDate.shot;

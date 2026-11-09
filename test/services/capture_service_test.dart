@@ -236,6 +236,12 @@ void main() {
     expect(await save('1730645112.jpg', jpegWithExif(), 'image/jpeg'), 'от 2.11');
   });
 
+  test('«после работы» в заметке — по концу рабочего дня из настроек', () async {
+    final mine = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => DateTime(2026, 11, 2, 12), workEnd: () => 19 * 60);
+    final id = await mine.capture(const CaptureInput(text: 'после работы забрать посылку'));
+    expect((await items.get(id))!.item.reminderAt, DateTime(2026, 11, 2, 19));
+  });
+
   test('при запуске: подпись по дню сохранения меняется на день съёмки, своё не трогается', () async {
     String untitled({required String mime, required String fileName, required DateTime at}) => 'Фото от ${at.day}.${at.month}';
     Future<void> old(String id, String title, String file, {String? taken}) async {

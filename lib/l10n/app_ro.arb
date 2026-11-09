@@ -395,5 +395,6 @@
   "factPromo": "Cod {code}",
   "factCopyPromo": "Copiază codul",
   "factTrack": "Urmărește coletul",
-  "factOnMap": "Deschide pe hartă"
+  "factOnMap": "Deschide pe hartă",
+  "workEndRow": "Program până la"
 }

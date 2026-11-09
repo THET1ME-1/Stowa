@@ -2394,4 +2394,7 @@ class LEs extends L {
 
   @override
   String get factOnMap => 'Abrir en el mapa';
+
+  @override
+  String get workEndRow => 'Trabajo hasta';
 }

@@ -129,6 +129,8 @@ class TestWorld {
           appearanceProvider.overrideWith((ref) => Stream.value(appearance)),
           startScreenChoiceProvider.overrideWith((ref) => Stream.value(startScreen)),
           titleByShotProvider.overrideWithValue(() => true),
+          workEndProvider.overrideWithValue(() => 18 * 60),
+          workEndChoiceProvider.overrideWith((ref) => Stream.value(18 * 60)),
           titleDateProvider.overrideWith((ref) => Stream.value(TitleDate.shot)),
           // карточку «Возвращать сохранённое?» в чужих тестах уже закрыли
           returnsAskedProvider.overrideWith((ref) => Stream.value(true)),

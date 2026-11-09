@@ -2437,4 +2437,7 @@ class LUk extends L {
 
   @override
   String get factOnMap => 'Відкрити на мапі';
+
+  @override
+  String get workEndRow => 'Робота до';
 }

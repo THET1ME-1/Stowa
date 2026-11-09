@@ -137,7 +137,9 @@ class CaptureService {
     Uuid? uuid,
     FileKeeper? files,
     bool Function()? titleByShot,
+    int Function()? workEnd,
   }) : _tags = tags, // ignore: prefer_initializing_formals
+       _workEnd = workEnd ?? (() => defaultWorkEnd),
        _filesRoot = filesRoot, // ignore: prefer_initializing_formals
        _clock = clock ?? DateTime.now,
        _uuid = uuid ?? const Uuid(),
@@ -149,6 +151,9 @@ class CaptureService {
 
   /// Подпись «Фото от …» по дню съёмки (по умолчанию) или по дню сохранения — выбор в настройках.
   final bool Function() _titleByShot;
+
+  /// Конец рабочего дня для «после работы», в минутах от полуночи.
+  final int Function() _workEnd;
 
   // заметки с «напомни тут» из текущей пачки: им нужна точка с телефона
   final _wantsHere = <String>{};
@@ -204,7 +209,7 @@ class CaptureService {
     final now = _clock();
     final firstFile = input.files.isEmpty ? null : input.files.first;
     final byHand = input.forcedFolderId != null || input.asIs;
-    final found = input.forcedReminder == null && input.detectReminder ? parseReminder(text, now) : null;
+    final found = input.forcedReminder == null && input.detectReminder ? parseReminder(text, now, workEnd: _workEnd()) : null;
     // дата уходит из заголовка, если без неё что-то осталось: «23 декабря 13:00 зубной» → «Зубной»
     final rest = found?.restOf(text) ?? '';
     var titleSource = rest.isNotEmpty ? rest : text;

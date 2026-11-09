@@ -80,7 +80,7 @@ class LineDock extends ConsumerStatefulWidget {
 }
 
 class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderStateMixin {
-  late final LineController _line = LineController(clock: ref.read(clockProvider), resolveFolder: _resolveFolder);
+  late final LineController _line = LineController(clock: ref.read(clockProvider), workEnd: ref.read(workEndProvider), resolveFolder: _resolveFolder);
   late final FocusNode _focus = FocusNode(onKeyEvent: _onKey);
   final _undo = UndoHistoryController();
   final _fieldKey = GlobalKey();

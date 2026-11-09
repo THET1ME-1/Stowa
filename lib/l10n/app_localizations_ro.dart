@@ -2413,4 +2413,7 @@ class LRo extends L {
 
   @override
   String get factOnMap => 'Deschide pe hartă';
+
+  @override
+  String get workEndRow => 'Program până la';
 }

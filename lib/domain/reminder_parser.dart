@@ -89,30 +89,46 @@ final _dotDate = RegExp('(?<![$_letter.:]|в )(\\d{1,2})\\.(\\d{2})(?:\\.(\\d{4}
 final _clock = RegExp('(?<![$_letter])(?:(?:в|к)\\s+)?(\\d{1,2})[:.](\\d{2})(?![$_letter])');
 final _hour = RegExp('(?<![$_letter])(?:в|к)\\s+(\\d{1,2})(?:\\s+(утра|дня|вечера|ночи|часов|часа|час))?(?![$_letter:.])');
 final _dayPart = RegExp('(?<![$_letter])(${_dayParts.keys.join('|')})(?![$_letter])');
+final _weekend = RegExp('(?<![$_letter])на\\s+выходных(?![$_letter])');
+final _afterWork = RegExp('(?<![$_letter])после\\s+работы(?![$_letter])');
+
+/// «На выходных» без часа — суббота в 10: утро выходного начинается позже будничного.
+const _weekendHour = 10;
+
+/// Конец рабочего дня по умолчанию для «после работы», в минутах от полуночи.
+const defaultWorkEnd = 18 * 60;
+
 final _relative = RegExp(
   '(?<![$_letter])через\\s+(?:(полчаса)|(?:(\\d+)\\s+)?(минуту|минуты|минут|мин|часа|часов|час|дня|дней|день|сутки|недели|неделю|недель|месяца|месяцев|месяц))(?![$_letter])',
 );
 
 class _Date {
-  _Date(this.start, this.end, this.resolve);
+  _Date(this.start, this.end, this.resolve, {this.hour = _morning});
   final int start;
   final int end;
 
   /// Дата по времени суток: учитывает, прошёл ли уже этот момент.
   final DateTime Function(int hour, int minute) resolve;
+
+  /// Час, если время не названо.
+  final int hour;
 }
 
 class _Time {
-  _Time(this.start, this.end, this.hour, this.minute);
+  _Time(this.start, this.end, this.hour, this.minute, {this.workday = false});
   final int start;
   final int end;
   final int hour;
   final int minute;
+
+  /// «После работы»: без даты — только будний день.
+  final bool workday;
 }
 
 /// Первое напоминание в русском тексте или null. Понимает «23 декабря 13:00»,
-/// «завтра в 10», «в пятницу», «через 2 часа», «сегодня вечером», «12.11 в 9».
-ReminderMatch? parseReminder(String text, DateTime now) {
+/// «завтра в 10», «в пятницу», «через 2 часа», «сегодня вечером», «12.11 в 9»,
+/// «на выходных», «после работы» — конец рабочего дня [workEnd] в минутах от полуночи.
+ReminderMatch? parseReminder(String text, DateTime now, {int workEnd = defaultWorkEnd}) {
   final lower = text.toLowerCase().replaceAll('ё', 'е');
 
   final relative = _relative.firstMatch(lower);
@@ -121,7 +137,7 @@ ReminderMatch? parseReminder(String text, DateTime now) {
   }
 
   final dates = _dates(lower, now)..sort((a, b) => a.start.compareTo(b.start));
-  final times = _times(lower)..sort((a, b) => a.start.compareTo(b.start));
+  final times = _times(lower, workEnd)..sort((a, b) => a.start.compareTo(b.start));
 
   if (dates.isNotEmpty) {
     final date = dates.first;
@@ -140,14 +156,18 @@ ReminderMatch? parseReminder(String text, DateTime now) {
       final parts = [(date.start, date.end), (apart.start, apart.end)]..sort((a, b) => a.$1.compareTo(b.$1));
       return ReminderMatch(start: parts.first.$1, end: parts.last.$2, parts: parts, at: date.resolve(apart.hour, apart.minute), hasTime: true);
     }
-    return ReminderMatch(start: date.start, end: date.end, at: date.resolve(_morning, 0), hasTime: false);
+    return ReminderMatch(start: date.start, end: date.end, at: date.resolve(date.hour, 0), hasTime: false);
   }
 
   if (times.isNotEmpty) {
     final time = times.first;
-    var at = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-    if (!at.isAfter(now)) at = DateTime(now.year, now.month, now.day + 1, time.hour, time.minute);
-    return ReminderMatch(start: time.start, end: time.end, at: at, hasTime: true);
+    var day = 0;
+    DateTime moment() => DateTime(now.year, now.month, now.day + day, time.hour, time.minute);
+    // прошло — завтра; «после работы» в субботу и воскресенье не бывает
+    while (!moment().isAfter(now) || (time.workday && moment().weekday > DateTime.friday)) {
+      day++;
+    }
+    return ReminderMatch(start: time.start, end: time.end, at: moment(), hasTime: true);
   }
   return null;
 }
@@ -200,6 +220,21 @@ List<_Date> _dates(String text, DateTime now) {
     );
   }
 
+  // суббота, а если её время прошло — воскресенье, прошло и оно — следующая суббота
+  for (final match in _weekend.allMatches(text)) {
+    dates.add(
+      _Date(match.start, match.end, hour: _weekendHour, (hour, minute) {
+        final toSaturday = (DateTime.saturday - now.weekday + 7) % 7;
+        final saturday = now.weekday == DateTime.sunday ? -1 : toSaturday;
+        for (final shift in [saturday, saturday + 1, saturday + 7]) {
+          final at = DateTime(now.year, now.month, now.day + shift, hour, minute);
+          if (at.isAfter(now)) return at;
+        }
+        return DateTime(now.year, now.month, now.day + saturday + 7, hour, minute);
+      }),
+    );
+  }
+
   for (final match in _monthDate.allMatches(text)) {
     final day = int.parse(match.group(1)!);
     final month = _months.firstWhere((entry) => entry.$1 == match.group(2)).$2;
@@ -229,8 +264,10 @@ _Date? _calendarDate(RegExpMatch match, int day, int month, int? year, DateTime 
   });
 }
 
-List<_Time> _times(String text) {
-  final times = <_Time>[];
+List<_Time> _times(String text, int workEnd) {
+  final times = <_Time>[
+    for (final match in _afterWork.allMatches(text)) _Time(match.start, match.end, workEnd ~/ 60, workEnd % 60, workday: true),
+  ];
   for (final match in _clock.allMatches(text)) {
     final hour = int.parse(match.group(1)!);
     final minute = int.parse(match.group(2)!);

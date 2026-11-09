@@ -3055,5 +3055,9 @@
   "factOnMap": "Open in maps",
   "@factOnMap": {
     "description": "factOnMap"
+  },
+  "workEndRow": "Work ends at",
+  "@workEndRow": {
+    "description": "Конец рабочего дня: «после работы» в строке ставит напоминание на это время"
   }
 }

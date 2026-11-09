@@ -3970,6 +3970,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Open in maps'**
   String get factOnMap;
+
+  /// Конец рабочего дня: «после работы» в строке ставит напоминание на это время
+  ///
+  /// In en, this message translates to:
+  /// **'Work ends at'**
+  String get workEndRow;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

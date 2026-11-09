@@ -395,5 +395,6 @@
   "factPromo": "Промокод {code}",
   "factCopyPromo": "Скопіювати промокод",
   "factTrack": "Відстежити посилку",
-  "factOnMap": "Відкрити на мапі"
+  "factOnMap": "Відкрити на мапі",
+  "workEndRow": "Робота до"
 }

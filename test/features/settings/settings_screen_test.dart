@@ -149,7 +149,7 @@ void main() {
 
   testWidgets('раздел «Возвращать»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
     await open(tester, keyStatus: 200);
-    for (final label in ['ВОЗВРАЩАТЬ', 'Посмотреть потом', 'В этот день', 'Сводка недели', '20:00', '22:00–08:00', 'воскресенье']) {
+    for (final label in ['ВОЗВРАЩАТЬ', 'Посмотреть потом', 'В этот день', 'Сводка недели', '20:00', '22:00–08:00', 'воскресенье', 'Работа до', '18:00']) {
       await tester.scrollUntilVisible(find.text(label), 100);
       expect(find.text(label), findsOneWidget);
     }

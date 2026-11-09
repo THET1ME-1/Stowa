@@ -17,6 +17,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
+import '../../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../composer/panel_text.dart' show untitledFor;
 import '../../domain/appearance.dart';
 import '../../domain/models.dart' show PlaceKind;
@@ -992,6 +993,7 @@ class _ReturnGroup extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
+    final workEnd = ref.watch(workEndChoiceProvider).value ?? defaultWorkEnd;
     // настройки — в момент правки, не при отрисовке: экран живёт и в тестах без них
     Future<void> save(ReturnSettings value) async {
       await ref.read(settingsRepositoryProvider).setReturns(value);
@@ -1053,6 +1055,16 @@ class _ReturnGroup extends ConsumerWidget {
           onTap: () async {
             final minutes = await pickTime(returns.evening, l.returnEveningRow);
             if (minutes != null) await save(returns.copyWith(evening: minutes));
+          },
+        ),
+        // «после работы» в строке — в этот час
+        SettingsRow(
+          icon: 'work_history',
+          title: l.workEndRow,
+          value: clock(workEnd),
+          onTap: () async {
+            final minutes = await pickTime(workEnd, l.workEndRow);
+            if (minutes != null) await ref.read(settingsRepositoryProvider).setWorkEnd(minutes);
           },
         ),
         SettingsRow(

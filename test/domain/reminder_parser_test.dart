@@ -90,4 +90,39 @@ void main() {
     expect(at('в субботу'), DateTime(2026, 11, 7, 9));
     expect(at('в четверг'), DateTime(2026, 11, 5, 9));
   });
+
+  group('на выходных', () {
+    // 2 ноября 2026 — понедельник: суббота — 7-е, воскресенье — 8-е
+    test('ближайшая суббота в 10, с часом — в этот час', () {
+      final match = parseReminder('на выходных покрасить забор', now)!;
+      expect(match.at, DateTime(2026, 11, 7, 10));
+      expect(match.restOf('на выходных покрасить забор'), 'покрасить забор');
+      expect(at('на выходных в 12 шашлыки'), DateTime(2026, 11, 7, 12));
+    });
+
+    test('суббота прошла — воскресенье, прошло и оно — следующая суббота', () {
+      expect(parseReminder('на выходных', DateTime(2026, 11, 7, 9))!.at, DateTime(2026, 11, 7, 10));
+      expect(parseReminder('на выходных', DateTime(2026, 11, 7, 11))!.at, DateTime(2026, 11, 8, 10));
+      expect(parseReminder('на выходных', DateTime(2026, 11, 8, 12))!.at, DateTime(2026, 11, 14, 10));
+    });
+  });
+
+  group('после работы', () {
+    test('сегодня в конце рабочего дня, если он ещё не кончился', () {
+      final match = parseReminder('после работы позвонить маме', now)!;
+      expect(match.at, DateTime(2026, 11, 2, 18));
+      expect(match.restOf('после работы позвонить маме'), 'позвонить маме');
+      expect(parseReminder('после работы', now, workEnd: 17 * 60 + 30)!.at, DateTime(2026, 11, 2, 17, 30));
+    });
+
+    test('рабочий день кончился — следующий будний, из пятницы — в понедельник', () {
+      expect(parseReminder('после работы', DateTime(2026, 11, 2, 19))!.at, DateTime(2026, 11, 3, 18));
+      expect(parseReminder('после работы', DateTime(2026, 11, 6, 19))!.at, DateTime(2026, 11, 9, 18));
+      expect(parseReminder('после работы', DateTime(2026, 11, 7, 12))!.at, DateTime(2026, 11, 9, 18));
+    });
+
+    test('с днём: «завтра после работы»', () {
+      expect(at('завтра после работы в зал'), DateTime(2026, 11, 3, 18));
+    });
+  });
 }

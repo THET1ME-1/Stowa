@@ -395,5 +395,6 @@
   "factPromo": "Código {code}",
   "factCopyPromo": "Copiar código",
   "factTrack": "Seguir el paquete",
-  "factOnMap": "Abrir en el mapa"
+  "factOnMap": "Abrir en el mapa",
+  "workEndRow": "Trabajo hasta"
 }

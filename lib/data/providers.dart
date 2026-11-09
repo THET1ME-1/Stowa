@@ -261,6 +261,7 @@ final captureServiceProvider = Provider((ref) {
     clock: ref.watch(clockProvider),
     files: ref.watch(fileKeeperProvider),
     titleByShot: ref.watch(titleByShotProvider),
+    workEnd: ref.watch(workEndProvider),
   )
     // теги соседей и разбор ИИ идут после сохранения: строка не ждёт ни того, ни другого
     ..afterCapture = (id) {
@@ -284,6 +285,16 @@ final titleByShotProvider = Provider<bool Function()>((ref) {
   final settings = ref.watch(settingsRepositoryProvider);
   return () => settings.titleDate == TitleDate.shot;
 });
+
+/// Конец рабочего дня для «после работы»: строка и сохранение читают его в момент разбора.
+/// Тесты подменяют: настоящих настроек там нет.
+final workEndProvider = Provider<int Function()>((ref) {
+  final settings = ref.watch(settingsRepositoryProvider);
+  return () => settings.workEnd;
+});
+
+/// Конец рабочего дня для экрана настроек.
+final workEndChoiceProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchWorkEnd());
 
 /// Выбор дня подписи для экрана настроек.
 final titleDateProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchTitleDate());

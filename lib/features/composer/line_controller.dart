@@ -20,9 +20,12 @@ final _markdown = RegExp(r'^(#{1,3} |- \[[ xX]\] |- |> )|\*\*|~~|`', multiLine: 
 /// над строкой, дата становится напоминанием, ссылка, команда и разметка
 /// подсвечиваются на месте.
 class LineController extends TextEditingController {
-  LineController({DateTime Function()? clock, this.resolveFolder}) : _clock = clock ?? DateTime.now;
+  LineController({DateTime Function()? clock, int Function()? workEnd, this.resolveFolder}) : _clock = clock ?? DateTime.now, _workEnd = workEnd ?? (() => defaultWorkEnd);
 
   final DateTime Function() _clock;
+
+  /// Конец рабочего дня для «после работы», в минутах от полуночи.
+  final int Function() _workEnd;
 
   /// Папка по точному имени в нижнем регистре: `@машина ` становится чипом «Машина».
   FolderCard? Function(String query)? resolveFolder;
@@ -49,7 +52,7 @@ class LineController extends TextEditingController {
     if (_reminderDismissed) return null;
     if (_parsedText != text) {
       _parsedText = text;
-      _parsed = parseReminder(text, _clock());
+      _parsed = parseReminder(text, _clock(), workEnd: _workEnd());
     }
     return _parsed;
   }

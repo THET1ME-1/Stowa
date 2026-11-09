@@ -643,5 +643,6 @@
   "factPromo": "Промокод {code}",
   "factCopyPromo": "Скопировать промокод",
   "factTrack": "Отследить посылку",
-  "factOnMap": "Открыть на карте"
+  "factOnMap": "Открыть на карте",
+  "workEndRow": "Работа до"
 }

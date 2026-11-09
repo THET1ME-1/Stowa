@@ -2392,4 +2392,7 @@ class LEn extends L {
 
   @override
   String get factOnMap => 'Open in maps';
+
+  @override
+  String get workEndRow => 'Work ends at';
 }

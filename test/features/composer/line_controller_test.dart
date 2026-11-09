@@ -12,6 +12,13 @@ void main() {
   setUp(() => line = LineController(clock: () => now));
   tearDown(() => line.dispose());
 
+  test('«после работы» — по концу рабочего дня из настроек', () {
+    final mine = LineController(clock: () => now, workEnd: () => 17 * 60 + 30);
+    addTearDown(mine.dispose);
+    mine.value = _typed('после работы забрать посылку');
+    expect(mine.reminder!.at, DateTime(2026, 11, 2, 17, 30));
+  });
+
   test('дописанный тег с пробелом уходит из текста в чип', () {
     line.value = _typed('купить хлеб #дом ');
     expect(line.text, 'купить хлеб ');
