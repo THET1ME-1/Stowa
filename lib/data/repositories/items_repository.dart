@@ -186,9 +186,14 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folder
   coalesce((SELECT attachments.path FROM attachments
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%'
     ORDER BY attachments.position LIMIT 1), items.cover_path) AS thumb_path,
-  (SELECT CAST(attachments.height AS REAL) / attachments.width FROM attachments
+  -- пропорция того, что на плитке: своей картинки, а без неё — кадра своего ролика
+  coalesce((SELECT CAST(attachments.height AS REAL) / attachments.width FROM attachments
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%' AND attachments.width > 0
-    ORDER BY attachments.position LIMIT 1) AS thumb_ratio,
+    ORDER BY attachments.position LIMIT 1),
+  (SELECT CAST(attachments.height AS REAL) / attachments.width FROM attachments
+    WHERE attachments.item_id = items.id AND attachments.mime LIKE 'video/%' AND attachments.width > 0
+      AND NOT EXISTS (SELECT 1 FROM attachments AS pictures WHERE pictures.item_id = items.id AND pictures.mime LIKE 'image/%')
+    ORDER BY attachments.position LIMIT 1)) AS thumb_ratio,
   (SELECT group_concat(tags.name, char(31)) FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
     WHERE item_tags.item_id = items.id) AS tag_names,
   (SELECT attachments.path || char(31) || attachments.mime || char(31) || attachments.size FROM attachments
@@ -212,6 +217,20 @@ class ItemsRepository {
 
   // таблицы карточки: лента перерисуется, когда изменится любая
   Set<ResultSetImplementation<dynamic, dynamic>> get _cardTables => {_db.items, _db.folders, _db.attachments, _db.fileJobs, _db.itemTags, _db.tags};
+
+  /// Лежит ли уже в заметках картинка из галереи: то же имя файла и тот же размер в точках.
+  /// Путь бывает во входящих с номером порядка («0_имя») и у заметки без него.
+  Future<bool> hasPicture(String name, int width, int height) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT attachments.path AS path FROM attachments JOIN items ON items.id = attachments.item_id '
+          'WHERE items.deleted_at IS NULL AND attachments.width = ? AND attachments.height = ? AND attachments.path LIKE ?',
+          variables: [Variable.withInt(width), Variable.withInt(height), Variable.withString('%$name')],
+          readsFrom: {_db.attachments, _db.items},
+        )
+        .get();
+    return rows.any((row) => row.read<String>('path').split('/').last.replaceFirst(RegExp(r'^\d+_'), '') == name);
+  }
 
   /// Самая ранняя другая заметка с той же ссылкой или той же картинкой, иначе null.
   /// Ссылки сравниваются по [urlKey], картинки — отпечатком не дальше [repeatDistance] бит.
@@ -684,6 +703,7 @@ WHERE items.deleted_at IS NULL''';
       FactKind.camera,
       FactKind.pageType,
       FactKind.articleText,
+      FactKind.qr,
     ];
     final rows =
         await (_db.select(_db.facts)

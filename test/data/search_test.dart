@@ -210,6 +210,21 @@ void main() {
       expect(byNote.hit.foundFact!.part.kind, FactKind.highlight);
     });
 
+    test('фото находится по тексту своего QR-кода: сеть Wi-Fi, адрес с билета', () async {
+      final wifi = await capture.capture(const CaptureInput(text: 'Бумажка у роутера'));
+      final ticket = await capture.capture(const CaptureInput(text: 'Билет'));
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'w', itemId: wifi, extractor: 'qr', kind: FactKind.qr, value: r'WIFI:T:WPA;S:Dacha_5G;P:sunflower\;2026;;', detail: const Value('wifi')));
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 't', itemId: ticket, extractor: 'qr', kind: FactKind.qr, value: 'https://go.dev/doc/effective_go', detail: const Value('url')));
+      await refreshFactsText(db, wifi);
+      await refreshFactsText(db, ticket);
+
+      final byNetwork = (await find('dacha')).single;
+      expect(byNetwork.card.id, wifi);
+      expect(byNetwork.hit.foundFact!.part.kind, FactKind.qr);
+      expect((await find('wifi')).map((found) => found.card.id), contains(wifi));
+      expect((await find('effective')).single.card.id, ticket);
+    });
+
     test('на карте событие стоит там, где оно, а не где ссылку сохранили', () async {
       final concert = await capture.capture(const CaptureInput(text: 'Концерт\nhttps://afisha.md/concert'));
       await (db.update(db.items)..where((t) => t.id.equals(concert))).write(const ItemsCompanion(latitude: Value(46.0), longitude: Value(30.0), placeName: Value('Дом')));
