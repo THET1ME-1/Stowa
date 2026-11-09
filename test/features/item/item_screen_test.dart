@@ -96,6 +96,35 @@ void main() {
 
   Future<Item> saved() => world.db.select(world.db.items).getSingle();
 
+  testWidgets('«Переложить» → «Без папки» вынимает заметку из папки, угадыватель получает урок', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'work', name: 'Работа', icon: 'work', shape: 'pill'));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.note,
+          title: 'Отчёт клиенту',
+          body: const Value('Отчёт клиенту'),
+          folderId: const Value('work'),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+
+    // кнопка в нижней пилюле; вторая такая же — в шапке у имени папки
+    await tester.tap(find.byTooltip('Переложить в папку').last);
+    await tester.pumpAndSettle();
+    // своей папки в списке нет, «Без папки» — есть
+    expect(find.descendant(of: find.byType(BottomSheet), matching: find.text('Работа')), findsNothing);
+    await tester.tap(find.descendant(of: find.byType(BottomSheet), matching: find.text('Без папки')));
+    await tester.pumpAndSettle();
+
+    expect((await saved()).folderId, isNull);
+    final lesson = await world.db.select(world.db.corrections).getSingle();
+    expect((lesson.fromFolderId, lesson.toFolderId), ('work', ''));
+    expect(find.text('Переложил в «Без папки»'), findsOneWidget);
+  });
+
   testWidgets('первая строка заметки остаётся текстом, заголовком над ним не встаёт', (tester) async {
     await open(tester, body: 'Борщ\nСвёкла 2 шт', title: 'Борщ');
     expect(find.text('Борщ\nСвёкла 2 шт'), findsOneWidget);

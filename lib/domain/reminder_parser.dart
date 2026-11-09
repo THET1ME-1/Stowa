@@ -23,6 +23,8 @@ class ReminderMatch {
     }
     return rest
         .replaceAll(RegExp(r'\s+'), ' ')
+        // «в зал в 7, ноги» без времени — «в зал, ноги», а не «в зал , ноги»
+        .replaceAllMapped(RegExp(r' ([,.:;!?])'), (match) => match[1]!)
         .trim()
         .replaceFirst(RegExp(r'^(напомни(ть)?|напоминание)(\s+мне)?[\s,:]*', caseSensitive: false), '')
         .replaceAll(RegExp(r'^[\s,.:;-]+|[\s,.:;-]+$'), '');

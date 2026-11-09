@@ -118,21 +118,24 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
           for (final folder in folders)
             if (folder.id != widget.folderId) folder,
         ],
+        allowNone: widget.folderId != null,
+        noneLabel: l.folderNone,
         onNew: () => askNewFolder(sheet, ref),
       ),
     );
     if (picked == null) return;
+    final to = picked == FolderPickerSheet.none ? null : picked.id;
     final chosen = [
       for (final card in cards)
         if (_selected.contains(card.id)) card,
     ];
     for (final card in chosen) {
-      await items.moveToFolder(card.id, picked.id, clock());
+      await items.moveToFolder(card.id, to, clock());
     }
     _clear();
     showUndo(
       messenger,
-      message: l.selMoved(chosen.length, picked.name),
+      message: l.selMoved(chosen.length, to == null ? l.folderNone : picked.name),
       label: l.undo,
       onUndo: () async {
         for (final card in chosen) {

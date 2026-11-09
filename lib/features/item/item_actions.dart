@@ -31,13 +31,17 @@ Future<void> moveItemById(BuildContext context, WidgetRef ref, {required String 
     builder: (sheet) => FolderPickerSheet(
       title: l.folderPickTitle,
       folders: [for (final folder in folders) if (folder.id != from) folder],
+      // угадыватель ошибся папкой — заметку можно вынуть совсем, он это запомнит
+      allowNone: from != null,
+      noneLabel: l.folderNone,
       onNew: () => askNewFolder(sheet, ref),
     ),
   );
   if (picked == null) return;
-  await items.moveToFolder(id, picked.id, clock());
+  final to = picked == FolderPickerSheet.none ? null : picked.id;
+  await items.moveToFolder(id, to, clock());
   // перекладывают с главной и из папки, там внизу строка ввода
-  showUndo(messenger, message: l.itemMoved(picked.name), label: l.undo, onUndo: () => items.moveToFolder(id, from, clock()), overDock: true);
+  showUndo(messenger, message: l.itemMoved(to == null ? l.folderNone : picked.name), label: l.undo, onUndo: () => items.moveToFolder(id, from, clock()), overDock: true);
 }
 
 /// Долгое нажатие на вещь в ленте: открыть, переложить в другую папку, удалить с «Вернуть».

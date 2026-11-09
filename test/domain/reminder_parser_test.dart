@@ -71,6 +71,13 @@ void main() {
     expect(parseReminder('позвонить маме завтра в 10', now)!.restOf('позвонить маме завтра в 10'), 'позвонить маме');
   });
 
+  test('вырезанное время посреди фразы не оставляет пробела перед запятой', () {
+    const text = 'в зал в 7, ноги и пресс';
+    expect(parseReminder(text, now)!.restOf(text), 'в зал, ноги и пресс');
+    const deadline = 'Дедлайн по проекту в понедельник, отчёт клиенту';
+    expect(parseReminder(deadline, now)!.restOf(deadline), 'Дедлайн по проекту, отчёт клиенту');
+  });
+
   test('день и время в разных концах строки складываются', () {
     const text = 'Завтра военная кафедра в 14:00';
     final match = parseReminder(text, now)!;

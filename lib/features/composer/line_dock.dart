@@ -1188,8 +1188,13 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 class FolderPickerSheet extends StatelessWidget {
   const FolderPickerSheet({super.key, required this.title, required this.folders, this.allowNone = false, this.noneLabel, this.onNew});
 
+  /// Ответ «Без папки»: null значит, что лист закрыли, ничего не выбрав.
+  static const none = FolderCard(id: '', name: '', icon: 'inbox', shape: 'squircle', count: 0, covers: [], recentTitles: [], createdByAi: false);
+
   final String title;
   final List<FolderCard> folders;
+
+  /// Первой строкой «Без папки» ([noneLabel]): вынуть заметку из папки. Выбор — [none].
   final bool allowNone;
   final String? noneLabel;
 
@@ -1214,7 +1219,7 @@ class FolderPickerSheet extends StatelessWidget {
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
               children: [
-                if (allowNone) FolderOption(icon: 'inbox', shape: 'squircle', name: noneLabel ?? '', onTap: () => Navigator.pop(context, null)),
+                if (allowNone) FolderOption(icon: 'inbox', shape: 'squircle', name: noneLabel ?? '', onTap: () => Navigator.pop(context, none)),
                 // деревом: вложенная сразу под родителем, путь родителей мелко под именем
                 for (final folder in inTreeOrder(folders))
                   FolderOption(icon: folder.icon, shape: folder.shape, name: folder.name, path: folder.parentsLabel, onTap: () => Navigator.pop(context, folder)),

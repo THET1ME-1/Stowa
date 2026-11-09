@@ -195,13 +195,21 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       context: context,
       showDragHandle: true,
       useSafeArea: true,
-      builder: (sheet) => FolderPickerSheet(title: l.folderPickTitle, folders: folders, onNew: () => askNewFolder(sheet, ref)),
+      builder: (sheet) => FolderPickerSheet(
+        title: l.folderPickTitle,
+        folders: [for (final folder in folders) if (folder.id != item.folderId) folder],
+        // угадыватель ошибся папкой — заметку можно вынуть совсем, он это запомнит
+        allowNone: item.folderId != null,
+        noneLabel: l.folderNone,
+        onNew: () => askNewFolder(sheet, ref),
+      ),
     );
     if (target == null || !mounted) return;
     final from = item.folderId;
-    await _items.moveToFolder(_id, target.id, _clock());
+    final to = target == FolderPickerSheet.none ? null : target.id;
+    await _items.moveToFolder(_id, to, _clock());
     if (!mounted) return;
-    showUndo(ScaffoldMessenger.of(context), message: l.itemMoved(target.name), label: l.undo, onUndo: () => _items.moveToFolder(_id, from, _clock()));
+    showUndo(ScaffoldMessenger.of(context), message: l.itemMoved(to == null ? l.folderNone : target.name), label: l.undo, onUndo: () => _items.moveToFolder(_id, from, _clock()));
   }
 
   Future<void> _pickReminder(DateTime? current) async {
