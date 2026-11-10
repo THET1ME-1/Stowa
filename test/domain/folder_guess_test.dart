@@ -162,6 +162,14 @@ void main() {
       expect(index.guess('космадесантники на подставках')?.folderId, 'wh');
     });
 
+    test('короткое слово человека — не опечатка его другого слова: «мысль» не «масло»', () {
+      final index = FolderIndex(const [
+        FolderDoc(folderId: 'work', text: 'Замена масла'),
+        FolderDoc(folderId: 'food', text: 'Борщ'),
+      ], labels: labels);
+      expect(index.guess('Мысль без папки'), isNull);
+    });
+
     test('длинная заметка из незнакомых слов угадывается быстро, хоть каждое и проверяется на опечатку', () {
       final random = Random(7);
       const letters = 'абвгдежзийклмнопрстуфхцчшщыэюяabcdefghijklmnopqrstuvwxyz';

@@ -389,6 +389,10 @@ const _longestWord = 40;
 /// [typoNeighbors], собранный из словарей.
 const _typoLength = 4;
 
+/// Слова, которым угадыватель научился на заметках, и имена папок — от шести букв:
+/// их соседей словари не проверяли, а «мысль» и «масло» расходятся одной буквой.
+const _learnedTypoLength = 6;
+
 // опечатка: слово или основа в одну букву или в две соседние наоборот от слова
 // словаря, с той же первой буквой (её путают реже всего) и только одной темы.
 // Слово целиком и основа — обе: стеммер режет «chiken» и «chicken» по-разному
@@ -428,10 +432,10 @@ Set<Topic> topicsByTypo(String word, {bool neighbors = true}) {
 /// с той же первой буквой, не продолжение слова и не настоящее слово-сосед.
 /// Для слов, которым угадыватель научился на заметках, и для имён папок.
 String? typoMatch(String stem, Iterable<String> known) {
-  if (stem.length < _typoLength || stem.length > _longestWord || typoNeighbors.contains(stem)) return null;
+  if (stem.length < _learnedTypoLength || stem.length > _longestWord || typoNeighbors.contains(stem)) return null;
   String? found;
   for (final other in known) {
-    if (other.length < _typoLength || other[0] != stem[0] || (other.length - stem.length).abs() > 1) continue;
+    if (other.length < _learnedTypoLength || other[0] != stem[0] || (other.length - stem.length).abs() > 1) continue;
     if (other.startsWith(stem) || stem.startsWith(other) || !typoOf(stem, other)) continue;
     if (found != null) return null;
     found = other;
