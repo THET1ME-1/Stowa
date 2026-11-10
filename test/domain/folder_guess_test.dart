@@ -142,6 +142,21 @@ void main() {
       expect(index.guess('молоко и хлеб', series: 'book')?.folderId, 'food');
     });
 
+    test('папка, которой нет в словарях: пустая — ничего, после двух заметок руками — учится', () {
+      const custom = [...labels, FolderLabel('wh', 'Warhammer'), FolderLabel('book', 'Книга')];
+      const note = 'Citadel: заказать новые краски для космодесантников';
+      expect(FolderIndex(const [], labels: custom).guess(note)?.folderId, isNull);
+      final index = FolderIndex(const [
+        FolderDoc(folderId: 'wh', text: 'Покрасить космодесантников, грунт и краски Citadel'),
+        FolderDoc(folderId: 'wh', text: 'Собрать отряд орков к игре в субботу'),
+        FolderDoc(folderId: 'food', text: 'Молоко и хлеб'),
+        FolderDoc(folderId: 'work', text: 'Отчёт клиенту'),
+      ], labels: custom);
+      expect(index.guess(note)?.folderId, 'wh');
+      // имя папки в тексте работает с первого дня
+      expect(FolderIndex(const [], labels: custom).guess('новый кодекс по Warhammer вышел')?.folderId, 'wh');
+    });
+
     test('папка «Тренировки»: «в зал в 7, ноги и пресс» — туда', () {
       final index = FolderIndex(const [], labels: [...labels, const FolderLabel('gym', 'Тренировки')]);
       expect(index.guess('в зал в 7, ноги и пресс')?.folderId, 'gym');

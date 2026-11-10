@@ -195,15 +195,16 @@ const _words = <Topic, String>{
       'pompes musculation allenamento palestra flessioni treino flexões agachamentos '
       'antrenman şınav mekik koşu',
   Topic.home:
-      'ремонт плитка плитку обои краска покрасить шпаклевка штукатурка ламинат розетка смеситель сантехник электрик '
+      // краска и «покрасить» — в слабых: красят и стены, и миниатюры, и картины
+      'ремонт плитка плитку обои шпаклевка штукатурка ламинат розетка смеситель сантехник электрик '
       // аренда и коммуналка — платежи, они у денег
       'мебель диван шкаф ванная квартира '
-      'ремонт плитка шпалери фарба сантехнік меблі диван ванна квартира '
-      'renovation repair tiles wallpaper paint plumber electrician furniture sofa wardrobe bathroom apartment '
-      'renovierung reparatur fliesen tapete farbe klempner möbel sofa wohnung '
-      'reforma reparación azulejos pintura fontanero muebles sofá baño piso '
-      'renovare reparație faianță tapet vopsea instalator mobilă canapea baie apartament '
-      'remont płytki tapeta farba hydraulik meble kanapa łazienka mieszkanie',
+      'ремонт плитка шпалери сантехнік меблі диван ванна квартира '
+      'renovation repair tiles wallpaper plumber electrician furniture sofa wardrobe bathroom apartment '
+      'renovierung reparatur fliesen tapete klempner möbel sofa wohnung '
+      'reforma reparación azulejos fontanero muebles sofá baño piso '
+      'renovare reparație faianță tapet instalator mobilă canapea baie apartament '
+      'remont płytki tapeta hydraulik meble kanapa łazienka mieszkanie',
   Topic.car:
       'машина машину автомобиль шины резина моторное техосмотр страховка бензин заправка гараж автосервис '
       'автомобіль шини бензин гараж '
@@ -257,6 +258,17 @@ const _weakWords = <Topic, String>{
       'nogi brzuch klatka plecy barki serie '
       'jambes abdos pectoraux épaules gambe addominali petto spalle pernas abdominais peito costas ombros '
       'bacak karın göğüs sırt omuz',
+  // «покрасить стены» — ремонт, «покрасить космодесантников» — нет
+  Topic.home:
+      'краска краску покрасить покрасили стены стену потолок пол полы '
+      'фарба фарбу пофарбувати стіни стелю '
+      'paint painting walls wall ceiling floor '
+      'farbe streichen wände wand decke boden '
+      'pintura pintar paredes pared techo suelo '
+      'vopsea vopsit pereți perete tavan podea '
+      'farba pomalować ściany ścianę sufit podłoga '
+      'peinture peindre murs plafond pittura pitturare pareti soffitto tinta pintar paredes teto '
+      'boya boyamak duvar duvarlar tavan',
 };
 
 final _weakIndex = _index(_weakWords);
