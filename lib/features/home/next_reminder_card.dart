@@ -24,8 +24,9 @@ class NextReminderCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final when = formatReminder(l, item.reminderAt!, now);
     final sub = more > 0 ? '$when · ${l.homeMoreToday(more)}' : when;
+    // снизу щель, как у остальных карточек главной: иначе карточка под ней прилипает
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Space.screen),
+      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 16),
       child: Material(
         color: Tokens.accent,
         borderRadius: BorderRadius.circular(Radii.card),
