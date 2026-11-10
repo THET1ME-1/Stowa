@@ -21,10 +21,14 @@ void main() {
     expect(await openLock(lock, '123457'), isNull);
   });
 
-  test('файл замка переживает запись в JSON и обратно', () async {
-    final (lock, keys) = await createLock('246810', kdf: fast);
-    final again = LockFile.fromJson(lock.toJson());
-    expect((await openLock(again, '246810'))!.publicKey, keys.publicKey);
+  test('файл замка переживает запись в JSON и обратно — и с Argon2id, и с PBKDF2', () async {
+    for (final kdf in [fast, const KdfSettings(iterations: 2000)]) {
+      final (lock, keys) = await createLock('246810', kdf: kdf);
+      final again = LockFile.fromJson(lock.toJson());
+      expect(again.kdf.argon, kdf.argon);
+      expect((await openLock(again, '246810'))!.publicKey, keys.publicKey);
+      expect(await openLock(again, '246811'), isNull);
+    }
   });
 
   test('смена кода: новый открывает, старый больше нет, ключи те же', () async {

@@ -251,11 +251,11 @@ class PrivacyService {
   });
 
   /// Сменить код; старый неверный — false.
-  Future<bool> changeCode(String old, String code) async {
+  Future<bool> changeCode(String old, String code, {KdfSettings kdf = const KdfSettings()}) async {
     final keys = await checkCode(old);
     final lock = _lock;
     if (keys == null || lock == null) return false;
-    await _saveLock(lock.copyWith(keys: await rewrapLock(lock.keys, keys, code)));
+    await _saveLock(lock.copyWith(keys: await rewrapLock(lock.keys, keys, code, kdf: kdf)));
     return true;
   }
 

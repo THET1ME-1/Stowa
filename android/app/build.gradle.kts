@@ -71,4 +71,6 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     // проверка сети дома и работы раз в 15 минут; версия та же, что у плагина workmanager
     implementation("androidx.work:work-runtime:2.11.2")
+    // окно отпечатка (local_auth) живёт во фрагменте: теме окна нужен AppCompat, иначе Android 8 падает
+    implementation("androidx.appcompat:appcompat:1.7.1")
 }

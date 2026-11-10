@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
@@ -30,10 +31,18 @@ class _PrivacyGateState extends ConsumerState<PrivacyGate> with WidgetsBindingOb
   DateTime? _leftAt;
   Timer? _timer;
 
+  /// Приложение само открыло окно ради результата (выбор файла, папки, фото): это не уход.
+  bool _ownWindow = false;
+
+  static const _window = MethodChannel('stowa/window');
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _window.setMethodCallHandler((call) async {
+      if (call.method == 'ownWindow') _ownWindow = true;
+    });
   }
 
   @override
@@ -60,12 +69,14 @@ class _PrivacyGateState extends ConsumerState<PrivacyGate> with WidgetsBindingOb
       case AppLifecycleState.hidden || AppLifecycleState.paused:
         if (!_guarding) return;
         setState(() => _covered = true);
-        if (_leftAt != null) return;
+        // своё окно выбора: заставка в недавних есть, а время до замка не идёт
+        if (_leftAt != null || _ownWindow) return;
         _leftAt = DateTime.now();
         _timer?.cancel();
         _timer = Timer(_delay, _expire);
       case AppLifecycleState.resumed:
         _timer?.cancel();
+        _ownWindow = false;
         final left = _leftAt;
         _leftAt = null;
         if (left != null && DateTime.now().difference(left) >= _delay) _expire();

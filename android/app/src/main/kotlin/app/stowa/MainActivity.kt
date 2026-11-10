@@ -2,7 +2,7 @@ package app.stowa
 
 import android.content.Intent
 import android.os.Bundle
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
@@ -10,10 +10,21 @@ import io.flutter.plugin.common.MethodChannel
  * Главное окно. Виджет рабочего стола открывает его адресом stowa://compose
  * (строка с клавиатурой) или stowa://voice (сразу запись). Dart спрашивает
  * `initial` при запуске, а касания по живому приложению получает через `open`.
+ * Окно на фрагментах: в нём живёт системное окно отпечатка пальца (local_auth).
  */
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private var channel: MethodChannel? = null
+    private var window: MethodChannel? = null
     private var pending: String? = null
+
+    // своё окно ради результата (выбор файла, папки, фото, камера): уход в него — не уход
+    // из приложения, замок после возвращения не встаёт. Dart узнаёт до того, как окно уйдёт в фон
+    @Deprecated("startActivityForResult зовут плагины; переопределение ловит их все разом")
+    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
+        window?.invokeMethod("ownWindow", null)
+        @Suppress("DEPRECATION")
+        super.startActivityForResult(intent, requestCode, options)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         pending = actionOf(intent)
@@ -25,6 +36,7 @@ class MainActivity : FlutterActivity() {
         registerVaultChannel(flutterEngine, this)
         registerPlaceChannel(flutterEngine, this)
         registerMediaChannel(flutterEngine)
+        window = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/window")
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/launch").apply {
             setMethodCallHandler { call, result ->
                 if (call.method == "initial") {

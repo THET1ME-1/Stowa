@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -92,6 +93,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Сразу'));
     await settle(tester);
+
+    // приложение само открыло окно выбора файла: вернулись — замка нет
+    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+      'stowa/window',
+      const StandardMethodCodec().encodeMethodCall(const MethodCall('ownWindow')),
+      (_) {},
+    );
+    await leaveAndCome(tester);
+    expect(find.text('Введите код'), findsNothing);
 
     await leaveAndCome(tester);
     expect(find.text('Введите код'), findsOneWidget);

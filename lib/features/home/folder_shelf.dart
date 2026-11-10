@@ -141,7 +141,8 @@ class FolderPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(symbolIcon(folder.icon, filled: true), size: 18, color: ink),
+            // у открытой скрытой папки вместо её значка замок: видно, что она закроется сама
+            Icon(symbolIcon(folder.hidden ? 'lock' : folder.icon, filled: true), size: 18, color: ink),
             const SizedBox(width: 6),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: _nameMax),

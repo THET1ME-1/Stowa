@@ -236,7 +236,7 @@ class _ChangeCodeState extends ConsumerState<_ChangeCode> {
           setState(() => _first = null);
           return l.codeMismatch;
         }
-        await privacy.changeCode(_old!, code);
+        await privacy.changeCode(_old!, code, kdf: ref.read(kdfSettingsProvider));
         if (context.mounted) {
           final messenger = ScaffoldMessenger.of(context);
           Navigator.pop(context, true);

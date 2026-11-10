@@ -217,14 +217,18 @@ class _FolderRow extends StatelessWidget {
             const SizedBox(width: 4),
             badge,
             const SizedBox(width: 12),
-            Flexible(
-              child: Text(folder?.name ?? l.folderNone, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall),
+            // имя и замок скрытой папки сразу за ним, число — у правого края
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(child: Text(folder?.name ?? l.folderNone, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall)),
+                  if (folder?.hidden ?? false) ...[
+                    const SizedBox(width: 6),
+                    Icon(symbolIcon('lock'), size: 14, color: Tokens.muted, semanticLabel: l.folderHiddenMark),
+                  ],
+                ],
+              ),
             ),
-            if (folder?.hidden ?? false) ...[
-              const SizedBox(width: 6),
-              Icon(symbolIcon('lock'), size: 14, color: Tokens.muted, semanticLabel: l.folderHiddenMark),
-            ],
-            const Spacer(),
             Text('${folder?.count ?? inboxCount}', style: text.bodySmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()])),
             IconButton(
               tooltip: l.catalogOpenFolder,

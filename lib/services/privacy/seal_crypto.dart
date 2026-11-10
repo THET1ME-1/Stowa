@@ -26,12 +26,18 @@ class SealBroken implements Exception {
   String toString() => 'SealBroken: $reason';
 }
 
-/// Цена ключа из кода. На телефоне 64 МБ и два прохода — около секунды.
+/// Цена ключа из кода. По умолчанию PBKDF2-SHA256 на 600 тысяч повторов: его считает
+/// сам Android, на телефоне это доли секунды. Argon2id в чистом Dart на эмуляторе
+/// думал около десяти секунд (замер 10.11) — он остался для тестов и старых замков:
+/// [memoryKib] больше нуля — Argon2id.
 class KdfSettings {
-  const KdfSettings({this.memoryKib = 64 * 1024, this.passes = 2});
+  const KdfSettings({this.memoryKib = 0, this.passes = 0, this.iterations = 600000});
 
   final int memoryKib;
   final int passes;
+  final int iterations;
+
+  bool get argon => memoryKib > 0;
 }
 
 /// `.stowa/lock.json`: соль и цена ключа, открытый ключ, закрытый — под кодом.
@@ -47,16 +53,20 @@ class LockFile {
 
   Map<String, Object?> toJson() => {
     'version': 1,
-    'kdf': {'name': 'argon2id', 'memory_kib': kdf.memoryKib, 'passes': kdf.passes, 'salt': base64.encode(salt)},
+    'kdf': kdf.argon
+        ? {'name': 'argon2id', 'memory_kib': kdf.memoryKib, 'passes': kdf.passes, 'salt': base64.encode(salt)}
+        : {'name': 'pbkdf2-sha256', 'iterations': kdf.iterations, 'salt': base64.encode(salt)},
     'public_key': base64.encode(publicKey),
     'wrapped_key': base64.encode(wrapped),
   };
 
   factory LockFile.fromJson(Map<String, Object?> json) {
-    final kdf = json['kdf']! as Map<String, Object?>;
+    final kdf = (json['kdf']! as Map).cast<String, Object?>();
     return LockFile(
       salt: base64.decode(kdf['salt']! as String),
-      kdf: KdfSettings(memoryKib: kdf['memory_kib']! as int, passes: kdf['passes']! as int),
+      kdf: kdf['name'] == 'argon2id'
+          ? KdfSettings(memoryKib: kdf['memory_kib']! as int, passes: kdf['passes']! as int)
+          : KdfSettings(iterations: kdf['iterations']! as int),
       publicKey: base64.decode(json['public_key']! as String),
       wrapped: base64.decode(json['wrapped_key']! as String),
     );
@@ -76,9 +86,14 @@ class SealKeys {
 final _x25519 = X25519();
 final _aes = AesGcm.with256bits();
 
-/// Ключ из кода считается в отдельном потоке: Argon2id на 64 МБ иначе подвесил бы экран.
-/// Малая цена (тесты) — на месте: поддельное время виджет-теста поток не дождётся.
+/// Ключ из кода. PBKDF2 считает Android (на компьютере и в тестах — Dart). Argon2id
+/// на большой памяти — в отдельном потоке, иначе подвесил бы экран; малая цена (тесты)
+/// — на месте: поддельное время виджет-теста поток не дождётся.
 Future<SecretKey> _codeKey(String code, List<int> salt, KdfSettings kdf) async {
+  if (!kdf.argon) {
+    final pbkdf2 = Pbkdf2(macAlgorithm: Hmac.sha256(), iterations: kdf.iterations, bits: 256);
+    return SecretKey(await (await pbkdf2.deriveKeyFromPassword(password: code, nonce: salt)).extractBytes());
+  }
   Future<List<int>> derive() async {
     final argon = Argon2id(parallelism: 1, memory: kdf.memoryKib, iterations: kdf.passes, hashLength: 32);
     final key = await argon.deriveKeyFromPassword(password: code, nonce: salt);
@@ -95,8 +110,8 @@ Future<(LockFile, SealKeys)> createLock(String code, {KdfSettings kdf = const Kd
   return (await _wrap(keys, code, kdf), keys);
 }
 
-/// Те же ключи под новым кодом.
-Future<LockFile> rewrapLock(LockFile lock, SealKeys keys, String code) => _wrap(keys, code, lock.kdf);
+/// Те же ключи под новым кодом; с [kdf] — и новой ценой ключа (старый замок на Argon2id переходит на PBKDF2).
+Future<LockFile> rewrapLock(LockFile lock, SealKeys keys, String code, {KdfSettings? kdf}) => _wrap(keys, code, kdf ?? lock.kdf);
 
 Future<LockFile> _wrap(SealKeys keys, String code, KdfSettings kdf) async {
   final salt = SecretKeyData.random(length: 16).bytes;
