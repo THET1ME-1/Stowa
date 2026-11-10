@@ -384,9 +384,10 @@ Set<Topic>? _exactly(_Index index, String folded) {
 
 const _longestWord = 40;
 
-/// Опечатка узнаётся у слова или основы от шести букв: у коротких слишком много
-/// настоящих соседей («мука» — «рука», «салат» — «салют», «color» — «calor(ies)»).
-const _typoLength = 6;
+/// Опечатка узнаётся у слова или основы от четырёх букв («хлеп» — «хлеб»). У коротких
+/// много настоящих соседей («хлев», «салют», «color» — «calor(ies)»): их отсекает
+/// [typoNeighbors], собранный из словарей.
+const _typoLength = 4;
 
 // опечатка: слово или основа в одну букву или в две соседние наоборот от слова
 // словаря, с той же первой буквой (её путают реже всего) и только одной темы.
@@ -395,6 +396,9 @@ Set<Topic> _typo(_Index index, String folded, {bool neighbors = true}) {
   // настоящее слово в одной букве от слова темы — не опечатка: «весьма» не «ведьма»,
   // «summer» не «simmer». Список собран из словарей 11 языков
   if (neighbors && typoNeighbors.contains(_stemOf(folded))) return const {};
+  // слово знакомо другому словарю тем — оно не опечатка: «paint» (слабое слово ремонта)
+  // не «pâine» (румынский хлеб)
+  if (_exactly(_wordIndex, folded) != null || _exactly(_weakIndex, folded) != null) return const {};
   final found = <Topic>{};
   void near(String word, Map<String, Map<String, Set<Topic>>> buckets) {
     if (word.length < _typoLength) return;
