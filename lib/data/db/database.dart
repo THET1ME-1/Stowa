@@ -90,7 +90,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -198,6 +198,8 @@ class AppDatabase extends _$AppDatabase {
           }
         }
       }
+      // 14: скрытые папки
+      if (from < 14) await migrator.addColumn(folders, folders.hidden);
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

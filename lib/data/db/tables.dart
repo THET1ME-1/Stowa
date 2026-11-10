@@ -296,6 +296,10 @@ class Folders extends Table {
   TextColumn get view => textEnum<FolderView>().withDefault(Constant(FolderView.auto.name))();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
+  /// Скрытая папка (v14): в базе только пока скрытое открыто, на диске — запечатанной.
+  /// Ставится всему поддереву: вложенная в скрытую тоже скрыта.
+  BoolColumn get hidden => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

@@ -4178,6 +4178,19 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _hiddenMeta = const VerificationMeta('hidden');
+  @override
+  late final GeneratedColumn<bool> hidden = GeneratedColumn<bool>(
+    'hidden',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("hidden" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4190,6 +4203,7 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
     createdByAi,
     view,
     deletedAt,
+    hidden,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4265,6 +4279,12 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('hidden')) {
+      context.handle(
+        _hiddenMeta,
+        hidden.isAcceptableOrUnknown(data['hidden']!, _hiddenMeta),
+      );
+    }
     return context;
   }
 
@@ -4316,6 +4336,10 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      hidden: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}hidden'],
+      )!,
     );
   }
 
@@ -4347,6 +4371,10 @@ class Folder extends DataClass implements Insertable<Folder> {
   final bool createdByAi;
   final FolderView view;
   final DateTime? deletedAt;
+
+  /// Скрытая папка (v14): в базе только пока скрытое открыто, на диске — запечатанной.
+  /// Ставится всему поддереву: вложенная в скрытую тоже скрыта.
+  final bool hidden;
   const Folder({
     required this.id,
     required this.name,
@@ -4358,6 +4386,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     required this.createdByAi,
     required this.view,
     this.deletedAt,
+    required this.hidden,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4380,6 +4409,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
+    map['hidden'] = Variable<bool>(hidden);
     return map;
   }
 
@@ -4401,6 +4431,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      hidden: Value(hidden),
     );
   }
 
@@ -4422,6 +4453,7 @@ class Folder extends DataClass implements Insertable<Folder> {
         serializer.fromJson<String>(json['view']),
       ),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      hidden: serializer.fromJson<bool>(json['hidden']),
     );
   }
   @override
@@ -4440,6 +4472,7 @@ class Folder extends DataClass implements Insertable<Folder> {
         $FoldersTable.$converterview.toJson(view),
       ),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'hidden': serializer.toJson<bool>(hidden),
     };
   }
 
@@ -4454,6 +4487,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     bool? createdByAi,
     FolderView? view,
     Value<DateTime?> deletedAt = const Value.absent(),
+    bool? hidden,
   }) => Folder(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -4465,6 +4499,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     createdByAi: createdByAi ?? this.createdByAi,
     view: view ?? this.view,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    hidden: hidden ?? this.hidden,
   );
   Folder copyWithCompanion(FoldersCompanion data) {
     return Folder(
@@ -4480,6 +4515,7 @@ class Folder extends DataClass implements Insertable<Folder> {
           : this.createdByAi,
       view: data.view.present ? data.view.value : this.view,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      hidden: data.hidden.present ? data.hidden.value : this.hidden,
     );
   }
 
@@ -4495,7 +4531,8 @@ class Folder extends DataClass implements Insertable<Folder> {
           ..write('sortOrder: $sortOrder, ')
           ..write('createdByAi: $createdByAi, ')
           ..write('view: $view, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('hidden: $hidden')
           ..write(')'))
         .toString();
   }
@@ -4512,6 +4549,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     createdByAi,
     view,
     deletedAt,
+    hidden,
   );
   @override
   bool operator ==(Object other) =>
@@ -4526,7 +4564,8 @@ class Folder extends DataClass implements Insertable<Folder> {
           other.sortOrder == this.sortOrder &&
           other.createdByAi == this.createdByAi &&
           other.view == this.view &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.hidden == this.hidden);
 }
 
 class FoldersCompanion extends UpdateCompanion<Folder> {
@@ -4540,6 +4579,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
   final Value<bool> createdByAi;
   final Value<FolderView> view;
   final Value<DateTime?> deletedAt;
+  final Value<bool> hidden;
   final Value<int> rowid;
   const FoldersCompanion({
     this.id = const Value.absent(),
@@ -4552,6 +4592,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     this.createdByAi = const Value.absent(),
     this.view = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.hidden = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FoldersCompanion.insert({
@@ -4565,6 +4606,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     this.createdByAi = const Value.absent(),
     this.view = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.hidden = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -4581,6 +4623,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     Expression<bool>? createdByAi,
     Expression<String>? view,
     Expression<DateTime>? deletedAt,
+    Expression<bool>? hidden,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4594,6 +4637,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       if (createdByAi != null) 'created_by_ai': createdByAi,
       if (view != null) 'view': view,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (hidden != null) 'hidden': hidden,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4609,6 +4653,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     Value<bool>? createdByAi,
     Value<FolderView>? view,
     Value<DateTime?>? deletedAt,
+    Value<bool>? hidden,
     Value<int>? rowid,
   }) {
     return FoldersCompanion(
@@ -4622,6 +4667,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       createdByAi: createdByAi ?? this.createdByAi,
       view: view ?? this.view,
       deletedAt: deletedAt ?? this.deletedAt,
+      hidden: hidden ?? this.hidden,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4661,6 +4707,9 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (hidden.present) {
+      map['hidden'] = Variable<bool>(hidden.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4680,6 +4729,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
           ..write('createdByAi: $createdByAi, ')
           ..write('view: $view, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('hidden: $hidden, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12726,6 +12776,7 @@ typedef $$FoldersTableCreateCompanionBuilder = FoldersCompanion Function({
   Value<bool> createdByAi,
   Value<FolderView> view,
   Value<DateTime?> deletedAt,
+  Value<bool> hidden,
   Value<int> rowid,
 });
 typedef $$FoldersTableUpdateCompanionBuilder = FoldersCompanion Function({
@@ -12739,6 +12790,7 @@ typedef $$FoldersTableUpdateCompanionBuilder = FoldersCompanion Function({
   Value<bool> createdByAi,
   Value<FolderView> view,
   Value<DateTime?> deletedAt,
+  Value<bool> hidden,
   Value<int> rowid,
 });
 
@@ -12801,6 +12853,11 @@ class $$FoldersTableFilterComposer
     column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<bool> get hidden => $composableBuilder(
+    column: $table.hidden,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$FoldersTableOrderingComposer
@@ -12861,6 +12918,11 @@ class $$FoldersTableOrderingComposer
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get hidden => $composableBuilder(
+    column: $table.hidden,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$FoldersTableAnnotationComposer
@@ -12903,6 +12965,9 @@ class $$FoldersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get hidden =>
+      $composableBuilder(column: $table.hidden, builder: (column) => column);
 }
 
 class $$FoldersTableTableManager
@@ -12943,6 +13008,7 @@ class $$FoldersTableTableManager
                 Value<bool> createdByAi = const Value.absent(),
                 Value<FolderView> view = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> hidden = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FoldersCompanion(
                 id: id,
@@ -12955,6 +13021,7 @@ class $$FoldersTableTableManager
                 createdByAi: createdByAi,
                 view: view,
                 deletedAt: deletedAt,
+                hidden: hidden,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12969,6 +13036,7 @@ class $$FoldersTableTableManager
                 Value<bool> createdByAi = const Value.absent(),
                 Value<FolderView> view = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> hidden = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FoldersCompanion.insert(
                 id: id,
@@ -12981,6 +13049,7 @@ class $$FoldersTableTableManager
                 createdByAi: createdByAi,
                 view: view,
                 deletedAt: deletedAt,
+                hidden: hidden,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

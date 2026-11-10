@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../data/db/database.dart';
+import '../privacy/hidden_rows.dart' show plainWhere;
 
 /// Какие таблицы лежат в каком файле `.stowa/<имя>.json`.
 const vaultMetaTables = {
@@ -24,10 +25,11 @@ const _pretty = JsonEncoder.withIndent('  ');
 Future<List<Map<String, Object?>>> _rows(AppDatabase db, String sql, [List<Variable<Object>> variables = const []]) async =>
     [for (final row in await db.customSelect(sql, variables: variables).get()) row.data];
 
-/// Текст `.stowa/<name>.json`: `{"<таблица>": [строки]}`.
+/// Текст `.stowa/<name>.json`: `{"<таблица>": [строки]}`. Строк открытого скрытого в нём нет:
+/// они уходят в запечатанную копию.
 Future<String> metaJson(AppDatabase db, String name) async {
   final tables = vaultMetaTables[name]!;
-  return _pretty.convert({for (final table in tables) table: await _rows(db, 'SELECT * FROM $table')});
+  return _pretty.convert({for (final table in tables) table: await _rows(db, 'SELECT * FROM $table WHERE ${plainWhere(table)}')});
 }
 
 /// Текст `.stowa/history/<id>.json` или null, если снимков нет.

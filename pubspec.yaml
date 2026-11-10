@@ -9,6 +9,8 @@ environment:
 dependencies:
   archive: ^4.6.0
   connectivity_plus: ^7.3.2
+  cryptography: ^2.9.0
+  cryptography_flutter: ^2.3.4
   drift: ^2.35.3
   drift_flutter: ^0.3.1
   dynamic_color: ^1.7.0
@@ -32,6 +34,7 @@ dependencies:
   intl: ^0.20.3
   just_audio: ^0.10.6
   latlong2: ^0.10.1
+  local_auth: ^3.0.2
   mime: ^2.1.0
   open_filex: ^5.0.0
   package_info_plus: ^10.2.2

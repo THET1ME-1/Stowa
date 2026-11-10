@@ -266,6 +266,26 @@ void main() {
     expect(await upgraded.select(upgraded.ruleHits).get(), hasLength(1));
   });
 
+  test('v13 → v14: папки на месте и не скрыты', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.folders).insert(FoldersCompanion.insert(id: 'f', name: 'Дом', icon: 'home', shape: 'gem'));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropHidden(raw);
+    raw.execute('PRAGMA user_version = 13');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final folder = await upgraded.select(upgraded.folders).getSingle();
+    expect(folder.name, 'Дом');
+    expect(folder.hidden, isFalse);
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -292,8 +312,14 @@ void main() {
 
 // версия 10: статьи — цитаты, жива ли ссылка, где остановился читать
 // версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
+// версия 14: скрытые папки
+void _dropHidden(Database raw) {
+  raw.execute('ALTER TABLE folders DROP COLUMN hidden');
+}
+
 // версия 13: умные папки и учёт правил по фактам
 void _dropSmart(Database raw) {
+  _dropHidden(raw);
   for (final event in ['insert', 'update', 'delete']) {
     raw.execute('DROP TRIGGER IF EXISTS vault_smart_folders_${event}_meta');
   }
