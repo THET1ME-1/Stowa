@@ -225,6 +225,15 @@ class FolderIndex {
   /// В скольких вещях встречается основа слова.
   final _spread = <String, int>{};
 
+  /// Основы слов заметок по первой букве: среди них ищется опечатка.
+  late final _spreadByFirst = () {
+    final buckets = <String, List<String>>{};
+    for (final key in _spread.keys) {
+      if (key.isNotEmpty && !key.contains(':')) buckets.putIfAbsent(key[0], () => []).add(key);
+    }
+    return buckets;
+  }();
+
   /// Сколько вещей папки содержат основу.
   final _hits = <String, Map<String, int>>{};
 
@@ -287,7 +296,9 @@ class FolderIndex {
     final seen = <String>{};
     for (final word in words) {
       if (!seen.add(word.stem)) continue;
-      add(word.stem, word.original, word.name ? _nameWeight : 1, name: word.name);
+      // слова нет в заметках — может, это опечатка знакомого: «космадесантники»
+      final known = _spread.containsKey(word.stem) ? word.stem : typoMatch(word.stem, _spreadByFirst[word.stem.isEmpty ? '' : word.stem[0]] ?? const []);
+      if (known != null) add(known, word.original, word.name ? _nameWeight : 1, name: word.name);
     }
     for (final signal in signals.toSet()) {
       add(signal, signal.startsWith('site:') ? signal.substring(5) : '', _signalWeight(signal), minHits: _signalMinHits(signal));
@@ -296,7 +307,9 @@ class FolderIndex {
     // имя папки прямо в заметке: «плитка для ремонта» — папка «Ремонт»
     final shownOf = <String, String>{for (final word in words.reversed) word.stem: word.original};
     for (final MapEntry(key: folder, value: stems) in _nameStems.entries) {
-      for (final stem in stems.where(shownOf.containsKey)) {
+      // имя целиком или с опечаткой: «Wrahammer» — папка «Warhammer»
+      final matched = {for (final stem in stems) ?(shownOf.containsKey(stem) ? stem : typoMatch(stem, shownOf.keys))};
+      for (final stem in matched) {
         final shown = shownOf[stem]!;
         // «работал на врага» — не про папку «Работа»: глагол от её имени
         if (_nameForms[folder]!.any((form) => isVerbOf(normalizeQuery(shown), form))) continue;

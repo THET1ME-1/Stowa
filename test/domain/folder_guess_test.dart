@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/domain/folder_guess.dart';
 import 'package:stowa/domain/models.dart';
@@ -155,6 +157,22 @@ void main() {
       expect(index.guess(note)?.folderId, 'wh');
       // имя папки в тексте работает с первого дня
       expect(FolderIndex(const [], labels: custom).guess('новый кодекс по Warhammer вышел')?.folderId, 'wh');
+      // и с опечаткой в имени, и в выученном слове
+      expect(FolderIndex(const [], labels: custom).guess('новый кодекс по Wrahammer вышел')?.folderId, 'wh');
+      expect(index.guess('космадесантники на подставках')?.folderId, 'wh');
+    });
+
+    test('длинная заметка из незнакомых слов угадывается быстро, хоть каждое и проверяется на опечатку', () {
+      final random = Random(7);
+      const letters = 'абвгдежзийклмнопрстуфхцчшщыэюяabcdefghijklmnopqrstuvwxyz';
+      final text = [
+        for (var index = 0; index < 2000; index++) String.fromCharCodes([for (var at = 0; at < 6 + random.nextInt(6); at++) letters.codeUnitAt(random.nextInt(letters.length))]),
+      ].join(' ');
+      final index = FolderIndex([for (var at = 0; at < 300; at++) FolderDoc(folderId: 'work', text: 'отчёт клиенту номер $at ${text.substring(at * 20, at * 20 + 40)}')], labels: labels);
+      index.guess('прогрев');
+      final stopwatch = Stopwatch()..start();
+      index.guess(text);
+      expect(stopwatch.elapsedMilliseconds, lessThan(300));
     });
 
     test('папка «Тренировки»: «в зал в 7, ноги и пресс» — туда', () {

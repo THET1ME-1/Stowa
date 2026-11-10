@@ -101,12 +101,20 @@ const _minStem = 3;
 
 const _vowels = 'aeiouy';
 
+// выражения собираются один раз: основа считается для каждого слова каждой заметки
+final _roLetters = RegExp('[ăâîșşțţ]');
+final _plLetters = RegExp('[ąęłśźżćń]');
+final _deLetters = RegExp('[äöüß]');
+final _esLetters = RegExp('[ñ¿¡áéíú]');
+final _ukLetters = RegExp('[іїєґ]');
+final _digit = RegExp(r'\d');
+
 /// Какие окончания у латинского слова: по особым буквам, иначе всех пяти языков.
 List<String> _latinEndingsOf(String raw) {
-  if (RegExp('[ăâîșşțţ]').hasMatch(raw)) return _ro;
-  if (RegExp('[ąęłśźżćń]').hasMatch(raw)) return _pl;
-  if (RegExp('[äöüß]').hasMatch(raw)) return _de;
-  if (RegExp('[ñ¿¡áéíú]').hasMatch(raw)) return _es;
+  if (_roLetters.hasMatch(raw)) return _ro;
+  if (_plLetters.hasMatch(raw)) return _pl;
+  if (_deLetters.hasMatch(raw)) return _de;
+  if (_esLetters.hasMatch(raw)) return _es;
   // «ó» пишут и испанцы, и поляки
   if (raw.contains('ó')) return _esPl;
   return _latin;
@@ -116,10 +124,10 @@ List<String> _latinEndingsOf(String raw) {
 String stemOf(String word) {
   final raw = word.toLowerCase();
   final folded = foldText(raw);
-  if (folded.length <= _minStem || RegExp(r'\d').hasMatch(folded)) return folded;
+  if (folded.length <= _minStem || _digit.hasMatch(folded)) return folded;
   switch (_scriptOf(raw)) {
     case _Script.cyrillic:
-      final ukrainian = RegExp('[іїєґ]').hasMatch(raw);
+      final ukrainian = _ukLetters.hasMatch(raw);
       return _cut(folded, ukrainian ? _uk : _ru);
     case _Script.latin:
       final endings = _latinEndingsOf(raw);

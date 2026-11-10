@@ -8,7 +8,9 @@
 /// «зал» — и спортзал, и концертный, поэтому таких слов здесь нет.
 library;
 
-import 'line_query.dart' show normalizeQuery, stem;
+import 'line_query.dart' show nearWords, normalizeQuery, stem;
+import 'typo_neighbors.dart';
+import 'word_variants.dart' show swapLayouts, toCyrillic;
 
 enum Topic {
   books,
@@ -289,7 +291,16 @@ const _verbTails = {'л', 'ла', 'ли', 'ло', 'ть', 'ться', 'ет', '�
 /// у них одна основа, но «работал на врага» не про работу.
 bool isVerbOf(String word, String noun) => word.length > noun.length && word.startsWith(noun) && _verbTails.contains(word.substring(noun.length));
 
-typedef _Index = ({Map<String, Set<Topic>> stems, Map<String, Set<Topic>> whole, Map<String, Set<String>> forms});
+typedef _Index = ({
+  Map<String, Set<Topic>> stems,
+  Map<String, Set<Topic>> whole,
+  Map<String, Set<String>> forms,
+  // слова и основы от шести букв по первой букве: опечатку ищем только среди них
+  Map<String, Map<String, Set<Topic>>> nearWhole,
+  Map<String, Map<String, Set<Topic>>> nearStems,
+  // уже разобранные слова: строка угадывает на каждое нажатие одно и то же
+  Map<String, Set<Topic>> memo,
+});
 
 _Index _index(Map<Topic, String> source) {
   final stems = <String, Set<Topic>>{};
@@ -307,20 +318,134 @@ _Index _index(Map<Topic, String> source) {
       whole.putIfAbsent(folded, () => {}).add(topic);
     }
   }
-  return (stems: stems, whole: whole, forms: forms);
+  Map<String, Map<String, Set<Topic>>> byFirst(Map<String, Set<Topic>> words) {
+    final buckets = <String, Map<String, Set<Topic>>>{};
+    for (final MapEntry(key: word, value: topics) in words.entries) {
+      if (word.length >= _typoLength) buckets.putIfAbsent(word[0], () => {})[word] = topics;
+    }
+    return buckets;
+  }
+
+  return (stems: stems, whole: whole, forms: forms, nearWhole: byFirst(whole), nearStems: byFirst(stems), memo: <String, Set<Topic>>{});
 }
 
 final _nameIndex = _index(_names);
 final _wordIndex = _index(_words);
 
+/// Сколько разобранных слов помнить; больше — память чистится целиком.
+const _memoSize = 20000;
+
 Set<Topic> _lookup(_Index index, String word) {
   final folded = normalizeQuery(word);
+  if (index.memo[folded] case final topics?) return topics;
+  if (index.memo.length >= _memoSize) index.memo.clear();
+  return index.memo[folded] = _find(index, folded);
+}
+
+Set<Topic> _find(_Index index, String folded) {
+  final own = _exactly(index, folded);
+  if (own != null) return own;
+  // длиннее слов не бывает даже у немцев: это ключ, хеш или вставленный мусор
+  if (folded.length > _longestWord) return const {};
+  // набрано не в той раскладке («vjkjrj» — «молоко») или транслитом («moloko»)
+  for (final variant in _variantsOf(folded)) {
+    if (_exactly(index, variant) case final topics?) return topics;
+  }
+  return _typo(index, folded);
+}
+
+// основа и варианты слова общие для всех словарей: считаются раз на слово
+final _stems = <String, String>{};
+final _variants = <String, List<String>>{};
+final _cyrillic = RegExp('[а-яіїєґ]');
+
+String _stemOf(String folded) {
+  if (_stems.length >= _memoSize) _stems.clear();
+  return _stems[folded] ??= stem(folded);
+}
+
+List<String> _variantsOf(String folded) {
+  if (_variants.length >= _memoSize) _variants.clear();
+  return _variants[folded] ??= [
+    for (final variant in [...swapLayouts(folded), if (!_cyrillic.hasMatch(folded) && folded.length >= 4) toCyrillic(folded)]) normalizeQuery(variant),
+  ];
+}
+
+// само слово целиком или по основе; null — словарь его не знает
+Set<Topic>? _exactly(_Index index, String folded) {
   // слово есть в словаре целиком — основа не нужна: «treno» и польское «trening»
   // сходятся в «tren», но поезд — не тренировка
   if (index.whole[folded] case final topics?) return topics;
-  final base = stem(folded);
+  final base = _stemOf(folded);
   final verb = index.forms[base]?.any((form) => isVerbOf(folded, form)) ?? false;
-  return verb ? const {} : {...?index.stems[base]};
+  if (verb) return const {};
+  return index.stems[base];
+}
+
+const _longestWord = 40;
+
+/// Опечатка узнаётся у слова или основы от шести букв: у коротких слишком много
+/// настоящих соседей («мука» — «рука», «салат» — «салют», «color» — «calor(ies)»).
+const _typoLength = 6;
+
+// опечатка: слово или основа в одну букву или в две соседние наоборот от слова
+// словаря, с той же первой буквой (её путают реже всего) и только одной темы.
+// Слово целиком и основа — обе: стеммер режет «chiken» и «chicken» по-разному
+Set<Topic> _typo(_Index index, String folded, {bool neighbors = true}) {
+  // настоящее слово в одной букве от слова темы — не опечатка: «весьма» не «ведьма»,
+  // «summer» не «simmer». Список собран из словарей 11 языков
+  if (neighbors && typoNeighbors.contains(_stemOf(folded))) return const {};
+  final found = <Topic>{};
+  void near(String word, Map<String, Map<String, Set<Topic>>> buckets) {
+    if (word.length < _typoLength) return;
+    for (final MapEntry(key: other, value: topics) in (buckets[word[0]] ?? const {}).entries) {
+      if ((other.length - word.length).abs() > 1) continue;
+      // «концертный» — не опечатка «концерта», а другое слово от него
+      if (other.startsWith(word) || word.startsWith(other)) continue;
+      if (typoOf(word, other)) found.addAll(topics);
+    }
+  }
+
+  near(folded, index.nearWhole);
+  near(_stemOf(folded), index.nearStems);
+  return found.length == 1 ? found : const {};
+}
+
+/// Темы, которые слово получает только как опечатка: само оно словарю не знакомо.
+/// Для замера на настоящих словах — обычное слово сюда попадать не должно.
+/// [neighbors] false — без списка исключений: так его собирает `tool/typo_neighbors_test.dart`.
+Set<Topic> topicsByTypo(String word, {bool neighbors = true}) {
+  final folded = normalizeQuery(word);
+  if (_exactly(_wordIndex, folded) != null || _exactly(_weakIndex, folded) != null) return const {};
+  return {..._typo(_wordIndex, folded, neighbors: neighbors), ..._typo(_weakIndex, folded, neighbors: neighbors)};
+}
+
+/// Основа из [known], опечаткой которой может быть [stem]: ровно одна, от шести букв,
+/// с той же первой буквой, не продолжение слова и не настоящее слово-сосед.
+/// Для слов, которым угадыватель научился на заметках, и для имён папок.
+String? typoMatch(String stem, Iterable<String> known) {
+  if (stem.length < _typoLength || stem.length > _longestWord || typoNeighbors.contains(stem)) return null;
+  String? found;
+  for (final other in known) {
+    if (other.length < _typoLength || other[0] != stem[0] || (other.length - stem.length).abs() > 1) continue;
+    if (other.startsWith(stem) || stem.startsWith(other) || !typoOf(stem, other)) continue;
+    if (found != null) return null;
+    found = other;
+  }
+  return found;
+}
+
+/// [a] и [b] различаются одной буквой (замена, лишняя, пропущенная) или двумя
+/// соседними, переставленными местами: «малоко» — «молоко», «тренирвока» — «тренировка».
+bool typoOf(String a, String b) {
+  if (a == b) return false;
+  if (nearWords(a, b)) return true;
+  if (a.length != b.length) return false;
+  final differ = [
+    for (var index = 0; index < a.length; index++)
+      if (a[index] != b[index]) index,
+  ];
+  return differ.length == 2 && differ[1] == differ[0] + 1 && a[differ[0]] == b[differ[1]] && a[differ[1]] == b[differ[0]];
 }
 
 // «18+», «NSFW 🔞»: цифры и знаки словами не разобрать
