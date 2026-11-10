@@ -9,6 +9,7 @@ import '../../domain/folder_tree.dart';
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart' show embedNames, embedPath;
 import '../../domain/vault_note.dart';
+import '../privacy/sealed_space.dart';
 import 'vault_layout.dart';
 import 'vault_meta.dart';
 
@@ -102,11 +103,12 @@ class VaultWriter {
     switch (kind) {
       case 'item':
         await _writeItem(name);
+      // добытое и история скрытой заметки уходят в запечатанную копию вместе со строками базы
       case 'facts':
-        final text = await factsJson(_db, name);
+        final text = await _hiddenItem(name) ? null : await factsJson(_db, name);
         text == null ? await _remove(factsFile(name)) : await _write(factsFile(name), text);
       case 'history':
-        final text = await historyJson(_db, name);
+        final text = await _hiddenItem(name) ? null : await historyJson(_db, name);
         text == null ? await _remove(historyFile(name)) : await _write(historyFile(name), text);
       case 'meta':
         if (vaultMetaTables.containsKey(name)) await _write(metaFile(name), await metaJson(_db, name));
@@ -127,8 +129,22 @@ class VaultWriter {
       }
       await _remove(factsFile(id));
       await _remove(historyFile(id));
+      // у скрытой — её файлы в открытой папке
+      final open = SealedSpace.root;
+      if (open != null) {
+        for (final relative in ['files/$id', ...derivedPaths(id)]) {
+          await _drop('${open.path}/$relative');
+        }
+        await _dropCovers(open.path, id);
+      }
+      SealedSpace.release(id);
       return;
     }
+    if (SealedSpace.root != null && await _hiddenFolder(item.folderId)) {
+      await _seal(item, known);
+      return;
+    }
+    await _unseal(item);
     if (known != null) {
       final current = File(_absolute(known.path));
       if (await current.exists()) {
@@ -196,6 +212,131 @@ class VaultWriter {
     final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path)));
     final stat = await file.stat();
     await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+    if (SealedSpace.root case final open?) await _dropIfEmpty('${open.path}/files/$id');
+  }
+
+  Future<bool> _hiddenFolder(String? folderId) async {
+    if (folderId == null) return false;
+    final row = await _db.customSelect('SELECT 1 FROM folders WHERE id = ? AND hidden = 1', variables: [Variable.withString(folderId)]).getSingleOrNull();
+    return row != null;
+  }
+
+  Future<bool> _hiddenItem(String id) async {
+    final row = await _db
+        .customSelect('SELECT 1 FROM items JOIN folders ON folders.id = items.folder_id WHERE items.id = ? AND folders.hidden = 1', variables: [Variable.withString(id)])
+        .getSingleOrNull();
+    return row != null;
+  }
+
+  /// Заметка скрытой папки: файла в хранилище у неё нет (текст в базе до закрытия, потом
+  /// в запечатанной копии), вложения и производное — в открытой папке скрытого.
+  Future<void> _seal(Item item, VaultFile? known) async {
+    final open = SealedSpace.root!.path;
+    final id = item.id;
+    SealedSpace.take(id);
+    if (known != null) {
+      await _remove(known.path);
+      await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(id))).go();
+    }
+    final renamed = await _gather(id, '$open/files/$id');
+    var body = item.body;
+    for (final MapEntry(key: before, value: after) in renamed.entries) {
+      body = body.replaceAll('![[$before]]', '![[$after]]');
+    }
+    if (known != null) {
+      await _prune(attachmentsDir(known.path));
+      await _prune(p.posix.dirname(known.path));
+    }
+    final cover = item.coverPath;
+    final newCover = cover != null && !p.isAbsolute(cover) ? '$open/$cover' : cover;
+    if (cover != newCover) await _relocate(_absolute(cover!), newCover!);
+    for (final relative in derivedPaths(id)) {
+      await _relocate(_absolute(relative), '$open/$relative');
+    }
+    await _remove(factsFile(id));
+    await _remove(historyFile(id));
+    await _quietly(() async {
+      if (body != item.body || cover != newCover) {
+        await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(body), coverPath: Value(newCover)));
+      }
+      // кадры ролика записаны в фактах путём
+      await _db.customStatement("UPDATE facts SET value = ? || '/' || value WHERE item_id = ? AND kind = 'frame' AND value NOT LIKE '/%'", [open, id]);
+    });
+  }
+
+  /// Заметку вынули из скрытой папки: её файлы из открытой папки возвращаются в хранилище.
+  /// Вложения переносит `_gather` следом, добытое и история пишутся заново.
+  Future<void> _unseal(Item item) async {
+    final id = item.id;
+    SealedSpace.release(id);
+    final open = SealedSpace.root;
+    if (open == null) return;
+    final prefix = '${open.path}/';
+    var back = (await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get()).any((attachment) => attachment.path.startsWith(prefix));
+    final cover = item.coverPath;
+    final newCover = cover != null && cover.startsWith(prefix) ? cover.substring(prefix.length) : cover;
+    if (cover != newCover) {
+      await _relocate(cover!, _absolute(newCover!));
+      back = true;
+    }
+    for (final relative in derivedPaths(id)) {
+      if (await _relocate('$prefix$relative', _absolute(relative))) back = true;
+    }
+    if (!back) return;
+    await _quietly(() async {
+      if (cover != newCover) await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(coverPath: Value(newCover)));
+      await _db.customStatement('UPDATE facts SET value = substr(value, ?) WHERE item_id = ? AND substr(value, 1, ?) = ?', [prefix.length + 1, id, prefix.length, prefix]);
+    });
+    for (final target in ['facts:$id', 'history:$id']) {
+      await _db.customStatement('INSERT INTO vault_queue (target) VALUES (?) ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL', [target]);
+    }
+    _again = true;
+  }
+
+  /// Перенос файла или папки; между памятью приложения и общей памятью переименование
+  /// не работает — тогда копия и стирание. Источника нет — false.
+  Future<bool> _relocate(String from, String to) async {
+    final type = await FileSystemEntity.type(from, followLinks: false);
+    if (type == FileSystemEntityType.notFound) return false;
+    await Directory(p.dirname(to)).create(recursive: true);
+    await _drop(to);
+    try {
+      type == FileSystemEntityType.directory ? await Directory(from).rename(to) : await File(from).rename(to);
+    } on FileSystemException {
+      await _copy(from, to, type);
+      await _drop(from);
+    }
+    return true;
+  }
+
+  Future<void> _copy(String from, String to, FileSystemEntityType type) async {
+    if (type != FileSystemEntityType.directory) {
+      await File(from).copy(to);
+      return;
+    }
+    await Directory(to).create(recursive: true);
+    await for (final entity in Directory(from).list(followLinks: false)) {
+      await _copy(entity.path, p.join(to, p.basename(entity.path)), entity is Directory ? FileSystemEntityType.directory : FileSystemEntityType.file);
+    }
+  }
+
+  Future<void> _drop(String path) async {
+    final type = await FileSystemEntity.type(path, followLinks: false);
+    if (type == FileSystemEntityType.directory) await Directory(path).delete(recursive: true);
+    if (type == FileSystemEntityType.file) await File(path).delete();
+  }
+
+  Future<void> _dropIfEmpty(String path) async {
+    final dir = Directory(path);
+    if (await dir.exists() && await dir.list().isEmpty) await dir.delete();
+  }
+
+  Future<void> _dropCovers(String open, String id) async {
+    final dir = Directory('$open/$serviceFolder/covers');
+    if (!await dir.exists()) return;
+    await for (final entity in dir.list()) {
+      if (p.basenameWithoutExtension(entity.path) == id) await entity.delete();
+    }
   }
 
   /// Имена папок от верхней до папки вещи. Удалённая папка — как будто её нет.
@@ -289,8 +430,7 @@ class VaultWriter {
         target = '$dir/${p.posix.basenameWithoutExtension(name)} $number${p.posix.extension(name)}';
       }
       used.add(p.posix.basename(target).toLowerCase());
-      await Directory(p.dirname(_absolute(target))).create(recursive: true);
-      await source.rename(_absolute(target));
+      await _relocate(source.path, _absolute(target));
       moved[attachment.id] = target;
       if (p.posix.basename(target) != name) renamed[name] = p.posix.basename(target);
       await _prune(p.posix.dirname(attachment.path));
@@ -332,6 +472,8 @@ class VaultWriter {
 
   // пустые папки, оставшиеся после переезда, убираются до корня
   Future<void> _prune(String relativeDir) async {
+    // открытая папка скрытого чистится сама, до корня телефона подниматься нельзя
+    if (p.isAbsolute(relativeDir)) return;
     var dir = relativeDir;
     while (dir != '.' && dir.isNotEmpty) {
       final folder = Directory(_absolute(dir));
@@ -341,7 +483,7 @@ class VaultWriter {
     }
   }
 
-  String _absolute(String relative) => p.joinAll([_root!.path, ...relative.split('/')]);
+  String _absolute(String relative) => vaultAbsolute(_root!.path, relative);
 }
 
 class _ExternalEdit implements Exception {

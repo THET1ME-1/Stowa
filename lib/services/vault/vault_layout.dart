@@ -2,10 +2,16 @@
 /// как их хранит база: так они переживают перенос хранилища в другую папку.
 library;
 
+import 'package:path/path.dart' as p;
+
 import '../../domain/vault_note.dart' show vaultFileName;
+import '../privacy/sealed_space.dart';
 
 /// Служебная папка Stowa: факты, обложки, копии страниц, теги, правила.
 const serviceFolder = '.stowa';
+
+/// Файл по пути из базы: от корня хранилища или, у открытого скрытого, полный.
+String vaultAbsolute(String root, String path) => p.isAbsolute(path) ? path : p.joinAll([root, ...path.split('/')]);
 
 /// Корзина: удалённые вещи тем же видом, 30 дней.
 const trashFolder = '.trash';
@@ -43,15 +49,34 @@ String factsFile(String itemId) => '$serviceFolder/facts/$itemId.json';
 /// История правок заметки: снимки переживают переустановку, как факты.
 String historyFile(String itemId) => '$serviceFolder/history/$itemId.json';
 
-String coverFile(String itemId, String extension) => '$serviceFolder/covers/$itemId.$extension';
+// у открытой скрытой заметки обложка, кадры и копии страниц лежат в открытой папке скрытого
+String coverFile(String itemId, String extension) => SealedSpace.place(itemId, plainCoverFile(itemId, extension));
+
+String plainCoverFile(String itemId, String extension) => '$serviceFolder/covers/$itemId.$extension';
 
 /// Кадры своего ролика по шкале: `0.jpg` … `5.jpg`.
-String framesDir(String itemId) => '$serviceFolder/frames/$itemId';
+String framesDir(String itemId) => SealedSpace.place(itemId, plainFramesDir(itemId));
 
-String pageCopyFile(String itemId) => '$serviceFolder/pages/$itemId.html.gz';
+String plainFramesDir(String itemId) => '$serviceFolder/frames/$itemId';
+
+String pageCopyFile(String itemId) => SealedSpace.place(itemId, plainPageCopyFile(itemId));
+
+String plainPageCopyFile(String itemId) => '$serviceFolder/pages/$itemId.html.gz';
 
 /// Картинка статьи по номеру среди картинок: формат читает сам декодер, расширение не нужно.
-String articleImageFile(String itemId, int index) => '$serviceFolder/articles/$itemId/$index.img';
+String articleImageFile(String itemId, int index) => '${articlesDir(itemId)}/$index.img';
+
+String articlesDir(String itemId) => SealedSpace.place(itemId, plainArticlesDir(itemId));
+
+String plainArticlesDir(String itemId) => '$serviceFolder/articles/$itemId';
+
+/// Производные файлы заметки, которые ищутся по id, а не по пути в базе: путями от корня
+/// хранилища или открытой папки. Обложка — по `cover_path` заметки.
+List<String> derivedPaths(String itemId) => [
+  plainFramesDir(itemId),
+  plainPageCopyFile(itemId),
+  plainArticlesDir(itemId),
+];
 
 String tagIconFile(String fileName) => '$serviceFolder/tag-icons/$fileName';
 

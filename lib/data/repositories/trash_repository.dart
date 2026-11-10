@@ -100,7 +100,7 @@ ORDER BY items.deleted_at DESC''',
     for (final folder in [
       Directory(p.join(_filesRoot.path, 'attachments', id)),
       Directory(p.join(_filesRoot.path, incomingDir(id))),
-      Directory(p.joinAll([_filesRoot.path, ...framesDir(id).split('/')])),
+      Directory(vaultAbsolute(_filesRoot.path, framesDir(id))),
     ]) {
       if (await folder.exists()) await folder.delete(recursive: true).catchError((_) => folder);
     }

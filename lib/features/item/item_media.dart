@@ -13,6 +13,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../domain/item_kind.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/vault/vault_layout.dart' show vaultAbsolute;
 import 'adult_veil.dart';
 
 /// «PDF · 1.2 MB»: расширение и размер, как в карточках папки.
@@ -248,7 +249,7 @@ class VideoFrames extends StatelessWidget {
                     child: AspectRatio(
                       aspectRatio: 3 / 4,
                       child: Image.file(
-                        File(p.joinAll([filesRoot.path, ...frame.value.split('/')])),
+                        File(vaultAbsolute(filesRoot.path, frame.value)),
                         fit: BoxFit.cover,
                         cacheWidth: 240,
                         errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),

@@ -618,7 +618,7 @@ class VaultReader {
     }
   });
 
-  String _absolute(String relative) => p.joinAll([_root!.path, ...relative.split('/')]);
+  String _absolute(String relative) => vaultAbsolute(_root!.path, relative);
 }
 
 /// Прочитанная заметка, которая ждёт записи в базу.

@@ -4,7 +4,7 @@ import 'package:path/path.dart' as p;
 import '../../data/db/database.dart';
 import '../../domain/models.dart';
 import '../media_probe.dart';
-import '../vault/vault_layout.dart' show coverFile, framesDir;
+import '../vault/vault_layout.dart' show coverFile, framesDir, vaultAbsolute;
 import 'extractor.dart';
 
 /// Свой ролик: длина, обложка — кадр на десятой части длины — и шесть кадров по шкале.
@@ -45,7 +45,7 @@ class VideoExtractor extends Extractor {
     final written = await _probe.frames(
       path,
       [info.length * 0.1, ...moments],
-      [for (final one in [cover, ...relative]) p.joinAll([input.filesRoot.path, ...one.split('/')])],
+      [for (final one in [cover, ...relative]) vaultAbsolute(input.filesRoot.path, one)],
     );
     _found[id] = (length: info.length, cover: written.firstOrNull == true ? cover : null, video: video.id, width: info.width, height: info.height);
     return [
