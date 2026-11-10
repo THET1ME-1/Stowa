@@ -34,6 +34,12 @@ String reminderText(String title, String body) {
   return '';
 }
 
+/// Адрес уведомления скрытой заметки: касание сперва просит код.
+String hiddenReminderPayload(String itemId) => 'hidden:$itemId';
+
+/// Id заметки из адреса уведомления, скрытой или обычной.
+String reminderItemId(String payload) => payload.startsWith('hidden:') ? payload.substring(7) : payload;
+
 /// Номер уведомления вещи: один и тот же при каждом пересчёте.
 int notificationId(String itemId) => itemId.codeUnits.fold(17, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
 

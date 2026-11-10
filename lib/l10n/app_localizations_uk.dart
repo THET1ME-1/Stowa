@@ -2613,4 +2613,162 @@ class LUk extends L {
 
   @override
   String get remindWeekBefore => 'за тиждень';
+
+  @override
+  String codeWait(Object seconds) {
+    return 'Зачекайте $seconds с';
+  }
+
+  @override
+  String get codeFingerprint => 'Відбиток';
+
+  @override
+  String get codeErase => 'Стерти';
+
+  @override
+  String get codeDone => 'Готово';
+
+  @override
+  String get codeWrong => 'Неправильний код';
+
+  @override
+  String get codeCreateTitle => 'Придумайте код';
+
+  @override
+  String get codeRepeatTitle => 'Повторіть код';
+
+  @override
+  String get codeCreateHint =>
+      'Від 6 до 12 цифр. Код відкриває Stowa і приховані папки. Забудете його — приховані нотатки не повернути.';
+
+  @override
+  String get codeMismatch => 'Коди не збіглися, придумайте заново';
+
+  @override
+  String get hiddenOpenReason => 'Відкрити приховані папки';
+
+  @override
+  String get hiddenOpenTitle => 'Код прихованих папок';
+
+  @override
+  String get codeForgot => 'Забув код';
+
+  @override
+  String get codeOldTitle => 'Поточний код';
+
+  @override
+  String get codeNewTitle => 'Новий код';
+
+  @override
+  String get codeChanged => 'Код змінено';
+
+  @override
+  String get codeForgetTitle => 'Зняти код?';
+
+  @override
+  String get codeForgetText =>
+      'Замок вимкнеться, приховані папки зітруться разом із нотатками. Повернути їх не вийде.';
+
+  @override
+  String get codeForgetAction => 'Зняти код і стерти приховане';
+
+  @override
+  String folderHidden(Object name) {
+    return 'Папку «$name» приховано';
+  }
+
+  @override
+  String folderUnhidden(Object name) {
+    return 'Папка «$name» знову видима';
+  }
+
+  @override
+  String get lockReason => 'Відкрити Stowa';
+
+  @override
+  String get lockTitle => 'Введіть код';
+
+  @override
+  String get codeEnterTitle => 'Введіть код';
+
+  @override
+  String get closeAfterNow => 'Одразу';
+
+  @override
+  String get closeAfterMinute => 'Через хвилину';
+
+  @override
+  String closeAfterMinutes(Object minutes) {
+    return 'Через $minutes хвилин';
+  }
+
+  @override
+  String get privacySection => 'Приватність';
+
+  @override
+  String get codeCreateRow => 'Завести код';
+
+  @override
+  String get appLockRow => 'Код на вхід';
+
+  @override
+  String get fingerprintRow => 'Відбиток пальця';
+
+  @override
+  String get closeAfterRow => 'Замикати знову';
+
+  @override
+  String get hiddenCloseRow => 'Закрити приховані папки';
+
+  @override
+  String get hiddenOpenRow => 'Відкрити приховані папки';
+
+  @override
+  String get codeChangeRow => 'Змінити код';
+
+  @override
+  String get privacyHint =>
+      'Приховані папки зберігаються зашифрованими: без коду їх не прочитати ні тут, ні у файлах сховища. «Замикати знову» — через скільки після виходу із застосунку знову потрібен код і закриваються приховані папки.';
+
+  @override
+  String get markdownExport => 'Вивантажити в Markdown';
+
+  @override
+  String get markdownNoVault => 'Спершу виберіть папку сховища';
+
+  @override
+  String get markdownHiddenAsk => 'Вивантажити й приховані папки?';
+
+  @override
+  String get markdownHiddenHint =>
+      'Приховані нотатки ляжуть звичайними файлами, їх прочитає будь-хто, у кого опиниться ця папка.';
+
+  @override
+  String get markdownWithoutHidden => 'Без прихованих';
+
+  @override
+  String get markdownWithHidden => 'Разом із прихованими';
+
+  @override
+  String markdownDone(Object path) {
+    return 'Вивантажив у $path';
+  }
+
+  @override
+  String get markdownFailed => 'Не вдалося записати в цю папку';
+
+  @override
+  String get folderUnhide => 'Не приховувати';
+
+  @override
+  String get folderHide => 'Приховати папку';
+
+  @override
+  String get folderHiddenMark => 'прихована';
+
+  @override
+  String get hiddenFolders => 'Приховані папки';
+
+  @override
+  String get hiddenReminder => 'Нагадування з прихованої папки';
 }

@@ -2556,4 +2556,162 @@ class LEn extends L {
 
   @override
   String get remindWeekBefore => 'a week before';
+
+  @override
+  String codeWait(Object seconds) {
+    return 'Wait $seconds s';
+  }
+
+  @override
+  String get codeFingerprint => 'Fingerprint';
+
+  @override
+  String get codeErase => 'Erase';
+
+  @override
+  String get codeDone => 'Done';
+
+  @override
+  String get codeWrong => 'Wrong code';
+
+  @override
+  String get codeCreateTitle => 'Create a code';
+
+  @override
+  String get codeRepeatTitle => 'Repeat the code';
+
+  @override
+  String get codeCreateHint =>
+      '6 to 12 digits. The code opens Stowa and hidden folders. If you forget it, hidden notes are gone for good.';
+
+  @override
+  String get codeMismatch => 'Codes don\'t match. Create it again';
+
+  @override
+  String get hiddenOpenReason => 'Open hidden folders';
+
+  @override
+  String get hiddenOpenTitle => 'Code for hidden folders';
+
+  @override
+  String get codeForgot => 'Forgot the code';
+
+  @override
+  String get codeOldTitle => 'Current code';
+
+  @override
+  String get codeNewTitle => 'New code';
+
+  @override
+  String get codeChanged => 'Code changed';
+
+  @override
+  String get codeForgetTitle => 'Remove the code?';
+
+  @override
+  String get codeForgetText =>
+      'The lock turns off and hidden folders are erased together with their notes. They can\'t be brought back.';
+
+  @override
+  String get codeForgetAction => 'Remove code and erase hidden';
+
+  @override
+  String folderHidden(Object name) {
+    return 'Folder “$name” is hidden';
+  }
+
+  @override
+  String folderUnhidden(Object name) {
+    return 'Folder “$name” is visible again';
+  }
+
+  @override
+  String get lockReason => 'Unlock Stowa';
+
+  @override
+  String get lockTitle => 'Enter the code';
+
+  @override
+  String get codeEnterTitle => 'Enter the code';
+
+  @override
+  String get closeAfterNow => 'Right away';
+
+  @override
+  String get closeAfterMinute => 'After 1 minute';
+
+  @override
+  String closeAfterMinutes(Object minutes) {
+    return 'After $minutes minutes';
+  }
+
+  @override
+  String get privacySection => 'Privacy';
+
+  @override
+  String get codeCreateRow => 'Create a code';
+
+  @override
+  String get appLockRow => 'Code on launch';
+
+  @override
+  String get fingerprintRow => 'Fingerprint';
+
+  @override
+  String get closeAfterRow => 'Lock again';
+
+  @override
+  String get hiddenCloseRow => 'Close hidden folders';
+
+  @override
+  String get hiddenOpenRow => 'Open hidden folders';
+
+  @override
+  String get codeChangeRow => 'Change code';
+
+  @override
+  String get privacyHint =>
+      'Hidden folders are stored encrypted: without the code nobody can read them, here or in the vault files. “Lock again” sets how long after you leave the app the code is needed again and hidden folders close.';
+
+  @override
+  String get markdownExport => 'Export to Markdown';
+
+  @override
+  String get markdownNoVault => 'Choose a vault folder first';
+
+  @override
+  String get markdownHiddenAsk => 'Export hidden folders too?';
+
+  @override
+  String get markdownHiddenHint =>
+      'Hidden notes will become plain files. Anyone with this folder can read them.';
+
+  @override
+  String get markdownWithoutHidden => 'Without hidden';
+
+  @override
+  String get markdownWithHidden => 'With hidden';
+
+  @override
+  String markdownDone(Object path) {
+    return 'Exported to $path';
+  }
+
+  @override
+  String get markdownFailed => 'Couldn\'t write to this folder';
+
+  @override
+  String get folderUnhide => 'Unhide';
+
+  @override
+  String get folderHide => 'Hide folder';
+
+  @override
+  String get folderHiddenMark => 'hidden';
+
+  @override
+  String get hiddenFolders => 'Hidden folders';
+
+  @override
+  String get hiddenReminder => 'Reminder from a hidden folder';
 }

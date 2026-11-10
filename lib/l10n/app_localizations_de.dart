@@ -2561,4 +2561,163 @@ class LDe extends L {
 
   @override
   String get remindWeekBefore => 'eine Woche vorher';
+
+  @override
+  String codeWait(Object seconds) {
+    return 'Bitte $seconds s warten';
+  }
+
+  @override
+  String get codeFingerprint => 'Fingerabdruck';
+
+  @override
+  String get codeErase => 'Löschen';
+
+  @override
+  String get codeDone => 'Fertig';
+
+  @override
+  String get codeWrong => 'Falscher Code';
+
+  @override
+  String get codeCreateTitle => 'Code festlegen';
+
+  @override
+  String get codeRepeatTitle => 'Code wiederholen';
+
+  @override
+  String get codeCreateHint =>
+      '6 bis 12 Ziffern. Der Code öffnet Stowa und versteckte Ordner. Wenn du ihn vergisst, sind versteckte Notizen für immer verloren.';
+
+  @override
+  String get codeMismatch =>
+      'Die Codes stimmen nicht überein, bitte neu festlegen';
+
+  @override
+  String get hiddenOpenReason => 'Versteckte Ordner öffnen';
+
+  @override
+  String get hiddenOpenTitle => 'Code für versteckte Ordner';
+
+  @override
+  String get codeForgot => 'Code vergessen';
+
+  @override
+  String get codeOldTitle => 'Aktueller Code';
+
+  @override
+  String get codeNewTitle => 'Neuer Code';
+
+  @override
+  String get codeChanged => 'Code geändert';
+
+  @override
+  String get codeForgetTitle => 'Code entfernen?';
+
+  @override
+  String get codeForgetText =>
+      'Die Sperre geht aus, versteckte Ordner werden samt Notizen gelöscht. Zurückholen lassen sie sich nicht.';
+
+  @override
+  String get codeForgetAction => 'Code entfernen und Verstecktes löschen';
+
+  @override
+  String folderHidden(Object name) {
+    return 'Ordner „$name“ ist versteckt';
+  }
+
+  @override
+  String folderUnhidden(Object name) {
+    return 'Ordner „$name“ ist wieder sichtbar';
+  }
+
+  @override
+  String get lockReason => 'Stowa entsperren';
+
+  @override
+  String get lockTitle => 'Code eingeben';
+
+  @override
+  String get codeEnterTitle => 'Code eingeben';
+
+  @override
+  String get closeAfterNow => 'Sofort';
+
+  @override
+  String get closeAfterMinute => 'Nach 1 Minute';
+
+  @override
+  String closeAfterMinutes(Object minutes) {
+    return 'Nach $minutes Minuten';
+  }
+
+  @override
+  String get privacySection => 'Privatsphäre';
+
+  @override
+  String get codeCreateRow => 'Code festlegen';
+
+  @override
+  String get appLockRow => 'Code beim Öffnen';
+
+  @override
+  String get fingerprintRow => 'Fingerabdruck';
+
+  @override
+  String get closeAfterRow => 'Wieder sperren';
+
+  @override
+  String get hiddenCloseRow => 'Versteckte Ordner schließen';
+
+  @override
+  String get hiddenOpenRow => 'Versteckte Ordner öffnen';
+
+  @override
+  String get codeChangeRow => 'Code ändern';
+
+  @override
+  String get privacyHint =>
+      'Versteckte Ordner liegen verschlüsselt: Ohne Code liest sie niemand, weder hier noch in den Dateien des Tresors. „Wieder sperren“ legt fest, wie lange nach dem Verlassen der App wieder der Code nötig ist und versteckte Ordner sich schließen.';
+
+  @override
+  String get markdownExport => 'Als Markdown exportieren';
+
+  @override
+  String get markdownNoVault => 'Wähle zuerst einen Tresor-Ordner';
+
+  @override
+  String get markdownHiddenAsk => 'Versteckte Ordner mit exportieren?';
+
+  @override
+  String get markdownHiddenHint =>
+      'Versteckte Notizen werden zu normalen Dateien. Wer diesen Ordner hat, kann sie lesen.';
+
+  @override
+  String get markdownWithoutHidden => 'Ohne versteckte';
+
+  @override
+  String get markdownWithHidden => 'Mit versteckten';
+
+  @override
+  String markdownDone(Object path) {
+    return 'Exportiert nach $path';
+  }
+
+  @override
+  String get markdownFailed => 'In diesen Ordner ließ sich nicht schreiben';
+
+  @override
+  String get folderUnhide => 'Nicht mehr verstecken';
+
+  @override
+  String get folderHide => 'Ordner verstecken';
+
+  @override
+  String get folderHiddenMark => 'versteckt';
+
+  @override
+  String get hiddenFolders => 'Versteckte Ordner';
+
+  @override
+  String get hiddenReminder => 'Erinnerung aus einem versteckten Ordner';
 }

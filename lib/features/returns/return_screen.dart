@@ -8,9 +8,11 @@ import '../../data/providers.dart';
 import '../../data/repositories/return_repository.dart';
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/reminder_service.dart' show reminderItemId;
 import '../../services/return_service.dart' show returnText;
 import '../folder/folder_cards.dart';
 import '../item/item_screen.dart';
+import '../privacy/hidden_item_route.dart';
 
 Route<void> returnRoute(ReturnKind kind) => PageRouteBuilder(
   transitionDuration: const Duration(milliseconds: 500),
@@ -32,6 +34,8 @@ Route<void> returnRoute(ReturnKind kind) => PageRouteBuilder(
 
 /// Экран по касанию уведомления или ничего, если адрес незнакомый.
 Route<void>? notificationRoute(String payload) {
+  // скрытая заметка: сперва код или отпечаток, потом сама заметка
+  if (payload.startsWith('hidden:')) return hiddenItemRoute(reminderItemId(payload));
   final target = notificationTarget(payload);
   if (target.kind case final kind?) return returnRoute(kind);
   if (target.itemId case final id?) return itemRoute(id);

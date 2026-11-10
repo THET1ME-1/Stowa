@@ -339,6 +339,9 @@ class _Feed extends ConsumerWidget {
                   // сцепленные кнопки, как «править» и «ещё» на странице заметки
                   _HeaderGroup(
                     buttons: [
+                      // скрытое открыто: замок закрывает его сразу
+                      if (ref.watch(hiddenOpenProvider).value ?? false)
+                        (icon: 'lock_open', tooltip: l.hiddenCloseRow, onTap: () => ref.read(privacyServiceProvider).close()),
                       // все папки и заметки деревом, отдельным экраном
                       (icon: 'account_tree', tooltip: l.catalogTitle, onTap: () => Navigator.of(context).push(catalogRoute())),
                       // где что сохранено

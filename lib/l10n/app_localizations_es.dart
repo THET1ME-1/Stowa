@@ -2558,4 +2558,162 @@ class LEs extends L {
 
   @override
   String get remindWeekBefore => 'una semana antes';
+
+  @override
+  String codeWait(Object seconds) {
+    return 'Espera $seconds s';
+  }
+
+  @override
+  String get codeFingerprint => 'Huella';
+
+  @override
+  String get codeErase => 'Borrar';
+
+  @override
+  String get codeDone => 'Listo';
+
+  @override
+  String get codeWrong => 'Código incorrecto';
+
+  @override
+  String get codeCreateTitle => 'Crea un código';
+
+  @override
+  String get codeRepeatTitle => 'Repite el código';
+
+  @override
+  String get codeCreateHint =>
+      'De 6 a 12 cifras. El código abre Stowa y las carpetas ocultas. Si lo olvidas, las notas ocultas se pierden para siempre.';
+
+  @override
+  String get codeMismatch => 'Los códigos no coinciden, créalo de nuevo';
+
+  @override
+  String get hiddenOpenReason => 'Abrir carpetas ocultas';
+
+  @override
+  String get hiddenOpenTitle => 'Código de las carpetas ocultas';
+
+  @override
+  String get codeForgot => 'Olvidé el código';
+
+  @override
+  String get codeOldTitle => 'Código actual';
+
+  @override
+  String get codeNewTitle => 'Código nuevo';
+
+  @override
+  String get codeChanged => 'Código cambiado';
+
+  @override
+  String get codeForgetTitle => '¿Quitar el código?';
+
+  @override
+  String get codeForgetText =>
+      'El bloqueo se apaga y las carpetas ocultas se borran con sus notas. No se podrán recuperar.';
+
+  @override
+  String get codeForgetAction => 'Quitar el código y borrar lo oculto';
+
+  @override
+  String folderHidden(Object name) {
+    return 'La carpeta «$name» está oculta';
+  }
+
+  @override
+  String folderUnhidden(Object name) {
+    return 'La carpeta «$name» vuelve a verse';
+  }
+
+  @override
+  String get lockReason => 'Desbloquear Stowa';
+
+  @override
+  String get lockTitle => 'Introduce el código';
+
+  @override
+  String get codeEnterTitle => 'Introduce el código';
+
+  @override
+  String get closeAfterNow => 'Al instante';
+
+  @override
+  String get closeAfterMinute => 'Tras 1 minuto';
+
+  @override
+  String closeAfterMinutes(Object minutes) {
+    return 'Tras $minutes minutos';
+  }
+
+  @override
+  String get privacySection => 'Privacidad';
+
+  @override
+  String get codeCreateRow => 'Crear código';
+
+  @override
+  String get appLockRow => 'Código al abrir';
+
+  @override
+  String get fingerprintRow => 'Huella dactilar';
+
+  @override
+  String get closeAfterRow => 'Volver a bloquear';
+
+  @override
+  String get hiddenCloseRow => 'Cerrar carpetas ocultas';
+
+  @override
+  String get hiddenOpenRow => 'Abrir carpetas ocultas';
+
+  @override
+  String get codeChangeRow => 'Cambiar código';
+
+  @override
+  String get privacyHint =>
+      'Las carpetas ocultas se guardan cifradas: sin el código nadie puede leerlas, ni aquí ni en los archivos de la bóveda. «Volver a bloquear» indica cuánto después de salir de la app se vuelve a pedir el código y se cierran las carpetas ocultas.';
+
+  @override
+  String get markdownExport => 'Exportar a Markdown';
+
+  @override
+  String get markdownNoVault => 'Primero elige la carpeta de la bóveda';
+
+  @override
+  String get markdownHiddenAsk => '¿Exportar también las carpetas ocultas?';
+
+  @override
+  String get markdownHiddenHint =>
+      'Las notas ocultas quedarán como archivos normales y cualquiera que tenga esta carpeta podrá leerlas.';
+
+  @override
+  String get markdownWithoutHidden => 'Sin las ocultas';
+
+  @override
+  String get markdownWithHidden => 'Con las ocultas';
+
+  @override
+  String markdownDone(Object path) {
+    return 'Exportado a $path';
+  }
+
+  @override
+  String get markdownFailed => 'No se pudo escribir en esta carpeta';
+
+  @override
+  String get folderUnhide => 'Dejar de ocultar';
+
+  @override
+  String get folderHide => 'Ocultar carpeta';
+
+  @override
+  String get folderHiddenMark => 'oculta';
+
+  @override
+  String get hiddenFolders => 'Carpetas ocultas';
+
+  @override
+  String get hiddenReminder => 'Recordatorio de una carpeta oculta';
 }

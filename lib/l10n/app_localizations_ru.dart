@@ -2618,4 +2618,162 @@ class LRu extends L {
 
   @override
   String get remindWeekBefore => 'за неделю';
+
+  @override
+  String codeWait(Object seconds) {
+    return 'Подождите $seconds с';
+  }
+
+  @override
+  String get codeFingerprint => 'Отпечаток';
+
+  @override
+  String get codeErase => 'Стереть';
+
+  @override
+  String get codeDone => 'Готово';
+
+  @override
+  String get codeWrong => 'Неверный код';
+
+  @override
+  String get codeCreateTitle => 'Придумайте код';
+
+  @override
+  String get codeRepeatTitle => 'Повторите код';
+
+  @override
+  String get codeCreateHint =>
+      'От 6 до 12 цифр. Код открывает Stowa и скрытые папки. Забудете его — скрытые заметки не вернуть.';
+
+  @override
+  String get codeMismatch => 'Коды не совпали, придумайте заново';
+
+  @override
+  String get hiddenOpenReason => 'Открыть скрытые папки';
+
+  @override
+  String get hiddenOpenTitle => 'Код скрытых папок';
+
+  @override
+  String get codeForgot => 'Забыл код';
+
+  @override
+  String get codeOldTitle => 'Нынешний код';
+
+  @override
+  String get codeNewTitle => 'Новый код';
+
+  @override
+  String get codeChanged => 'Код сменён';
+
+  @override
+  String get codeForgetTitle => 'Снять код?';
+
+  @override
+  String get codeForgetText =>
+      'Замок выключится, скрытые папки сотрутся вместе с заметками. Вернуть их не получится.';
+
+  @override
+  String get codeForgetAction => 'Снять код и стереть скрытое';
+
+  @override
+  String folderHidden(Object name) {
+    return 'Папка «$name» скрыта';
+  }
+
+  @override
+  String folderUnhidden(Object name) {
+    return 'Папка «$name» снова видна';
+  }
+
+  @override
+  String get lockReason => 'Открыть Stowa';
+
+  @override
+  String get lockTitle => 'Введите код';
+
+  @override
+  String get codeEnterTitle => 'Введите код';
+
+  @override
+  String get closeAfterNow => 'Сразу';
+
+  @override
+  String get closeAfterMinute => 'Через минуту';
+
+  @override
+  String closeAfterMinutes(Object minutes) {
+    return 'Через $minutes минут';
+  }
+
+  @override
+  String get privacySection => 'Приватность';
+
+  @override
+  String get codeCreateRow => 'Завести код';
+
+  @override
+  String get appLockRow => 'Код на вход';
+
+  @override
+  String get fingerprintRow => 'Отпечаток пальца';
+
+  @override
+  String get closeAfterRow => 'Запирать снова';
+
+  @override
+  String get hiddenCloseRow => 'Закрыть скрытые папки';
+
+  @override
+  String get hiddenOpenRow => 'Открыть скрытые папки';
+
+  @override
+  String get codeChangeRow => 'Сменить код';
+
+  @override
+  String get privacyHint =>
+      'Скрытые папки хранятся зашифрованными: без кода их не прочитать ни здесь, ни в файлах хранилища. «Запирать снова» — через сколько после ухода из приложения опять нужен код и закрываются скрытые папки.';
+
+  @override
+  String get markdownExport => 'Выгрузить в Markdown';
+
+  @override
+  String get markdownNoVault => 'Сначала выберите папку хранилища';
+
+  @override
+  String get markdownHiddenAsk => 'Выгрузить и скрытые папки?';
+
+  @override
+  String get markdownHiddenHint =>
+      'Скрытые заметки лягут обычными файлами, их прочитает любой, у кого окажется эта папка.';
+
+  @override
+  String get markdownWithoutHidden => 'Без скрытых';
+
+  @override
+  String get markdownWithHidden => 'Вместе со скрытыми';
+
+  @override
+  String markdownDone(Object path) {
+    return 'Выгрузил в $path';
+  }
+
+  @override
+  String get markdownFailed => 'Не получилось записать в эту папку';
+
+  @override
+  String get folderUnhide => 'Не скрывать';
+
+  @override
+  String get folderHide => 'Скрыть папку';
+
+  @override
+  String get folderHiddenMark => 'скрыта';
+
+  @override
+  String get hiddenFolders => 'Скрытые папки';
+
+  @override
+  String get hiddenReminder => 'Напоминание из скрытой папки';
 }

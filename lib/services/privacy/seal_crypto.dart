@@ -77,13 +77,15 @@ final _x25519 = X25519();
 final _aes = AesGcm.with256bits();
 
 /// Ключ из кода считается в отдельном потоке: Argon2id на 64 МБ иначе подвесил бы экран.
+/// Малая цена (тесты) — на месте: поддельное время виджет-теста поток не дождётся.
 Future<SecretKey> _codeKey(String code, List<int> salt, KdfSettings kdf) async {
-  final bytes = await Isolate.run(() async {
+  Future<List<int>> derive() async {
     final argon = Argon2id(parallelism: 1, memory: kdf.memoryKib, iterations: kdf.passes, hashLength: 32);
     final key = await argon.deriveKeyFromPassword(password: code, nonce: salt);
     return key.extractBytes();
-  });
-  return SecretKey(bytes);
+  }
+
+  return SecretKey(kdf.memoryKib < 4096 ? await derive() : await Isolate.run(derive));
 }
 
 /// Новые ключи под кодом.

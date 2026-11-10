@@ -4174,6 +4174,294 @@ abstract class L {
   /// In en, this message translates to:
   /// **'a week before'**
   String get remindWeekBefore;
+
+  /// Too many wrong codes: input closed for seconds
+  ///
+  /// In en, this message translates to:
+  /// **'Wait {seconds} s'**
+  String codeWait(Object seconds);
+
+  /// Fingerprint key on the code pad
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint'**
+  String get codeFingerprint;
+
+  /// Backspace key on the code pad
+  ///
+  /// In en, this message translates to:
+  /// **'Erase'**
+  String get codeErase;
+
+  /// Confirm the code
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get codeDone;
+
+  /// Code check failed
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong code'**
+  String get codeWrong;
+
+  /// First step of creating the Stowa code
+  ///
+  /// In en, this message translates to:
+  /// **'Create a code'**
+  String get codeCreateTitle;
+
+  /// Second step: repeat the new code
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat the code'**
+  String get codeRepeatTitle;
+
+  /// Under the create code title
+  ///
+  /// In en, this message translates to:
+  /// **'6 to 12 digits. The code opens Stowa and hidden folders. If you forget it, hidden notes are gone for good.'**
+  String get codeCreateHint;
+
+  /// Repeated code differs
+  ///
+  /// In en, this message translates to:
+  /// **'Codes don\'t match. Create it again'**
+  String get codeMismatch;
+
+  /// Fingerprint prompt text for hidden folders
+  ///
+  /// In en, this message translates to:
+  /// **'Open hidden folders'**
+  String get hiddenOpenReason;
+
+  /// Code page title when opening hidden folders
+  ///
+  /// In en, this message translates to:
+  /// **'Code for hidden folders'**
+  String get hiddenOpenTitle;
+
+  /// Button under the code pad
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot the code'**
+  String get codeForgot;
+
+  /// Change code, step one
+  ///
+  /// In en, this message translates to:
+  /// **'Current code'**
+  String get codeOldTitle;
+
+  /// Change code, step two
+  ///
+  /// In en, this message translates to:
+  /// **'New code'**
+  String get codeNewTitle;
+
+  /// After changing the code
+  ///
+  /// In en, this message translates to:
+  /// **'Code changed'**
+  String get codeChanged;
+
+  /// Forgot code confirmation title
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the code?'**
+  String get codeForgetTitle;
+
+  /// Forgot code confirmation text
+  ///
+  /// In en, this message translates to:
+  /// **'The lock turns off and hidden folders are erased together with their notes. They can\'t be brought back.'**
+  String get codeForgetText;
+
+  /// Forgot code confirmation button
+  ///
+  /// In en, this message translates to:
+  /// **'Remove code and erase hidden'**
+  String get codeForgetAction;
+
+  /// After hiding a folder
+  ///
+  /// In en, this message translates to:
+  /// **'Folder “{name}” is hidden'**
+  String folderHidden(Object name);
+
+  /// After unhiding a folder
+  ///
+  /// In en, this message translates to:
+  /// **'Folder “{name}” is visible again'**
+  String folderUnhidden(Object name);
+
+  /// Fingerprint prompt text for the app lock
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Stowa'**
+  String get lockReason;
+
+  /// App lock screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code'**
+  String get lockTitle;
+
+  /// Code page title to turn on fingerprint
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code'**
+  String get codeEnterTitle;
+
+  /// Lock again right after leaving the app
+  ///
+  /// In en, this message translates to:
+  /// **'Right away'**
+  String get closeAfterNow;
+
+  /// Lock again after one minute
+  ///
+  /// In en, this message translates to:
+  /// **'After 1 minute'**
+  String get closeAfterMinute;
+
+  /// Lock again after 5 or 15 minutes
+  ///
+  /// In en, this message translates to:
+  /// **'After {minutes} minutes'**
+  String closeAfterMinutes(Object minutes);
+
+  /// Settings section
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacySection;
+
+  /// Settings row when there is no code
+  ///
+  /// In en, this message translates to:
+  /// **'Create a code'**
+  String get codeCreateRow;
+
+  /// Settings switch: app lock
+  ///
+  /// In en, this message translates to:
+  /// **'Code on launch'**
+  String get appLockRow;
+
+  /// Settings switch: fingerprint instead of the code
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint'**
+  String get fingerprintRow;
+
+  /// Settings row: when to lock again after leaving
+  ///
+  /// In en, this message translates to:
+  /// **'Lock again'**
+  String get closeAfterRow;
+
+  /// Close hidden folders now
+  ///
+  /// In en, this message translates to:
+  /// **'Close hidden folders'**
+  String get hiddenCloseRow;
+
+  /// Open hidden folders
+  ///
+  /// In en, this message translates to:
+  /// **'Open hidden folders'**
+  String get hiddenOpenRow;
+
+  /// Settings row
+  ///
+  /// In en, this message translates to:
+  /// **'Change code'**
+  String get codeChangeRow;
+
+  /// Under the privacy settings
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden folders are stored encrypted: without the code nobody can read them, here or in the vault files. “Lock again” sets how long after you leave the app the code is needed again and hidden folders close.'**
+  String get privacyHint;
+
+  /// Settings row
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Markdown'**
+  String get markdownExport;
+
+  /// Export without a vault
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a vault folder first'**
+  String get markdownNoVault;
+
+  /// Export sheet title when hidden folders are open
+  ///
+  /// In en, this message translates to:
+  /// **'Export hidden folders too?'**
+  String get markdownHiddenAsk;
+
+  /// Export sheet text
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden notes will become plain files. Anyone with this folder can read them.'**
+  String get markdownHiddenHint;
+
+  /// Export button
+  ///
+  /// In en, this message translates to:
+  /// **'Without hidden'**
+  String get markdownWithoutHidden;
+
+  /// Export button
+  ///
+  /// In en, this message translates to:
+  /// **'With hidden'**
+  String get markdownWithHidden;
+
+  /// After export
+  ///
+  /// In en, this message translates to:
+  /// **'Exported to {path}'**
+  String markdownDone(Object path);
+
+  /// Export failed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t write to this folder'**
+  String get markdownFailed;
+
+  /// Folder menu: hidden folder becomes visible
+  ///
+  /// In en, this message translates to:
+  /// **'Unhide'**
+  String get folderUnhide;
+
+  /// Folder menu
+  ///
+  /// In en, this message translates to:
+  /// **'Hide folder'**
+  String get folderHide;
+
+  /// Screen reader label of the lock mark
+  ///
+  /// In en, this message translates to:
+  /// **'hidden'**
+  String get folderHiddenMark;
+
+  /// Catalog row that opens hidden folders
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden folders'**
+  String get hiddenFolders;
+
+  /// Notification title for a hidden note
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder from a hidden folder'**
+  String get hiddenReminder;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

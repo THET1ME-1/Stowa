@@ -16,6 +16,7 @@ import '../domain/models.dart';
 import '../domain/related.dart';
 import '../domain/tag_name.dart';
 import 'ai_client.dart';
+import 'privacy/hidden_rows.dart' show plainWhere;
 
 /// Итог одного прохода очереди.
 class WorkerReport {
@@ -132,7 +133,8 @@ class AiWorker {
       var failed = 0;
       for (final job in jobs) {
         final found = await (_db.select(_db.items)..where((t) => t.id.equals(job.itemId))).getSingleOrNull();
-        if (found == null || found.deletedAt != null) {
+        // скрытая заметка поставщику ИИ не уходит, даже голосовое на расшифровку
+        if (found == null || found.deletedAt != null || await _hidden(found.folderId)) {
           await _dropJob(job.itemId);
           continue;
         }
@@ -277,6 +279,10 @@ class AiWorker {
     );
   }
 
+  Future<bool> _hidden(String? folderId) async =>
+      folderId != null &&
+      await _db.customSelect('SELECT 1 FROM folders WHERE id = ? AND hidden = 1', variables: [Variable.withString(folderId)]).getSingleOrNull() != null;
+
   Future<List<FolderForAi>> _foldersForAi() async {
     final rows = await _db
         .customSelect(
@@ -284,7 +290,8 @@ class AiWorker {
           '(SELECT group_concat(name, char(31)) FROM (SELECT tags.name AS name FROM item_tags JOIN tags ON tags.id = item_tags.tag_id '
           'JOIN items ON items.id = item_tags.item_id WHERE items.folder_id = folders.id AND items.deleted_at IS NULL '
           'GROUP BY tags.name ORDER BY count(*) DESC LIMIT 3)) AS top_tags '
-          'FROM folders WHERE folders.deleted_at IS NULL ORDER BY folders.sort_order',
+          // скрытые папки ИИ не видит даже открытыми: ни имён, ни тегов
+          'FROM folders WHERE folders.deleted_at IS NULL AND folders.hidden = 0 ORDER BY folders.sort_order',
         )
         .get();
     // вложенная папка — полным путём: «Дом / Ремонт / Кухня», а не голая «Кухня»
@@ -305,18 +312,23 @@ class AiWorker {
     final tagRows = await _db
         .customSelect(
           'SELECT tags.name, count(item_tags.item_id) AS uses FROM tags LEFT JOIN item_tags ON item_tags.tag_id = tags.id '
-          'GROUP BY tags.id ORDER BY uses DESC LIMIT 60',
+          'WHERE ${plainWhere('tags')} GROUP BY tags.id ORDER BY uses DESC LIMIT 60',
         )
         .get();
     final examples = await _db
         .customSelect(
           'SELECT items.title, items.body, folders.name AS folder FROM corrections '
           'JOIN items ON items.id = corrections.item_id JOIN folders ON folders.id = corrections.to_folder_id '
-          'ORDER BY corrections."at" DESC LIMIT 20',
+          'WHERE folders.hidden = 0 ORDER BY corrections."at" DESC LIMIT 20',
         )
         .get();
-    // кандидаты для связей — тем же поиском похожего, что и «Связано», только щедрее
-    final docRows = await _db.customSelect("SELECT id, title, title || ' ' || body AS text FROM items WHERE deleted_at IS NULL").get();
+    // кандидаты для связей — тем же поиском похожего, что и «Связано», только щедрее; без скрытых заметок
+    final docRows = await _db
+        .customSelect(
+          "SELECT id, title, title || ' ' || body AS text FROM items WHERE deleted_at IS NULL "
+          'AND (folder_id IS NULL OR folder_id NOT IN (SELECT id FROM folders WHERE hidden = 1))',
+        )
+        .get();
     final docs = [for (final row in docRows) RelatedDoc(id: row.read<String>('id'), text: row.read<String>('text'))];
     final titles = {for (final row in docRows) row.read<String>('id'): (row.read<String>('title'), row.read<String>('text'))};
     final candidates = findRelated(item.id, docs, limit: 25, minScore: 0.5);

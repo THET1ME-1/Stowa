@@ -16,7 +16,7 @@ import '../../domain/search_query.dart';
 import '../../domain/search_rank.dart';
 import '../../domain/url_key.dart';
 import '../../domain/word_forms.dart';
-import '../../services/reminder_service.dart' show Reminder, reminderText;
+import '../../services/reminder_service.dart' show Reminder, hiddenReminderPayload, reminderText;
 import '../db/database.dart';
 
 /// Вещь целиком: запись, теги с источником и вложения по порядку.
@@ -521,10 +521,24 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
   }
 
   /// Все живые напоминания: по ним ставятся будильники системы.
-  Stream<List<Reminder>> watchReminders() {
-    return (_db.select(_db.items)..where((t) => t.reminderAt.isNotNull() & t.deletedAt.isNull()))
+  /// Напоминания живых заметок. У скрытой — [hiddenTitle] без текста: уведомление видно
+  /// на экране блокировки, а скрытое должно оставаться скрытым.
+  Stream<List<Reminder>> watchReminders({String hiddenTitle = ''}) {
+    return _db
+        .customSelect(
+          'SELECT items.*, coalesce(folders.hidden, 0) AS in_hidden FROM items LEFT JOIN folders ON folders.id = items.folder_id '
+          'WHERE items.reminder_at IS NOT NULL AND items.deleted_at IS NULL',
+          readsFrom: {_db.items, _db.folders},
+        )
         .watch()
-        .map((rows) => [for (final row in rows) _reminder(row)]);
+        .map(
+          (rows) => [
+            for (final row in rows)
+              row.read<bool>('in_hidden')
+                  ? (id: hiddenReminderPayload(row.read<String>('id')), title: hiddenTitle, body: '', at: row.read<DateTime>('reminder_at'))
+                  : _reminder(_db.items.map(row.data)),
+          ],
+        );
   }
 
   Reminder _reminder(Item row) => (id: row.id, title: row.title, body: reminderText(row.title, row.body), at: row.reminderAt!);

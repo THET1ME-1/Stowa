@@ -27,6 +27,7 @@ import 'link_preview_service.dart' show httpFetch, httpFetchWith, httpPost, onWi
 import 'file_keeper.dart';
 import 'place_alarms.dart';
 import 'place_channel.dart';
+import 'privacy/privacy_service.dart';
 import 'reminder_actions.dart';
 import 'return_service.dart';
 import 'telegram_service.dart';
@@ -137,6 +138,14 @@ void backgroundDispatcher() {
     final place = await VaultLocation(settings: settings, appSupport: scratch).resolve(hasData: true);
     final filesRoot = place.files;
     try {
+      // скрытое: открыто в живом приложении — знать его заметки; осталось от убитого — запечатать
+      await PrivacyService(
+        db: db,
+        vault: place.vault,
+        appData: scratch,
+        flush: VaultWriter(db, root: place.vault, clock: DateTime.now).drain,
+        fingerprintKey: const SecureKeyStore('sealed_key'),
+      ).settle().catchError((_) {});
       // файлы — прежде всего: без сети и без ключа, просто положить на место
       final filesDone = await keepFilesInBackground(db, filesRoot, scratch);
       // и сразу в файлы хранилища: приложение могли закрыть, не дописав очередь

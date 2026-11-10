@@ -91,6 +91,22 @@ void main() {
     expect(((await item(byHand)).folderId, (await item(bySimilar)).folderId, (await item(byRule)).folderId), ('mine', 'food', 'food'));
   });
 
+  test('скрытая папка ИИ не видна: ни её имени в запросе, ни её заметок, ни их задач', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'secret', name: 'Тайник', icon: 'lock', shape: 'pill', hidden: const Value(true)));
+    final hidden = await add('План побега', folder: 'secret');
+    String? asked;
+    reply = (body) {
+      asked = jsonEncode(body);
+      return answer({'folder_id': 'food'});
+    };
+    await add('Борщ постный');
+    await worker().runOnce();
+    expect(asked, isNot(contains('Тайник')));
+    expect(asked, isNot(contains('побега')));
+    expect(calls, 1);
+    expect([for (final job in await db.select(db.aiJobs).get()) job.itemId], isNot(contains(hidden)));
+  });
+
   test('401 ставит очередь на паузу и больше не зовёт клиента', () async {
     reply = (_) => http.Response('{}', 401);
     await add('a');

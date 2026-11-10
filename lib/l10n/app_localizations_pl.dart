@@ -2613,4 +2613,162 @@ class LPl extends L {
 
   @override
   String get remindWeekBefore => 'tydzień przed';
+
+  @override
+  String codeWait(Object seconds) {
+    return 'Poczekaj $seconds s';
+  }
+
+  @override
+  String get codeFingerprint => 'Odcisk palca';
+
+  @override
+  String get codeErase => 'Usuń';
+
+  @override
+  String get codeDone => 'Gotowe';
+
+  @override
+  String get codeWrong => 'Zły kod';
+
+  @override
+  String get codeCreateTitle => 'Wymyśl kod';
+
+  @override
+  String get codeRepeatTitle => 'Powtórz kod';
+
+  @override
+  String get codeCreateHint =>
+      'Od 6 do 12 cyfr. Kod otwiera Stowa i ukryte foldery. Jeśli go zapomnisz, ukrytych notatek nie da się odzyskać.';
+
+  @override
+  String get codeMismatch => 'Kody się różnią, wymyśl jeszcze raz';
+
+  @override
+  String get hiddenOpenReason => 'Otwórz ukryte foldery';
+
+  @override
+  String get hiddenOpenTitle => 'Kod ukrytych folderów';
+
+  @override
+  String get codeForgot => 'Nie pamiętam kodu';
+
+  @override
+  String get codeOldTitle => 'Obecny kod';
+
+  @override
+  String get codeNewTitle => 'Nowy kod';
+
+  @override
+  String get codeChanged => 'Kod zmieniony';
+
+  @override
+  String get codeForgetTitle => 'Zdjąć kod?';
+
+  @override
+  String get codeForgetText =>
+      'Blokada się wyłączy, a ukryte foldery zostaną usunięte razem z notatkami. Nie da się ich przywrócić.';
+
+  @override
+  String get codeForgetAction => 'Zdejmij kod i usuń ukryte';
+
+  @override
+  String folderHidden(Object name) {
+    return 'Folder „$name” ukryty';
+  }
+
+  @override
+  String folderUnhidden(Object name) {
+    return 'Folder „$name” znów widoczny';
+  }
+
+  @override
+  String get lockReason => 'Odblokuj Stowa';
+
+  @override
+  String get lockTitle => 'Wpisz kod';
+
+  @override
+  String get codeEnterTitle => 'Wpisz kod';
+
+  @override
+  String get closeAfterNow => 'Od razu';
+
+  @override
+  String get closeAfterMinute => 'Po minucie';
+
+  @override
+  String closeAfterMinutes(Object minutes) {
+    return 'Po $minutes minutach';
+  }
+
+  @override
+  String get privacySection => 'Prywatność';
+
+  @override
+  String get codeCreateRow => 'Ustaw kod';
+
+  @override
+  String get appLockRow => 'Kod przy wejściu';
+
+  @override
+  String get fingerprintRow => 'Odcisk palca';
+
+  @override
+  String get closeAfterRow => 'Blokuj ponownie';
+
+  @override
+  String get hiddenCloseRow => 'Zamknij ukryte foldery';
+
+  @override
+  String get hiddenOpenRow => 'Otwórz ukryte foldery';
+
+  @override
+  String get codeChangeRow => 'Zmień kod';
+
+  @override
+  String get privacyHint =>
+      'Ukryte foldery są zaszyfrowane: bez kodu nikt ich nie przeczyta, ani tutaj, ani w plikach skarbca. „Blokuj ponownie” mówi, po jakim czasie od wyjścia z aplikacji znów trzeba podać kod i ukryte foldery się zamykają.';
+
+  @override
+  String get markdownExport => 'Eksportuj do Markdown';
+
+  @override
+  String get markdownNoVault => 'Najpierw wybierz folder skarbca';
+
+  @override
+  String get markdownHiddenAsk => 'Eksportować też ukryte foldery?';
+
+  @override
+  String get markdownHiddenHint =>
+      'Ukryte notatki staną się zwykłymi plikami, przeczyta je każdy, kto ma ten folder.';
+
+  @override
+  String get markdownWithoutHidden => 'Bez ukrytych';
+
+  @override
+  String get markdownWithHidden => 'Razem z ukrytymi';
+
+  @override
+  String markdownDone(Object path) {
+    return 'Wyeksportowano do $path';
+  }
+
+  @override
+  String get markdownFailed => 'Nie udało się zapisać w tym folderze';
+
+  @override
+  String get folderUnhide => 'Nie ukrywaj';
+
+  @override
+  String get folderHide => 'Ukryj folder';
+
+  @override
+  String get folderHiddenMark => 'ukryty';
+
+  @override
+  String get hiddenFolders => 'Ukryte foldery';
+
+  @override
+  String get hiddenReminder => 'Przypomnienie z ukrytego folderu';
 }

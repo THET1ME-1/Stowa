@@ -27,6 +27,7 @@ import '../graph/graph_screen.dart';
 import '../home/folder_shelf.dart';
 import '../item/item_screen.dart';
 import '../sort/sort_screen.dart';
+import '../privacy/privacy_flows.dart';
 import '../tags/tag_picker.dart';
 import 'canvas_view.dart';
 import 'folder_cards.dart';
@@ -231,9 +232,13 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
 
   Future<void> _menu(FolderCard folder) async {
     final repository = ref.read(foldersRepositoryProvider);
-    final action = await showFolderMenu(context, canNest: folder.depth < maxFolderDepth);
+    final action = await showFolderMenu(context, canNest: folder.depth < maxFolderDepth, hidden: folder.hidden);
     if (!mounted || action == null) return;
     switch (action) {
+      case FolderAction.hide:
+        await hideFolderFlow(context, ref, folder);
+      case FolderAction.unhide:
+        await unhideFolderFlow(context, ref, folder);
       case FolderAction.graph:
         await Navigator.of(context).push(graphRoute(folderId: folder.id, title: folder.name));
       case FolderAction.nest:

@@ -17,6 +17,7 @@ import '../../l10n/app_localizations.dart';
 import '../folder/folder_screen.dart';
 import '../item/item_actions.dart';
 import '../item/item_screen.dart';
+import '../privacy/privacy_flows.dart';
 
 Route<void> catalogRoute() => PageRouteBuilder(
   transitionDuration: Motion.long,
@@ -92,6 +93,16 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     if (loose.isNotEmpty) {
       rows.add(_FolderRow(inboxCount: loose.length, open: opened(_inbox), onTap: () => _toggle(_inbox), onOpen: () => Navigator.of(context).push(folderRoute(null))));
       if (opened(_inbox)) branch(loose, 0);
+    }
+    // скрытые папки: строка входа, когда код заведён
+    if (ref.watch(privacyLockProvider).value != null) {
+      final hiddenOpen = ref.watch(hiddenOpenProvider).value ?? false;
+      rows.add(
+        _HiddenRow(
+          open: hiddenOpen,
+          onTap: () => hiddenOpen ? ref.read(privacyServiceProvider).close() : openHiddenFlow(context, ref),
+        ),
+      );
     }
 
     return Scaffold(
@@ -206,9 +217,14 @@ class _FolderRow extends StatelessWidget {
             const SizedBox(width: 4),
             badge,
             const SizedBox(width: 12),
-            Expanded(
+            Flexible(
               child: Text(folder?.name ?? l.folderNone, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall),
             ),
+            if (folder?.hidden ?? false) ...[
+              const SizedBox(width: 6),
+              Icon(symbolIcon('lock'), size: 14, color: Tokens.muted, semanticLabel: l.folderHiddenMark),
+            ],
+            const Spacer(),
             Text('${folder?.count ?? inboxCount}', style: text.bodySmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()])),
             IconButton(
               tooltip: l.catalogOpenFolder,
@@ -216,6 +232,36 @@ class _FolderRow extends StatelessWidget {
               icon: Icon(symbolIcon('arrow_forward'), size: 18, color: Tokens.onSurfaceVariant),
             ),
             const SizedBox(width: 4),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// «Скрытые папки» внизу каталога: закрыты — открыть кодом или отпечатком, открыты — закрыть.
+class _HiddenRow extends StatelessWidget {
+  const _HiddenRow({required this.open, required this.onTap});
+
+  final bool open;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final text = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        height: _folderRow,
+        child: Row(
+          children: [
+            const SizedBox(width: Space.screen + 18),
+            ShapeBadge(shape: BadgeShape.squircle, size: 26, color: Tokens.containerHighest, child: Icon(symbolIcon(open ? 'lock_open' : 'lock'), size: 15, color: Tokens.onSurfaceVariant)),
+            const SizedBox(width: 12),
+            Expanded(child: Text(open ? l.hiddenCloseRow : l.hiddenFolders, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall)),
+            Icon(symbolIcon(open ? 'lock' : 'chevron_right'), size: 18, color: Tokens.onSurfaceVariant),
+            const SizedBox(width: Space.screen),
           ],
         ),
       ),

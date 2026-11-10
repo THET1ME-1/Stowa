@@ -155,11 +155,15 @@ Future<void> _insert(AppDatabase db, String table, Map<String, Object?> row) {
 }
 
 /// Правка без записи в хранилище: флаг глушит триггеры очереди, как у читателя хранилища.
-Future<void> _quietly(AppDatabase db, Future<void> Function() change) => db.transaction(() async {
-  await db.into(db.vaultFlags).insertOnConflictUpdate(VaultFlagsCompanion.insert(name: 'importing'));
-  try {
-    await change();
-  } finally {
-    await (db.delete(db.vaultFlags)..where((t) => t.name.equals('importing'))).go();
-  }
-});
+/// Строки меняются голыми запросами, о них ленты не знают: после — оповестить все таблицы.
+Future<void> _quietly(AppDatabase db, Future<void> Function() change) async {
+  await db.transaction(() async {
+    await db.into(db.vaultFlags).insertOnConflictUpdate(VaultFlagsCompanion.insert(name: 'importing'));
+    try {
+      await change();
+    } finally {
+      await (db.delete(db.vaultFlags)..where((t) => t.name.equals('importing'))).go();
+    }
+  });
+  db.notifyUpdates({for (final table in db.allTables) TableUpdate.onTable(table)});
+}

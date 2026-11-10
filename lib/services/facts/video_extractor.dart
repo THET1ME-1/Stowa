@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:path/path.dart' as p;
 
 import '../../data/db/database.dart';
 import '../../domain/models.dart';

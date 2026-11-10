@@ -13,6 +13,8 @@ import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/appearance.dart';
 import 'package:stowa/domain/article_text.dart';
 import 'package:stowa/domain/return_plan.dart';
+import 'package:stowa/features/privacy/privacy_flows.dart';
+import 'package:stowa/services/privacy/seal_crypto.dart';
 import 'package:stowa/services/link_checker.dart';
 import 'package:stowa/services/media_probe.dart';
 import 'package:stowa/services/place_channel.dart';
@@ -81,6 +83,10 @@ class TestWorld {
   /// Что ответят адреса проверке ссылок; кого нет — живой.
   final linkReplies = <String, LinkReply>{};
 
+  /// Ключ отпечатка и сам палец: по умолчанию датчика нет.
+  final fingerprintKey = MemoryKeyStore();
+  final biometrics = FakeBiometrics();
+
   List<Override> get overrides => [
         notificationPortProvider.overrideWithValue(notifications),
         placeGrantedProvider.overrideWith((ref) async => placeGranted),
@@ -93,6 +99,9 @@ class TestWorld {
         linkCheckProvider.overrideWithValue((uri) async => linkReplies['$uri'] ?? LinkReply.alive),
         startFilesRootProvider.overrideWithValue(files),
         appSupportProvider.overrideWithValue(files),
+        fingerprintKeyProvider.overrideWithValue(fingerprintKey),
+        biometricsProvider.overrideWithValue(biometrics),
+        kdfSettingsProvider.overrideWithValue(const KdfSettings(memoryKib: 256, passes: 1)),
         vaultAskedProvider.overrideWithValue(vaultAsked),
         vaultMissingProvider.overrideWithValue(vaultMissing),
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
@@ -251,4 +260,20 @@ class _TestChannel implements VaultChannel {
 
   @override
   Future<void> askAllFiles() async => world.allFiles = true;
+}
+
+/// Палец в тестах: есть ли датчик и что он ответит.
+class FakeBiometrics implements Biometrics {
+  bool present = false;
+  bool answer = true;
+  int asked = 0;
+
+  @override
+  Future<bool> available() async => present;
+
+  @override
+  Future<bool> confirm(String reason) async {
+    asked++;
+    return present && answer;
+  }
 }

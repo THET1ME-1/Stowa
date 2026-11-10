@@ -10,6 +10,7 @@ import 'core/theme/palette.dart';
 import 'core/theme/tokens.dart';
 import 'data/providers.dart';
 import 'domain/appearance.dart';
+import 'features/privacy/privacy_gate.dart';
 import 'features/vault/vault_gate.dart';
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
@@ -18,7 +19,10 @@ import 'l10n/app_localizations.dart';
 final appNavigator = GlobalKey<NavigatorState>();
 
 class StowaApp extends ConsumerStatefulWidget {
-  const StowaApp({super.key, this.locale, this.home = const VaultGate()});
+  const StowaApp({super.key, this.locale, this.home = const VaultGate(), this.lockable = true});
+
+  /// Замок на вход: у окна «Поделиться» его нет — сохранить можно и при замке.
+  final bool lockable;
 
   /// Язык для тестов и кадров. Пусто — выбранный в настройках, иначе язык устройства.
   final Locale? locale;
@@ -113,7 +117,7 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarContrastEnforced: false,
         ),
-        child: child!,
+        child: widget.lockable ? PrivacyGate(child: child!) : child!,
       ),
       home: widget.home,
     );

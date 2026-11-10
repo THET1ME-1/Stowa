@@ -16,9 +16,11 @@ import 'domain/appearance.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
 import 'services/background.dart';
+import 'services/privacy/privacy_service.dart';
 import 'services/reminder_actions.dart';
 import 'services/reminder_service.dart';
 import 'services/vault/vault_location.dart';
+import 'services/vault/vault_writer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +37,7 @@ Future<void> main() async {
 @pragma('vm:entry-point')
 Future<void> shareMain() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _run(const StowaApp(home: ShareHost()), reminderPort());
+  await _run(const StowaApp(home: ShareHost(), lockable: false), reminderPort());
 }
 
 Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
@@ -51,6 +53,16 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
   final appSupport = await getApplicationSupportDirectory();
   // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
   final place = await VaultLocation(settings: settings, appSupport: appSupport).resolve(hasData: await hasSavedItems(db));
+  // скрытое, оставшееся открытым от убитого приложения, запечатывается до первого кадра;
+  // там же читается замок, чтобы запереть приложение до того, как что-то покажется
+  final privacy = PrivacyService(
+    db: db,
+    vault: place.vault,
+    appData: appSupport,
+    flush: VaultWriter(db, root: place.vault, clock: DateTime.now).drain,
+    fingerprintKey: const SecureKeyStore('sealed_key'),
+  );
+  await privacy.settle().catchError((_) {});
   runApp(
     ProviderScope(
       overrides: [
@@ -59,6 +71,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
         vaultRootProvider.overrideWith(() => VaultRootNotifier(place.vault)),
         vaultMissingProvider.overrideWithValue(!place.reachable),
         appSupportProvider.overrideWithValue(appSupport),
+        startLockProvider.overrideWithValue(privacy.lock),
         cacheRootProvider.overrideWithValue(cache),
         notificationPortProvider.overrideWithValue(notifications),
         settingsRepositoryProvider.overrideWithValue(settings),

@@ -46,9 +46,18 @@ Future<void> reminderActionInBackground(NotificationResponse response) async {
   DartPluginRegistrant.ensureInitialized();
   final db = AppDatabase();
   try {
-    final again = await handleReminderAction(ItemsRepository(db), actionId: actionId, itemId: itemId, now: DateTime.now());
+    // скрытая заметка в базе, только пока скрытое открыто; закрытое кнопки не трогают
+    final hidden = itemId.startsWith('hidden:');
+    final again = await handleReminderAction(ItemsRepository(db), actionId: actionId, itemId: reminderItemId(itemId), now: DateTime.now());
     if (again != null) {
-      await reminderPort().schedule(id: notificationId(again.id), title: again.title, body: again.body, at: again.at, payload: again.id);
+      final l = lookupL(AppLanguage.resolve(PlatformDispatcher.instance.locales).locale);
+      await reminderPort().schedule(
+        id: notificationId(hidden ? itemId : again.id),
+        title: hidden ? l.hiddenReminder : again.title,
+        body: hidden ? '' : again.body,
+        at: again.at,
+        payload: hidden ? itemId : again.id,
+      );
     }
   } finally {
     await db.close();

@@ -170,45 +170,8 @@ class VaultWriter {
       await _quietly(() => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(fixed))));
     }
 
-    final tags = await _db
-        .customSelect(
-          'SELECT tags.name AS name FROM item_tags JOIN tags ON tags.id = item_tags.tag_id WHERE item_tags.item_id = ? ORDER BY tags.name',
-          variables: [Variable.withString(id)],
-        )
-        .get();
     final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
-    final highlights = await (_db.select(_db.highlights)
-          ..where((t) => t.itemId.equals(id))
-          ..orderBy([(t) => OrderingTerm.asc(t.position), (t) => OrderingTerm.asc(t.createdAt)]))
-        .get();
-    // картинки из текста стоят в тексте, в хвост вложений они не повторяются
-    final paths = [for (final attachment in attachments) attachment.path];
-    final inline = {for (final name in embedNames(body)) ?embedPath(name, paths)};
-    final note = VaultNote(
-      id: item.id,
-      kind: item.kind,
-      title: item.title,
-      body: body,
-      created: item.createdAt,
-      updated: item.updatedAt,
-      tags: [for (final row in tags) row.read<String>('name')],
-      url: item.url,
-      previewSite: item.previewSite,
-      previewAuthor: item.previewAuthor,
-      previewText: item.previewText,
-      cover: item.coverPath,
-      durationSeconds: item.durationSeconds,
-      reminder: item.reminderAt,
-      latitude: item.latitude,
-      longitude: item.longitude,
-      placeName: item.placeName,
-      remindPlace: item.remindPlace == null
-          ? null
-          : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName),
-      sortedBy: item.sortedBy,
-      attachments: [for (final path in paths) if (!inline.contains(path)) path],
-      highlights: [for (final one in highlights) VaultHighlight(quote: one.quote, note: one.note, at: one.createdAt, position: one.position)],
-    );
+    final note = await vaultNoteOf(_db, item.copyWith(body: body), attachments: [for (final attachment in attachments) attachment.path]);
     final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path)));
     final stat = await file.stat();
     await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
@@ -488,4 +451,43 @@ class VaultWriter {
 
 class _ExternalEdit implements Exception {
   const _ExternalEdit();
+}
+
+/// Заметка файлом: свойства, теги, цитаты, вложения хвостом. [attachments] — пути вложений
+/// по порядку, как их запишет файл; картинки из текста в хвосте не повторяются.
+Future<VaultNote> vaultNoteOf(AppDatabase db, Item item, {required List<String> attachments}) async {
+  final tags = await db
+      .customSelect(
+        'SELECT tags.name AS name FROM item_tags JOIN tags ON tags.id = item_tags.tag_id WHERE item_tags.item_id = ? ORDER BY tags.name',
+        variables: [Variable.withString(item.id)],
+      )
+      .get();
+  final highlights = await (db.select(db.highlights)
+        ..where((t) => t.itemId.equals(item.id))
+        ..orderBy([(t) => OrderingTerm.asc(t.position), (t) => OrderingTerm.asc(t.createdAt)]))
+      .get();
+  final inline = {for (final name in embedNames(item.body)) ?embedPath(name, attachments)};
+  return VaultNote(
+    id: item.id,
+    kind: item.kind,
+    title: item.title,
+    body: item.body,
+    created: item.createdAt,
+    updated: item.updatedAt,
+    tags: [for (final row in tags) row.read<String>('name')],
+    url: item.url,
+    previewSite: item.previewSite,
+    previewAuthor: item.previewAuthor,
+    previewText: item.previewText,
+    cover: item.coverPath,
+    durationSeconds: item.durationSeconds,
+    reminder: item.reminderAt,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    placeName: item.placeName,
+    remindPlace: item.remindPlace == null ? null : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName),
+    sortedBy: item.sortedBy,
+    attachments: [for (final path in attachments) if (!inline.contains(path)) path],
+    highlights: [for (final one in highlights) VaultHighlight(quote: one.quote, note: one.note, at: one.createdAt, position: one.position)],
+  );
 }

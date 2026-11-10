@@ -2583,4 +2583,162 @@ class LRo extends L {
 
   @override
   String get remindWeekBefore => 'cu o săptămână înainte';
+
+  @override
+  String codeWait(Object seconds) {
+    return 'Așteptați $seconds s';
+  }
+
+  @override
+  String get codeFingerprint => 'Amprentă';
+
+  @override
+  String get codeErase => 'Șterge';
+
+  @override
+  String get codeDone => 'Gata';
+
+  @override
+  String get codeWrong => 'Cod greșit';
+
+  @override
+  String get codeCreateTitle => 'Alegeți un cod';
+
+  @override
+  String get codeRepeatTitle => 'Repetați codul';
+
+  @override
+  String get codeCreateHint =>
+      'Între 6 și 12 cifre. Codul deschide Stowa și dosarele ascunse. Dacă îl uitați, notițele ascunse se pierd pentru totdeauna.';
+
+  @override
+  String get codeMismatch => 'Codurile nu se potrivesc, alegeți altul';
+
+  @override
+  String get hiddenOpenReason => 'Deschide dosarele ascunse';
+
+  @override
+  String get hiddenOpenTitle => 'Codul dosarelor ascunse';
+
+  @override
+  String get codeForgot => 'Am uitat codul';
+
+  @override
+  String get codeOldTitle => 'Codul actual';
+
+  @override
+  String get codeNewTitle => 'Codul nou';
+
+  @override
+  String get codeChanged => 'Codul a fost schimbat';
+
+  @override
+  String get codeForgetTitle => 'Scoateți codul?';
+
+  @override
+  String get codeForgetText =>
+      'Lacătul se oprește, iar dosarele ascunse se șterg împreună cu notițele. Nu vor mai putea fi recuperate.';
+
+  @override
+  String get codeForgetAction => 'Scoate codul și șterge ce e ascuns';
+
+  @override
+  String folderHidden(Object name) {
+    return 'Dosarul „$name” e ascuns';
+  }
+
+  @override
+  String folderUnhidden(Object name) {
+    return 'Dosarul „$name” se vede din nou';
+  }
+
+  @override
+  String get lockReason => 'Deblochează Stowa';
+
+  @override
+  String get lockTitle => 'Introduceți codul';
+
+  @override
+  String get codeEnterTitle => 'Introduceți codul';
+
+  @override
+  String get closeAfterNow => 'Imediat';
+
+  @override
+  String get closeAfterMinute => 'După un minut';
+
+  @override
+  String closeAfterMinutes(Object minutes) {
+    return 'După $minutes minute';
+  }
+
+  @override
+  String get privacySection => 'Confidențialitate';
+
+  @override
+  String get codeCreateRow => 'Creează un cod';
+
+  @override
+  String get appLockRow => 'Cod la pornire';
+
+  @override
+  String get fingerprintRow => 'Amprentă';
+
+  @override
+  String get closeAfterRow => 'Blochează din nou';
+
+  @override
+  String get hiddenCloseRow => 'Închide dosarele ascunse';
+
+  @override
+  String get hiddenOpenRow => 'Deschide dosarele ascunse';
+
+  @override
+  String get codeChangeRow => 'Schimbă codul';
+
+  @override
+  String get privacyHint =>
+      'Dosarele ascunse sunt păstrate criptat: fără cod nu pot fi citite nici aici, nici în fișierele seifului. „Blochează din nou” arată după cât timp de la ieșirea din aplicație e nevoie iar de cod și se închid dosarele ascunse.';
+
+  @override
+  String get markdownExport => 'Exportă în Markdown';
+
+  @override
+  String get markdownNoVault => 'Alegeți mai întâi dosarul seifului';
+
+  @override
+  String get markdownHiddenAsk => 'Exportați și dosarele ascunse?';
+
+  @override
+  String get markdownHiddenHint =>
+      'Notițele ascunse vor deveni fișiere obișnuite, le poate citi oricine are acest dosar.';
+
+  @override
+  String get markdownWithoutHidden => 'Fără cele ascunse';
+
+  @override
+  String get markdownWithHidden => 'Cu cele ascunse';
+
+  @override
+  String markdownDone(Object path) {
+    return 'Exportat în $path';
+  }
+
+  @override
+  String get markdownFailed => 'Nu am putut scrie în acest dosar';
+
+  @override
+  String get folderUnhide => 'Nu mai ascunde';
+
+  @override
+  String get folderHide => 'Ascunde dosarul';
+
+  @override
+  String get folderHiddenMark => 'ascuns';
+
+  @override
+  String get hiddenFolders => 'Dosare ascunse';
+
+  @override
+  String get hiddenReminder => 'Memento dintr-un dosar ascuns';
 }

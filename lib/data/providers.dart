@@ -13,6 +13,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
+import '../l10n/app_language.dart';
+import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
 import '../domain/models.dart' show FactKind;
 import '../domain/place_groups.dart' show guessHomeAndWork;
@@ -35,6 +37,7 @@ import '../services/media_probe.dart';
 import '../services/page_cache.dart';
 import '../services/place_channel.dart';
 import '../services/place_service.dart';
+import '../services/privacy/privacy_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
 import '../services/vault/vault_location.dart';
@@ -637,6 +640,37 @@ class VaultRootNotifier extends Notifier<Directory?> {
 /// Переносит правки из базы в файлы хранилища.
 final vaultWriterProvider = Provider((ref) => VaultWriter(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));
 
+/// Замок и скрытые папки. Ключ для отпечатка — в Keystore телефона, код и копия — в хранилище.
+final privacyServiceProvider = Provider(
+  (ref) => PrivacyService(
+    db: ref.watch(databaseProvider),
+    vault: ref.watch(vaultRootProvider),
+    appData: ref.watch(appSupportProvider),
+    flush: ref.watch(vaultWriterProvider).drain,
+    fingerprintKey: ref.watch(fingerprintKeyProvider),
+  ),
+);
+
+/// Где лежит ключ для отпечатка: Keystore телефона, в тестах — память.
+final fingerprintKeyProvider = Provider<KeyStore>((ref) => const SecureKeyStore('sealed_key'));
+
+/// Замок, прочитанный в main до первого кадра: запереть приложение сразу, без мелькания.
+final startLockProvider = Provider<PrivacyLock?>((ref) => null);
+
+/// Открыто ли скрытое сейчас.
+final hiddenOpenProvider = StreamProvider<bool>((ref) async* {
+  final privacy = ref.watch(privacyServiceProvider);
+  yield privacy.isOpen;
+  yield* privacy.changes.map((_) => privacy.isOpen);
+});
+
+/// Замок хранилища: код, замок на вход, через сколько закрывать. null — кода нет.
+final privacyLockProvider = StreamProvider<PrivacyLock?>((ref) async* {
+  final privacy = ref.watch(privacyServiceProvider);
+  yield await privacy.loadLock();
+  yield* privacy.changes.map((_) => privacy.lock);
+});
+
 /// Забирает в базу правки, сделанные в файлах снаружи.
 final vaultReaderProvider = Provider((ref) => VaultReader(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));
 
@@ -684,7 +718,23 @@ final repeatProvider = StreamProvider.autoDispose.family<RepeatNote?, String>((r
 /// Система уведомлений: настоящая подставляется в main, в тестах — тишина.
 final notificationPortProvider = Provider<NotificationPort>((ref) => const SilentNotificationPort());
 final reminderServiceProvider = Provider((ref) => ReminderService(ref.watch(notificationPortProvider)));
-final remindersProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchReminders());
+/// Напоминания для будильников. Скрытые — без текста; закрытого скрытого в базе нет,
+/// его время берётся из списка, который служба приватности оставляет при закрытии.
+final remindersProvider = StreamProvider((ref) {
+  final language = ref.watch(languageProvider).value ?? AppLanguage.resolve(PlatformDispatcher.instance.locales);
+  final title = lookupL(language.locale).hiddenReminder;
+  final privacy = ref.watch(privacyServiceProvider);
+  final now = ref.watch(clockProvider);
+  return ref
+      .watch(itemsRepositoryProvider)
+      .watchReminders(hiddenTitle: title)
+      .asyncMap(
+        (list) async => [
+          ...list,
+          for (final one in await privacy.sealedReminders(now())) (id: hiddenReminderPayload(one.itemId), title: title, body: '', at: one.at),
+        ],
+      );
+});
 
 final canvasRepositoryProvider = Provider((ref) => CanvasRepository(ref.watch(databaseProvider)));
 

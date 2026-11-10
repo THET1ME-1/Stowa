@@ -51,7 +51,7 @@ class SealedReminder {
 /// Скрытые папки и замок. Пока скрытое закрыто, его строк в базе нет, а файлы лежат
 /// запечатанными в `.stowa/sealed/`. Открытое живёт в `<данные приложения>/sealed-open`,
 /// метка `sealed-open.state` говорит, кто главнее после обрыва: «unsealed» — копия,
-/// «open <pid>» — база этого процесса.
+/// «open» с номером процесса — база этого процесса.
 class PrivacyService {
   PrivacyService({
     required AppDatabase db,
@@ -60,14 +60,18 @@ class PrivacyService {
     required Future<void> Function() flush,
     required KeyStore fingerprintKey,
     int? processId,
-  }) : _db = db,
-       _vault = vault,
-       _flush = flush,
-       _fingerprintKey = fingerprintKey,
+  }) : _db = db, // ignore: prefer_initializing_formals
+       _vault = vault, // ignore: prefer_initializing_formals
+       _flush = flush, // ignore: prefer_initializing_formals
+       _fingerprintKey = fingerprintKey, // ignore: prefer_initializing_formals
        _pid = processId ?? pid,
        openDir = Directory(p.join(appData.path, 'sealed-open')),
        _stateFile = File(p.join(appData.path, 'sealed-open.state')),
-       _remindersFile = File(p.join(appData.path, 'sealed-reminders.json'));
+       _remindersFile = File(p.join(appData.path, 'sealed-reminders.json')),
+       _attemptsFile = File(p.join(appData.path, 'lock-attempts.json'));
+
+  /// Неверные коды подряд и до какого времени ждать.
+  final File _attemptsFile;
 
   final AppDatabase _db;
   final Directory? _vault;
@@ -157,18 +161,54 @@ class PrivacyService {
 
   /// Открыть скрытое кодом. Неверный код — false.
   Future<bool> openWithCode(String code) async {
-    final lock = _lock ?? await loadLock();
-    if (lock == null) return false;
-    final keys = await openLock(lock.keys, code);
+    final keys = await checkCode(code);
     if (keys == null) return false;
     await _open(keys);
     return true;
   }
 
-  /// Ключи по коду без открытия скрытого: замок на вход.
+  /// Ключи по коду без открытия скрытого: замок на вход. Неверный — null и счёт ошибок;
+  /// пока ждать после череды ошибок, код не проверяется вовсе.
   Future<SealKeys?> checkCode(String code) async {
     final lock = _lock ?? await loadLock();
-    return lock == null ? null : openLock(lock.keys, code);
+    if (lock == null) return null;
+    if (await waitUntil() != null) return null;
+    final keys = await openLock(lock.keys, code);
+    await _attempt(ok: keys != null);
+    return keys;
+  }
+
+  /// После пяти неверных кодов подряд — 30 секунд, дальше вдвое дольше, до 15 минут.
+  Future<DateTime?> waitUntil() async {
+    final (_, until) = await _attempts();
+    return until != null && until.isAfter(DateTime.now()) ? until : null;
+  }
+
+  Future<(int, DateTime?)> _attempts() async {
+    if (!await _attemptsFile.exists()) return (0, null);
+    try {
+      final json = (jsonDecode(await _attemptsFile.readAsString()) as Map).cast<String, Object?>();
+      final until = json['until'] as int?;
+      return (json['failures'] as int? ?? 0, until == null ? null : DateTime.fromMillisecondsSinceEpoch(until));
+    } on FormatException {
+      return (0, null);
+    }
+  }
+
+  Future<void> _attempt({required bool ok}) async {
+    if (ok) {
+      if (await _attemptsFile.exists()) await _attemptsFile.delete();
+      return;
+    }
+    final (failures, _) = await _attempts();
+    final count = failures + 1;
+    DateTime? until;
+    if (count >= 5) {
+      final seconds = 30 * (1 << (count - 5).clamp(0, 5));
+      until = DateTime.now().add(Duration(seconds: seconds.clamp(30, 15 * 60)));
+    }
+    await _attemptsFile.parent.create(recursive: true);
+    await _attemptsFile.writeAsString(jsonEncode({'failures': count, 'until': until?.millisecondsSinceEpoch}));
   }
 
   /// Ключ для отпечатка на этом телефоне.
@@ -187,9 +227,19 @@ class PrivacyService {
     return true;
   }
 
-  Future<void> rememberForFingerprint(SealKeys keys) async => _fingerprintKey.write(base64.encode(await keys.privateBytes()));
+  /// Запомнить ключи для отпечатка: переданные или те, которыми скрытое сейчас открыто.
+  Future<bool> rememberForFingerprint([SealKeys? keys]) async {
+    final chosen = keys ?? _keys;
+    if (chosen == null) return false;
+    await _fingerprintKey.write(base64.encode(await chosen.privateBytes()));
+    _changes.add(null);
+    return true;
+  }
 
-  Future<void> forgetFingerprint() => _fingerprintKey.write(null);
+  Future<void> forgetFingerprint() async {
+    await _fingerprintKey.write(null);
+    _changes.add(null);
+  }
 
   /// Завести код: новые ключи. Скрытое пустое, но открыто — в него можно класть сразу.
   Future<SealKeys> createCode(String code, {KdfSettings kdf = const KdfSettings()}) => _serial(() async {
@@ -202,10 +252,9 @@ class PrivacyService {
 
   /// Сменить код; старый неверный — false.
   Future<bool> changeCode(String old, String code) async {
-    final lock = _lock ?? await loadLock();
-    if (lock == null) return false;
-    final keys = await openLock(lock.keys, old);
-    if (keys == null) return false;
+    final keys = await checkCode(old);
+    final lock = _lock;
+    if (keys == null || lock == null) return false;
     await _saveLock(lock.copyWith(keys: await rewrapLock(lock.keys, keys, code)));
     return true;
   }
@@ -340,6 +389,7 @@ class PrivacyService {
     await _store?.wipe();
     await _forgetOpen();
     if (await _remindersFile.exists()) await _remindersFile.delete();
+    if (await _attemptsFile.exists()) await _attemptsFile.delete();
     await _fingerprintKey.write(null);
     await _saveLock(null);
     _keys = null;

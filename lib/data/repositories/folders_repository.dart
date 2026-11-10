@@ -24,7 +24,11 @@ class FolderCard {
     this.parentId,
     this.path = const [],
     int? ownCount,
+    this.hidden = false,
   }) : ownCount = ownCount ?? count;
+
+  /// Скрытая папка: видна, только пока скрытое открыто.
+  final bool hidden;
 
   /// Папка, в которой лежит эта; null — верхняя.
   final String? parentId;
@@ -144,6 +148,7 @@ ORDER BY folders.sort_order, folders.name''',
                 order: row.read<int>('sort_order'),
                 parentId: tree.parentOf(row.read<String>('id')),
                 path: tree.path(row.read<String>('id')),
+                hidden: row.read<bool>('hidden'),
               ),
           ];
         });
@@ -158,9 +163,14 @@ ORDER BY folders.sort_order, folders.name''',
     const shapes = ['cookie9', 'squircle', 'gem', 'pill', 'cookie6'];
     final id = const Uuid().v4();
     final shape = shapes[count % shapes.length];
-    await _db.into(_db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: shape, sortOrder: Value(count), parentId: Value(parentId)));
     final parent = parentId == null ? null : await (_db.select(_db.folders)..where((t) => t.id.equals(parentId))).getSingleOrNull();
+    // папка в скрытой — тоже скрытая
+    final hidden = parent?.hidden ?? false;
+    await _db.into(_db.folders).insert(
+      FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: shape, sortOrder: Value(count), parentId: Value(parentId), hidden: Value(hidden)),
+    );
     return FolderCard(
+      hidden: hidden,
       id: id,
       name: name,
       icon: 'folder',
@@ -181,8 +191,20 @@ ORDER BY folders.sort_order, folders.name''',
   }
 
   /// Переложить папку в другую или наверх (null). Правила глубины проверяет экран (`FolderTree.canMoveInto`).
-  Future<void> move(String id, String? parentId) =>
-      (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(parentId: Value(parentId)));
+  /// Папка, переложенная в скрытую, скрывается вместе с вложенными; её заметки уносит писатель хранилища.
+  Future<void> move(String id, String? parentId) => _db.transaction(() async {
+    await (_db.update(_db.folders)..where((t) => t.id.equals(id))).write(FoldersCompanion(parentId: Value(parentId)));
+    final parent = parentId == null ? null : await (_db.select(_db.folders)..where((t) => t.id.equals(parentId))).getSingleOrNull();
+    if (parent == null || !parent.hidden) return;
+    final rows = await _db.select(_db.folders).get();
+    final subtree = {id, ...FolderTree([for (final row in rows) FolderNode(id: row.id, name: row.name, parentId: row.parentId)]).descendants(id)};
+    await (_db.update(_db.folders)..where((t) => t.id.isIn(subtree))).write(const FoldersCompanion(hidden: Value(true)));
+    await _db.customStatement(
+      "INSERT INTO vault_queue (target) SELECT 'item:' || id FROM items WHERE folder_id IN (${List.filled(subtree.length, '?').join(', ')}) "
+      'ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL',
+      [...subtree],
+    );
+  });
 
   /// Человек открыл папку, которую завёл ИИ: метка «новая» больше не нужна.
   Future<void> markSeen(String id) =>

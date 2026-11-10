@@ -13,7 +13,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
 
-enum FolderAction { graph, nest, move, rename, look, delete }
+enum FolderAction { graph, nest, move, rename, look, hide, unhide, delete }
 
 /// Спросить имя и завести папку, с [parentId] — внутри той. Отказался — null.
 Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref, {String? parentId}) async {
@@ -36,7 +36,8 @@ Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet
 
 /// Меню папки снизу: связи, папка внутри, переложить, переименовать, иконка и форма, удалить.
 /// [canNest] — папка не на третьем уровне, внутрь неё можно завести ещё одну.
-Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true}) {
+/// [hidden] — папка скрыта: вместо «Скрыть» — «Не скрывать».
+Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true, bool hidden = false}) {
   final l = L.of(context);
   Widget row(String icon, String label, FolderAction action, {bool danger = false}) => ListTile(
     leading: Icon(symbolIcon(icon), color: danger ? Tokens.error : Tokens.onSurface),
@@ -55,6 +56,7 @@ Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true}
           row('drive_file_move', l.folderMoveTo, FolderAction.move),
           row('edit', l.folderRename, FolderAction.rename),
           row('palette', l.folderLook, FolderAction.look),
+          hidden ? row('visibility', l.folderUnhide, FolderAction.unhide) : row('visibility_off', l.folderHide, FolderAction.hide),
           row('delete', l.folderDelete, FolderAction.delete, danger: true),
         ],
       ),

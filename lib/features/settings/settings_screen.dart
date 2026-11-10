@@ -30,6 +30,8 @@ import '../../services/telegram_service.dart';
 import '../links/dead_links_screen.dart';
 import '../places/places_screen.dart';
 import '../places/reminder_permissions.dart';
+import '../privacy/markdown_export_action.dart';
+import '../privacy/privacy_settings.dart';
 import '../tags/tags_screen.dart';
 import '../vault/vault_actions.dart';
 import 'ai_log_screen.dart';
@@ -170,6 +172,7 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
               child: Text(l.titleDateHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
             ),
+            const PrivacySettings(),
             SettingsSection(l.settingsReturns),
             const _ReturnGroup(),
             Padding(
@@ -215,6 +218,7 @@ class SettingsScreen extends ConsumerWidget {
               tint: settingsTint('blue'),
               children: [
                 SettingsRow(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
+                SettingsRow(icon: 'file_export', title: l.markdownExport, onTap: () => exportMarkdownFlow(context, ref)),
                 SettingsRow(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
                 SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
               ],
@@ -282,6 +286,8 @@ Future<void> _saveBackup(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
   final box = context.findRenderObject() as RenderBox?;
   try {
+    // в копию идёт скрытое запечатанным: строк скрытых заметок в снимке базы быть не должно
+    await ref.read(privacyServiceProvider).close();
     final zip = await ref.read(backupServiceProvider).export(await getTemporaryDirectory());
     await SharePlus.instance.share(
       ShareParams(files: [XFile(zip.path, mimeType: 'application/zip')], sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size),
@@ -332,7 +338,10 @@ Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
   );
   if (yes != true) return;
   try {
+    await ref.read(privacyServiceProvider).close();
     await ref.read(backupServiceProvider).restore(zip);
+    // в копии свой замок: код и скрытое — оттуда
+    await ref.read(privacyServiceProvider).loadLock();
     // те же пути к файлам, другие картинки: кэш картинок показал бы прежние
     PaintingBinding.instance.imageCache.clear();
     showNote(messenger, l.backupRestored);
