@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -87,24 +88,37 @@ Future<List<SharedPiece>> loadSharedPieces() async {
   try {
     final media = await ReceiveSharingIntent.instance.getInitialMedia();
     unawaited(ReceiveSharingIntent.instance.reset());
-    return [
-      for (final one in media)
-        SharedPiece(
-          value: one.path,
-          mime: one.mimeType,
-          kind: switch (one.type) {
-            SharedMediaType.text => SharedKind.text,
-            SharedMediaType.url => SharedKind.url,
-            SharedMediaType.image => SharedKind.image,
-            SharedMediaType.video => SharedKind.video,
-            SharedMediaType.file => SharedKind.file,
-          },
-        ),
-    ];
+    return piecesFrom(media);
   } on MissingPluginException {
     return const [];
   }
 }
+
+List<SharedPiece> piecesFrom(List<SharedMediaFile> files) => [
+  for (final one in files)
+    SharedPiece(
+      value: one.path,
+      mime: one.mimeType,
+      kind: switch (one.type) {
+        SharedMediaType.text => SharedKind.text,
+        SharedMediaType.url => SharedKind.url,
+        SharedMediaType.image => SharedKind.image,
+        SharedMediaType.video => SharedKind.video,
+        SharedMediaType.file => SharedKind.file,
+      },
+    ),
+];
+
+/// Первое — с холодного старта, дальше — пока приложение открыто.
+Stream<List<SharedPiece>> incomingShared() async* {
+  yield await loadSharedPieces();
+  yield* ReceiveSharingIntent.instance.getMediaStream().map(piecesFrom);
+}
+
+/// Присланное главному окну. Только iPhone: на Android его принимает [ShareHost].
+final sharedInboxProvider = Provider<Stream<List<SharedPiece>>>(
+  (ref) => Platform.isIOS ? incomingShared().asBroadcastStream() : const Stream.empty(),
+);
 
 /// Сохранить присланное одной вещью. Вернёт её id или null, если сохранять нечего.
 /// [l] даёт подпись «Фото от 3 ноября» вместо имени файла с камеры.

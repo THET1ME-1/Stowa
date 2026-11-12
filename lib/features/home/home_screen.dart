@@ -13,6 +13,7 @@ import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/launch_actions.dart';
 import '../../services/place_alarms.dart';
+import '../../services/share_intake.dart';
 import '../../services/vault/vault_watch.dart';
 import '../catalog/catalog_screen.dart';
 import '../composer/line_dock.dart';
@@ -25,6 +26,8 @@ import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
 import '../map/map_screen.dart';
 import '../settings/settings_screen.dart';
+import '../share/share_inbox.dart';
+import '../share/share_receiver.dart';
 import '../../domain/note_blocks.dart';
 import 'folder_shelf.dart';
 import 'next_reminder_card.dart';
@@ -119,6 +122,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       // открыли касанием уведомления по месту или заметки в окне виджета
       initialLaunch().then(_onRawLaunch).ignore();
       listenLaunches(_onRawLaunch);
+      // на iPhone «Поделиться» открывает само приложение: присланное приходит сюда
+      _shared = ref.read(sharedInboxProvider).listen((pieces) {
+        if (mounted) receiveShared(context, ref, pieces).ignore();
+      }, onError: (_) {});
       // при открытии: файлы, которые не успели лечь до закрытия или выключения телефона
       ref.read(captureServiceProvider).files.drain().ignore();
       // вещи, которые ещё не разобраны извлекателями или разобраны старой их версией
@@ -148,10 +155,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     WidgetsBinding.instance.removeObserver(this);
     _watch?.stop().ignore();
     _placeTimer?.cancel();
+    _shared?.cancel().ignore();
     super.dispose();
   }
 
   Timer? _placeTimer;
+  StreamSubscription<List<SharedPiece>>? _shared;
 
   /// Сработавшее по месту снять, тревоги поставить заново. Без Android (тесты) канал молчит.
   Future<void> _syncPlaces() async {

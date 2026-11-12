@@ -14,12 +14,14 @@ import 'package:stowa/domain/appearance.dart';
 import 'package:stowa/domain/article_text.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/features/privacy/privacy_flows.dart';
+import 'package:stowa/features/share/share_receiver.dart';
 import 'package:stowa/services/privacy/seal_crypto.dart';
 import 'package:stowa/services/link_checker.dart';
 import 'package:stowa/services/media_probe.dart';
 import 'package:stowa/services/place_channel.dart';
 import 'package:stowa/services/place_service.dart';
 import 'package:stowa/services/reminder_service.dart';
+import 'package:stowa/services/share_intake.dart';
 import 'package:stowa/services/telegram_service.dart';
 import 'package:stowa/services/vault/vault_location.dart';
 import 'package:stowa/l10n/app_localizations.dart';
@@ -41,6 +43,9 @@ class TestWorld {
   /// Предложения папки, на которые уже ответили.
   var dismissedSuggestions = <String>{};
   final _dismissed = StreamController<Set<String>>.broadcast();
+
+  /// Присланное через «Поделиться», как его отдаёт главному окну iPhone.
+  final shared = StreamController<List<SharedPiece>>.broadcast();
 
   /// Место хранилища уже выбрано: по умолчанию сразу главная, без экрана первого запуска.
   var vaultAsked = true;
@@ -135,6 +140,7 @@ class TestWorld {
         onlineProvider.overrideWith((ref) => const Stream.empty()),
         // фоновой работы системы в тестах нет: сколько раз её просили, видно по счётчику
         fileWorkProvider.overrideWithValue(() async => fileWorkAsked++),
+        sharedInboxProvider.overrideWithValue(shared.stream),
         if (settings case final settings?)
           settingsRepositoryProvider.overrideWithValue(settings)
         else ...[
@@ -193,6 +199,7 @@ class TestWorld {
 
   Future<void> dispose() async {
     await _dismissed.close();
+    shared.close().ignore();
     await db.close();
     if (files.existsSync()) files.deleteSync(recursive: true);
   }

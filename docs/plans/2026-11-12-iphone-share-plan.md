@@ -2,7 +2,7 @@
 
 **Цель:** из любого приложения iPhone отправить в Stowa текст, ссылку, фото, видео или файл и получить заметку с тем же листом «Положил в …», что на Android.
 
-**Как устроено:** расширение `ShareExtension` (класс `RSIShareViewController` из плагина `receive_sharing_intent`) складывает присланное в папку группы `group.app.stowa`, записывает список в её настройки и открывает Stowa ссылкой `ShareMedia-app.stowa:share`. Своего окна Flutter, как на Android, у расширения нет: принимает главное окно. Плагин отдаёт список один раз на холодном старте и потоком, пока приложение открыто; главная сохраняет заметку сразу, а лист показывает, когда замок открыт.
+**Как устроено:** расширение `ShareExtension` (свой контроллер на UIKit, без Flutter) складывает присланное в папку группы `group.app.stowa`, записывает список в её настройки и открывает Stowa ссылкой `ShareMedia-app.stowa:share`. Своего окна Flutter, как на Android, у расширения нет: принимает главное окно. Плагин отдаёт список один раз на холодном старте и потоком, пока приложение открыто; главная сохраняет заметку сразу, а лист показывает, когда замок открыт.
 
 **Описание:** `docs/specs/2026-11-12-iphone-design.md`, раздел «2. Поделиться».
 
@@ -18,8 +18,9 @@
 
 ## Решения, принятые без владельца
 
-- Расширение берёт готовый класс плагина, а не свой код: две строки Swift вместо сотни, непроверяемой без macOS. Плата — расширение линкует `Flutter.framework`. Не соберётся за две попытки `ios.yml` — свой контроллер без плагина, пишущий в те же ключи `ShareKey` и `ShareMessageKey`.
-- Под «Кодом на вход» заметка сохраняется сразу, лист показывается после кода. На Android окно «Поделиться» показывает лист и под замком; на iPhone лист открылся бы поверх главной, поэтому ждёт.
+- Контроллер расширения свой, а не `RSIShareViewController` из плагина. Готовый класс по коду 1.9.0 теряет присланное: завершает приём, когда загрузилось последнее по списку вложение, а не все; ролик без снятой миниатюры не отдаёт вовсе; все картинки из буфера пишет в один `TempImage.png`. Заодно расширению не нужен `Flutter.framework`. Свой контроллер ждёт все вложения, кладёт каждое в свою подпапку `shared/<uuid>/` папки группы и пишет те же ключи `ShareKey` и `ShareMessageKey`: в приложении ссылку и список по-прежнему читает плагин. Плата — около ста строк Swift, которые собираются только в `ios.yml`.
+- Под «Кодом на вход» заметка сохраняется сразу, лист показывается после кода. На Android окно «Поделиться» показывает лист и под замком; на iPhone лист открылся бы поверх главной, поэтому ждёт. Плашка «не получилось сохранить» ждёт кода так же: под экраном кода её никто бы не увидел.
+- Поток присланного в провайдере широковещательный: главная, смонтированная второй раз, подписывается заново и не падает.
 - Присланные файлы переносятся из папки группы во временную папку приложения до сохранения. Хранитель файлов забирает оттуда переносом, оригиналы в папке группы не копятся, сам хранитель не меняется.
 - Версия расширения берётся из тех же `Flutter/Debug.xcconfig` и `Release.xcconfig`, что у приложения: магазин требует одинаковые номера.
 
@@ -27,8 +28,9 @@
 
 - Приложение было свёрнуто дольше срока замка: ссылка приходит раньше, чем замок встаёт. Лист не должен проскочить перед экраном кода.
 - Прислали пустой список или только то, что не прочиталось: плашка «не получилось сохранить», листа нет.
-- Два раза подряд прислали картинку из буфера: расширение оба раза называет её `TempImage.png`, вторая не должна затереть первую, пока та ждёт переноса.
-- К ролику расширение кладёт в папку группы миниатюру `<имя в base64>.jpg`: Stowa её не использует, файл надо убрать.
+- Два раза подряд прислали файл с одним именем: второй не должен затереть первый, пока тот ждёт переноса. Расширение разводит их по подпапкам, приложение даёт занятому имени номер.
+- Плагин в приложении считает путём к файлу только строку с `file://`, остальное принимает за номер снимка в «Фото» и файл теряет: расширение пишет путь с `file://` и без процентов.
+- Кривой JSON в `ShareKey` роняет приложение (`encodedData!` в плагине): список собирает `JSONSerialization`, а не склейка строк.
 - Первый запуск, хранилище ещё не выбрано: главной нет. Присланное на холодном старте дождётся в плагине; присланное в уже открытый экран выбора теряется — известное ограничение.
 - Фаза «Embed App Extensions» после «Thin Binary» даёт цикл сборки.
 
@@ -47,17 +49,17 @@ static Future<void> PrivacyGate.unlocked(BuildContext context);
 
 Ищет `_PrivacyGateState` выше по дереву; нет его (окно без замка) — возвращается сразу. Приложение не на экране (`inactive`, `hidden`, `paused`) — ждёт `resumed` и только потом смотрит на замок: срок замка проверяется как раз в `resumed`. Замок меняется в одном месте (`_setLocked`), оно же отпускает ждущих.
 
-- [ ] Тесты: `без замка возвращается сразу`; `под замком ждёт верного кода`; `свёрнутое дольше срока приложение сперва запирается` (уход в `paused`, время вперёд на срок замка, запрос, `resumed`: ожидание не завершилось, пока код не введён); `свёрнутое ненадолго отпускает на возврате`.
-- [ ] Запустить, убедиться, что падают: метода нет.
-- [ ] Написать.
-- [ ] Тесты проходят вместе с `test/features/privacy/privacy_ui_test.dart`; `flutter analyze` чистый.
-- [ ] Коммит.
+- [x] Тесты: `без замка возвращается сразу`; `под замком ждёт верного кода`; `свёрнутое дольше срока приложение сперва запирается` (уход в `paused`, время вперёд на срок замка, запрос, `resumed`: ожидание не завершилось, пока код не введён); `свёрнутое ненадолго отпускает на возврате`.
+- [x] Запустить, убедиться, что падают: метода нет.
+- [x] Написать.
+- [x] Тесты проходят вместе с `test/features/privacy/privacy_ui_test.dart`; `flutter analyze` чистый.
+- [x] Коммит.
 
 ## Задача 2. Главное окно принимает присланное
 
 **Файлы:**
 - Создать: `lib/features/share/share_inbox.dart`
-- Изменить: `lib/features/share/share_receiver.dart`, `lib/features/home/home_screen.dart`, `test/support/` (подмена потока в `TestWorld`)
+- Изменить: `lib/features/share/share_receiver.dart`, `lib/features/home/home_screen.dart`, `test/helpers/test_app.dart` (подмена потока в `TestWorld`)
 - Тест: `test/features/share/share_inbox_test.dart`
 
 **Что берёт из задачи 1:** `PrivacyGate.unlocked(context)`.
@@ -67,7 +69,7 @@ static Future<void> PrivacyGate.unlocked(BuildContext context);
 ```dart
 // share_receiver.dart
 List<SharedPiece> piecesFrom(List<SharedMediaFile> files);
-/// Первое — с холодного старта, дальше — пока приложение открыто. Миниатюры роликов стирает.
+/// Первое — с холодного старта, дальше — пока приложение открыто.
 Stream<List<SharedPiece>> incomingShared();
 /// Только iPhone, на остальном пустой поток.
 final sharedInboxProvider = Provider<Stream<List<SharedPiece>>>(…);
@@ -79,14 +81,14 @@ Future<List<SharedPiece>> adoptShared(List<SharedPiece> pieces, Directory into);
 Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece> pieces);
 ```
 
-`HomeScreen` подписывается на `sharedInboxProvider` там же, где на действия запуска, и отписывается в `dispose`. Пустой список `receiveShared` пропускает молча. Сбой сохранения — `showNote(…, l.shareFailed, overDock: true)`; сбои копирования главная уже показывает сама.
+`HomeScreen` подписывается на `sharedInboxProvider` там же, где на действия запуска, и отписывается в `dispose`. Пустой список `receiveShared` пропускает молча. Сбой сохранения — `showNote(…, l.shareFailed, overDock: true)`, под замком тоже после кода; сбои копирования главная уже показывает сама.
 
-- [ ] Тесты `adoptShared` (обычный `test`, временные папки): `файл переезжает во временную папку, в папке расширения его нет`; `занятое имя получает номер, первый файл цел`; `текст и ссылка не трогаются`; `пропавший файл остаётся в списке как был`.
-- [ ] Тесты приёма (`testWidgets`, `TestWorld`, поток подменён контроллером): `присланный текст становится заметкой и открывает лист`; `пустой список ничего не делает`; `под замком заметка сохранена, лист ждёт кода`; `несохранённое говорит плашкой, листа нет`.
-- [ ] Запустить, убедиться, что падают.
-- [ ] Написать: `piecesFrom` вынести из `loadSharedPieces`, остальное новое.
-- [ ] Тесты проходят вместе с `test/features/share/share_sheet_test.dart` и `test/walk_route_test.dart`; `flutter analyze` чистый.
-- [ ] Коммит.
+- [x] Тесты `adoptShared` (обычный `test`, временные папки): `файл переезжает во временную папку, в папке расширения его нет`; `занятое имя получает номер, первый файл цел`; `текст и ссылка не трогаются`; `пропавший файл остаётся в списке как был`.
+- [x] Тесты приёма (`testWidgets`, `TestWorld`, поток подменён контроллером): `присланный текст становится заметкой и открывает лист`; `пустой список ничего не делает`; `под замком заметка сохранена, лист ждёт кода`; `несохранённое говорит плашкой, листа нет`.
+- [x] Запустить, убедиться, что падают.
+- [x] Написать: `piecesFrom` вынести из `loadSharedPieces`, остальное новое.
+- [x] Тесты проходят вместе с `test/features/share/share_sheet_test.dart` и `test/walk_route_test.dart`; `flutter analyze` чистый.
+- [x] Коммит.
 
 ## Задача 3. Расширение и проект Xcode
 
@@ -96,11 +98,11 @@ Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece
 
 Образец записей проекта — пример плагина (`receive_sharing_intent-1.9.0/example/ios/Runner.xcodeproj/project.pbxproj`), идентификаторы объектов те же.
 
-- `ShareViewController.swift`: `import receive_sharing_intent` и `class ShareViewController: RSIShareViewController {}`.
+- `ShareViewController.swift`: `UIViewController` на чистом UIKit. В `viewDidAppear` обходит все вложения всех `inputItems`, каждое грузит по первому подходящему виду (картинка, ролик, файл, ссылка, текст) и ждёт все через `DispatchGroup`. Файл копирует в `shared/<uuid>/<имя>` папки группы, `UIImage` и `Data` пишет туда же. Список в порядке вложений кладёт в `ShareKey` (`Data` с JSON: `path`, `type`, `mimeType`; путь файла — `file://` и раскодированный путь), подпись из `attributedContentText` — в `ShareMessageKey`. Открывает `ShareMedia-app.stowa:share` через цепочку `UIResponder` до `UIApplication` и завершает запрос.
 - `Info.plist` расширения: `AppGroupId = $(CUSTOM_GROUP_ID)`, точка `com.apple.share-services`, раскадровка `MainInterface`; правило включения: текст, ссылка (1), картинки, ролики и файлы (по 100).
 - Оба `.entitlements`: `com.apple.security.application-groups` = `group.app.stowa`.
 - `Info.plist` приложения: `AppGroupId = $(CUSTOM_GROUP_ID)` и `CFBundleURLTypes` со схемой `ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)`.
-- Проект: цель `ShareExtension` (`com.apple.product-type.app-extension`, `PRODUCT_BUNDLE_IDENTIFIER = app.stowa.Share`, `INFOPLIST_KEY_CFBundleDisplayName = Stowa`, `IPHONEOS_DEPLOYMENT_TARGET = 15.0`, `CUSTOM_GROUP_ID = group.app.stowa`, `MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"`, `CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"`, конфигурации на основе xcconfig Flutter), пакет плагина локальной ссылкой `Flutter/ephemeral/Packages/.packages/receive_sharing_intent` и продукт `receive-sharing-intent` у обеих целей; у `Runner` — зависимость от расширения, фаза «Embed App Extensions» перед «Thin Binary», `CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements` и `CUSTOM_GROUP_ID` в трёх конфигурациях.
+- Проект: цель `ShareExtension` (`com.apple.product-type.app-extension`, `PRODUCT_BUNDLE_IDENTIFIER = app.stowa.Share`, `INFOPLIST_KEY_CFBundleDisplayName = Stowa`, `IPHONEOS_DEPLOYMENT_TARGET = 15.0`, `CUSTOM_GROUP_ID = group.app.stowa`, `MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"`, `CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"`, конфигурации на основе xcconfig Flutter, пакетов у цели нет); у `Runner` — зависимость от расширения, фаза «Embed App Extensions» перед «Thin Binary», `CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements` и `CUSTOM_GROUP_ID` в трёх конфигурациях.
 
 - [ ] Написать файлы расширения и оба `.entitlements`.
 - [ ] Дописать `Info.plist` приложения.
@@ -116,7 +118,7 @@ Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece
 
 После «Сборки под симулятор»:
 
-- `Runner.app/PlugIns/ShareExtension.appex` существует; в его `Info.plist` `AppGroupId` равен `group.app.stowa`, а `CFBundleVersion` и `CFBundleShortVersionString` те же, что у `Runner.app`. Список `ios/Flutter/ephemeral/Packages/.packages` печатается для разбора, если сборка не найдёт пакет.
+- `Runner.app/PlugIns/ShareExtension.appex` существует; в его `Info.plist` `AppGroupId` равен `group.app.stowa`, а `CFBundleVersion` и `CFBundleShortVersionString` те же, что у `Runner.app`.
 
 В «Запуске в симуляторе», третьим запуском (обычная сборка, до сборки прохода):
 
@@ -127,7 +129,7 @@ Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece
 
 - [ ] Дописать шаги.
 - [ ] Коммит, пуш, `gh workflow run ios.yml`; дождаться.
-- [ ] Красный на сборке — разобрать по журналу, одна правка, второй прогон. Второй красный на линковке плагина — запасной путь из «Решений».
+- [ ] Красный на сборке — разобрать по журналу, одна правка, следующий прогон.
 - [ ] Скачать артефакт, посмотреть `3-shared.png`: лист «Положил в …» поверх главной, заметка в ленте.
 
 ## Задача 5. Документы
