@@ -39,8 +39,7 @@ Future<List<WalkStep>> walkScreens(
     await wait();
   }
 
-  // [after] — вернуть на место то, что шаг подменил, уже после снимка
-  Future<void> step(String name, Future<void> Function() body, {VoidCallback? after}) async {
+  Future<void> step(String name, Future<void> Function() body) async {
     final label = '${'${steps.length + 1}'.padLeft(2, '0')}-$name';
     String? error;
     try {
@@ -53,7 +52,6 @@ Future<List<WalkStep>> walkScreens(
     // снимок нужен и при ошибке: на нём видно, где маршрут застрял
     await shot(label);
     steps.add(WalkStep(label, error));
-    after?.call();
     try {
       await home();
       tester.takeException();
@@ -138,12 +136,8 @@ Future<List<WalkStep>> walkScreens(
   await step('язык', () => openSetting(l.settingsLanguage));
 
   if (device) {
-    // настоящая клавиатура: печатать в неё тест не может, зато видно, как строка встаёт над ней
-    await step('клавиатура', after: tester.testTextInput.register, () async {
-      tester.testTextInput.unregister();
-      await tester.tap(line);
-      await wait();
-    });
+    // касание строки поднимает настоящую клавиатуру: видно, как строка встаёт над ней
+    await step('клавиатура', () => tester.tap(line));
     // последним: система спросит про уведомления, а её окно тест закрыть не может
     await step('напоминание', () => stow('Позвонить мастеру завтра в 10'));
   }
