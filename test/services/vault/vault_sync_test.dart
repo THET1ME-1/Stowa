@@ -32,6 +32,37 @@ void main() {
     expect(await db.select(db.vaultQueue).get(), isEmpty);
   });
 
+  test('свойства Obsidian, которых Stowa не знает, переживают правку в приложении', () async {
+    final db = AppDatabase.memory();
+    final root = Directory.systemTemp.createTempSync('stowa_vault');
+    addTearDown(() async {
+      await db.close();
+      root.deleteSync(recursive: true);
+    });
+    final now = DateTime(2026, 11, 6, 10);
+    final sync = VaultSync(reader: VaultReader(db, root: root, clock: () => now), writer: VaultWriter(db, root: root, clock: () => now));
+    final file = File(p.join(root.path, 'Книга.md'));
+    file.writeAsStringSync('---\naliases:\n  - Дюна\nrating: 5\ncssclasses: []\npublish:\n---\nЧитать зимой\n');
+    await sync.run();
+    final id = (await db.select(db.items).getSingle()).id;
+
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(body: Value('Читать летом')));
+    await sync.run();
+    final written = file.readAsStringSync();
+    expect(written, contains('Читать летом'));
+    for (final property in ['aliases:\n  - Дюна\n', 'rating: 5\n', 'cssclasses: []\n', 'publish:\n']) {
+      expect(written, contains(property));
+    }
+
+    // оценку сменили в Obsidian: в базе теперь она, а не прежняя
+    file.writeAsStringSync(written.replaceFirst('rating: 5', 'rating: 4'));
+    file.setLastModifiedSync(DateTime.now().add(const Duration(minutes: 5)));
+    await sync.run();
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(body: Value('Читать осенью')));
+    await sync.run();
+    expect(file.readAsStringSync(), allOf(contains('Читать осенью'), contains('rating: 4\n'), isNot(contains('rating: 5'))));
+  });
+
   test('много заметок пришло снаружи — сверка показывает ход, пара правок — нет', () async {
     final db = AppDatabase.memory();
     final root = Directory.systemTemp.createTempSync('stowa_vault');

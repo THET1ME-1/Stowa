@@ -99,6 +99,195 @@ void main() {
     expect(again.extra, {'aliases': ['a', 'b'], 'cssclass': 'wide'});
   });
 
+  // время зависит от пояса машины: в сверке текста оно заменено меткой
+  String masked(String text) => text.replaceAll(RegExp(r'\d{4}-\d\d-\d\dT[\d:.]+[+-]\d\d:\d\d'), '<время>');
+
+  test('свойства пишутся как в Obsidian: списки столбиком, строки без кавычек', () {
+    final text = writeVaultNote(full(), fileName: 'Человек-бензопила.md');
+    final properties = text.substring(0, text.indexOf('\n---\n', 4) + 5);
+    expect(
+      masked(properties),
+      '---\n'
+      'id: 7c1e0b6a\n'
+      'kind: link\n'
+      'created: <время>\n'
+      'updated: <время>\n'
+      'tags:\n'
+      '  - манга\n'
+      '  - боевик\n'
+      'url: https://mangalib.me/ru/manga/7965--chainsaw-man\n'
+      'preview:\n'
+      '  site: MangaLib\n'
+      '  author: Tatsuki Fujimoto\n'
+      '  text: "Денджи охотится на демонов.\\nВторая строка."\n'
+      'cover: .stowa/covers/7c1e.jpg\n'
+      'duration: 47\n'
+      'reminder: <время>\n'
+      'place:\n'
+      '  lat: 47.0245\n'
+      '  lon: 28.8323\n'
+      '  name: ул. Пушкина, 1\n'
+      'sorted_by: user\n'
+      '---\n',
+    );
+  });
+
+  test('цитаты пишутся списком блоков', () {
+    final note = VaultNote(
+      id: 'a',
+      kind: ItemKind.link,
+      title: 'Кофе',
+      body: 'x',
+      created: created,
+      updated: updated,
+      highlights: [
+        VaultHighlight(quote: 'вода важнее зёрен', note: 'купить фильтр', at: created, position: 3),
+        VaultHighlight(quote: 'помол: средний', at: updated),
+      ],
+    );
+    expect(
+      masked(writeVaultNote(note, fileName: 'Кофе.md')),
+      contains(
+        'highlights:\n'
+        '  - quote: вода важнее зёрен\n'
+        '    note: купить фильтр\n'
+        '    at: <время>\n'
+        '    pos: 3\n'
+        '  - quote: "помол: средний"\n'
+        '    at: <время>\n',
+      ),
+    );
+  });
+
+  test('строка, которую YAML прочёл бы иначе, остаётся строкой', () {
+    const tricky = [
+      'true', 'null', 'Null', 'yes', '~', '12', '12.5', '.5', '+7', '1e3', '1_000', '0x1F', '12:30', '123e4567',
+      '- пункт', 'a: b', 'a #b', 'конец:', ' с пробелом', 'пробел в конце ', 'две\nстроки', 'таб\tвнутри', 'в "кавычках"', "it's",
+      '[[Заметка]]', '#тег', '@имя', '{a}', '*звезда', '& и', '!важно', '%5', '`код`', '|', '>', '?', ',', '...', '---', '',
+      '2026-11-05', '2026-11-05T18:30', '👋 привет', r'C:\Users', 'https://example.com/a?b=1#c', 'ул. Пушкина, 1',
+    ];
+    final note = VaultNote(
+      id: 'a',
+      kind: ItemKind.note,
+      title: 'Текст',
+      body: 'x',
+      created: created,
+      updated: updated,
+      extra: {
+        'список': tricky,
+        for (final (index, value) in tricky.indexed) 'k$index': value,
+        'a: b': 'ключ с двоеточием',
+        '12': 'ключ-число',
+        'true': 'ключ-слово',
+        'с пробелом': 'ключ из двух слов',
+      },
+    );
+    final text = writeVaultNote(note, fileName: 'Текст.md');
+    final back = readVaultNote(text, fileName: 'Текст.md', fileModified: created);
+    expect(back.extra, note.extra);
+    expect(back.id, 'a');
+    // то, что безопасно, пишется без кавычек
+    expect(text, contains('\n  - 2026-11-05\n'));
+    expect(text, contains('\n  - https://example.com/a?b=1#c\n'));
+    expect(text, contains('\n  - ул. Пушкина, 1\n'));
+    expect(text, contains('\n  - "true"\n'));
+  });
+
+  test('чужие свойства любого вида возвращаются в файл слово в слово', () {
+    const foreign =
+        'aliases:\n'
+        '  - a\n'
+        '  - b\n'
+        'cssclasses: []\n'
+        'done: true\n'
+        'rating: 4\n'
+        'price: 12.5\n'
+        'publish:\n'
+        'summary: ""\n'
+        'author:\n'
+        '  name: Саня\n'
+        '  links:\n'
+        '    - https://example.com\n'
+        'steps:\n'
+        '  - name: раз\n'
+        '    done: false\n'
+        '  - name: два\n'
+        'grid:\n'
+        '  - - 1\n'
+        '    - 2\n'
+        '  - - 3\n';
+    final back = readVaultNote('---\nid: a\n$foreign---\nТекст\n', fileName: 'Текст.md', fileModified: created);
+    expect(back.extra, {
+      'aliases': ['a', 'b'],
+      'cssclasses': <Object?>[],
+      'done': true,
+      'rating': 4,
+      'price': 12.5,
+      'publish': null,
+      'summary': '',
+      'author': {
+        'name': 'Саня',
+        'links': ['https://example.com'],
+      },
+      'steps': [
+        {'name': 'раз', 'done': false},
+        {'name': 'два'},
+      ],
+      'grid': [
+        [1, 2],
+        [3],
+      ],
+    });
+    expect(masked(writeVaultNote(back, fileName: 'Текст.md')), '---\nid: a\nkind: note\ncreated: <время>\nupdated: <время>\n$foreign---\nТекст\n');
+  });
+
+  test('заметка Obsidian: теги столбиком, время без пояса', () {
+    const text = '---\ntags:\n  - дом\n  - сад/розы\ncreated: 2026-11-05T18:30:32\nupdated: 2026-11-05 18:37\n---\nТекст\n';
+    final back = readVaultNote(text, fileName: 'Текст.md', fileModified: DateTime(2026, 11, 9));
+    expect(back.tags, ['дом', 'сад/розы']);
+    expect(back.created, created);
+    expect(back.updated, DateTime(2026, 11, 5, 18, 37));
+    expect(back.extra, isEmpty);
+  });
+
+  test('свойство date служит датой записи, когда created нет', () {
+    final modified = DateTime(2026, 11, 9, 12);
+    VaultNote read(String properties) => readVaultNote('---\n$properties\n---\nТекст\n', fileName: 'Текст.md', fileModified: modified);
+    expect(read('date: 2026-10-01').created, DateTime(2026, 10, 1));
+    expect(read('date: 2026-10-01T09:15').created, DateTime(2026, 10, 1, 9, 15));
+    expect(read('date: 2026-10-01 09:15').created, DateTime(2026, 10, 1, 9, 15));
+    expect(read('date: 2026-10-01\ncreated: 2026-09-01').created, DateTime(2026, 9, 1), reason: 'created главнее');
+    // дата позже самого файла — это день события, а не записи
+    expect(read('date: 2026-12-31').created, modified);
+    // свойство остаётся в файле как было
+    expect(read('date: 2026-10-01').extra, {'date': '2026-10-01'});
+  });
+
+  test('файл прежнего вида, где значения в JSON, читается', () {
+    const text =
+        '---\n'
+        'id: "a"\n'
+        'kind: "link"\n'
+        'created: "2026-11-05T18:30:32.000"\n'
+        'tags: ["манга","боевик"]\n'
+        'preview: {"site":"MangaLib","text":"раз\\nдва"}\n'
+        'place: {"lat":47.0245,"lon":28.8323,"name":"ул. Пушкина, 1"}\n'
+        'highlights: [{"quote":"вода","at":"2026-11-05T18:37:20.000","pos":3}]\n'
+        '---\n'
+        'Текст\n';
+    final back = readVaultNote(text, fileName: 'Текст.md', fileModified: DateTime(2000));
+    expect(back.id, 'a');
+    expect(back.kind, ItemKind.link);
+    expect(back.created, created);
+    expect(back.tags, ['манга', 'боевик']);
+    expect(back.previewSite, 'MangaLib');
+    expect(back.previewText, 'раз\nдва');
+    expect(back.latitude, 47.0245);
+    expect(back.placeName, 'ул. Пушкина, 1');
+    expect(back.highlights.single.quote, 'вода');
+    expect(back.highlights.single.position, 3);
+  });
+
   test('цитаты статьи с пометками проходят круг файл → заметка, порядок цел', () {
     final note = VaultNote(
       id: 'a',

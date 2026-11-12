@@ -56,6 +56,10 @@ class Items extends Table {
   /// Где остановился в читалке: доля прокрутки от 0 до 1. Тоже след чтения, не заметка.
   RealColumn get readPosition => real().nullable()();
 
+  /// Свойства из файла заметки, которых Stowa не знает (aliases, rating…), одной картой
+  /// в JSON: возвращаются в файл как были. Свойств нет — null.
+  TextColumn get properties => text().nullable()();
+
   /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
   TextColumn get factsText => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();

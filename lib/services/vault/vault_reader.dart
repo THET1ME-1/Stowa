@@ -371,6 +371,7 @@ class VaultReader {
         remindLatitude: Value(note.remindPlace?.latitude),
         remindLongitude: Value(note.remindPlace?.longitude),
         remindPlaceName: Value(note.remindPlace?.name),
+        properties: Value(packVaultProperties(note.extra)),
         createdAt: Value(note.created),
         updatedAt: Value(updated),
         deletedAt: Value(deleted ? now : null),
@@ -545,7 +546,7 @@ class VaultReader {
 
   /// `id` в свойства чужой заметки — единственная правка её файла.
   Future<void> _writeId(File file, String text, String id) async {
-    final line = 'id: ${jsonEncode(id)}';
+    final line = vaultProperty('id', id).single;
     final normalized = text.replaceAll('\r\n', '\n');
     final String updated;
     if (normalized.startsWith('---\n')) {

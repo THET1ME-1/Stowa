@@ -286,6 +286,34 @@ void main() {
     expect(folder.hidden, isFalse);
   });
 
+  test('v14 → v15: заметки на месте, чужих свойств нет, их правка ставит заметку в очередь', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 6);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'Дюна', createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropProperties(raw);
+    raw.execute('PRAGMA user_version = 14');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final item = await upgraded.select(upgraded.items).getSingle();
+    expect(item.title, 'Дюна');
+    expect(item.properties, isNull);
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('old'))).write(const ItemsCompanion(properties: Value('{"rating":5}')));
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:old']);
+    // правка другого поля по-прежнему ставит в очередь: триггер пересоздан целым
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('old'))).write(const ItemsCompanion(title: Value('Дюна 2')));
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], contains('item:old'));
+  });
+
   test('v6 → v7: первая строка, которую правка унесла в заголовок, вернулась в текст заметки', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -312,8 +340,18 @@ void main() {
 
 // версия 10: статьи — цитаты, жива ли ссылка, где остановился читать
 // версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
+// версия 15: свойства заметки, которых Stowa не знает. Триггер правки заметки ссылается
+// на поле: он снимается и встаёт обратно без него, как стоял в версии 14
+void _dropProperties(Database raw) {
+  final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
+  raw.execute('DROP TRIGGER vault_items_update');
+  raw.execute('ALTER TABLE items DROP COLUMN properties');
+  raw.execute(trigger.replaceFirst(' properties,', ''));
+}
+
 // версия 14: скрытые папки
 void _dropHidden(Database raw) {
+  _dropProperties(raw);
   raw.execute('ALTER TABLE folders DROP COLUMN hidden');
 }
 

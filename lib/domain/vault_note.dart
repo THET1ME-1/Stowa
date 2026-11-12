@@ -110,12 +110,13 @@ String vaultFileName(String title) {
 /// свойством, только когда из имени его не вернуть.
 String writeVaultNote(VaultNote note, {required String fileName}) {
   final lines = <String>[];
+  // своё пустое свойство в файл не идёт
   void put(String key, Object? value) {
     if (value == null) return;
     if (value is String && value.isEmpty) return;
     if (value is List && value.isEmpty) return;
     if (value is Map && value.isEmpty) return;
-    lines.add('$key: ${jsonEncode(value)}');
+    lines.addAll(vaultProperty(key, value));
   }
 
   final preview = <String, Object?>{'site': ?note.previewSite, 'author': ?note.previewAuthor, 'text': ?note.previewText};
@@ -139,8 +140,9 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
   put('highlights', [
     for (final one in note.highlights) <String, Object?>{'quote': one.quote, 'note': ?one.note, 'at': _time(one.at), if (one.position != 0) 'pos': one.position},
   ]);
+  // чужое возвращается и пустым: человек завёл свойство и ещё не заполнил
   for (final MapEntry(:key, :value) in note.extra.entries) {
-    put(key, value);
+    lines.addAll(vaultProperty(key, value));
   }
 
   final text = StringBuffer();
@@ -154,6 +156,100 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
     }
   }
   return text.toString();
+}
+
+/// Строки одного свойства так, как их пишет Obsidian: список столбиком, вложенное
+/// с отступом в два пробела, строка без кавычек, когда YAML прочтёт её строкой.
+List<String> vaultProperty(String key, Object? value) {
+  final lines = _entry(key, value, '');
+  // страховка: блок, который читается не тем же значением, пишется прежним видом, в JSON
+  try {
+    final back = loadYaml(lines.join('\n'));
+    if (back is YamlMap && back.length == 1 && back.containsKey(key) && _same(_plain(back[key]), value)) return lines;
+  } on YamlException {
+    // ниже запасной вид
+  }
+  try {
+    return ['${jsonEncode(key)}: ${jsonEncode(value)}'];
+  } on JsonUnsupportedObjectError {
+    return const [];
+  }
+}
+
+List<String> _entry(String key, Object? value, String pad) {
+  final name = _scalar(key);
+  if (value is Map && value.isNotEmpty) {
+    return ['$pad$name:', for (final MapEntry(:key, :value) in value.entries) ..._entry('$key', value, '$pad  ')];
+  }
+  if (value is List && value.isNotEmpty) {
+    return ['$pad$name:', for (final item in value) ..._listItem(item, '$pad  ')];
+  }
+  final text = _scalar(value);
+  return [text.isEmpty ? '$pad$name:' : '$pad$name: $text'];
+}
+
+// пункт списка: вложенный блок начинается на строке с чёрточкой
+List<String> _listItem(Object? item, String pad) {
+  final nested = switch (item) {
+    final Map<Object?, Object?> map when map.isNotEmpty => [for (final MapEntry(:key, :value) in map.entries) ..._entry('$key', value, '$pad  ')],
+    final List<Object?> list when list.isNotEmpty => [for (final inner in list) ..._listItem(inner, '$pad  ')],
+    _ => null,
+  };
+  if (nested != null) return ['$pad- ${nested.first.substring(pad.length + 2)}', ...nested.skip(1)];
+  final text = _scalar(item);
+  return [text.isEmpty ? '$pad-' : '$pad- $text'];
+}
+
+String _scalar(Object? value) => switch (value) {
+  null => '',
+  final String text => _readsAsText(text) ? text : jsonEncode(text),
+  final double number when number.isNaN => '.nan',
+  final double number when number.isInfinite => number.isNegative ? '-.inf' : '.inf',
+  final num number => '$number',
+  final bool flag => '$flag',
+  List() => '[]',
+  Map() => '{}',
+  _ => jsonEncode('$value'),
+};
+
+// знаки, с которых в YAML начинается не строка, и слова с числами, которые он читает по-своему
+final _yamlOpening = RegExp(r'''^[-?:,\[\]{}#&*!|>'"%@`~=<\s]''');
+final _yamlBreak = RegExp(r'[\x00-\x1F\x7F\u0085\u2028\u2029\uFEFF]|: | #|[:\s]$');
+final _yamlWord = RegExp(r'^(null|true|false|yes|no|on|off|y|n)$', caseSensitive: false);
+final _yamlNumber = RegExp(
+  r'^[-+]?(\.[0-9]+|[0-9][0-9_,]*(\.[0-9_]*)?)([eE][-+]?[0-9]+)?$'
+  r'|^[-+]?0[xXoObB][0-9a-fA-F_]+$'
+  r'|^[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+(\.[0-9_]*)?$'
+  r'|^[-+]?\.(inf|nan)$',
+  caseSensitive: false,
+);
+
+bool _readsAsText(String text) =>
+    text.isNotEmpty && !text.startsWith('...') && !_yamlOpening.hasMatch(text) && !_yamlBreak.hasMatch(text) && !_yamlWord.hasMatch(text) && !_yamlNumber.hasMatch(text);
+
+bool _same(Object? left, Object? right) => switch ((left, right)) {
+  (final Map<Object?, Object?> a, final Map<Object?, Object?> b) => a.length == b.length && a.keys.every((key) => b.containsKey(key) && _same(a[key], b[key])),
+  (final List<Object?> a, final List<Object?> b) => a.length == b.length && Iterable<int>.generate(a.length).every((index) => _same(a[index], b[index])),
+  (final double a, final double b) when a.isNaN && b.isNaN => true,
+  _ => left == right,
+};
+
+/// Чужие свойства одной строкой JSON для базы; свойств нет — null.
+String? packVaultProperties(Map<String, Object?> extra) {
+  if (extra.isEmpty) return null;
+  // в JSON нет бесконечности и «не числа»: они уходят текстом, остальные свойства целы
+  return jsonEncode(extra, toEncodable: (value) => value is double ? _scalar(value) : '$value');
+}
+
+/// Чужие свойства из базы; пустое и испорченное читается как «свойств нет».
+Map<String, Object?> unpackVaultProperties(String? packed) {
+  if (packed == null) return const {};
+  try {
+    final decoded = jsonDecode(packed);
+    return decoded is Map<String, Object?> ? decoded : const {};
+  } on FormatException {
+    return const {};
+  }
 }
 
 final _embed = RegExp(r'^!\[\[(.+)\]\]$');
@@ -205,7 +301,9 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
     final name = normalizeTagName(tag);
     if (name.isNotEmpty && !tags.contains(name)) tags.add(name);
   }
-  final created = _parseTime(properties['created']) ?? fileModified;
+  // date из шаблонов Obsidian — день записи, только если он не позже самого файла: иначе это день события
+  final dated = _parseTime(properties['date']);
+  final created = _parseTime(properties['created']) ?? (dated != null && !dated.isAfter(fileModified) ? dated : fileModified);
   return VaultNote(
     id: stringOf('id') ?? '',
     kind: ItemKind.values.asNameMap()[stringOf('kind')] ?? ItemKind.note,

@@ -59,7 +59,7 @@ void main() {
     final created = (await items()).single;
     expect(created.title, 'Идеи');
     expect(created.body, 'Сделать полку #дом');
-    expect(file('Идеи.md').readAsStringSync(), '---\nid: "${created.id}"\n---\nСделать полку #дом\n');
+    expect(file('Идеи.md').readAsStringSync(), '---\nid: ${created.id}\n---\nСделать полку #дом\n');
     final tags = await db.select(db.tags).get();
     expect(tags.map((tag) => tag.name), ['дом']);
     // новый тег уходит в tags.json, а сама заметка назад не пишется

@@ -32,7 +32,7 @@ String normalizeSearchText(String text) => _ftsSwaps.fold(text, (value, swap) =>
 // поля вещи, которые идут в файл хранилища: их правка ставит вещь в очередь записи
 const _vaultItemColumns =
     'kind, title, body, url, folder_id, sorted_by, cover_path, preview_text, preview_site, preview_author, '
-    'duration_seconds, latitude, longitude, place_name, reminder_at, remind_place, remind_latitude, remind_longitude, remind_place_name, '
+    'duration_seconds, latitude, longitude, place_name, reminder_at, remind_place, remind_latitude, remind_longitude, remind_place_name, properties, '
     'deleted_at, created_at, updated_at';
 
 // всё, что пишется в .stowa/*.json: таблица → цель очереди
@@ -102,7 +102,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -156,6 +156,8 @@ class AppDatabase extends _$AppDatabase {
       if (from < 11) await migrator.addColumn(folders, folders.parentId);
       // 12: история правок. Таблица до очереди хранилища: та ставит в очередь и историю
       if (from < 12) await migrator.createTable(noteVersions);
+      // 15: свойства заметки, которых Stowa не знает. До очереди хранилища: её триггер смотрит на поле
+      if (from < 15) await migrator.addColumn(items, items.properties);
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
         // до очереди: файлы хранилища сразу пишутся с целым текстом
@@ -169,10 +171,13 @@ class AppDatabase extends _$AppDatabase {
         await _createVaultTriggers();
         await enqueueWholeVault();
       }
-      // 8 у базы с очередью: триггер правки заметки знает новые поля, места — свой meta:places
-      if (from == 7) {
+      // 8 и 15 у базы с очередью: триггер правки заметки знает новые поля
+      if (from >= 7 && from < 15) {
         await customStatement('DROP TRIGGER IF EXISTS vault_items_update');
         await customStatement("CREATE TRIGGER vault_items_update AFTER UPDATE OF $_vaultItemColumns ON items WHEN $_notImporting BEGIN ${_vaultEnqueue("'item:' || new.id")} END");
+      }
+      // 8 у базы с очередью: места — свой meta:places
+      if (from == 7) {
         for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
           await customStatement("CREATE TRIGGER vault_places_${event.toLowerCase()}_meta AFTER $event ON places WHEN $_notImporting BEGIN ${_vaultEnqueue("'meta:places'")} END");
         }

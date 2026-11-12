@@ -489,5 +489,6 @@ Future<VaultNote> vaultNoteOf(AppDatabase db, Item item, {required List<String> 
     sortedBy: item.sortedBy,
     attachments: [for (final path in attachments) if (!inline.contains(path)) path],
     highlights: [for (final one in highlights) VaultHighlight(quote: one.quote, note: one.note, at: one.createdAt, position: one.position)],
+    extra: unpackVaultProperties(item.properties),
   );
 }

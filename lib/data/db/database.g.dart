@@ -317,6 +317,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _propertiesMeta = const VerificationMeta(
+    'properties',
+  );
+  @override
+  late final GeneratedColumn<String> properties = GeneratedColumn<String>(
+    'properties',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _factsTextMeta = const VerificationMeta(
     'factsText',
   );
@@ -393,6 +404,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     goneKept,
     linkCheckedAt,
     readPosition,
+    properties,
     factsText,
     createdAt,
     updatedAt,
@@ -591,6 +603,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         ),
       );
     }
+    if (data.containsKey('properties')) {
+      context.handle(
+        _propertiesMeta,
+        properties.isAcceptableOrUnknown(data['properties']!, _propertiesMeta),
+      );
+    }
     if (data.containsKey('facts_text')) {
       context.handle(
         _factsTextMeta,
@@ -752,6 +770,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.double,
         data['${effectivePrefix}read_position'],
       ),
+      properties: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}properties'],
+      ),
       factsText: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}facts_text'],
@@ -843,6 +865,10 @@ class Item extends DataClass implements Insertable<Item> {
   /// Где остановился в читалке: доля прокрутки от 0 до 1. Тоже след чтения, не заметка.
   final double? readPosition;
 
+  /// Свойства из файла заметки, которых Stowa не знает (aliases, rating…), одной картой
+  /// в JSON: возвращаются в файл как были. Свойств нет — null.
+  final String? properties;
+
   /// Текст фактов одной строкой: его индексирует поиск. Пишет `FactsPipeline`.
   final String factsText;
   final DateTime createdAt;
@@ -878,6 +904,7 @@ class Item extends DataClass implements Insertable<Item> {
     required this.goneKept,
     this.linkCheckedAt,
     this.readPosition,
+    this.properties,
     required this.factsText,
     required this.createdAt,
     required this.updatedAt,
@@ -971,6 +998,9 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || readPosition != null) {
       map['read_position'] = Variable<double>(readPosition);
     }
+    if (!nullToAbsent || properties != null) {
+      map['properties'] = Variable<String>(properties);
+    }
     map['facts_text'] = Variable<String>(factsText);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -1053,6 +1083,9 @@ class Item extends DataClass implements Insertable<Item> {
       readPosition: readPosition == null && nullToAbsent
           ? const Value.absent()
           : Value(readPosition),
+      properties: properties == null && nullToAbsent
+          ? const Value.absent()
+          : Value(properties),
       factsText: Value(factsText),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -1105,6 +1138,7 @@ class Item extends DataClass implements Insertable<Item> {
       goneKept: serializer.fromJson<bool>(json['goneKept']),
       linkCheckedAt: serializer.fromJson<DateTime?>(json['linkCheckedAt']),
       readPosition: serializer.fromJson<double?>(json['readPosition']),
+      properties: serializer.fromJson<String?>(json['properties']),
       factsText: serializer.fromJson<String>(json['factsText']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -1152,6 +1186,7 @@ class Item extends DataClass implements Insertable<Item> {
       'goneKept': serializer.toJson<bool>(goneKept),
       'linkCheckedAt': serializer.toJson<DateTime?>(linkCheckedAt),
       'readPosition': serializer.toJson<double?>(readPosition),
+      'properties': serializer.toJson<String?>(properties),
       'factsText': serializer.toJson<String>(factsText),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -1189,6 +1224,7 @@ class Item extends DataClass implements Insertable<Item> {
     bool? goneKept,
     Value<DateTime?> linkCheckedAt = const Value.absent(),
     Value<double?> readPosition = const Value.absent(),
+    Value<String?> properties = const Value.absent(),
     String? factsText,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -1237,6 +1273,7 @@ class Item extends DataClass implements Insertable<Item> {
         ? linkCheckedAt.value
         : this.linkCheckedAt,
     readPosition: readPosition.present ? readPosition.value : this.readPosition,
+    properties: properties.present ? properties.value : this.properties,
     factsText: factsText ?? this.factsText,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -1299,6 +1336,9 @@ class Item extends DataClass implements Insertable<Item> {
       readPosition: data.readPosition.present
           ? data.readPosition.value
           : this.readPosition,
+      properties: data.properties.present
+          ? data.properties.value
+          : this.properties,
       factsText: data.factsText.present ? data.factsText.value : this.factsText,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -1338,6 +1378,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('goneKept: $goneKept, ')
           ..write('linkCheckedAt: $linkCheckedAt, ')
           ..write('readPosition: $readPosition, ')
+          ..write('properties: $properties, ')
           ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -1377,6 +1418,7 @@ class Item extends DataClass implements Insertable<Item> {
     goneKept,
     linkCheckedAt,
     readPosition,
+    properties,
     factsText,
     createdAt,
     updatedAt,
@@ -1415,6 +1457,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.goneKept == this.goneKept &&
           other.linkCheckedAt == this.linkCheckedAt &&
           other.readPosition == this.readPosition &&
+          other.properties == this.properties &&
           other.factsText == this.factsText &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -1451,6 +1494,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<bool> goneKept;
   final Value<DateTime?> linkCheckedAt;
   final Value<double?> readPosition;
+  final Value<String?> properties;
   final Value<String> factsText;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1486,6 +1530,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.goneKept = const Value.absent(),
     this.linkCheckedAt = const Value.absent(),
     this.readPosition = const Value.absent(),
+    this.properties = const Value.absent(),
     this.factsText = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1522,6 +1567,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.goneKept = const Value.absent(),
     this.linkCheckedAt = const Value.absent(),
     this.readPosition = const Value.absent(),
+    this.properties = const Value.absent(),
     this.factsText = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -1562,6 +1608,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<bool>? goneKept,
     Expression<DateTime>? linkCheckedAt,
     Expression<double>? readPosition,
+    Expression<String>? properties,
     Expression<String>? factsText,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1598,6 +1645,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (goneKept != null) 'gone_kept': goneKept,
       if (linkCheckedAt != null) 'link_checked_at': linkCheckedAt,
       if (readPosition != null) 'read_position': readPosition,
+      if (properties != null) 'properties': properties,
       if (factsText != null) 'facts_text': factsText,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1636,6 +1684,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<bool>? goneKept,
     Value<DateTime?>? linkCheckedAt,
     Value<double?>? readPosition,
+    Value<String?>? properties,
     Value<String>? factsText,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1672,6 +1721,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       goneKept: goneKept ?? this.goneKept,
       linkCheckedAt: linkCheckedAt ?? this.linkCheckedAt,
       readPosition: readPosition ?? this.readPosition,
+      properties: properties ?? this.properties,
       factsText: factsText ?? this.factsText,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1778,6 +1828,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (readPosition.present) {
       map['read_position'] = Variable<double>(readPosition.value);
     }
+    if (properties.present) {
+      map['properties'] = Variable<String>(properties.value);
+    }
     if (factsText.present) {
       map['facts_text'] = Variable<String>(factsText.value);
     }
@@ -1828,6 +1881,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('goneKept: $goneKept, ')
           ..write('linkCheckedAt: $linkCheckedAt, ')
           ..write('readPosition: $readPosition, ')
+          ..write('properties: $properties, ')
           ..write('factsText: $factsText, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -10906,6 +10960,7 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<bool> goneKept,
   Value<DateTime?> linkCheckedAt,
   Value<double?> readPosition,
+  Value<String?> properties,
   Value<String> factsText,
   required DateTime createdAt,
   required DateTime updatedAt,
@@ -10942,6 +10997,7 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<bool> goneKept,
   Value<DateTime?> linkCheckedAt,
   Value<double?> readPosition,
+  Value<String?> properties,
   Value<String> factsText,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -11103,6 +11159,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<double> get readPosition => $composableBuilder(
     column: $table.readPosition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get properties => $composableBuilder(
+    column: $table.properties,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11281,6 +11342,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get properties => $composableBuilder(
+    column: $table.properties,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get factsText => $composableBuilder(
     column: $table.factsText,
     builder: (column) => ColumnOrderings(column),
@@ -11425,6 +11491,11 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get properties => $composableBuilder(
+    column: $table.properties,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get factsText =>
       $composableBuilder(column: $table.factsText, builder: (column) => column);
 
@@ -11495,6 +11566,7 @@ class $$ItemsTableTableManager
                 Value<bool> goneKept = const Value.absent(),
                 Value<DateTime?> linkCheckedAt = const Value.absent(),
                 Value<double?> readPosition = const Value.absent(),
+                Value<String?> properties = const Value.absent(),
                 Value<String> factsText = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -11530,6 +11602,7 @@ class $$ItemsTableTableManager
                 goneKept: goneKept,
                 linkCheckedAt: linkCheckedAt,
                 readPosition: readPosition,
+                properties: properties,
                 factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -11567,6 +11640,7 @@ class $$ItemsTableTableManager
                 Value<bool> goneKept = const Value.absent(),
                 Value<DateTime?> linkCheckedAt = const Value.absent(),
                 Value<double?> readPosition = const Value.absent(),
+                Value<String?> properties = const Value.absent(),
                 Value<String> factsText = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -11602,6 +11676,7 @@ class $$ItemsTableTableManager
                 goneKept: goneKept,
                 linkCheckedAt: linkCheckedAt,
                 readPosition: readPosition,
+                properties: properties,
                 factsText: factsText,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
