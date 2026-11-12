@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/app.dart';
+import 'package:stowa/features/composer/attach_tray.dart';
 import 'package:stowa/features/home/note_timeline.dart';
 import 'package:stowa/features/settings/settings_blocks.dart';
 import 'package:stowa/l10n/app_localizations.dart';
@@ -147,7 +148,15 @@ Future<List<WalkStep>> walkScreens(
   // касание строки поднимает настоящую клавиатуру: видно, как строка встаёт над ней
   if (device) await step('клавиатура', () => tester.tap(line));
   // дальше шаги, на которых система может спросить разрешение: её окно тест закрыть не может
-  await step('галерея', () => tester.tap(find.byTooltip(l.composerAttach)));
+  // лоток крутит ожидание, пока система отвечает про доступ и отдаёт снимки: ждём ответа до полуминуты
+  await step('галерея', () async {
+    await tester.tap(find.byTooltip(l.composerAttach));
+    final spinner = find.descendant(of: find.byType(AttachTray), matching: find.byType(CircularProgressIndicator));
+    for (var attempt = 0; attempt < 15; attempt++) {
+      await wait();
+      if (spinner.evaluate().isEmpty) break;
+    }
+  });
   if (device) await step('напоминание', () => stow('Позвонить мастеру завтра в 10'));
   return steps;
 }

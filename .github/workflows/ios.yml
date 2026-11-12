@@ -115,12 +115,15 @@ jobs:
           for access in photos photos-add microphone location; do
             xcrun simctl privacy "$DEVICE" grant "$access" app.stowa
           done
+          TCC="$HOME/Library/Developer/CoreSimulator/Devices/$DEVICE/data/Library/TCC/TCC.db"
           # что система записала про разрешения: по этим файлам видно, куда делось выданное
           permissions() {
-            sqlite3 "$HOME/Library/Developer/CoreSimulator/Devices/$DEVICE/data/Library/TCC/TCC.db" \
-              "select service, auth_value, auth_version from access where client = 'app.stowa'" > "out/walk/permissions-$1.txt" 2>&1 || true
+            sqlite3 "$TCC" "select service, auth_value, auth_version from access where client = 'app.stowa'" > "out/walk/permissions-$1.txt" 2>&1 || true
           }
           permissions 1-granted
+          # simctl пишет доступ к фото первой версией записи, и система всё равно спрашивает: нужна вторая
+          sqlite3 "$TCC" "update access set auth_version = 2 where client = 'app.stowa' and service = 'kTCCServicePhotos'" || true
+          permissions 1-photos-fixed
           xcrun simctl location "$DEVICE" set 47.0245,28.8322
           xcrun simctl launch --console-pty "$DEVICE" app.stowa -AppleLanguages "(ru)" -AppleLocale ru_RU >> out/walk/app.log 2>&1 &
 
@@ -164,6 +167,8 @@ jobs:
           permissions 3-finished
           cat out/walk/permissions-*.txt out/walk/shots.log || true
           xcrun simctl spawn "$DEVICE" log show --last 12m --style compact --predicate 'process == "Runner"' > out/walk/system.log 2>&1 || true
+          # что служба разрешений ответила на каждый запрос приложения
+          xcrun simctl spawn "$DEVICE" log show --last 12m --style compact --predicate 'process == "tccd"' > out/walk/tcc.log 2>&1 || true
 
           if [ -z "$RESULT" ] || ! grep -q '^done$' "$RESULT"; then
             echo "Маршрут не дошёл до конца"
