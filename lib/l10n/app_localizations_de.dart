@@ -2759,4 +2759,73 @@ class LDe extends L {
 
   @override
   String get itemDateChanged => 'Datum geändert';
+
+  @override
+  String get propertiesTitle => 'Eigenschaften';
+
+  @override
+  String propertiesMore(Object count) {
+    return '$count weitere';
+  }
+
+  @override
+  String get propertiesLess => 'Einklappen';
+
+  @override
+  String get propertyAdd => 'Eigenschaft hinzufügen';
+
+  @override
+  String get propertyNew => 'Neue Eigenschaft';
+
+  @override
+  String get propertyEdit => 'Eigenschaft';
+
+  @override
+  String get propertyNameHint => 'Name';
+
+  @override
+  String get propertyValueHint => 'Wert';
+
+  @override
+  String get propertyListHint => 'Ein Eintrag pro Zeile';
+
+  @override
+  String get propertyKindText => 'Text';
+
+  @override
+  String get propertyKindList => 'Liste';
+
+  @override
+  String get propertyKindNumber => 'Zahl';
+
+  @override
+  String get propertyKindCheckbox => 'Kontrollkästchen';
+
+  @override
+  String get propertyKindDate => 'Datum';
+
+  @override
+  String get propertyNameTaken => 'Diese Eigenschaft gibt es schon';
+
+  @override
+  String get propertyNumberWrong => 'Hier gehört eine Zahl hin';
+
+  @override
+  String get propertyDatePick => 'Tag wählen';
+
+  @override
+  String get propertyDelete => 'Eigenschaft löschen';
+
+  @override
+  String get propertyRemoved => 'Eigenschaft gelöscht';
+
+  @override
+  String get propertyOtherHint =>
+      'Dieser Wert lässt sich in der Notizdatei ändern.';
+
+  @override
+  String get propertyYes => 'Ja';
+
+  @override
+  String get propertyNo => 'Nein';
 }

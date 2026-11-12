@@ -2755,4 +2755,73 @@ class LEs extends L {
 
   @override
   String get itemDateChanged => 'Fecha cambiada';
+
+  @override
+  String get propertiesTitle => 'Propiedades';
+
+  @override
+  String propertiesMore(Object count) {
+    return '$count más';
+  }
+
+  @override
+  String get propertiesLess => 'Contraer';
+
+  @override
+  String get propertyAdd => 'Añadir propiedad';
+
+  @override
+  String get propertyNew => 'Nueva propiedad';
+
+  @override
+  String get propertyEdit => 'Propiedad';
+
+  @override
+  String get propertyNameHint => 'Nombre';
+
+  @override
+  String get propertyValueHint => 'Valor';
+
+  @override
+  String get propertyListHint => 'Un elemento por línea';
+
+  @override
+  String get propertyKindText => 'Texto';
+
+  @override
+  String get propertyKindList => 'Lista';
+
+  @override
+  String get propertyKindNumber => 'Número';
+
+  @override
+  String get propertyKindCheckbox => 'Casilla';
+
+  @override
+  String get propertyKindDate => 'Fecha';
+
+  @override
+  String get propertyNameTaken => 'Esta propiedad ya existe';
+
+  @override
+  String get propertyNumberWrong => 'Escribe un número';
+
+  @override
+  String get propertyDatePick => 'Elegir día';
+
+  @override
+  String get propertyDelete => 'Eliminar propiedad';
+
+  @override
+  String get propertyRemoved => 'Propiedad eliminada';
+
+  @override
+  String get propertyOtherHint =>
+      'Este valor se cambia en el archivo de la nota.';
+
+  @override
+  String get propertyYes => 'Sí';
+
+  @override
+  String get propertyNo => 'No';
 }

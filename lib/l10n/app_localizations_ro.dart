@@ -2779,4 +2779,73 @@ class LRo extends L {
 
   @override
   String get itemDateChanged => 'Data a fost schimbată';
+
+  @override
+  String get propertiesTitle => 'Proprietăți';
+
+  @override
+  String propertiesMore(Object count) {
+    return 'Încă $count';
+  }
+
+  @override
+  String get propertiesLess => 'Restrânge';
+
+  @override
+  String get propertyAdd => 'Adaugă o proprietate';
+
+  @override
+  String get propertyNew => 'Proprietate nouă';
+
+  @override
+  String get propertyEdit => 'Proprietate';
+
+  @override
+  String get propertyNameHint => 'Nume';
+
+  @override
+  String get propertyValueHint => 'Valoare';
+
+  @override
+  String get propertyListHint => 'Câte un element pe rând';
+
+  @override
+  String get propertyKindText => 'Text';
+
+  @override
+  String get propertyKindList => 'Listă';
+
+  @override
+  String get propertyKindNumber => 'Număr';
+
+  @override
+  String get propertyKindCheckbox => 'Bifă';
+
+  @override
+  String get propertyKindDate => 'Dată';
+
+  @override
+  String get propertyNameTaken => 'Proprietatea există deja';
+
+  @override
+  String get propertyNumberWrong => 'Introdu un număr';
+
+  @override
+  String get propertyDatePick => 'Alege ziua';
+
+  @override
+  String get propertyDelete => 'Șterge proprietatea';
+
+  @override
+  String get propertyRemoved => 'Proprietate ștearsă';
+
+  @override
+  String get propertyOtherHint =>
+      'Valoarea aceasta se schimbă în fișierul notiței.';
+
+  @override
+  String get propertyYes => 'Da';
+
+  @override
+  String get propertyNo => 'Nu';
 }

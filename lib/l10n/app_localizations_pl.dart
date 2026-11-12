@@ -2810,4 +2810,72 @@ class LPl extends L {
 
   @override
   String get itemDateChanged => 'Data zmieniona';
+
+  @override
+  String get propertiesTitle => 'Właściwości';
+
+  @override
+  String propertiesMore(Object count) {
+    return 'Jeszcze $count';
+  }
+
+  @override
+  String get propertiesLess => 'Zwiń';
+
+  @override
+  String get propertyAdd => 'Dodaj właściwość';
+
+  @override
+  String get propertyNew => 'Nowa właściwość';
+
+  @override
+  String get propertyEdit => 'Właściwość';
+
+  @override
+  String get propertyNameHint => 'Nazwa';
+
+  @override
+  String get propertyValueHint => 'Wartość';
+
+  @override
+  String get propertyListHint => 'Każdy element w nowej linii';
+
+  @override
+  String get propertyKindText => 'Tekst';
+
+  @override
+  String get propertyKindList => 'Lista';
+
+  @override
+  String get propertyKindNumber => 'Liczba';
+
+  @override
+  String get propertyKindCheckbox => 'Pole wyboru';
+
+  @override
+  String get propertyKindDate => 'Data';
+
+  @override
+  String get propertyNameTaken => 'Taka właściwość już jest';
+
+  @override
+  String get propertyNumberWrong => 'Wpisz liczbę';
+
+  @override
+  String get propertyDatePick => 'Wybierz dzień';
+
+  @override
+  String get propertyDelete => 'Usuń właściwość';
+
+  @override
+  String get propertyRemoved => 'Właściwość usunięta';
+
+  @override
+  String get propertyOtherHint => 'Tę wartość zmienia się w pliku notatki.';
+
+  @override
+  String get propertyYes => 'Tak';
+
+  @override
+  String get propertyNo => 'Nie';
 }

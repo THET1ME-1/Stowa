@@ -2811,4 +2811,72 @@ class LUk extends L {
 
   @override
   String get itemDateChanged => 'Дату змінено';
+
+  @override
+  String get propertiesTitle => 'Властивості';
+
+  @override
+  String propertiesMore(Object count) {
+    return 'Ще $count';
+  }
+
+  @override
+  String get propertiesLess => 'Згорнути';
+
+  @override
+  String get propertyAdd => 'Додати властивість';
+
+  @override
+  String get propertyNew => 'Нова властивість';
+
+  @override
+  String get propertyEdit => 'Властивість';
+
+  @override
+  String get propertyNameHint => 'Назва';
+
+  @override
+  String get propertyValueHint => 'Значення';
+
+  @override
+  String get propertyListHint => 'Кожен пункт з нового рядка';
+
+  @override
+  String get propertyKindText => 'Текст';
+
+  @override
+  String get propertyKindList => 'Список';
+
+  @override
+  String get propertyKindNumber => 'Число';
+
+  @override
+  String get propertyKindCheckbox => 'Прапорець';
+
+  @override
+  String get propertyKindDate => 'Дата';
+
+  @override
+  String get propertyNameTaken => 'Така властивість уже є';
+
+  @override
+  String get propertyNumberWrong => 'Тут потрібне число';
+
+  @override
+  String get propertyDatePick => 'Вибрати день';
+
+  @override
+  String get propertyDelete => 'Видалити властивість';
+
+  @override
+  String get propertyRemoved => 'Властивість видалено';
+
+  @override
+  String get propertyOtherHint => 'Таке значення змінюється у файлі нотатки.';
+
+  @override
+  String get propertyYes => 'Так';
+
+  @override
+  String get propertyNo => 'Ні';
 }

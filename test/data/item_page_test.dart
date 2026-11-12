@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/vault_note.dart';
 
 void main() {
   late AppDatabase db;
@@ -43,6 +44,22 @@ void main() {
     final item = (await items.get('a'))!.item;
     expect(item.createdAt, later);
     expect(item.updatedAt, later, reason: 'заметка не может быть поправлена раньше, чем записана');
+  });
+
+  test('свойства заметки меняются, правка встаёт в очередь файла', () async {
+    await db.delete(db.vaultQueue).go();
+    final later = DateTime(2026, 11, 3, 9);
+    await items.setProperties('a', {'aliases': ['Резина'], 'rating': 5, 'publish': null}, later);
+    final item = (await items.get('a'))!.item;
+    expect(unpackVaultProperties(item.properties), {'aliases': ['Резина'], 'rating': 5, 'publish': null});
+    expect(item.updatedAt, later);
+    expect((await db.select(db.vaultQueue).get()).map((row) => row.target), ['item:a']);
+  });
+
+  test('последнее свойство убрали — в базе пусто, а не пустая карта', () async {
+    await items.setProperties('a', {'rating': 5}, at);
+    await items.setProperties('a', const {}, at);
+    expect((await items.get('a'))!.item.properties, isNull);
   });
 
   test('страница вещи видит правку сразу', () async {

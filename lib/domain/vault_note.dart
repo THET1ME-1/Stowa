@@ -86,6 +86,9 @@ class VaultNote {
 
 const _known = {'id', 'kind', 'title', 'created', 'updated', 'tags', 'url', 'preview', 'cover', 'duration', 'reminder', 'place', 'remind_place', 'sorted_by', 'highlights'};
 
+/// Свойство, которое Stowa ведёт сама: второго с таким именем в файле быть не должно.
+bool isOwnVaultProperty(String name) => _known.contains(name);
+
 // символы, которые Android, Windows (через Syncthing) или Obsidian не пускают в имя
 final _forbidden = RegExp(r'[/\\:*?"<>|#^\[\]\x00-\x1F]');
 

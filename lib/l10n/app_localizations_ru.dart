@@ -2815,4 +2815,72 @@ class LRu extends L {
 
   @override
   String get itemDateChanged => 'Дата изменена';
+
+  @override
+  String get propertiesTitle => 'Свойства';
+
+  @override
+  String propertiesMore(Object count) {
+    return 'Ещё $count';
+  }
+
+  @override
+  String get propertiesLess => 'Свернуть';
+
+  @override
+  String get propertyAdd => 'Добавить свойство';
+
+  @override
+  String get propertyNew => 'Новое свойство';
+
+  @override
+  String get propertyEdit => 'Свойство';
+
+  @override
+  String get propertyNameHint => 'Название';
+
+  @override
+  String get propertyValueHint => 'Значение';
+
+  @override
+  String get propertyListHint => 'Каждый пункт с новой строки';
+
+  @override
+  String get propertyKindText => 'Текст';
+
+  @override
+  String get propertyKindList => 'Список';
+
+  @override
+  String get propertyKindNumber => 'Число';
+
+  @override
+  String get propertyKindCheckbox => 'Галочка';
+
+  @override
+  String get propertyKindDate => 'Дата';
+
+  @override
+  String get propertyNameTaken => 'Такое свойство уже есть';
+
+  @override
+  String get propertyNumberWrong => 'Здесь нужно число';
+
+  @override
+  String get propertyDatePick => 'Выбрать день';
+
+  @override
+  String get propertyDelete => 'Удалить свойство';
+
+  @override
+  String get propertyRemoved => 'Свойство удалено';
+
+  @override
+  String get propertyOtherHint => 'Такое значение меняется в файле заметки.';
+
+  @override
+  String get propertyYes => 'Да';
+
+  @override
+  String get propertyNo => 'Нет';
 }

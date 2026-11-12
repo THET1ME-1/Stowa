@@ -4534,6 +4534,138 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Date changed'**
   String get itemDateChanged;
+
+  /// Заголовок блока на странице заметки: свойства из шапки файла, как в Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Properties'**
+  String get propertiesTitle;
+
+  /// Блок свойств заметки: показать остальные свойства
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more'**
+  String propertiesMore(Object count);
+
+  /// Блок свойств заметки: спрятать лишние свойства обратно
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get propertiesLess;
+
+  /// Строка в блоке свойств и пункт меню заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Add property'**
+  String get propertyAdd;
+
+  /// Надпись над полем названия в листе нового свойства
+  ///
+  /// In en, this message translates to:
+  /// **'New property'**
+  String get propertyNew;
+
+  /// Надпись над полем названия в листе правки свойства
+  ///
+  /// In en, this message translates to:
+  /// **'Property'**
+  String get propertyEdit;
+
+  /// Подсказка в поле названия свойства
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get propertyNameHint;
+
+  /// Подсказка в поле значения свойства
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get propertyValueHint;
+
+  /// Подсказка в поле значения свойства-списка
+  ///
+  /// In en, this message translates to:
+  /// **'One item per line'**
+  String get propertyListHint;
+
+  /// Вид свойства заметки: текст
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get propertyKindText;
+
+  /// Вид свойства заметки: список
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get propertyKindList;
+
+  /// Вид свойства заметки: число
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get propertyKindNumber;
+
+  /// Вид свойства заметки: да или нет
+  ///
+  /// In en, this message translates to:
+  /// **'Checkbox'**
+  String get propertyKindCheckbox;
+
+  /// Вид свойства заметки: день
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get propertyKindDate;
+
+  /// Ошибка под полем названия свойства: имя занято
+  ///
+  /// In en, this message translates to:
+  /// **'This property already exists'**
+  String get propertyNameTaken;
+
+  /// Ошибка под полем значения свойства-числа
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get propertyNumberWrong;
+
+  /// Кнопка в листе свойства-даты, пока день не выбран
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a day'**
+  String get propertyDatePick;
+
+  /// Кнопка в листе правки свойства
+  ///
+  /// In en, this message translates to:
+  /// **'Delete property'**
+  String get propertyDelete;
+
+  /// Плашка после удаления свойства, рядом «Отменить»
+  ///
+  /// In en, this message translates to:
+  /// **'Property deleted'**
+  String get propertyRemoved;
+
+  /// Подсказка в листе свойства с вложенным значением: приложение его только показывает
+  ///
+  /// In en, this message translates to:
+  /// **'This value can be changed in the note file.'**
+  String get propertyOtherHint;
+
+  /// Значение свойства-галочки в блоке свойств: стоит
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get propertyYes;
+
+  /// Значение свойства-галочки в блоке свойств: не стоит
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get propertyNo;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

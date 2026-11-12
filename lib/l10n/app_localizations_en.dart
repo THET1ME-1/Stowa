@@ -2752,4 +2752,72 @@ class LEn extends L {
 
   @override
   String get itemDateChanged => 'Date changed';
+
+  @override
+  String get propertiesTitle => 'Properties';
+
+  @override
+  String propertiesMore(Object count) {
+    return '$count more';
+  }
+
+  @override
+  String get propertiesLess => 'Show less';
+
+  @override
+  String get propertyAdd => 'Add property';
+
+  @override
+  String get propertyNew => 'New property';
+
+  @override
+  String get propertyEdit => 'Property';
+
+  @override
+  String get propertyNameHint => 'Name';
+
+  @override
+  String get propertyValueHint => 'Value';
+
+  @override
+  String get propertyListHint => 'One item per line';
+
+  @override
+  String get propertyKindText => 'Text';
+
+  @override
+  String get propertyKindList => 'List';
+
+  @override
+  String get propertyKindNumber => 'Number';
+
+  @override
+  String get propertyKindCheckbox => 'Checkbox';
+
+  @override
+  String get propertyKindDate => 'Date';
+
+  @override
+  String get propertyNameTaken => 'This property already exists';
+
+  @override
+  String get propertyNumberWrong => 'Enter a number';
+
+  @override
+  String get propertyDatePick => 'Pick a day';
+
+  @override
+  String get propertyDelete => 'Delete property';
+
+  @override
+  String get propertyRemoved => 'Property deleted';
+
+  @override
+  String get propertyOtherHint => 'This value can be changed in the note file.';
+
+  @override
+  String get propertyYes => 'Yes';
+
+  @override
+  String get propertyNo => 'No';
 }

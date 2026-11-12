@@ -15,6 +15,7 @@ import '../../domain/related.dart';
 import '../../domain/search_query.dart';
 import '../../domain/search_rank.dart';
 import '../../domain/url_key.dart';
+import '../../domain/vault_note.dart' show packVaultProperties;
 import '../../domain/word_forms.dart';
 import '../../services/reminder_service.dart' show Reminder, hiddenReminderPayload, reminderText;
 import '../db/database.dart';
@@ -648,6 +649,11 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     // правка не может быть старше самой заметки
     final updated = item.updatedAt.isBefore(at) ? at : item.updatedAt;
     await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(createdAt: Value(at), updatedAt: Value(updated)));
+  }
+
+  /// Свойства заметки, которых Stowa не знает: набор целиком, как он ляжет в файл.
+  Future<void> setProperties(String id, Map<String, Object?> properties, DateTime at) {
+    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(properties: Value(packVaultProperties(properties)), updatedAt: Value(at)));
   }
 
   Future<void> setBody(String id, String body, DateTime at) async {

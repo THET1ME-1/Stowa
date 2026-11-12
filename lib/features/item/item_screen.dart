@@ -25,6 +25,7 @@ import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart';
 import '../../domain/shopping.dart';
+import '../../domain/vault_note.dart' show unpackVaultProperties;
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show CaptureInput, PickedFile;
 import '../composer/line_dock.dart';
@@ -47,6 +48,7 @@ import 'item_media.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
 import 'photo_viewer.dart';
+import 'properties_block.dart';
 import 'related_block.dart';
 
 /// Страница въезжает справа, как в макете.
@@ -73,7 +75,7 @@ const _markdownStrip = 52.0;
 /// а пустая строка в конце сохраняться не должна.
 final _trailingSpace = RegExp(r'\s+$');
 
-enum _MenuAction { copy, date, history, delete }
+enum _MenuAction { copy, date, property, history, delete }
 
 /// Вещь целиком, по образцу поста Togetherly: шапка с пилюлей папки, заголовок,
 /// теги и напоминание отдельными блоками, текст своей карточкой, внизу плавающая
@@ -258,6 +260,22 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     if (chosen == before) return;
     await _items.setCreated(_id, chosen);
     showUndo(messenger, message: l.itemDateChanged, label: l.undo, overDock: true, onUndo: () => _items.setCreated(_id, before));
+  }
+
+  /// Свойства из файла: правка ложится сразу, удалённое можно вернуть.
+  Future<void> _setProperties(Map<String, Object?> before, Map<String, Object?> next) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    await _items.setProperties(_id, next, _clock());
+    if (next.length < before.length) {
+      showUndo(messenger, message: l.propertyRemoved, label: l.undo, overDock: true, onUndo: () => _items.setProperties(_id, before, _clock()));
+    }
+  }
+
+  Future<void> _addProperty(Item item) async {
+    final before = unpackVaultProperties(item.properties);
+    final next = await editProperty(context, before);
+    if (next != null && mounted) await _setProperties(before, next);
   }
 
   PlaceReminder? _placeOf(Item item) =>
@@ -476,7 +494,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       context: context,
       showDragHandle: true,
       useSafeArea: true,
-      // четыре пункта выше обычного потолка листа на низком экране
+      // пять пунктов выше обычного потолка листа на низком экране
       isScrollControlled: true,
       builder: (sheet) => _ItemMenu(title: item.title, history: hasHistory),
     );
@@ -486,6 +504,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
         await _copy(item);
       case _MenuAction.date:
         await _changeDate(item);
+      case _MenuAction.property:
+        await _addProperty(item);
       case _MenuAction.history:
         await _history();
       case _MenuAction.delete:
@@ -547,6 +567,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final blocks = parseNoteBlocks(shownBody);
     // «купить молоко, хлеб и яйца» можно одним касанием сделать галочками
     final checklist = item.kind == ItemKind.note ? shoppingChecklist(item.body) : null;
+    final properties = unpackVaultProperties(item.properties);
     // заголовок из первой строки над ней же не повторяется: заметка видна, как её написали
     final showTitle = _editing || linkLike || !titleIsFirstLine(shownBody, item.title);
     final source = url == null ? null : sourceName(Uri.tryParse(url)?.host ?? '');
@@ -783,6 +804,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: FactsChips(facts: facts, onLink: _openLink, onShoppingList: checklist == null ? null : () => _toChecklist(item, checklist)),
                           ),
+                        ],
+                        // свойства из файла, которых Stowa не знает: как панель свойств в Obsidian
+                        if (!_editing && properties.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          PropertiesBlock(key: const ValueKey('item-properties'), properties: properties, onChanged: (next) => _setProperties(properties, next)),
                         ],
                         if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
                         // описание от ИИ нужно поиску; читать его стоит только у картинки, у заметки оно пересказ её же текста
@@ -1500,6 +1526,8 @@ class _ItemMenu extends StatelessWidget {
             row(_MenuAction.copy, 'content_copy', l.itemCopy, const BorderRadius.vertical(top: Radius.circular(24), bottom: Radius.circular(8))),
             const SizedBox(height: 4),
             row(_MenuAction.date, 'calendar_today', l.itemDateChange, const BorderRadius.all(Radius.circular(8))),
+            const SizedBox(height: 4),
+            row(_MenuAction.property, 'list_alt', l.propertyAdd, const BorderRadius.all(Radius.circular(8))),
             const SizedBox(height: 4),
             if (history) ...[
               row(_MenuAction.history, 'history', l.historyTitle, const BorderRadius.all(Radius.circular(8))),

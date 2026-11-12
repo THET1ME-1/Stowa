@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/vault_note.dart' show packVaultProperties;
 import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/features/home/folder_shelf.dart';
 import 'package:stowa/features/item/item_screen.dart';
@@ -383,6 +384,45 @@ void main() {
     await tester.tap(find.byTooltip('Править'));
     await tester.pumpAndSettle();
     await _shot(tester, '17б-правка');
+  });
+
+  testWidgets('свойства из файла', (tester) async {
+    await tester.runAsync(() async {
+      await _seed(world);
+      final capture = CaptureService(world.db, tags: TagsRepository(world.db), filesRoot: world.files, clock: () => world.now);
+      final id = await capture.capture(const CaptureInput(text: 'Дюна\nЧитаю вторую часть, первая зашла за три вечера'));
+      final properties = packVaultProperties({
+        'aliases': ['Дюна', 'Dune'],
+        'author': 'Фрэнк Герберт',
+        'rating': 5,
+        'read': true,
+        'started': '2026-10-28',
+        'publish': null,
+      });
+      await (world.db.update(world.db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(properties: Value(properties)));
+    });
+    await open(tester);
+    await tester.tap(find.text('Дюна').first);
+    await tester.pumpAndSettle();
+    await _shot(tester, '17в-свойства');
+    Future<void> row(String name, String shot) async {
+      await tester.ensureVisible(find.byKey(ValueKey('property-row-$name')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(ValueKey('property-row-$name')));
+      await tester.pumpAndSettle();
+      await _shot(tester, shot);
+      await tester.tapAt(const Offset(196, 40));
+      await tester.pumpAndSettle();
+    }
+
+    await row('aliases', '17г-свойство-список');
+    await row('read', '17д-свойство-галочка');
+    await tester.ensureVisible(find.text('Ещё 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ещё 2'));
+    await tester.pumpAndSettle();
+    await _shot(tester, '17е-свойства-все');
+    await row('started', '17ж-свойство-дата');
   });
 
   testWidgets('страница рецепта и событие', (tester) async {

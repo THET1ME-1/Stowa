@@ -3502,5 +3502,93 @@
   "itemDateChanged": "Date changed",
   "@itemDateChanged": {
     "description": "Плашка после смены даты заметки, рядом кнопка «Отменить»"
+  },
+  "propertiesTitle": "Properties",
+  "@propertiesTitle": {
+    "description": "Заголовок блока на странице заметки: свойства из шапки файла, как в Obsidian"
+  },
+  "propertiesMore": "{count} more",
+  "@propertiesMore": {
+    "description": "Блок свойств заметки: показать остальные свойства"
+  },
+  "propertiesLess": "Show less",
+  "@propertiesLess": {
+    "description": "Блок свойств заметки: спрятать лишние свойства обратно"
+  },
+  "propertyAdd": "Add property",
+  "@propertyAdd": {
+    "description": "Строка в блоке свойств и пункт меню заметки"
+  },
+  "propertyNew": "New property",
+  "@propertyNew": {
+    "description": "Надпись над полем названия в листе нового свойства"
+  },
+  "propertyEdit": "Property",
+  "@propertyEdit": {
+    "description": "Надпись над полем названия в листе правки свойства"
+  },
+  "propertyNameHint": "Name",
+  "@propertyNameHint": {
+    "description": "Подсказка в поле названия свойства"
+  },
+  "propertyValueHint": "Value",
+  "@propertyValueHint": {
+    "description": "Подсказка в поле значения свойства"
+  },
+  "propertyListHint": "One item per line",
+  "@propertyListHint": {
+    "description": "Подсказка в поле значения свойства-списка"
+  },
+  "propertyKindText": "Text",
+  "@propertyKindText": {
+    "description": "Вид свойства заметки: текст"
+  },
+  "propertyKindList": "List",
+  "@propertyKindList": {
+    "description": "Вид свойства заметки: список"
+  },
+  "propertyKindNumber": "Number",
+  "@propertyKindNumber": {
+    "description": "Вид свойства заметки: число"
+  },
+  "propertyKindCheckbox": "Checkbox",
+  "@propertyKindCheckbox": {
+    "description": "Вид свойства заметки: да или нет"
+  },
+  "propertyKindDate": "Date",
+  "@propertyKindDate": {
+    "description": "Вид свойства заметки: день"
+  },
+  "propertyNameTaken": "This property already exists",
+  "@propertyNameTaken": {
+    "description": "Ошибка под полем названия свойства: имя занято"
+  },
+  "propertyNumberWrong": "Enter a number",
+  "@propertyNumberWrong": {
+    "description": "Ошибка под полем значения свойства-числа"
+  },
+  "propertyDatePick": "Pick a day",
+  "@propertyDatePick": {
+    "description": "Кнопка в листе свойства-даты, пока день не выбран"
+  },
+  "propertyDelete": "Delete property",
+  "@propertyDelete": {
+    "description": "Кнопка в листе правки свойства"
+  },
+  "propertyRemoved": "Property deleted",
+  "@propertyRemoved": {
+    "description": "Плашка после удаления свойства, рядом «Отменить»"
+  },
+  "propertyOtherHint": "This value can be changed in the note file.",
+  "@propertyOtherHint": {
+    "description": "Подсказка в листе свойства с вложенным значением: приложение его только показывает"
+  },
+  "propertyYes": "Yes",
+  "@propertyYes": {
+    "description": "Значение свойства-галочки в блоке свойств: стоит"
+  },
+  "propertyNo": "No",
+  "@propertyNo": {
+    "description": "Значение свойства-галочки в блоке свойств: не стоит"
   }
 }
