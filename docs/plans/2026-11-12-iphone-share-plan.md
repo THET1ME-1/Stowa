@@ -104,7 +104,7 @@ Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece
 - `Info.plist` приложения: `AppGroupId = $(CUSTOM_GROUP_ID)` и `CFBundleURLTypes` со схемой `ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)`.
 - Проект: цель `ShareExtension` (`com.apple.product-type.app-extension`, `PRODUCT_BUNDLE_IDENTIFIER = app.stowa.Share`, `INFOPLIST_KEY_CFBundleDisplayName = Stowa`, `IPHONEOS_DEPLOYMENT_TARGET = 15.0`, `CUSTOM_GROUP_ID = group.app.stowa`, `MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"`, `CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"`, конфигурации на основе xcconfig Flutter, пакетов у цели нет); у `Runner` — зависимость от расширения, фаза «Embed App Extensions» перед «Thin Binary», `CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements` и `CUSTOM_GROUP_ID` в трёх конфигурациях.
 
-Отступления, решённые по ходу: у расширения `APPLICATION_EXTENSION_API_ONLY = NO`, иначе прямой вызов `UIApplication.open` в его цели не собирается (перед отправкой в App Store перепроверить); в начале сбора расширение стирает папку `shared/` группы, прошлое присланное приложение уже забрало; повёрнутый `UIImage` уходит в JPEG, потому что PNG поворот не хранит.
+Отступления, решённые по ходу: Xcode собирает расширение только с `APPLICATION_EXTENSION_API_ONLY = YES` (с `NO` сборка падает), а прямой вызов `UIApplication.open` при нём не компилируется, поэтому метод `openURL:options:completionHandler:` зовётся по имени; в начале сбора расширение стирает папку `shared/` группы, прошлое присланное приложение уже забрало; повёрнутый `UIImage` уходит в JPEG, потому что PNG поворот не хранит.
 
 - [x] Написать файлы расширения и оба `.entitlements`.
 - [x] Дописать `Info.plist` приложения.
@@ -130,7 +130,7 @@ Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece
 - прогон красный, если в «Документах» нет заметки с присланным текстом или картинка осталась в папке группы;
 - `pluginkit -m -p com.apple.share-services` внутри симулятора — в `out/extensions.txt`, без влияния на итог.
 
-- [ ] Дописать шаги.
+- [x] Дописать шаги.
 - [ ] Коммит, пуш, `gh workflow run ios.yml`; дождаться.
 - [ ] Красный на сборке — разобрать по журналу, одна правка, следующий прогон.
 - [ ] Скачать артефакт, посмотреть кадры `out/shared/`: лист «Положил в …» поверх главной, заметка в ленте.

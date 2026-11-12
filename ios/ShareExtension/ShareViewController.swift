@@ -69,12 +69,16 @@ class ShareViewController: UIViewController {
 
   /// У расширения нет своего приложения: до него идём по цепочке ответчиков.
   private func openApp(_ link: URL) {
+    // прямой вызов open в расширении не собирается: метод зовём по имени
+    typealias Open = @convention(c) (AnyObject, Selector, NSURL, NSDictionary, AnyObject?) -> Void
+    let modern = sel_registerName("openURL:options:completionHandler:")
     let legacy = sel_registerName("openURL:")
     var responder: UIResponder? = self
     while let current = responder {
       if #available(iOS 18.0, *) {
-        if let application = current as? UIApplication {
-          application.open(link, options: [:], completionHandler: nil)
+        if current is UIApplication, current.responds(to: modern), let implementation = current.method(for: modern) {
+          let open = unsafeBitCast(implementation, to: Open.self)
+          open(current, modern, link as NSURL, NSDictionary(), nil)
         }
       } else if current.responds(to: legacy) {
         _ = current.perform(legacy, with: link)
