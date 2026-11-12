@@ -7,9 +7,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * Главное окно. Виджет рабочего стола открывает его адресом stowa://compose
- * (строка с клавиатурой) или stowa://voice (сразу запись). Dart спрашивает
- * `initial` при запуске, а касания по живому приложению получает через `open`.
+ * Главное окно. Уведомление по месту и заметка из окна виджета открывают его
+ * адресом stowa://open?payload=note:…. Dart спрашивает `initial` при запуске,
+ * а касания по живому приложению получает через `open`.
  * Окно на фрагментах: в нём живёт системное окно отпечатка пальца (local_auth).
  */
 class MainActivity : FlutterFragmentActivity() {
@@ -28,7 +28,9 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         pending = actionOf(intent)
-        super.onCreate(savedInstanceState)
+        // сохранённое не восстанавливаем: номер контейнера Flutter выдаётся заново в каждом процессе.
+        // После окна виджета или «Поделиться» он другой, и восстановленный экран остаётся пустым
+        super.onCreate(null)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -55,7 +57,7 @@ class MainActivity : FlutterFragmentActivity() {
         channel?.invokeMethod("open", action)
     }
 
-    // stowa://compose, stowa://voice — виджет; stowa://open?payload=note:… — уведомление по месту
+    // stowa://open?payload=note:… — уведомление по месту или заметка из окна виджета
     private fun actionOf(intent: Intent?): String? {
         val data = intent?.data?.takeIf { it.scheme == "stowa" } ?: return null
         if (data.host == "open") return data.getQueryParameter("payload")?.let { "open:$it" }

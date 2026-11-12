@@ -1,13 +1,8 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
@@ -17,38 +12,28 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
-import '../../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../composer/panel_text.dart' show untitledFor;
 import '../../domain/appearance.dart';
-import '../../domain/models.dart' show PlaceKind;
 import '../../domain/return_plan.dart';
 import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
-import '../../services/backup_service.dart';
 import '../../services/telegram_service.dart';
 import '../links/dead_links_screen.dart';
-import '../places/places_screen.dart';
-import '../places/reminder_permissions.dart';
-import '../privacy/markdown_export_action.dart';
 import '../privacy/privacy_settings.dart';
 import '../tags/tags_screen.dart';
-import '../vault/vault_actions.dart';
 import 'ai_log_screen.dart';
 import 'appearance_screen.dart';
+import 'returns_screen.dart';
 import 'settings_blocks.dart';
+import 'storage_screen.dart';
 import 'telegram_import_action.dart';
 import 'trash_screen.dart';
 
-Route<void> settingsRoute() => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const SettingsScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> settingsRoute() => settingsPageRoute(const SettingsScreen());
+
+/// Экран «Разбор ИИ». Плашка паузы на главной ведёт прямо сюда, к ключу.
+Route<void> aiRoute() => settingsPageRoute(const AiScreen());
 
 /// Почему не прошёл запрос к поставщику — словами человека.
 String aiFailureText(L l, AiFailureKind kind) => switch (kind) {
@@ -60,16 +45,26 @@ String aiFailureText(L l, AiFailureKind kind) => switch (kind) {
   AiFailureKind.server || AiFailureKind.badResponse => l.aiCheckServer,
 };
 
-/// Настройки: разбор ИИ по своему ключу, теги и правила, язык.
+/// «Работает · nemotron-3.5-super-vl» — подпись строки «Разбор ИИ» в настройках.
+String aiSummary(L l, AiSettings ai) => switch (ai) {
+  AiSettings(paused: true) => _pauseText(l, ai),
+  AiSettings(hasKey: true) => '${l.aiStateOn} · ${_modelLabel(ai.sortModel)}',
+  _ => l.aiStateOff,
+};
+
+/// Почему разбор на паузе: кончились деньги или поставщик не принял ключ.
+String _pauseText(L l, AiSettings ai) => ai.pauseReason == AiFailureKind.payment.name ? l.aiPausedPayment : l.aiPausedAuth;
+
+/// Настройки. Большие разделы (оформление, разбор ИИ, возврат, хранилище) — одной
+/// строкой с итогом и на своём экране, остальное на месте.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
-    final text = Theme.of(context).textTheme;
     final ai = ref.watch(aiSettingsProvider).value ?? const AiSettings();
-    final queued = ref.watch(aiQueueProvider).value ?? 0;
+    final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
     final language = ref.watch(languageProvider).value;
     final trashed = ref.watch(trashProvider).value?.length ?? 0;
     final deadLinks = ref.watch(deadLinksProvider).value?.length ?? 0;
@@ -94,30 +89,28 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            _AiCard(settings: ai, queued: queued, busy: ref.watch(aiBusyProvider).value ?? false, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
-            const SizedBox(height: 8),
             SettingsGroup(
               tint: settingsTint('violet'),
+              children: [SettingsRow(icon: 'auto_awesome', title: l.settingsAi, value: aiSummary(l, ai), onTap: () => Navigator.of(context).push(aiRoute()))],
+            ),
+            const SizedBox(height: 8),
+            SettingsGroup(
+              tint: settingsTint('tangerine'),
+              children: [SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute()))],
+            ),
+            const SizedBox(height: 8),
+            SettingsGroup(
+              tint: settingsTint('teal'),
               children: [
-                SettingsRow(icon: 'key', title: l.aiKey, value: ai.hasKey ? l.aiKeySet : l.aiKeyNone, onTap: () => _showKeySheet(context)),
-                SettingsRow(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => _showProviderSheet(context, ai.baseUrl)),
-                SettingsRow(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => _showModelSheet(context, speech: false)),
-                SettingsSwitchRow(
-                  icon: 'auto_awesome',
-                  title: l.aiFirst,
-                  subtitle: l.aiFirstHint,
-                  value: ai.aiFirst,
-                  onChanged: (on) => ref.read(settingsRepositoryProvider).setAiFirst(on),
-                ),
-                SettingsRow(icon: 'graphic_eq', title: l.aiSpeechModel, value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!), onTap: () => _showModelSheet(context, speech: true)),
-                SettingsRow(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
+                SettingsRow(icon: 'inventory_2', title: l.vaultSection, value: vaultPlace(ref, l), onTap: () => Navigator.of(context).push(storageRoute())),
+                SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
               ],
             ),
             SettingsSection(l.settingsOutside),
             SettingsGroup(
               tint: settingsTint('sky'),
               children: [
-                SettingsRow(icon: 'send', title: l.tgTitle, value: telegram.botName == null ? l.tgNone : '@${telegram.botName}', onTap: () => _sheet(context, const _BotSheet())),
+                SettingsRow(icon: 'send', title: l.tgTitle, value: telegram.botName == null ? l.tgNone : '@${telegram.botName}', onTap: () => showSettingsSheet(context, const _BotSheet())),
               ],
             ),
             SettingsSection(l.settingsOrder),
@@ -145,10 +138,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Text(l.placeSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
+            SettingsHint(l.placeSettingHint),
             SettingsGroup(
               tint: settingsTint('coral'),
               children: [
@@ -160,10 +150,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Text(l.adultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
+            SettingsHint(l.adultSettingHint),
             SettingsGroup(
               tint: settingsTint('sky'),
               children: [
@@ -171,21 +158,12 @@ class SettingsScreen extends ConsumerWidget {
                   icon: 'calendar_month',
                   title: l.titleDateSetting,
                   value: titleDateLabel(l, ref.watch(titleDateProvider).value ?? TitleDate.shot),
-                  onTap: () => _sheet(context, const _TitleDateSheet()),
+                  onTap: () => showSettingsSheet(context, const _TitleDateSheet()),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Text(l.titleDateHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
+            SettingsHint(l.titleDateHint),
             const PrivacySettings(),
-            SettingsSection(l.settingsReturns),
-            const _ReturnGroup(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Text(l.returnSettingsHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
             SettingsSection(l.settingsArticles),
             SettingsGroup(
               tint: settingsTint('lemon'),
@@ -204,45 +182,13 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Text(l.articleImagesAbout, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
-            SettingsSection(l.vaultSection),
-            SettingsGroup(
-              tint: settingsTint('teal'),
-              children: [
-                SettingsRow(icon: 'folder_open', title: l.vaultFolder, value: _vaultPlace(ref, l), onTap: () => moveVaultElsewhere(context, ref)),
-                SettingsRow(icon: 'drive_file_move', title: l.vaultMoveTo, onTap: () => moveVaultElsewhere(context, ref)),
-                SettingsRow(icon: 'manage_search', title: l.vaultRebuild, onTap: () => rebuildIndex(context, ref)),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Text(l.vaultSettingHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
-            SettingsGroup(
-              tint: settingsTint('blue'),
-              children: [
-                SettingsRow(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
-                SettingsRow(icon: 'file_export', title: l.markdownExport, onTap: () => exportMarkdownFlow(context, ref)),
-                SettingsRow(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
-                SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-              child: Text(l.backupSaveHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
+            SettingsHint(l.articleImagesAbout),
             SettingsSection(l.settingsImport),
             SettingsGroup(
               tint: settingsTint('sky'),
               children: [SettingsRow(icon: 'send', title: l.importTelegram, onTap: () => importTelegram(context, ref))],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-              child: Text(l.importTelegramHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
+            SettingsHint(l.importTelegramHint),
             SettingsSection(l.settingsStart),
             SettingsGroup(
               tint: settingsTint('lime'),
@@ -251,14 +197,11 @@ class SettingsScreen extends ConsumerWidget {
                   icon: 'start',
                   title: l.startOpen,
                   value: startLabel(l, ref.watch(startScreenChoiceProvider).value ?? StartScreen.home),
-                  onTap: () => _sheet(context, const _StartSheet()),
+                  onTap: () => showSettingsSheet(context, const _StartSheet()),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-              child: Text(l.startHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-            ),
+            SettingsHint(l.startHint),
             SettingsSection(l.settingsLanguage),
             SettingsGroup(
               tint: settingsTint('orchid'),
@@ -270,7 +213,7 @@ class SettingsScreen extends ConsumerWidget {
               builder: (context, version) => Text(
                 version.data?.isNotEmpty == true ? l.settingsVersion(version.data!) : l.appName,
                 textAlign: TextAlign.center,
-                style: text.bodySmall!.copyWith(color: Tokens.muted),
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted),
               ),
             ),
           ],
@@ -280,87 +223,55 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// Где хранилище: папка человека или внутри приложения (и старая установка до переноса).
-String _vaultPlace(WidgetRef ref, L l) {
-  final root = ref.watch(vaultRootProvider);
-  if (root == null || root.path.startsWith(ref.watch(appSupportProvider).path)) return l.vaultInsideApp;
-  return shortVaultPath(root.path);
-}
+/// «nvidia/nemotron-3.5-super-vl:free» → «nemotron-3.5-super-vl»: поставщик и пометка цены и так видны в списке.
+String _modelLabel(String id) => id.split('/').last.replaceFirst(RegExp(r':free$'), '');
 
-/// Копия собирается во временную папку и уходит через «Поделиться»: в Диск, Telegram, на компьютер.
-Future<void> _saveBackup(BuildContext context, WidgetRef ref) async {
-  final l = L.of(context);
-  final messenger = ScaffoldMessenger.of(context);
-  final box = context.findRenderObject() as RenderBox?;
-  try {
-    // в копию идёт скрытое запечатанным: строк скрытых заметок в снимке базы быть не должно
-    await ref.read(privacyServiceProvider).close();
-    final zip = await ref.read(backupServiceProvider).export(await getTemporaryDirectory());
-    await SharePlus.instance.share(
-      ShareParams(files: [XFile(zip.path, mimeType: 'application/zip')], sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size),
-    );
-  } catch (_) {
-    showNote(messenger, l.backupFailed);
-  }
-}
+/// «Разбор ИИ»: состояние, свой ключ, поставщик, модели, порядок с алгоритмом и журнал.
+class AiScreen extends ConsumerWidget {
+  const AiScreen({super.key});
 
-/// Выбрать zip, показать, что в нём, и только после согласия заменить всё.
-Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
-  final l = L.of(context);
-  final messenger = ScaffoldMessenger.of(context);
-  final picked = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['zip']).catchError((_) => <PlatformFile>[]);
-  final path = picked.firstOrNull?.path;
-  if (path == null || !context.mounted) return;
-  final zip = File(path);
-  final BackupInfo info;
-  try {
-    info = await BackupService.inspect(zip);
-  } on BackupError {
-    showNote(messenger, l.backupNotStowa);
-    return;
-  }
-  if (!context.mounted) return;
-  final date = DateFormat.yMMMMd(Localizations.localeOf(context).toLanguageTag()).format(info.createdAt);
-  final yes = await _sheet<bool>(
-    context,
-    Builder(
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, Space.screen),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L.of(context);
+    final ai = ref.watch(aiSettingsProvider).value ?? const AiSettings();
+    final queued = ref.watch(aiQueueProvider).value ?? 0;
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
-            Text(l.backupRestoreAsk(info.items, date), style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 20),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: Tokens.error, foregroundColor: Tokens.onError),
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l.backupReplace),
+            SettingsHeader(l.settingsAi),
+            const SizedBox(height: 18),
+            _AiCard(settings: ai, queued: queued, busy: ref.watch(aiBusyProvider).value ?? false, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
+            const SizedBox(height: 8),
+            SettingsGroup(
+              tint: settingsTint('violet'),
+              children: [
+                SettingsRow(icon: 'key', title: l.aiKey, value: ai.hasKey ? l.aiKeySet : l.aiKeyNone, onTap: () => showSettingsSheet(context, const _KeySheet())),
+                SettingsRow(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => showSettingsSheet(context, _ProviderSheet(current: ai.baseUrl))),
+                SettingsRow(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => showSettingsSheet(context, const _ModelSheet(speech: false))),
+                SettingsSwitchRow(
+                  icon: 'auto_awesome',
+                  title: l.aiFirst,
+                  subtitle: l.aiFirstHint,
+                  value: ai.aiFirst,
+                  onChanged: (on) => ref.read(settingsRepositoryProvider).setAiFirst(on),
+                ),
+                SettingsRow(
+                  icon: 'graphic_eq',
+                  title: l.aiSpeechModel,
+                  value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!),
+                  onTap: () => showSettingsSheet(context, const _ModelSheet(speech: true)),
+                ),
+                SettingsRow(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
+              ],
             ),
-            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
           ],
         ),
       ),
-    ),
-  );
-  if (yes != true) return;
-  try {
-    await ref.read(privacyServiceProvider).close();
-    await ref.read(backupServiceProvider).restore(zip);
-    // в копии свой замок: код и скрытое — оттуда
-    await ref.read(privacyServiceProvider).loadLock();
-    // те же пути к файлам, другие картинки: кэш картинок показал бы прежние
-    PaintingBinding.instance.imageCache.clear();
-    showNote(messenger, l.backupRestored);
-  } on BackupError catch (error) {
-    showNote(messenger, error.problem == BackupProblem.tooNew ? l.backupTooNew : l.backupNotStowa);
-  } catch (_) {
-    showNote(messenger, l.backupFailed);
+    );
   }
 }
-
-/// «nvidia/nemotron-3.5-super-vl:free» → «nemotron-3.5-super-vl»: поставщик и пометка цены и так видны в списке.
-String _modelLabel(String id) => id.split('/').last.replaceFirst(RegExp(r':free$'), '');
 
 /// Состояние разбора: работает, выключен, на паузе или ждёт поставщика.
 class _AiCard extends StatelessWidget {
@@ -378,7 +289,7 @@ class _AiCard extends StatelessWidget {
     final retryAt = settings.retryAt;
     final waiting = retryAt != null && retryAt.isAfter(DateTime.now());
     final (state, stateColor, stateText) = switch (settings) {
-      AiSettings(paused: true) => (settings.pauseReason == AiFailureKind.payment.name ? l.aiPausedPayment : l.aiPausedAuth, Tokens.error, Tokens.onError),
+      AiSettings(paused: true) => (_pauseText(l, settings), Tokens.error, Tokens.onError),
       AiSettings(hasKey: true) => (l.aiStateOn, Tokens.accent, Tokens.onAccent),
       _ => (l.aiStateOff, Tokens.graphite, Tokens.onSurface),
     };
@@ -395,14 +306,6 @@ class _AiCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              SettingsIconChip('auto_awesome', color: settingsTint('violet')),
-              const SizedBox(width: 16),
-              Expanded(child: Text(l.settingsAi, style: text.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w600))),
-            ],
-          ),
-          const SizedBox(height: 14),
           // состояние пилюлей: пауза видна издалека, без чтения мелкого текста
           Container(
             key: const ValueKey('ai-state'),
@@ -452,10 +355,7 @@ class AiPausedBanner extends StatelessWidget {
             Icon(symbolIcon('pause_circle', filled: true), size: 22, color: Tokens.error),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                settings.pauseReason == AiFailureKind.payment.name ? l.aiPausedPayment : l.aiPausedAuth,
-                style: text.bodyMedium!.copyWith(color: Tokens.onSurface),
-              ),
+              child: Text(_pauseText(l, settings), style: text.bodyMedium!.copyWith(color: Tokens.onSurface)),
             ),
             const SizedBox(width: 8),
             Text(l.aiPausedAction, style: text.labelLarge!.copyWith(color: Tokens.error)),
@@ -465,19 +365,6 @@ class AiPausedBanner extends StatelessWidget {
     );
   }
 }
-
-Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet<T>(
-  context: context,
-  useSafeArea: true,
-  isScrollControlled: true,
-  builder: (context) => Padding(
-    // лист поднимается над клавиатурой
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-    child: SafeArea(top: false, child: child),
-  ),
-);
-
-Future<void> _showKeySheet(BuildContext context) => _sheet(context, const _KeySheet());
 
 /// Ключ: вставить, сохранить и сразу проверить у поставщика.
 class _KeySheet extends ConsumerStatefulWidget {
@@ -700,8 +587,6 @@ class _BotSheetState extends ConsumerState<_BotSheet> {
   }
 }
 
-Future<void> _showProviderSheet(BuildContext context, String current) => _sheet(context, _ProviderSheet(current: current));
-
 /// Адрес поставщика, совместимого с OpenAI. Пусто — OpenRouter.
 class _ProviderSheet extends ConsumerStatefulWidget {
   const _ProviderSheet({required this.current});
@@ -754,8 +639,6 @@ class _ProviderSheetState extends ConsumerState<_ProviderSheet> {
     );
   }
 }
-
-Future<void> _showModelSheet(BuildContext context, {required bool speech}) => _sheet(context, _ModelSheet(speech: speech));
 
 /// Живой список моделей поставщика с поиском. Своё имя модели тоже можно вписать.
 class _ModelSheet extends ConsumerStatefulWidget {
@@ -911,7 +794,7 @@ class _ModelTile extends StatelessWidget {
   }
 }
 
-Future<void> _showLanguageSheet(BuildContext context, AppLanguage? current) => _sheet(context, _LanguageSheet(current: current));
+Future<void> _showLanguageSheet(BuildContext context, AppLanguage? current) => showSettingsSheet(context, _LanguageSheet(current: current));
 
 class _LanguageSheet extends ConsumerWidget {
   const _LanguageSheet({required this.current});
@@ -1001,103 +884,4 @@ class _StartSheet extends ConsumerWidget {
   }
 }
 
-/// «Возвращать»: виды по одному, с какого часа вечером, тихие часы и день сводки.
-class _ReturnGroup extends ConsumerWidget {
-  const _ReturnGroup();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = L.of(context);
-    final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
-    final workEnd = ref.watch(workEndChoiceProvider).value ?? defaultWorkEnd;
-    // настройки — в момент правки, не при отрисовке: экран живёт и в тестах без них
-    Future<void> save(ReturnSettings value) async {
-      await ref.read(settingsRepositoryProvider).setReturns(value);
-      // включил вид возврата — придут уведомления: тут и спросить разрешение
-      final switchedOn = (value.watchLater && !returns.watchLater) || (value.onThisDay && !returns.onThisDay) || (value.week && !returns.week) || (value.shopping && !returns.shopping);
-      if (switchedOn) await askNotifications(ref);
-    }
-    String clock(int minutes) => DateFormat.Hm(l.localeName).format(DateTime(2026, 1, 1, minutes ~/ 60, minutes % 60));
-    // 1 ноября 2026 — воскресенье: день недели 1…7 ложится на 2…8 ноября
-    String weekday(int day) => DateFormat.EEEE(l.localeName).format(DateTime(2026, 11, 1 + day));
-    Future<int?> pickTime(int minutes, String help) async {
-      final picked = await showTimePicker(context: context, initialTime: TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60), helpText: help);
-      return picked == null ? null : picked.hour * 60 + picked.minute;
-    }
-
-    // «Дом, работа, 2 магазина» — что уже отмечено
-    String placesSummary() {
-      final places = ref.watch(placesProvider).value ?? const [];
-      final shops = places.where((place) => place.kind == PlaceKind.shop).length;
-      final parts = [
-        if (places.any((place) => place.kind == PlaceKind.home)) l.placesHome,
-        if (places.any((place) => place.kind == PlaceKind.work)) l.placesWork,
-        if (shops > 0) l.placesShopsCount(shops),
-      ];
-      return parts.isEmpty ? l.placesNotSet : parts.join(', ');
-    }
-
-    Future<void> pickWeekDay() async {
-      final day = await showModalBottomSheet<int>(
-        context: context,
-        showDragHandle: true,
-        useSafeArea: true,
-        backgroundColor: Tokens.container,
-        builder: (sheet) => SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var day = DateTime.monday; day <= DateTime.sunday; day++)
-                ListTile(title: Text(weekday(day)), trailing: day == returns.weekDay ? Icon(symbolIcon('check')) : null, onTap: () => Navigator.pop(sheet, day)),
-            ],
-          ),
-        ),
-      );
-      if (day != null) await save(returns.copyWith(weekDay: day));
-    }
-
-    return SettingsGroup(
-      tint: settingsTint('tangerine'),
-      children: [
-        SettingsSwitchRow(icon: 'smart_display', title: l.returnWatchTitle, value: returns.watchLater, onChanged: (on) => save(returns.copyWith(watchLater: on))),
-        SettingsSwitchRow(icon: 'history', title: l.returnOnThisDay, value: returns.onThisDay, onChanged: (on) => save(returns.copyWith(onThisDay: on))),
-        SettingsSwitchRow(icon: 'calendar_view_week', title: l.returnWeekSetting, value: returns.week, onChanged: (on) => save(returns.copyWith(week: on))),
-        SettingsSwitchRow(icon: 'shopping_basket', title: l.returnShoppingSetting, value: returns.shopping, onChanged: (on) => save(returns.copyWith(shopping: on))),
-        SettingsRow(
-          icon: 'schedule',
-          title: l.returnEveningRow,
-          value: clock(returns.evening),
-          onTap: () async {
-            final minutes = await pickTime(returns.evening, l.returnEveningRow);
-            if (minutes != null) await save(returns.copyWith(evening: minutes));
-          },
-        ),
-        // «после работы» в строке — в этот час
-        SettingsRow(
-          icon: 'work_history',
-          title: l.workEndRow,
-          value: clock(workEnd),
-          onTap: () async {
-            final minutes = await pickTime(workEnd, l.workEndRow);
-            if (minutes != null) await ref.read(settingsRepositoryProvider).setWorkEnd(minutes);
-          },
-        ),
-        SettingsRow(
-          icon: 'bedtime',
-          title: l.returnQuietRow,
-          value: l.returnRange(clock(returns.quietStart), clock(returns.quietEnd)),
-          onTap: () async {
-            final start = await pickTime(returns.quietStart, l.returnQuietFrom);
-            if (start == null || !context.mounted) return;
-            final end = await pickTime(returns.quietEnd, l.returnQuietTo);
-            if (end != null) await save(returns.copyWith(quietStart: start, quietEnd: end));
-          },
-        ),
-        SettingsRow(icon: 'event_repeat', title: l.returnWeekDayRow, value: weekday(returns.weekDay), onTap: pickWeekDay),
-        SettingsRow(icon: 'location_on', title: l.placesTitle, value: placesSummary(), onTap: () => Navigator.of(context).push(placesRoute())),
-      ],
-    );
-  }
-}
 

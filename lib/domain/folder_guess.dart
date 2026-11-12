@@ -248,8 +248,9 @@ class FolderIndex {
     final proof = [...evidence[best.key]!]..sort((a, b) => b.$2.compareTo(a.$2));
     return FolderGuess(
       folderId: best.key,
-      // вид вещи и тип файла словами не назвать: в причину идут слова и сайт
-      words: [for (final (word, _, _) in proof.where((one) => one.$1.isNotEmpty).take(3)) word],
+      // вид вещи и тип файла словами не назвать: в причину идут слова и сайт.
+      // Слово бывает уликой дважды (по заметкам папки и по теме) — в причине оно одно
+      words: {for (final (word, _, _) in proof) if (word.isNotEmpty) word}.take(3).toList(),
       byName: proof.first.$3,
       score: best.value,
     );

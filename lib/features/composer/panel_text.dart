@@ -215,8 +215,8 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
   return (text: parts.join(' · '), alarm: remind != null && plan.command != LineCommand.remind && plan.autoTags.isEmpty);
 }
 
-/// Почему сюда: свой выбор, правило или похожее без сети.
-({String text, String icon}) saveWhere(L l, SavePlan plan) {
+/// Почему сюда: свой выбор, правило или похожее без сети. Пусто — строка причину не называет.
+({String text, String icon})? saveWhere(L l, SavePlan plan) {
   final value = plan.reasonValue ?? '';
   return switch (plan.reason) {
     SaveReason.chosen => (text: l.reasonChosen, icon: 'touch_app'),
@@ -229,6 +229,7 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
     // вид вещи или тип файла словами не назвать: тогда причина — вид
     SaveReason.similar => (text: value.isEmpty ? l.reasonKind : l.reasonSimilar(value), icon: 'bolt'),
     SaveReason.none => (text: l.reasonNone, icon: 'inbox'),
+    SaveReason.quiet => null,
   };
 }
 

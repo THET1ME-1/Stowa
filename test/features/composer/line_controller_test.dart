@@ -151,4 +151,33 @@ void main() {
     });
     expect(dotted, ['Завтра', 'в 14:00']);
   });
+
+  // куски строки, подсвеченные фоном как тег или папка, которые пишутся сейчас
+  Future<List<String>> highlighted(WidgetTester tester, LineController from) async {
+    late TextSpan span;
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
+      span = from.buildTextSpan(context: context, withComposing: false);
+      return const SizedBox();
+    })));
+    final marked = <String>[];
+    span.visitChildren((child) {
+      if ((child as TextSpan).style?.backgroundColor != null) marked.add(child.text!);
+      return true;
+    });
+    return marked;
+  }
+
+  testWidgets('папка, которую пишут, подсвечена фоном', (tester) async {
+    line.value = _typed('масло @маш');
+    expect(await highlighted(tester, line), ['@маш']);
+  });
+
+  testWidgets('строка без папок «@слово» не подсвечивает, а тег — да', (tester) async {
+    final quiet = LineController(clock: () => now, folderMarks: false);
+    addTearDown(quiet.dispose);
+    quiet.value = _typed('масло @маш');
+    expect(await highlighted(tester, quiet), isEmpty);
+    quiet.value = _typed('масло #маш');
+    expect(await highlighted(tester, quiet), ['#маш']);
+  });
 }

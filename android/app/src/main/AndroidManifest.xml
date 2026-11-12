@@ -83,7 +83,22 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
-        <!-- будильники напоминаний: срабатывание и восстановление после перезагрузки -->
+        <!-- окно виджета: одна строка поверх рабочего стола. Своя задача, чтобы под прозрачным
+             окном не всплывала главная и чтобы оно не оставалось в недавних -->
+        <activity
+            android:name=".QuickActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="app.stowa.quick"
+            android:theme="@style/ShareTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/ShareTheme"
+              />
+        </activity>
         <!-- виджет-строка на рабочем столе (STOWA-1) -->
         <receiver android:name=".ComposerWidgetProvider" android:exported="false" android:label="@string/widget_hint">
             <intent-filter>

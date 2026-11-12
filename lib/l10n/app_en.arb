@@ -3462,5 +3462,13 @@
   "aiFirstHint": "The model also checks offline guesses. Your choice and rules still win. More requests",
   "@aiFirstHint": {
     "description": "Subtitle under the AI-first switch"
+  },
+  "composerHintNoSearch": "Drop anything",
+  "@composerHintNoSearch": {
+    "description": "Hint in the capture line when it only saves and does not search (home screen widget window under app lock)"
+  },
+  "returnsOff": "Off",
+  "@returnsOff": {
+    "description": "Summary under the 'Bring back' settings row when every kind of return is switched off"
   }
 }

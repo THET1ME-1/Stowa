@@ -111,6 +111,23 @@ void main() {
     expect(panel.pick, 0);
   });
 
+  test('строка без поиска не говорит «Похожего нет»: она не искала', () {
+    final panel = buildPanel(const PanelInput(text: 'купить батарейки', caret: 16, commandKeys: _keys, writeOnly: true));
+    expect(panel.plan, isNotNull);
+    expect(panel.header, PanelHeader.none);
+  });
+
+  test('строка «только закинуть» причину не называет: папку она знает, но молчит', () {
+    final panel = buildPanel(const PanelInput(text: 'купить батарейки', caret: 16, commandKeys: _keys, writeOnly: true));
+    expect(panel.plan!.reason, SaveReason.quiet);
+  });
+
+  test('строка «только закинуть» после @ ничего не предлагает: ни папок, ни «Создать»', () {
+    final panel = buildPanel(const PanelInput(text: '@маш', caret: 4, commandKeys: _keys, folders: [_car], writeOnly: true));
+    expect(panel.rows, isEmpty);
+    expect(buildPanel(const PanelInput(text: '@Книги', caret: 6, commandKeys: _keys, writeOnly: true)).rows, isEmpty);
+  });
+
   test('точное совпадение короткого запроса делает белым найденное', () {
     final panel = _panel('пароль', found: [_found('w', 'Пароль от Wi-Fi', strong: true)]);
     expect(panel.rows, hasLength(2));

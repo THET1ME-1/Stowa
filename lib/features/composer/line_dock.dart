@@ -71,19 +71,26 @@ class _Toast {
 /// Живая строка целиком: тень над лентой, плашка «Закинул», панель с поиском
 /// и подсказками, галерея, голосовое и редактор на весь экран.
 class LineDock extends ConsumerStatefulWidget {
-  const LineDock({super.key, required this.onOpenItem, this.homeFolder});
+  const LineDock({super.key, required this.onOpenItem, this.homeFolder, this.onRest, this.writeOnly = false});
 
   final ValueChanged<String> onOpenItem;
 
   /// Строка внутри папки: кладёт сразу сюда, минуя разбор, и ищет только здесь.
   final FolderCard? homeFolder;
 
+  /// Строка успокоилась: закрыта, пуста, плашка ушла. Окно виджета по этому знаку закрывается.
+  final VoidCallback? onRest;
+
+  /// Только закидывать: не искать и не называть ничего из базы — ни заметок, ни папок, ни тегов.
+  /// Так работает окно виджета при коде на вход: с рабочего стола строка открыта любому.
+  final bool writeOnly;
+
   @override
   ConsumerState<LineDock> createState() => LineDockState();
 }
 
 class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderStateMixin {
-  late final LineController _line = LineController(clock: ref.read(clockProvider), workEnd: ref.read(workEndProvider), resolveFolder: _resolveFolder);
+  late final LineController _line = LineController(clock: ref.read(clockProvider), workEnd: ref.read(workEndProvider), resolveFolder: _resolveFolder, folderMarks: !widget.writeOnly);
   late final FocusNode _focus = FocusNode(onKeyEvent: _onKey);
   final _undo = UndoHistoryController();
   final _fieldKey = GlobalKey();
@@ -156,9 +163,14 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   bool get _hasContent => _line.text.trim().isNotEmpty || _files.isNotEmpty;
 
+  bool get _rested => !_active && _toast == null && _voice == null && !_sending && !_hasContent;
+  bool _wasRested = true;
+
   // сама по пробелу встаёт только папка с точно таким именем; по началу имени выбирают в панели,
   // иначе «@Беспроводные » схватит «Беспроводные наушники» и новую папку не создать
   FolderCard? _resolveFolder(String name) {
+    // по вставшему чипу было бы видно, что такая папка есть
+    if (widget.writeOnly) return null;
     final folders = ref.read(foldersProvider).value ?? const [];
     return folders.where((folder) => normalizeQuery(folder.name) == name).firstOrNull;
   }
@@ -184,7 +196,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   // поиск идёт по словам без команды, тегов и папок; чипы — фильтр
   void _scheduleSearch() {
-    if (!mounted) return;
+    if (!mounted || widget.writeOnly) return;
     final caret = _line.selection.isValid ? _line.selection.extentOffset : _line.text.length;
     if (caretToken(_line.text, caret) != null) return;
     final query = queryOf(_line.text, commandKeys(L.of(context)));
@@ -265,10 +277,14 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _focus.requestFocus();
   }
 
-  /// Микрофон виджета: запись начинается сразу, без касания строки.
-  void startVoice() {
-    if (_voice == null) _startVoice();
-  }
+  /// Микрофон виджета: запись начинается сразу, без касания строки. false — записи нет.
+  Future<bool> startVoice() async => _voice != null || await _startVoice();
+
+  /// Камера виджета: готовый снимок встаёт вложением.
+  void attach(List<PickedFile> files) => _addPicked(files);
+
+  /// В строке запись голоса или вложения: заново их не наберёшь, случайное касание терять не должно.
+  bool get holdsMedia => _voice != null || _files.isNotEmpty;
 
   void searchTag(String name) {
     _line.reset();
@@ -478,7 +494,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       );
       if (_clip != null && snapshot.text.contains(_clip!)) _usedSuggestions.add(_clip!);
       final saved = await ref.read(itemsRepositoryProvider).get(id);
-      final folders = ref.read(foldersProvider).value ?? const [];
+      // «только закинуть» кладёт по правилам, но куда легло — не говорит
+      final folders = widget.writeOnly ? const <FolderCard>[] : ref.read(foldersProvider).value ?? const [];
       final folder = folders.where((one) => one.id == saved?.item.folderId).firstOrNull;
       if (!mounted) return;
       final when = reminderAt == null ? null : formatReminder(l, reminderAt, _now);
@@ -492,14 +509,15 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         message,
         actionLabel: l.undo,
         onAction: () async {
-          _hideToast();
-          await ref.read(itemsRepositoryProvider).softDelete(id, _now);
+          // текст возвращается до того, как уйдёт плашка: пустой и закрытой строка не бывает ни кадра
           _files
             ..clear()
             ..addAll(snapshot.files);
           _line.restore(text: snapshot.text, tags: snapshot.tags, folder: snapshot.folder, reminderDismissed: snapshot.dismissed, placeDismissed: snapshot.placeDismissed);
           _activate();
           _focus.requestFocus();
+          _hideToast();
+          await ref.read(itemsRepositoryProvider).softDelete(id, _now);
         },
       );
       // поставил напоминание — тут и спросить уведомления; про место «всегда» скажет карточка на главной
@@ -526,13 +544,13 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       l.appendedTo(card.title),
       actionLabel: l.actionOpen,
       onAction: () {
-        _hideToast();
         widget.onOpenItem(card.id);
+        _hideToast();
       },
     );
   }
 
-  Future<void> _startVoice() async {
+  Future<bool> _startVoice() async {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final session = VoiceSession(_voiceFolder);
@@ -545,7 +563,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     if (!started) {
       session.dispose();
       messenger.showSnackBar(SnackBar(content: Text(l.voiceDenied)));
-      return;
+      return false;
     }
     HapticFeedback.mediumImpact();
     session.addListener(() {
@@ -556,6 +574,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       _active = true;
       _tray = false;
     });
+    return true;
   }
 
   Future<void> _stopVoice({required bool keep}) async {
@@ -578,9 +597,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       'graphic_eq',
       l.voiceSaved,
       actionLabel: l.undo,
-      onAction: () {
-        _hideToast();
-        ref.read(itemsRepositoryProvider).softDelete(id, _now);
+      onAction: () async {
+        // плашка уходит после удаления: окно виджета закрывается вслед за ней
+        await ref.read(itemsRepositoryProvider).softDelete(id, _now);
+        if (mounted) _hideToast();
       },
     );
   }
@@ -683,6 +703,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     final now = _now;
     final caret = _line.selection.isValid ? _line.selection.extentOffset : _line.text.length;
     final keys = commandKeys(l);
+    // «только закинуть» базу не читает: ни теги, ни папки, ни правила в панель не попадают
+    final shows = !widget.writeOnly;
     _panel = buildPanel(
       PanelInput(
         text: _line.text,
@@ -691,9 +713,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         chosenTags: _line.tags,
         chosenFolder: _line.folder,
         attachmentMimes: [for (final file in _files) file.mime],
-        tags: ref.watch(allTagsProvider).value ?? const [],
-        folders: ref.watch(foldersProvider).value ?? const [],
-        rules: ref.watch(rulesProvider).value ?? const [],
+        tags: shows ? ref.watch(allTagsProvider).value ?? const [] : const [],
+        folders: shows ? ref.watch(foldersProvider).value ?? const [] : const [],
+        rules: shows ? ref.watch(rulesProvider).value ?? const [] : const [],
         found: _found.results,
         // «Ищу: потратил на · Ремонт · 23 150 лей»
         understood: _found.query.hasFilters
@@ -701,9 +723,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
             : const [],
         filter: _filter,
         remindAt: _line.reminder?.at,
-        folderIndex: ref.watch(folderIndexProvider).value,
+        folderIndex: shows ? ref.watch(folderIndexProvider).value : null,
         // две прошлые заметки подряд в одной папке: подсказка видит серию, как и сохранение
-        series: seriesOf([for (final card in (ref.watch(recentItemsProvider).value ?? const []).take(2)) (folderId: card.folderId, at: card.createdAt)], now),
+        series: shows ? seriesOf([for (final card in (ref.watch(recentItemsProvider).value ?? const []).take(2)) (folderId: card.folderId, at: card.createdAt)], now) : null,
+        writeOnly: widget.writeOnly,
       ),
     );
     final rows = _panel.rows;
@@ -711,6 +734,14 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     final showPanel = _active && !_full && !_morph.isAnimating && _voice == null && (_tray || rows.isNotEmpty);
     final shade = showPanel || _full;
     final rest = queryOf(_line.text, keys).rest;
+    // знак «успокоилась» уходит после кадра: плашка, вставшая следом за закрытием, его отменяет
+    final rested = _rested;
+    if (rested && !_wasRested && widget.onRest != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _rested) widget.onRest?.call();
+      });
+    }
+    _wasRested = rested;
 
     return PopScope(
       canPop: !_active,
@@ -865,7 +896,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         cursorColor: Tokens.accent,
         style: fieldStyle,
         decoration: InputDecoration.collapsed(
-          hintText: _full ? l.fullHint : (widget.homeFolder != null ? l.dropHere : l.composerHint),
+          hintText: _full ? l.fullHint : (widget.homeFolder != null ? l.dropHere : (widget.writeOnly ? l.composerHintNoSearch : l.composerHint)),
           hintMaxLines: _full ? null : 1,
           hintStyle: fieldStyle.copyWith(color: Tokens.muted),
         ),
@@ -986,12 +1017,13 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           onRemove: () => _line.chooseFolder(null),
         ),
       );
-    } else if (_full && !_morph.isAnimating && _line.folder == null) {
+    } else if (_full && !_morph.isAnimating && _line.folder == null && !widget.writeOnly) {
       // догадки редактора появляются, когда строка раскрылась: пока едет, им нет места
       final guess = plan?.folder;
       chips.add(_DestChip(key: const ValueKey('dest'), icon: guess?.icon ?? 'inbox', label: guess?.name ?? l.fullPickFolder, onTap: _pickFolder));
     }
-    final tags = ref.watch(allTagsProvider).value ?? const [];
+    // свой значок у чипа выдал бы, что тег уже есть
+    final tags = [if (!widget.writeOnly) ...?ref.watch(allTagsProvider).value];
     final filesRoot = ref.watch(filesRootProvider);
     for (final name in _line.tags) {
       final tag = tags.where((one) => one.name == name).firstOrNull;
@@ -1150,7 +1182,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                       ? Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            for (final glyph in ['#', '@', '/']) _GlyphButton(glyph: glyph, onTap: () => _insertGlyph(glyph)),
+                            // папку «только закинуть» не выбирает: знака «@» нет
+                            for (final glyph in ['#', if (!widget.writeOnly) '@', '/']) _GlyphButton(glyph: glyph, onTap: () => _insertGlyph(glyph)),
                           ],
                         )
                       : const SizedBox(height: 44),

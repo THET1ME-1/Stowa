@@ -162,6 +162,16 @@ void main() {
       expect(index.guess('космадесантники на подставках')?.folderId, 'wh');
     });
 
+    test('слово, сыгравшее дважды (и по заметкам папки, и по теме), в причине стоит один раз', () {
+      final index = FolderIndex(const [
+        FolderDoc(folderId: 'food', text: 'Молоко и хлеб'),
+        FolderDoc(folderId: 'work', text: 'Отчёт клиенту'),
+      ], labels: labels);
+      final guess = index.guess('взять молоко')!;
+      expect(guess.folderId, 'food');
+      expect(guess.words, ['молоко']);
+    });
+
     test('короткое слово человека — не опечатка его другого слова: «мысль» не «масло»', () {
       final index = FolderIndex(const [
         FolderDoc(folderId: 'work', text: 'Замена масла'),

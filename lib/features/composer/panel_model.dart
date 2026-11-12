@@ -7,8 +7,8 @@ import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/sort_rules.dart';
 
-/// Почему вещь ляжет именно сюда: строка показывает это под «Закинуть».
-enum SaveReason { chosen, asIs, tag, word, domain, kind, name, similar, none }
+/// Почему вещь ляжет именно сюда: строка показывает это под «Закинуть». `quiet` — причину не называть.
+enum SaveReason { chosen, asIs, tag, word, domain, kind, name, similar, none, quiet }
 
 /// Что сделает «Закинуть» прямо сейчас.
 class SavePlan {
@@ -169,7 +169,11 @@ class PanelInput {
     this.remindAt,
     this.folderIndex,
     this.series,
+    this.writeOnly = false,
   });
+
+  /// Строка только закидывает: не ищет и не называет ничего из базы. Так работает окно виджета при коде на вход.
+  final bool writeOnly;
 
   /// Фразы запроса, которыми поиск отобрал [found]. Пусто — искал просто словами.
   final List<String> understood;
@@ -238,6 +242,9 @@ SavePlan planSave(PanelInput input, {required LineCommand? command, required Str
           }
         : guessFolder != null
         ? (guess!.byName ? SaveReason.name : SaveReason.similar)
+        // «только закинуть» папок не видит: «без папки» было бы неправдой, заметку разложит сохранение
+        : input.writeOnly
+        ? SaveReason.quiet
         : SaveReason.none,
     reasonValue: chosen != null
         ? null
@@ -298,7 +305,8 @@ PanelState buildPanel(PanelInput input) {
   } else if (shown.isNotEmpty) {
     header = pick == 1 ? PanelHeader.found : PanelHeader.similar;
   } else {
-    header = query.words.isNotEmpty ? PanelHeader.fresh : PanelHeader.none;
+    // «Похожего нет» без поиска было бы неправдой
+    header = query.words.isNotEmpty && !input.writeOnly ? PanelHeader.fresh : PanelHeader.none;
   }
   return PanelState(
     rows: rows,
@@ -328,6 +336,8 @@ PanelState _completions(PanelInput input, CaretToken token) {
       }
       if (query.isNotEmpty && !exact && !input.chosenTags.contains(query)) rows.add(NewTagRow(query));
     case CaretKind.folder:
+      // «только закинуть» папок не называет, а «Создать» завёл бы двойника той, что уже есть
+      if (input.writeOnly) break;
       // по началу всего имени («подарки с» → «Подарки Сане») или любого его слова
       final wanted = query.trimRight();
       bool fits(FolderCard folder) {

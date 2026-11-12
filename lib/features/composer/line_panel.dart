@@ -361,7 +361,7 @@ class _RowView extends StatelessWidget {
           ],
         );
         final why = saveWhere(l, plan);
-        where = _where(why.icon, why.text, whereStyle, faint);
+        where = why == null ? null : _where(why.icon, why.text, whereStyle, faint);
       case ResultRow(:final result):
         final card = result.card;
         final hit = result.hit;

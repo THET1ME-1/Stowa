@@ -2723,4 +2723,10 @@ class LEs extends L {
   @override
   String get aiFirstHint =>
       'El modelo revisa también lo adivinado sin IA. Tu elección y las reglas mandan. Más consultas';
+
+  @override
+  String get composerHintNoSearch => 'Suelta lo que sea';
+
+  @override
+  String get returnsOff => 'Desactivado';
 }

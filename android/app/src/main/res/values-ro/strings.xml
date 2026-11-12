@@ -2,5 +2,6 @@
 <resources>
     <string name="widget_hint">Aruncă orice</string>
     <string name="widget_mic">Mesaj vocal</string>
+    <string name="widget_camera">Fotografie</string>
     <string name="widget_description">Salvează un gând, un link sau o notă vocală fără să deschizi aplicația</string>
 </resources>

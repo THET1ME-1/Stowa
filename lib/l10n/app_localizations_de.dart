@@ -2727,4 +2727,10 @@ class LDe extends L {
   @override
   String get aiFirstHint =>
       'Das Modell prüft auch Vermutungen ohne KI. Deine Wahl und Regeln gehen vor. Mehr Anfragen';
+
+  @override
+  String get composerHintNoSearch => 'Wirf irgendwas rein';
+
+  @override
+  String get returnsOff => 'Aus';
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -10,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/l10n/app_language.dart';
 
 import '../../helpers/test_app.dart';
@@ -27,10 +29,12 @@ void main() {
   });
   tearDown(() => world.dispose());
 
-  Future<void> open(WidgetTester tester, {required int keyStatus, bool ownLanguage = false}) async {
-    tester.view.physicalSize = const Size(400, 880);
+  Future<void> open(WidgetTester tester, {required int keyStatus, bool ownLanguage = false, Size size = const Size(400, 880), double textScale = 1}) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = textScale;
     addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     addTearDown(() => tester.pumpWidget(const SizedBox()));
     world
       ..settings = settings
@@ -47,14 +51,60 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('без ключа разбор выключен и сказано, зачем ключ', (tester) async {
+  /// Большой раздел живёт на своём экране: в настройках от него одна строка.
+  Future<void> openSection(WidgetTester tester, String title, {int keyStatus = 200}) async {
+    await open(tester, keyStatus: keyStatus);
+    await tester.tap(find.text(title));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('большие разделы — одной строкой с итогом: разбор, возврат, хранилище', (tester) async {
     await open(tester, keyStatus: 200);
+    expect(find.text('Выключен'), findsOneWidget);
+    expect(find.text('Посмотреть потом · В этот день · Сводка недели · Покупки у магазина'), findsOneWidget);
+    expect(find.text('Внутри приложения'), findsOneWidget);
+    // строк самих разделов на главном экране настроек нет
+    expect(find.text('Ключ'), findsNothing);
+    expect(find.text('Сводка недели'), findsNothing);
+    expect(find.text('Перенести в другую папку'), findsNothing);
+    expect(find.text('Корзина'), findsOneWidget);
+  });
+
+  testWidgets('итог возврата: только включённое, без него — «Выключено»', (tester) async {
+    await settings.setReturns(const ReturnSettings(onThisDay: false, shopping: false));
+    await open(tester, keyStatus: 200);
+    expect(find.text('Посмотреть потом · Сводка недели'), findsOneWidget);
+    await settings.setReturns(const ReturnSettings(watchLater: false, onThisDay: false, week: false, shopping: false));
+    await tester.pumpAndSettle();
+    expect(find.text('Выключено'), findsOneWidget);
+  });
+
+  testWidgets('итог разбора: с ключом — «Работает» и модель', (tester) async {
+    await settings.saveKey('sk-or-good');
+    await open(tester, keyStatus: 200);
+    expect(find.textContaining('Работает · '), findsOneWidget);
+  });
+
+  for (final section in ['Разбор ИИ', 'Возвращать', 'Хранилище']) {
+    testWidgets('320 точек и крупный шрифт: «$section» влезает', (tester) async {
+      await open(tester, keyStatus: 200, size: const Size(320, 700), textScale: 1.3);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text(section));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(Scrollable).last, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('без ключа разбор выключен и сказано, зачем ключ', (tester) async {
+    await openSection(tester, 'Разбор ИИ');
     expect(find.text('Выключен'), findsOneWidget);
     expect(find.textContaining('Ключ хранится только на этом телефоне'), findsOneWidget);
   });
 
   testWidgets('рабочий ключ сохраняется после проверки у поставщика', (tester) async {
-    await open(tester, keyStatus: 200);
+    await openSection(tester, 'Разбор ИИ');
     await tester.tap(find.text('Ключ'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('ai-key-field')), 'sk-or-good');
@@ -66,7 +116,7 @@ void main() {
   });
 
   testWidgets('ключ, который поставщик не принял, не сохраняется, лист говорит почему', (tester) async {
-    await open(tester, keyStatus: 401);
+    await openSection(tester, 'Разбор ИИ', keyStatus: 401);
     await tester.tap(find.text('Ключ'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('ai-key-field')), 'sk-or-bad');
@@ -78,7 +128,7 @@ void main() {
 
   testWidgets('модель разбора выбирается из живого списка поставщика', (tester) async {
     await settings.saveKey('sk-or-good');
-    await open(tester, keyStatus: 200);
+    await openSection(tester, 'Разбор ИИ');
     await tester.tap(find.text('Модель разбора'));
     await tester.pumpAndSettle();
     expect(find.text('бесплатная'), findsOneWidget);
@@ -124,17 +174,16 @@ void main() {
     expect(find.text('По дню сохранения'), findsOneWidget);
   });
 
-  testWidgets('раздел «Хранилище»: где лежит, перенос и «Пересобрать указатель»', (tester) async {
-    await open(tester, keyStatus: 200);
-    // экран теста короткий: заголовок и строки раздела на нём разом не видны
-    for (final label in ['ХРАНИЛИЩЕ', 'Внутри приложения', 'Перенести в другую папку', 'Пересобрать указатель']) {
+  testWidgets('экран «Хранилище»: где лежит, перенос, «Пересобрать указатель» и копии', (tester) async {
+    await openSection(tester, 'Хранилище');
+    for (final label in ['Внутри приложения', 'Перенести в другую папку', 'Пересобрать указатель', 'Сохранить копию', 'Выгрузить в Markdown', 'Восстановить из копии']) {
       await tester.scrollUntilVisible(find.text(label), 100);
       expect(find.text(label), findsOneWidget);
     }
   });
 
   testWidgets('«ИИ в приоритете» по умолчанию выключен, касание включает', (tester) async {
-    await open(tester, keyStatus: 200);
+    await openSection(tester, 'Разбор ИИ');
     final row = find.ancestor(of: find.text('ИИ в приоритете'), matching: find.byType(InkWell)).first;
     await tester.ensureVisible(row);
     await tester.pumpAndSettle();
@@ -142,6 +191,13 @@ void main() {
     await tester.tap(row);
     await tester.pumpAndSettle();
     expect(settings.ai.aiFirst, isTrue);
+  });
+
+  testWidgets('пояснение под переключателем видно целиком, без многоточия', (tester) async {
+    await openSection(tester, 'Разбор ИИ');
+    final hint = find.textContaining('Модель проверяет и догадки без ИИ');
+    await tester.scrollUntilVisible(hint, 100);
+    expect(tester.renderObject<RenderParagraph>(hint).didExceedMaxLines, isFalse);
   });
 
   testWidgets('«Запоминать, где сохранено» без разрешения выключено; включение спрашивает место', (tester) async {
@@ -161,9 +217,9 @@ void main() {
     expect(settings.placeEnabled, isTrue);
   });
 
-  testWidgets('раздел «Возвращать»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
-    await open(tester, keyStatus: 200);
-    for (final label in ['ВОЗВРАЩАТЬ', 'Посмотреть потом', 'В этот день', 'Сводка недели', '20:00', '22:00–08:00', 'воскресенье', 'Работа до', '18:00']) {
+  testWidgets('экран «Возвращать»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
+    await openSection(tester, 'Возвращать');
+    for (final label in ['Посмотреть потом', 'В этот день', 'Сводка недели', 'Покупки у магазина', '20:00', '22:00–08:00', 'воскресенье', 'Работа до', '18:00', 'Места']) {
       await tester.scrollUntilVisible(find.text(label), 100);
       expect(find.text(label), findsOneWidget);
     }
@@ -188,6 +244,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.returns.weekDay, DateTime.saturday);
     expect(find.text('суббота'), findsOneWidget);
+
+    // выключенный вид уходит из итога на главном экране настроек
+    await tester.ensureVisible(find.text('В этот день'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('В этот день'));
+    await tester.pumpAndSettle();
+    // шапка уезжает вместе со списком
+    await tester.ensureVisible(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    expect(find.text('Посмотреть потом · Сводка недели · Покупки у магазина'), findsOneWidget);
   });
 
   testWidgets('«Из Telegram»: папка выгрузки становится заметками, итог плашкой', (tester) async {
@@ -246,7 +314,7 @@ void main() {
   testWidgets('журнал показывает, какой запрос упал и почему', (tester) async {
     await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Борщ', createdAt: world.now, updatedAt: world.now));
     await world.db.into(world.db.aiLog).insert(AiLogCompanion.insert(at: world.now, itemId: const Value('a'), request: '{}', error: const Value('AiFailure(timeout): нет ответа за 90 секунд')));
-    await open(tester, keyStatus: 200);
+    await openSection(tester, 'Разбор ИИ');
     await tester.ensureVisible(find.text('Журнал запросов'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Журнал запросов'));
@@ -255,15 +323,18 @@ void main() {
     expect(find.textContaining('Модель не ответила вовремя · нет ответа за 90 секунд'), findsOneWidget);
   });
 
-  testWidgets('пауза разбора видна на главной и ведёт в настройки', (tester) async {
+  testWidgets('пауза разбора видна на главной и ведёт прямо к ключу', (tester) async {
     await settings.saveKey('sk-or-good');
     await settings.pause('auth');
     await open(tester, keyStatus: 200);
+    // в настройках пауза — итогом строки разбора
+    expect(find.text('Разбор на паузе: ключ не принят'), findsOneWidget);
     await tester.tap(find.byTooltip('Назад'));
     await tester.pumpAndSettle();
     expect(find.text('Разбор на паузе: ключ не принят'), findsOneWidget);
     await tester.tap(find.text('Проверить ключ'));
     await tester.pumpAndSettle();
     expect(find.text('Разбор ИИ'), findsOneWidget);
+    expect(find.text('Ключ'), findsOneWidget);
   });
 }

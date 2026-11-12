@@ -479,5 +479,7 @@
   "hiddenFolders": "Dosare ascunse",
   "hiddenReminder": "Memento dintr-un dosar ascuns",
   "aiFirst": "AI are prioritate",
-  "aiFirstHint": "Modelul verifică și ghicirile fără AI. Alegerea ta și regulile au întâietate. Mai multe cereri"
+  "aiFirstHint": "Modelul verifică și ghicirile fără AI. Alegerea ta și regulile au întâietate. Mai multe cereri",
+  "composerHintNoSearch": "Aruncă orice",
+  "returnsOff": "Oprit"
 }

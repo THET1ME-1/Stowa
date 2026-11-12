@@ -2783,4 +2783,10 @@ class LRu extends L {
   @override
   String get aiFirstHint =>
       'Модель проверяет и догадки без ИИ. Ваш выбор и правила главнее. Запросов больше';
+
+  @override
+  String get composerHintNoSearch => 'Закинь что угодно';
+
+  @override
+  String get returnsOff => 'Выключено';
 }

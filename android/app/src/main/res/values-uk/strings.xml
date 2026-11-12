@@ -2,5 +2,6 @@
 <resources>
     <string name="widget_hint">Закинь що завгодно</string>
     <string name="widget_mic">Голосове</string>
+    <string name="widget_camera">Фото</string>
     <string name="widget_description">Закинути думку, посилання чи голосове, не відкриваючи головну</string>
 </resources>

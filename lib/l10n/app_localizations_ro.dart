@@ -2748,4 +2748,10 @@ class LRo extends L {
   @override
   String get aiFirstHint =>
       'Modelul verifică și ghicirile fără AI. Alegerea ta și regulile au întâietate. Mai multe cereri';
+
+  @override
+  String get composerHintNoSearch => 'Aruncă orice';
+
+  @override
+  String get returnsOff => 'Oprit';
 }

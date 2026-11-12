@@ -2778,4 +2778,10 @@ class LPl extends L {
   @override
   String get aiFirstHint =>
       'Model sprawdza też zgadywanie bez AI. Twój wybór i reguły są ważniejsze. Więcej zapytań';
+
+  @override
+  String get composerHintNoSearch => 'Wrzuć cokolwiek';
+
+  @override
+  String get returnsOff => 'Wyłączone';
 }

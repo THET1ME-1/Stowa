@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
@@ -117,7 +116,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // старые вещи под нынешние правила: размеры картинок для доски и заголовки вместо имён файлов
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // открыли с виджета: строка с клавиатурой или сразу запись голоса
+      // открыли касанием уведомления по месту или заметки в окне виджета
       initialLaunch().then(_onRawLaunch).ignore();
       listenLaunches(_onRawLaunch);
       // при открытии: файлы, которые не успели лечь до закрытия или выключения телефона
@@ -152,8 +151,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     super.dispose();
   }
 
-  LaunchAction? _pendingLaunch;
-
   Timer? _placeTimer;
 
   /// Сработавшее по месту снять, тревоги поставить заново. Без Android (тесты) канал молчит.
@@ -176,38 +173,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     _watch = VaultWatch(ref.read(databaseProvider), root: ref.read(vaultRootProvider), onChange: () => ref.read(vaultSyncProvider).run())..start();
   }
 
-  /// Запуск снаружи: уведомление по месту открывает заметку или экран возврата, виджет — строку.
+  /// Запуск снаружи: уведомление по месту или заметка из окна виджета открывают заметку или экран возврата.
   void _onRawLaunch(String? raw) {
     if (!mounted) return;
-    if (openPayloadOf(raw) case final payload?) {
-      if (notificationRoute(payload) case final route?) Navigator.of(context).push(route);
-      return;
-    }
-    _onLaunch(launchActionOf(raw));
-  }
-
-  void _onLaunch(LaunchAction? action) {
-    if (action == null || !mounted) return;
-    // касание виджета приходит, пока окно ещё за рабочим столом: клавиатура тогда не встаёт.
-    // действие ждёт, пока приложение выйдет вперёд
-    final state = WidgetsBinding.instance.lifecycleState;
-    if (state != null && state != AppLifecycleState.resumed) {
-      _pendingLaunch = action;
-      return;
-    }
-    // виджет нажали поверх другого экрана: сперва назад на главную
-    Navigator.of(context).popUntil((route) => route.isFirst);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      switch (action) {
-        case LaunchAction.compose:
-          _dock.currentState?.focusLine();
-          // на холодном старте окно получает фокус позже первого кадра, и первый
-          // запрос клавиатуры Android молча пропускает: просим ещё раз
-          Future.delayed(const Duration(milliseconds: 450), () => SystemChannels.textInput.invokeMethod<void>('TextInput.show')).ignore();
-        case LaunchAction.voice:
-          _dock.currentState?.startVoice();
-      }
-    });
+    final payload = openPayloadOf(raw);
+    if (payload == null) return;
+    if (notificationRoute(payload) case final route?) Navigator.of(context).push(route);
   }
 
   Future<void> _sweepFacts() async {
@@ -260,9 +231,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // пока приложение было свёрнуто, файлы могли поправить снаружи (Obsidian, Syncthing)
     ref.read(vaultSyncProvider).run().ignore();
     _watchVault();
-    final launch = _pendingLaunch;
-    _pendingLaunch = null;
-    _onLaunch(launch);
     ref.invalidate(upcomingProvider);
     // вернулся в приложение: то, что фон не успел, разбирается сейчас
     ref.read(aiDrainProvider)().ignore();
@@ -359,7 +327,8 @@ class _Feed extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 16),
-              child: AiPausedBanner(settings: ai, onTap: () => Navigator.of(context).push(settingsRoute())),
+              // плашка ведёт прямо к ключу, а не в общий список настроек
+              child: AiPausedBanner(settings: ai, onTap: () => Navigator.of(context).push(aiRoute())),
             ),
           ),
         // папки первыми: куда что лежит, видно сразу при открытии

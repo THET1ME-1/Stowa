@@ -2,11 +2,49 @@ import 'package:flutter/material.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
+import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 
 /// Цвет значков группы из палитры папок: разделы различаются с первого взгляда.
 Color settingsTint(String key) => FolderPalette.colors[key]!;
+
+/// Экран настроек выезжает справа. Раздел длиннее пяти строк живёт на своём экране.
+Route<void> settingsPageRoute(Widget page) => PageRouteBuilder(
+  transitionDuration: const Duration(milliseconds: 500),
+  reverseTransitionDuration: Motion.medium,
+  pageBuilder: (context, animation, secondary) => page,
+  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
+    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
+    child: child,
+  ),
+);
+
+/// Лист настроек снизу: поднимается над клавиатурой.
+Future<T?> showSettingsSheet<T>(BuildContext context, Widget child) => showModalBottomSheet<T>(
+  context: context,
+  useSafeArea: true,
+  isScrollControlled: true,
+  builder: (context) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+    child: SafeArea(top: false, child: child),
+  ),
+);
+
+/// Пояснение под группой строк.
+class SettingsHint extends StatelessWidget {
+  const SettingsHint(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+      child: Text(text, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+    );
+  }
+}
 
 /// Заголовок раздела заглавными.
 class SettingsSection extends StatelessWidget {
@@ -89,10 +127,13 @@ class SettingsIconChip extends StatelessWidget {
 
 /// Заголовок строки крупно, значение подписью под ним.
 class _RowText extends StatelessWidget {
-  const _RowText({required this.title, this.value});
+  const _RowText({required this.title, this.value, this.valueLines = 2});
 
   final String title;
   final String? value;
+
+  /// Сколько строк у подписи. null — пояснение целиком.
+  final int? valueLines;
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +144,7 @@ class _RowText extends StatelessWidget {
         Text(title, style: text.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600)),
         if (value != null) ...[
           const SizedBox(height: 2),
-          Text(value!, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+          Text(value!, maxLines: valueLines, overflow: valueLines == null ? null : TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
         ],
       ],
     );
@@ -164,7 +205,8 @@ class SettingsSwitchRow extends StatelessWidget {
             children: [
               SettingsIconChip(icon),
               const SizedBox(width: 16),
-              Expanded(child: _RowText(title: title, value: subtitle)),
+              // под переключателем пояснение, что он делает: обрезанное на полуслове не помогает
+              Expanded(child: _RowText(title: title, value: subtitle, valueLines: null)),
               const SizedBox(width: 8),
               Switch(value: value, onChanged: onChanged),
             ],

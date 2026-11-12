@@ -2721,4 +2721,10 @@ class LEn extends L {
   @override
   String get aiFirstHint =>
       'The model also checks offline guesses. Your choice and rules still win. More requests';
+
+  @override
+  String get composerHintNoSearch => 'Drop anything';
+
+  @override
+  String get returnsOff => 'Off';
 }

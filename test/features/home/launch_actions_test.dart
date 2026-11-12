@@ -21,23 +21,31 @@ void main() {
     addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(launchChannel, null));
     await tester.pumpWidget(world.app());
     await tester.pump(const Duration(milliseconds: 600));
-    // повторный показ клавиатуры идёт через 450 мс после фокуса
     await tester.pump(const Duration(seconds: 1));
   }
 
+  Future<void> note() => world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Купить кофе', createdAt: world.now, updatedAt: world.now));
+
+  bool lineFocused(WidgetTester tester) => tester.widget<EditableText>(find.byType(EditableText).first).focusNode.hasFocus;
+
   testWidgets('касание уведомления по месту открывает заметку', (tester) async {
-    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Купить кофе', createdAt: world.now, updatedAt: world.now));
+    await note();
     await open(tester, initial: 'open:note:a');
     await tester.pumpAndSettle();
     expect(find.byTooltip('Править'), findsOneWidget);
     expect(find.text('Купить кофе'), findsWidgets);
   });
 
-  bool lineFocused(WidgetTester tester) => tester.widget<EditableText>(find.byType(EditableText).first).focusNode.hasFocus;
-
-  testWidgets('касание строки виджета открывает приложение сразу в строке с клавиатурой', (tester) async {
-    await open(tester, initial: 'compose');
-    expect(lineFocused(tester), isTrue);
+  testWidgets('заметка из окна виджета открывается в приложении, которое уже живо', (tester) async {
+    await note();
+    await open(tester);
+    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+      launchChannel.name,
+      launchChannel.codec.encodeMethodCall(const MethodCall('open', 'open:note:a')),
+      (_) {},
+    );
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Править'), findsOneWidget);
   });
 
   testWidgets('обычный запуск строку не трогает', (tester) async {
@@ -45,32 +53,8 @@ void main() {
     expect(lineFocused(tester), isFalse);
   });
 
-  testWidgets('касание пришло, пока приложение в фоне, — строка встаёт, когда оно выйдет вперёд', (tester) async {
-    await open(tester);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
-      launchChannel.name,
-      launchChannel.codec.encodeMethodCall(const MethodCall('open', 'compose')),
-      (_) {},
-    );
-    await tester.pump();
+  testWidgets('кнопки виджета главную не будят: у них своё окно', (tester) async {
+    await open(tester, initial: 'compose');
     expect(lineFocused(tester), isFalse);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pumpAndSettle();
-    expect(lineFocused(tester), isTrue);
-  });
-
-  testWidgets('виджет нажали, когда приложение уже открыто на другом экране, — возврат на главную в строку', (tester) async {
-    await open(tester);
-    await tester.tap(find.byTooltip('Настройки'));
-    await tester.pumpAndSettle();
-    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
-      launchChannel.name,
-      launchChannel.codec.encodeMethodCall(const MethodCall('open', 'compose')),
-      (_) {},
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Разбор ИИ'), findsNothing);
-    expect(lineFocused(tester), isTrue);
   });
 }

@@ -13,6 +13,7 @@ import 'data/db/database.dart';
 import 'data/providers.dart';
 import 'data/settings_repository.dart';
 import 'domain/appearance.dart';
+import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
 import 'services/background.dart';
@@ -38,6 +39,13 @@ Future<void> main() async {
 Future<void> shareMain() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _run(const StowaApp(home: ShareHost(), lockable: false), reminderPort());
+}
+
+/// Окно виджета: его запускает QuickActivity, одна строка поверх рабочего стола.
+@pragma('vm:entry-point')
+Future<void> quickMain() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await _run(const StowaApp(home: QuickHost(), lockable: false), reminderPort());
 }
 
 Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {

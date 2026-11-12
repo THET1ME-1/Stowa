@@ -4474,6 +4474,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The model also checks offline guesses. Your choice and rules still win. More requests'**
   String get aiFirstHint;
+
+  /// Hint in the capture line when it only saves and does not search (home screen widget window under app lock)
+  ///
+  /// In en, this message translates to:
+  /// **'Drop anything'**
+  String get composerHintNoSearch;
+
+  /// Summary under the 'Bring back' settings row when every kind of return is switched off
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get returnsOff;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

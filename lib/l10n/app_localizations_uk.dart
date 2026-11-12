@@ -2778,4 +2778,10 @@ class LUk extends L {
   @override
   String get aiFirstHint =>
       'Модель перевіряє й здогадки без ШІ. Ваш вибір і правила головніші. Запитів більше';
+
+  @override
+  String get composerHintNoSearch => 'Закинь що завгодно';
+
+  @override
+  String get returnsOff => 'Вимкнено';
 }

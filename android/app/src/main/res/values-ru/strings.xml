@@ -2,5 +2,6 @@
 <resources>
     <string name="widget_hint">Закинь что угодно</string>
     <string name="widget_mic">Голосовое</string>
+    <string name="widget_camera">Фото</string>
     <string name="widget_description">Закинуть мысль, ссылку или голосовое, не открывая главную</string>
 </resources>

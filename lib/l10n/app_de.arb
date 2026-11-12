@@ -479,5 +479,7 @@
   "hiddenFolders": "Versteckte Ordner",
   "hiddenReminder": "Erinnerung aus einem versteckten Ordner",
   "aiFirst": "KI hat Vorrang",
-  "aiFirstHint": "Das Modell prüft auch Vermutungen ohne KI. Deine Wahl und Regeln gehen vor. Mehr Anfragen"
+  "aiFirstHint": "Das Modell prüft auch Vermutungen ohne KI. Deine Wahl und Regeln gehen vor. Mehr Anfragen",
+  "composerHintNoSearch": "Wirf irgendwas rein",
+  "returnsOff": "Aus"
 }

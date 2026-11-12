@@ -20,7 +20,10 @@ final _markdown = RegExp(r'^(#{1,3} |- \[[ xX]\] |- |> )|\*\*|~~|`', multiLine: 
 /// над строкой, дата становится напоминанием, ссылка, команда и разметка
 /// подсвечиваются на месте.
 class LineController extends TextEditingController {
-  LineController({DateTime Function()? clock, int Function()? workEnd, this.resolveFolder}) : _clock = clock ?? DateTime.now, _workEnd = workEnd ?? (() => defaultWorkEnd);
+  LineController({DateTime Function()? clock, int Function()? workEnd, this.resolveFolder, this.folderMarks = true}) : _clock = clock ?? DateTime.now, _workEnd = workEnd ?? (() => defaultWorkEnd);
+
+  /// Строка знает папки. Нет — «@слово» остаётся обычным текстом: так под замком в окне виджета.
+  final bool folderMarks;
 
   final DateTime Function() _clock;
 
@@ -228,7 +231,7 @@ class LineController extends TextEditingController {
     // тег или папка, которые пишутся сейчас, подсвечены фоном: ширина букв та же, курсор не прыгает
     if (selection.isValid && selection.isCollapsed && selection.extentOffset <= text.length) {
       final typing = _typingMark.firstMatch(text.substring(0, selection.extentOffset));
-      if (typing != null) {
+      if (typing != null && (folderMarks || text[typing.start] == '#')) {
         marks.add((typing.start, typing.end, TextStyle(backgroundColor: Tokens.onSurface.withValues(alpha: 0.15))));
       }
     }
