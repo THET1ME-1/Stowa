@@ -935,8 +935,8 @@ class LEs extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count elementos parecidos ordenados',
-      one: '$count elemento parecido ordenado',
+      other: '$count notas parecidas ordenadas',
+      one: '$count nota parecida ordenada',
     );
     return '$_temp0';
   }
@@ -988,7 +988,7 @@ class LEs extends L {
 
   @override
   String get aiStateOffHint =>
-      'Añade tu propia clave y lo que no tiene carpeta se ordena solo, con etiquetas, título y descripción para buscar. La clave se queda en este teléfono y las peticiones van directo al proveedor.';
+      'Añade tu propia clave y las notas sin carpeta se ordenan solas.';
 
   @override
   String get aiStateOn => 'Activo';
@@ -1003,8 +1003,8 @@ class LEs extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count elementos en espera',
-      one: '$count elemento en espera',
+      other: '$count notas en espera',
+      one: '$count nota en espera',
     );
     return '$_temp0';
   }
@@ -1032,7 +1032,7 @@ class LEs extends L {
 
   @override
   String get aiKeyWhere =>
-      'La clave la da el proveedor: en OpenRouter está en Keys. Hay modelos gratis.';
+      'La clave la da el proveedor: en OpenRouter está en Keys, y hay modelos gratis.';
 
   @override
   String get aiCheckOk => 'La clave funciona';
@@ -1057,7 +1057,7 @@ class LEs extends L {
 
   @override
   String get aiProviderHint =>
-      'Dirección de una API compatible con OpenAI. Vacía es OpenRouter.';
+      'Dirección de una API compatible con OpenAI, vacía es OpenRouter.';
 
   @override
   String get aiSortModel => 'Modelo para ordenar';
@@ -1140,8 +1140,8 @@ class LEs extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count elementos se borrarán para siempre. No se puede deshacer.',
-      one: '$count elemento se borrará para siempre. No se puede deshacer.',
+      other: '$count notas se borrarán para siempre. No se puede deshacer.',
+      one: '$count nota se borrará para siempre. No se puede deshacer.',
     );
     return '$_temp0';
   }
@@ -1162,7 +1162,7 @@ class LEs extends L {
 
   @override
   String get backupSaveHint =>
-      'Todo Stowa en un archivo: elementos, carpetas, etiquetas, reglas y archivos. La clave de IA no se incluye.';
+      'Todas tus notas, carpetas y archivos en un solo archivo, sin la clave de IA.';
 
   @override
   String get backupRestore => 'Restaurar copia';
@@ -1173,9 +1173,9 @@ class LEs extends L {
       count,
       locale: localeName,
       other:
-          '$count elementos de la copia del $date reemplazan todo lo que tienes ahora.',
+          '$count notas de la copia del $date reemplazan todo lo que tienes ahora.',
       one:
-          '$count elemento de la copia del $date reemplaza todo lo que tienes ahora.',
+          '$count nota de la copia del $date reemplaza todo lo que tienes ahora.',
     );
     return '$_temp0';
   }
@@ -1289,8 +1289,8 @@ class LEs extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count elementos movidos a «$folder»',
-      one: '$count elemento movido a «$folder»',
+      other: '$count notas movidas a «$folder»',
+      one: '$count nota movida a «$folder»',
     );
     return '$_temp0';
   }
@@ -1300,8 +1300,8 @@ class LEs extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count elementos borrados',
-      one: '$count elemento borrado',
+      other: '$count notas borradas',
+      one: '$count nota borrada',
     );
     return '$_temp0';
   }
@@ -1336,7 +1336,7 @@ class LEs extends L {
 
   @override
   String get graphEmpty =>
-      'Aún no hay enlaces. Aparecen cuando los elementos comparten palabras o la IA los une.';
+      'Aún no hay enlaces. Aparecen cuando las notas comparten palabras o la IA las une.';
 
   @override
   String get graphFailed => 'El grafo no se generó';
@@ -1370,7 +1370,7 @@ class LEs extends L {
 
   @override
   String get placeSettingHint =>
-      'El lugar se añade tras guardar y aparece en la página y en el mapa. Las coordenadas se quedan en el teléfono; solo sale la consulta del nombre de la calle.';
+      'El lugar aparece en la nota y en el mapa, y del teléfono solo sale la consulta del nombre de la calle.';
 
   @override
   String panelLooking(Object what) {
@@ -1393,7 +1393,7 @@ class LEs extends L {
 
   @override
   String get fileSavingHint =>
-      'Puedes cerrar la app, el archivo terminará solo. Cuando desaparezca la barra, puedes borrar el original.';
+      'Puedes cerrar la app y borrar el original cuando desaparezca la barra.';
 
   @override
   String get foundInFile => 'en el archivo';
@@ -1534,7 +1534,7 @@ class LEs extends L {
 
   @override
   String get adultSettingHint =>
-      'Páginas que se marcan a sí mismas como 18+ y sitios para adultos conocidos. Mientras esté desactivado, sus portadas se difuminan y las descripciones se ocultan. El elemento y su búsqueda se quedan.';
+      'Mientras esté desactivado, las portadas y descripciones de páginas 18+ quedan ocultas.';
 
   @override
   String get adultHidden =>
@@ -1545,14 +1545,14 @@ class LEs extends L {
 
   @override
   String get vaultSetupHint =>
-      'Las notas, fotos y archivos son archivos normales en una carpeta. La ves en el gestor de archivos, la abre Obsidian y la sincroniza Syncthing.';
+      'Las notas, fotos y archivos son archivos normales en una carpeta que también abre Obsidian.';
 
   @override
   String get vaultCreate => 'Crear una bóveda';
 
   @override
   String get vaultCreateHint =>
-      'Una carpeta nueva en la memoria del teléfono. Tus notas se quedan aunque borres la app.';
+      'Una carpeta nueva en la memoria del teléfono: tus notas se quedan aunque borres la app.';
 
   @override
   String get vaultCreateButton => 'Crear';
@@ -1572,7 +1572,7 @@ class LEs extends L {
 
   @override
   String get vaultInAppHint =>
-      'Sin permisos. Si borras la app, se borran las notas.';
+      'Sin permisos, pero si borras la app, se borran las notas.';
 
   @override
   String get vaultInAppButton => 'Elegir';
@@ -1595,7 +1595,7 @@ class LEs extends L {
 
   @override
   String get vaultAccessHint =>
-      'Para guardar notas en una carpeta normal, Android pide «Acceso a todos los archivos». Stowa solo lee y escribe la carpeta de la bóveda.';
+      'Para guardar notas en una carpeta normal, Android pide «Acceso a todos los archivos», pero Stowa solo toca su carpeta.';
 
   @override
   String get vaultAccessGrant => 'Abrir ajustes';
@@ -1650,7 +1650,7 @@ class LEs extends L {
 
   @override
   String get vaultSettingHint =>
-      'Las notas son archivos .md: Obsidian abre esta carpeta y Syncthing la sincroniza. El índice es una base de búsqueda que la app crea sola.';
+      'Las notas son archivos .md normales que también abre Obsidian.';
 
   @override
   String get vaultMoved => 'Bóveda movida';
@@ -1681,7 +1681,7 @@ class LEs extends L {
 
   @override
   String get importTelegramHint =>
-      'Elige la carpeta de exportación de «Mensajes guardados» de Telegram Desktop, HTML o JSON. Las notas conservan su fecha y un álbum queda como una nota.';
+      'Elige la carpeta de exportación de «Mensajes guardados» de Telegram Desktop.';
 
   @override
   String importProgress(int done, int total) {
@@ -1878,7 +1878,7 @@ class LEs extends L {
 
   @override
   String get returnSettingsHint =>
-      'Como mucho una notificación al día, sin sonido y nada en las horas de silencio. Tus propios recordatorios por hora o lugar no cuentan.';
+      'Como mucho una notificación silenciosa al día.';
 
   @override
   String returnRange(String from, String to) {
@@ -1915,7 +1915,7 @@ class LEs extends L {
 
   @override
   String get returnsAskBody =>
-      'Por la tarde, una notificación sin sonido: qué ver, qué guardaste este día hace un año, un resumen semanal. Como mucho una vez al día.';
+      'Una notificación silenciosa por la tarde te recuerda lo que guardaste.';
 
   @override
   String get returnsAskOn => 'Activar';
@@ -2000,14 +2000,14 @@ class LEs extends L {
 
   @override
   String get placesPermissionBody =>
-      'Android despierta a Stowa en el lugar indicado y muestra el nombre del Wi-Fi solo si la ubicación está permitida «siempre». Las coordenadas se quedan en el teléfono.';
+      'Los recordatorios en un lugar solo funcionan si la ubicación está permitida «siempre».';
 
   @override
   String get placesPermissionAllow => 'Permitir';
 
   @override
   String get placesHint =>
-      'Los lugares sirven para «recuérdame en casa», «en el trabajo» y «en la tienda». Las notas con la etiqueta #comprar aparecen en tus tiendas guardadas, como mucho una vez al día.';
+      'Los lugares sirven para recordatorios como «recuérdame en casa» o «en la tienda».';
 
   @override
   String placesShopsCount(int count) {
@@ -2128,7 +2128,7 @@ class LEs extends L {
 
   @override
   String get deadLinksAbout =>
-      'Una vez a la semana, con Wi-Fi, Stowa revisa tus enlaces guardados. Aquí llegan las páginas que el sitio borró.';
+      'Una vez a la semana Stowa revisa tus enlaces y reúne aquí las páginas que el sitio borró.';
 
   @override
   String get deadLinksEmpty => 'Todos los enlaces abren';
@@ -2192,7 +2192,7 @@ class LEs extends L {
 
   @override
   String get startHint =>
-      'La última: sigues donde lo dejaste. Al azar: cada vez que abres la app te recuerda algo guardado, y así se queda mejor.';
+      'La última nota sigue donde lo dejaste, una al azar te recuerda algo guardado.';
 
   @override
   String get appearanceTitle => 'Apariencia';
@@ -2238,7 +2238,7 @@ class LEs extends L {
 
   @override
   String get intensityHint =>
-      '«Vivo» tiñe también el fondo. «Exacto» lo deja gris y pinta los botones exactamente con tu color.';
+      '«Vivo» tiñe también el fondo, «Exacto» lo deja gris.';
 
   @override
   String get wallpaperColors => 'Colores del fondo';
@@ -2300,7 +2300,7 @@ class LEs extends L {
 
   @override
   String get historyHint =>
-      'El texto anterior se guarda cuando editas la nota tras una pausa. Se conservan las últimas 50 versiones o todas las de 30 días.';
+      'El texto anterior se guarda cuando editas la nota tras una pausa.';
 
   @override
   String get historyNoChanges => 'Mismo texto';
@@ -2360,7 +2360,7 @@ class LEs extends L {
 
   @override
   String get titleDateHint =>
-      'Una foto sin descripción lleva en el nombre un día. La fecha de captura sale de la propia foto o del nombre del archivo; si no está, se usa la fecha de guardado. Los nombres que pusiste tú no cambian.';
+      'Las fotos y vídeos sin descripción llevan una fecha en el nombre.';
 
   @override
   String get factPassword => 'Contraseña ••••••';
@@ -2584,7 +2584,7 @@ class LEs extends L {
 
   @override
   String get codeCreateHint =>
-      'De 6 a 12 cifras. El código abre Stowa y las carpetas ocultas. Si lo olvidas, las notas ocultas se pierden para siempre.';
+      'De 6 a 12 cifras: si olvidas el código, las notas ocultas se pierden para siempre.';
 
   @override
   String get codeMismatch => 'Los códigos no coinciden, créalo de nuevo';
@@ -2673,7 +2673,7 @@ class LEs extends L {
 
   @override
   String get privacyHint =>
-      'Las carpetas ocultas se guardan cifradas: sin el código nadie puede leerlas, ni aquí ni en los archivos de la bóveda. «Volver a bloquear» indica cuánto después de salir de la app se vuelve a pedir el código y se cierran las carpetas ocultas.';
+      'Las carpetas ocultas están cifradas y no se pueden leer sin el código.';
 
   @override
   String get markdownExport => 'Exportar a Markdown';
@@ -2722,7 +2722,7 @@ class LEs extends L {
 
   @override
   String get aiFirstHint =>
-      'El modelo revisa también lo adivinado sin IA. Tu elección y las reglas mandan. Más consultas';
+      'El modelo revisa también lo que la app ordenó sola, así que hace más consultas';
 
   @override
   String get composerHintNoSearch => 'Suelta lo que sea';
@@ -2735,5 +2735,5 @@ class LEs extends L {
 
   @override
   String get crashSettingHint =>
-      'Si Stowa falla, el desarrollador recibe el tipo de error, el lugar del código, la versión de la app y de Android y el modelo del teléfono. El informe no incluye el texto de las notas ni nombres de archivos o carpetas.';
+      'El desarrollador recibe el error y el modelo del teléfono, sin notas ni nombres de archivos.';
 }

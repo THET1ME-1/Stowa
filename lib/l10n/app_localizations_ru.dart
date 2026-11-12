@@ -994,7 +994,7 @@ class LRu extends L {
 
   @override
   String get aiStateOffHint =>
-      'Вставь свой ключ, и заметки без папки разложатся сами: с тегами, заголовком и описанием для поиска. Ключ хранится только на этом телефоне, запросы идут прямо к поставщику.';
+      'Вставь свой ключ, и заметки без папки разложатся сами.';
 
   @override
   String get aiStateOn => 'Работает';
@@ -1040,7 +1040,7 @@ class LRu extends L {
 
   @override
   String get aiKeyWhere =>
-      'Ключ берётся у поставщика: на OpenRouter — в разделе Keys. Есть бесплатные модели.';
+      'Ключ даёт поставщик: на OpenRouter он в разделе Keys, есть бесплатные модели.';
 
   @override
   String get aiCheckOk => 'Ключ работает';
@@ -1065,7 +1065,7 @@ class LRu extends L {
 
   @override
   String get aiProviderHint =>
-      'Адрес API, совместимого с OpenAI. Без него — OpenRouter.';
+      'Адрес API, совместимого с OpenAI, а без него — OpenRouter.';
 
   @override
   String get aiSortModel => 'Модель разбора';
@@ -1173,7 +1173,7 @@ class LRu extends L {
 
   @override
   String get backupSaveHint =>
-      'Вся Stowa одним файлом: заметки, папки, теги, правила и файлы. Ключа ИИ в копии нет.';
+      'Все заметки, папки и файлы одним файлом, без ключа ИИ.';
 
   @override
   String get backupRestore => 'Восстановить из копии';
@@ -1393,7 +1393,7 @@ class LRu extends L {
 
   @override
   String get placeSettingHint =>
-      'Место ставится после сохранения и видно на странице заметки и на карте. Координаты остаются на телефоне, наружу уходит только запрос названия улицы.';
+      'Место видно в заметке и на карте, наружу уходит только запрос названия улицы.';
 
   @override
   String panelLooking(Object what) {
@@ -1417,7 +1417,7 @@ class LRu extends L {
 
   @override
   String get fileSavingHint =>
-      'Можно закрыть приложение: файл доляжет сам. Когда полоска пропадёт, оригинал можно удалить.';
+      'Приложение можно закрыть, а оригинал удалить, когда полоска пропадёт.';
 
   @override
   String get foundInFile => 'в файле';
@@ -1559,7 +1559,7 @@ class LRu extends L {
 
   @override
   String get adultSettingHint =>
-      'Страницы, которые сами помечают себя как 18+, и известные сайты для взрослых. Пока выключено, их обложки размыты, а описания скрыты. Заметка и поиск по ней остаются.';
+      'Пока выключено, обложки и описания страниц 18+ скрыты.';
 
   @override
   String get adultHidden =>
@@ -1570,14 +1570,14 @@ class LRu extends L {
 
   @override
   String get vaultSetupHint =>
-      'Заметки, фото и файлы лежат обычными файлами в папке. Её видно в файловом менеджере, её открывает Obsidian и синхронизирует Syncthing.';
+      'Заметки, фото и файлы лежат обычными файлами в папке, которую открывает и Obsidian.';
 
   @override
   String get vaultCreate => 'Создать хранилище';
 
   @override
   String get vaultCreateHint =>
-      'Новая папка в памяти телефона. Заметки останутся, даже если удалить приложение.';
+      'Новая папка в памяти телефона: заметки останутся, даже если удалить приложение.';
 
   @override
   String get vaultCreateButton => 'Создать';
@@ -1597,7 +1597,7 @@ class LRu extends L {
 
   @override
   String get vaultInAppHint =>
-      'Без разрешений. При удалении приложения заметки пропадут.';
+      'Без разрешений, но при удалении приложения заметки пропадут.';
 
   @override
   String get vaultInAppButton => 'Выбрать';
@@ -1620,7 +1620,7 @@ class LRu extends L {
 
   @override
   String get vaultAccessHint =>
-      'Чтобы хранить заметки в обычной папке, Android просит разрешение «Доступ ко всем файлам». Stowa читает и пишет только папку хранилища.';
+      'Чтобы хранить заметки в обычной папке, Android просит «Доступ ко всем файлам», но Stowa трогает только свою папку.';
 
   @override
   String get vaultAccessGrant => 'Открыть настройки';
@@ -1675,7 +1675,7 @@ class LRu extends L {
 
   @override
   String get vaultSettingHint =>
-      'Заметки лежат файлами .md: эту папку открывает Obsidian и синхронизирует Syncthing. Указатель — служебная база для поиска, приложение собирает его само.';
+      'Заметки лежат обычными файлами .md, их открывает и Obsidian.';
 
   @override
   String get vaultMoved => 'Хранилище перенесено';
@@ -1706,7 +1706,7 @@ class LRu extends L {
 
   @override
   String get importTelegramHint =>
-      'Выбери папку выгрузки «Избранного» из Telegram Desktop — HTML или JSON. Заметки встанут со своими датами, альбом — одной заметкой.';
+      'Выбери папку выгрузки «Избранного» из Telegram Desktop.';
 
   @override
   String importProgress(int done, int total) {
@@ -1921,7 +1921,7 @@ class LRu extends L {
 
   @override
   String get returnSettingsHint =>
-      'Не больше одного уведомления в день, тихо, без звука, и ничего в тихие часы. Свои напоминания по времени и месту не в счёт.';
+      'Не больше одного тихого уведомления в день.';
 
   @override
   String returnRange(String from, String to) {
@@ -1956,7 +1956,7 @@ class LRu extends L {
 
   @override
   String get returnsAskBody =>
-      'Вечером — одно тихое уведомление: что посмотреть, что было в этот день год назад, сводка недели. Не чаще раза в день.';
+      'Одно тихое уведомление вечером напомнит о сохранённом.';
 
   @override
   String get returnsAskOn => 'Включить';
@@ -2041,14 +2041,14 @@ class LRu extends L {
 
   @override
   String get placesPermissionBody =>
-      'Android будит Stowa у нужной точки и показывает имя сети Wi-Fi, только если месту разрешено «всегда». Координаты остаются на телефоне.';
+      'Напоминания у места работают, только если месту разрешено «всегда».';
 
   @override
   String get placesPermissionAllow => 'Разрешить';
 
   @override
   String get placesHint =>
-      'Места нужны для «напомни дома», «на работе» и «в магазине». Заметки с тегом #купить всплывают у отмеченных магазинов, не чаще раза в день.';
+      'Места нужны для напоминаний вроде «напомни дома» или «в магазине».';
 
   @override
   String placesShopsCount(int count) {
@@ -2173,7 +2173,7 @@ class LRu extends L {
 
   @override
   String get deadLinksAbout =>
-      'Раз в неделю по Wi-Fi Stowa проверяет сохранённые ссылки. Сюда попадают страницы, которые сайт удалил.';
+      'Раз в неделю Stowa проверяет ссылки и собирает сюда страницы, которые сайт удалил.';
 
   @override
   String get deadLinksEmpty => 'Все ссылки открываются';
@@ -2239,7 +2239,7 @@ class LRu extends L {
 
   @override
   String get startHint =>
-      'Последняя — продолжить с того места, где остановились. Случайная — каждый запуск напоминает что-то из сохранённого, так записанное лучше запоминается.';
+      'Последняя заметка вернёт туда, где остановились, случайная напомнит о сохранённом.';
 
   @override
   String get appearanceTitle => 'Оформление';
@@ -2285,7 +2285,7 @@ class LRu extends L {
 
   @override
   String get intensityHint =>
-      '«Сочно» слегка подкрашивает и фон. «Точь-в-точь» оставляет фон серым, а кнопки красит ровно выбранным цветом.';
+      '«Сочно» подкрашивает и фон, «Точь-в-точь» оставляет его серым.';
 
   @override
   String get wallpaperColors => 'Цвета из обоев';
@@ -2348,7 +2348,7 @@ class LRu extends L {
 
   @override
   String get historyHint =>
-      'Прежний текст сохраняется, когда заметку правят после перерыва. Хранятся 50 последних версий или все за 30 дней.';
+      'Прежний текст сохраняется, когда заметку правят после перерыва.';
 
   @override
   String get historyNoChanges => 'Текст тот же';
@@ -2408,7 +2408,7 @@ class LRu extends L {
 
   @override
   String get titleDateHint =>
-      'Фото без подписи называется «Фото от 15 июля». День съёмки берётся из самого снимка или из имени файла, а если его там нет — день сохранения. Названия, которые вы дали сами, не меняются.';
+      'Фото и видео без подписи получают дату в названии.';
 
   @override
   String get factPassword => 'Пароль ••••••';
@@ -2644,7 +2644,7 @@ class LRu extends L {
 
   @override
   String get codeCreateHint =>
-      'От 6 до 12 цифр. Код открывает Stowa и скрытые папки. Забудете его — скрытые заметки не вернуть.';
+      'От 6 до 12 цифр: забудете код — скрытые заметки не вернуть.';
 
   @override
   String get codeMismatch => 'Коды не совпали, придумайте заново';
@@ -2733,7 +2733,7 @@ class LRu extends L {
 
   @override
   String get privacyHint =>
-      'Скрытые папки хранятся зашифрованными: без кода их не прочитать ни здесь, ни в файлах хранилища. «Запирать снова» — через сколько после ухода из приложения опять нужен код и закрываются скрытые папки.';
+      'Скрытые папки зашифрованы, без кода их не прочитать.';
 
   @override
   String get markdownExport => 'Выгрузить в Markdown';
@@ -2782,7 +2782,7 @@ class LRu extends L {
 
   @override
   String get aiFirstHint =>
-      'Модель проверяет и догадки без ИИ. Ваш выбор и правила главнее. Запросов больше';
+      'Модель проверяет и то, что приложение разложило само, запросов станет больше';
 
   @override
   String get composerHintNoSearch => 'Закинь что угодно';
@@ -2795,5 +2795,5 @@ class LRu extends L {
 
   @override
   String get crashSettingHint =>
-      'Если Stowa сломается, разработчик получит вид ошибки, место в коде, версию приложения и Android, модель телефона. Текста заметок, имён файлов и папок в отчёте нет.';
+      'Разработчик получает ошибку и модель телефона, без заметок и имён файлов.';
 }

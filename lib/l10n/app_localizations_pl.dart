@@ -937,10 +937,10 @@ class LPl extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count podobnej rzeczy posortowanej',
-      many: '$count podobnych rzeczy posortowanych',
-      few: '$count podobne rzeczy posortowane',
-      one: '$count podobna rzecz posortowana',
+      other: '$count podobnej notatki posortowanej',
+      many: '$count podobnych notatek posortowanych',
+      few: '$count podobne notatki posortowane',
+      one: '$count podobna notatka posortowana',
     );
     return '$_temp0';
   }
@@ -993,7 +993,7 @@ class LPl extends L {
 
   @override
   String get aiStateOffHint =>
-      'Dodaj własny klucz, a rzeczy bez folderu posortują się same, z tagami, tytułem i opisem do wyszukiwania. Klucz zostaje na tym telefonie, zapytania idą prosto do dostawcy.';
+      'Dodaj własny klucz, a notatki bez folderu posortują się same.';
 
   @override
   String get aiStateOn => 'Działa';
@@ -1008,10 +1008,10 @@ class LPl extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count rzeczy czeka',
-      many: '$count rzeczy czeka',
-      few: '$count rzeczy czekają',
-      one: '$count rzecz czeka',
+      other: '$count notatki czeka',
+      many: '$count notatek czeka',
+      few: '$count notatki czekają',
+      one: '$count notatka czeka',
     );
     return '$_temp0';
   }
@@ -1039,7 +1039,7 @@ class LPl extends L {
 
   @override
   String get aiKeyWhere =>
-      'Klucz bierzesz od dostawcy: na OpenRouter w sekcji Keys. Są darmowe modele.';
+      'Klucz bierzesz od dostawcy: na OpenRouter jest w sekcji Keys, są też darmowe modele.';
 
   @override
   String get aiCheckOk => 'Klucz działa';
@@ -1064,7 +1064,7 @@ class LPl extends L {
 
   @override
   String get aiProviderHint =>
-      'Adres API zgodnego z OpenAI. Puste to OpenRouter.';
+      'Adres API zgodnego z OpenAI, puste to OpenRouter.';
 
   @override
   String get aiSortModel => 'Model sortowania';
@@ -1148,10 +1148,10 @@ class LPl extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count rzeczy zniknie na zawsze. Nie da się tego cofnąć.',
-      many: '$count rzeczy zniknie na zawsze. Nie da się tego cofnąć.',
-      few: '$count rzeczy znikną na zawsze. Nie da się tego cofnąć.',
-      one: '$count rzecz zniknie na zawsze. Nie da się tego cofnąć.',
+      other: '$count notatki zniknie na zawsze. Nie da się tego cofnąć.',
+      many: '$count notatek zniknie na zawsze. Nie da się tego cofnąć.',
+      few: '$count notatki znikną na zawsze. Nie da się tego cofnąć.',
+      one: '$count notatka zniknie na zawsze. Nie da się tego cofnąć.',
     );
     return '$_temp0';
   }
@@ -1172,7 +1172,7 @@ class LPl extends L {
 
   @override
   String get backupSaveHint =>
-      'Cała Stowa w jednym pliku: rzeczy, foldery, tagi, reguły i pliki. Klucza AI w kopii nie ma.';
+      'Wszystkie notatki, foldery i pliki w jednym pliku, bez klucza AI.';
 
   @override
   String get backupRestore => 'Przywróć z kopii';
@@ -1182,10 +1182,10 @@ class LPl extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count rzeczy z kopii z $date zastąpi wszystko, co masz teraz.',
-      many: '$count rzeczy z kopii z $date zastąpi wszystko, co masz teraz.',
-      few: '$count rzeczy z kopii z $date zastąpią wszystko, co masz teraz.',
-      one: '$count rzecz z kopii z $date zastąpi wszystko, co masz teraz.',
+      other: '$count notatki z kopii z $date zastąpi wszystko, co masz teraz.',
+      many: '$count notatek z kopii z $date zastąpi wszystko, co masz teraz.',
+      few: '$count notatki z kopii z $date zastąpią wszystko, co masz teraz.',
+      one: '$count notatka z kopii z $date zastąpi wszystko, co masz teraz.',
     );
     return '$_temp0';
   }
@@ -1301,10 +1301,10 @@ class LPl extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count rzeczy przeniesionej do „$folder”',
-      many: '$count rzeczy przeniesionych do „$folder”',
-      few: '$count rzeczy przeniesione do „$folder”',
-      one: '$count rzecz przeniesiona do „$folder”',
+      other: '$count notatki przeniesionej do „$folder”',
+      many: '$count notatek przeniesionych do „$folder”',
+      few: '$count notatki przeniesione do „$folder”',
+      one: '$count notatka przeniesiona do „$folder”',
     );
     return '$_temp0';
   }
@@ -1314,10 +1314,10 @@ class LPl extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count rzeczy usuniętej',
-      many: '$count rzeczy usuniętych',
-      few: '$count rzeczy usunięte',
-      one: '$count rzecz usunięta',
+      other: '$count notatki usuniętej',
+      many: '$count notatek usuniętych',
+      few: '$count notatki usunięte',
+      one: '$count notatka usunięta',
     );
     return '$_temp0';
   }
@@ -1352,7 +1352,7 @@ class LPl extends L {
 
   @override
   String get graphEmpty =>
-      'Nie ma jeszcze powiązań. Pojawią się, gdy rzeczy zaczną mieć wspólne słowa albo AI je połączy.';
+      'Nie ma jeszcze powiązań. Pojawią się, gdy notatki zaczną mieć wspólne słowa albo AI je połączy.';
 
   @override
   String get graphFailed => 'Graf się nie zbudował';
@@ -1388,7 +1388,7 @@ class LPl extends L {
 
   @override
   String get placeSettingHint =>
-      'Miejsce dodaje się po zapisaniu i widać je na stronie rzeczy i na mapie. Współrzędne zostają w telefonie, na zewnątrz idzie tylko zapytanie o nazwę ulicy.';
+      'Miejsce widać w notatce i na mapie, na zewnątrz idzie tylko zapytanie o nazwę ulicy.';
 
   @override
   String panelLooking(Object what) {
@@ -1412,7 +1412,7 @@ class LPl extends L {
 
   @override
   String get fileSavingHint =>
-      'Możesz zamknąć aplikację, plik zapisze się sam. Gdy pasek zniknie, oryginał można usunąć.';
+      'Możesz zamknąć aplikację, a oryginał usunąć, gdy pasek zniknie.';
 
   @override
   String get foundInFile => 'w pliku';
@@ -1554,7 +1554,7 @@ class LPl extends L {
 
   @override
   String get adultSettingHint =>
-      'Strony, które same oznaczają się jako 18+, i znane serwisy dla dorosłych. Dopóki to wyłączone, ich okładki są rozmyte, a opisy ukryte. Element i wyszukiwanie zostają.';
+      'Dopóki to wyłączone, okładki i opisy stron 18+ są ukryte.';
 
   @override
   String get adultHidden =>
@@ -1565,14 +1565,14 @@ class LPl extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notatki, zdjęcia i pliki leżą jako zwykłe pliki w folderze. Widać go w menedżerze plików, otwiera go Obsidian i synchronizuje Syncthing.';
+      'Notatki, zdjęcia i pliki leżą jako zwykłe pliki w folderze, który otwiera też Obsidian.';
 
   @override
   String get vaultCreate => 'Utwórz skarbiec';
 
   @override
   String get vaultCreateHint =>
-      'Nowy folder w pamięci telefonu. Notatki zostaną, nawet gdy usuniesz aplikację.';
+      'Nowy folder w pamięci telefonu: notatki zostaną, nawet gdy usuniesz aplikację.';
 
   @override
   String get vaultCreateButton => 'Utwórz';
@@ -1592,7 +1592,7 @@ class LPl extends L {
 
   @override
   String get vaultInAppHint =>
-      'Bez uprawnień. Usunięcie aplikacji usunie notatki.';
+      'Bez uprawnień, ale usunięcie aplikacji usunie notatki.';
 
   @override
   String get vaultInAppButton => 'Wybierz';
@@ -1615,7 +1615,7 @@ class LPl extends L {
 
   @override
   String get vaultAccessHint =>
-      'Żeby trzymać notatki w zwykłym folderze, Android prosi o „Dostęp do wszystkich plików”. Stowa czyta i zapisuje tylko folder skarbca.';
+      'Żeby trzymać notatki w zwykłym folderze, Android prosi o „Dostęp do wszystkich plików”, ale Stowa rusza tylko swój folder.';
 
   @override
   String get vaultAccessGrant => 'Otwórz ustawienia';
@@ -1670,7 +1670,7 @@ class LPl extends L {
 
   @override
   String get vaultSettingHint =>
-      'Notatki to pliki .md: ten folder otwiera Obsidian i synchronizuje Syncthing. Indeks to baza wyszukiwania, którą aplikacja buduje sama.';
+      'Notatki to zwykłe pliki .md, otwiera je też Obsidian.';
 
   @override
   String get vaultMoved => 'Skarbiec przeniesiony';
@@ -1701,7 +1701,7 @@ class LPl extends L {
 
   @override
   String get importTelegramHint =>
-      'Wybierz folder eksportu „Zapisanych” z Telegram Desktop, HTML lub JSON. Notatki zachowają daty, album będzie jedną notatką.';
+      'Wybierz folder eksportu „Zapisanych” z Telegram Desktop.';
 
   @override
   String importProgress(int done, int total) {
@@ -1916,7 +1916,7 @@ class LPl extends L {
 
   @override
   String get returnSettingsHint =>
-      'Najwyżej jedno powiadomienie dziennie, bez dźwięku i nic w godzinach ciszy. Własne przypomnienia o czasie i miejscu się nie liczą.';
+      'Najwyżej jedno ciche powiadomienie dziennie.';
 
   @override
   String returnRange(String from, String to) {
@@ -1952,7 +1952,7 @@ class LPl extends L {
 
   @override
   String get returnsAskBody =>
-      'Wieczorem jedno ciche powiadomienie: co obejrzeć, co zapisałeś tego dnia rok temu, podsumowanie tygodnia. Najwyżej raz dziennie.';
+      'Jedno ciche powiadomienie wieczorem przypomni o tym, co zapisałeś.';
 
   @override
   String get returnsAskOn => 'Włącz';
@@ -2037,14 +2037,14 @@ class LPl extends L {
 
   @override
   String get placesPermissionBody =>
-      'Android budzi Stowa we właściwym miejscu i pokazuje nazwę sieci Wi-Fi tylko wtedy, gdy lokalizacja jest dozwolona „zawsze”. Współrzędne zostają w telefonie.';
+      'Przypomnienia w miejscu działają tylko wtedy, gdy lokalizacja jest dozwolona „zawsze”.';
 
   @override
   String get placesPermissionAllow => 'Zezwól';
 
   @override
   String get placesHint =>
-      'Miejsca są do „przypomnij w domu”, „w pracy” i „w sklepie”. Notatki z tagiem #kupić pojawiają się przy zapisanych sklepach, najwyżej raz dziennie.';
+      'Miejsca służą do przypomnień typu „przypomnij w domu” albo „w sklepie”.';
 
   @override
   String placesShopsCount(int count) {
@@ -2169,7 +2169,7 @@ class LPl extends L {
 
   @override
   String get deadLinksAbout =>
-      'Raz w tygodniu przez Wi-Fi Stowa sprawdza zapisane linki. Tu trafiają strony usunięte przez witrynę.';
+      'Raz w tygodniu Stowa sprawdza linki i zbiera tu strony usunięte przez witrynę.';
 
   @override
   String get deadLinksEmpty => 'Wszystkie linki działają';
@@ -2235,7 +2235,7 @@ class LPl extends L {
 
   @override
   String get startHint =>
-      'Ostatnia: wracasz tam, gdzie skończyłeś. Losowa: każde uruchomienie przypomina coś z zapisanych, więc lepiej zostaje w pamięci.';
+      'Ostatnia notatka wraca tam, gdzie skończyłeś, losowa przypomina coś z zapisanych.';
 
   @override
   String get appearanceTitle => 'Wygląd';
@@ -2281,7 +2281,7 @@ class LPl extends L {
 
   @override
   String get intensityHint =>
-      '„Żywo” lekko barwi też tło. „Dokładnie” zostawia szare tło, a przyciski maluje dokładnie wybranym kolorem.';
+      '„Żywo” barwi też tło, „Dokładnie” zostawia je szare.';
 
   @override
   String get wallpaperColors => 'Kolory z tapety';
@@ -2343,7 +2343,7 @@ class LPl extends L {
 
   @override
   String get historyHint =>
-      'Poprzedni tekst zostaje, gdy edytujesz notatkę po przerwie. Przechowywanych jest 50 ostatnich wersji albo wszystkie z 30 dni.';
+      'Poprzedni tekst zostaje, gdy edytujesz notatkę po przerwie.';
 
   @override
   String get historyNoChanges => 'Ten sam tekst';
@@ -2403,7 +2403,7 @@ class LPl extends L {
 
   @override
   String get titleDateHint =>
-      'Zdjęcie bez podpisu dostaje w nazwie dzień. Datę zrobienia bierzemy z samego zdjęcia albo z nazwy pliku, a jeśli jej tam nie ma — datę zapisania. Nazwy nadane przez Ciebie się nie zmieniają.';
+      'Zdjęcia i filmy bez podpisu dostają datę w nazwie.';
 
   @override
   String get factPassword => 'Hasło ••••••';
@@ -2639,7 +2639,7 @@ class LPl extends L {
 
   @override
   String get codeCreateHint =>
-      'Od 6 do 12 cyfr. Kod otwiera Stowa i ukryte foldery. Jeśli go zapomnisz, ukrytych notatek nie da się odzyskać.';
+      'Od 6 do 12 cyfr: jeśli zapomnisz kodu, ukrytych notatek nie da się odzyskać.';
 
   @override
   String get codeMismatch => 'Kody się różnią, wymyśl jeszcze raz';
@@ -2728,7 +2728,7 @@ class LPl extends L {
 
   @override
   String get privacyHint =>
-      'Ukryte foldery są zaszyfrowane: bez kodu nikt ich nie przeczyta, ani tutaj, ani w plikach skarbca. „Blokuj ponownie” mówi, po jakim czasie od wyjścia z aplikacji znów trzeba podać kod i ukryte foldery się zamykają.';
+      'Ukryte foldery są zaszyfrowane, bez kodu nikt ich nie przeczyta.';
 
   @override
   String get markdownExport => 'Eksportuj do Markdown';
@@ -2777,7 +2777,7 @@ class LPl extends L {
 
   @override
   String get aiFirstHint =>
-      'Model sprawdza też zgadywanie bez AI. Twój wybór i reguły są ważniejsze. Więcej zapytań';
+      'Model sprawdza też to, co aplikacja posortowała sama, więc zapytań jest więcej';
 
   @override
   String get composerHintNoSearch => 'Wrzuć cokolwiek';
@@ -2790,5 +2790,5 @@ class LPl extends L {
 
   @override
   String get crashSettingHint =>
-      'Gdy Stowa się zepsuje, twórca dostaje rodzaj błędu, miejsce w kodzie, wersję aplikacji i Androida oraz model telefonu. W raporcie nie ma treści notatek ani nazw plików i folderów.';
+      'Twórca dostaje błąd i model telefonu, bez notatek i nazw plików.';
 }

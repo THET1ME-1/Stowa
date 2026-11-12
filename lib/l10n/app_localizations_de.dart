@@ -937,8 +937,8 @@ class LDe extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count ähnliche Elemente einsortiert',
-      one: '$count ähnliches Element einsortiert',
+      other: '$count ähnliche Notizen einsortiert',
+      one: '$count ähnliche Notiz einsortiert',
     );
     return '$_temp0';
   }
@@ -991,7 +991,7 @@ class LDe extends L {
 
   @override
   String get aiStateOffHint =>
-      'Füge deinen eigenen Schlüssel hinzu, dann sortieren sich Elemente ohne Ordner selbst, mit Tags, Titel und Beschreibung für die Suche. Der Schlüssel bleibt auf diesem Handy, Anfragen gehen direkt an den Anbieter.';
+      'Füge deinen eigenen Schlüssel hinzu, dann sortieren sich Notizen ohne Ordner selbst.';
 
   @override
   String get aiStateOn => 'An';
@@ -1006,8 +1006,8 @@ class LDe extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Elemente warten',
-      one: '$count Element wartet',
+      other: '$count Notizen warten',
+      one: '$count Notiz wartet',
     );
     return '$_temp0';
   }
@@ -1035,7 +1035,7 @@ class LDe extends L {
 
   @override
   String get aiKeyWhere =>
-      'Den Schlüssel gibt es beim Anbieter, bei OpenRouter unter Keys. Es gibt kostenlose Modelle.';
+      'Den Schlüssel gibt es beim Anbieter: bei OpenRouter unter Keys, dort gibt es auch kostenlose Modelle.';
 
   @override
   String get aiCheckOk => 'Der Schlüssel funktioniert';
@@ -1060,7 +1060,7 @@ class LDe extends L {
 
   @override
   String get aiProviderHint =>
-      'Adresse einer OpenAI-kompatiblen API. Leer heißt OpenRouter.';
+      'Adresse einer OpenAI-kompatiblen API, leer heißt OpenRouter.';
 
   @override
   String get aiSortModel => 'Sortiermodell';
@@ -1143,9 +1143,9 @@ class LDe extends L {
       count,
       locale: localeName,
       other:
-          '$count Elemente werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.',
+          '$count Notizen werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.',
       one:
-          '$count Element wird endgültig gelöscht. Das lässt sich nicht rückgängig machen.',
+          '$count Notiz wird endgültig gelöscht. Das lässt sich nicht rückgängig machen.',
     );
     return '$_temp0';
   }
@@ -1166,7 +1166,7 @@ class LDe extends L {
 
   @override
   String get backupSaveHint =>
-      'Ganz Stowa in einer Datei: Elemente, Ordner, Tags, Regeln und Dateien. Der KI-Schlüssel ist nicht enthalten.';
+      'Alle Notizen, Ordner und Dateien in einer Datei, ohne den KI-Schlüssel.';
 
   @override
   String get backupRestore => 'Aus Sicherung wiederherstellen';
@@ -1177,9 +1177,9 @@ class LDe extends L {
       count,
       locale: localeName,
       other:
-          '$count Elemente aus der Sicherung vom $date ersetzen alles, was du jetzt hast.',
+          '$count Notizen aus der Sicherung vom $date ersetzen alles, was du jetzt hast.',
       one:
-          '$count Element aus der Sicherung vom $date ersetzt alles, was du jetzt hast.',
+          '$count Notiz aus der Sicherung vom $date ersetzt alles, was du jetzt hast.',
     );
     return '$_temp0';
   }
@@ -1293,8 +1293,8 @@ class LDe extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Elemente nach „$folder“ verschoben',
-      one: '$count Element nach „$folder“ verschoben',
+      other: '$count Notizen nach „$folder“ verschoben',
+      one: '$count Notiz nach „$folder“ verschoben',
     );
     return '$_temp0';
   }
@@ -1304,8 +1304,8 @@ class LDe extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Elemente gelöscht',
-      one: '$count Element gelöscht',
+      other: '$count Notizen gelöscht',
+      one: '$count Notiz gelöscht',
     );
     return '$_temp0';
   }
@@ -1340,7 +1340,7 @@ class LDe extends L {
 
   @override
   String get graphEmpty =>
-      'Noch keine Verknüpfungen. Sie entstehen, wenn Elemente gemeinsame Wörter haben oder die KI sie verbindet.';
+      'Noch keine Verknüpfungen. Sie entstehen, wenn Notizen gemeinsame Wörter haben oder die KI sie verbindet.';
 
   @override
   String get graphFailed => 'Der Graph wurde nicht erstellt';
@@ -1374,7 +1374,7 @@ class LDe extends L {
 
   @override
   String get placeSettingHint =>
-      'Der Ort wird nach dem Speichern ergänzt und erscheint auf der Seite und auf der Karte. Koordinaten bleiben auf dem Handy, nur die Straßenname-Abfrage geht raus.';
+      'Der Ort erscheint in der Notiz und auf der Karte, nach außen geht nur die Abfrage des Straßennamens.';
 
   @override
   String panelLooking(Object what) {
@@ -1397,7 +1397,7 @@ class LDe extends L {
 
   @override
   String get fileSavingHint =>
-      'Du kannst die App schließen, die Datei wird von selbst fertig. Ist der Balken weg, kann das Original gelöscht werden.';
+      'Du kannst die App schließen und das Original löschen, sobald der Balken weg ist.';
 
   @override
   String get foundInFile => 'in der Datei';
@@ -1538,7 +1538,7 @@ class LDe extends L {
 
   @override
   String get adultSettingHint =>
-      'Seiten, die sich selbst als 18+ kennzeichnen, und bekannte Seiten für Erwachsene. Solange das aus ist, sind ihre Cover unscharf und die Beschreibungen verborgen. Eintrag und Suche bleiben.';
+      'Solange das aus ist, bleiben Cover und Beschreibungen von 18+-Seiten verborgen.';
 
   @override
   String get adultHidden =>
@@ -1549,14 +1549,14 @@ class LDe extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notizen, Fotos und Dateien liegen als normale Dateien in einem Ordner. Du siehst ihn im Dateimanager, Obsidian öffnet ihn, Syncthing gleicht ihn ab.';
+      'Notizen, Fotos und Dateien liegen als normale Dateien in einem Ordner, den auch Obsidian öffnet.';
 
   @override
   String get vaultCreate => 'Tresor anlegen';
 
   @override
   String get vaultCreateHint =>
-      'Ein neuer Ordner im Telefonspeicher. Die Notizen bleiben, auch wenn du die App löschst.';
+      'Ein neuer Ordner im Telefonspeicher: Die Notizen bleiben, auch wenn du die App löschst.';
 
   @override
   String get vaultCreateButton => 'Anlegen';
@@ -1576,7 +1576,7 @@ class LDe extends L {
 
   @override
   String get vaultInAppHint =>
-      'Ohne Berechtigungen. Löschst du die App, sind die Notizen weg.';
+      'Ohne Berechtigungen, aber löschst du die App, sind die Notizen weg.';
 
   @override
   String get vaultInAppButton => 'Wählen';
@@ -1599,7 +1599,7 @@ class LDe extends L {
 
   @override
   String get vaultAccessHint =>
-      'Für Notizen in einem normalen Ordner fragt Android nach „Zugriff auf alle Dateien“. Stowa liest und schreibt nur den Tresor-Ordner.';
+      'Für Notizen in einem normalen Ordner fragt Android nach „Zugriff auf alle Dateien“, Stowa nutzt aber nur den eigenen Ordner.';
 
   @override
   String get vaultAccessGrant => 'Einstellungen öffnen';
@@ -1654,7 +1654,7 @@ class LDe extends L {
 
   @override
   String get vaultSettingHint =>
-      'Notizen sind .md-Dateien: Obsidian öffnet diesen Ordner, Syncthing gleicht ihn ab. Der Index ist eine Suchdatenbank, die die App selbst baut.';
+      'Notizen sind normale .md-Dateien, die auch Obsidian öffnet.';
 
   @override
   String get vaultMoved => 'Tresor verschoben';
@@ -1685,7 +1685,7 @@ class LDe extends L {
 
   @override
   String get importTelegramHint =>
-      'Wähle den Exportordner der „Gespeicherten Nachrichten“ aus Telegram Desktop, HTML oder JSON. Notizen behalten ihr Datum, ein Album wird zu einer Notiz.';
+      'Wähle den Exportordner der „Gespeicherten Nachrichten“ aus Telegram Desktop.';
 
   @override
   String importProgress(int done, int total) {
@@ -1882,7 +1882,7 @@ class LDe extends L {
 
   @override
   String get returnSettingsHint =>
-      'Höchstens eine Benachrichtigung am Tag, lautlos, und nichts in der Ruhezeit. Eigene Erinnerungen nach Zeit und Ort zählen nicht mit.';
+      'Höchstens eine lautlose Benachrichtigung am Tag.';
 
   @override
   String returnRange(String from, String to) {
@@ -1918,7 +1918,7 @@ class LDe extends L {
 
   @override
   String get returnsAskBody =>
-      'Abends eine lautlose Benachrichtigung: was du ansehen wolltest, was du vor einem Jahr an diesem Tag gespeichert hast, ein Wochenrückblick. Höchstens einmal am Tag.';
+      'Eine lautlose Benachrichtigung am Abend erinnert an Gespeichertes.';
 
   @override
   String get returnsAskOn => 'Einschalten';
@@ -2003,14 +2003,14 @@ class LDe extends L {
 
   @override
   String get placesPermissionBody =>
-      'Android weckt Stowa am richtigen Ort und zeigt den WLAN-Namen nur, wenn der Standort „immer“ erlaubt ist. Die Koordinaten bleiben auf dem Handy.';
+      'Erinnerungen an einem Ort klappen nur, wenn der Standort „immer“ erlaubt ist.';
 
   @override
   String get placesPermissionAllow => 'Erlauben';
 
   @override
   String get placesHint =>
-      'Orte braucht es für „erinnere mich zu Hause“, „auf der Arbeit“ und „im Laden“. Notizen mit dem Tag #kaufen tauchen an gespeicherten Läden auf, höchstens einmal am Tag.';
+      'Orte braucht es für Erinnerungen wie „erinnere mich zu Hause“ oder „im Laden“.';
 
   @override
   String placesShopsCount(int count) {
@@ -2131,7 +2131,7 @@ class LDe extends L {
 
   @override
   String get deadLinksAbout =>
-      'Einmal pro Woche prüft Stowa über WLAN deine gespeicherten Links. Hier landen Seiten, die die Website gelöscht hat.';
+      'Einmal pro Woche prüft Stowa deine Links und sammelt hier Seiten, die die Website gelöscht hat.';
 
   @override
   String get deadLinksEmpty => 'Alle Links funktionieren';
@@ -2195,7 +2195,7 @@ class LDe extends L {
 
   @override
   String get startHint =>
-      'Letzte: dort weitermachen, wo du aufgehört hast. Zufällig: Jeder Start erinnert an etwas Gespeichertes, so bleibt es besser hängen.';
+      'Die letzte Notiz macht dort weiter, wo du aufgehört hast, eine zufällige erinnert an Gespeichertes.';
 
   @override
   String get appearanceTitle => 'Darstellung';
@@ -2241,7 +2241,7 @@ class LDe extends L {
 
   @override
   String get intensityHint =>
-      '„Kräftig“ färbt auch den Hintergrund leicht. „Genau“ lässt ihn grau und färbt Knöpfe exakt in deiner Farbe.';
+      '„Kräftig“ färbt auch den Hintergrund, „Genau“ lässt ihn grau.';
 
   @override
   String get wallpaperColors => 'Farben vom Hintergrund';
@@ -2303,7 +2303,7 @@ class LDe extends L {
 
   @override
   String get historyHint =>
-      'Der frühere Text bleibt erhalten, wenn du die Notiz nach einer Pause bearbeitest. Gespeichert werden die letzten 50 Versionen oder alle der letzten 30 Tage.';
+      'Der frühere Text bleibt erhalten, wenn du die Notiz nach einer Pause bearbeitest.';
 
   @override
   String get historyNoChanges => 'Gleicher Text';
@@ -2363,7 +2363,7 @@ class LDe extends L {
 
   @override
   String get titleDateHint =>
-      'Ein Foto ohne Beschriftung trägt ein Datum im Namen. Das Aufnahmedatum kommt aus dem Bild selbst oder aus dem Dateinamen; fehlt es, gilt das Speicherdatum. Selbst vergebene Namen bleiben.';
+      'Fotos und Videos ohne Beschriftung bekommen ein Datum im Namen.';
 
   @override
   String get factPassword => 'Passwort ••••••';
@@ -2587,7 +2587,7 @@ class LDe extends L {
 
   @override
   String get codeCreateHint =>
-      '6 bis 12 Ziffern. Der Code öffnet Stowa und versteckte Ordner. Wenn du ihn vergisst, sind versteckte Notizen für immer verloren.';
+      '6 bis 12 Ziffern: Wenn du den Code vergisst, sind versteckte Notizen für immer verloren.';
 
   @override
   String get codeMismatch =>
@@ -2677,7 +2677,7 @@ class LDe extends L {
 
   @override
   String get privacyHint =>
-      'Versteckte Ordner liegen verschlüsselt: Ohne Code liest sie niemand, weder hier noch in den Dateien des Tresors. „Wieder sperren“ legt fest, wie lange nach dem Verlassen der App wieder der Code nötig ist und versteckte Ordner sich schließen.';
+      'Versteckte Ordner sind verschlüsselt und ohne Code nicht lesbar.';
 
   @override
   String get markdownExport => 'Als Markdown exportieren';
@@ -2726,7 +2726,7 @@ class LDe extends L {
 
   @override
   String get aiFirstHint =>
-      'Das Modell prüft auch Vermutungen ohne KI. Deine Wahl und Regeln gehen vor. Mehr Anfragen';
+      'Das Modell prüft auch, was die App selbst sortiert hat, und stellt mehr Anfragen';
 
   @override
   String get composerHintNoSearch => 'Wirf irgendwas rein';
@@ -2739,5 +2739,5 @@ class LDe extends L {
 
   @override
   String get crashSettingHint =>
-      'Wenn Stowa abstürzt, erhält der Entwickler die Art des Fehlers, die Stelle im Code, die Version von App und Android sowie das Telefonmodell. Der Bericht enthält keine Notiztexte, Datei- oder Ordnernamen.';
+      'Der Entwickler erhält den Fehler und das Telefonmodell, aber keine Notizen oder Dateinamen.';
 }

@@ -100,7 +100,7 @@ void main() {
   testWidgets('без ключа разбор выключен и сказано, зачем ключ', (tester) async {
     await openSection(tester, 'Разбор ИИ');
     expect(find.text('Выключен'), findsOneWidget);
-    expect(find.textContaining('Ключ хранится только на этом телефоне'), findsOneWidget);
+    expect(find.textContaining('заметки без папки разложатся сами'), findsOneWidget);
   });
 
   testWidgets('рабочий ключ сохраняется после проверки у поставщика', (tester) async {
@@ -205,7 +205,7 @@ void main() {
 
   testWidgets('пояснение под переключателем видно целиком, без многоточия', (tester) async {
     await openSection(tester, 'Разбор ИИ');
-    final hint = find.textContaining('Модель проверяет и догадки без ИИ');
+    final hint = find.textContaining('Модель проверяет и то, что приложение разложило само');
     await tester.scrollUntilVisible(hint, 100);
     expect(tester.renderObject<RenderParagraph>(hint).didExceedMaxLines, isFalse);
   });

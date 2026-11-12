@@ -936,10 +936,10 @@ class LUk extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Розклав $count схожих речі',
-      many: 'Розклав $count схожих речей',
-      few: 'Розклав $count схожі речі',
-      one: 'Розклав $count схожу річ',
+      other: 'Розклав $count схожої нотатки',
+      many: 'Розклав $count схожих нотаток',
+      few: 'Розклав $count схожі нотатки',
+      one: 'Розклав $count схожу нотатку',
     );
     return '$_temp0';
   }
@@ -991,7 +991,7 @@ class LUk extends L {
 
   @override
   String get aiStateOffHint =>
-      'Встав свій ключ, і речі без папки розкладуться самі: з тегами, заголовком і описом для пошуку. Ключ зберігається лише на цьому телефоні, запити йдуть прямо до постачальника.';
+      'Встав свій ключ, і нотатки без папки розкладуться самі.';
 
   @override
   String get aiStateOn => 'Працює';
@@ -1006,10 +1006,10 @@ class LUk extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count речі чекають розбору',
-      many: '$count речей чекають розбору',
-      few: '$count речі чекають розбору',
-      one: '$count річ чекає розбору',
+      other: '$count нотатки чекають розбору',
+      many: '$count нотаток чекають розбору',
+      few: '$count нотатки чекають розбору',
+      one: '$count нотатка чекає розбору',
     );
     return '$_temp0';
   }
@@ -1037,7 +1037,7 @@ class LUk extends L {
 
   @override
   String get aiKeyWhere =>
-      'Ключ береться в постачальника: на OpenRouter — у розділі Keys. Є безкоштовні моделі.';
+      'Ключ дає постачальник: на OpenRouter він у розділі Keys, є безкоштовні моделі.';
 
   @override
   String get aiCheckOk => 'Ключ працює';
@@ -1062,7 +1062,7 @@ class LUk extends L {
 
   @override
   String get aiProviderHint =>
-      'Адреса API, сумісного з OpenAI. Без неї — OpenRouter.';
+      'Адреса API, сумісного з OpenAI, а без неї — OpenRouter.';
 
   @override
   String get aiSortModel => 'Модель розбору';
@@ -1146,10 +1146,10 @@ class LUk extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Стерти $count речі назавжди? Повернути їх не вийде.',
-      many: 'Стерти $count речей назавжди? Повернути їх не вийде.',
-      few: 'Стерти $count речі назавжди? Повернути їх не вийде.',
-      one: 'Стерти $count річ назавжди? Повернути її не вийде.',
+      other: 'Стерти $count нотатки назавжди? Повернути їх не вийде.',
+      many: 'Стерти $count нотаток назавжди? Повернути їх не вийде.',
+      few: 'Стерти $count нотатки назавжди? Повернути їх не вийде.',
+      one: 'Стерти $count нотатку назавжди? Повернути її не вийде.',
     );
     return '$_temp0';
   }
@@ -1170,7 +1170,7 @@ class LUk extends L {
 
   @override
   String get backupSaveHint =>
-      'Уся Stowa одним файлом: речі, папки, теги, правила й файли. Ключа ШІ в копії немає.';
+      'Усі нотатки, папки й файли одним файлом, без ключа ШІ.';
 
   @override
   String get backupRestore => 'Відновити з копії';
@@ -1181,12 +1181,13 @@ class LUk extends L {
       count,
       locale: localeName,
       other:
-          'Замінити все копією від $date? У ній $count речі, нинішні зникнуть.',
+          'Замінити все копією від $date? У ній $count нотатки, нинішні зникнуть.',
       many:
-          'Замінити все копією від $date? У ній $count речей, нинішні зникнуть.',
+          'Замінити все копією від $date? У ній $count нотаток, нинішні зникнуть.',
       few:
-          'Замінити все копією від $date? У ній $count речі, нинішні зникнуть.',
-      one: 'Замінити все копією від $date? У ній $count річ, нинішні зникнуть.',
+          'Замінити все копією від $date? У ній $count нотатки, нинішні зникнуть.',
+      one:
+          'Замінити все копією від $date? У ній $count нотатка, нинішні зникнуть.',
     );
     return '$_temp0';
   }
@@ -1301,10 +1302,10 @@ class LUk extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Переклав $count речі у «$folder»',
-      many: 'Переклав $count речей у «$folder»',
-      few: 'Переклав $count речі у «$folder»',
-      one: 'Переклав $count річ у «$folder»',
+      other: 'Переклав $count нотатки у «$folder»',
+      many: 'Переклав $count нотаток у «$folder»',
+      few: 'Переклав $count нотатки у «$folder»',
+      one: 'Переклав $count нотатку у «$folder»',
     );
     return '$_temp0';
   }
@@ -1314,10 +1315,10 @@ class LUk extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Видалив $count речі',
-      many: 'Видалив $count речей',
-      few: 'Видалив $count речі',
-      one: 'Видалив $count річ',
+      other: 'Видалив $count нотатки',
+      many: 'Видалив $count нотаток',
+      few: 'Видалив $count нотатки',
+      one: 'Видалив $count нотатку',
     );
     return '$_temp0';
   }
@@ -1352,7 +1353,7 @@ class LUk extends L {
 
   @override
   String get graphEmpty =>
-      'Зв’язків поки немає. Вони з’являться, коли речі почнуть перегукуватися словами або ШІ зв’яже їх сам.';
+      'Зв’язків поки немає. Вони з’являться, коли нотатки почнуть перегукуватися словами або ШІ зв’яже їх сам.';
 
   @override
   String get graphFailed => 'Граф не побудувався';
@@ -1375,7 +1376,7 @@ class LUk extends L {
 
   @override
   String get mapEmpty =>
-      'Поки немає речей з місцем. Нові нотатки запам’ятають, де їх збережено, і з’являться тут.';
+      'Поки немає нотаток з місцем. Нові нотатки запам’ятають, де їх збережено, і з’являться тут.';
 
   @override
   String get mapWhereAmI => 'Де я';
@@ -1388,7 +1389,7 @@ class LUk extends L {
 
   @override
   String get placeSettingHint =>
-      'Місце ставиться після збереження і видно на сторінці речі та на мапі. Координати лишаються на телефоні, назовні йде тільки запит назви вулиці.';
+      'Місце видно в нотатці й на мапі, назовні йде тільки запит назви вулиці.';
 
   @override
   String panelLooking(Object what) {
@@ -1412,7 +1413,7 @@ class LUk extends L {
 
   @override
   String get fileSavingHint =>
-      'Застосунок можна закрити: файл доляже сам. Коли смужка зникне, оригінал можна видалити.';
+      'Застосунок можна закрити, а оригінал видалити, коли смужка зникне.';
 
   @override
   String get foundInFile => 'у файлі';
@@ -1554,7 +1555,7 @@ class LUk extends L {
 
   @override
   String get adultSettingHint =>
-      'Сторінки, які самі позначають себе як 18+, і відомі сайти для дорослих. Поки вимкнено, їхні обкладинки розмиті, а описи приховані. Річ і пошук по ній лишаються.';
+      'Поки вимкнено, обкладинки й описи сторінок 18+ приховані.';
 
   @override
   String get adultHidden =>
@@ -1565,14 +1566,14 @@ class LUk extends L {
 
   @override
   String get vaultSetupHint =>
-      'Нотатки, фото й файли лежать звичайними файлами в папці. Її видно у файловому менеджері, її відкриває Obsidian і синхронізує Syncthing.';
+      'Нотатки, фото й файли лежать звичайними файлами в папці, яку відкриває і Obsidian.';
 
   @override
   String get vaultCreate => 'Створити сховище';
 
   @override
   String get vaultCreateHint =>
-      'Нова папка в пам\'яті телефона. Нотатки залишаться, навіть якщо видалити застосунок.';
+      'Нова папка в пам’яті телефона: нотатки залишаться, навіть якщо видалити застосунок.';
 
   @override
   String get vaultCreateButton => 'Створити';
@@ -1592,7 +1593,7 @@ class LUk extends L {
 
   @override
   String get vaultInAppHint =>
-      'Без дозволів. Якщо видалити застосунок, нотатки зникнуть.';
+      'Без дозволів, але якщо видалити застосунок, нотатки зникнуть.';
 
   @override
   String get vaultInAppButton => 'Вибрати';
@@ -1615,7 +1616,7 @@ class LUk extends L {
 
   @override
   String get vaultAccessHint =>
-      'Щоб зберігати нотатки у звичайній папці, Android просить дозвіл «Доступ до всіх файлів». Stowa читає й пише лише папку сховища.';
+      'Щоб зберігати нотатки у звичайній папці, Android просить «Доступ до всіх файлів», але Stowa чіпає лише свою папку.';
 
   @override
   String get vaultAccessGrant => 'Відкрити налаштування';
@@ -1670,7 +1671,7 @@ class LUk extends L {
 
   @override
   String get vaultSettingHint =>
-      'Нотатки лежать файлами .md: цю папку відкриває Obsidian і синхронізує Syncthing. Покажчик — службова база для пошуку, застосунок збирає її сам.';
+      'Нотатки лежать звичайними файлами .md, їх відкриває і Obsidian.';
 
   @override
   String get vaultMoved => 'Сховище перенесено';
@@ -1701,7 +1702,7 @@ class LUk extends L {
 
   @override
   String get importTelegramHint =>
-      'Обери теку вивантаження «Збереженого» з Telegram Desktop — HTML або JSON. Нотатки збережуть свої дати, альбом — однією нотаткою.';
+      'Обери папку вивантаження «Збереженого» з Telegram Desktop.';
 
   @override
   String importProgress(int done, int total) {
@@ -1916,7 +1917,7 @@ class LUk extends L {
 
   @override
   String get returnSettingsHint =>
-      'Не більше одного сповіщення на день, тихо, без звуку, і нічого в тихі години. Власні нагадування за часом і місцем не рахуються.';
+      'Не більше одного тихого сповіщення на день.';
 
   @override
   String returnRange(String from, String to) {
@@ -1951,7 +1952,7 @@ class LUk extends L {
 
   @override
   String get returnsAskBody =>
-      'Увечері — одне тихе сповіщення: що переглянути, що було цього дня рік тому, підсумок тижня. Не частіше разу на день.';
+      'Одне тихе сповіщення ввечері нагадає про збережене.';
 
   @override
   String get returnsAskOn => 'Увімкнути';
@@ -2036,14 +2037,14 @@ class LUk extends L {
 
   @override
   String get placesPermissionBody =>
-      'Android будить Stowa у потрібній точці й показує ім’я мережі Wi-Fi, лише якщо місцю дозволено «завжди». Координати лишаються на телефоні.';
+      'Нагадування біля місця працюють, лише якщо місцю дозволено «завжди».';
 
   @override
   String get placesPermissionAllow => 'Дозволити';
 
   @override
   String get placesHint =>
-      'Місця потрібні для «нагадай удома», «на роботі» і «в магазині». Нотатки з тегом #купити спливають біля позначених магазинів, не частіше разу на день.';
+      'Місця потрібні для нагадувань на кшталт «нагадай удома» чи «в магазині».';
 
   @override
   String placesShopsCount(int count) {
@@ -2168,7 +2169,7 @@ class LUk extends L {
 
   @override
   String get deadLinksAbout =>
-      'Раз на тиждень через Wi-Fi Stowa перевіряє збережені посилання. Сюди потрапляють сторінки, які сайт видалив.';
+      'Раз на тиждень Stowa перевіряє посилання й збирає сюди сторінки, які сайт видалив.';
 
   @override
   String get deadLinksEmpty => 'Усі посилання відкриваються';
@@ -2234,7 +2235,7 @@ class LUk extends L {
 
   @override
   String get startHint =>
-      'Остання — продовжити з того місця, де зупинилися. Випадкова — кожен запуск нагадує щось зі збереженого, так записане краще запам\'ятовується.';
+      'Остання нотатка поверне туди, де зупинилися, випадкова нагадає про збережене.';
 
   @override
   String get appearanceTitle => 'Оформлення';
@@ -2280,7 +2281,7 @@ class LUk extends L {
 
   @override
   String get intensityHint =>
-      '«Соковито» трохи підфарбовує і фон. «Точнісінько» лишає фон сірим, а кнопки фарбує саме вибраним кольором.';
+      '«Соковито» підфарбовує і фон, «Точнісінько» лишає його сірим.';
 
   @override
   String get wallpaperColors => 'Кольори зі шпалер';
@@ -2343,7 +2344,7 @@ class LUk extends L {
 
   @override
   String get historyHint =>
-      'Попередній текст зберігається, коли нотатку правлять після перерви. Зберігаються 50 останніх версій або всі за 30 днів.';
+      'Попередній текст зберігається, коли нотатку правлять після перерви.';
 
   @override
   String get historyNoChanges => 'Текст той самий';
@@ -2403,7 +2404,7 @@ class LUk extends L {
 
   @override
   String get titleDateHint =>
-      'Фото без підпису отримує в назві день. День зйомки береться з самого знімка або з назви файлу, а якщо його там немає — день збереження. Назви, які ви дали самі, не змінюються.';
+      'Фото й відео без підпису отримують дату в назві.';
 
   @override
   String get factPassword => 'Пароль ••••••';
@@ -2639,7 +2640,7 @@ class LUk extends L {
 
   @override
   String get codeCreateHint =>
-      'Від 6 до 12 цифр. Код відкриває Stowa і приховані папки. Забудете його — приховані нотатки не повернути.';
+      'Від 6 до 12 цифр: забудете код — приховані нотатки не повернути.';
 
   @override
   String get codeMismatch => 'Коди не збіглися, придумайте заново';
@@ -2728,7 +2729,7 @@ class LUk extends L {
 
   @override
   String get privacyHint =>
-      'Приховані папки зберігаються зашифрованими: без коду їх не прочитати ні тут, ні у файлах сховища. «Замикати знову» — через скільки після виходу із застосунку знову потрібен код і закриваються приховані папки.';
+      'Приховані папки зашифровані, без коду їх не прочитати.';
 
   @override
   String get markdownExport => 'Вивантажити в Markdown';
@@ -2777,7 +2778,7 @@ class LUk extends L {
 
   @override
   String get aiFirstHint =>
-      'Модель перевіряє й здогадки без ШІ. Ваш вибір і правила головніші. Запитів більше';
+      'Модель перевіряє й те, що застосунок розклав сам, запитів стане більше';
 
   @override
   String get composerHintNoSearch => 'Закинь що завгодно';
@@ -2790,5 +2791,5 @@ class LUk extends L {
 
   @override
   String get crashSettingHint =>
-      'Якщо Stowa зламається, розробник отримає вид помилки, місце в коді, версію застосунку й Android, модель телефона. Тексту нотаток, назв файлів і папок у звіті немає.';
+      'Розробник отримує помилку й модель телефона, без нотаток і назв файлів.';
 }

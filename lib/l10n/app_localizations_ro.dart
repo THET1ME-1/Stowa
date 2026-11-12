@@ -936,9 +936,9 @@ class LRo extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count de elemente similare sortate',
-      few: '$count elemente similare sortate',
-      one: '$count element similar sortat',
+      other: '$count de notițe similare sortate',
+      few: '$count notițe similare sortate',
+      one: '$count notiță similară sortată',
     );
     return '$_temp0';
   }
@@ -990,7 +990,7 @@ class LRo extends L {
 
   @override
   String get aiStateOffHint =>
-      'Adaugă cheia ta și elementele fără dosar se sortează singure, cu etichete, titlu și descriere pentru căutare. Cheia rămâne pe acest telefon, cererile merg direct la furnizor.';
+      'Adaugă cheia ta și notițele fără dosar se sortează singure.';
 
   @override
   String get aiStateOn => 'Pornită';
@@ -1005,9 +1005,9 @@ class LRo extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count de elemente așteaptă',
-      few: '$count elemente așteaptă',
-      one: '$count element așteaptă',
+      other: '$count de notițe așteaptă',
+      few: '$count notițe așteaptă',
+      one: '$count notiță așteaptă',
     );
     return '$_temp0';
   }
@@ -1035,7 +1035,7 @@ class LRo extends L {
 
   @override
   String get aiKeyWhere =>
-      'Cheia o iei de la furnizor: pe OpenRouter, la Keys. Există modele gratuite.';
+      'Cheia o iei de la furnizor: pe OpenRouter e la Keys, există și modele gratuite.';
 
   @override
   String get aiCheckOk => 'Cheia funcționează';
@@ -1060,7 +1060,7 @@ class LRo extends L {
 
   @override
   String get aiProviderHint =>
-      'Adresa unui API compatibil OpenAI. Gol înseamnă OpenRouter.';
+      'Adresa unui API compatibil OpenAI, gol înseamnă OpenRouter.';
 
   @override
   String get aiSortModel => 'Model de sortare';
@@ -1143,9 +1143,9 @@ class LRo extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count de elemente se șterg definitiv. Nu se poate anula.',
-      few: '$count elemente se șterg definitiv. Nu se poate anula.',
-      one: '$count element se șterge definitiv. Nu se poate anula.',
+      other: '$count de notițe se șterg definitiv. Nu se poate anula.',
+      few: '$count notițe se șterg definitiv. Nu se poate anula.',
+      one: '$count notiță se șterge definitiv. Nu se poate anula.',
     );
     return '$_temp0';
   }
@@ -1166,7 +1166,7 @@ class LRo extends L {
 
   @override
   String get backupSaveHint =>
-      'Tot Stowa într-un fișier: elemente, dosare, etichete, reguli și fișiere. Cheia AI nu e inclusă.';
+      'Toate notițele, dosarele și fișierele într-un singur fișier, fără cheia AI.';
 
   @override
   String get backupRestore => 'Restaurează din copie';
@@ -1177,9 +1177,9 @@ class LRo extends L {
       count,
       locale: localeName,
       other:
-          '$count de elemente din copia de la $date înlocuiesc tot ce ai acum.',
-      few: '$count elemente din copia de la $date înlocuiesc tot ce ai acum.',
-      one: '$count element din copia de la $date înlocuiește tot ce ai acum.',
+          '$count de notițe din copia de la $date înlocuiesc tot ce ai acum.',
+      few: '$count notițe din copia de la $date înlocuiesc tot ce ai acum.',
+      one: '$count notiță din copia de la $date înlocuiește tot ce ai acum.',
     );
     return '$_temp0';
   }
@@ -1294,9 +1294,9 @@ class LRo extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count de elemente mutate în „$folder”',
-      few: '$count elemente mutate în „$folder”',
-      one: '$count element mutat în „$folder”',
+      other: '$count de notițe mutate în „$folder”',
+      few: '$count notițe mutate în „$folder”',
+      one: '$count notiță mutată în „$folder”',
     );
     return '$_temp0';
   }
@@ -1306,9 +1306,9 @@ class LRo extends L {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count de elemente șterse',
-      few: '$count elemente șterse',
-      one: '$count element șters',
+      other: '$count de notițe șterse',
+      few: '$count notițe șterse',
+      one: '$count notiță ștearsă',
     );
     return '$_temp0';
   }
@@ -1343,7 +1343,7 @@ class LRo extends L {
 
   @override
   String get graphEmpty =>
-      'Încă nu sunt legături. Apar când elementele au cuvinte comune sau AI le leagă.';
+      'Încă nu sunt legături. Apar când notițele au cuvinte comune sau AI le leagă.';
 
   @override
   String get graphFailed => 'Graful nu s-a construit';
@@ -1378,7 +1378,7 @@ class LRo extends L {
 
   @override
   String get placeSettingHint =>
-      'Locul se adaugă după salvare și apare pe pagina elementului și pe hartă. Coordonatele rămân pe telefon, iese doar cererea numelui străzii.';
+      'Locul apare în notiță și pe hartă, din telefon pleacă doar cererea numelui străzii.';
 
   @override
   String panelLooking(Object what) {
@@ -1401,7 +1401,7 @@ class LRo extends L {
 
   @override
   String get fileSavingHint =>
-      'Poți închide aplicația, fișierul se termină singur. Când bara dispare, originalul poate fi șters.';
+      'Poți închide aplicația, iar originalul îl poți șterge când dispare bara.';
 
   @override
   String get foundInFile => 'în fișier';
@@ -1542,7 +1542,7 @@ class LRo extends L {
 
   @override
   String get adultSettingHint =>
-      'Paginile care se marchează singure ca 18+ și site-urile cunoscute pentru adulți. Cât timp e dezactivat, copertele lor sunt estompate, iar descrierile ascunse. Elementul și căutarea rămân.';
+      'Cât timp e dezactivat, copertele și descrierile paginilor 18+ sunt ascunse.';
 
   @override
   String get adultHidden =>
@@ -1553,14 +1553,14 @@ class LRo extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notițele, pozele și fișierele stau ca fișiere obișnuite într-un dosar. Îl vezi în managerul de fișiere, îl deschide Obsidian și îl sincronizează Syncthing.';
+      'Notițele, pozele și fișierele stau ca fișiere obișnuite într-un dosar pe care îl deschide și Obsidian.';
 
   @override
   String get vaultCreate => 'Creează un seif';
 
   @override
   String get vaultCreateHint =>
-      'Un dosar nou în memoria telefonului. Notițele rămân chiar dacă ștergi aplicația.';
+      'Un dosar nou în memoria telefonului: notițele rămân chiar dacă ștergi aplicația.';
 
   @override
   String get vaultCreateButton => 'Creează';
@@ -1580,7 +1580,7 @@ class LRo extends L {
 
   @override
   String get vaultInAppHint =>
-      'Fără permisiuni. Dacă ștergi aplicația, notițele dispar.';
+      'Fără permisiuni, dar dacă ștergi aplicația, notițele dispar.';
 
   @override
   String get vaultInAppButton => 'Alege';
@@ -1603,7 +1603,7 @@ class LRo extends L {
 
   @override
   String get vaultAccessHint =>
-      'Ca să păstrezi notițele într-un dosar obișnuit, Android cere „Acces la toate fișierele”. Stowa citește și scrie doar dosarul seifului.';
+      'Ca să păstrezi notițele într-un dosar obișnuit, Android cere „Acces la toate fișierele”, dar Stowa atinge doar dosarul ei.';
 
   @override
   String get vaultAccessGrant => 'Deschide setările';
@@ -1658,7 +1658,7 @@ class LRo extends L {
 
   @override
   String get vaultSettingHint =>
-      'Notițele sunt fișiere .md: dosarul îl deschide Obsidian și îl sincronizează Syncthing. Indexul e baza de căutare pe care aplicația o face singură.';
+      'Notițele sunt fișiere .md obișnuite, le deschide și Obsidian.';
 
   @override
   String get vaultMoved => 'Seiful a fost mutat';
@@ -1689,7 +1689,7 @@ class LRo extends L {
 
   @override
   String get importTelegramHint =>
-      'Alege dosarul exportului „Mesaje salvate” din Telegram Desktop, HTML sau JSON. Notițele își păstrează datele, un album devine o notiță.';
+      'Alege dosarul exportului „Mesaje salvate” din Telegram Desktop.';
 
   @override
   String importProgress(int done, int total) {
@@ -1893,8 +1893,7 @@ class LRo extends L {
   String get returnWeekDayRow => 'Ziua rezumatului';
 
   @override
-  String get returnSettingsHint =>
-      'Cel mult o notificare pe zi, fără sunet și nimic în orele de liniște. Mementourile tale după oră sau loc nu se pun la socoteală.';
+  String get returnSettingsHint => 'Cel mult o notificare pe zi, fără sunet.';
 
   @override
   String returnRange(String from, String to) {
@@ -1929,7 +1928,7 @@ class LRo extends L {
 
   @override
   String get returnsAskBody =>
-      'Seara, o singură notificare fără sunet: ce să vezi, ce ai salvat în această zi acum un an, rezumatul săptămânii. Cel mult o dată pe zi.';
+      'O singură notificare fără sunet, seara, îți amintește ce ai salvat.';
 
   @override
   String get returnsAskOn => 'Activează';
@@ -2014,14 +2013,14 @@ class LRo extends L {
 
   @override
   String get placesPermissionBody =>
-      'Android trezește Stowa la locul potrivit și arată numele rețelei Wi-Fi doar dacă localizarea e permisă „mereu”. Coordonatele rămân pe telefon.';
+      'Mementourile la un loc merg doar dacă localizarea e permisă „mereu”.';
 
   @override
   String get placesPermissionAllow => 'Permite';
 
   @override
   String get placesHint =>
-      'Locurile sunt pentru „amintește-mi acasă”, „la serviciu” și „la magazin”. Notițele cu eticheta #cumpără apar la magazinele salvate, cel mult o dată pe zi.';
+      'Locurile sunt pentru mementouri ca „amintește-mi acasă” sau „la magazin”.';
 
   @override
   String placesShopsCount(int count) {
@@ -2144,7 +2143,7 @@ class LRo extends L {
 
   @override
   String get deadLinksAbout =>
-      'O dată pe săptămână, pe Wi-Fi, Stowa verifică linkurile salvate. Aici ajung paginile șterse de site.';
+      'O dată pe săptămână Stowa verifică linkurile și adună aici paginile șterse de site.';
 
   @override
   String get deadLinksEmpty => 'Toate linkurile se deschid';
@@ -2209,7 +2208,7 @@ class LRo extends L {
 
   @override
   String get startHint =>
-      'Ultima: continui de unde ai rămas. La întâmplare: la fiecare pornire îți amintește ceva salvat, așa reții mai bine.';
+      'Ultima notiță te duce unde ai rămas, una la întâmplare îți amintește ceva salvat.';
 
   @override
   String get appearanceTitle => 'Aspect';
@@ -2255,7 +2254,7 @@ class LRo extends L {
 
   @override
   String get intensityHint =>
-      '„Viu” nuanțează și fundalul. „Exact” lasă fundalul gri și colorează butoanele exact în culoarea aleasă.';
+      '„Viu” nuanțează și fundalul, „Exact” îl lasă gri.';
 
   @override
   String get wallpaperColors => 'Culori din fundal';
@@ -2319,7 +2318,7 @@ class LRo extends L {
 
   @override
   String get historyHint =>
-      'Textul anterior se păstrează când editezi notița după o pauză. Se păstrează ultimele 50 de versiuni sau toate din ultimele 30 de zile.';
+      'Textul anterior se păstrează când editezi notița după o pauză.';
 
   @override
   String get historyNoChanges => 'Același text';
@@ -2379,7 +2378,7 @@ class LRo extends L {
 
   @override
   String get titleDateHint =>
-      'O fotografie fără descriere primește o dată în nume. Data fotografierii se ia din imagine sau din numele fișierului; dacă nu există, se folosește data salvării. Numele date de dvs. nu se schimbă.';
+      'Fotografiile și videoclipurile fără descriere primesc o dată în nume.';
 
   @override
   String get factPassword => 'Parolă ••••••';
@@ -2609,7 +2608,7 @@ class LRo extends L {
 
   @override
   String get codeCreateHint =>
-      'Între 6 și 12 cifre. Codul deschide Stowa și dosarele ascunse. Dacă îl uitați, notițele ascunse se pierd pentru totdeauna.';
+      'Între 6 și 12 cifre: dacă uitați codul, notițele ascunse se pierd pentru totdeauna.';
 
   @override
   String get codeMismatch => 'Codurile nu se potrivesc, alegeți altul';
@@ -2698,7 +2697,7 @@ class LRo extends L {
 
   @override
   String get privacyHint =>
-      'Dosarele ascunse sunt păstrate criptat: fără cod nu pot fi citite nici aici, nici în fișierele seifului. „Blochează din nou” arată după cât timp de la ieșirea din aplicație e nevoie iar de cod și se închid dosarele ascunse.';
+      'Dosarele ascunse sunt criptate și nu pot fi citite fără cod.';
 
   @override
   String get markdownExport => 'Exportă în Markdown';
@@ -2747,7 +2746,7 @@ class LRo extends L {
 
   @override
   String get aiFirstHint =>
-      'Modelul verifică și ghicirile fără AI. Alegerea ta și regulile au întâietate. Mai multe cereri';
+      'Modelul verifică și ce a sortat aplicația singură, deci face mai multe cereri';
 
   @override
   String get composerHintNoSearch => 'Aruncă orice';
@@ -2760,5 +2759,5 @@ class LRo extends L {
 
   @override
   String get crashSettingHint =>
-      'Dacă Stowa se strică, dezvoltatorul primește tipul erorii, locul din cod, versiunea aplicației și a Androidului și modelul telefonului. Raportul nu conține textul notițelor, nume de fișiere sau de dosare.';
+      'Dezvoltatorul primește eroarea și modelul telefonului, fără notițe și nume de fișiere.';
 }

@@ -1796,7 +1796,7 @@ abstract class L {
   /// aiStateOffHint
   ///
   /// In en, this message translates to:
-  /// **'Add your own key and notes without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.'**
+  /// **'Add your own key and notes without a folder sort themselves.'**
   String get aiStateOffHint;
 
   /// aiStateOn
@@ -1862,7 +1862,7 @@ abstract class L {
   /// aiKeyWhere
   ///
   /// In en, this message translates to:
-  /// **'Get a key from your provider: on OpenRouter it is under Keys. Free models are available.'**
+  /// **'Get a key from your provider: on OpenRouter it is under Keys, and free models are available.'**
   String get aiKeyWhere;
 
   /// aiCheckOk
@@ -1910,7 +1910,7 @@ abstract class L {
   /// aiProviderHint
   ///
   /// In en, this message translates to:
-  /// **'An OpenAI-compatible API address. Empty means OpenRouter.'**
+  /// **'An OpenAI-compatible API address, empty means OpenRouter.'**
   String get aiProviderHint;
 
   /// aiSortModel
@@ -2066,7 +2066,7 @@ abstract class L {
   /// backupSaveHint
   ///
   /// In en, this message translates to:
-  /// **'All of Stowa in one file: notes, folders, tags, rules and files. Your AI key is not included.'**
+  /// **'All your notes, folders and files in one file, without the AI key.'**
   String get backupSaveHint;
 
   /// backupRestore
@@ -2372,7 +2372,7 @@ abstract class L {
   /// placeSettingHint
   ///
   /// In en, this message translates to:
-  /// **'The place is added after saving and shows on the note page and the map. Coordinates stay on the phone; only a street-name lookup goes out.'**
+  /// **'The place shows on the note and the map, and only a street-name lookup leaves the phone.'**
   String get placeSettingHint;
 
   /// Над найденным: что поиск понял из запроса, например «видео · вчера»
@@ -2396,7 +2396,7 @@ abstract class L {
   /// Пояснение под «Сохраняю файл»
   ///
   /// In en, this message translates to:
-  /// **'You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.'**
+  /// **'You can close the app, and delete the original once the bar is gone.'**
   String get fileSavingHint;
 
   /// Подпись у найденного: слово нашлось в тексте приложенного документа
@@ -2624,7 +2624,7 @@ abstract class L {
   /// Пояснение под переключателем 18+
   ///
   /// In en, this message translates to:
-  /// **'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The note and its search stay.'**
+  /// **'While this is off, covers and descriptions of 18+ pages stay hidden.'**
   String get adultSettingHint;
 
   /// Вместо описания страницы 18+, пока показ выключен
@@ -2642,7 +2642,7 @@ abstract class L {
   /// Пояснение под заголовком экрана первого запуска
   ///
   /// In en, this message translates to:
-  /// **'Notes, photos and files live as plain files in a folder. You can see it in a file manager, open it in Obsidian and sync it with Syncthing.'**
+  /// **'Notes, photos and files live as plain files in a folder that Obsidian can open too.'**
   String get vaultSetupHint;
 
   /// Первый путь на экране выбора хранилища
@@ -2654,7 +2654,7 @@ abstract class L {
   /// Пояснение к «Создать хранилище»
   ///
   /// In en, this message translates to:
-  /// **'A new folder in phone storage. Your notes stay even if you uninstall the app.'**
+  /// **'A new folder in phone storage: your notes stay even if you uninstall the app.'**
   String get vaultCreateHint;
 
   /// Кнопка «Создать хранилище»
@@ -2690,7 +2690,7 @@ abstract class L {
   /// Пояснение к «Хранить внутри приложения»
   ///
   /// In en, this message translates to:
-  /// **'No permissions. Uninstalling the app deletes your notes.'**
+  /// **'No permissions, but uninstalling the app deletes your notes.'**
   String get vaultInAppHint;
 
   /// Кнопка «Хранить внутри приложения»
@@ -2732,7 +2732,7 @@ abstract class L {
   /// Пояснение к разрешению «Доступ ко всем файлам»
   ///
   /// In en, this message translates to:
-  /// **'To keep notes in a regular folder, Android asks for “All files access”. Stowa only reads and writes the vault folder.'**
+  /// **'To keep notes in a regular folder Android asks for “All files access”, but Stowa only touches its own folder.'**
   String get vaultAccessHint;
 
   /// Кнопка перехода к системному разрешению
@@ -2822,7 +2822,7 @@ abstract class L {
   /// Пояснение под разделом «Хранилище»
   ///
   /// In en, this message translates to:
-  /// **'Notes are .md files: Obsidian opens this folder and Syncthing syncs it. The index is a search database the app builds by itself.'**
+  /// **'Notes are plain .md files that Obsidian can open too.'**
   String get vaultSettingHint;
 
   /// Плашка после переноса
@@ -2870,7 +2870,7 @@ abstract class L {
   /// Подсказка под разделом «Перенос»
   ///
   /// In en, this message translates to:
-  /// **'Pick a Saved Messages export folder from Telegram Desktop, HTML or JSON. Notes keep their dates, an album becomes one note.'**
+  /// **'Pick the Saved Messages export folder from Telegram Desktop.'**
   String get importTelegramHint;
 
   /// Ход переноса
@@ -3080,7 +3080,7 @@ abstract class L {
   /// Подсказка под разделом «Возвращать»
   ///
   /// In en, this message translates to:
-  /// **'At most one notification a day, silent, and nothing during quiet hours. Reminders you set yourself by time or place don’t count.'**
+  /// **'At most one silent notification a day.'**
   String get returnSettingsHint;
 
   /// Промежуток времени: «22:00–08:00»
@@ -3140,7 +3140,7 @@ abstract class L {
   /// Карточка на главной: что будет
   ///
   /// In en, this message translates to:
-  /// **'One silent notification in the evening: what to watch, what you saved on this day a year ago, a weekly summary. Never more than once a day.'**
+  /// **'One silent notification in the evening reminds you of what you saved.'**
   String get returnsAskBody;
 
   /// Кнопка карточки: разрешить уведомления
@@ -3290,7 +3290,7 @@ abstract class L {
   /// Зачем место «всегда»
   ///
   /// In en, this message translates to:
-  /// **'Android wakes Stowa at the right spot and shows the Wi-Fi name only if location is allowed “all the time”. Coordinates stay on your phone.'**
+  /// **'Reminders at a place only work if location is allowed “all the time”.'**
   String get placesPermissionBody;
 
   /// Кнопка разрешения на место в фоне
@@ -3302,7 +3302,7 @@ abstract class L {
   /// Подсказка внизу экрана мест
   ///
   /// In en, this message translates to:
-  /// **'Places are used for “remind me at home”, “at work” and “at a store”. Notes tagged #buy come up at your saved stores, at most once a day.'**
+  /// **'Places are for reminders like “remind me at home” or “at a store”.'**
   String get placesHint;
 
   /// Сколько магазинов отмечено
@@ -3488,7 +3488,7 @@ abstract class L {
   /// Пояснение над списком битых ссылок
   ///
   /// In en, this message translates to:
-  /// **'Once a week on Wi-Fi, Stowa checks your saved links. Pages the site removed end up here.'**
+  /// **'Once a week Stowa checks your links and lists pages the site removed here.'**
   String get deadLinksAbout;
 
   /// Битых ссылок нет
@@ -3596,7 +3596,7 @@ abstract class L {
   /// Пояснение под выбором запуска
   ///
   /// In en, this message translates to:
-  /// **'Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.'**
+  /// **'The last note picks up where you left off, a random one brings back something you saved.'**
   String get startHint;
 
   /// Раздел настроек: тема, цвет, AMOLED
@@ -3686,7 +3686,7 @@ abstract class L {
   /// Пояснение к насыщенности
   ///
   /// In en, this message translates to:
-  /// **'Vivid tints the background too. Exact keeps it gray and paints buttons in exactly your color.'**
+  /// **'Vivid tints the background too, Exact keeps it gray.'**
   String get intensityHint;
 
   /// Material You: цвет темы с обоев
@@ -3806,7 +3806,7 @@ abstract class L {
   /// History screen: how versions are made
   ///
   /// In en, this message translates to:
-  /// **'The earlier text is kept when you edit the note after a break. The last 50 versions or all from 30 days are kept.'**
+  /// **'The earlier text is kept when you edit a note after a break.'**
   String get historyHint;
 
   /// History: version text equals current, only the title differs
@@ -3914,7 +3914,7 @@ abstract class L {
   /// titleDateHint
   ///
   /// In en, this message translates to:
-  /// **'A photo without a caption is named “Photo, July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.'**
+  /// **'Photos and videos without a caption get a date in their name.'**
   String get titleDateHint;
 
   /// Кнопка пароля из текста: сам пароль спрятан точками
@@ -4220,7 +4220,7 @@ abstract class L {
   /// Under the create code title
   ///
   /// In en, this message translates to:
-  /// **'6 to 12 digits. The code opens Stowa and hidden folders. If you forget it, hidden notes are gone for good.'**
+  /// **'6 to 12 digits: if you forget the code, hidden notes are gone for good.'**
   String get codeCreateHint;
 
   /// Repeated code differs
@@ -4382,7 +4382,7 @@ abstract class L {
   /// Under the privacy settings
   ///
   /// In en, this message translates to:
-  /// **'Hidden folders are stored encrypted: without the code nobody can read them, here or in the vault files. “Lock again” sets how long after you leave the app the code is needed again and hidden folders close.'**
+  /// **'Hidden folders are encrypted and can\'t be read without the code.'**
   String get privacyHint;
 
   /// Settings row
@@ -4472,7 +4472,7 @@ abstract class L {
   /// Subtitle under the AI-first switch
   ///
   /// In en, this message translates to:
-  /// **'The model also checks offline guesses. Your choice and rules still win. More requests'**
+  /// **'The model also checks what the app sorted on its own, so it makes more requests'**
   String get aiFirstHint;
 
   /// Hint in the capture line when it only saves and does not search (home screen widget window under app lock)
@@ -4496,7 +4496,7 @@ abstract class L {
   /// Подсказка под переключателем отчётов об ошибках: что уходит разработчику и чего в отчёте нет
   ///
   /// In en, this message translates to:
-  /// **'If Stowa breaks, the developer gets the kind of error, the place in the code, the app and Android versions, and the phone model. The report has no note text, file names, or folder names.'**
+  /// **'The developer gets the error and your phone model, never your notes or file names.'**
   String get crashSettingHint;
 }
 

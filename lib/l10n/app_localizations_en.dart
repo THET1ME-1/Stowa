@@ -988,7 +988,7 @@ class LEn extends L {
 
   @override
   String get aiStateOffHint =>
-      'Add your own key and notes without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.';
+      'Add your own key and notes without a folder sort themselves.';
 
   @override
   String get aiStateOn => 'On';
@@ -1032,7 +1032,7 @@ class LEn extends L {
 
   @override
   String get aiKeyWhere =>
-      'Get a key from your provider: on OpenRouter it is under Keys. Free models are available.';
+      'Get a key from your provider: on OpenRouter it is under Keys, and free models are available.';
 
   @override
   String get aiCheckOk => 'The key works';
@@ -1057,7 +1057,7 @@ class LEn extends L {
 
   @override
   String get aiProviderHint =>
-      'An OpenAI-compatible API address. Empty means OpenRouter.';
+      'An OpenAI-compatible API address, empty means OpenRouter.';
 
   @override
   String get aiSortModel => 'Sorting model';
@@ -1161,7 +1161,7 @@ class LEn extends L {
 
   @override
   String get backupSaveHint =>
-      'All of Stowa in one file: notes, folders, tags, rules and files. Your AI key is not included.';
+      'All your notes, folders and files in one file, without the AI key.';
 
   @override
   String get backupRestore => 'Restore from backup';
@@ -1369,7 +1369,7 @@ class LEn extends L {
 
   @override
   String get placeSettingHint =>
-      'The place is added after saving and shows on the note page and the map. Coordinates stay on the phone; only a street-name lookup goes out.';
+      'The place shows on the note and the map, and only a street-name lookup leaves the phone.';
 
   @override
   String panelLooking(Object what) {
@@ -1392,7 +1392,7 @@ class LEn extends L {
 
   @override
   String get fileSavingHint =>
-      'You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.';
+      'You can close the app, and delete the original once the bar is gone.';
 
   @override
   String get foundInFile => 'in the file';
@@ -1533,7 +1533,7 @@ class LEn extends L {
 
   @override
   String get adultSettingHint =>
-      'Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The note and its search stay.';
+      'While this is off, covers and descriptions of 18+ pages stay hidden.';
 
   @override
   String get adultHidden =>
@@ -1544,14 +1544,14 @@ class LEn extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notes, photos and files live as plain files in a folder. You can see it in a file manager, open it in Obsidian and sync it with Syncthing.';
+      'Notes, photos and files live as plain files in a folder that Obsidian can open too.';
 
   @override
   String get vaultCreate => 'Create a vault';
 
   @override
   String get vaultCreateHint =>
-      'A new folder in phone storage. Your notes stay even if you uninstall the app.';
+      'A new folder in phone storage: your notes stay even if you uninstall the app.';
 
   @override
   String get vaultCreateButton => 'Create';
@@ -1571,7 +1571,7 @@ class LEn extends L {
 
   @override
   String get vaultInAppHint =>
-      'No permissions. Uninstalling the app deletes your notes.';
+      'No permissions, but uninstalling the app deletes your notes.';
 
   @override
   String get vaultInAppButton => 'Choose';
@@ -1594,7 +1594,7 @@ class LEn extends L {
 
   @override
   String get vaultAccessHint =>
-      'To keep notes in a regular folder, Android asks for “All files access”. Stowa only reads and writes the vault folder.';
+      'To keep notes in a regular folder Android asks for “All files access”, but Stowa only touches its own folder.';
 
   @override
   String get vaultAccessGrant => 'Open settings';
@@ -1649,7 +1649,7 @@ class LEn extends L {
 
   @override
   String get vaultSettingHint =>
-      'Notes are .md files: Obsidian opens this folder and Syncthing syncs it. The index is a search database the app builds by itself.';
+      'Notes are plain .md files that Obsidian can open too.';
 
   @override
   String get vaultMoved => 'Vault moved';
@@ -1680,7 +1680,7 @@ class LEn extends L {
 
   @override
   String get importTelegramHint =>
-      'Pick a Saved Messages export folder from Telegram Desktop, HTML or JSON. Notes keep their dates, an album becomes one note.';
+      'Pick the Saved Messages export folder from Telegram Desktop.';
 
   @override
   String importProgress(int done, int total) {
@@ -1876,8 +1876,7 @@ class LEn extends L {
   String get returnWeekDayRow => 'Summary day';
 
   @override
-  String get returnSettingsHint =>
-      'At most one notification a day, silent, and nothing during quiet hours. Reminders you set yourself by time or place don’t count.';
+  String get returnSettingsHint => 'At most one silent notification a day.';
 
   @override
   String returnRange(String from, String to) {
@@ -1914,7 +1913,7 @@ class LEn extends L {
 
   @override
   String get returnsAskBody =>
-      'One silent notification in the evening: what to watch, what you saved on this day a year ago, a weekly summary. Never more than once a day.';
+      'One silent notification in the evening reminds you of what you saved.';
 
   @override
   String get returnsAskOn => 'Turn on';
@@ -1999,14 +1998,14 @@ class LEn extends L {
 
   @override
   String get placesPermissionBody =>
-      'Android wakes Stowa at the right spot and shows the Wi-Fi name only if location is allowed “all the time”. Coordinates stay on your phone.';
+      'Reminders at a place only work if location is allowed “all the time”.';
 
   @override
   String get placesPermissionAllow => 'Allow';
 
   @override
   String get placesHint =>
-      'Places are used for “remind me at home”, “at work” and “at a store”. Notes tagged #buy come up at your saved stores, at most once a day.';
+      'Places are for reminders like “remind me at home” or “at a store”.';
 
   @override
   String placesShopsCount(int count) {
@@ -2126,7 +2125,7 @@ class LEn extends L {
 
   @override
   String get deadLinksAbout =>
-      'Once a week on Wi-Fi, Stowa checks your saved links. Pages the site removed end up here.';
+      'Once a week Stowa checks your links and lists pages the site removed here.';
 
   @override
   String get deadLinksEmpty => 'All links open';
@@ -2190,7 +2189,7 @@ class LEn extends L {
 
   @override
   String get startHint =>
-      'Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.';
+      'The last note picks up where you left off, a random one brings back something you saved.';
 
   @override
   String get appearanceTitle => 'Appearance';
@@ -2236,7 +2235,7 @@ class LEn extends L {
 
   @override
   String get intensityHint =>
-      'Vivid tints the background too. Exact keeps it gray and paints buttons in exactly your color.';
+      'Vivid tints the background too, Exact keeps it gray.';
 
   @override
   String get wallpaperColors => 'Wallpaper colors';
@@ -2298,7 +2297,7 @@ class LEn extends L {
 
   @override
   String get historyHint =>
-      'The earlier text is kept when you edit the note after a break. The last 50 versions or all from 30 days are kept.';
+      'The earlier text is kept when you edit a note after a break.';
 
   @override
   String get historyNoChanges => 'Same text';
@@ -2358,7 +2357,7 @@ class LEn extends L {
 
   @override
   String get titleDateHint =>
-      'A photo without a caption is named “Photo, July 15”. The date taken comes from the photo itself or its file name; if it isn\'t there, the date saved is used. Names you gave yourself don\'t change.';
+      'Photos and videos without a caption get a date in their name.';
 
   @override
   String get factPassword => 'Password ••••••';
@@ -2582,7 +2581,7 @@ class LEn extends L {
 
   @override
   String get codeCreateHint =>
-      '6 to 12 digits. The code opens Stowa and hidden folders. If you forget it, hidden notes are gone for good.';
+      '6 to 12 digits: if you forget the code, hidden notes are gone for good.';
 
   @override
   String get codeMismatch => 'Codes don\'t match. Create it again';
@@ -2671,7 +2670,7 @@ class LEn extends L {
 
   @override
   String get privacyHint =>
-      'Hidden folders are stored encrypted: without the code nobody can read them, here or in the vault files. “Lock again” sets how long after you leave the app the code is needed again and hidden folders close.';
+      'Hidden folders are encrypted and can\'t be read without the code.';
 
   @override
   String get markdownExport => 'Export to Markdown';
@@ -2720,7 +2719,7 @@ class LEn extends L {
 
   @override
   String get aiFirstHint =>
-      'The model also checks offline guesses. Your choice and rules still win. More requests';
+      'The model also checks what the app sorted on its own, so it makes more requests';
 
   @override
   String get composerHintNoSearch => 'Drop anything';
@@ -2733,5 +2732,5 @@ class LEn extends L {
 
   @override
   String get crashSettingHint =>
-      'If Stowa breaks, the developer gets the kind of error, the place in the code, the app and Android versions, and the phone model. The report has no note text, file names, or folder names.';
+      'The developer gets the error and your phone model, never your notes or file names.';
 }

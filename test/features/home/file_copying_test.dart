@@ -63,6 +63,6 @@ void main() {
       await tester.pump();
     }
     expect(find.text('Сохраняю файл · 50 %'), findsOneWidget);
-    expect(find.textContaining('оригинал можно удалить'), findsOneWidget);
+    expect(find.textContaining('оригинал удалить, когда полоска пропадёт'), findsOneWidget);
   });
 }

@@ -1293,7 +1293,7 @@
   "@aiStateOff": {
     "description": "aiStateOff"
   },
-  "aiStateOffHint": "Add your own key and notes without a folder sort themselves, with tags, a title and a description for search. The key stays on this phone; requests go straight to the provider.",
+  "aiStateOffHint": "Add your own key and notes without a folder sort themselves.",
   "@aiStateOffHint": {
     "description": "aiStateOffHint"
   },
@@ -1347,7 +1347,7 @@
   "@aiKeyRemove": {
     "description": "aiKeyRemove"
   },
-  "aiKeyWhere": "Get a key from your provider: on OpenRouter it is under Keys. Free models are available.",
+  "aiKeyWhere": "Get a key from your provider: on OpenRouter it is under Keys, and free models are available.",
   "@aiKeyWhere": {
     "description": "aiKeyWhere"
   },
@@ -1379,7 +1379,7 @@
   "@aiProvider": {
     "description": "aiProvider"
   },
-  "aiProviderHint": "An OpenAI-compatible API address. Empty means OpenRouter.",
+  "aiProviderHint": "An OpenAI-compatible API address, empty means OpenRouter.",
   "@aiProviderHint": {
     "description": "aiProviderHint"
   },
@@ -1513,7 +1513,7 @@
   "@backupSave": {
     "description": "backupSave"
   },
-  "backupSaveHint": "All of Stowa in one file: notes, folders, tags, rules and files. Your AI key is not included.",
+  "backupSaveHint": "All your notes, folders and files in one file, without the AI key.",
   "@backupSaveHint": {
     "description": "backupSaveHint"
   },
@@ -1768,7 +1768,7 @@
   "@placeSetting": {
     "description": "placeSetting"
   },
-  "placeSettingHint": "The place is added after saving and shows on the note page and the map. Coordinates stay on the phone; only a street-name lookup goes out.",
+  "placeSettingHint": "The place shows on the note and the map, and only a street-name lookup leaves the phone.",
   "@placeSettingHint": {
     "description": "placeSettingHint"
   },
@@ -1784,7 +1784,7 @@
   "@fileSaving": {
     "description": "На странице вещи, пока её файл копируется во вложения"
   },
-  "fileSavingHint": "You can close the app, the file will finish on its own. Once the bar is gone, the original can be deleted.",
+  "fileSavingHint": "You can close the app, and delete the original once the bar is gone.",
   "@fileSavingHint": {
     "description": "Пояснение под «Сохраняю файл»"
   },
@@ -1936,7 +1936,7 @@
   "@adultSetting": {
     "description": "Переключатель в настройках: показывать ли обложки и описания страниц для взрослых"
   },
-  "adultSettingHint": "Pages that mark themselves as 18+, and well-known adult sites. While this is off, their covers are blurred and descriptions hidden. The note and its search stay.",
+  "adultSettingHint": "While this is off, covers and descriptions of 18+ pages stay hidden.",
   "@adultSettingHint": {
     "description": "Пояснение под переключателем 18+"
   },
@@ -1948,7 +1948,7 @@
   "@vaultSetupTitle": {
     "description": "Заголовок экрана первого запуска"
   },
-  "vaultSetupHint": "Notes, photos and files live as plain files in a folder. You can see it in a file manager, open it in Obsidian and sync it with Syncthing.",
+  "vaultSetupHint": "Notes, photos and files live as plain files in a folder that Obsidian can open too.",
   "@vaultSetupHint": {
     "description": "Пояснение под заголовком экрана первого запуска"
   },
@@ -1956,7 +1956,7 @@
   "@vaultCreate": {
     "description": "Первый путь на экране выбора хранилища"
   },
-  "vaultCreateHint": "A new folder in phone storage. Your notes stay even if you uninstall the app.",
+  "vaultCreateHint": "A new folder in phone storage: your notes stay even if you uninstall the app.",
   "@vaultCreateHint": {
     "description": "Пояснение к «Создать хранилище»"
   },
@@ -1980,7 +1980,7 @@
   "@vaultInApp": {
     "description": "Третий путь на экране выбора хранилища"
   },
-  "vaultInAppHint": "No permissions. Uninstalling the app deletes your notes.",
+  "vaultInAppHint": "No permissions, but uninstalling the app deletes your notes.",
   "@vaultInAppHint": {
     "description": "Пояснение к «Хранить внутри приложения»"
   },
@@ -2008,7 +2008,7 @@
   "@vaultAccessTitle": {
     "description": "Заголовок листа с просьбой о разрешении"
   },
-  "vaultAccessHint": "To keep notes in a regular folder, Android asks for “All files access”. Stowa only reads and writes the vault folder.",
+  "vaultAccessHint": "To keep notes in a regular folder Android asks for “All files access”, but Stowa only touches its own folder.",
   "@vaultAccessHint": {
     "description": "Пояснение к разрешению «Доступ ко всем файлам»"
   },
@@ -2094,7 +2094,7 @@
   "@vaultRebuild": {
     "description": "Строка настроек: собрать базу поиска заново из папки"
   },
-  "vaultSettingHint": "Notes are .md files: Obsidian opens this folder and Syncthing syncs it. The index is a search database the app builds by itself.",
+  "vaultSettingHint": "Notes are plain .md files that Obsidian can open too.",
   "@vaultSettingHint": {
     "description": "Пояснение под разделом «Хранилище»"
   },
@@ -2147,7 +2147,7 @@
   "@importTelegram": {
     "description": "Строка настроек: перенос «Избранного» из выгрузки Telegram"
   },
-  "importTelegramHint": "Pick a Saved Messages export folder from Telegram Desktop, HTML or JSON. Notes keep their dates, an album becomes one note.",
+  "importTelegramHint": "Pick the Saved Messages export folder from Telegram Desktop.",
   "@importTelegramHint": {
     "description": "Подсказка под разделом «Перенос»"
   },
@@ -2392,7 +2392,7 @@
   "@returnWeekDayRow": {
     "description": "Строка: в какой день недели сводка"
   },
-  "returnSettingsHint": "At most one notification a day, silent, and nothing during quiet hours. Reminders you set yourself by time or place don’t count.",
+  "returnSettingsHint": "At most one silent notification a day.",
   "@returnSettingsHint": {
     "description": "Подсказка под разделом «Возвращать»"
   },
@@ -2445,7 +2445,7 @@
   "@returnsAskTitle": {
     "description": "Карточка на главной: спросить про уведомления"
   },
-  "returnsAskBody": "One silent notification in the evening: what to watch, what you saved on this day a year ago, a weekly summary. Never more than once a day.",
+  "returnsAskBody": "One silent notification in the evening reminds you of what you saved.",
   "@returnsAskBody": {
     "description": "Карточка на главной: что будет"
   },
@@ -2565,7 +2565,7 @@
   "@placesPermissionTitle": {
     "description": "Карточка разрешения на место в фоне"
   },
-  "placesPermissionBody": "Android wakes Stowa at the right spot and shows the Wi-Fi name only if location is allowed “all the time”. Coordinates stay on your phone.",
+  "placesPermissionBody": "Reminders at a place only work if location is allowed “all the time”.",
   "@placesPermissionBody": {
     "description": "Зачем место «всегда»"
   },
@@ -2573,7 +2573,7 @@
   "@placesPermissionAllow": {
     "description": "Кнопка разрешения на место в фоне"
   },
-  "placesHint": "Places are used for “remind me at home”, “at work” and “at a store”. Notes tagged #buy come up at your saved stores, at most once a day.",
+  "placesHint": "Places are for reminders like “remind me at home” or “at a store”.",
   "@placesHint": {
     "description": "Подсказка внизу экрана мест"
   },
@@ -2702,7 +2702,7 @@
   "@deadLinksTitle": {
     "description": "Экран и пункт настроек"
   },
-  "deadLinksAbout": "Once a week on Wi-Fi, Stowa checks your saved links. Pages the site removed end up here.",
+  "deadLinksAbout": "Once a week Stowa checks your links and lists pages the site removed here.",
   "@deadLinksAbout": {
     "description": "Пояснение над списком битых ссылок"
   },
@@ -2779,7 +2779,7 @@
   "@startRandom": {
     "description": "При запуске открывать случайную заметку"
   },
-  "startHint": "Last picks up where you left off. Random brings back something you saved each time you open the app, so it sticks better.",
+  "startHint": "The last note picks up where you left off, a random one brings back something you saved.",
   "@startHint": {
     "description": "Пояснение под выбором запуска"
   },
@@ -2839,7 +2839,7 @@
   "@intensityFaithful": {
     "description": "Акцент ровно выбранный цвет, поверхности серые"
   },
-  "intensityHint": "Vivid tints the background too. Exact keeps it gray and paints buttons in exactly your color.",
+  "intensityHint": "Vivid tints the background too, Exact keeps it gray.",
   "@intensityHint": {
     "description": "Пояснение к насыщенности"
   },
@@ -2919,7 +2919,7 @@
   "@historyNow": {
     "description": "History: the current state of the note"
   },
-  "historyHint": "The earlier text is kept when you edit the note after a break. The last 50 versions or all from 30 days are kept.",
+  "historyHint": "The earlier text is kept when you edit a note after a break.",
   "@historyHint": {
     "description": "History screen: how versions are made"
   },
@@ -3001,7 +3001,7 @@
   "@titleDateSaved": {
     "description": "titleDateSaved"
   },
-  "titleDateHint": "A photo without a caption is named “Photo, July 15”. The date taken comes from the photo itself or its file name; if it isn't there, the date saved is used. Names you gave yourself don't change.",
+  "titleDateHint": "Photos and videos without a caption get a date in their name.",
   "@titleDateHint": {
     "description": "titleDateHint"
   },
@@ -3291,7 +3291,7 @@
   "@codeRepeatTitle": {
     "description": "Second step: repeat the new code"
   },
-  "codeCreateHint": "6 to 12 digits. The code opens Stowa and hidden folders. If you forget it, hidden notes are gone for good.",
+  "codeCreateHint": "6 to 12 digits: if you forget the code, hidden notes are gone for good.",
   "@codeCreateHint": {
     "description": "Under the create code title"
   },
@@ -3399,7 +3399,7 @@
   "@codeChangeRow": {
     "description": "Settings row"
   },
-  "privacyHint": "Hidden folders are stored encrypted: without the code nobody can read them, here or in the vault files. “Lock again” sets how long after you leave the app the code is needed again and hidden folders close.",
+  "privacyHint": "Hidden folders are encrypted and can't be read without the code.",
   "@privacyHint": {
     "description": "Under the privacy settings"
   },
@@ -3459,7 +3459,7 @@
   "@aiFirst": {
     "description": "Settings switch: the AI model re-checks folders guessed by the offline guesser"
   },
-  "aiFirstHint": "The model also checks offline guesses. Your choice and rules still win. More requests",
+  "aiFirstHint": "The model also checks what the app sorted on its own, so it makes more requests",
   "@aiFirstHint": {
     "description": "Subtitle under the AI-first switch"
   },
@@ -3475,7 +3475,7 @@
   "@crashSetting": {
     "description": "Переключатель в настройках: отправлять ли разработчику сведения о сбоях приложения"
   },
-  "crashSettingHint": "If Stowa breaks, the developer gets the kind of error, the place in the code, the app and Android versions, and the phone model. The report has no note text, file names, or folder names.",
+  "crashSettingHint": "The developer gets the error and your phone model, never your notes or file names.",
   "@crashSettingHint": {
     "description": "Подсказка под переключателем отчётов об ошибках: что уходит разработчику и чего в отчёте нет"
   }
