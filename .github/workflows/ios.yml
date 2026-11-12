@@ -136,6 +136,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p out/shared
+          # нажимает кнопки системных окон симулятора по подписи
+          brew install cameroncooke/axe/axe > out/shared/axe-install.log 2>&1 || { tail -n 30 out/shared/axe-install.log; echo "AXe не поставился"; exit 1; }
           xcrun simctl terminate "$DEVICE" app.stowa || true
           DATA=$(xcrun simctl get_app_container "$DEVICE" app.stowa data)
           GROUP=$(xcrun simctl get_app_container "$DEVICE" app.stowa group.app.stowa 2>/dev/null || true)
@@ -165,6 +167,17 @@ jobs:
           RECORD=$!
           sleep 2
           xcrun simctl openurl "$DEVICE" "ShareMedia-app.stowa:share"
+          # ссылку из simctl система переспрашивает «Открыть в приложении „Stowa“?»: кнопку жмёт AXe
+          # на телефоне вопроса нет, приложение открывает само расширение
+          OPENED=""
+          for attempt in $(seq 1 20); do
+            sleep 1
+            for label in "Открыть" "Open"; do
+              if axe tap --label "$label" --udid "$DEVICE" >> out/shared/tap.log 2>&1; then OPENED=$label; break 2; fi
+            done
+          done
+          axe describe-ui --udid "$DEVICE" > out/shared/ui.json 2>&1 || true
+          echo "Кнопка вопроса: ${OPENED:-не нажата}"
           # лист «Положил в …» живёт три секунды: кадры идут подряд целую минуту
           started=$(date +%s)
           frame=0
