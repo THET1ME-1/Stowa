@@ -370,7 +370,7 @@
   "@reasonKind": {
     "description": "Why the folder"
   },
-  "reasonNone": "no folder yet, I'll sort it once similar things appear",
+  "reasonNone": "no folder yet, I'll sort it once similar notes appear",
   "@reasonNone": {
     "description": "Почему вещь ляжет без папки: ни правила, ни похожего"
   },
@@ -2441,7 +2441,7 @@
       }
     }
   },
-  "returnsAskTitle": "Bring saved things back?",
+  "returnsAskTitle": "Bring saved notes back?",
   "@returnsAskTitle": {
     "description": "Карточка на главной: спросить про уведомления"
   },

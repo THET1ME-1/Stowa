@@ -578,7 +578,7 @@ abstract class L {
   /// Почему вещь ляжет без папки: ни правила, ни похожего
   ///
   /// In en, this message translates to:
-  /// **'no folder yet, I\'ll sort it once similar things appear'**
+  /// **'no folder yet, I\'ll sort it once similar notes appear'**
   String get reasonNone;
 
   /// Why no folder
@@ -3134,7 +3134,7 @@ abstract class L {
   /// Карточка на главной: спросить про уведомления
   ///
   /// In en, this message translates to:
-  /// **'Bring saved things back?'**
+  /// **'Bring saved notes back?'**
   String get returnsAskTitle;
 
   /// Карточка на главной: что будет

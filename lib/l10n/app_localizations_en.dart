@@ -298,7 +298,7 @@ class LEn extends L {
 
   @override
   String get reasonNone =>
-      'no folder yet, I\'ll sort it once similar things appear';
+      'no folder yet, I\'ll sort it once similar notes appear';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
@@ -1909,7 +1909,7 @@ class LEn extends L {
   }
 
   @override
-  String get returnsAskTitle => 'Bring saved things back?';
+  String get returnsAskTitle => 'Bring saved notes back?';
 
   @override
   String get returnsAskBody =>
