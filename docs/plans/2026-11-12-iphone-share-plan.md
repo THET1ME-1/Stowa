@@ -104,9 +104,11 @@ Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece
 - `Info.plist` приложения: `AppGroupId = $(CUSTOM_GROUP_ID)` и `CFBundleURLTypes` со схемой `ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)`.
 - Проект: цель `ShareExtension` (`com.apple.product-type.app-extension`, `PRODUCT_BUNDLE_IDENTIFIER = app.stowa.Share`, `INFOPLIST_KEY_CFBundleDisplayName = Stowa`, `IPHONEOS_DEPLOYMENT_TARGET = 15.0`, `CUSTOM_GROUP_ID = group.app.stowa`, `MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"`, `CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"`, конфигурации на основе xcconfig Flutter, пакетов у цели нет); у `Runner` — зависимость от расширения, фаза «Embed App Extensions» перед «Thin Binary», `CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements` и `CUSTOM_GROUP_ID` в трёх конфигурациях.
 
-- [ ] Написать файлы расширения и оба `.entitlements`.
-- [ ] Дописать `Info.plist` приложения.
-- [ ] Вписать цель в `project.pbxproj`; после правки сверить: каждый новый идентификатор объявлен один раз и на каждый есть ссылка, скобки сходятся (`plutil` на Linux нет: `python3 -c` с подсчётом скобок и поиском идентификаторов).
+Отступления, решённые по ходу: у расширения `APPLICATION_EXTENSION_API_ONLY = NO`, иначе прямой вызов `UIApplication.open` в его цели не собирается (перед отправкой в App Store перепроверить); в начале сбора расширение стирает папку `shared/` группы, прошлое присланное приложение уже забрало; повёрнутый `UIImage` уходит в JPEG, потому что PNG поворот не хранит.
+
+- [x] Написать файлы расширения и оба `.entitlements`.
+- [x] Дописать `Info.plist` приложения.
+- [x] Вписать цель в `project.pbxproj`; после правки сверить: каждый новый идентификатор объявлен один раз и на каждый есть ссылка, скобки сходятся (`plutil` на Linux нет: `python3 -c` с подсчётом скобок и поиском идентификаторов).
 - [ ] Коммит вместе с задачей 4: без прогона `ios.yml` сборка не проверена.
 
 ## Задача 4. Проверка в `ios.yml`
@@ -120,17 +122,18 @@ Future<void> receiveShared(BuildContext context, WidgetRef ref, List<SharedPiece
 
 - `Runner.app/PlugIns/ShareExtension.appex` существует; в его `Info.plist` `AppGroupId` равен `group.app.stowa`, а `CFBundleVersion` и `CFBundleShortVersionString` те же, что у `Runner.app`.
 
-В «Запуске в симуляторе», третьим запуском (обычная сборка, до сборки прохода):
+Отдельным шагом после «Запуска в симуляторе», третьим запуском (обычная сборка, до сборки прохода; свой шаг — чтобы красный прогон сразу называл причину):
 
 - закрыть приложение; в папку группы (`simctl get_app_container … groups`) положить картинку и записать `Library/Preferences/group.app.stowa.plist` с ключом `ShareKey`: данные с JSON-списком из текста и этой картинки, как их пишет расширение;
-- `simctl openurl "$DEVICE" "ShareMedia-app.stowa:share"`, подождать, снимок `out/3-shared.png`;
+- `simctl openurl "$DEVICE" "ShareMedia-app.stowa:share"`; лист живёт три секунды, поэтому вместо одного снимка — кадры подряд в `out/shared/` и запись экрана `out/shared/screen.mp4`;
+- приложение, открытое ссылкой, языка в параметрах не получает: симулятору до загрузки ставится русский язык системы;
 - прогон красный, если в «Документах» нет заметки с присланным текстом или картинка осталась в папке группы;
 - `pluginkit -m -p com.apple.share-services` внутри симулятора — в `out/extensions.txt`, без влияния на итог.
 
 - [ ] Дописать шаги.
 - [ ] Коммит, пуш, `gh workflow run ios.yml`; дождаться.
 - [ ] Красный на сборке — разобрать по журналу, одна правка, следующий прогон.
-- [ ] Скачать артефакт, посмотреть `3-shared.png`: лист «Положил в …» поверх главной, заметка в ленте.
+- [ ] Скачать артефакт, посмотреть кадры `out/shared/`: лист «Положил в …» поверх главной, заметка в ленте.
 
 ## Задача 5. Документы
 

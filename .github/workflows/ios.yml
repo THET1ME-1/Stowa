@@ -1,8 +1,9 @@
 name: iPhone → собирается и запускается ли
 
 # Зачем: на ноутбуке без macOS приложение для iPhone не собрать и не запустить.
-# Здесь оно собирается под симулятор без подписи, открывается, читает заметку,
+# Здесь оно собирается под симулятор, открывается, читает заметку,
 # положенную в его папку «Документы», и отдаёт снимки экрана.
+# Следом принимает текст и картинку так, как их отдаёт расширение «Поделиться»: кадры в out/shared/.
 # Потом вторая сборка сама проходит главные экраны (integration_test/walk_test.dart),
 # а прогон снимает каждый: снимки и итог по шагам лежат в out/walk/.
 # Только вручную: прогон идёт около получаса, на каждый пуш он не нужен.
@@ -39,6 +40,24 @@ jobs:
       - name: Сборка под симулятор
         run: flutter build ios --simulator --debug --no-tree-shake-icons
 
+      # без расширения Stowa нет в системном листе «Поделиться»
+      - name: Расширение «Поделиться» в сборке
+        run: |
+          set -euo pipefail
+          APP=build/ios/iphonesimulator/Runner.app
+          SHARE="$APP/PlugIns/ShareExtension.appex"
+          [ -d "$SHARE" ] || { echo "Расширения в сборке нет"; ls -R "$APP/PlugIns" || true; exit 1; }
+          value() { /usr/libexec/PlistBuddy -c "Print :$2" "$1/Info.plist"; }
+          same() { [ "$1" = "$2" ] || { echo "$3: «$1», а нужно «$2»"; exit 1; }; }
+          same "$(value "$SHARE" CFBundleIdentifier)" app.stowa.Share "Идентификатор расширения"
+          same "$(value "$SHARE" AppGroupId)" group.app.stowa "Группа расширения"
+          same "$(value "$APP" AppGroupId)" group.app.stowa "Группа приложения"
+          same "$(value "$APP" CFBundleURLTypes:0:CFBundleURLSchemes:0)" ShareMedia-app.stowa "Ссылка приложения"
+          # разные версии у приложения и расширения магазин не принимает
+          for key in CFBundleVersion CFBundleShortVersionString; do
+            same "$(value "$SHARE" "$key")" "$(value "$APP" "$key")" "$key расширения"
+          done
+
       - name: Запуск в симуляторе
         run: |
           set -euo pipefail
@@ -54,6 +73,21 @@ jobs:
           echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
           # без клавиатуры компьютера: на снимках встаёт экранная
           defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
+          # система по-русски: приложение, открытое ссылкой, языка в параметрах не получает
+          python3 - "$HOME/Library/Developer/CoreSimulator/Devices/$DEVICE/data/Library/Preferences" <<'PY' || true
+          import os, plistlib, sys
+          folder = sys.argv[1]
+          os.makedirs(folder, exist_ok=True)
+          path = os.path.join(folder, ".GlobalPreferences.plist")
+          settings = {}
+          if os.path.exists(path):
+              with open(path, "rb") as file:
+                  settings = plistlib.load(file)
+          settings["AppleLanguages"] = ["ru-RU"]
+          settings["AppleLocale"] = "ru_RU"
+          with open(path, "wb") as file:
+              plistlib.dump(settings, file, fmt=plistlib.FMT_BINARY)
+          PY
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b
           xcrun simctl install "$DEVICE" build/ios/iphonesimulator/Runner.app
@@ -96,6 +130,73 @@ jobs:
           # база не должна лежать среди заметок
           [ -z "$(find "$DATA/Documents" -name 'stowa.sqlite*')" ] || { echo "База лежит в «Документах»"; exit 1; }
           [ -n "$(find "$DATA/Library" -name 'stowa.sqlite')" ] || { echo "База не создана"; exit 1; }
+
+      # присланное лежит в папке группы так, как его кладёт расширение, приложение открывается ссылкой расширения
+      - name: Присланное через «Поделиться»
+        run: |
+          set -euo pipefail
+          mkdir -p out/shared
+          xcrun simctl terminate "$DEVICE" app.stowa || true
+          DATA=$(xcrun simctl get_app_container "$DEVICE" app.stowa data)
+          GROUP=$(xcrun simctl get_app_container "$DEVICE" app.stowa group.app.stowa 2>/dev/null || true)
+          if [ -z "$GROUP" ]; then
+            echo "Папки группы нет: приложение не получило group.app.stowa"
+            xcrun simctl get_app_container "$DEVICE" app.stowa groups || true
+            codesign -d --entitlements - build/ios/iphonesimulator/Runner.app || true
+            exit 1
+          fi
+
+          TEXT="Заметка из расширения Поделиться"
+          PICTURE="$GROUP/shared/11111111-2222-3333-4444-555555555555/Значок.png"
+          mkdir -p "$(dirname "$PICTURE")" "$GROUP/Library/Preferences"
+          cp ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png "$PICTURE"
+          python3 - "$GROUP/Library/Preferences/group.app.stowa.plist" "$TEXT" "$PICTURE" <<'PY'
+          import json, plistlib, sys
+          target, text, picture = sys.argv[1:]
+          pieces = [
+              {"path": text, "type": "text"},
+              {"path": "file://" + picture, "type": "image", "mimeType": "image/png"},
+          ]
+          with open(target, "wb") as file:
+              plistlib.dump({"ShareKey": json.dumps(pieces, ensure_ascii=False).encode()}, file, fmt=plistlib.FMT_BINARY)
+          PY
+
+          xcrun simctl io "$DEVICE" recordVideo --codec h264 --force out/shared/screen.mp4 > out/shared/record.log 2>&1 &
+          RECORD=$!
+          sleep 2
+          xcrun simctl openurl "$DEVICE" "ShareMedia-app.stowa:share"
+          # лист «Положил в …» живёт три секунды: кадры идут подряд целую минуту
+          started=$(date +%s)
+          frame=0
+          while [ $(( $(date +%s) - started )) -lt 60 ]; do
+            frame=$((frame + 1))
+            xcrun simctl io "$DEVICE" screenshot "out/shared/$(printf '%02d' "$frame").png" > /dev/null 2>&1 || true
+            sleep 1
+          done
+          # запись закрывает файл только по Ctrl+C; зависла — снимаем силой
+          kill -INT "$RECORD" 2>/dev/null || true
+          for attempt in $(seq 1 20); do
+            kill -0 "$RECORD" 2>/dev/null || break
+            sleep 1
+          done
+          kill -9 "$RECORD" 2>/dev/null || true
+
+          {
+            echo "== Папка группы"
+            (cd "$GROUP" && find . | sort)
+            echo "== Документы"
+            (cd "$DATA/Documents" && find . | sort)
+          } > out/shared/files.txt 2>&1 || true
+          cat out/shared/files.txt
+          xcrun simctl spawn "$DEVICE" log show --last 3m --style compact --predicate 'process == "Runner"' > out/shared/system.log 2>&1 || true
+          # видит ли система расширение: на итог не влияет
+          xcrun simctl spawn "$DEVICE" pluginkit -m -p com.apple.share-services > out/extensions.txt 2>&1 || true
+          cat out/extensions.txt || true
+
+          xcrun simctl spawn "$DEVICE" launchctl list | grep app.stowa || { echo "Приложение не работает после ссылки"; exit 1; }
+          grep -rlF "$TEXT" "$DATA/Documents" || { echo "Заметки с присланным текстом нет"; exit 1; }
+          [ -z "$(find "$GROUP/shared" -type f 2>/dev/null)" ] || { echo "Картинка осталась в папке группы"; exit 1; }
+          [ -n "$(find "$DATA/Documents" -name '*.png')" ] || { echo "Картинки нет среди заметок"; exit 1; }
 
       # та же программа, но вместо человека по ней идёт маршрут
       - name: Сборка прохода
