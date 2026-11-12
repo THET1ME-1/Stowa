@@ -79,6 +79,9 @@ void main() {
     await tester.pumpAndSettle();
     final settings = find.descendant(of: find.byType(SettingsScreen), matching: find.byType(Scrollable)).first;
     await tester.scrollUntilVisible(find.text('Завести код'), 300, scrollable: settings);
+    // шаг прокрутки мог оставить пункт у нижнего края, где касание уходит мимо
+    await tester.ensureVisible(find.text('Завести код'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Завести код'));
     await tester.pumpAndSettle();
     expect(find.text('Придумайте код'), findsOneWidget);
