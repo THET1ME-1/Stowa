@@ -20,6 +20,10 @@ class PrivacyGate extends ConsumerStatefulWidget {
 
   final Widget child;
 
+  /// Ждёт, пока приложение вернётся на экран и замок откроют; без замка возвращается сразу.
+  static Future<void> unlocked(BuildContext context) =>
+      context.findAncestorStateOfType<_PrivacyGateState>()?._whenOpen() ?? Future.value();
+
   @override
   ConsumerState<PrivacyGate> createState() => _PrivacyGateState();
 }
@@ -33,6 +37,9 @@ class _PrivacyGateState extends ConsumerState<PrivacyGate> with WidgetsBindingOb
 
   /// Приложение само открыло окно ради результата (выбор файла, папки, фото): это не уход.
   bool _ownWindow = false;
+
+  /// Те, кто ждёт открытого замка, чтобы показать своё поверх приложения.
+  Completer<void>? _opened;
 
   static const _window = MethodChannel('stowa/window');
 
@@ -59,10 +66,30 @@ class _PrivacyGateState extends ConsumerState<PrivacyGate> with WidgetsBindingOb
 
   Duration get _delay => _lock?.closeAfter ?? const Duration(minutes: 1);
 
+  // до первого события система состояние не называет: приложение на экране
+  bool get _onScreen => (WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed) == AppLifecycleState.resumed;
+
+  // свёрнутое приложение замок ещё может запереть на возврате: ждём и его
+  Future<void> _whenOpen() => _onScreen && !_locked ? Future.value() : (_opened ??= Completer<void>()).future;
+
+  void _release() {
+    if (_locked || !_onScreen) return;
+    _opened?.complete();
+    _opened = null;
+  }
+
+  void _setLocked(bool locked) {
+    setState(() => _locked = locked);
+    _release();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // своё окно отпечатка уводит приложение в фон: это не уход
-    if (ref.read(privacyBusyProvider)) return;
+    if (ref.read(privacyBusyProvider)) {
+      if (state == AppLifecycleState.resumed) _release();
+      return;
+    }
     switch (state) {
       case AppLifecycleState.inactive:
         if (_guarding) setState(() => _covered = true);
@@ -81,6 +108,7 @@ class _PrivacyGateState extends ConsumerState<PrivacyGate> with WidgetsBindingOb
         _leftAt = null;
         if (left != null && DateTime.now().difference(left) >= _delay) _expire();
         setState(() => _covered = false);
+        _release();
       case AppLifecycleState.detached:
         break;
     }
@@ -89,20 +117,20 @@ class _PrivacyGateState extends ConsumerState<PrivacyGate> with WidgetsBindingOb
   void _expire() {
     _timer?.cancel();
     ref.read(privacyServiceProvider).close().ignore();
-    if ((_lock?.appLock ?? false) && mounted) setState(() => _locked = true);
+    if ((_lock?.appLock ?? false) && mounted) _setLocked(true);
   }
 
   @override
   Widget build(BuildContext context) {
     // замок включили в настройках — сейчас не запираем, только при следующем уходе
     ref.listen(privacyLockProvider, (previous, next) {
-      if (next.value?.appLock != true && _locked) setState(() => _locked = false);
+      if (next.value?.appLock != true && _locked) _setLocked(false);
     });
     return Stack(
       children: [
         widget.child,
         if (_covered) const Positioned.fill(child: _Cover()),
-        if (_locked) Positioned.fill(child: _LockScreen(onUnlocked: () => setState(() => _locked = false))),
+        if (_locked) Positioned.fill(child: _LockScreen(onUnlocked: () => _setLocked(false))),
       ],
     );
   }
