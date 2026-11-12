@@ -138,6 +138,7 @@ class TestWorld {
           languageProvider.overrideWith((ref) => Stream.value(null)),
           placeEnabledProvider.overrideWith((ref) => Stream.value(true)),
           showAdultProvider.overrideWith((ref) => Stream.value(showAdult)),
+          crashReportsProvider.overrideWith((ref) => Stream.value(true)),
           articleImagesProvider.overrideWith((ref) => Stream.value(false)),
           startScreenProvider.overrideWithValue(startScreen),
           appearanceProvider.overrideWith((ref) => Stream.value(appearance)),

@@ -481,5 +481,7 @@
   "aiFirst": "AI are prioritate",
   "aiFirstHint": "Modelul verifică și ghicirile fără AI. Alegerea ta și regulile au întâietate. Mai multe cereri",
   "composerHintNoSearch": "Aruncă orice",
-  "returnsOff": "Oprit"
+  "returnsOff": "Oprit",
+  "crashSetting": "Rapoarte de erori",
+  "crashSettingHint": "Dacă Stowa se strică, dezvoltatorul primește tipul erorii, locul din cod, versiunea aplicației și a Androidului și modelul telefonului. Raportul nu conține textul notițelor, nume de fișiere sau de dosare."
 }

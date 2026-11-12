@@ -163,6 +163,18 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsHint(l.titleDateHint),
+            SettingsGroup(
+              tint: settingsTint('amber'),
+              children: [
+                SettingsSwitchRow(
+                  icon: 'bug_report',
+                  title: l.crashSetting,
+                  value: ref.watch(crashReportsProvider).value ?? true,
+                  onChanged: (on) => ref.read(settingsRepositoryProvider).setCrashReports(on),
+                ),
+              ],
+            ),
+            SettingsHint(l.crashSettingHint),
             const PrivacySettings(),
             SettingsSection(l.settingsArticles),
             SettingsGroup(

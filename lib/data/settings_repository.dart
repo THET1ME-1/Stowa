@@ -104,6 +104,7 @@ class SettingsRepository {
   static const _language = 'language';
   static const _placeEnabled = 'place_enabled';
   static const _showAdult = 'show_adult';
+  static const _crashReports = 'crash_reports';
   static const _vaultPath = 'vault_path';
   static const _vaultMode = 'vault_mode';
   static const _vaultAsked = 'vault_asked';
@@ -236,6 +237,17 @@ class SettingsRepository {
   }
 
   Future<void> setShowAdult(bool on) => _set(() => _prefs.setBool(_showAdult, on));
+
+  /// Отправлять разработчику отчёты об ошибках: вид ошибки и место в коде, без заметок.
+  /// То же имя читает Android в `CrashCatcher.kt`.
+  bool get crashReports => _prefs.getBool(_crashReports) ?? true;
+
+  Stream<bool> watchCrashReports() async* {
+    yield crashReports;
+    yield* _changes.stream.map((_) => crashReports).distinct();
+  }
+
+  Future<void> setCrashReports(bool on) => _set(() => _prefs.setBool(_crashReports, on));
 
   /// Скачивать картинки статей по Wi-Fi. По умолчанию нет: картинки весят в десятки раз больше текста.
   bool get articleImages => _prefs.getBool('article_images') ?? false;

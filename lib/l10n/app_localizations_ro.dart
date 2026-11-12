@@ -2754,4 +2754,11 @@ class LRo extends L {
 
   @override
   String get returnsOff => 'Oprit';
+
+  @override
+  String get crashSetting => 'Rapoarte de erori';
+
+  @override
+  String get crashSettingHint =>
+      'Dacă Stowa se strică, dezvoltatorul primește tipul erorii, locul din cod, versiunea aplicației și a Androidului și modelul telefonului. Raportul nu conține textul notițelor, nume de fișiere sau de dosare.';
 }

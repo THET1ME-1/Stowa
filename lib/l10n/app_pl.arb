@@ -481,5 +481,7 @@
   "aiFirst": "AI ma pierwszeństwo",
   "aiFirstHint": "Model sprawdza też zgadywanie bez AI. Twój wybór i reguły są ważniejsze. Więcej zapytań",
   "composerHintNoSearch": "Wrzuć cokolwiek",
-  "returnsOff": "Wyłączone"
+  "returnsOff": "Wyłączone",
+  "crashSetting": "Raporty o błędach",
+  "crashSettingHint": "Gdy Stowa się zepsuje, twórca dostaje rodzaj błędu, miejsce w kodzie, wersję aplikacji i Androida oraz model telefonu. W raporcie nie ma treści notatek ani nazw plików i folderów."
 }

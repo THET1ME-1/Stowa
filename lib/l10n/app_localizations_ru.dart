@@ -2789,4 +2789,11 @@ class LRu extends L {
 
   @override
   String get returnsOff => 'Выключено';
+
+  @override
+  String get crashSetting => 'Отчёты об ошибках';
+
+  @override
+  String get crashSettingHint =>
+      'Если Stowa сломается, разработчик получит вид ошибки, место в коде, версию приложения и Android, модель телефона. Текста заметок, имён файлов и папок в отчёте нет.';
 }

@@ -18,6 +18,7 @@ import '../l10n/app_localizations.dart';
 import 'ai_image.dart';
 import 'ai_worker.dart';
 import 'capture_service.dart';
+import 'crash_reporter.dart';
 import 'fact_rules.dart';
 import 'facts/extractors.dart';
 import 'facts/facts_pipeline.dart';
@@ -107,6 +108,10 @@ void backgroundDispatcher() {
     WidgetsFlutterBinding.ensureInitialized();
     final prefs = await SharedPreferences.getInstance();
     final settings = SettingsRepository(prefs, const SecureKeyStore());
+    // временные файлы (голосовые, входящие бота) и очередь отчётов — во внутренней памяти, не в хранилище
+    final scratch = await getApplicationSupportDirectory();
+    // сорванная задача молчит: без отчёта о ней никто не узнает
+    final crashes = crashReporterFor(scratch, settings, 'background');
     // база общая с открытым приложением, если оно сейчас живо
     final db = AppDatabase();
     // возврат — короткий проход по базе: хранилище, факты и сеть ему не нужны
@@ -114,7 +119,8 @@ void backgroundDispatcher() {
       try {
         await returnInBackground(db, prefs, settings);
         return true;
-      } catch (_) {
+      } catch (error, stack) {
+        crashes.record(error, stack);
         return false;
       } finally {
         await db.close();
@@ -125,7 +131,8 @@ void backgroundDispatcher() {
       try {
         await LinkChecker(db, clock: DateTime.now).run();
         return true;
-      } catch (_) {
+      } catch (error, stack) {
+        crashes.record(error, stack);
         return false;
       } finally {
         await db.close();
@@ -133,8 +140,6 @@ void backgroundDispatcher() {
     }
     final client = http.Client();
     // тот же корень, что у приложения: хранилище или, до переноса, папка приложения
-    // временные файлы (голосовые, входящие бота) — во внутренней памяти, не в хранилище
-    final scratch = await getApplicationSupportDirectory();
     final place = await VaultLocation(settings: settings, appSupport: scratch).resolve(hasData: true);
     final filesRoot = place.files;
     try {
@@ -211,8 +216,11 @@ void backgroundDispatcher() {
       }
       // бот и ИИ поменяли вещи — в файлы
       await vault.run().catchError((_) {});
+      // сеть есть: заодно уходят накопленные отчёты, и свои, и от окон
+      await crashes.send(client);
       return true;
-    } catch (_) {
+    } catch (error, stack) {
+      crashes.record(error, stack);
       return false;
     } finally {
       client.close();

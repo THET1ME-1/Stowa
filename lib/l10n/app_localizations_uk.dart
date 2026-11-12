@@ -2784,4 +2784,11 @@ class LUk extends L {
 
   @override
   String get returnsOff => 'Вимкнено';
+
+  @override
+  String get crashSetting => 'Звіти про помилки';
+
+  @override
+  String get crashSettingHint =>
+      'Якщо Stowa зламається, розробник отримає вид помилки, місце в коді, версію застосунку й Android, модель телефона. Тексту нотаток, назв файлів і папок у звіті немає.';
 }

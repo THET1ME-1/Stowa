@@ -124,6 +124,9 @@ final itemsRepositoryProvider = Provider((ref) {
 /// Показывать ли обложки и описания 18+: решает человек в настройках.
 final showAdultProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchShowAdult());
 
+/// Отправлять ли отчёты об ошибках: включено, пока человек не выключит.
+final crashReportsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchCrashReports());
+
 /// Что и когда возвращать уведомлениями.
 final returnSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchReturns());
 

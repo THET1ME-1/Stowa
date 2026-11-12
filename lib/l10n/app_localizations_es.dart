@@ -2729,4 +2729,11 @@ class LEs extends L {
 
   @override
   String get returnsOff => 'Desactivado';
+
+  @override
+  String get crashSetting => 'Informes de errores';
+
+  @override
+  String get crashSettingHint =>
+      'Si Stowa falla, el desarrollador recibe el tipo de error, el lugar del código, la versión de la app y de Android y el modelo del teléfono. El informe no incluye el texto de las notas ni nombres de archivos o carpetas.';
 }

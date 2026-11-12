@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -17,6 +17,7 @@ import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
 import 'services/background.dart';
+import 'services/crash_reporter.dart';
 import 'services/privacy/privacy_service.dart';
 import 'services/reminder_actions.dart';
 import 'services/reminder_service.dart';
@@ -31,34 +32,43 @@ Future<void> main() async {
       if (notificationRoute(payload) case final route?) appNavigator.currentState?.push(route);
     }),
   );
-  await _run(const StowaApp(), notifications);
+  await _run(const StowaApp(), notifications, 'main');
 }
 
 /// Окно «Поделиться»: его запускает ShareActivity, прозрачное поверх чужого приложения.
 @pragma('vm:entry-point')
 Future<void> shareMain() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _run(const StowaApp(home: ShareHost(), lockable: false), reminderPort());
+  await _run(const StowaApp(home: ShareHost(), lockable: false), reminderPort(), 'share');
 }
 
 /// Окно виджета: его запускает QuickActivity, одна строка поверх рабочего стола.
 @pragma('vm:entry-point')
 Future<void> quickMain() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _run(const StowaApp(home: QuickHost(), lockable: false), reminderPort());
+  await _run(const StowaApp(home: QuickHost(), lockable: false), reminderPort(), 'quick');
 }
 
-Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
+/// [window] — какое окно запущено: с ним ошибка уходит в отчёт.
+Future<void> _run(StowaApp app, LocalNotificationPort notifications, String window) async {
   // сюда выбор файлов, камера и «Поделиться» кладут свои копии: их можно переносить, а не копировать
   final cache = await getTemporaryDirectory();
   final prefs = await SharedPreferences.getInstance();
   final settings = SettingsRepository(prefs, const SecureKeyStore());
+  final appSupport = await getApplicationSupportDirectory();
+  // ошибки ловятся как можно раньше: база и хранилище ниже тоже могут упасть
+  final crashes = crashReporterFor(appSupport, settings, window);
+  if (!kDebugMode) {
+    crashes.attach();
+    AppLifecycleListener(onResume: crashes.send);
+    // выключили отчёты — накопленное стирается сразу
+    settings.watchCrashReports().listen((on) => on ? null : crashes.clear());
+  }
   // палитра до первого кадра: выбравший светлую тему не видит вспышку тёмной; обои подъедут следом
   final appearance = settings.appearance;
   Tokens.use(paletteFor(appearance, brightnessFor(appearance, PlatformDispatcher.instance.platformBrightness, DateTime.now())));
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
   final db = AppDatabase();
-  final appSupport = await getApplicationSupportDirectory();
   // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
   final place = await VaultLocation(settings: settings, appSupport: appSupport).resolve(hasData: await hasSavedItems(db));
   // скрытое, оставшееся открытым от убитого приложения, запечатывается до первого кадра;
@@ -91,4 +101,10 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications) async {
   );
   unawaited(notifications.start());
   unawaited(scheduleBackgroundWork().catchError((_) {}));
+  // накопленное с прошлого раза, в том числе падение, после которого приложение открыли заново
+  unawaited(crashes.send());
+  // проверка сбора на эмуляторе: сборка с --dart-define=CRASH_PROBE=true роняет ошибку сама
+  if (_crashProbe) unawaited(Future<void>.delayed(const Duration(seconds: 3), () => throw StateError('crash probe')));
 }
+
+const _crashProbe = bool.fromEnvironment('CRASH_PROBE');

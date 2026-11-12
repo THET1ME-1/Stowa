@@ -4486,6 +4486,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Off'**
   String get returnsOff;
+
+  /// Переключатель в настройках: отправлять ли разработчику сведения о сбоях приложения
+  ///
+  /// In en, this message translates to:
+  /// **'Error reports'**
+  String get crashSetting;
+
+  /// Подсказка под переключателем отчётов об ошибках: что уходит разработчику и чего в отчёте нет
+  ///
+  /// In en, this message translates to:
+  /// **'If Stowa breaks, the developer gets the kind of error, the place in the code, the app and Android versions, and the phone model. The report has no note text, file names, or folder names.'**
+  String get crashSettingHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

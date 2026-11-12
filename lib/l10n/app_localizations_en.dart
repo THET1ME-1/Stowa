@@ -2727,4 +2727,11 @@ class LEn extends L {
 
   @override
   String get returnsOff => 'Off';
+
+  @override
+  String get crashSetting => 'Error reports';
+
+  @override
+  String get crashSettingHint =>
+      'If Stowa breaks, the developer gets the kind of error, the place in the code, the app and Android versions, and the phone model. The report has no note text, file names, or folder names.';
 }

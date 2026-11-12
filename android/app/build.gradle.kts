@@ -39,6 +39,11 @@ android {
         versionName = flutter.versionName
     }
 
+    // вид сборки для CrashCatcher: в отладке не ловит, в отчёт пишет «production» или «profile»
+    buildFeatures {
+        buildConfig = true
+    }
+
     signingConfigs {
         create("release") {
             if (releaseKey.exists()) {
@@ -53,6 +58,8 @@ android {
     buildTypes {
         release {
             signingConfig = if (releaseKey.exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            // имена своих классов и номера строк остаются в стеке: по ним читаются отчёты об ошибках
+            proguardFiles("proguard-rules.pro")
         }
     }
 }

@@ -2733,4 +2733,11 @@ class LDe extends L {
 
   @override
   String get returnsOff => 'Aus';
+
+  @override
+  String get crashSetting => 'Fehlerberichte';
+
+  @override
+  String get crashSettingHint =>
+      'Wenn Stowa abstürzt, erhält der Entwickler die Art des Fehlers, die Stelle im Code, die Version von App und Android sowie das Telefonmodell. Der Bericht enthält keine Notiztexte, Datei- oder Ordnernamen.';
 }

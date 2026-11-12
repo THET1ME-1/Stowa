@@ -2784,4 +2784,11 @@ class LPl extends L {
 
   @override
   String get returnsOff => 'Wyłączone';
+
+  @override
+  String get crashSetting => 'Raporty o błędach';
+
+  @override
+  String get crashSettingHint =>
+      'Gdy Stowa się zepsuje, twórca dostaje rodzaj błędu, miejsce w kodzie, wersję aplikacji i Androida oraz model telefonu. W raporcie nie ma treści notatek ani nazw plików i folderów.';
 }

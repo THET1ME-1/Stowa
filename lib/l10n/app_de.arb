@@ -481,5 +481,7 @@
   "aiFirst": "KI hat Vorrang",
   "aiFirstHint": "Das Modell prüft auch Vermutungen ohne KI. Deine Wahl und Regeln gehen vor. Mehr Anfragen",
   "composerHintNoSearch": "Wirf irgendwas rein",
-  "returnsOff": "Aus"
+  "returnsOff": "Aus",
+  "crashSetting": "Fehlerberichte",
+  "crashSettingHint": "Wenn Stowa abstürzt, erhält der Entwickler die Art des Fehlers, die Stelle im Code, die Version von App und Android sowie das Telefonmodell. Der Bericht enthält keine Notiztexte, Datei- oder Ordnernamen."
 }

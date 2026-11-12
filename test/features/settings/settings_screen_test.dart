@@ -148,6 +148,16 @@ void main() {
     expect(settings.showAdult, isTrue);
   });
 
+  testWidgets('отчёты об ошибках включены с начала и выключаются переключателем', (tester) async {
+    await open(tester, keyStatus: 200);
+    expect(settings.crashReports, isTrue);
+    await tester.scrollUntilVisible(find.text('Отчёты об ошибках'), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Отчёты об ошибках'));
+    await tester.pumpAndSettle();
+    expect(settings.crashReports, isFalse);
+  });
+
   testWidgets('«Запуск»: по умолчанию главная, выбор из листа сохраняется', (tester) async {
     await open(tester, keyStatus: 200);
     await tester.scrollUntilVisible(find.text('Открывать'), 200);
