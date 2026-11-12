@@ -108,11 +108,19 @@ jobs:
           # с чистого листа: заметки первого запуска маршруту мешают
           xcrun simctl terminate "$DEVICE" app.stowa || true
           xcrun simctl uninstall "$DEVICE" app.stowa
+          # на случай, если система дочищает разрешения удалённого приложения с задержкой
+          sleep 5
           xcrun simctl install "$DEVICE" build/ios/iphonesimulator/Runner.app
           # системные окна тест закрыть не может: что можно, разрешено заранее
-          for access in photos microphone location; do
+          for access in photos photos-add microphone location; do
             xcrun simctl privacy "$DEVICE" grant "$access" app.stowa
           done
+          # что система записала про разрешения: по этим файлам видно, куда делось выданное
+          permissions() {
+            sqlite3 "$HOME/Library/Developer/CoreSimulator/Devices/$DEVICE/data/Library/TCC/TCC.db" \
+              "select service, auth_value, auth_version from access where client = 'app.stowa'" > "out/walk/permissions-$1.txt" 2>&1 || true
+          }
+          permissions 1-granted
           xcrun simctl location "$DEVICE" set 47.0245,28.8322
           xcrun simctl launch --console-pty "$DEVICE" app.stowa -AppleLanguages "(ru)" -AppleLocale ru_RU >> out/walk/app.log 2>&1 &
 
@@ -123,13 +131,18 @@ jobs:
             sleep 1
           done
           [ -n "$DATA" ] || { echo "Папка приложения не найдена"; exit 1; }
+          permissions 2-launched
 
           # приложение кладёт «<имя>.request» и ждёт: снимок сделан — запрос убран
+          # в shots.log время каждого снимка: симулятор иногда думает над ним десятки секунд
           take_shots() {
             set +e
             while true; do
               find "$DATA/tmp" -name '*.request' 2>/dev/null | while read -r request; do
-                xcrun simctl io "$DEVICE" screenshot "out/walk/$(basename "$request" .request).png" > /dev/null 2>&1
+                name=$(basename "$request" .request)
+                started=$(date +%s)
+                said=$(xcrun simctl io "$DEVICE" screenshot "out/walk/$name.png" 2>&1)
+                echo "$(date +%H:%M:%S) $name: $(( $(date +%s) - started )) с. $said" >> out/walk/shots.log
                 rm -f "$request"
               done
               sleep 0.2
@@ -138,9 +151,9 @@ jobs:
           take_shots &
           SHOTS=$!
 
-          # маршрут идёт около четырёх минут, ждём до десяти
+          # маршрут идёт около четырёх минут, ждём до пятнадцати
           RESULT=""
-          for second in $(seq 1 600); do
+          for second in $(seq 1 900); do
             RESULT=$(find "$DATA/tmp" -name result.txt -path '*walk*' 2>/dev/null | head -1 || true)
             if [ -n "$RESULT" ] && grep -q '^done$' "$RESULT"; then break; fi
             sleep 1
@@ -148,6 +161,8 @@ jobs:
           kill "$SHOTS" 2>/dev/null || true
 
           xcrun simctl io "$DEVICE" screenshot out/walk/99-конец.png > /dev/null 2>&1 || true
+          permissions 3-finished
+          cat out/walk/permissions-*.txt out/walk/shots.log || true
           xcrun simctl spawn "$DEVICE" log show --last 12m --style compact --predicate 'process == "Runner"' > out/walk/system.log 2>&1 || true
 
           if [ -z "$RESULT" ] || ! grep -q '^done$' "$RESULT"; then

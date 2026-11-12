@@ -28,11 +28,18 @@ Future<List<WalkStep>> walkScreens(
   final steps = <WalkStep>[];
   final line = find.byType(TextField);
 
+  // на телефоне тест помнит поле, в которое печатал, и второй раз клавиатуру к нему
+  // не подключает: без сброса текст после первого ухода с поля молча теряется
+  Future<void> enter(String text) async {
+    tester.binding.focusedEditable = null;
+    await tester.enterText(line, text);
+  }
+
   // с любого экрана на главную, строка пустая и свёрнутая
   Future<void> home() async {
     appNavigator.currentState?.popUntil((route) => route.isFirst);
     await wait();
-    if (line.evaluate().length == 1) await tester.enterText(line, '');
+    if (line.evaluate().length == 1) await enter('');
     // первое «назад» сворачивает редактор, второе закрывает лоток и убирает фокус
     await tester.binding.handlePopRoute();
     await tester.binding.handlePopRoute();
@@ -58,9 +65,12 @@ Future<List<WalkStep>> walkScreens(
     } catch (_) {}
   }
 
+  // сверка по последнему слову: «#тег» из начала строка может унести в чип
   Future<void> type(String text) async {
-    await tester.enterText(line, text);
+    await enter(text);
     await wait();
+    final typed = tester.widget<EditableText>(find.descendant(of: line, matching: find.byType(EditableText))).controller.text;
+    if (!typed.contains(text.split(' ').last)) throw StateError('текст не попал в строку: в ней «$typed»');
   }
 
   Future<void> stow(String text) async {
@@ -110,7 +120,6 @@ Future<List<WalkStep>> walkScreens(
     await type('# Поездка\n- [ ] паспорт\n- [ ] переходник для розетки');
     await tester.tap(find.byTooltip(l.fullExpand));
   });
-  await step('галерея', () => tester.tap(find.byTooltip(l.composerAttach)));
   await step('каталог', () => tester.tap(find.byTooltip(l.catalogTitle)));
   await step('карта', () => tester.tap(find.byTooltip(l.mapTitle)));
   await step('настройки', openSettings);
@@ -135,11 +144,10 @@ Future<List<WalkStep>> walkScreens(
   await step('битые-ссылки', () => openSetting(l.deadLinksTitle));
   await step('язык', () => openSetting(l.settingsLanguage));
 
-  if (device) {
-    // касание строки поднимает настоящую клавиатуру: видно, как строка встаёт над ней
-    await step('клавиатура', () => tester.tap(line));
-    // последним: система спросит про уведомления, а её окно тест закрыть не может
-    await step('напоминание', () => stow('Позвонить мастеру завтра в 10'));
-  }
+  // касание строки поднимает настоящую клавиатуру: видно, как строка встаёт над ней
+  if (device) await step('клавиатура', () => tester.tap(line));
+  // дальше шаги, на которых система может спросить разрешение: её окно тест закрыть не может
+  await step('галерея', () => tester.tap(find.byTooltip(l.composerAttach)));
+  if (device) await step('напоминание', () => stow('Позвонить мастеру завтра в 10'));
   return steps;
 }

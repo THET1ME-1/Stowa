@@ -29,10 +29,11 @@ void main() {
       }
     }
 
+    // снимок симулятора иногда думает секунд двадцать: ждём полминуты
     final missed = <String>{};
     Future<void> shot(String name) async {
       final request = File('${folder.path}/$name.request')..writeAsStringSync('');
-      for (var tick = 0; tick < 100 && request.existsSync(); tick++) {
+      for (var tick = 0; tick < 300 && request.existsSync(); tick++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
       if (!request.existsSync()) return;

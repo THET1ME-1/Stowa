@@ -40,6 +40,7 @@ import 'panel_model.dart';
 import 'panel_text.dart';
 import 'picked_files.dart';
 import 'voice_session.dart';
+import 'voice_wave.dart';
 
 const _toastTime = Duration(milliseconds: 3400);
 
@@ -1671,27 +1672,7 @@ class _Recording extends StatelessWidget {
             style: Theme.of(context).textTheme.titleSmall!.copyWith(fontFamily: 'Unbounded', fontWeight: FontWeight.w600, fontSize: 15),
           ),
         ),
-        Expanded(
-          child: SizedBox(
-            height: 32,
-            child: ClipRect(
-              child: Row(
-                children: [
-                  for (final level in session.levels)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 3),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 90),
-                        width: 3,
-                        height: 5 + level * 25,
-                        decoration: BoxDecoration(color: Tokens.onSurfaceVariant, borderRadius: BorderRadius.circular(2)),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        Expanded(child: VoiceWave(levels: session.levels)),
       ],
     );
   }

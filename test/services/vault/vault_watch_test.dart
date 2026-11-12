@@ -81,4 +81,16 @@ void main() {
     expect(changes, 2);
     expect(watch.watched, isNot(contains(p.join(root.path, 'Рецепты', 'Борщ'))));
   });
+
+  // на iPhone слежки за папкой нет: приложение живёт на сверке при открытии и возврате
+  test('там, где система за папками не следит, слежка молча не включается', () {
+    IOOverrides.runZoned(
+      () {
+        watch.start();
+        expect(watch.watched, isEmpty);
+      },
+      fsWatchIsSupported: () => false,
+      fsWatch: (path, events, recursive) => throw const FileSystemException('File system watching is not supported on this platform'),
+    );
+  });
 }

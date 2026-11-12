@@ -30,6 +30,8 @@ class VaultWatch {
   void start() {
     final root = _root;
     if (root == null || !root.existsSync() || _subscriptions.isNotEmpty) return;
+    // на iPhone слежки за папками нет: остаётся сверка при открытии и возврате
+    if (!FileSystemEntity.isWatchSupported) return;
     _watchTree(root);
   }
 
