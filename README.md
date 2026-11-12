@@ -21,3 +21,9 @@ Android, Flutter. Интерфейс на семи языках. В разраб
 - `flutter test`, `flutter analyze`
 - Строки интерфейса: `python3 tool/add_strings.py строки.json`, русский и английский обязательны
 - Шрифт иконок: `python3 tool/build_icon_font.py`; сборка идёт с `--no-tree-shake-icons`, иконки тегов выбираются по имени
+
+## Права
+
+Все права защищены. Код открыт только для ознакомления: копировать, изменять, собирать и распространять его без письменного разрешения нельзя. Полный текст — в файле [LICENSE](LICENSE).
+
+All rights reserved. The source is published for reference only; see [LICENSE](LICENSE).

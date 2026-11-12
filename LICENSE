@@ -1,0 +1,63 @@
+Stowa
+Copyright (c) 2026 THET1ME-1. All rights reserved.
+
+This repository is published for reference only. No license is granted.
+
+Without prior written permission from the copyright holder you may not:
+
+  - copy, reproduce or redistribute this software or any part of it,
+    in source or compiled form;
+  - modify it or create derivative works from it;
+  - build, publish, sell, sublicense or otherwise use it, for commercial
+    or non-commercial purposes;
+  - use its source code, texts, designs or other materials to develop
+    another product or to train machine learning models.
+
+Viewing this repository and forking it on GitHub is allowed only to the
+extent required by the GitHub Terms of Service. A fork grants no rights
+beyond those terms: the restrictions above apply to every fork and copy.
+
+The name "Stowa", the logo and the app icon may not be used without
+written permission.
+
+Third-party components keep their own licenses: the fonts in
+assets/fonts and design/mockup/fonts (Onest and Unbounded under the SIL
+Open Font License 1.1, Material Symbols under the Apache License 2.0)
+and the packages listed in pubspec.yaml.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
+
+Permission requests: open an issue in this repository.
+
+--------------------------------------------------------------------
+
+Stowa
+© 2026 THET1ME-1. Все права защищены.
+
+Репозиторий открыт только для ознакомления. Лицензия не предоставляется.
+
+Без письменного разрешения правообладателя нельзя:
+
+  - копировать, воспроизводить и распространять программу или её части,
+    в исходном или собранном виде;
+  - изменять её и создавать на её основе производные работы;
+  - собирать, публиковать, продавать, передавать права и использовать
+    её иным образом, за деньги или бесплатно;
+  - брать её код, тексты, оформление и другие материалы для разработки
+    другого продукта или для обучения моделей машинного обучения.
+
+Смотреть репозиторий и делать его форк на GitHub можно только в той
+мере, в какой этого требуют Условия использования GitHub. Форк не даёт
+никаких прав сверх этих условий: запреты выше действуют на каждый форк
+и каждую копию.
+
+Название «Stowa», логотип и значок приложения нельзя использовать без
+письменного разрешения.
+
+У сторонних частей свои лицензии: шрифты в assets/fonts и
+design/mockup/fonts (Onest и Unbounded — SIL Open Font License 1.1,
+Material Symbols — Apache License 2.0) и пакеты из pubspec.yaml.
+
+При расхождении текстов главным считается английский.
