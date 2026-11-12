@@ -99,7 +99,8 @@ class ReminderService {
   }
 }
 
-/// Настоящие уведомления Android: канал «Напоминания», точные будильники, если разрешены.
+/// Настоящие уведомления: на Android канал «Напоминания» и точные будильники, если разрешены;
+/// на iPhone — те же напоминания без кнопок.
 class LocalNotificationPort implements NotificationPort {
   LocalNotificationPort({required this.channelName, required this.doneLabel, required this.snoozeLabel, this.returnChannelName = '', this.onOpen, this.onAction});
 
@@ -133,7 +134,11 @@ class LocalNotificationPort implements NotificationPort {
       // незнакомый пояс: остаётся UTC, время всё равно считается от абсолютного момента
     }
     await _plugin.initialize(
-      settings: const InitializationSettings(android: AndroidInitializationSettings('ic_stat_reminder')),
+      // на iPhone разрешение не спрашивается при запуске: только по действию человека, в ensurePermission
+      settings: const InitializationSettings(
+        android: AndroidInitializationSettings('ic_stat_reminder'),
+        iOS: DarwinInitializationSettings(requestAlertPermission: false, requestBadgePermission: false, requestSoundPermission: false),
+      ),
       onDidReceiveNotificationResponse: (response) {
         final id = response.payload;
         if (id != null && response.actionId == null) onOpen?.call(id);
@@ -152,6 +157,7 @@ class LocalNotificationPort implements NotificationPort {
   Future<void> ensurePermission() async {
     await start();
     await _android?.requestNotificationsPermission();
+    await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, sound: true);
     _exact = await _android?.canScheduleExactNotifications() ?? false;
   }
 

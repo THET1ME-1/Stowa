@@ -60,6 +60,9 @@ class TestWorld {
   /// Что вернёт окно выбора папки.
   String? pickedFolder;
 
+  /// Единственное место хранилища, как на iPhone; null — как на Android.
+  Directory? vaultHome;
+
   /// Дан ли «Доступ ко всем файлам».
   var allFiles = true;
 
@@ -105,6 +108,7 @@ class TestWorld {
         vaultAskedProvider.overrideWithValue(vaultAsked),
         vaultMissingProvider.overrideWithValue(vaultMissing),
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
+        vaultHomeProvider.overrideWithValue(vaultHome),
         vaultChannelProvider.overrideWithValue(_TestChannel(this)),
         clockProvider.overrideWithValue(() => now),
         // обоев в тестах нет: как Android до 12

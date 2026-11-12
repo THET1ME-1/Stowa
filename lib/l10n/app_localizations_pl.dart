@@ -2791,4 +2791,11 @@ class LPl extends L {
   @override
   String get crashSettingHint =>
       'Twórca dostaje błąd i model telefonu, bez notatek i nazw plików.';
+
+  @override
+  String get vaultInFiles => 'Pliki → Stowa';
+
+  @override
+  String get vaultFilesHint =>
+      'Notatki to zwykłe pliki .md, widać je w aplikacji Pliki.';
 }

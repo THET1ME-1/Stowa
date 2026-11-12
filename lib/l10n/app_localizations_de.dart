@@ -2740,4 +2740,11 @@ class LDe extends L {
   @override
   String get crashSettingHint =>
       'Der Entwickler erhält den Fehler und das Telefonmodell, aber keine Notizen oder Dateinamen.';
+
+  @override
+  String get vaultInFiles => 'Dateien → Stowa';
+
+  @override
+  String get vaultFilesHint =>
+      'Notizen sind einfache .md-Dateien, die du in der App „Dateien“ siehst.';
 }

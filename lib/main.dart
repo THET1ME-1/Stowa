@@ -70,7 +70,8 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
   final db = AppDatabase();
   // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
-  final place = await VaultLocation(settings: settings, appSupport: appSupport).resolve(hasData: await hasSavedItems(db));
+  final home = await vaultHome();
+  final place = await VaultLocation(settings: settings, appSupport: appSupport, home: home).resolve(hasData: await hasSavedItems(db));
   // скрытое, оставшееся открытым от убитого приложения, запечатывается до первого кадра;
   // там же читается замок, чтобы запереть приложение до того, как что-то покажется
   final privacy = PrivacyService(
@@ -89,6 +90,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
         vaultRootProvider.overrideWith(() => VaultRootNotifier(place.vault)),
         vaultMissingProvider.overrideWithValue(!place.reachable),
         appSupportProvider.overrideWithValue(appSupport),
+        vaultHomeProvider.overrideWithValue(home),
         startLockProvider.overrideWithValue(privacy.lock),
         cacheRootProvider.overrideWithValue(cache),
         notificationPortProvider.overrideWithValue(notifications),

@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../domain/item_title.dart';
 import '../../domain/models.dart';
@@ -83,7 +86,16 @@ String _vaultEnqueue(String target) => 'INSERT INTO vault_queue (target) VALUES 
 )
 class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
-  AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'stowa', native: const DriftNativeOptions(shareAcrossIsolates: true)));
+  // на iPhone «Документы» видны в «Файлах» и заняты хранилищем: база лежит в скрытой папке приложения.
+  // На Android место прежнее: там живые установки
+  AppDatabase([QueryExecutor? executor])
+    : super(
+        executor ??
+            driftDatabase(
+              name: 'stowa',
+              native: DriftNativeOptions(shareAcrossIsolates: true, databaseDirectory: Platform.isIOS ? getApplicationSupportDirectory : null),
+            ),
+      );
 
   /// База в памяти для тестов. Стримы закрываются сразу: иначе drift ждёт
   /// оборот цикла событий, а часы теста поддельные, и закрытие виснет.

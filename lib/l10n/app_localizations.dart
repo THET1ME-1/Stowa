@@ -4498,6 +4498,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The developer gets the error and your phone model, never your notes or file names.'**
   String get crashSettingHint;
+
+  /// iPhone only. Where the notes folder is: the system Files app, folder Stowa. Use Apple's own name of the Files app in this language.
+  ///
+  /// In en, this message translates to:
+  /// **'Files → Stowa'**
+  String get vaultInFiles;
+
+  /// iPhone only. One-sentence hint under the storage rows in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes are plain .md files that you can see in the Files app.'**
+  String get vaultFilesHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

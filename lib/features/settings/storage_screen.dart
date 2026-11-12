@@ -19,7 +19,9 @@ import 'settings_blocks.dart';
 Route<void> storageRoute() => settingsPageRoute(const StorageScreen());
 
 /// Где хранилище: папка человека или внутри приложения (и старая установка до переноса).
+/// На iPhone место одно — папка приложения в «Файлах».
 String vaultPlace(WidgetRef ref, L l) {
+  if (ref.watch(vaultHomeProvider) != null) return l.vaultInFiles;
   final root = ref.watch(vaultRootProvider);
   if (root == null || root.path.startsWith(ref.watch(appSupportProvider).path)) return l.vaultInsideApp;
   return shortVaultPath(root.path);
@@ -32,6 +34,8 @@ class StorageScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
+    // на iPhone папка одна: переносить некуда
+    final fixed = ref.watch(vaultHomeProvider) != null;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -42,12 +46,12 @@ class StorageScreen extends ConsumerWidget {
             SettingsGroup(
               tint: settingsTint('teal'),
               children: [
-                SettingsRow(icon: 'folder_open', title: l.vaultFolder, value: vaultPlace(ref, l), onTap: () => moveVaultElsewhere(context, ref)),
-                SettingsRow(icon: 'drive_file_move', title: l.vaultMoveTo, onTap: () => moveVaultElsewhere(context, ref)),
+                SettingsRow(icon: 'folder_open', title: l.vaultFolder, value: vaultPlace(ref, l), onTap: fixed ? null : () => moveVaultElsewhere(context, ref)),
+                if (!fixed) SettingsRow(icon: 'drive_file_move', title: l.vaultMoveTo, onTap: () => moveVaultElsewhere(context, ref)),
                 SettingsRow(icon: 'manage_search', title: l.vaultRebuild, onTap: () => rebuildIndex(context, ref)),
               ],
             ),
-            SettingsHint(l.vaultSettingHint),
+            SettingsHint(fixed ? l.vaultFilesHint : l.vaultSettingHint),
             SettingsGroup(
               tint: settingsTint('blue'),
               children: [

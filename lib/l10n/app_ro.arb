@@ -483,5 +483,7 @@
   "composerHintNoSearch": "Aruncă orice",
   "returnsOff": "Oprit",
   "crashSetting": "Rapoarte de erori",
-  "crashSettingHint": "Dezvoltatorul primește eroarea și modelul telefonului, fără notițe și nume de fișiere."
+  "crashSettingHint": "Dezvoltatorul primește eroarea și modelul telefonului, fără notițe și nume de fișiere.",
+  "vaultInFiles": "Fișiere → Stowa",
+  "vaultFilesHint": "Notițele sunt fișiere .md obișnuite, pe care le vezi în aplicația Fișiere."
 }

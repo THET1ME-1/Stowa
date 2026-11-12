@@ -192,6 +192,23 @@ void main() {
     }
   });
 
+  testWidgets('iPhone: папка одна — в «Файлах», переноса нет, строка не нажимается', (tester) async {
+    world.vaultHome = world.files;
+    await open(tester, keyStatus: 200);
+    expect(find.text('«Файлы» → Stowa'), findsOneWidget);
+    await tester.tap(find.text('Хранилище'));
+    await tester.pumpAndSettle();
+    expect(find.text('«Файлы» → Stowa'), findsOneWidget);
+    expect(find.text('Перенести в другую папку'), findsNothing);
+    expect(find.textContaining('видно в приложении «Файлы»'), findsOneWidget);
+    expect(find.textContaining('Obsidian'), findsNothing);
+    // выбирать нечего: строка без стрелки и без касания
+    final row = find.ancestor(of: find.text('Папка'), matching: find.byType(InkWell)).first;
+    expect(tester.widget<InkWell>(row).onTap, isNull);
+    expect(find.descendant(of: row, matching: find.byType(Icon)), findsOneWidget);
+    expect(find.text('Пересобрать указатель'), findsOneWidget);
+  });
+
   testWidgets('«ИИ в приоритете» по умолчанию выключен, касание включает', (tester) async {
     await openSection(tester, 'Разбор ИИ');
     final row = find.ancestor(of: find.text('ИИ в приоритете'), matching: find.byType(InkWell)).first;

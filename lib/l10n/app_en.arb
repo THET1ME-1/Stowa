@@ -3478,5 +3478,13 @@
   "crashSettingHint": "The developer gets the error and your phone model, never your notes or file names.",
   "@crashSettingHint": {
     "description": "Подсказка под переключателем отчётов об ошибках: что уходит разработчику и чего в отчёте нет"
+  },
+  "vaultInFiles": "Files → Stowa",
+  "@vaultInFiles": {
+    "description": "iPhone only. Where the notes folder is: the system Files app, folder Stowa. Use Apple's own name of the Files app in this language."
+  },
+  "vaultFilesHint": "Notes are plain .md files that you can see in the Files app.",
+  "@vaultFilesHint": {
+    "description": "iPhone only. One-sentence hint under the storage rows in settings."
   }
 }

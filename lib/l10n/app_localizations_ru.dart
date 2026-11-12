@@ -2796,4 +2796,11 @@ class LRu extends L {
   @override
   String get crashSettingHint =>
       'Разработчик получает ошибку и модель телефона, без заметок и имён файлов.';
+
+  @override
+  String get vaultInFiles => '«Файлы» → Stowa';
+
+  @override
+  String get vaultFilesHint =>
+      'Заметки лежат обычными файлами .md, их видно в приложении «Файлы».';
 }

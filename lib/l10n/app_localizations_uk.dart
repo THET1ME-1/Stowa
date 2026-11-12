@@ -2792,4 +2792,11 @@ class LUk extends L {
   @override
   String get crashSettingHint =>
       'Розробник отримує помилку й модель телефона, без нотаток і назв файлів.';
+
+  @override
+  String get vaultInFiles => '«Файли» → Stowa';
+
+  @override
+  String get vaultFilesHint =>
+      'Нотатки лежать звичайними файлами .md, їх видно в застосунку «Файли».';
 }

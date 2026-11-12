@@ -158,7 +158,9 @@ class SettingsRow extends StatelessWidget {
   final String icon;
   final String title;
   final String? value;
-  final VoidCallback onTap;
+
+  /// null — строка только показывает значение: без касания и без стрелки.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +176,7 @@ class SettingsRow extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(child: _RowText(title: title, value: value)),
               const SizedBox(width: 8),
-              Icon(symbolIcon('chevron_right'), size: 22, color: Tokens.muted),
+              if (onTap != null) Icon(symbolIcon('chevron_right'), size: 22, color: Tokens.muted),
             ],
           ),
         ),

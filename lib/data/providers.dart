@@ -85,9 +85,17 @@ final vaultChannelProvider = Provider<VaultChannel>((ref) => const VaultChannel(
 /// Выбор папки системным окном; в тестах — готовая папка.
 final vaultPickerProvider = Provider<Future<String?> Function()>((ref) => pickVaultFolder);
 
+/// Единственное место хранилища на iPhone; null — место выбирает человек (Android).
+final vaultHomeProvider = Provider<Directory?>((ref) => null);
+
 /// Где хранилище и доступно ли оно.
 final vaultLocationProvider = Provider(
-  (ref) => VaultLocation(settings: ref.watch(settingsRepositoryProvider), appSupport: ref.watch(appSupportProvider), channel: ref.watch(vaultChannelProvider)),
+  (ref) => VaultLocation(
+    settings: ref.watch(settingsRepositoryProvider),
+    appSupport: ref.watch(appSupportProvider),
+    home: ref.watch(vaultHomeProvider),
+    channel: ref.watch(vaultChannelProvider),
+  ),
 );
 
 /// Место хранилища уже выбирали на экране первого запуска.

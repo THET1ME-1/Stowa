@@ -2733,4 +2733,11 @@ class LEn extends L {
   @override
   String get crashSettingHint =>
       'The developer gets the error and your phone model, never your notes or file names.';
+
+  @override
+  String get vaultInFiles => 'Files → Stowa';
+
+  @override
+  String get vaultFilesHint =>
+      'Notes are plain .md files that you can see in the Files app.';
 }

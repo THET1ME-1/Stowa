@@ -2760,4 +2760,11 @@ class LRo extends L {
   @override
   String get crashSettingHint =>
       'Dezvoltatorul primește eroarea și modelul telefonului, fără notițe și nume de fișiere.';
+
+  @override
+  String get vaultInFiles => 'Fișiere → Stowa';
+
+  @override
+  String get vaultFilesHint =>
+      'Notițele sunt fișiere .md obișnuite, pe care le vezi în aplicația Fișiere.';
 }

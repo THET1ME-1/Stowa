@@ -140,7 +140,7 @@ void backgroundDispatcher() {
     }
     final client = http.Client();
     // тот же корень, что у приложения: хранилище или, до переноса, папка приложения
-    final place = await VaultLocation(settings: settings, appSupport: scratch).resolve(hasData: true);
+    final place = await VaultLocation(settings: settings, appSupport: scratch, home: await vaultHome()).resolve(hasData: true);
     final filesRoot = place.files;
     try {
       // скрытое: открыто в живом приложении — знать его заметки; осталось от убитого — запечатать

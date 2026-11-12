@@ -483,5 +483,7 @@
   "composerHintNoSearch": "Suelta lo que sea",
   "returnsOff": "Desactivado",
   "crashSetting": "Informes de errores",
-  "crashSettingHint": "El desarrollador recibe el error y el modelo del teléfono, sin notas ni nombres de archivos."
+  "crashSettingHint": "El desarrollador recibe el error y el modelo del teléfono, sin notas ni nombres de archivos.",
+  "vaultInFiles": "Archivos → Stowa",
+  "vaultFilesHint": "Las notas son archivos .md normales que ves en la app Archivos."
 }

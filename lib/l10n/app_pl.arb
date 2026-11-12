@@ -483,5 +483,7 @@
   "composerHintNoSearch": "Wrzuć cokolwiek",
   "returnsOff": "Wyłączone",
   "crashSetting": "Raporty o błędach",
-  "crashSettingHint": "Twórca dostaje błąd i model telefonu, bez notatek i nazw plików."
+  "crashSettingHint": "Twórca dostaje błąd i model telefonu, bez notatek i nazw plików.",
+  "vaultInFiles": "Pliki → Stowa",
+  "vaultFilesHint": "Notatki to zwykłe pliki .md, widać je w aplikacji Pliki."
 }

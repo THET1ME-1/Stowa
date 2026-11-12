@@ -2736,4 +2736,11 @@ class LEs extends L {
   @override
   String get crashSettingHint =>
       'El desarrollador recibe el error y el modelo del teléfono, sin notas ni nombres de archivos.';
+
+  @override
+  String get vaultInFiles => 'Archivos → Stowa';
+
+  @override
+  String get vaultFilesHint =>
+      'Las notas son archivos .md normales que ves en la app Archivos.';
 }

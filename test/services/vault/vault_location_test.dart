@@ -71,6 +71,25 @@ void main() {
     expect(gone.reachable, isFalse);
   });
 
+  test('iPhone: хранилище — папка «Документы» приложения, выбирать нечего', () async {
+    final documents = Directory(p.join(appSupport.path, 'Documents'));
+    final place = await VaultLocation(settings: settings, appSupport: appSupport, home: documents).resolve(hasData: false);
+    expect(place.vault!.path, documents.path);
+    expect(place.files.path, documents.path);
+    expect(documents.existsSync(), isTrue);
+    expect(place.reachable, isTrue);
+    expect(settings.vaultAsked, isTrue);
+  });
+
+  test('iPhone: после обновления папка приложения переехала — старый путь не в счёт', () async {
+    await settings.setVault('/var/mobile/Containers/Data/Application/OLD/Documents', VaultMode.app);
+    final documents = Directory(p.join(appSupport.path, 'Documents'));
+    final place = await VaultLocation(settings: settings, appSupport: appSupport, home: documents).resolve(hasData: true);
+    expect(place.vault!.path, documents.path);
+    expect(place.reachable, isTrue);
+    expect(settings.vaultPath, documents.path);
+  });
+
   test('хранилище внутри приложения разрешения не спрашивает', () async {
     final channel = _FakeChannel(false);
     final inside = VaultLocation(settings: settings, appSupport: appSupport, channel: channel);

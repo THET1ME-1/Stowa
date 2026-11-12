@@ -1,0 +1,99 @@
+name: iPhone → собирается и запускается ли
+
+# Зачем: на ноутбуке без macOS приложение для iPhone не собрать и не запустить.
+# Здесь оно собирается под симулятор без подписи, открывается, читает заметку,
+# положенную в его папку «Документы», и отдаёт снимки экрана.
+# Только вручную: репозиторий приватный, минута macOS стоит как десять обычных.
+on:
+  workflow_dispatch:
+
+jobs:
+  simulator:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Самый свежий Xcode
+        run: |
+          set -euo pipefail
+          NEWEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1 || true)
+          [ -z "$NEWEST" ] && NEWEST=/Applications/Xcode.app
+          sudo xcode-select -s "$NEWEST"
+          xcodebuild -version
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.6
+          channel: stable
+          cache: true
+
+      # плагины приходят пакетами Swift: CocoaPods и Podfile не нужны
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter gen-l10n
+
+      # --no-tree-shake-icons: значок выбирается по имени из базы
+      - name: Сборка под симулятор
+        run: flutter build ios --simulator --debug --no-tree-shake-icons
+
+      - name: Запуск в симуляторе
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          # самый новый iPhone из установленных
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          runtimes = json.load(sys.stdin)['devices']
+          version = lambda name: [int(part) for part in name.split('iOS-')[1].split('-')]
+          newest = sorted((name for name in runtimes if 'iOS-' in name and runtimes[name]), key=version)
+          print(next(device['udid'] for name in reversed(newest) for device in runtimes[name] if device['name'].startswith('iPhone')))
+          ")
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl install "$DEVICE" build/ios/iphonesimulator/Runner.app
+
+          open_app() {
+            xcrun simctl launch --console-pty "$DEVICE" app.stowa -AppleLanguages "(ru)" -AppleLocale ru_RU >> out/app.log 2>&1 &
+            sleep 60
+          }
+
+          # первый запуск: пустое приложение
+          open_app
+          xcrun simctl io "$DEVICE" screenshot out/1-first-launch.png
+
+          # заметки кладутся в «Документы» мимо приложения, как это сделал бы человек через «Файлы»
+          xcrun simctl terminate "$DEVICE" app.stowa
+          DATA=$(xcrun simctl get_app_container "$DEVICE" app.stowa data)
+          mkdir -p "$DATA/Documents/Идеи"
+          printf 'Заметка из «Файлов»\n\nЛежала в папке до запуска.\n' > "$DATA/Documents/Из Файлов.md"
+          printf 'Заметка в папке\n\nПапка «Идеи» создана вручную.\n' > "$DATA/Documents/Идеи/В папке.md"
+
+          # второй запуск: обе заметки должны появиться на главной
+          open_app
+          xcrun simctl io "$DEVICE" screenshot out/2-notes-from-files.png
+
+          {
+            echo "== Документы"
+            (cd "$DATA/Documents" && find . | sort)
+            echo "== Application Support"
+            (cd "$DATA/Library/Application Support" && find . -maxdepth 2 | sort)
+            echo "== Из Файлов.md после запуска"
+            cat "$DATA/Documents/Из Файлов.md"
+          } > out/container.txt 2>&1 || true
+          cat out/container.txt
+
+          xcrun simctl spawn "$DEVICE" log show --last 5m --style compact --predicate 'process == "Runner"' > out/system.log 2>&1 || true
+          tail -n 60 out/app.log || true
+
+          # закрылось само — значит упало: прогон красный, причина в журналах
+          xcrun simctl spawn "$DEVICE" launchctl list | grep app.stowa || { echo "Приложение не работает после запуска"; exit 1; }
+          # база не должна лежать среди заметок
+          [ -z "$(find "$DATA/Documents" -name 'stowa.sqlite*')" ] || { echo "База лежит в «Документах»"; exit 1; }
+          [ -n "$(find "$DATA/Library" -name 'stowa.sqlite')" ] || { echo "База не создана"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iphone-simulator
+          path: out/

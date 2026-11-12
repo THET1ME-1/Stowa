@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../data/db/database.dart';
 import '../../data/settings_repository.dart';
@@ -45,11 +46,18 @@ class VaultPlace {
   final bool reachable;
 }
 
+/// Единственное место хранилища на iPhone: папка «Документы» приложения, в «Файлах» она
+/// видна как «На iPhone → Stowa». На Android место выбирает человек — null.
+Future<Directory?> vaultHome() async => Platform.isIOS ? getApplicationDocumentsDirectory() : null;
+
 class VaultLocation {
-  VaultLocation({required this.settings, required this.appSupport, this.channel = const VaultChannel()});
+  VaultLocation({required this.settings, required this.appSupport, this.home, this.channel = const VaultChannel()});
 
   final SettingsRepository settings;
   final Directory appSupport;
+
+  /// Место одно и выбирать нечего (iPhone); null — как на Android.
+  final Directory? home;
   final VaultChannel channel;
 
   /// Хранилище внутри приложения: без разрешений, удаляется вместе с приложением.
@@ -62,6 +70,12 @@ class VaultLocation {
   /// приложения, чтобы «Поделиться» и фон работали до выбора; старая остаётся на прежнем
   /// месте, пока человек не перенесёт её на экране первого запуска.
   Future<VaultPlace> resolve({required bool hasData}) async {
+    // iPhone меняет путь к папке приложения при обновлении: сохранённый путь каждый раз сверяется
+    if (home case final home?) {
+      await home.create(recursive: true);
+      if (settings.vaultPath != home.path || !settings.vaultAsked) await settings.setVault(home.path, VaultMode.app);
+      return VaultPlace(files: home, vault: home, reachable: true);
+    }
     var path = settings.vaultPath;
     if (path == null && !hasData) {
       await appVault.create(recursive: true);
