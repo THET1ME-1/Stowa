@@ -477,5 +477,7 @@
   "folderHide": "Ascunde dosarul",
   "folderHiddenMark": "ascuns",
   "hiddenFolders": "Dosare ascunse",
-  "hiddenReminder": "Memento dintr-un dosar ascuns"
+  "hiddenReminder": "Memento dintr-un dosar ascuns",
+  "aiFirst": "AI are prioritate",
+  "aiFirstHint": "Modelul verifică și ghicirile fără AI. Alegerea ta și regulile au întâietate. Mai multe cereri"
 }

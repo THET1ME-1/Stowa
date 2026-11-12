@@ -91,6 +91,51 @@ void main() {
     expect(((await item(byHand)).folderId, (await item(bySimilar)).folderId, (await item(byRule)).folderId), ('mine', 'food', 'food'));
   });
 
+  group('ИИ в приоритете', () {
+    setUp(() => settings.setAiFirst(true));
+
+    test('догадку угадывателя модель переложит, ручное и правило не тронет', () async {
+      reply = (_) => answer({'folder_id': 'mine', 'tags': ['дом']});
+      final bySimilar = await add('Плов', folder: 'food', by: SortedBy.similar);
+      final byHand = await add('Борщ', folder: 'food', by: SortedBy.user);
+      final byRule = await add('Котлеты', folder: 'food', by: SortedBy.rule);
+      await worker().runOnce();
+      expect(calls, 1);
+      final moved = await item(bySimilar);
+      expect((moved.folderId, moved.sortedBy), ('mine', SortedBy.ai));
+      expect(((await item(byHand)).folderId, (await item(byRule)).folderId), ('food', 'food'));
+    });
+
+    test('модель не уверена — догадка остаётся, описание и теги дописаны', () async {
+      reply = (_) => answer({'folder_id': null, 'tags': ['дом']});
+      final id = await add('Плов', folder: 'food', by: SortedBy.similar);
+      await worker().runOnce();
+      final saved = await item(id);
+      expect((saved.folderId, saved.sortedBy, saved.aiDescription), ('food', SortedBy.similar, 'описание'));
+      expect((await db.select(db.itemTags).get()).single.source, TagSource.ai);
+    });
+
+    test('человек переложил догадку, пока модель думала, — его решение остаётся', () async {
+      late String id;
+      reply = (_) {
+        db.customStatement("UPDATE items SET folder_id = 'food', sorted_by = 'user' WHERE id = '$id'");
+        return answer({'folder_id': 'mine'});
+      };
+      id = await add('Плов', folder: 'food', by: SortedBy.similar);
+      await worker().runOnce();
+      expect((await item(id)).sortedBy, SortedBy.user);
+    });
+
+    test('режим выключили — догадки в очереди модели не уходят', () async {
+      reply = (_) => answer({'folder_id': 'mine'});
+      final id = await add('Плов', folder: 'food', by: SortedBy.similar);
+      await settings.setAiFirst(false);
+      await worker().runOnce();
+      expect(calls, 0);
+      expect((await item(id)).folderId, 'food');
+    });
+  });
+
   test('скрытая папка ИИ не видна: ни её имени в запросе, ни её заметок, ни их задач', () async {
     await db.into(db.folders).insert(FoldersCompanion.insert(id: 'secret', name: 'Тайник', icon: 'lock', shape: 'pill', hidden: const Value(true)));
     final hidden = await add('План побега', folder: 'secret');

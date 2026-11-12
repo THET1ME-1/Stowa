@@ -2714,4 +2714,11 @@ class LEn extends L {
 
   @override
   String get hiddenReminder => 'Reminder from a hidden folder';
+
+  @override
+  String get aiFirst => 'AI goes first';
+
+  @override
+  String get aiFirstHint =>
+      'The model also checks offline guesses. Your choice and rules still win. More requests';
 }

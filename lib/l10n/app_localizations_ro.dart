@@ -2741,4 +2741,11 @@ class LRo extends L {
 
   @override
   String get hiddenReminder => 'Memento dintr-un dosar ascuns';
+
+  @override
+  String get aiFirst => 'AI are prioritate';
+
+  @override
+  String get aiFirstHint =>
+      'Modelul verifică și ghicirile fără AI. Alegerea ta și regulile au întâietate. Mai multe cereri';
 }

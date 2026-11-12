@@ -4462,6 +4462,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Reminder from a hidden folder'**
   String get hiddenReminder;
+
+  /// Settings switch: the AI model re-checks folders guessed by the offline guesser
+  ///
+  /// In en, this message translates to:
+  /// **'AI goes first'**
+  String get aiFirst;
+
+  /// Subtitle under the AI-first switch
+  ///
+  /// In en, this message translates to:
+  /// **'The model also checks offline guesses. Your choice and rules still win. More requests'**
+  String get aiFirstHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

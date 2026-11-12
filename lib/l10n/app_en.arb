@@ -3264,99 +3264,203 @@
     "description": "remindWeekBefore"
   },
   "codeWait": "Wait {seconds} s",
-  "@codeWait": {"description": "Too many wrong codes: input closed for seconds"},
+  "@codeWait": {
+    "description": "Too many wrong codes: input closed for seconds"
+  },
   "codeFingerprint": "Fingerprint",
-  "@codeFingerprint": {"description": "Fingerprint key on the code pad"},
+  "@codeFingerprint": {
+    "description": "Fingerprint key on the code pad"
+  },
   "codeErase": "Erase",
-  "@codeErase": {"description": "Backspace key on the code pad"},
+  "@codeErase": {
+    "description": "Backspace key on the code pad"
+  },
   "codeDone": "Done",
-  "@codeDone": {"description": "Confirm the code"},
+  "@codeDone": {
+    "description": "Confirm the code"
+  },
   "codeWrong": "Wrong code",
-  "@codeWrong": {"description": "Code check failed"},
+  "@codeWrong": {
+    "description": "Code check failed"
+  },
   "codeCreateTitle": "Create a code",
-  "@codeCreateTitle": {"description": "First step of creating the Stowa code"},
+  "@codeCreateTitle": {
+    "description": "First step of creating the Stowa code"
+  },
   "codeRepeatTitle": "Repeat the code",
-  "@codeRepeatTitle": {"description": "Second step: repeat the new code"},
+  "@codeRepeatTitle": {
+    "description": "Second step: repeat the new code"
+  },
   "codeCreateHint": "6 to 12 digits. The code opens Stowa and hidden folders. If you forget it, hidden notes are gone for good.",
-  "@codeCreateHint": {"description": "Under the create code title"},
+  "@codeCreateHint": {
+    "description": "Under the create code title"
+  },
   "codeMismatch": "Codes don't match. Create it again",
-  "@codeMismatch": {"description": "Repeated code differs"},
+  "@codeMismatch": {
+    "description": "Repeated code differs"
+  },
   "hiddenOpenReason": "Open hidden folders",
-  "@hiddenOpenReason": {"description": "Fingerprint prompt text for hidden folders"},
+  "@hiddenOpenReason": {
+    "description": "Fingerprint prompt text for hidden folders"
+  },
   "hiddenOpenTitle": "Code for hidden folders",
-  "@hiddenOpenTitle": {"description": "Code page title when opening hidden folders"},
+  "@hiddenOpenTitle": {
+    "description": "Code page title when opening hidden folders"
+  },
   "codeForgot": "Forgot the code",
-  "@codeForgot": {"description": "Button under the code pad"},
+  "@codeForgot": {
+    "description": "Button under the code pad"
+  },
   "codeOldTitle": "Current code",
-  "@codeOldTitle": {"description": "Change code, step one"},
+  "@codeOldTitle": {
+    "description": "Change code, step one"
+  },
   "codeNewTitle": "New code",
-  "@codeNewTitle": {"description": "Change code, step two"},
+  "@codeNewTitle": {
+    "description": "Change code, step two"
+  },
   "codeChanged": "Code changed",
-  "@codeChanged": {"description": "After changing the code"},
+  "@codeChanged": {
+    "description": "After changing the code"
+  },
   "codeForgetTitle": "Remove the code?",
-  "@codeForgetTitle": {"description": "Forgot code confirmation title"},
+  "@codeForgetTitle": {
+    "description": "Forgot code confirmation title"
+  },
   "codeForgetText": "The lock turns off and hidden folders are erased together with their notes. They can't be brought back.",
-  "@codeForgetText": {"description": "Forgot code confirmation text"},
+  "@codeForgetText": {
+    "description": "Forgot code confirmation text"
+  },
   "codeForgetAction": "Remove code and erase hidden",
-  "@codeForgetAction": {"description": "Forgot code confirmation button"},
+  "@codeForgetAction": {
+    "description": "Forgot code confirmation button"
+  },
   "folderHidden": "Folder “{name}” is hidden",
-  "@folderHidden": {"description": "After hiding a folder"},
+  "@folderHidden": {
+    "description": "After hiding a folder"
+  },
   "folderUnhidden": "Folder “{name}” is visible again",
-  "@folderUnhidden": {"description": "After unhiding a folder"},
+  "@folderUnhidden": {
+    "description": "After unhiding a folder"
+  },
   "lockReason": "Unlock Stowa",
-  "@lockReason": {"description": "Fingerprint prompt text for the app lock"},
+  "@lockReason": {
+    "description": "Fingerprint prompt text for the app lock"
+  },
   "lockTitle": "Enter the code",
-  "@lockTitle": {"description": "App lock screen title"},
+  "@lockTitle": {
+    "description": "App lock screen title"
+  },
   "codeEnterTitle": "Enter the code",
-  "@codeEnterTitle": {"description": "Code page title to turn on fingerprint"},
+  "@codeEnterTitle": {
+    "description": "Code page title to turn on fingerprint"
+  },
   "closeAfterNow": "Right away",
-  "@closeAfterNow": {"description": "Lock again right after leaving the app"},
+  "@closeAfterNow": {
+    "description": "Lock again right after leaving the app"
+  },
   "closeAfterMinute": "After 1 minute",
-  "@closeAfterMinute": {"description": "Lock again after one minute"},
+  "@closeAfterMinute": {
+    "description": "Lock again after one minute"
+  },
   "closeAfterMinutes": "After {minutes} minutes",
-  "@closeAfterMinutes": {"description": "Lock again after 5 or 15 minutes"},
+  "@closeAfterMinutes": {
+    "description": "Lock again after 5 or 15 minutes"
+  },
   "privacySection": "Privacy",
-  "@privacySection": {"description": "Settings section"},
+  "@privacySection": {
+    "description": "Settings section"
+  },
   "codeCreateRow": "Create a code",
-  "@codeCreateRow": {"description": "Settings row when there is no code"},
+  "@codeCreateRow": {
+    "description": "Settings row when there is no code"
+  },
   "appLockRow": "Code on launch",
-  "@appLockRow": {"description": "Settings switch: app lock"},
+  "@appLockRow": {
+    "description": "Settings switch: app lock"
+  },
   "fingerprintRow": "Fingerprint",
-  "@fingerprintRow": {"description": "Settings switch: fingerprint instead of the code"},
+  "@fingerprintRow": {
+    "description": "Settings switch: fingerprint instead of the code"
+  },
   "closeAfterRow": "Lock again",
-  "@closeAfterRow": {"description": "Settings row: when to lock again after leaving"},
+  "@closeAfterRow": {
+    "description": "Settings row: when to lock again after leaving"
+  },
   "hiddenCloseRow": "Close hidden folders",
-  "@hiddenCloseRow": {"description": "Close hidden folders now"},
+  "@hiddenCloseRow": {
+    "description": "Close hidden folders now"
+  },
   "hiddenOpenRow": "Open hidden folders",
-  "@hiddenOpenRow": {"description": "Open hidden folders"},
+  "@hiddenOpenRow": {
+    "description": "Open hidden folders"
+  },
   "codeChangeRow": "Change code",
-  "@codeChangeRow": {"description": "Settings row"},
+  "@codeChangeRow": {
+    "description": "Settings row"
+  },
   "privacyHint": "Hidden folders are stored encrypted: without the code nobody can read them, here or in the vault files. “Lock again” sets how long after you leave the app the code is needed again and hidden folders close.",
-  "@privacyHint": {"description": "Under the privacy settings"},
+  "@privacyHint": {
+    "description": "Under the privacy settings"
+  },
   "markdownExport": "Export to Markdown",
-  "@markdownExport": {"description": "Settings row"},
+  "@markdownExport": {
+    "description": "Settings row"
+  },
   "markdownNoVault": "Choose a vault folder first",
-  "@markdownNoVault": {"description": "Export without a vault"},
+  "@markdownNoVault": {
+    "description": "Export without a vault"
+  },
   "markdownHiddenAsk": "Export hidden folders too?",
-  "@markdownHiddenAsk": {"description": "Export sheet title when hidden folders are open"},
+  "@markdownHiddenAsk": {
+    "description": "Export sheet title when hidden folders are open"
+  },
   "markdownHiddenHint": "Hidden notes will become plain files. Anyone with this folder can read them.",
-  "@markdownHiddenHint": {"description": "Export sheet text"},
+  "@markdownHiddenHint": {
+    "description": "Export sheet text"
+  },
   "markdownWithoutHidden": "Without hidden",
-  "@markdownWithoutHidden": {"description": "Export button"},
+  "@markdownWithoutHidden": {
+    "description": "Export button"
+  },
   "markdownWithHidden": "With hidden",
-  "@markdownWithHidden": {"description": "Export button"},
+  "@markdownWithHidden": {
+    "description": "Export button"
+  },
   "markdownDone": "Exported to {path}",
-  "@markdownDone": {"description": "After export"},
+  "@markdownDone": {
+    "description": "After export"
+  },
   "markdownFailed": "Couldn't write to this folder",
-  "@markdownFailed": {"description": "Export failed"},
+  "@markdownFailed": {
+    "description": "Export failed"
+  },
   "folderUnhide": "Unhide",
-  "@folderUnhide": {"description": "Folder menu: hidden folder becomes visible"},
+  "@folderUnhide": {
+    "description": "Folder menu: hidden folder becomes visible"
+  },
   "folderHide": "Hide folder",
-  "@folderHide": {"description": "Folder menu"},
+  "@folderHide": {
+    "description": "Folder menu"
+  },
   "folderHiddenMark": "hidden",
-  "@folderHiddenMark": {"description": "Screen reader label of the lock mark"},
+  "@folderHiddenMark": {
+    "description": "Screen reader label of the lock mark"
+  },
   "hiddenFolders": "Hidden folders",
-  "@hiddenFolders": {"description": "Catalog row that opens hidden folders"},
+  "@hiddenFolders": {
+    "description": "Catalog row that opens hidden folders"
+  },
   "hiddenReminder": "Reminder from a hidden folder",
-  "@hiddenReminder": {"description": "Notification title for a hidden note"}
+  "@hiddenReminder": {
+    "description": "Notification title for a hidden note"
+  },
+  "aiFirst": "AI goes first",
+  "@aiFirst": {
+    "description": "Settings switch: the AI model re-checks folders guessed by the offline guesser"
+  },
+  "aiFirstHint": "The model also checks offline guesses. Your choice and rules still win. More requests",
+  "@aiFirstHint": {
+    "description": "Subtitle under the AI-first switch"
+  }
 }

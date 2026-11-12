@@ -102,6 +102,13 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsRow(icon: 'key', title: l.aiKey, value: ai.hasKey ? l.aiKeySet : l.aiKeyNone, onTap: () => _showKeySheet(context)),
                 SettingsRow(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => _showProviderSheet(context, ai.baseUrl)),
                 SettingsRow(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => _showModelSheet(context, speech: false)),
+                SettingsSwitchRow(
+                  icon: 'auto_awesome',
+                  title: l.aiFirst,
+                  subtitle: l.aiFirstHint,
+                  value: ai.aiFirst,
+                  onChanged: (on) => ref.read(settingsRepositoryProvider).setAiFirst(on),
+                ),
                 SettingsRow(icon: 'graphic_eq', title: l.aiSpeechModel, value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!), onTap: () => _showModelSheet(context, speech: true)),
                 SettingsRow(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
               ],

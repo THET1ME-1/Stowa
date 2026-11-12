@@ -262,6 +262,29 @@ void main() {
       expect((await items.get(later))!.item.folderId, isNull);
     });
 
+    test('ИИ в приоритете: догадка кладёт сразу, но заметка всё равно идёт модели', () async {
+      await folder('food', 'Продукты');
+      final first = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => DateTime(2026, 11, 2, 12), aiFirst: () => true);
+      final id = await first.capture(const CaptureInput(text: 'молоко, хлеб'));
+      final saved = (await items.get(id))!.item;
+      expect((saved.folderId, saved.sortedBy), ('food', SortedBy.similar));
+      expect((await db.select(db.aiJobs).get()).map((job) => job.itemId), [id]);
+    });
+
+    test('ИИ в приоритете: руками и правилом разложенное модели не уходит, перенос тоже', () async {
+      await folder('food', 'Продукты');
+      final first = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => DateTime(2026, 11, 2, 12), aiFirst: () => true);
+      await first.capture(const CaptureInput(text: 'молоко, хлеб', forcedFolderId: 'food'));
+      await first.captureAll([CaptureInput(text: 'кефир, сыр', at: DateTime(2025, 3, 1))]);
+      expect(await db.select(db.aiJobs).get(), isEmpty);
+    });
+
+    test('без режима ИИ догадка снимает заметку с очереди, как раньше', () async {
+      await folder('food', 'Продукты');
+      await capture.capture(const CaptureInput(text: 'молоко, хлеб'));
+      expect(await db.select(db.aiJobs).get(), isEmpty);
+    });
+
     test('вынул из папки в «Без папки» — это исправление, слово больше туда не тянет', () async {
       await folder('work', 'Работа');
       final first = await capture.capture(const CaptureInput(text: 'отчёт школьный у сына'));

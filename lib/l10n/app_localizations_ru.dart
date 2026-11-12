@@ -2776,4 +2776,11 @@ class LRu extends L {
 
   @override
   String get hiddenReminder => 'Напоминание из скрытой папки';
+
+  @override
+  String get aiFirst => 'ИИ в приоритете';
+
+  @override
+  String get aiFirstHint =>
+      'Модель проверяет и догадки без ИИ. Ваш выбор и правила главнее. Запросов больше';
 }

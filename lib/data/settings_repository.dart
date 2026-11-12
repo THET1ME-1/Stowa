@@ -56,6 +56,7 @@ class AiSettings {
     this.baseUrl = defaultAiBaseUrl,
     this.sortModel = defaultSortModel,
     this.speechModel,
+    this.aiFirst = false,
     this.hasKey = false,
     this.paused = false,
     this.pauseReason,
@@ -67,6 +68,10 @@ class AiSettings {
 
   /// Пусто — голосовые не расшифровываются.
   final String? speechModel;
+
+  /// ИИ в приоритете: догадку угадывателя модель перепроверяет и может переложить.
+  /// Ручное решение и правила остаются главнее. По умолчанию выключено: так дешевле.
+  final bool aiFirst;
   final bool hasKey;
 
   /// Ключ не принят или кончились деньги: очередь ждёт смены ключа.
@@ -91,6 +96,7 @@ class SettingsRepository {
   static const _baseUrl = 'ai_base_url';
   static const _sortModel = 'ai_sort_model';
   static const _speechModel = 'ai_speech_model';
+  static const _aiFirst = 'ai_first';
   static const _hasKey = 'ai_has_key';
   static const _paused = 'ai_paused';
   static const _pauseReason = 'ai_pause_reason';
@@ -127,6 +133,7 @@ class SettingsRepository {
       baseUrl: _prefs.getString(_baseUrl) ?? defaultAiBaseUrl,
       sortModel: _prefs.getString(_sortModel) ?? defaultSortModel,
       speechModel: _prefs.getString(_speechModel),
+      aiFirst: _prefs.getBool(_aiFirst) ?? false,
       hasKey: _prefs.getBool(_hasKey) ?? false,
       paused: _prefs.getBool(_paused) ?? false,
       pauseReason: _prefs.getString(_pauseReason),
@@ -161,6 +168,8 @@ class SettingsRepository {
   Future<void> setSortModel(String model) => _set(() => _prefs.setString(_sortModel, model));
 
   Future<void> setSpeechModel(String? model) => _set(() => model == null || model.isEmpty ? _prefs.remove(_speechModel) : _prefs.setString(_speechModel, model));
+
+  Future<void> setAiFirst(bool on) => _set(() => _prefs.setBool(_aiFirst, on));
 
   Future<void> pause(String reason) => _set(() async {
     await _prefs.setBool(_paused, true);

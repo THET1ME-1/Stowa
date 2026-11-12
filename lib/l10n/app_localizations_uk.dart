@@ -2771,4 +2771,11 @@ class LUk extends L {
 
   @override
   String get hiddenReminder => 'Нагадування з прихованої папки';
+
+  @override
+  String get aiFirst => 'ШІ в пріоритеті';
+
+  @override
+  String get aiFirstHint =>
+      'Модель перевіряє й здогадки без ШІ. Ваш вибір і правила головніші. Запитів більше';
 }

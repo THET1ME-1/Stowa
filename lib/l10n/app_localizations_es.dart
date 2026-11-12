@@ -2716,4 +2716,11 @@ class LEs extends L {
 
   @override
   String get hiddenReminder => 'Recordatorio de una carpeta oculta';
+
+  @override
+  String get aiFirst => 'La IA manda';
+
+  @override
+  String get aiFirstHint =>
+      'El modelo revisa también lo adivinado sin IA. Tu elección y las reglas mandan. Más consultas';
 }

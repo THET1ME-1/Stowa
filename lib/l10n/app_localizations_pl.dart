@@ -2771,4 +2771,11 @@ class LPl extends L {
 
   @override
   String get hiddenReminder => 'Przypomnienie z ukrytego folderu';
+
+  @override
+  String get aiFirst => 'AI ma pierwszeństwo';
+
+  @override
+  String get aiFirstHint =>
+      'Model sprawdza też zgadywanie bez AI. Twój wybór i reguły są ważniejsze. Więcej zapytań';
 }

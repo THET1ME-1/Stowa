@@ -147,8 +147,10 @@ class AiWorker {
         final voice = item.kind == ItemKind.voice && item.transcript == null;
         // уже разложено — руками, правилом, похожестью: платный разбор дал бы одно описание,
         // а текст и так ищется. Как при сохранении: разложенное без ИИ в очередь не встаёт.
-        // Голосовое без слов при модели речи только расшифровывается — расшифровку ищет поиск
-        final placed = item.folderId != null || item.sortedBy == SortedBy.user;
+        // Голосовое без слов при модели речи только расшифровывается — расшифровку ищет поиск.
+        // ИИ в приоритете — догадка угадывателя не в счёт, её модель перепроверит
+        final guessed = item.sortedBy == SortedBy.similar && _settings.ai.aiFirst;
+        final placed = (item.folderId != null && !guessed) || item.sortedBy == SortedBy.user;
         final transcribeOnly = placed && voice && speechModel != null;
         if (placed && !transcribeOnly) {
           await _dropJob(item.id);
@@ -363,21 +365,33 @@ class AiWorker {
     await _db.transaction(() async {
       // пока модель думала, человек мог переложить вещь сам: читаем её заново
       final item = await (_db.select(_db.items)..where((t) => t.id.equals(asked.id))).getSingle();
+      // ИИ в приоритете: догадку угадывателя модель может переложить
+      final guessed = item.sortedBy == SortedBy.similar && _settings.ai.aiFirst;
       // человек или правило успели разложить: ответ даёт только описание для поиска
-      if (item.sortedBy == SortedBy.user || item.folderId != null) {
+      if (item.sortedBy == SortedBy.user || (item.folderId != null && !guessed)) {
         await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(ItemsCompanion(aiDescription: Value(decision.description)));
         return;
       }
       folderId = decision.folderId;
       if (folderId == null && decision.newFolder != null) folderId = await _createFolder(decision.newFolder!.name, decision.newFolder!.icon);
-      if (folderId != null) {
+      // модель ответила на догадку той же папкой — плашка «Положил в …» не нужна
+      final moved = folderId != null && folderId != item.folderId;
+      if (moved) {
         folderName = (await (_db.select(_db.folders)..where((t) => t.id.equals(folderId!))).getSingle()).name;
       }
+      // модель не уверена — догадка остаётся на месте
+      final keptGuess = folderId == null && guessed;
       final autoTitle = item.title.trim().isEmpty || item.title.startsWith('http') || item.title == item.url;
       await (_db.update(_db.items)..where((t) => t.id.equals(item.id))).write(
         ItemsCompanion(
-          folderId: Value(folderId),
-          sortedBy: Value(folderId == null ? SortedBy.none : SortedBy.ai),
+          folderId: keptGuess ? const Value.absent() : Value(folderId),
+          sortedBy: Value(
+            keptGuess
+                ? SortedBy.similar
+                : folderId == null
+                ? SortedBy.none
+                : SortedBy.ai,
+          ),
           sortState: const Value(SortState.sorted),
           aiDescription: Value(decision.description),
           title: decision.title != null && autoTitle ? Value(decision.title!) : const Value.absent(),

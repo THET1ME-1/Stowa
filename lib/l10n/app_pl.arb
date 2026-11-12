@@ -477,5 +477,7 @@
   "folderHide": "Ukryj folder",
   "folderHiddenMark": "ukryty",
   "hiddenFolders": "Ukryte foldery",
-  "hiddenReminder": "Przypomnienie z ukrytego folderu"
+  "hiddenReminder": "Przypomnienie z ukrytego folderu",
+  "aiFirst": "AI ma pierwszeństwo",
+  "aiFirstHint": "Model sprawdza też zgadywanie bez AI. Twój wybór i reguły są ważniejsze. Więcej zapytań"
 }

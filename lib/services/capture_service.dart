@@ -148,8 +148,10 @@ class CaptureService {
     FileKeeper? files,
     bool Function()? titleByShot,
     int Function()? workEnd,
+    bool Function()? aiFirst,
   }) : _tags = tags, // ignore: prefer_initializing_formals
        _workEnd = workEnd ?? (() => defaultWorkEnd),
+       _aiFirst = aiFirst ?? (() => false),
        _filesRoot = filesRoot, // ignore: prefer_initializing_formals
        _clock = clock ?? DateTime.now,
        _uuid = uuid ?? const Uuid(),
@@ -164,6 +166,9 @@ class CaptureService {
 
   /// Конец рабочего дня для «после работы», в минутах от полуночи.
   final int Function() _workEnd;
+
+  /// ИИ в приоритете: заметку, которую разложил угадыватель, всё равно проверит модель.
+  final bool Function() _aiFirst;
 
   // заметки с «напомни тут» из текущей пачки: им нужна точка с телефона
   final _wantsHere = <String>{};
@@ -286,8 +291,11 @@ class CaptureService {
       await _linkTag(id, name, TagSource.rule);
     }
     // папки так и нет — вещь ждёт ключ ИИ; без ключа или сети задача просто лежит.
-    // голосовое ждёт всегда: его расшифрует модель речи, если она выбрана
-    if (!sorted || kind == ItemKind.voice) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
+    // голосовое ждёт всегда: его расшифрует модель речи, если она выбрана.
+    // ИИ в приоритете — модели уходит и догадка угадывателя, но только живой ввод:
+    // перенос из Telegram на тысячи заметок не превращается в тысячи платных запросов
+    final checkGuess = guess != null && input.at == null && _aiFirst();
+    if (!sorted || checkGuess || kind == ItemKind.voice) await _db.into(_db.aiJobs).insert(AiJobsCompanion.insert(itemId: id, kind: aiSortJob, nextTryAt: now));
     // файлы — задачами в той же транзакции: вещь без своего файла не останется
     await files.enqueue(id, input.files);
     if (place?.kind == PlaceReminderKind.point && place?.latitude == null) _wantsHere.add(id);

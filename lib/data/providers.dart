@@ -295,6 +295,7 @@ final captureServiceProvider = Provider((ref) {
     files: ref.watch(fileKeeperProvider),
     titleByShot: ref.watch(titleByShotProvider),
     workEnd: ref.watch(workEndProvider),
+    aiFirst: ref.watch(aiFirstProvider),
   )
     // теги соседей и разбор ИИ идут после сохранения: строка не ждёт ни того, ни другого
     ..afterCapture = (id) {
@@ -321,6 +322,12 @@ final titleByShotProvider = Provider<bool Function()>((ref) {
 
 /// Конец рабочего дня для «после работы»: строка и сохранение читают его в момент разбора.
 /// Тесты подменяют: настоящих настроек там нет.
+/// ИИ в приоритете: сохранение читает выбор при каждой заметке, тесты подменяют.
+final aiFirstProvider = Provider<bool Function()>((ref) {
+  final settings = ref.watch(settingsRepositoryProvider);
+  return () => settings.ai.aiFirst;
+});
+
 final workEndProvider = Provider<int Function()>((ref) {
   final settings = ref.watch(settingsRepositoryProvider);
   return () => settings.workEnd;

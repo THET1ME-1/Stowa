@@ -133,6 +133,17 @@ void main() {
     }
   });
 
+  testWidgets('«ИИ в приоритете» по умолчанию выключен, касание включает', (tester) async {
+    await open(tester, keyStatus: 200);
+    final row = find.ancestor(of: find.text('ИИ в приоритете'), matching: find.byType(InkWell)).first;
+    await tester.ensureVisible(row);
+    await tester.pumpAndSettle();
+    expect(settings.ai.aiFirst, isFalse);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(settings.ai.aiFirst, isTrue);
+  });
+
   testWidgets('«Запоминать, где сохранено» без разрешения выключено; включение спрашивает место', (tester) async {
     world.placeGranted = false;
     await open(tester, keyStatus: 200);
@@ -140,6 +151,9 @@ void main() {
     final toggle = find.ancestor(of: find.text('Запоминать, где сохранено'), matching: find.byType(InkWell)).first;
     Switch shown() => tester.widget<Switch>(find.descendant(of: find.ancestor(of: find.text('Запоминать, где сохранено'), matching: find.byType(Row)).first, matching: find.byType(Switch)));
     expect(shown().value, isFalse);
+    // строка могла встать у нижнего края, где касание уходит мимо
+    await tester.ensureVisible(toggle);
+    await tester.pumpAndSettle();
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(world.placeAsked, 1);
@@ -233,6 +247,8 @@ void main() {
     await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Борщ', createdAt: world.now, updatedAt: world.now));
     await world.db.into(world.db.aiLog).insert(AiLogCompanion.insert(at: world.now, itemId: const Value('a'), request: '{}', error: const Value('AiFailure(timeout): нет ответа за 90 секунд')));
     await open(tester, keyStatus: 200);
+    await tester.ensureVisible(find.text('Журнал запросов'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Журнал запросов'));
     await tester.pumpAndSettle();
     expect(find.text('Борщ'), findsOneWidget);

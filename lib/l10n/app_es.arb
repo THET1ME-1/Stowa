@@ -477,5 +477,7 @@
   "folderHide": "Ocultar carpeta",
   "folderHiddenMark": "oculta",
   "hiddenFolders": "Carpetas ocultas",
-  "hiddenReminder": "Recordatorio de una carpeta oculta"
+  "hiddenReminder": "Recordatorio de una carpeta oculta",
+  "aiFirst": "La IA manda",
+  "aiFirstHint": "El modelo revisa también lo adivinado sin IA. Tu elección y las reglas mandan. Más consultas"
 }

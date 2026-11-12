@@ -2720,4 +2720,11 @@ class LDe extends L {
 
   @override
   String get hiddenReminder => 'Erinnerung aus einem versteckten Ordner';
+
+  @override
+  String get aiFirst => 'KI hat Vorrang';
+
+  @override
+  String get aiFirstHint =>
+      'Das Modell prüft auch Vermutungen ohne KI. Deine Wahl und Regeln gehen vor. Mehr Anfragen';
 }
