@@ -2798,4 +2798,16 @@ class LPl extends L {
   @override
   String get vaultFilesHint =>
       'Notatki to zwykłe pliki .md, widać je w aplikacji Pliki.';
+
+  @override
+  String get itemDateChange => 'Zmień datę';
+
+  @override
+  String get itemDateNow => 'Teraz';
+
+  @override
+  String get itemDatePick => 'Wybierz dzień i godzinę';
+
+  @override
+  String get itemDateChanged => 'Data zmieniona';
 }

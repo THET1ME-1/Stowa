@@ -2799,4 +2799,16 @@ class LUk extends L {
   @override
   String get vaultFilesHint =>
       'Нотатки лежать звичайними файлами .md, їх видно в застосунку «Файли».';
+
+  @override
+  String get itemDateChange => 'Змінити дату';
+
+  @override
+  String get itemDateNow => 'Зараз';
+
+  @override
+  String get itemDatePick => 'Вибрати день і час';
+
+  @override
+  String get itemDateChanged => 'Дату змінено';
 }

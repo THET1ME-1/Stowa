@@ -3486,5 +3486,21 @@
   "vaultFilesHint": "Notes are plain .md files that you can see in the Files app.",
   "@vaultFilesHint": {
     "description": "iPhone only. One-sentence hint under the storage rows in settings."
+  },
+  "itemDateChange": "Change date",
+  "@itemDateChange": {
+    "description": "Пункт меню заметки и заголовок листа: сменить день и время, когда заметка записана"
+  },
+  "itemDateNow": "Now",
+  "@itemDateNow": {
+    "description": "Вариант в листе даты: поставить заметке текущий день и время"
+  },
+  "itemDatePick": "Pick a day and time",
+  "@itemDatePick": {
+    "description": "Вариант в листе даты: открыть календарь и часы"
+  },
+  "itemDateChanged": "Date changed",
+  "@itemDateChanged": {
+    "description": "Плашка после смены даты заметки, рядом кнопка «Отменить»"
   }
 }

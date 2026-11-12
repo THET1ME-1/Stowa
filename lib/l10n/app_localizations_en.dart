@@ -2740,4 +2740,16 @@ class LEn extends L {
   @override
   String get vaultFilesHint =>
       'Notes are plain .md files that you can see in the Files app.';
+
+  @override
+  String get itemDateChange => 'Change date';
+
+  @override
+  String get itemDateNow => 'Now';
+
+  @override
+  String get itemDatePick => 'Pick a day and time';
+
+  @override
+  String get itemDateChanged => 'Date changed';
 }

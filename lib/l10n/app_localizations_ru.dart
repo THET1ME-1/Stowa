@@ -2803,4 +2803,16 @@ class LRu extends L {
   @override
   String get vaultFilesHint =>
       'Заметки лежат обычными файлами .md, их видно в приложении «Файлы».';
+
+  @override
+  String get itemDateChange => 'Изменить дату';
+
+  @override
+  String get itemDateNow => 'Сейчас';
+
+  @override
+  String get itemDatePick => 'Выбрать день и время';
+
+  @override
+  String get itemDateChanged => 'Дата изменена';
 }

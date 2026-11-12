@@ -27,6 +27,24 @@ void main() {
     expect(corrections.single.fromFolderId, isNull);
   });
 
+  test('дата заметки меняется, и правка встаёт в очередь файла', () async {
+    await db.delete(db.vaultQueue).go();
+    final earlier = DateTime(2026, 10, 30, 8, 15);
+    await items.setCreated('a', earlier);
+    final item = (await items.get('a'))!.item;
+    expect(item.createdAt, earlier);
+    expect(item.updatedAt, at, reason: 'заметку не правили — время правки прежнее');
+    expect((await db.select(db.vaultQueue).get()).map((row) => row.target), ['item:a']);
+  });
+
+  test('дата позже последней правки тянет время правки за собой', () async {
+    final later = DateTime(2026, 11, 5, 9);
+    await items.setCreated('a', later);
+    final item = (await items.get('a'))!.item;
+    expect(item.createdAt, later);
+    expect(item.updatedAt, later, reason: 'заметка не может быть поправлена раньше, чем записана');
+  });
+
   test('страница вещи видит правку сразу', () async {
     final updates = items.watchItem('a').map((full) => full?.item.body);
     expectLater(updates, emitsInOrder(['', '- [x] купить']));

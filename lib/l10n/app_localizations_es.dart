@@ -2743,4 +2743,16 @@ class LEs extends L {
   @override
   String get vaultFilesHint =>
       'Las notas son archivos .md normales que ves en la app Archivos.';
+
+  @override
+  String get itemDateChange => 'Cambiar fecha';
+
+  @override
+  String get itemDateNow => 'Ahora';
+
+  @override
+  String get itemDatePick => 'Elegir día y hora';
+
+  @override
+  String get itemDateChanged => 'Fecha cambiada';
 }

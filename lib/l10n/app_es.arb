@@ -485,5 +485,9 @@
   "crashSetting": "Informes de errores",
   "crashSettingHint": "El desarrollador recibe el error y el modelo del teléfono, sin notas ni nombres de archivos.",
   "vaultInFiles": "Archivos → Stowa",
-  "vaultFilesHint": "Las notas son archivos .md normales que ves en la app Archivos."
+  "vaultFilesHint": "Las notas son archivos .md normales que ves en la app Archivos.",
+  "itemDateChange": "Cambiar fecha",
+  "itemDateNow": "Ahora",
+  "itemDatePick": "Elegir día y hora",
+  "itemDateChanged": "Fecha cambiada"
 }

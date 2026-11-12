@@ -642,6 +642,14 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(reminderAt: Value(at)));
   }
 
+  /// Когда заметка записана: человек переносит её на другой день или на «сейчас».
+  Future<void> setCreated(String id, DateTime at) async {
+    final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingle();
+    // правка не может быть старше самой заметки
+    final updated = item.updatedAt.isBefore(at) ? at : item.updatedAt;
+    await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(createdAt: Value(at), updatedAt: Value(updated)));
+  }
+
   Future<void> setBody(String id, String body, DateTime at) async {
     await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(body), updatedAt: Value(at)));
     onEdited?.call(id);

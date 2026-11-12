@@ -485,5 +485,9 @@
   "crashSetting": "Raporty o błędach",
   "crashSettingHint": "Twórca dostaje błąd i model telefonu, bez notatek i nazw plików.",
   "vaultInFiles": "Pliki → Stowa",
-  "vaultFilesHint": "Notatki to zwykłe pliki .md, widać je w aplikacji Pliki."
+  "vaultFilesHint": "Notatki to zwykłe pliki .md, widać je w aplikacji Pliki.",
+  "itemDateChange": "Zmień datę",
+  "itemDateNow": "Teraz",
+  "itemDatePick": "Wybierz dzień i godzinę",
+  "itemDateChanged": "Data zmieniona"
 }

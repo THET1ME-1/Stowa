@@ -485,5 +485,9 @@
   "crashSetting": "Rapoarte de erori",
   "crashSettingHint": "Dezvoltatorul primește eroarea și modelul telefonului, fără notițe și nume de fișiere.",
   "vaultInFiles": "Fișiere → Stowa",
-  "vaultFilesHint": "Notițele sunt fișiere .md obișnuite, pe care le vezi în aplicația Fișiere."
+  "vaultFilesHint": "Notițele sunt fișiere .md obișnuite, pe care le vezi în aplicația Fișiere.",
+  "itemDateChange": "Schimbă data",
+  "itemDateNow": "Acum",
+  "itemDatePick": "Alege ziua și ora",
+  "itemDateChanged": "Data a fost schimbată"
 }

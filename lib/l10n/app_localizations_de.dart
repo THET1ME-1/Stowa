@@ -2747,4 +2747,16 @@ class LDe extends L {
   @override
   String get vaultFilesHint =>
       'Notizen sind einfache .md-Dateien, die du in der App „Dateien“ siehst.';
+
+  @override
+  String get itemDateChange => 'Datum ändern';
+
+  @override
+  String get itemDateNow => 'Jetzt';
+
+  @override
+  String get itemDatePick => 'Tag und Uhrzeit wählen';
+
+  @override
+  String get itemDateChanged => 'Datum geändert';
 }

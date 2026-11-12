@@ -2767,4 +2767,16 @@ class LRo extends L {
   @override
   String get vaultFilesHint =>
       'Notițele sunt fișiere .md obișnuite, pe care le vezi în aplicația Fișiere.';
+
+  @override
+  String get itemDateChange => 'Schimbă data';
+
+  @override
+  String get itemDateNow => 'Acum';
+
+  @override
+  String get itemDatePick => 'Alege ziua și ora';
+
+  @override
+  String get itemDateChanged => 'Data a fost schimbată';
 }

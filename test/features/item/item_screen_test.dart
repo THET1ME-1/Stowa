@@ -370,6 +370,63 @@ void main() {
     expect((await saved()).deletedAt, isNotNull);
   });
 
+  group('дата заметки', () {
+    final written = DateTime(2026, 10, 30, 8, 15);
+
+    Future<void> openOld(WidgetTester tester) async {
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Мысль', body: const Value('Мысль'), createdAt: written, updatedAt: written));
+      addTearDown(() => tester.pumpWidget(const SizedBox()));
+      await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('касание по дате → «Сейчас»: заметка записана сейчас, «Отменить» возвращает прежний день', (tester) async {
+      await openOld(tester);
+      await tester.tap(find.byKey(const ValueKey('item-date')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Сейчас'));
+      await tester.pumpAndSettle();
+      expect((await saved()).createdAt, world.now);
+      expect(find.text('Дата изменена'), findsOneWidget);
+      await tester.tap(find.text('Отменить'));
+      await tester.pumpAndSettle();
+      expect((await saved()).createdAt, written);
+    });
+
+    testWidgets('«⋮» → «Изменить дату» → день в календаре: время остаётся прежним', (tester) async {
+      await openOld(tester);
+      await tester.tap(find.byTooltip('Ещё'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Изменить дату'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Выбрать день и время'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('12'));
+      await tester.tap(find.text('ОК'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ОК'));
+      await tester.pumpAndSettle();
+      expect((await saved()).createdAt, DateTime(2026, 10, 12, 8, 15));
+    });
+
+    testWidgets('сегодняшний день с временем из будущего обрезается до «сейчас»', (tester) async {
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Мысль', body: const Value('Мысль'), createdAt: DateTime(2026, 11, 1, 23, 40), updatedAt: DateTime(2026, 11, 1, 23, 40)));
+      addTearDown(() => tester.pumpWidget(const SizedBox()));
+      await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('item-date')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Выбрать день и время'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2'));
+      await tester.tap(find.text('ОК'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ОК'));
+      await tester.pumpAndSettle();
+      expect((await saved()).createdAt, world.now, reason: '2 ноября 23:40 ещё не наступило');
+    });
+  });
+
   testWidgets('320 точек и шрифт 1,3: ничего не вылезает', (tester) async {
     tester.view.physicalSize = const Size(640, 1400);
     tester.view.devicePixelRatio = 2;

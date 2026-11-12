@@ -73,7 +73,7 @@ const _markdownStrip = 52.0;
 /// а пустая строка в конце сохраняться не должна.
 final _trailingSpace = RegExp(r'\s+$');
 
-enum _MenuAction { copy, history, delete }
+enum _MenuAction { copy, date, history, delete }
 
 /// Вещь целиком, по образцу поста Togetherly: шапка с пилюлей папки, заголовок,
 /// теги и напоминание отдельными блоками, текст своей карточкой, внизу плавающая
@@ -221,6 +221,43 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     if (time == null) return;
     await _items.setReminder(_id, DateTime(day.year, day.month, day.day, time.hour, time.minute));
     await askNotifications(ref);
+  }
+
+  /// Дата заметки: «сейчас» или свой день и время. Будущего у записанного нет.
+  Future<void> _changeDate(Item item) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(leading: Icon(symbolIcon('schedule')), title: Text(l.itemDateNow), onTap: () => Navigator.pop(sheet, 'now')),
+            ListTile(leading: Icon(symbolIcon('calendar_today')), title: Text(l.itemDatePick), onTap: () => Navigator.pop(sheet, 'pick')),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    final now = _clock();
+    final before = item.createdAt;
+    var chosen = now;
+    if (choice == 'pick') {
+      final start = before.isAfter(now) ? now : before;
+      final day = await showDatePicker(context: context, initialDate: start, firstDate: DateTime(1970), lastDate: now);
+      if (day == null || !mounted) return;
+      final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(start));
+      if (time == null) return;
+      chosen = DateTime(day.year, day.month, day.day, time.hour, time.minute);
+      if (chosen.isAfter(now)) chosen = now;
+    }
+    if (chosen == before) return;
+    await _items.setCreated(_id, chosen);
+    showUndo(messenger, message: l.itemDateChanged, label: l.undo, overDock: true, onUndo: () => _items.setCreated(_id, before));
   }
 
   PlaceReminder? _placeOf(Item item) =>
@@ -439,12 +476,16 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       context: context,
       showDragHandle: true,
       useSafeArea: true,
+      // четыре пункта выше обычного потолка листа на низком экране
+      isScrollControlled: true,
       builder: (sheet) => _ItemMenu(title: item.title, history: hasHistory),
     );
     if (action == null || !mounted) return;
     switch (action) {
       case _MenuAction.copy:
         await _copy(item);
+      case _MenuAction.date:
+        await _changeDate(item);
       case _MenuAction.history:
         await _history();
       case _MenuAction.delete:
@@ -643,6 +684,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           child: _WhenWhere(
                             at: item.createdAt,
                             now: now,
+                            onDate: () => _changeDate(item),
                             place: item.latitude == null ? null : (item.placeName ?? l.mapPlaceUnnamed),
                             onPlace: () => Navigator.of(context).push(mapRoute(focusItemId: _id)),
                             taken: photoTakenLine(l, facts, now),
@@ -1081,10 +1123,13 @@ class _RepeatLine extends ConsumerWidget {
 }
 
 class _WhenWhere extends StatelessWidget {
-  const _WhenWhere({required this.at, required this.now, required this.place, required this.onPlace, this.taken});
+  const _WhenWhere({required this.at, required this.now, required this.onDate, required this.place, required this.onPlace, this.taken});
 
   final DateTime at;
   final DateTime now;
+
+  /// Касание по дате: сменить день и время записи.
+  final VoidCallback onDate;
   final String? place;
   final VoidCallback onPlace;
 
@@ -1109,7 +1154,12 @@ class _WhenWhere extends StatelessWidget {
       spacing: 16,
       runSpacing: 6,
       children: [
-        part('calendar_today', when),
+        GestureDetector(
+          key: const ValueKey('item-date'),
+          behavior: HitTestBehavior.opaque,
+          onTap: onDate,
+          child: part('calendar_today', when),
+        ),
         if (place != null)
           GestureDetector(
             key: const ValueKey('item-place'),
@@ -1437,7 +1487,7 @@ class _ItemMenu extends StatelessWidget {
 
     return SafeArea(
       top: false,
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1448,6 +1498,8 @@ class _ItemMenu extends StatelessWidget {
               child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
             ),
             row(_MenuAction.copy, 'content_copy', l.itemCopy, const BorderRadius.vertical(top: Radius.circular(24), bottom: Radius.circular(8))),
+            const SizedBox(height: 4),
+            row(_MenuAction.date, 'calendar_today', l.itemDateChange, const BorderRadius.all(Radius.circular(8))),
             const SizedBox(height: 4),
             if (history) ...[
               row(_MenuAction.history, 'history', l.historyTitle, const BorderRadius.all(Radius.circular(8))),

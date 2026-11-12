@@ -4510,6 +4510,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Notes are plain .md files that you can see in the Files app.'**
   String get vaultFilesHint;
+
+  /// Пункт меню заметки и заголовок листа: сменить день и время, когда заметка записана
+  ///
+  /// In en, this message translates to:
+  /// **'Change date'**
+  String get itemDateChange;
+
+  /// Вариант в листе даты: поставить заметке текущий день и время
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get itemDateNow;
+
+  /// Вариант в листе даты: открыть календарь и часы
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a day and time'**
+  String get itemDatePick;
+
+  /// Плашка после смены даты заметки, рядом кнопка «Отменить»
+  ///
+  /// In en, this message translates to:
+  /// **'Date changed'**
+  String get itemDateChanged;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
