@@ -72,7 +72,11 @@ void main() {
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('plugins.flutter.io/path_provider'), (call) async => cache.path);
     final test = await world(tester);
     await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: test.wrap(const PlaceEditScreen())));
-    await tester.tap(find.text('Учёба'));
+    await tester.enterText(find.byType(TextField), 'Универ');
     await _shot(tester, 'places-2-новое');
+    await tester.tap(find.text('Найти или создать'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Да');
+    await _shot(tester, 'places-3-поиск');
   });
 }

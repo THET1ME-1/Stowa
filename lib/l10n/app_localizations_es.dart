@@ -2925,4 +2925,15 @@ class LEs extends L {
   @override
   String get placeMapHint =>
       'Mueve el mapa: el lugar está donde el punto del centro.';
+
+  @override
+  String get placeKindMore => 'Buscar o crear';
+
+  @override
+  String get placeKindSearchHint => 'Busca un tipo o pon el tuyo';
+
+  @override
+  String placeKindCreate(String name) {
+    return 'Crear «$name»';
+  }
 }

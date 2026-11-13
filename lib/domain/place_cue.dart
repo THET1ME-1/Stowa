@@ -59,8 +59,8 @@ final _patterns = [
   ],
 ];
 
-/// Своё место из «Мест» для разбора: по имени его узнаёт текст.
-typedef KnownPlace = ({String id, String name, PlaceKind kind});
+/// Своё место из «Мест» для разбора: по имени его узнаёт текст, по своему виду ([label]) — тоже.
+typedef KnownPlace = ({String id, String name, PlaceKind kind, String? label});
 
 /// Место-напоминание в тексте или null. Несколько — берётся первое по тексту.
 /// [places] — свои места: «буду у Саши» узнаёт место с именем «Саша».
@@ -122,6 +122,9 @@ final Map<String, PlaceKind> _kindByStem = {
 
 final Set<String> _hereStems = {for (final word in _hereWords) stemOf(word)};
 
+/// Готовый вид по слову: «универ» — учёба, «аптека» — аптека. Подсказка вида по имени места.
+PlaceKind? kindOfWord(String word) => _kindByStem[stemOf(word)];
+
 // слово места: буквы и цифры, апостроф внутри («Andy's»)
 final _placeWord = RegExp(r"[\p{L}\p{N}]+(?:'[\p{L}]+)?", unicode: true);
 
@@ -148,14 +151,40 @@ PlaceCue? _movingCue(String text, List<KnownPlace> places) {
     final stems = [for (final word in words) stemOf(word.group(0)!)];
     int endOf(int index) => tailStart + words[index].end;
 
-    // своё место по имени: со слова сразу после предлога, по всем словам имени или по первому
+    // своё место по имени: со слова сразу после предлога, по всем словам имени или по первому;
+    // совпало у нескольких одинаково («Дача родителей», «Дача Саши») — решает вид ниже
+    final matched = <({KnownPlace place, int length})>[];
     for (final (:place, stems: name) in named) {
       if (name.isEmpty || stems.first != name.first) continue;
       var length = 1;
       while (length < name.length && length < stems.length && stems[length] == name[length]) {
         length++;
       }
-      return PlaceCue(kind: PlaceReminderKind.place, start: match.start, end: endOf(length - 1), placeId: place.id, placeName: place.name);
+      matched.add((place: place, length: length));
+    }
+    if (matched.isNotEmpty) {
+      final best = matched.map((one) => one.length).reduce((a, b) => a > b ? a : b);
+      final winners = matched.where((one) => one.length == best).toList();
+      if (winners.length == 1) {
+        final place = winners.single.place;
+        return PlaceCue(kind: PlaceReminderKind.place, start: match.start, end: endOf(best - 1), placeId: place.id, placeName: place.name);
+      }
+    }
+    // свой вид по слову: «поеду на дачу» — у мест вида «Дача»; одно такое место — оно само
+    for (final (index, stem) in stems.indexed) {
+      final owners = [
+        for (final known in places)
+          if (known.label case final label? when label.isNotEmpty && stemOf(_placeWord.firstMatch(label)?.group(0) ?? label) == stem) known,
+      ];
+      if (owners.isEmpty) continue;
+      final only = owners.length == 1 ? owners.single : null;
+      return PlaceCue(
+        kind: PlaceReminderKind.place,
+        start: match.start,
+        end: endOf(index),
+        placeId: only?.id ?? placeTypeRef(owners.first.label!),
+        placeName: only?.name ?? owners.first.label,
+      );
     }
     if (_hereStems.contains(stems.first)) return PlaceCue(kind: PlaceReminderKind.point, start: match.start, end: endOf(0));
     // вид по слову: «мимо продуктового магазина» — и через слово

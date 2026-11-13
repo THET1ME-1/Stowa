@@ -9093,6 +9093,24 @@ class $PlacesTable extends Places with TableInfo<$PlacesTable, Place> {
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<PlaceKind>($PlacesTable.$converterkind);
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -9158,6 +9176,8 @@ class $PlacesTable extends Places with TableInfo<$PlacesTable, Place> {
   List<GeneratedColumn> get $columns => [
     id,
     kind,
+    label,
+    icon,
     name,
     latitude,
     longitude,
@@ -9181,6 +9201,18 @@ class $PlacesTable extends Places with TableInfo<$PlacesTable, Place> {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -9245,6 +9277,14 @@ class $PlacesTable extends Places with TableInfo<$PlacesTable, Place> {
           data['${effectivePrefix}kind'],
         )!,
       ),
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      ),
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -9285,6 +9325,12 @@ class Place extends DataClass implements Insertable<Place> {
   final String id;
   final PlaceKind kind;
 
+  /// Свой вид места (v17): «Курсы», «Бассейн» — вид, которого нет среди готовых; тогда [kind] — other.
+  final String? label;
+
+  /// Значок своего вида (v17), имя Material Symbols; пусто — значок готового вида.
+  final String? icon;
+
   /// «Дом», «Linella на Ботанике» — что человек увидит в уведомлении.
   final String name;
   final double latitude;
@@ -9299,6 +9345,8 @@ class Place extends DataClass implements Insertable<Place> {
   const Place({
     required this.id,
     required this.kind,
+    this.label,
+    this.icon,
     required this.name,
     required this.latitude,
     required this.longitude,
@@ -9312,6 +9360,12 @@ class Place extends DataClass implements Insertable<Place> {
     map['id'] = Variable<String>(id);
     {
       map['kind'] = Variable<String>($PlacesTable.$converterkind.toSql(kind));
+    }
+    if (!nullToAbsent || label != null) {
+      map['label'] = Variable<String>(label);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
     }
     map['name'] = Variable<String>(name);
     map['latitude'] = Variable<double>(latitude);
@@ -9328,6 +9382,10 @@ class Place extends DataClass implements Insertable<Place> {
     return PlacesCompanion(
       id: Value(id),
       kind: Value(kind),
+      label: label == null && nullToAbsent
+          ? const Value.absent()
+          : Value(label),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
       name: Value(name),
       latitude: Value(latitude),
       longitude: Value(longitude),
@@ -9347,6 +9405,8 @@ class Place extends DataClass implements Insertable<Place> {
       kind: $PlacesTable.$converterkind.fromJson(
         serializer.fromJson<String>(json['kind']),
       ),
+      label: serializer.fromJson<String?>(json['label']),
+      icon: serializer.fromJson<String?>(json['icon']),
       name: serializer.fromJson<String>(json['name']),
       latitude: serializer.fromJson<double>(json['latitude']),
       longitude: serializer.fromJson<double>(json['longitude']),
@@ -9363,6 +9423,8 @@ class Place extends DataClass implements Insertable<Place> {
       'kind': serializer.toJson<String>(
         $PlacesTable.$converterkind.toJson(kind),
       ),
+      'label': serializer.toJson<String?>(label),
+      'icon': serializer.toJson<String?>(icon),
       'name': serializer.toJson<String>(name),
       'latitude': serializer.toJson<double>(latitude),
       'longitude': serializer.toJson<double>(longitude),
@@ -9375,6 +9437,8 @@ class Place extends DataClass implements Insertable<Place> {
   Place copyWith({
     String? id,
     PlaceKind? kind,
+    Value<String?> label = const Value.absent(),
+    Value<String?> icon = const Value.absent(),
     String? name,
     double? latitude,
     double? longitude,
@@ -9384,6 +9448,8 @@ class Place extends DataClass implements Insertable<Place> {
   }) => Place(
     id: id ?? this.id,
     kind: kind ?? this.kind,
+    label: label.present ? label.value : this.label,
+    icon: icon.present ? icon.value : this.icon,
     name: name ?? this.name,
     latitude: latitude ?? this.latitude,
     longitude: longitude ?? this.longitude,
@@ -9395,6 +9461,8 @@ class Place extends DataClass implements Insertable<Place> {
     return Place(
       id: data.id.present ? data.id.value : this.id,
       kind: data.kind.present ? data.kind.value : this.kind,
+      label: data.label.present ? data.label.value : this.label,
+      icon: data.icon.present ? data.icon.value : this.icon,
       name: data.name.present ? data.name.value : this.name,
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
@@ -9409,6 +9477,8 @@ class Place extends DataClass implements Insertable<Place> {
     return (StringBuffer('Place(')
           ..write('id: $id, ')
           ..write('kind: $kind, ')
+          ..write('label: $label, ')
+          ..write('icon: $icon, ')
           ..write('name: $name, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
@@ -9420,14 +9490,26 @@ class Place extends DataClass implements Insertable<Place> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, kind, name, latitude, longitude, radius, wifi, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    kind,
+    label,
+    icon,
+    name,
+    latitude,
+    longitude,
+    radius,
+    wifi,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Place &&
           other.id == this.id &&
           other.kind == this.kind &&
+          other.label == this.label &&
+          other.icon == this.icon &&
           other.name == this.name &&
           other.latitude == this.latitude &&
           other.longitude == this.longitude &&
@@ -9439,6 +9521,8 @@ class Place extends DataClass implements Insertable<Place> {
 class PlacesCompanion extends UpdateCompanion<Place> {
   final Value<String> id;
   final Value<PlaceKind> kind;
+  final Value<String?> label;
+  final Value<String?> icon;
   final Value<String> name;
   final Value<double> latitude;
   final Value<double> longitude;
@@ -9449,6 +9533,8 @@ class PlacesCompanion extends UpdateCompanion<Place> {
   const PlacesCompanion({
     this.id = const Value.absent(),
     this.kind = const Value.absent(),
+    this.label = const Value.absent(),
+    this.icon = const Value.absent(),
     this.name = const Value.absent(),
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
@@ -9460,6 +9546,8 @@ class PlacesCompanion extends UpdateCompanion<Place> {
   PlacesCompanion.insert({
     required String id,
     required PlaceKind kind,
+    this.label = const Value.absent(),
+    this.icon = const Value.absent(),
     required String name,
     required double latitude,
     required double longitude,
@@ -9476,6 +9564,8 @@ class PlacesCompanion extends UpdateCompanion<Place> {
   static Insertable<Place> custom({
     Expression<String>? id,
     Expression<String>? kind,
+    Expression<String>? label,
+    Expression<String>? icon,
     Expression<String>? name,
     Expression<double>? latitude,
     Expression<double>? longitude,
@@ -9487,6 +9577,8 @@ class PlacesCompanion extends UpdateCompanion<Place> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (kind != null) 'kind': kind,
+      if (label != null) 'label': label,
+      if (icon != null) 'icon': icon,
       if (name != null) 'name': name,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
@@ -9500,6 +9592,8 @@ class PlacesCompanion extends UpdateCompanion<Place> {
   PlacesCompanion copyWith({
     Value<String>? id,
     Value<PlaceKind>? kind,
+    Value<String?>? label,
+    Value<String?>? icon,
     Value<String>? name,
     Value<double>? latitude,
     Value<double>? longitude,
@@ -9511,6 +9605,8 @@ class PlacesCompanion extends UpdateCompanion<Place> {
     return PlacesCompanion(
       id: id ?? this.id,
       kind: kind ?? this.kind,
+      label: label ?? this.label,
+      icon: icon ?? this.icon,
       name: name ?? this.name,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
@@ -9531,6 +9627,12 @@ class PlacesCompanion extends UpdateCompanion<Place> {
       map['kind'] = Variable<String>(
         $PlacesTable.$converterkind.toSql(kind.value),
       );
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -9561,6 +9663,8 @@ class PlacesCompanion extends UpdateCompanion<Place> {
     return (StringBuffer('PlacesCompanion(')
           ..write('id: $id, ')
           ..write('kind: $kind, ')
+          ..write('label: $label, ')
+          ..write('icon: $icon, ')
           ..write('name: $name, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
@@ -15694,6 +15798,8 @@ typedef $$VaultFlagsTableProcessedTableManager =
 typedef $$PlacesTableCreateCompanionBuilder = PlacesCompanion Function({
   required String id,
   required PlaceKind kind,
+  Value<String?> label,
+  Value<String?> icon,
   required String name,
   required double latitude,
   required double longitude,
@@ -15705,6 +15811,8 @@ typedef $$PlacesTableCreateCompanionBuilder = PlacesCompanion Function({
 typedef $$PlacesTableUpdateCompanionBuilder = PlacesCompanion Function({
   Value<String> id,
   Value<PlaceKind> kind,
+  Value<String?> label,
+  Value<String?> icon,
   Value<String> name,
   Value<double> latitude,
   Value<double> longitude,
@@ -15733,6 +15841,16 @@ class $$PlacesTableFilterComposer
         column: $table.kind,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
@@ -15784,6 +15902,16 @@ class $$PlacesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -15829,6 +15957,12 @@ class $$PlacesTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<PlaceKind, String> get kind =>
       $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -15879,6 +16013,8 @@ class $$PlacesTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<PlaceKind> kind = const Value.absent(),
+                Value<String?> label = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<double> latitude = const Value.absent(),
                 Value<double> longitude = const Value.absent(),
@@ -15889,6 +16025,8 @@ class $$PlacesTableTableManager
               }) => PlacesCompanion(
                 id: id,
                 kind: kind,
+                label: label,
+                icon: icon,
                 name: name,
                 latitude: latitude,
                 longitude: longitude,
@@ -15901,6 +16039,8 @@ class $$PlacesTableTableManager
               ({
                 required String id,
                 required PlaceKind kind,
+                Value<String?> label = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
                 required String name,
                 required double latitude,
                 required double longitude,
@@ -15911,6 +16051,8 @@ class $$PlacesTableTableManager
               }) => PlacesCompanion.insert(
                 id: id,
                 kind: kind,
+                label: label,
+                icon: icon,
                 name: name,
                 latitude: latitude,
                 longitude: longitude,

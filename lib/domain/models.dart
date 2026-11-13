@@ -116,6 +116,12 @@ enum PlaceKind { home, work, study, shop, pharmacy, food, sport, guests, other }
 /// или у любого места вида — имена те же, что у [PlaceKind]. Старые home, work, shop — тоже виды.
 enum PlaceReminderKind { point, place, home, work, study, shop, pharmacy, food, sport, guests, other }
 
+/// Напоминание у всех мест своего вида («Дача»): `ref` вида `kind:Дача` вместо id одного места.
+String placeTypeRef(String label) => 'kind:$label';
+
+/// Подпись своего вида из `ref`, или null, если `ref` — id одного места.
+String? labelOfRef(String? ref) => ref != null && ref.startsWith('kind:') ? ref.substring(5) : null;
+
 /// Вид места, у любого из которых звенит напоминание; у точки и своего места — null.
 PlaceKind? placeKindOf(PlaceReminderKind kind) => PlaceKind.values.asNameMap()[kind.name];
 

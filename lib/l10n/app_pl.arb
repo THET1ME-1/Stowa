@@ -542,5 +542,8 @@
   "placeKindTitle": "Co to",
   "placeWhereTitle": "Gdzie",
   "placeHereNow": "Jestem tu teraz",
-  "placeMapHint": "Przesuń mapę: miejsce jest tam, gdzie kropka na środku."
+  "placeMapHint": "Przesuń mapę: miejsce jest tam, gdzie kropka na środku.",
+  "placeKindMore": "Znajdź lub utwórz",
+  "placeKindSearchHint": "Znajdź rodzaj lub nazwij własny",
+  "placeKindCreate": "Utwórz „{name}”"
 }

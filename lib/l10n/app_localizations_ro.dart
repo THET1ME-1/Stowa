@@ -2949,4 +2949,15 @@ class LRo extends L {
 
   @override
   String get placeMapHint => 'Mută harta: locul e unde e punctul din centru.';
+
+  @override
+  String get placeKindMore => 'Caută sau creează';
+
+  @override
+  String get placeKindSearchHint => 'Caută un tip sau numește-l pe al tău';
+
+  @override
+  String placeKindCreate(String name) {
+    return 'Creează „$name”';
+  }
 }

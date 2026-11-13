@@ -2979,4 +2979,15 @@ class LPl extends L {
   @override
   String get placeMapHint =>
       'Przesuń mapę: miejsce jest tam, gdzie kropka na środku.';
+
+  @override
+  String get placeKindMore => 'Znajdź lub utwórz';
+
+  @override
+  String get placeKindSearchHint => 'Znajdź rodzaj lub nazwij własny';
+
+  @override
+  String placeKindCreate(String name) {
+    return 'Utwórz „$name”';
+  }
 }

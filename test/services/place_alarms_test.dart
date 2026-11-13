@@ -88,6 +88,15 @@ void main() {
     expect(found['note:Отдать книгу@$sasha']!.latitude, 47.4);
   });
 
+  test('свой вид «Дача»: напоминание звенит у каждой дачи, а не у других мест «другое»', () async {
+    final first = await places.add(PlaceKind.other, name: 'Дача родителей', label: 'Дача', icon: 'cottage', latitude: 47.1, longitude: 28.7);
+    final second = await places.add(PlaceKind.other, name: 'Дача Саши', label: 'Дача', icon: 'cottage', latitude: 47.2, longitude: 28.6);
+    await places.add(PlaceKind.other, name: 'Гараж', latitude: 47.3, longitude: 28.5);
+    await note('Полить огурцы', place: PlaceReminder(PlaceReminderKind.place, ref: placeTypeRef('Дача'), name: 'Дача'));
+    final found = await alarms();
+    expect(found.keys, unorderedEquals(['note:Полить огурцы@$first', 'note:Полить огурцы@$second']));
+  });
+
   test('день: сегодняшнее звенит, завтрашнее ждёт, вчерашнее снимается', () async {
     final shop = await places.add(PlaceKind.shop, name: 'Linella', latitude: 47.01, longitude: 28.86);
     await note('Хлеб сегодня', place: PlaceReminder(PlaceReminderKind.shop, day: DateTime(2026, 11, 6)));

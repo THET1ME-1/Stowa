@@ -1,5 +1,21 @@
+import '../../data/db/database.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
+
+/// Вид места: готовый ([kind]) или свой — подпись [label] и значок [icon], тогда [kind] — other.
+typedef PlaceType = ({PlaceKind kind, String? label, String? icon});
+
+PlaceType typeOf(Place place) => (kind: place.kind, label: place.label, icon: place.icon);
+
+PlaceType builtInType(PlaceKind kind) => (kind: kind, label: null, icon: null);
+
+String placeTypeLabel(L l, PlaceType type) => type.label ?? placeKindLabel(l, type.kind);
+
+String placeTypeIcon(PlaceType type) => type.icon ?? placeKindIcon(type.kind);
+
+/// Один и тот же вид: готовый — по виду, свой — по подписи без регистра.
+bool sameType(PlaceType a, PlaceType b) =>
+    a.label == null && b.label == null ? a.kind == b.kind : a.label?.toLowerCase() == b.label?.toLowerCase();
 
 /// Значок вида места: на карточке места, в листе «Напомнить» и в выборе вида.
 String placeKindIcon(PlaceKind kind) => switch (kind) {

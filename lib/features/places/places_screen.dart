@@ -131,7 +131,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> with WidgetsBinding
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _PlaceCard(
-                  icon: placeKindIcon(place.kind),
+                  icon: placeTypeIcon(typeOf(place)),
                   color: placeKindColor(place.kind),
                   title: place.name,
                   subtitle: _subtitle(l, place),
@@ -162,7 +162,7 @@ class _PlacesScreenState extends ConsumerState<PlacesScreen> with WidgetsBinding
 
 /// «Работа · Wi-Fi: Office»; вид не повторяет имя: у «Дома» — только сеть.
 String? _subtitle(L l, Place place) {
-  final kind = placeKindLabel(l, place.kind);
+  final kind = placeTypeLabel(l, typeOf(place));
   final parts = [if (kind != place.name) kind, if (place.wifi != null) l.placesWifi(place.wifi!)];
   return parts.isEmpty ? null : parts.join(' · ');
 }

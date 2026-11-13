@@ -67,10 +67,10 @@ void main() {
 
   group('без «напомни»: глагол движения и место', () {
     const places = <KnownPlace>[
-      (id: 'sasha', name: 'Саша', kind: PlaceKind.guests),
-      (id: 'uni', name: 'Универ', kind: PlaceKind.study),
-      (id: 'linella', name: 'Linella на Ботанике', kind: PlaceKind.shop),
-      (id: 'office', name: 'Офис', kind: PlaceKind.work),
+      (id: 'sasha', name: 'Саша', kind: PlaceKind.guests, label: null),
+      (id: 'uni', name: 'Универ', kind: PlaceKind.study, label: null),
+      (id: 'linella', name: 'Linella на Ботанике', kind: PlaceKind.shop, label: null),
+      (id: 'office', name: 'Офис', kind: PlaceKind.work, label: null),
     ];
     PlaceCue? cue(String text) => parsePlaceCue(text, places: places);
 
@@ -118,6 +118,21 @@ void main() {
         expect((found?.kind, found?.placeId), (PlaceReminderKind.place, id), reason: text);
       }
       expect(cue('завтра буду у Саши')?.placeName, 'Саша');
+    });
+
+    test('свой вид по слову: одно место вида — оно само, несколько — все места вида', () {
+      const one = <KnownPlace>[(id: 'd', name: 'Дача у озера', kind: PlaceKind.other, label: 'Дача')];
+      final single = parsePlaceCue('на выходных поеду на дачу, взять семена', places: one);
+      expect((single?.kind, single?.placeId, single?.placeName), (PlaceReminderKind.place, 'd', 'Дача у озера'));
+
+      const two = <KnownPlace>[
+        (id: 'd1', name: 'Дача родителей', kind: PlaceKind.other, label: 'Дача'),
+        (id: 'd2', name: 'Дача Саши', kind: PlaceKind.other, label: 'Дача'),
+      ];
+      final both = parsePlaceCue('когда буду на даче, полить огурцы', places: two);
+      expect((both?.kind, both?.placeId, both?.placeName), (PlaceReminderKind.place, 'kind:Дача', 'Дача'));
+      expect(kindOfWord('универ'), PlaceKind.study);
+      expect(kindOfWord('Аптеке'), PlaceKind.pharmacy);
     });
 
     test('прошедшее время, глагол вместо места и место без движения — не напоминание', () {

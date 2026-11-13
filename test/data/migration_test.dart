@@ -286,6 +286,31 @@ void main() {
     expect(folder.hidden, isFalse);
   });
 
+  test('v16 → v17: места на месте без своего вида, свой вид пишется', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 13);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.places).insert(PlacesCompanion.insert(id: 'h', kind: PlaceKind.home, name: 'Дом', latitude: 47.0, longitude: 28.8, createdAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropPlaceLabel(raw);
+    raw.execute('PRAGMA user_version = 16');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final home = await upgraded.select(upgraded.places).getSingle();
+    expect((home.name, home.kind, home.label, home.icon), ('Дом', PlaceKind.home, null, null));
+    await upgraded.into(upgraded.places).insert(
+      PlacesCompanion.insert(id: 'c', kind: PlaceKind.other, name: 'English Time', label: const Value('Курсы'), icon: const Value('school'), latitude: 47.0, longitude: 28.8, createdAt: now),
+    );
+    final course = await (upgraded.select(upgraded.places)..where((t) => t.id.equals('c'))).getSingle();
+    expect((course.label, course.icon), ('Курсы', 'school'));
+  });
+
   test('v15 → v16: напоминание дома на месте, своё место и день пишутся и ставят заметку в очередь', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -369,8 +394,15 @@ void main() {
 // версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
 // версия 15: свойства заметки, которых Stowa не знает. Триггер правки заметки ссылается
 // на поле: он снимается и встаёт обратно без него, как стоял в версии 14
+// версия 16: у места ещё нет своего вида
+void _dropPlaceLabel(Database raw) {
+  raw.execute('ALTER TABLE places DROP COLUMN label');
+  raw.execute('ALTER TABLE places DROP COLUMN icon');
+}
+
 // версия 15: у напоминания по месту ещё нет своего места и дня
 void _dropPlaceRef(Database raw) {
+  _dropPlaceLabel(raw);
   final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
   raw.execute('DROP TRIGGER vault_items_update');
   raw.execute('ALTER TABLE items DROP COLUMN remind_place_ref');

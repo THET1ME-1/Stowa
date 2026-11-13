@@ -223,10 +223,16 @@ class VaultQueue extends Table {
   Set<Column> get primaryKey => {target};
 }
 
-/// Отмеченные места (v8): дом, работа, магазины. Дом и работа узнаются ещё и по своей сети Wi-Fi.
+/// Отмеченные места (v8): сколько угодно, любого вида. Дом и работа узнаются ещё и по своей сети Wi-Fi.
 class Places extends Table {
   TextColumn get id => text()();
   TextColumn get kind => textEnum<PlaceKind>()();
+
+  /// Свой вид места (v17): «Курсы», «Бассейн» — вид, которого нет среди готовых; тогда [kind] — other.
+  TextColumn get label => text().nullable()();
+
+  /// Значок своего вида (v17), имя Material Symbols; пусто — значок готового вида.
+  TextColumn get icon => text().nullable()();
 
   /// «Дом», «Linella на Ботанике» — что человек увидит в уведомлении.
   TextColumn get name => text()();

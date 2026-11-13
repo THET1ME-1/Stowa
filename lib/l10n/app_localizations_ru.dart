@@ -2984,4 +2984,15 @@ class LRu extends L {
 
   @override
   String get placeMapHint => 'Двигай карту: место там, где точка в центре.';
+
+  @override
+  String get placeKindMore => 'Найти или создать';
+
+  @override
+  String get placeKindSearchHint => 'Найти вид или назвать свой';
+
+  @override
+  String placeKindCreate(String name) {
+    return 'Создать «$name»';
+  }
 }

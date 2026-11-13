@@ -97,7 +97,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   late final LineController _line = LineController(clock: ref.read(clockProvider), workEnd: ref.read(workEndProvider), resolveFolder: _resolveFolder, folderMarks: !widget.writeOnly)
     ..places = widget.writeOnly ? null : _knownPlaces;
 
-  List<KnownPlace> _knownPlaces() => [for (final place in ref.read(placesProvider).value ?? const <Place>[]) (id: place.id, name: place.name, kind: place.kind)];
+  List<KnownPlace> _knownPlaces() => [for (final place in ref.read(placesProvider).value ?? const <Place>[]) (id: place.id, name: place.name, kind: place.kind, label: place.label)];
   late final FocusNode _focus = FocusNode(onKeyEvent: _onKey);
   final _undo = UndoHistoryController();
   final _fieldKey = GlobalKey();

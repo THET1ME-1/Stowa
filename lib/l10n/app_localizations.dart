@@ -4858,6 +4858,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Move the map: the place is where the centre dot is.'**
   String get placeMapHint;
+
+  /// Третья плитка выбора вида места: открывает поиск видов
+  ///
+  /// In en, this message translates to:
+  /// **'Find or create'**
+  String get placeKindMore;
+
+  /// Подсказка в поиске вида места
+  ///
+  /// In en, this message translates to:
+  /// **'Find a type or name your own'**
+  String get placeKindSearchHint;
+
+  /// Строка в поиске вида: свой вид из набранного
+  ///
+  /// In en, this message translates to:
+  /// **'Create “{name}”'**
+  String placeKindCreate(String name);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

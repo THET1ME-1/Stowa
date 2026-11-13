@@ -2980,4 +2980,15 @@ class LUk extends L {
 
   @override
   String get placeMapHint => 'Рухай мапу: місце там, де крапка в центрі.';
+
+  @override
+  String get placeKindMore => 'Знайти чи створити';
+
+  @override
+  String get placeKindSearchHint => 'Знайти вид або назвати свій';
+
+  @override
+  String placeKindCreate(String name) {
+    return 'Створити «$name»';
+  }
 }

@@ -79,7 +79,13 @@ class PlaceAlarmService {
       }
       // своё место — одно; вид — все места вида: обе работы, каждая аптека
       final wanted = placeKindOf(kind);
-      final targets = kind == PlaceReminderKind.place ? places.where((place) => place.id == item.remindPlaceRef) : places.where((place) => place.kind == wanted);
+      // своё место по id, свой вид («kind:Дача») — все места с этой подписью
+      final label = labelOfRef(item.remindPlaceRef)?.toLowerCase();
+      final targets = kind != PlaceReminderKind.place
+          ? places.where((place) => place.kind == wanted)
+          : label != null
+          ? places.where((place) => place.label?.toLowerCase() == label)
+          : places.where((place) => place.id == item.remindPlaceRef);
       for (final place in targets) {
         alarms.add(alarm(item, id: 'note:${item.id}@${place.id}', latitude: place.latitude, longitude: place.longitude, radius: place.radius, wifi: place.wifi));
       }

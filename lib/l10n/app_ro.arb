@@ -542,5 +542,8 @@
   "placeKindTitle": "Ce este",
   "placeWhereTitle": "Unde",
   "placeHereNow": "Sunt aici acum",
-  "placeMapHint": "Mută harta: locul e unde e punctul din centru."
+  "placeMapHint": "Mută harta: locul e unde e punctul din centru.",
+  "placeKindMore": "Caută sau creează",
+  "placeKindSearchHint": "Caută un tip sau numește-l pe al tău",
+  "placeKindCreate": "Creează „{name}”"
 }

@@ -2929,4 +2929,15 @@ class LDe extends L {
   @override
   String get placeMapHint =>
       'Verschiebe die Karte: Der Ort ist dort, wo der Punkt in der Mitte ist.';
+
+  @override
+  String get placeKindMore => 'Suchen oder neu';
+
+  @override
+  String get placeKindSearchHint => 'Art suchen oder eigene benennen';
+
+  @override
+  String placeKindCreate(String name) {
+    return '„$name“ anlegen';
+  }
 }

@@ -27,6 +27,15 @@ void main() {
     ]);
   });
 
+  test('свой вид: подпись и значок хранятся у места, правка на готовый вид их стирает', () async {
+    final id = await places.add(PlaceKind.other, name: 'English Time', label: 'Курсы', icon: 'school', latitude: 47.0, longitude: 28.8);
+    final course = (await places.all()).single;
+    expect((course.kind, course.label, course.icon), (PlaceKind.other, 'Курсы', 'school'));
+    await places.update(id, name: 'English Time', kind: PlaceKind.study, latitude: 47.0, longitude: 28.8);
+    final changed = (await places.all()).single;
+    expect((changed.kind, changed.label, changed.icon), (PlaceKind.study, null, null));
+  });
+
   test('правка меняет имя, вид и точку; удаление убирает одно место', () async {
     final id = await places.add(PlaceKind.other, name: 'Курсы', latitude: 47.0, longitude: 28.8);
     final keep = await places.add(PlaceKind.home, name: 'Дом', latitude: 46.9, longitude: 28.7, wifi: 'HomeNet');

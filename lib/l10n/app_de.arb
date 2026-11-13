@@ -542,5 +542,8 @@
   "placeKindTitle": "Was ist das",
   "placeWhereTitle": "Wo",
   "placeHereNow": "Ich bin gerade hier",
-  "placeMapHint": "Verschiebe die Karte: Der Ort ist dort, wo der Punkt in der Mitte ist."
+  "placeMapHint": "Verschiebe die Karte: Der Ort ist dort, wo der Punkt in der Mitte ist.",
+  "placeKindMore": "Suchen oder neu",
+  "placeKindSearchHint": "Art suchen oder eigene benennen",
+  "placeKindCreate": "„{name}“ anlegen"
 }

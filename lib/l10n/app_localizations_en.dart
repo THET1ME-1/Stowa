@@ -2921,4 +2921,15 @@ class LEn extends L {
   @override
   String get placeMapHint =>
       'Move the map: the place is where the centre dot is.';
+
+  @override
+  String get placeKindMore => 'Find or create';
+
+  @override
+  String get placeKindSearchHint => 'Find a type or name your own';
+
+  @override
+  String placeKindCreate(String name) {
+    return 'Create “$name”';
+  }
 }

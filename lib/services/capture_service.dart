@@ -203,7 +203,7 @@ class CaptureService {
       FolderIndex? index;
       Future<FolderIndex> folders() async => index ??= await ItemsRepository(_db, clock: _clock).folderIndex();
       // свои места один раз на пачку: «буду у Саши» узнаёт место «Саша»
-      final places = [for (final place in await PlacesRepository(_db).all()) (id: place.id, name: place.name, kind: place.kind)];
+      final places = [for (final place in await PlacesRepository(_db).all()) (id: place.id, name: place.name, kind: place.kind, label: place.label)];
       for (final input in inputs) {
         ids.add(await _insert(input, rules, folders, places));
       }

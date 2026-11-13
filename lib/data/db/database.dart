@@ -102,7 +102,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -151,6 +151,11 @@ class AppDatabase extends _$AppDatabase {
           await migrator.addColumn(items, column);
         }
         await migrator.createTable(places);
+      }
+      // 17: свой вид места. Базе младше 8 таблицу уже создал переход на места — с этими полями
+      if (from >= 8 && from < 17) {
+        await migrator.addColumn(places, places.label);
+        await migrator.addColumn(places, places.icon);
       }
       // 11: папка в папке. До очереди хранилища: её триггер переименования смотрит на parent_id
       if (from < 11) await migrator.addColumn(folders, folders.parentId);

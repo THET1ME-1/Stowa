@@ -24,17 +24,87 @@ void main() {
 
   Future<List<Place>> places() => (world.db.select(world.db.places)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
 
+  /// Вид через «Найти или создать»: в листе у каждого вида свой ключ.
+  Future<void> pickType(WidgetTester tester, String label) async {
+    await tester.tap(find.text('Найти или создать'));
+    await tester.pumpAndSettle();
+    final row = find.byKey(ValueKey('type-$label'));
+    await tester.scrollUntilVisible(row, 120, scrollable: find.descendant(of: find.byKey(const ValueKey('type-sheet')), matching: find.byType(Scrollable)).first);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> addPlace(WidgetTester tester, {required String name, required String kind}) async {
     await tester.tap(find.text('Добавить место'));
     await tester.pumpAndSettle();
-    // вид раньше имени: «Дом» в поле и на значке вида — два одинаковых текста
-    await tester.tap(find.text(kind));
     await tester.enterText(find.byType(TextField), name);
+    await pickType(tester, kind);
     await tester.tap(find.text('Я сейчас здесь'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('вид — три плитки в ряд: выбранный, подходящий к имени и «Найти или создать»', (tester) async {
+    world.placeChannel.background = true;
+    await open(tester);
+    await tester.tap(find.text('Добавить место'));
+    await tester.pumpAndSettle();
+    final tiles = find.byKey(const ValueKey('type-row'));
+    final row = tester.getRect(tiles);
+    // три плитки одной ширины в одну строку, без переноса
+    final kids = find.descendant(of: tiles, matching: find.byWidgetPredicate((widget) => widget.key is ValueKey<String> && (widget.key! as ValueKey<String>).value.startsWith('tile-')));
+    expect(kids, findsNWidgets(3));
+    final rects = [for (final element in kids.evaluate()) tester.getRect(find.byWidget(element.widget))];
+    expect(rects.map((rect) => rect.top.round()).toSet(), hasLength(1));
+    expect(rects.every((rect) => rect.bottom <= row.bottom + 1), isTrue);
+    expect(find.text('Найти или создать'), findsOneWidget);
+
+    // имя ведёт вид, пока его не выбрали рукой: «Универ» — учёба выбрана сама
+    await tester.enterText(find.byType(TextField), 'Универ');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tile-selected-Учёба')), findsOneWidget);
+    // выбрал рукой вторую плитку — имя больше не перебивает
+    final second = find.byWidgetPredicate((widget) => widget.key is ValueKey<String> && (widget.key! as ValueKey<String>).value.startsWith('tile-suggested-'));
+    final picked = ((tester.widget(second).key! as ValueKey<String>).value).substring('tile-suggested-'.length);
+    await tester.tap(second);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Универ на Ботанике');
+    await tester.pumpAndSettle();
+    expect(find.byKey(ValueKey('tile-selected-$picked')), findsOneWidget);
+  });
+
+  testWidgets('свой вид: «Найти или создать» → «Создать «Дача»», вид встаёт выбранным и сохраняется', (tester) async {
+    world.placeChannel.background = true;
+    world.currentPlace = const PlaceFix(latitude: 47.1, longitude: 28.7, name: 'Вадул-луй-Водэ');
+    await open(tester);
+    await tester.tap(find.text('Добавить место'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Дача родителей');
+    await tester.tap(find.text('Найти или создать'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Дача');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Создать «Дача»'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tile-selected-Дача')), findsOneWidget);
+    await tester.tap(find.text('Я сейчас здесь'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+    final dacha = (await places()).single;
+    expect((dacha.name, dacha.kind, dacha.label), ('Дача родителей', PlaceKind.other, 'Дача'));
+    expect(dacha.icon, isNotNull);
+    // в списке подпись — свой вид
+    expect(find.text('Дача'), findsOneWidget);
+
+    // второе место: свой вид уже в листе, создавать заново не нужно
+    await tester.tap(find.text('Добавить место'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Найти или создать'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('type-Дача')), findsOneWidget);
+  });
 
   testWidgets('без места «всегда» — карточка «Разрешить», после разрешения её нет', (tester) async {
     await open(tester);
@@ -90,7 +160,7 @@ void main() {
     await open(tester);
     await tester.tap(find.text('Добавить место'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Магазин'));
+    await pickType(tester, 'Магазин');
     await tester.tap(find.text('Я сейчас здесь'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Сохранить'));
@@ -105,7 +175,7 @@ void main() {
     await tester.tap(find.text('Курсы'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Курсы английского');
-    await tester.tap(find.text('Учёба'));
+    await pickType(tester, 'Учёба');
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     final changed = (await places()).single;

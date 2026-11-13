@@ -17,18 +17,14 @@ class PlacesRepository {
   Future<List<Place>> all() => (_db.select(_db.places)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
 
   /// Новое место: вторая работа рядом с первой, а не вместо неё.
-  Future<String> add(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi}) =>
-      _insert(kind, name: name, latitude: latitude, longitude: longitude, wifi: wifi);
+  /// [label] и [icon] — свой вид («Курсы»), тогда [kind] — other.
+  Future<String> add(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi, String? label, String? icon}) =>
+      _insert(kind, name: name, latitude: latitude, longitude: longitude, wifi: wifi, label: label, icon: icon);
 
-  /// Поменять имя, вид или точку; не названное остаётся как было.
-  Future<void> update(String id, {String? name, PlaceKind? kind, double? latitude, double? longitude}) {
+  /// Правка места целиком: имя, вид (готовый или свой) и точка.
+  Future<void> update(String id, {required String name, required PlaceKind kind, String? label, String? icon, required double latitude, required double longitude}) {
     return (_db.update(_db.places)..where((t) => t.id.equals(id))).write(
-      PlacesCompanion(
-        name: Value.absentIfNull(name),
-        kind: Value.absentIfNull(kind),
-        latitude: Value.absentIfNull(latitude),
-        longitude: Value.absentIfNull(longitude),
-      ),
+      PlacesCompanion(name: Value(name), kind: Value(kind), label: Value(label), icon: Value(icon), latitude: Value(latitude), longitude: Value(longitude)),
     );
   }
 
@@ -42,10 +38,20 @@ class PlacesRepository {
 
   Future<void> remove(String id) => (_db.delete(_db.places)..where((t) => t.id.equals(id))).go();
 
-  Future<String> _insert(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi}) async {
+  Future<String> _insert(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi, String? label, String? icon}) async {
     final id = _uuid.v4();
     await _db.into(_db.places).insert(
-      PlacesCompanion.insert(id: id, kind: kind, name: name, latitude: latitude, longitude: longitude, wifi: Value(wifi), createdAt: _clock()),
+      PlacesCompanion.insert(
+        id: id,
+        kind: kind,
+        name: name,
+        label: Value(label),
+        icon: Value(icon),
+        latitude: latitude,
+        longitude: longitude,
+        wifi: Value(wifi),
+        createdAt: _clock(),
+      ),
     );
     return id;
   }

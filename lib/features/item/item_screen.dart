@@ -293,13 +293,20 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final l = L.of(context);
     final places = ref.read(placesProvider).value ?? await ref.read(placesRepositoryProvider).all();
     if (!mounted) return;
+    // сколько мест у готового вида и у своего («Дача»): «у любого» — где их больше одного
     final counts = <PlaceKind, int>{};
+    final labels = <String, int>{};
     for (final place in places) {
-      counts[place.kind] = (counts[place.kind] ?? 0) + 1;
+      if (place.label case final label?) {
+        labels[label] = (labels[label] ?? 0) + 1;
+      } else {
+        counts[place.kind] = (counts[place.kind] ?? 0) + 1;
+      }
     }
     final kinds = places.isEmpty
         ? const [PlaceKind.home, PlaceKind.work, PlaceKind.shop]
         : [for (final kind in PlaceKind.values) if ((counts[kind] ?? 0) > 1) kind];
+    final groups = [for (final MapEntry(key: label, value: count) in labels.entries) if (count > 1) label];
     Widget row(String icon, String title, Object choice) => ListTile(leading: Icon(symbolIcon(icon)), title: Text(title), onTap: () => Navigator.pop(context, choice));
     // «time», «places» или готовое напоминание по месту; смахнули лист — null
     final choice = await showModalBottomSheet<Object>(
@@ -316,8 +323,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
             children: [
               row('schedule', l.itemRemindTime, 'time'),
               row('my_location', l.placeRemindHere, const PlaceReminder(PlaceReminderKind.point)),
-              for (final place in places) row(placeKindIcon(place.kind), l.placeRemindAt(place.name), PlaceReminder(PlaceReminderKind.place, ref: place.id, name: place.name)),
+              for (final place in places) row(placeTypeIcon(typeOf(place)), l.placeRemindAt(place.name), PlaceReminder(PlaceReminderKind.place, ref: place.id, name: place.name)),
               for (final kind in kinds) row(placeKindIcon(kind), remindPlaceLabel(l, remindAtKind(kind)), PlaceReminder(remindAtKind(kind))),
+              for (final label in groups)
+                row(
+                  placeTypeIcon(typeOf(places.firstWhere((place) => place.label == label))),
+                  l.placeRemindAt(label),
+                  PlaceReminder(PlaceReminderKind.place, ref: placeTypeRef(label), name: label),
+                ),
               row('add_location_alt', l.placesTitle, 'places'),
             ],
           ),

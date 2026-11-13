@@ -791,5 +791,8 @@
   "placeKindTitle": "Что это",
   "placeWhereTitle": "Где",
   "placeHereNow": "Я сейчас здесь",
-  "placeMapHint": "Двигай карту: место там, где точка в центре."
+  "placeMapHint": "Двигай карту: место там, где точка в центре.",
+  "placeKindMore": "Найти или создать",
+  "placeKindSearchHint": "Найти вид или назвать свой",
+  "placeKindCreate": "Создать «{name}»"
 }

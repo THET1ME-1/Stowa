@@ -542,5 +542,8 @@
   "placeKindTitle": "Що це",
   "placeWhereTitle": "Де",
   "placeHereNow": "Я зараз тут",
-  "placeMapHint": "Рухай мапу: місце там, де крапка в центрі."
+  "placeMapHint": "Рухай мапу: місце там, де крапка в центрі.",
+  "placeKindMore": "Знайти чи створити",
+  "placeKindSearchHint": "Знайти вид або назвати свій",
+  "placeKindCreate": "Створити «{name}»"
 }

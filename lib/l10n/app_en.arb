@@ -3726,5 +3726,22 @@
   "placeMapHint": "Move the map: the place is where the centre dot is.",
   "@placeMapHint": {
     "description": "Подсказка под картой выбора места"
+  },
+  "placeKindMore": "Find or create",
+  "@placeKindMore": {
+    "description": "Третья плитка выбора вида места: открывает поиск видов"
+  },
+  "placeKindSearchHint": "Find a type or name your own",
+  "@placeKindSearchHint": {
+    "description": "Подсказка в поиске вида места"
+  },
+  "placeKindCreate": "Create “{name}”",
+  "@placeKindCreate": {
+    "description": "Строка в поиске вида: свой вид из набранного",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }
