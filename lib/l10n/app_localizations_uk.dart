@@ -2997,7 +2997,7 @@ class LUk extends L {
 
   @override
   String get lineLanguageHint =>
-      'Час і місця розумію 7 мовами — тут пиши час цифрами: 14:30';
+      'Час словами цією мовою не зрозумію — пиши цифрами: 14:30';
 
   @override
   String get lineLanguageHide => 'Сховати';

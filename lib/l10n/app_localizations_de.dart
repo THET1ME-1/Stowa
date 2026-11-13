@@ -2946,7 +2946,7 @@ class LDe extends L {
 
   @override
   String get lineLanguageHint =>
-      'Zeiten und Orte verstehe ich in 7 Sprachen — schreib die Uhrzeit hier in Ziffern: 14:30';
+      'Uhrzeiten in Worten verstehe ich in dieser Sprache nicht — schreib Ziffern: 14:30';
 
   @override
   String get lineLanguageHide => 'Ausblenden';

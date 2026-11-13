@@ -2,9 +2,15 @@
 /// немецком, испанском, польском и румынском. Без ИИ, по словам каждого языка:
 /// «завтра в 10», «tomorrow at 9 pm», «morgen um 9 Uhr», «mañana a las 9», «jutro o 9»,
 /// «mâine la 9», «завтра о 9 вечора». Знаки над буквами необязательны: «manana» — тоже завтра.
+/// Остальные ~100 языков — по таблицам Unicode CLDR (`reminder_world.dart`): «demain à 9h»,
+/// «domani alle 9», «yarın saat 9», «明日9時».
 library;
 
+import 'cldr_time_words.dart';
+import 'language_guess.dart' show guessLanguage, ownLanguages;
 import 'word_forms.dart' show foldText;
+
+part 'reminder_world.dart';
 
 /// Напоминание, найденное в тексте: где оно и на какой момент.
 class ReminderMatch {
@@ -249,15 +255,19 @@ final _relatives = [
   RegExp('$_before(?:(?:in|en|dentro de|peste)\\s+(\\d+|an?|one|ein|eine|einer|einem|una?|uno|o)\\s+($_units))$_after', unicode: true),
 ];
 
+/// «Через …» в тексте: где, сколько и чего. Без единицы — полчаса.
+typedef _Relative = ({int start, int end, int count, _Unit? unit});
+
 /// Первое «через …» в тексте: число и единица или полчаса.
-({int start, int end, String? count, String? unit, bool half})? _findRelative(String text) {
-  ({int start, int end, String? count, String? unit, bool half})? best;
+_Relative? _findRelative(String text) {
+  _Relative? best;
   for (final (index, pattern) in _relatives.indexed) {
     final match = pattern.firstMatch(text);
     if (match == null || (best != null && match.start >= best.start)) continue;
     best = switch (index) {
-      0 => (start: match.start, end: match.end, count: null, unit: null, half: true),
-      _ => (start: match.start, end: match.end, count: match.group(1), unit: match.group(2), half: false),
+      0 => (start: match.start, end: match.end, count: 1, unit: null),
+      // «an hour», «einer Stunde», «una hora» — один
+      _ => (start: match.start, end: match.end, count: int.tryParse(match.group(1) ?? '1') ?? 1, unit: _unitOf(match.group(2)!)),
     };
   }
   return best;
@@ -272,7 +282,7 @@ _Unit _unitOf(String unit) {
 }
 
 class _Date {
-  _Date(this.start, this.end, this.resolve, {this.hour = _morning});
+  _Date(this.start, this.end, this.resolve, {this.hour = _morning, this.weak = false, this.world = false});
   final int start;
   final int end;
 
@@ -281,10 +291,16 @@ class _Date {
 
   /// Час, если время не названо.
   final int hour;
+
+  /// Слово в другом языке значит другое («Cuma» — и пятница, и имя): дата только рядом со временем.
+  final bool weak;
+
+  /// Найдена по таблицам CLDR: к ней цепляется чужая часть суток («domani sera»).
+  final bool world;
 }
 
 class _Time {
-  _Time(this.start, this.end, this.hour, this.minute, {this.workday = false});
+  _Time(this.start, this.end, this.hour, this.minute, {this.workday = false, this.world = false, this.bare = false});
   final int start;
   final int end;
   final int hour;
@@ -292,22 +308,37 @@ class _Time {
 
   /// «После работы»: без даты — только будний день.
   final bool workday;
+
+  /// Найдено по таблицам CLDR.
+  final bool world;
+
+  /// Час без части суток: «à 9h» уточнит «du soir».
+  final bool bare;
 }
 
 /// Первое напоминание в тексте или null. Понимает «23 декабря 13:00», «завтра в 10»,
 /// «в пятницу», «через 2 часа», «сегодня вечером», «12.11 в 9», «на выходных», «после работы»
 /// и то же на шести других языках. [workEnd] — конец рабочего дня в минутах от полуночи.
 ReminderMatch? parseReminder(String text, DateTime now, {int workEnd = defaultWorkEnd}) {
-  // знаки над буквами и регистр сняты, длина та же: места кусков совпадают с текстом
-  final lower = foldText(text);
+  // знаки над буквами и регистр сняты, цифры других письменностей обычные, длина та же:
+  // места кусков совпадают с текстом
+  final lower = _plain(foldText(text));
+  // текст на своём языке чужие таблицы не смотрят: «mañana será» — не «завтра вечером» по-итальянски
+  final world = !ownLanguages.contains(guessLanguage(text));
 
-  final relative = _findRelative(lower);
-  if (relative != null) {
-    return ReminderMatch(start: relative.start, end: relative.end, at: _relativeMoment(relative.half, relative.count, relative.unit, now), hasTime: true);
+  final relatives = [_findRelative(lower), if (world) _worldRelative(lower)].nonNulls.toList()..sort((a, b) => a.start.compareTo(b.start));
+  if (relatives.firstOrNull case final relative?) {
+    return ReminderMatch(start: relative.start, end: relative.end, at: _relativeMoment(relative.count, relative.unit, now), hasTime: true);
   }
 
-  final dates = _dates(lower, now)..sort((a, b) => a.start.compareTo(b.start));
-  final times = _times(lower, workEnd)..sort((a, b) => a.start.compareTo(b.start));
+  final dates = _dates(lower, now);
+  if (world) dates.addAll(_worldDates(lower, now, dates));
+  dates.sort((a, b) => a.start.compareTo(b.start));
+  final times = _times(lower, workEnd);
+  if (world) times.addAll(_worldTimes(lower, dates, times));
+  times.sort((a, b) => a.start.compareTo(b.start));
+  // «Cuma» без времени — скорее имя, чем пятница
+  if (times.isEmpty) dates.removeWhere((date) => date.weak);
 
   if (dates.isNotEmpty) {
     final date = dates.first;
@@ -342,6 +373,9 @@ ReminderMatch? parseReminder(String text, DateTime now, {int workEnd = defaultWo
   return null;
 }
 
+/// Собрать выражения всех таблиц заранее: первый разбор с ними занимает ~0,1 с.
+void warmUpReminders() => parseReminder('demain à 9h du soir, 明日の午後3時, 23 décembre', DateTime.now());
+
 /// Как дата и время написаны в тексте, без регистра; нет — null. По нему видно, трогали ли время, правя заметку.
 String? reminderPhrase(String text, DateTime now, {int workEnd = defaultWorkEnd}) {
   final found = parseReminder(text, now, workEnd: workEnd);
@@ -364,11 +398,9 @@ bool _adjacent(String text, _Date date, _Time time) {
   return RegExp(r'^[\s,]{0,3}$').hasMatch(gap);
 }
 
-DateTime _relativeMoment(bool half, String? number, String? unit, DateTime now) {
-  if (half) return now.add(const Duration(minutes: 30));
-  // «an hour», «einer Stunde», «una hora» — один
-  final count = int.tryParse(number ?? '1') ?? 1;
-  return switch (_unitOf(unit!)) {
+DateTime _relativeMoment(int count, _Unit? unit, DateTime now) {
+  if (unit == null) return now.add(const Duration(minutes: 30));
+  return switch (unit) {
     _Unit.minute => now.add(Duration(minutes: count)),
     _Unit.hour => now.add(Duration(hours: count)),
     // дни и недели считаются по календарю, напоминание на утро
@@ -391,13 +423,7 @@ List<_Date> _dates(String text, DateTime now) {
     final name = (match.group(1) ?? match.group(2)!).replaceAll(RegExp('[ʼ\'’]'), '');
     final target = _weekdayNames[name];
     if (target == null) continue;
-    dates.add(
-      _Date(match.start, match.end, (hour, minute) {
-        final ahead = (target - now.weekday + 7) % 7;
-        final at = DateTime(now.year, now.month, now.day + ahead, hour, minute);
-        return at.isAfter(now) ? at : DateTime(now.year, now.month, now.day + ahead + 7, hour, minute);
-      }),
-    );
+    dates.add(_Date(match.start, match.end, _weekdayMoment(target, now)));
   }
 
   // суббота, а если её время прошло — воскресенье, прошло и оно — следующая суббота
@@ -437,6 +463,13 @@ List<_Date> _dates(String text, DateTime now) {
   }
   return dates;
 }
+
+/// Ближайший такой день недели; сегодняшний, если его час ещё не прошёл.
+DateTime Function(int hour, int minute) _weekdayMoment(int target, DateTime now) => (hour, minute) {
+  final ahead = (target - now.weekday + 7) % 7;
+  final at = DateTime(now.year, now.month, now.day + ahead, hour, minute);
+  return at.isAfter(now) ? at : DateTime(now.year, now.month, now.day + ahead + 7, hour, minute);
+};
 
 _Date? _calendarDate(RegExpMatch match, int day, int month, int? year, DateTime now) {
   if (month < 1 || month > 12 || day < 1 || day > DateTime(2024, month + 1, 0).day) return null;

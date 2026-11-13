@@ -2996,7 +2996,7 @@ class LPl extends L {
 
   @override
   String get lineLanguageHint =>
-      'Czas i miejsca rozumiem w 7 językach — tu wpisz godzinę cyframi: 14:30';
+      'W tym języku nie zrozumiem godziny słowami — pisz cyframi: 14:30';
 
   @override
   String get lineLanguageHide => 'Ukryj';

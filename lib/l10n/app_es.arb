@@ -547,6 +547,6 @@
   "placeKindSearchHint": "Busca un tipo o pon el tuyo",
   "placeKindCreate": "Crear «{name}»",
   "placeIcon": "Icono",
-  "lineLanguageHint": "Entiendo horas y lugares en 7 idiomas — aquí escribe la hora en cifras: 14:30",
+  "lineLanguageHint": "En este idioma no entiendo la hora en palabras — escríbela en cifras: 14:30",
   "lineLanguageHide": "Ocultar"
 }

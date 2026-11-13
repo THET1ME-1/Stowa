@@ -2938,7 +2938,7 @@ class LEn extends L {
 
   @override
   String get lineLanguageHint =>
-      'I read times and places in 7 languages — here write the time in digits: 14:30';
+      'I can\'t read times in words in this language — write digits: 14:30';
 
   @override
   String get lineLanguageHide => 'Hide';

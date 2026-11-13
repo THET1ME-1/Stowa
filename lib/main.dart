@@ -13,6 +13,7 @@ import 'data/db/database.dart';
 import 'data/providers.dart';
 import 'data/settings_repository.dart';
 import 'domain/appearance.dart';
+import 'domain/reminder_parser.dart' show warmUpReminders;
 import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
@@ -105,6 +106,8 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
   unawaited(scheduleBackgroundWork().catchError((_) {}));
   // накопленное с прошлого раза, в том числе падение, после которого приложение открыли заново
   unawaited(crashes.send());
+  // таблицы времени ~100 языков собираются при первом разборе: пусть не на первой набранной букве
+  WidgetsBinding.instance.addPostFrameCallback((_) => Timer(const Duration(milliseconds: 300), warmUpReminders));
   // проверка сбора на эмуляторе: сборка с --dart-define=CRASH_PROBE=true роняет ошибку сама
   if (_crashProbe) unawaited(Future<void>.delayed(const Duration(seconds: 3), () => throw StateError('crash probe')));
 }

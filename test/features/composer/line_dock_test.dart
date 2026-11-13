@@ -171,25 +171,34 @@ void main() {
     expect(links.single.itemId, item.id);
   });
 
-  testWidgets('чужой язык без времени — чип «пиши время цифрами», крестик убирает; со временем цифрами чипа нет', (tester) async {
-    const hint = 'Время и места понимаю на 7 языках — здесь пиши время цифрами: 14:30';
+  const languageHint = 'Время словами на этом языке не пойму — пиши цифрами: 14:30';
+
+  testWidgets('язык, где время словами не понять, — подсказка «пиши цифрами», крестик убирает; со временем цифрами её нет', (tester) async {
     await open(tester);
-    await type(tester, 'demain appeler la banque et le dentiste');
-    expect(find.text(hint), findsOneWidget);
+    // латынь: ни своих таблиц, ни CLDR
+    await type(tester, 'cras ad mercatum ibo et panem emam quia nihil est domi');
+    expect(find.text(languageHint), findsOneWidget);
     await tester.tap(find.byTooltip('Скрыть'));
     await tester.pumpAndSettle();
-    expect(find.text(hint), findsNothing);
+    expect(find.text(languageHint), findsNothing);
 
     // время цифрами понимается на любом языке — подсказка не нужна
-    await type(tester, 'appeler la banque et le dentiste à 14:30');
-    expect(find.text(hint), findsNothing);
+    await type(tester, 'cras ad mercatum ibo et panem emam quia nihil est domi 14:30');
+    expect(find.text(languageHint), findsNothing);
     expect(find.byKey(const ValueKey('reminder')), findsOneWidget);
   });
 
-  testWidgets('свои языки чипа не дают', (tester) async {
+  testWidgets('французский понимается по CLDR: напоминание без подсказки', (tester) async {
+    await open(tester);
+    await type(tester, 'demain appeler la banque et le dentiste');
+    expect(find.byKey(const ValueKey('reminder')), findsOneWidget);
+    expect(find.text(languageHint), findsNothing);
+  });
+
+  testWidgets('свои языки подсказки не дают', (tester) async {
     await open(tester);
     await type(tester, 'mañana llamar al banco y al dentista');
-    expect(find.textContaining('понимаю на 7 языках'), findsNothing);
+    expect(find.text(languageHint), findsNothing);
   });
 
   testWidgets('/ показывает команды, «/задача» кладёт с галочкой', (tester) async {

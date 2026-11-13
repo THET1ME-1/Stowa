@@ -3748,9 +3748,9 @@
   "@placeIcon": {
     "description": "Подсказка кнопки выбора значка места"
   },
-  "lineLanguageHint": "I read times and places in 7 languages — here write the time in digits: 14:30",
+  "lineLanguageHint": "I can't read times in words in this language — write digits: 14:30",
   "@lineLanguageHint": {
-    "description": "Чип над строкой: текст на языке, где время и места не распознаются"
+    "description": "Подсказка над строкой, когда текст на языке, где время словами не разбирается"
   },
   "lineLanguageHide": "Hide",
   "@lineLanguageHide": {

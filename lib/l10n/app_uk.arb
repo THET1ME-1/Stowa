@@ -547,6 +547,6 @@
   "placeKindSearchHint": "Знайти вид або назвати свій",
   "placeKindCreate": "Створити «{name}»",
   "placeIcon": "Значок",
-  "lineLanguageHint": "Час і місця розумію 7 мовами — тут пиши час цифрами: 14:30",
+  "lineLanguageHint": "Час словами цією мовою не зрозумію — пиши цифрами: 14:30",
   "lineLanguageHide": "Сховати"
 }

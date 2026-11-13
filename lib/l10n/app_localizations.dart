@@ -4883,10 +4883,10 @@ abstract class L {
   /// **'Icon'**
   String get placeIcon;
 
-  /// Чип над строкой: текст на языке, где время и места не распознаются
+  /// Подсказка над строкой, когда текст на языке, где время словами не разбирается
   ///
   /// In en, this message translates to:
-  /// **'I read times and places in 7 languages — here write the time in digits: 14:30'**
+  /// **'I can\'t read times in words in this language — write digits: 14:30'**
   String get lineLanguageHint;
 
   /// Подсказка крестика чипа про язык
