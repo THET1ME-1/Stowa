@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
+import 'package:stowa/data/repositories/places_repository.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/domain/item_kind.dart';
 import 'package:stowa/domain/models.dart';
@@ -158,6 +159,21 @@ void main() {
     final id = await capture.capture(const CaptureInput(text: 'напомни дома купить хлеб'));
     final item = (await items.get(id))!.item;
     expect((item.remindPlace, item.title, item.reminderAt), (PlaceReminderKind.home, 'Купить хлеб', null));
+  });
+
+  test('«Завтра буду проходить мимо магазина, купить хлеб» — магазин на завтра, без звонка в 9 утра', () async {
+    final id = await capture.capture(const CaptureInput(text: 'Завтра буду проходить мимо магазина, купить хлеб'));
+    final item = (await items.get(id))!.item;
+    expect((item.remindPlace, item.remindPlaceDay, item.reminderAt, item.title), (PlaceReminderKind.shop, DateTime(2026, 11, 3), null, 'Купить хлеб'));
+  });
+
+  test('«завтра в 18 буду у Саши» — своё место по имени, а час остаётся напоминанием', () async {
+    final sasha = await PlacesRepository(db).add(PlaceKind.guests, name: 'Саша', latitude: 47.0, longitude: 28.8);
+    final id = await capture.capture(const CaptureInput(text: 'завтра в 18 буду у Саши, отдать книгу'));
+    final item = (await items.get(id))!.item;
+    expect((item.remindPlace, item.remindPlaceRef, item.remindPlaceName, item.remindPlaceDay), (PlaceReminderKind.place, sasha, 'Саша', null));
+    expect(item.reminderAt, DateTime(2026, 11, 3, 18));
+    expect(item.title, 'Отдать книгу');
   });
 
   test('«напомни тут» просит место даже без «здесь и сейчас»; чип сняли — места нет', () async {

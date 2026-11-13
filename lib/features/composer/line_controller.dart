@@ -52,9 +52,10 @@ class LineController extends TextEditingController {
 
   bool get hasChips => _tags.isNotEmpty || _folder != null;
 
-  /// Напоминание из текста, пока человек его не снял.
-  ReminderMatch? get reminder {
-    if (_reminderDismissed) return null;
+  /// Свои места: «буду у Саши» узнаёт место «Саша». Нет — только виды мест.
+  List<KnownPlace> Function()? places;
+
+  ReminderMatch? get _found {
     if (_parsedText != text) {
       _parsedText = text;
       _parsed = parseReminder(text, _clock(), workEnd: _workEnd());
@@ -62,14 +63,30 @@ class LineController extends TextEditingController {
     return _parsed;
   }
 
+  /// Напоминание из текста, пока человек его не снял. День без часа рядом с местом —
+  /// не напоминание: «завтра зайду в аптеку» звенит у аптеки, а не в 9 утра.
+  ReminderMatch? get reminder {
+    if (_reminderDismissed) return null;
+    final found = _found;
+    if (found != null && !found.hasTime && placeCue != null) return null;
+    return found;
+  }
+
+  /// День, в который напоминание по месту действует: «завтра» из того же текста.
+  DateTime? get placeDay {
+    final found = _found;
+    if (placeCue == null || found == null || found.hasTime) return null;
+    return DateTime(found.at.year, found.at.month, found.at.day);
+  }
+
   bool get placeDismissed => _placeDismissed;
 
-  /// Место из текста («напомни дома»), пока человек его не снял.
+  /// Место из текста («напомни дома», «буду проходить мимо магазина»), пока человек его не снял.
   PlaceCue? get placeCue {
     if (_placeDismissed) return null;
     if (_cueText != text) {
       _cueText = text;
-      _cue = parsePlaceCue(text);
+      _cue = parsePlaceCue(text, places: places?.call() ?? const []);
     }
     return _cue;
   }

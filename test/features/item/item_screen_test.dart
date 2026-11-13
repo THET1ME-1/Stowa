@@ -63,7 +63,7 @@ void main() {
     await tester.tap(find.text('Напомнить дома'));
     await tester.pumpAndSettle();
     expect((await world.db.select(world.db.items).getSingle()).remindPlace, PlaceReminderKind.home);
-    expect(find.text('Дом ещё не отмечен: Stowa напомнит, когда отметишь его в «Местах»'), findsOneWidget);
+    expect(find.text('Такого места ещё нет: напомню, когда отметишь его в «Местах»'), findsOneWidget);
     expect(find.byKey(const ValueKey('item-place-reminder')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('item-place-reminder')));
@@ -71,6 +71,27 @@ void main() {
     await tester.tap(find.text('Убрать напоминание'));
     await tester.pumpAndSettle();
     expect((await world.db.select(world.db.items).getSingle()).remindPlace, isNull);
+  });
+
+  testWidgets('«Напомнить» показывает свои места и «у любого» для вида, где мест несколько', (tester) async {
+    world.placeChannel.background = true;
+    for (final (id, name, kind) in [('o', 'Офис', PlaceKind.work), ('s', 'Склад', PlaceKind.work), ('sasha', 'Саша', PlaceKind.guests)]) {
+      await world.db.into(world.db.places).insert(PlacesCompanion.insert(id: id, kind: kind, name: name, latitude: 47.0, longitude: 28.8, createdAt: world.now));
+    }
+    await open(tester, body: 'Отдать книгу', title: 'Отдать книгу');
+    await tester.tap(find.byTooltip('Напомнить'));
+    await tester.pumpAndSettle();
+    for (final label in ['Напомнить: Офис', 'Напомнить: Склад', 'Напомнить: Саша', 'Напомнить на работе']) {
+      expect(find.text(label), findsOneWidget, reason: label);
+    }
+    // гостей одно место — «у любого» для них не нужно
+    expect(find.text('Напомнить в гостях'), findsNothing);
+
+    await tester.tap(find.text('Напомнить: Саша'));
+    await tester.pumpAndSettle();
+    final item = await world.db.select(world.db.items).getSingle();
+    expect((item.remindPlace, item.remindPlaceRef, item.remindPlaceName), (PlaceReminderKind.place, 'sasha', 'Саша'));
+    expect(find.text('Напомнить: Саша'), findsOneWidget);
   });
 
   testWidgets('«Напомнить здесь» берёт текущую точку с названием', (tester) async {

@@ -55,16 +55,37 @@ String kindLabel(L l, ItemKind kind) => switch (kind) {
   ItemKind.voice => l.kindVoice,
 };
 
+/// Подпись напоминания по месту: «Напомнить дома», «Напомнить: Саша», «Напомнить у магазина · завтра».
+/// [day] с [now] — напоминание только в этот день.
+String remindPlaceLabel(L l, PlaceReminderKind kind, {String? name, DateTime? day, DateTime? now}) {
+  final named = name == null || name.isEmpty ? null : name;
+  final place = switch (kind) {
+    PlaceReminderKind.point => named == null ? l.placeRemindHere : l.placeRemindAt(named),
+    PlaceReminderKind.place => l.placeRemindAt(named ?? l.placeKindOther),
+    PlaceReminderKind.home => l.placeRemindHome,
+    PlaceReminderKind.work => l.placeRemindWork,
+    PlaceReminderKind.study => l.placeRemindStudy,
+    PlaceReminderKind.shop => l.placeRemindShop,
+    PlaceReminderKind.pharmacy => l.placeRemindPharmacy,
+    PlaceReminderKind.food => l.placeRemindFood,
+    PlaceReminderKind.sport => l.placeRemindSport,
+    PlaceReminderKind.guests => l.placeRemindGuests,
+    PlaceReminderKind.other => l.placeRemindOther,
+  };
+  if (day == null) return place;
+  return l.placeRemindDay(place, dayLabel(l, day, now ?? DateTime.now()));
+}
+
+/// «сегодня», «завтра», «15 ноября».
+String dayLabel(L l, DateTime day, DateTime now) {
+  final days = DateTime.utc(day.year, day.month, day.day).difference(DateTime.utc(now.year, now.month, now.day)).inDays;
+  if (days == 0) return l.dayToday;
+  if (days == 1) return l.dayTomorrow;
+  return day.year == now.year ? DateFormat.MMMMd(l.localeName).format(day) : DateFormat.yMMMMd(l.localeName).format(day);
+}
+
 /// Заголовок вещи, у которой нет ни текста, ни человеческого имени файла:
 /// «Фото от 3 ноября». По нему же вещь находится поиском.
-/// Подпись напоминания по месту: «Напомнить дома», «Напомнить: Ботаника, Кишинёв».
-String remindPlaceLabel(L l, PlaceReminderKind kind, {String? name}) => switch (kind) {
-  PlaceReminderKind.home => l.placeRemindHome,
-  PlaceReminderKind.work => l.placeRemindWork,
-  PlaceReminderKind.shop => l.placeRemindShop,
-  PlaceReminderKind.point => name == null || name.isEmpty ? l.placeRemindHere : l.placeRemindAt(name),
-};
-
 String untitledFor(L l, {required String mime, required String fileName, required DateTime at}) {
   final date = DateFormat.MMMMd(l.localeName).format(at);
   if (mime.startsWith('image/')) return isScreenshotName(fileName) ? l.untitledScreenshot(date) : l.untitledPhoto(date);

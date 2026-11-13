@@ -137,7 +137,14 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
   put('reminder', note.reminder == null ? null : _time(note.reminder!));
   put('place', place);
   if (note.remindPlace case final remind?) {
-    put('remind_place', <String, Object?>{'kind': remind.kind.name, 'lat': ?remind.latitude, 'lon': ?remind.longitude, 'name': ?remind.name});
+    put('remind_place', <String, Object?>{
+      'kind': remind.kind.name,
+      'lat': ?remind.latitude,
+      'lon': ?remind.longitude,
+      'name': ?remind.name,
+      'ref': ?remind.ref,
+      'day': remind.day == null ? null : _time(remind.day!),
+    }..removeWhere((key, value) => value == null));
   }
   if (note.sortedBy != null && note.sortedBy != SortedBy.none) put('sorted_by', note.sortedBy!.name);
   put('highlights', [
@@ -327,7 +334,14 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
     placeName: place['name'] as String?,
     remindPlace: remindKind == null
         ? null
-        : PlaceReminder(remindKind, latitude: (remind['lat'] as num?)?.toDouble(), longitude: (remind['lon'] as num?)?.toDouble(), name: remind['name'] as String?),
+        : PlaceReminder(
+            remindKind,
+            latitude: (remind['lat'] as num?)?.toDouble(),
+            longitude: (remind['lon'] as num?)?.toDouble(),
+            name: remind['name'] as String?,
+            ref: remind['ref'] as String?,
+            day: _parseTime(remind['day']),
+          ),
     sortedBy: SortedBy.values.asNameMap()[stringOf('sorted_by')],
     attachments: attachments,
     highlights: [

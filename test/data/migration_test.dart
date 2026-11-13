@@ -286,6 +286,33 @@ void main() {
     expect(folder.hidden, isFalse);
   });
 
+  test('v15 → v16: напоминание дома на месте, своё место и день пишутся и ставят заметку в очередь', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 13);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(
+      ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'Цветы', remindPlace: const Value(PlaceReminderKind.home), createdAt: now, updatedAt: now),
+    );
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropPlaceRef(raw);
+    raw.execute('PRAGMA user_version = 15');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final item = await upgraded.select(upgraded.items).getSingle();
+    expect((item.title, item.remindPlace, item.remindPlaceRef, item.remindPlaceDay), ('Цветы', PlaceReminderKind.home, null, null));
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('old'))).write(
+      ItemsCompanion(remindPlace: const Value(PlaceReminderKind.place), remindPlaceRef: const Value('sasha'), remindPlaceDay: Value(DateTime(2026, 11, 14))),
+    );
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:old']);
+  });
+
   test('v14 → v15: заметки на месте, чужих свойств нет, их правка ставит заметку в очередь', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -342,7 +369,17 @@ void main() {
 // версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
 // версия 15: свойства заметки, которых Stowa не знает. Триггер правки заметки ссылается
 // на поле: он снимается и встаёт обратно без него, как стоял в версии 14
+// версия 15: у напоминания по месту ещё нет своего места и дня
+void _dropPlaceRef(Database raw) {
+  final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
+  raw.execute('DROP TRIGGER vault_items_update');
+  raw.execute('ALTER TABLE items DROP COLUMN remind_place_ref');
+  raw.execute('ALTER TABLE items DROP COLUMN remind_place_day');
+  raw.execute(trigger.replaceFirst(' remind_place_ref, remind_place_day,', ''));
+}
+
 void _dropProperties(Database raw) {
+  _dropPlaceRef(raw);
   final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
   raw.execute('DROP TRIGGER vault_items_update');
   raw.execute('ALTER TABLE items DROP COLUMN properties');

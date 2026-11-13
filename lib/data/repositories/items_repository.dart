@@ -218,6 +218,18 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folder
 FROM items LEFT JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL
 WHERE items.deleted_at IS NULL''';
 
+/// Напоминание по месту из строки заметки; нет — null.
+PlaceReminder? placeReminderOf(Item item) => item.remindPlace == null
+    ? null
+    : PlaceReminder(
+        item.remindPlace!,
+        latitude: item.remindLatitude,
+        longitude: item.remindLongitude,
+        name: item.remindPlaceName,
+        ref: item.remindPlaceRef,
+        day: item.remindPlaceDay,
+      );
+
 class ItemsRepository {
   ItemsRepository(this._db, {DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
 
@@ -669,7 +681,6 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     onEdited?.call(id);
   }
 
-  /// «Готово» у напоминания: вещь остаётся, напоминание снимается.
   /// Напоминание по месту со страницы заметки; null снимает.
   Future<void> setPlaceReminder(String id, PlaceReminder? place) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
     ItemsCompanion(
@@ -677,6 +688,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       remindLatitude: Value(place?.latitude),
       remindLongitude: Value(place?.longitude),
       remindPlaceName: Value(place?.name),
+      remindPlaceRef: Value(place?.ref),
+      remindPlaceDay: Value(place?.day),
     ),
   );
 

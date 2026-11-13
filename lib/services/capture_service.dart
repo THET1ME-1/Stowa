@@ -15,6 +15,7 @@ import '../domain/item_kind.dart';
 import '../domain/item_title.dart';
 import '../domain/models.dart';
 import '../domain/photo_facts.dart' show photoFactsOf;
+import '../data/repositories/places_repository.dart';
 import '../domain/place_cue.dart';
 import '../domain/reminder_parser.dart';
 import '../domain/shot_date.dart';
@@ -201,8 +202,10 @@ class CaptureService {
       final rules = await RulesRepository(_db).enabled();
       FolderIndex? index;
       Future<FolderIndex> folders() async => index ??= await ItemsRepository(_db, clock: _clock).folderIndex();
+      // свои места один раз на пачку: «буду у Саши» узнаёт место «Саша»
+      final places = [for (final place in await PlacesRepository(_db).all()) (id: place.id, name: place.name, kind: place.kind)];
       for (final input in inputs) {
-        ids.add(await _insert(input, rules, folders));
+        ids.add(await _insert(input, rules, folders, places));
       }
     });
 
@@ -218,7 +221,7 @@ class CaptureService {
   }
 
   // одна заметка внутри транзакции [captureAll]
-  Future<String> _insert(CaptureInput input, List<SortRule> enabledRules, Future<FolderIndex> Function() folders) async {
+  Future<String> _insert(CaptureInput input, List<SortRule> enabledRules, Future<FolderIndex> Function() folders, List<KnownPlace> places) async {
     final text = input.text.trim();
     final id = _uuid.v4();
     final now = _clock();
@@ -229,8 +232,11 @@ class CaptureService {
     final rest = found?.restOf(text) ?? '';
     var titleSource = rest.isNotEmpty ? rest : text;
     // и место: «напомни дома купить хлеб» → «Купить хлеб»
-    final cue = input.forcedPlace == null && input.detectPlace ? parsePlaceCue(titleSource) : null;
-    final place = input.forcedPlace ?? (cue == null ? null : PlaceReminder(cue.kind));
+    final cue = input.forcedPlace == null && input.detectPlace ? parsePlaceCue(titleSource, places: places) : null;
+    // «завтра буду проходить мимо магазина»: день без часа рядом с местом — день места, а не звонок в 9 утра
+    final placeDay = cue != null && found != null && !found.hasTime ? DateTime(found.at.year, found.at.month, found.at.day) : null;
+    final remindAt = input.forcedReminder ?? (placeDay != null ? null : found?.at);
+    final place = input.forcedPlace ?? (cue == null ? null : PlaceReminder(cue.kind, ref: cue.placeId, name: cue.placeName, day: placeDay));
     if (cue != null && cue.restOf(titleSource).isNotEmpty) titleSource = cue.restOf(titleSource);
     final fromContent = titleFor(titleSource, fileName: firstFile == null ? null : p.basename(firstFile.path));
     final untitled = input.untitled;
@@ -270,11 +276,13 @@ class CaptureService {
                   : SortedBy.none,
             ),
             sortState: Value(sorted ? SortState.sorted : SortState.pending),
-            reminderAt: Value(input.forcedReminder ?? found?.at),
+            reminderAt: Value(remindAt),
             remindPlace: Value(place?.kind),
             remindLatitude: Value(place?.latitude),
             remindLongitude: Value(place?.longitude),
             remindPlaceName: Value(place?.name),
+            remindPlaceRef: Value(place?.ref),
+            remindPlaceDay: Value(place?.day),
             durationSeconds: Value(input.files.map((file) => file.seconds).nonNulls.firstOrNull),
             createdAt: input.at ?? now,
             updatedAt: input.at ?? now,

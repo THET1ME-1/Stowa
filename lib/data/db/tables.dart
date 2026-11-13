@@ -42,6 +42,13 @@ class Items extends Table {
   RealColumn get remindLongitude => real().nullable()();
   TextColumn get remindPlaceName => text().nullable()();
 
+  /// Своё место из «Мест» (схема v16): его id, когда напоминание у одного места, а не у вида.
+  TextColumn get remindPlaceRef => text().nullable()();
+
+  /// День, в который напоминание по месту действует (v16): «завтра буду проходить мимо магазина».
+  /// Прошёл — напоминание снимается. Пусто — любой день.
+  DateTimeColumn get remindPlaceDay => dateTime().nullable()();
+
   /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   DateTimeColumn get openedAt => dateTime().nullable()();

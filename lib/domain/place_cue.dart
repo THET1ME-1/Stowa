@@ -1,19 +1,24 @@
-/// Напоминание по месту в тексте строки на семи языках: «напомни дома», «когда приду
-/// на работу», «remind me here», «в магазине напомни». Без ИИ, по шаблонам.
+/// Напоминание по месту в тексте строки. На семи языках — «напомни дома», «когда приду
+/// на работу», «remind me here». По-русски ещё и без «напомни»: «буду проходить мимо
+/// магазина», «зайду в аптеку», «иду в гости к другу», «буду у Саши». Без ИИ, по шаблонам.
 ///
-/// Место само по себе («купил молоко дома») напоминанием не считается: рядом должно быть
-/// «напомни» или оборот «когда приду». Иначе каждая вторая заметка звенела бы дома.
+/// Место само по себе («купил молоко дома») напоминанием не считается: нужен глагол
+/// движения в будущем или «напомни». Иначе каждая вторая заметка звенела бы дома.
 library;
 
 import 'models.dart';
+import 'word_forms.dart' show stemOf;
 
 /// Найденное место: какое и где оно в тексте (строка его подчёркивает).
+/// У своего места — его id и имя.
 class PlaceCue {
-  const PlaceCue({required this.kind, required this.start, required this.end});
+  const PlaceCue({required this.kind, required this.start, required this.end, this.placeId, this.placeName});
 
   final PlaceReminderKind kind;
   final int start;
   final int end;
+  final String? placeId;
+  final String? placeName;
 
   /// Текст без места и без «напомни»: из него получается заголовок.
   String restOf(String text) =>
@@ -46,7 +51,7 @@ const _when = {
 RegExp _word(String body) => RegExp('(?<![\\p{L}\\p{N}])(?:$body)(?![\\p{L}\\p{N}])', caseSensitive: false, unicode: true);
 
 final _patterns = [
-  for (final kind in PlaceReminderKind.values) ...[
+  for (final kind in _when.keys) ...[
     (kind, _word(_when[kind]!)),
     // «напомни дома», «remind me at home», «дома напомни»
     (kind, _word('(?:$_remind)[\\s,:]+(?:${_at[kind]!})')),
@@ -54,13 +59,114 @@ final _patterns = [
   ],
 ];
 
+/// Своё место из «Мест» для разбора: по имени его узнаёт текст.
+typedef KnownPlace = ({String id, String name, PlaceKind kind});
+
 /// Место-напоминание в тексте или null. Несколько — берётся первое по тексту.
-PlaceCue? parsePlaceCue(String text) {
+/// [places] — свои места: «буду у Саши» узнаёт место с именем «Саша».
+PlaceCue? parsePlaceCue(String text, {List<KnownPlace> places = const []}) {
   PlaceCue? best;
   for (final (kind, pattern) in _patterns) {
     final match = pattern.firstMatch(text);
     if (match == null) continue;
     if (best == null || match.start < best.start) best = PlaceCue(kind: kind, start: match.start, end: match.end);
   }
+  final moving = _movingCue(text, places);
+  if (moving != null && (best == null || moving.start < best.start)) best = moving;
   return best;
+}
+
+// Русский разбор без «напомни»: глагол движения или «буду», предлог и место.
+// Глаголы — только будущее, инфинитив и деепричастие: «зашёл в магазин» уже было, звенеть незачем.
+const _verbs =
+    r'(?:буду|будем)\s+(?:проходить|проезжать|пробегать|подходить|подъезжать|заходить|заезжать|приходить|приезжать|возвращаться|находиться)'
+    r'|проходя|проезжая|прохожу|проезжаю|пройду|проеду|пробегу|подойду|подъеду|подхожу|подъезжаю'
+    r'|зайду|заеду|забегу|загляну|заскочу|приду|приеду|прибегу|вернусь|доберусь|доеду|дойду|окажусь|окажемся|попаду'
+    r'|иду|идём|идем|пойду|пойдём|пойдем|еду|едем|поеду|поедем|схожу|съезжу|сгоняю|собираюсь'
+    r'|зайти|заехать|забежать|заглянуть|прийти|приехать|вернуться|добраться|дойти|доехать|попасть|пойти|поехать|сходить|съездить'
+    r'|буду|будем';
+
+const _prepositions = r'мимо|около|возле|рядом\s+со?|в\s+гости\s+ко?|в\s+гостях\s+у|в|во|на|ко?|до|у';
+
+final _moving = RegExp(
+  '(?<![\\p{L}\\p{N}])'
+  // «когда», «если», «как только» и «я» перед глаголом уходят из заголовка вместе с ним
+  '(?:(?:когда|если|как\\s+только|как|пока)\\s+)?(?:(?:я|мы)\\s+)?'
+  '(?:(?:по\\s+дороге|по\\s+пути)|в\\s+гостях\\s+у|(?:$_verbs)(?:\\s+(?:$_prepositions))?)'
+  '(?=[\\s,]+[\\p{L}\\p{N}])',
+  caseSensitive: false,
+  unicode: true,
+);
+
+// после «по дороге» свой предлог: «по дороге в аптеку», «по пути домой»
+final _afterRoad = RegExp(r'^\s+(?:в|во|на|ко?|до)(?=\s)', unicode: true);
+
+// слова вида места; основы считаются от всех форм, где беглая гласная их меняет: «рынок» и «рынке»
+const _kindWords = {
+  PlaceKind.home: ['дом', 'домой', 'дома', 'квартира', 'хата'],
+  PlaceKind.work: ['работа', 'офис', 'служба'],
+  PlaceKind.study: ['универ', 'университет', 'институт', 'колледж', 'школа', 'учеба', 'курсы', 'лекция', 'лицей', 'техникум', 'академия'],
+  PlaceKind.shop: ['магазин', 'супермаркет', 'гипермаркет', 'маркет', 'рынок', 'рынке', 'ларек', 'ларьке', 'магаз'],
+  PlaceKind.pharmacy: ['аптека'],
+  PlaceKind.food: ['кафе', 'кафешка', 'ресторан', 'кофейня', 'кофейне', 'бар', 'столовая', 'пиццерия', 'бистро', 'шаурмичная', 'суши'],
+  PlaceKind.sport: ['зал', 'спортзал', 'качалка', 'бассейн', 'тренировка', 'фитнес', 'стадион', 'каток'],
+  PlaceKind.guests: ['гости', 'гостях', 'друг', 'подруга', 'друзья', 'друзей', 'родители', 'бабушка', 'дедушка'],
+};
+
+const _hereWords = ['здесь', 'тут', 'сюда'];
+
+final Map<String, PlaceKind> _kindByStem = {
+  for (final MapEntry(key: kind, value: words) in _kindWords.entries)
+    for (final word in words) stemOf(word): kind,
+};
+
+final Set<String> _hereStems = {for (final word in _hereWords) stemOf(word)};
+
+// слово места: буквы и цифры, апостроф внутри («Andy's»)
+final _placeWord = RegExp(r"[\p{L}\p{N}]+(?:'[\p{L}]+)?", unicode: true);
+
+// глагол на месте места: «буду работать», «пойду спать»
+final _verbEnding = RegExp(r'(?:ть|ти|чь|ться|тись)$');
+
+PlaceCue? _movingCue(String text, List<KnownPlace> places) {
+  final named = [
+    for (final place in places)
+      (place: place, stems: [for (final match in _placeWord.allMatches(place.name)) stemOf(match.group(0)!)]),
+  ];
+  for (final match in _moving.allMatches(text)) {
+    var tailStart = match.end;
+    final road = match.group(0)!.toLowerCase().contains(RegExp(r'по\s+(?:дороге|пути)'));
+    if (road) {
+      final preposition = _afterRoad.firstMatch(text.substring(tailStart));
+      if (preposition != null) tailStart += preposition.end;
+    }
+    // место — в первых трёх словах после предлога, до знака препинания
+    final tail = text.substring(tailStart);
+    final stop = tail.indexOf(RegExp(r'[,.;:!?\n—–]'));
+    final words = _placeWord.allMatches(stop < 0 ? tail : tail.substring(0, stop)).take(3).toList();
+    if (words.isEmpty || _verbEnding.hasMatch(words.first.group(0)!.toLowerCase())) continue;
+    final stems = [for (final word in words) stemOf(word.group(0)!)];
+    int endOf(int index) => tailStart + words[index].end;
+
+    // своё место по имени: со слова сразу после предлога, по всем словам имени или по первому
+    for (final (:place, stems: name) in named) {
+      if (name.isEmpty || stems.first != name.first) continue;
+      var length = 1;
+      while (length < name.length && length < stems.length && stems[length] == name[length]) {
+        length++;
+      }
+      return PlaceCue(kind: PlaceReminderKind.place, start: match.start, end: endOf(length - 1), placeId: place.id, placeName: place.name);
+    }
+    if (_hereStems.contains(stems.first)) return PlaceCue(kind: PlaceReminderKind.point, start: match.start, end: endOf(0));
+    // вид по слову: «мимо продуктового магазина» — и через слово
+    for (final (index, stem) in stems.indexed) {
+      final kind = _kindByStem[stem];
+      if (kind != null) return PlaceCue(kind: remindAtKind(kind), start: match.start, end: endOf(index));
+    }
+    // «в гости к Маше», «в гостях у Маши»: место не отмечено, но вид ясен
+    if (match.group(0)!.toLowerCase().contains('гост')) {
+      return PlaceCue(kind: PlaceReminderKind.guests, start: match.start, end: endOf(0));
+    }
+  }
+  return null;
 }

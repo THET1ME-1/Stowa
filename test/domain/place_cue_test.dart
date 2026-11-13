@@ -65,6 +65,83 @@ void main() {
     expect(restOf('Напомни здесь: купить кофе'), 'купить кофе');
   });
 
+  group('без «напомни»: глагол движения и место', () {
+    const places = <KnownPlace>[
+      (id: 'sasha', name: 'Саша', kind: PlaceKind.guests),
+      (id: 'uni', name: 'Универ', kind: PlaceKind.study),
+      (id: 'linella', name: 'Linella на Ботанике', kind: PlaceKind.shop),
+      (id: 'office', name: 'Офис', kind: PlaceKind.work),
+    ];
+    PlaceCue? cue(String text) => parsePlaceCue(text, places: places);
+
+    test('вид места по слову: двадцать с лишним оборотов', () {
+      for (final (text, kind) in [
+        ('буду проходить мимо магазина, купить хлеб', PlaceReminderKind.shop),
+        ('проходя мимо аптеки, взять витамины', PlaceReminderKind.pharmacy),
+        ('пройду мимо кафе — забрать кружку', PlaceReminderKind.food),
+        ('проеду мимо рынка, купить яблоки', PlaceReminderKind.shop),
+        ('буду проезжать возле продуктового магазина', PlaceReminderKind.shop),
+        ('буду подходить к дому — вынести мусор', PlaceReminderKind.home),
+        ('подъеду к работе, отдать пропуск', PlaceReminderKind.work),
+        ('зайду в магазин за молоком', PlaceReminderKind.shop),
+        ('загляну в аптеку за пластырем', PlaceReminderKind.pharmacy),
+        ('забегу в супермаркет', PlaceReminderKind.shop),
+        ('заеду на работу за ноутбуком', PlaceReminderKind.work),
+        ('когда приду домой, полить цветы', PlaceReminderKind.home),
+        ('вернусь домой — позвонить маме', PlaceReminderKind.home),
+        ('когда буду в зале, взять полотенце', PlaceReminderKind.sport),
+        ('по дороге в аптеку купить бахилы', PlaceReminderKind.pharmacy),
+        ('по пути домой забрать посылку', PlaceReminderKind.home),
+        ('Завтра я иду в гости к другу, взять настолку', PlaceReminderKind.guests),
+        ('пойду в спортзал, не забыть кроссовки', PlaceReminderKind.sport),
+        ('поеду на курсы, взять тетрадь', PlaceReminderKind.study),
+        ('буду в ресторане — спросить про банкет', PlaceReminderKind.food),
+        ('схожу в бассейн, взять шапочку', PlaceReminderKind.sport),
+        ('если окажусь в кофейне, купить зёрна', PlaceReminderKind.food),
+        ('доберусь до работы — распечатать договор', PlaceReminderKind.work),
+        ('в гостях у Маши отдать книгу', PlaceReminderKind.guests),
+        ('буду дома, проверить счётчики', PlaceReminderKind.home),
+      ]) {
+        expect(cue(text)?.kind, kind, reason: text);
+      }
+    });
+
+    test('своё место по имени — у него одного, в любой форме', () {
+      for (final (text, id) in [
+        ('завтра буду у Саши, отдать книгу', 'sasha'),
+        ('когда пойду к Саше, взять зарядку', 'sasha'),
+        ('буду в универе — сдать реферат', 'uni'),
+        ('зайду в Linella за хлебом', 'linella'),
+        ('приду в офис, подписать акт', 'office'),
+      ]) {
+        final found = cue(text);
+        expect((found?.kind, found?.placeId), (PlaceReminderKind.place, id), reason: text);
+      }
+      expect(cue('завтра буду у Саши')?.placeName, 'Саша');
+    });
+
+    test('прошедшее время, глагол вместо места и место без движения — не напоминание', () {
+      for (final text in [
+        'зашёл в магазин и купил хлеб',
+        'был в аптеке, всё дорого',
+        'работаю в офисе до шести',
+        'завтра буду работать до вечера',
+        'пойду спать пораньше',
+        'буду в восторге, если получится',
+        'купил молоко дома',
+      ]) {
+        expect(cue(text), isNull, reason: text);
+      }
+    });
+
+    test('из заголовка уходит весь оборот вместе с «когда» и «я»', () {
+      String rest(String text) => cue(text)!.restOf(text);
+      expect(rest('Когда буду проходить мимо магазина, купить хлеб'), 'купить хлеб');
+      expect(rest('я иду в гости к другу, взять настолку'), 'взять настолку');
+      expect(rest('купить хлеб, если зайду в магазин'), 'купить хлеб');
+    });
+  });
+
   test('где место в тексте: его подчёркивает строка', () {
     final cue = parsePlaceCue('купить хлеб, когда приду домой')!;
     expect('купить хлеб, когда приду домой'.substring(cue.start, cue.end), 'когда приду домой');

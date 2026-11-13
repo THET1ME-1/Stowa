@@ -2007,7 +2007,7 @@ class LEs extends L {
 
   @override
   String get placesHint =>
-      'Los lugares sirven para recordatorios como «recuérdame en casa» o «en la tienda».';
+      'Escribe «recuérdame en la farmacia» y Stowa te lo recordará allí.';
 
   @override
   String placesShopsCount(int count) {
@@ -2836,4 +2836,93 @@ class LEs extends L {
 
   @override
   String get iconsNone => 'No hay ese icono, prueba otra palabra.';
+
+  @override
+  String get placeKindHome => 'Casa';
+
+  @override
+  String get placeKindWork => 'Trabajo';
+
+  @override
+  String get placeKindStudy => 'Estudios';
+
+  @override
+  String get placeKindShop => 'Tienda';
+
+  @override
+  String get placeKindPharmacy => 'Farmacia';
+
+  @override
+  String get placeKindFood => 'Cafés y restaurantes';
+
+  @override
+  String get placeKindSport => 'Deporte';
+
+  @override
+  String get placeKindGuests => 'Amigos y familia';
+
+  @override
+  String get placeKindOther => 'Otro';
+
+  @override
+  String get placeRemindStudy => 'Recordar en clase';
+
+  @override
+  String get placeRemindPharmacy => 'Recordar en la farmacia';
+
+  @override
+  String get placeRemindFood => 'Recordar en el café';
+
+  @override
+  String get placeRemindSport => 'Recordar en el gimnasio';
+
+  @override
+  String get placeRemindGuests => 'Recordar de visita';
+
+  @override
+  String get placeRemindOther => 'Recordar en el lugar';
+
+  @override
+  String placeRemindDay(String place, String day) {
+    return '$place · $day';
+  }
+
+  @override
+  String get dayToday => 'hoy';
+
+  @override
+  String get dayTomorrow => 'mañana';
+
+  @override
+  String get placesMissingKind =>
+      'Aún no hay ese lugar: te lo recordaré cuando lo añadas en Lugares';
+
+  @override
+  String get placesAdd => 'Añadir lugar';
+
+  @override
+  String get placesEmpty =>
+      'Aún no hay lugares: añade casa, trabajo, tu café favorito o un amigo.';
+
+  @override
+  String get placeNewTitle => 'Nuevo lugar';
+
+  @override
+  String get placeEditTitle => 'Lugar';
+
+  @override
+  String get placeNameHint => 'Nombre: Uni, Sasha, Andy’s';
+
+  @override
+  String get placeKindTitle => 'Qué es';
+
+  @override
+  String get placeWhereTitle => 'Dónde';
+
+  @override
+  String get placeHereNow => 'Estoy aquí ahora';
+
+  @override
+  String get placeMapHint =>
+      'Mueve el mapa: el lugar está donde el punto del centro.';
 }

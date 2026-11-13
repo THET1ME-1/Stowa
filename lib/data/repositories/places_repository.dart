@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../domain/models.dart';
 import '../db/database.dart';
 
-/// Отмеченные места: дом и работа — по одному, магазинов сколько угодно.
+/// Отмеченные места: сколько угодно, любого вида.
 class PlacesRepository {
   PlacesRepository(this._db, {DateTime Function()? clock, Uuid? uuid}) : _clock = clock ?? DateTime.now, _uuid = uuid ?? const Uuid();
 
@@ -16,17 +16,21 @@ class PlacesRepository {
 
   Future<List<Place>> all() => (_db.select(_db.places)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
 
-  /// Дом или работа: новое место заменяет прежнее.
-  Future<void> setOwn(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi}) async {
-    assert(kind != PlaceKind.shop);
-    await _db.transaction(() async {
-      await (_db.delete(_db.places)..where((t) => t.kind.equals(kind.name))).go();
-      await _insert(kind, name: name, latitude: latitude, longitude: longitude, wifi: wifi);
-    });
-  }
+  /// Новое место: вторая работа рядом с первой, а не вместо неё.
+  Future<String> add(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi}) =>
+      _insert(kind, name: name, latitude: latitude, longitude: longitude, wifi: wifi);
 
-  Future<String> addShop({required String name, required double latitude, required double longitude}) =>
-      _insert(PlaceKind.shop, name: name, latitude: latitude, longitude: longitude);
+  /// Поменять имя, вид или точку; не названное остаётся как было.
+  Future<void> update(String id, {String? name, PlaceKind? kind, double? latitude, double? longitude}) {
+    return (_db.update(_db.places)..where((t) => t.id.equals(id))).write(
+      PlacesCompanion(
+        name: Value.absentIfNull(name),
+        kind: Value.absentIfNull(kind),
+        latitude: Value.absentIfNull(latitude),
+        longitude: Value.absentIfNull(longitude),
+      ),
+    );
+  }
 
   Future<void> rename(String id, String name) => (_db.update(_db.places)..where((t) => t.id.equals(id))).write(PlacesCompanion(name: Value(name)));
 
@@ -37,8 +41,6 @@ class PlacesRepository {
   ];
 
   Future<void> remove(String id) => (_db.delete(_db.places)..where((t) => t.id.equals(id))).go();
-
-  Future<void> removeKind(PlaceKind kind) => (_db.delete(_db.places)..where((t) => t.kind.equals(kind.name))).go();
 
   Future<String> _insert(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi}) async {
     final id = _uuid.v4();

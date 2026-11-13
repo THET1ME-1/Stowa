@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../data/providers.dart';
-import '../../domain/models.dart' show PlaceKind;
 import '../../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
@@ -51,16 +50,10 @@ class ReturnsScreen extends ConsumerWidget {
       return picked == null ? null : picked.hour * 60 + picked.minute;
     }
 
-    // «Дом, работа, 2 магазина» — что уже отмечено
+    // «Дом, Офис, Саша» — что уже отмечено; длинное строка обрежет сама
     String placesSummary() {
       final places = ref.watch(placesProvider).value ?? const [];
-      final shops = places.where((place) => place.kind == PlaceKind.shop).length;
-      final parts = [
-        if (places.any((place) => place.kind == PlaceKind.home)) l.placesHome,
-        if (places.any((place) => place.kind == PlaceKind.work)) l.placesWork,
-        if (shops > 0) l.placesShopsCount(shops),
-      ];
-      return parts.isEmpty ? l.placesNotSet : parts.join(', ');
+      return places.isEmpty ? l.placesNotSet : places.map((place) => place.name).join(', ');
     }
 
     Future<void> pickWeekDay() async {

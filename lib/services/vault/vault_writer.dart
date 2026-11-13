@@ -5,8 +5,8 @@ import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
 import '../../data/db/database.dart';
+import '../../data/repositories/items_repository.dart' show placeReminderOf;
 import '../../domain/folder_tree.dart';
-import '../../domain/models.dart';
 import '../../domain/note_blocks.dart' show embedNames, embedPath;
 import '../../domain/vault_note.dart';
 import '../privacy/sealed_space.dart';
@@ -485,7 +485,7 @@ Future<VaultNote> vaultNoteOf(AppDatabase db, Item item, {required List<String> 
     latitude: item.latitude,
     longitude: item.longitude,
     placeName: item.placeName,
-    remindPlace: item.remindPlace == null ? null : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName),
+    remindPlace: placeReminderOf(item),
     sortedBy: item.sortedBy,
     attachments: [for (final path in attachments) if (!inline.contains(path)) path],
     highlights: [for (final one in highlights) VaultHighlight(quote: one.quote, note: one.note, at: one.createdAt, position: one.position)],

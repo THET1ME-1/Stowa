@@ -3299,10 +3299,10 @@ abstract class L {
   /// **'Allow'**
   String get placesPermissionAllow;
 
-  /// Подсказка внизу экрана мест
+  /// Подсказка под списком мест
   ///
   /// In en, this message translates to:
-  /// **'Places are for reminders like “remind me at home” or “at a store”.'**
+  /// **'Write “remind me at the pharmacy” and Stowa will remind you there.'**
   String get placesHint;
 
   /// Сколько магазинов отмечено
@@ -4690,6 +4690,174 @@ abstract class L {
   /// In en, this message translates to:
   /// **'No such icon, try another word.'**
   String get iconsNone;
+
+  /// Вид места
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get placeKindHome;
+
+  /// Вид места
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get placeKindWork;
+
+  /// Вид места: школа, универ, курсы
+  ///
+  /// In en, this message translates to:
+  /// **'Study'**
+  String get placeKindStudy;
+
+  /// Вид места
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get placeKindShop;
+
+  /// Вид места
+  ///
+  /// In en, this message translates to:
+  /// **'Pharmacy'**
+  String get placeKindPharmacy;
+
+  /// Вид места
+  ///
+  /// In en, this message translates to:
+  /// **'Cafés and restaurants'**
+  String get placeKindFood;
+
+  /// Вид места: зал, бассейн
+  ///
+  /// In en, this message translates to:
+  /// **'Sport'**
+  String get placeKindSport;
+
+  /// Вид места: у друга, у мамы
+  ///
+  /// In en, this message translates to:
+  /// **'Friends and family'**
+  String get placeKindGuests;
+
+  /// Вид места
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get placeKindOther;
+
+  /// Чип и пункт листа: напоминание у любого места учёбы
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at school'**
+  String get placeRemindStudy;
+
+  /// Чип: у любой отмеченной аптеки
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at a pharmacy'**
+  String get placeRemindPharmacy;
+
+  /// Чип: у любого кафе или ресторана
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at a café'**
+  String get placeRemindFood;
+
+  /// Чип: у любого места спорта
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at the gym'**
+  String get placeRemindSport;
+
+  /// Чип: у любого места вида «Гости»
+  ///
+  /// In en, this message translates to:
+  /// **'Remind when visiting'**
+  String get placeRemindGuests;
+
+  /// Чип: у любого места вида «Другое»
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at a place'**
+  String get placeRemindOther;
+
+  /// Чип напоминания по месту с днём: «Напомнить у магазина · завтра»
+  ///
+  /// In en, this message translates to:
+  /// **'{place} · {day}'**
+  String placeRemindDay(String place, String day);
+
+  /// День напоминания по месту
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get dayToday;
+
+  /// День напоминания по месту
+  ///
+  /// In en, this message translates to:
+  /// **'tomorrow'**
+  String get dayTomorrow;
+
+  /// Плашка: напоминание у вида места, а мест этого вида нет
+  ///
+  /// In en, this message translates to:
+  /// **'No such place yet: I’ll remind you once you add it in Places'**
+  String get placesMissingKind;
+
+  /// Кнопка на экране «Места»
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place'**
+  String get placesAdd;
+
+  /// Пустой список мест
+  ///
+  /// In en, this message translates to:
+  /// **'No places yet: add home, work, a favourite café or a friend.'**
+  String get placesEmpty;
+
+  /// Заголовок экрана добавления места
+  ///
+  /// In en, this message translates to:
+  /// **'New place'**
+  String get placeNewTitle;
+
+  /// Заголовок экрана правки места
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get placeEditTitle;
+
+  /// Подсказка в поле имени места
+  ///
+  /// In en, this message translates to:
+  /// **'Name it: Uni, Sasha, Andy’s'**
+  String get placeNameHint;
+
+  /// Раздел выбора вида места
+  ///
+  /// In en, this message translates to:
+  /// **'What is it'**
+  String get placeKindTitle;
+
+  /// Раздел точки на карте
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get placeWhereTitle;
+
+  /// Кнопка: взять текущее место
+  ///
+  /// In en, this message translates to:
+  /// **'I’m here now'**
+  String get placeHereNow;
+
+  /// Подсказка под картой выбора места
+  ///
+  /// In en, this message translates to:
+  /// **'Move the map: the place is where the centre dot is.'**
+  String get placeMapHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

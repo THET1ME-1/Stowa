@@ -371,6 +371,8 @@ class VaultReader {
         remindLatitude: Value(note.remindPlace?.latitude),
         remindLongitude: Value(note.remindPlace?.longitude),
         remindPlaceName: Value(note.remindPlace?.name),
+        remindPlaceRef: Value(note.remindPlace?.ref),
+        remindPlaceDay: Value(note.remindPlace?.day),
         properties: Value(packVaultProperties(note.extra)),
         createdAt: Value(note.created),
         updatedAt: Value(updated),

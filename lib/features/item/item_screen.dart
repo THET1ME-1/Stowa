@@ -33,6 +33,7 @@ import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
+import '../places/place_kinds.dart';
 import '../places/places_screen.dart';
 import '../places/reminder_permissions.dart';
 import '../composer/picked_files.dart';
@@ -284,71 +285,81 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     if (next != null && mounted) await _setProperties(before, next);
   }
 
-  PlaceReminder? _placeOf(Item item) =>
-      item.remindPlace == null ? null : PlaceReminder(item.remindPlace!, latitude: item.remindLatitude, longitude: item.remindLongitude, name: item.remindPlaceName);
+  PlaceReminder? _placeOf(Item item) => placeReminderOf(item);
 
-  /// «Напомнить»: по времени или по месту — здесь, дома, на работе, в магазине.
+  /// «Напомнить»: по времени, здесь, у своего места или у любого места вида
+  /// (виды — те, где мест больше одного). Мест нет — дом, работа, магазин и «Места».
   Future<void> _remindSheet() async {
     final l = L.of(context);
-    // «time» — по времени, иначе имя вида места; смахнули лист — null
-    final choice = await showModalBottomSheet<String>(
+    final places = ref.read(placesProvider).value ?? await ref.read(placesRepositoryProvider).all();
+    if (!mounted) return;
+    final counts = <PlaceKind, int>{};
+    for (final place in places) {
+      counts[place.kind] = (counts[place.kind] ?? 0) + 1;
+    }
+    final kinds = places.isEmpty
+        ? const [PlaceKind.home, PlaceKind.work, PlaceKind.shop]
+        : [for (final kind in PlaceKind.values) if ((counts[kind] ?? 0) > 1) kind];
+    Widget row(String icon, String title, Object choice) => ListTile(leading: Icon(symbolIcon(icon)), title: Text(title), onTap: () => Navigator.pop(context, choice));
+    // «time», «places» или готовое напоминание по месту; смахнули лист — null
+    final choice = await showModalBottomSheet<Object>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
+      isScrollControlled: true,
       builder: (sheet) => SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(leading: Icon(symbolIcon('schedule')), title: Text(l.itemRemindTime), onTap: () => Navigator.pop(sheet, 'time')),
-            for (final (kind, icon) in const [(PlaceReminderKind.point, 'my_location'), (PlaceReminderKind.home, 'home'), (PlaceReminderKind.work, 'work'), (PlaceReminderKind.shop, 'storefront')])
-              ListTile(leading: Icon(symbolIcon(icon)), title: Text(remindPlaceLabel(l, kind)), onTap: () => Navigator.pop(sheet, kind.name)),
-          ],
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.75),
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              row('schedule', l.itemRemindTime, 'time'),
+              row('my_location', l.placeRemindHere, const PlaceReminder(PlaceReminderKind.point)),
+              for (final place in places) row(placeKindIcon(place.kind), l.placeRemindAt(place.name), PlaceReminder(PlaceReminderKind.place, ref: place.id, name: place.name)),
+              for (final kind in kinds) row(placeKindIcon(kind), remindPlaceLabel(l, remindAtKind(kind)), PlaceReminder(remindAtKind(kind))),
+              row('add_location_alt', l.placesTitle, 'places'),
+            ],
+          ),
         ),
       ),
     );
     if (choice == null || !mounted) return;
-    if (choice == 'time') {
-      await _pickReminder(null);
-      return;
+    switch (choice) {
+      case 'time':
+        await _pickReminder(null);
+      case 'places':
+        await Navigator.of(context).push(placesRoute());
+      case PlaceReminder place:
+        await _setPlace(place);
     }
-    await _setPlace(PlaceReminderKind.values.byName(choice));
   }
 
-  Future<void> _setPlace(PlaceReminderKind kind) async {
+  Future<void> _setPlace(PlaceReminder chosen) async {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    if (kind == PlaceReminderKind.point) {
+    if (chosen.kind == PlaceReminderKind.point) {
       final fix = await ref.read(currentPlaceProvider)();
       if (fix == null) {
         showNote(messenger, l.placesNoFix);
         return;
       }
-      await _items.setPlaceReminder(_id, PlaceReminder(kind, latitude: fix.latitude, longitude: fix.longitude, name: fix.name));
+      await _items.setPlaceReminder(_id, PlaceReminder(PlaceReminderKind.point, latitude: fix.latitude, longitude: fix.longitude, name: fix.name));
       await askPlaceReminder(ref, messenger, l, overDock: true);
       return;
     }
-    await _items.setPlaceReminder(_id, PlaceReminder(kind));
+    await _items.setPlaceReminder(_id, chosen);
     await askNotifications(ref);
-    // дома, а дом не отмечен: напоминание стоит, сработает, когда отметят
+    // своё место есть всегда; у вида — есть ли хоть одно место этого вида
     final places = ref.read(placesProvider).value ?? await ref.read(placesRepositoryProvider).all();
-    final wanted = switch (kind) {
-      PlaceReminderKind.home => PlaceKind.home,
-      PlaceReminderKind.work => PlaceKind.work,
-      _ => PlaceKind.shop,
-    };
+    final wanted = placeKindOf(chosen.kind);
     // место отмечено — проверить «всегда»; не отмечено — ведём в «Места», там своя карточка разрешения
-    if (places.any((place) => place.kind == wanted)) {
+    if (wanted == null || places.any((place) => place.kind == wanted)) {
       await askPlaceReminder(ref, messenger, l, overDock: true);
       return;
     }
-    final missing = switch (wanted) {
-      PlaceKind.home => l.placesMissingHome,
-      PlaceKind.work => l.placesMissingWork,
-      PlaceKind.shop => l.placesMissingShop,
-    };
-    showUndo(messenger, message: missing, label: l.placesTitle, onUndo: () => navigator.push(placesRoute()), overDock: true);
+    showUndo(messenger, message: l.placesMissingKind, label: l.placesTitle, onUndo: () => navigator.push(placesRoute()), overDock: true);
   }
 
   Future<void> _placeMenu(PlaceReminder current) async {
@@ -1225,11 +1236,11 @@ class _PlaceReminderBlock extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           child: Row(
             children: [
-              Icon(symbolIcon('location_on', filled: true), size: 24, color: Tokens.onAccent),
+              Icon(symbolIcon(remindPlaceIcon(place.kind), filled: true), size: 24, color: Tokens.onAccent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  remindPlaceLabel(l, place.kind, name: place.name),
+                  remindPlaceLabel(l, place.kind, name: place.name, day: place.day),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Tokens.onAccent),
                 ),
               ),

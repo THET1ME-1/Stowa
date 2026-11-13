@@ -56,10 +56,13 @@ void main() {
   });
 
   test('напоминание по месту проходит круг файл → заметка: дом, магазин и точка с названием', () {
-    for (final place in const [
-      PlaceReminder(PlaceReminderKind.home),
-      PlaceReminder(PlaceReminderKind.shop),
-      PlaceReminder(PlaceReminderKind.point, latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв'),
+    for (final place in [
+      const PlaceReminder(PlaceReminderKind.home),
+      const PlaceReminder(PlaceReminderKind.shop),
+      const PlaceReminder(PlaceReminderKind.point, latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв'),
+      // своё место и день: «завтра буду у Саши»
+      PlaceReminder(PlaceReminderKind.place, ref: 'sasha', name: 'Саша', day: DateTime(2026, 11, 14)),
+      PlaceReminder(PlaceReminderKind.pharmacy, day: DateTime(2026, 11, 14)),
     ]) {
       final note = VaultNote(id: 'a', kind: ItemKind.note, title: 'Кофе', body: 'Кофе', created: created, updated: updated, remindPlace: place);
       final back = readVaultNote(writeVaultNote(note, fileName: 'Кофе.md'), fileName: 'Кофе.md', fileModified: DateTime(2000));

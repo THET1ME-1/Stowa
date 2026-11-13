@@ -2044,7 +2044,7 @@ class LUk extends L {
 
   @override
   String get placesHint =>
-      'Місця потрібні для нагадувань на кшталт «нагадай удома» чи «в магазині».';
+      'Напишеш «буду проходити повз аптеку» чи «зайду до Саші» — Stowa нагадає біля цього місця.';
 
   @override
   String placesShopsCount(int count) {
@@ -2892,4 +2892,92 @@ class LUk extends L {
   @override
   String get iconsNone =>
       'Такої іконки немає, спробуй інше слово або англійською.';
+
+  @override
+  String get placeKindHome => 'Дім';
+
+  @override
+  String get placeKindWork => 'Робота';
+
+  @override
+  String get placeKindStudy => 'Навчання';
+
+  @override
+  String get placeKindShop => 'Магазин';
+
+  @override
+  String get placeKindPharmacy => 'Аптека';
+
+  @override
+  String get placeKindFood => 'Кафе й ресторани';
+
+  @override
+  String get placeKindSport => 'Спорт';
+
+  @override
+  String get placeKindGuests => 'Гості';
+
+  @override
+  String get placeKindOther => 'Інше';
+
+  @override
+  String get placeRemindStudy => 'Нагадати на навчанні';
+
+  @override
+  String get placeRemindPharmacy => 'Нагадати біля аптеки';
+
+  @override
+  String get placeRemindFood => 'Нагадати в кафе';
+
+  @override
+  String get placeRemindSport => 'Нагадати в залі';
+
+  @override
+  String get placeRemindGuests => 'Нагадати в гостях';
+
+  @override
+  String get placeRemindOther => 'Нагадати біля місця';
+
+  @override
+  String placeRemindDay(String place, String day) {
+    return '$place · $day';
+  }
+
+  @override
+  String get dayToday => 'сьогодні';
+
+  @override
+  String get dayTomorrow => 'завтра';
+
+  @override
+  String get placesMissingKind =>
+      'Такого місця ще немає: нагадаю, коли позначиш його в «Місцях»';
+
+  @override
+  String get placesAdd => 'Додати місце';
+
+  @override
+  String get placesEmpty =>
+      'Місць поки немає: додай дім, роботу, улюблене кафе чи друга.';
+
+  @override
+  String get placeNewTitle => 'Нове місце';
+
+  @override
+  String get placeEditTitle => 'Місце';
+
+  @override
+  String get placeNameHint => 'Як назвати: Універ, Саша, Andy’s';
+
+  @override
+  String get placeKindTitle => 'Що це';
+
+  @override
+  String get placeWhereTitle => 'Де';
+
+  @override
+  String get placeHereNow => 'Я зараз тут';
+
+  @override
+  String get placeMapHint => 'Рухай мапу: місце там, де крапка в центрі.';
 }

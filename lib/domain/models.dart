@@ -108,27 +108,46 @@ enum FactKind {
 /// хранится только отклонённая, чтобы больше её не предлагать.
 enum LinkSource { manual, ai, similar }
 
-/// Отмеченное место в настройках «Места»: дом, работа или магазин.
-enum PlaceKind { home, work, shop }
+/// Вид отмеченного места в «Местах». Мест одного вида сколько угодно: вторая работа,
+/// три любимых кафе. Вид даёт значок и слова, по которым место узнаётся в тексте.
+enum PlaceKind { home, work, study, shop, pharmacy, food, sport, guests, other }
 
-/// Где напомнить: в точке (здесь, на карте), дома, на работе, в любом отмеченном магазине.
-enum PlaceReminderKind { point, home, work, shop }
+/// Где напомнить: в точке (здесь, на карте), у одного своего места ([place], id в `ref`)
+/// или у любого места вида — имена те же, что у [PlaceKind]. Старые home, work, shop — тоже виды.
+enum PlaceReminderKind { point, place, home, work, study, shop, pharmacy, food, sport, guests, other }
 
-/// Напоминание по месту. Точка несёт координаты и название, остальные берут место из «Мест».
+/// Вид места, у любого из которых звенит напоминание; у точки и своего места — null.
+PlaceKind? placeKindOf(PlaceReminderKind kind) => PlaceKind.values.asNameMap()[kind.name];
+
+/// Напоминание «у любого места вида».
+PlaceReminderKind remindAtKind(PlaceKind kind) => PlaceReminderKind.values.byName(kind.name);
+
+/// Напоминание по месту. Точка несёт координаты и название, своё место — его id в [ref]
+/// и имя в [name], вид места берёт все места вида из «Мест».
+/// [day] — только в этот день: «завтра буду проходить мимо магазина».
 class PlaceReminder {
-  const PlaceReminder(this.kind, {this.latitude, this.longitude, this.name});
+  const PlaceReminder(this.kind, {this.latitude, this.longitude, this.name, this.ref, this.day});
 
   final PlaceReminderKind kind;
   final double? latitude;
   final double? longitude;
   final String? name;
+  final String? ref;
+  final DateTime? day;
 
   @override
-  bool operator ==(Object other) => other is PlaceReminder && other.kind == kind && other.latitude == latitude && other.longitude == longitude && other.name == name;
+  bool operator ==(Object other) =>
+      other is PlaceReminder &&
+      other.kind == kind &&
+      other.latitude == latitude &&
+      other.longitude == longitude &&
+      other.name == name &&
+      other.ref == ref &&
+      other.day == day;
 
   @override
-  int get hashCode => Object.hash(kind, latitude, longitude, name);
+  int get hashCode => Object.hash(kind, latitude, longitude, name, ref, day);
 
   @override
-  String toString() => 'PlaceReminder($kind, $latitude, $longitude, $name)';
+  String toString() => 'PlaceReminder($kind, $latitude, $longitude, $name, $ref, $day)';
 }

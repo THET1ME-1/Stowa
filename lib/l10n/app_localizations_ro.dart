@@ -2020,7 +2020,7 @@ class LRo extends L {
 
   @override
   String get placesHint =>
-      'Locurile sunt pentru mementouri ca „amintește-mi acasă” sau „la magazin”.';
+      'Scrie „amintește-mi la farmacie” și Stowa îți amintește acolo.';
 
   @override
   String placesShopsCount(int count) {
@@ -2861,4 +2861,92 @@ class LRo extends L {
   @override
   String get iconsNone =>
       'Nu există o astfel de pictogramă, încearcă alt cuvânt.';
+
+  @override
+  String get placeKindHome => 'Acasă';
+
+  @override
+  String get placeKindWork => 'Serviciu';
+
+  @override
+  String get placeKindStudy => 'Studii';
+
+  @override
+  String get placeKindShop => 'Magazin';
+
+  @override
+  String get placeKindPharmacy => 'Farmacie';
+
+  @override
+  String get placeKindFood => 'Cafenele și restaurante';
+
+  @override
+  String get placeKindSport => 'Sport';
+
+  @override
+  String get placeKindGuests => 'Prieteni și rude';
+
+  @override
+  String get placeKindOther => 'Altceva';
+
+  @override
+  String get placeRemindStudy => 'Amintește la studii';
+
+  @override
+  String get placeRemindPharmacy => 'Amintește la farmacie';
+
+  @override
+  String get placeRemindFood => 'Amintește la cafenea';
+
+  @override
+  String get placeRemindSport => 'Amintește la sală';
+
+  @override
+  String get placeRemindGuests => 'Amintește în vizită';
+
+  @override
+  String get placeRemindOther => 'Amintește la loc';
+
+  @override
+  String placeRemindDay(String place, String day) {
+    return '$place · $day';
+  }
+
+  @override
+  String get dayToday => 'azi';
+
+  @override
+  String get dayTomorrow => 'mâine';
+
+  @override
+  String get placesMissingKind =>
+      'Nu există încă un astfel de loc: îți amintesc după ce îl adaugi în Locuri';
+
+  @override
+  String get placesAdd => 'Adaugă un loc';
+
+  @override
+  String get placesEmpty =>
+      'Încă nu ai locuri: adaugă casa, serviciul, o cafenea preferată sau un prieten.';
+
+  @override
+  String get placeNewTitle => 'Loc nou';
+
+  @override
+  String get placeEditTitle => 'Loc';
+
+  @override
+  String get placeNameHint => 'Cum îl numești: Facultate, Sașa, Andy’s';
+
+  @override
+  String get placeKindTitle => 'Ce este';
+
+  @override
+  String get placeWhereTitle => 'Unde';
+
+  @override
+  String get placeHereNow => 'Sunt aici acum';
+
+  @override
+  String get placeMapHint => 'Mută harta: locul e unde e punctul din centru.';
 }

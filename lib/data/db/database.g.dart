@@ -259,6 +259,29 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _remindPlaceRefMeta = const VerificationMeta(
+    'remindPlaceRef',
+  );
+  @override
+  late final GeneratedColumn<String> remindPlaceRef = GeneratedColumn<String>(
+    'remind_place_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remindPlaceDayMeta = const VerificationMeta(
+    'remindPlaceDay',
+  );
+  @override
+  late final GeneratedColumn<DateTime> remindPlaceDay =
+      GeneratedColumn<DateTime>(
+        'remind_place_day',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _openedAtMeta = const VerificationMeta(
     'openedAt',
   );
@@ -399,6 +422,8 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     remindLatitude,
     remindLongitude,
     remindPlaceName,
+    remindPlaceRef,
+    remindPlaceDay,
     openedAt,
     goneAt,
     goneKept,
@@ -564,6 +589,24 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         remindPlaceName.isAcceptableOrUnknown(
           data['remind_place_name']!,
           _remindPlaceNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('remind_place_ref')) {
+      context.handle(
+        _remindPlaceRefMeta,
+        remindPlaceRef.isAcceptableOrUnknown(
+          data['remind_place_ref']!,
+          _remindPlaceRefMeta,
+        ),
+      );
+    }
+    if (data.containsKey('remind_place_day')) {
+      context.handle(
+        _remindPlaceDayMeta,
+        remindPlaceDay.isAcceptableOrUnknown(
+          data['remind_place_day']!,
+          _remindPlaceDayMeta,
         ),
       );
     }
@@ -750,6 +793,14 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.string,
         data['${effectivePrefix}remind_place_name'],
       ),
+      remindPlaceRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remind_place_ref'],
+      ),
+      remindPlaceDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}remind_place_day'],
+      ),
       openedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}opened_at'],
@@ -851,6 +902,13 @@ class Item extends DataClass implements Insertable<Item> {
   final double? remindLongitude;
   final String? remindPlaceName;
 
+  /// Своё место из «Мест» (схема v16): его id, когда напоминание у одного места, а не у вида.
+  final String? remindPlaceRef;
+
+  /// День, в который напоминание по месту действует (v16): «завтра буду проходить мимо магазина».
+  /// Прошёл — напоминание снимается. Пусто — любой день.
+  final DateTime? remindPlaceDay;
+
   /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   final DateTime? openedAt;
@@ -899,6 +957,8 @@ class Item extends DataClass implements Insertable<Item> {
     this.remindLatitude,
     this.remindLongitude,
     this.remindPlaceName,
+    this.remindPlaceRef,
+    this.remindPlaceDay,
     this.openedAt,
     this.goneAt,
     required this.goneKept,
@@ -985,6 +1045,12 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || remindPlaceName != null) {
       map['remind_place_name'] = Variable<String>(remindPlaceName);
     }
+    if (!nullToAbsent || remindPlaceRef != null) {
+      map['remind_place_ref'] = Variable<String>(remindPlaceRef);
+    }
+    if (!nullToAbsent || remindPlaceDay != null) {
+      map['remind_place_day'] = Variable<DateTime>(remindPlaceDay);
+    }
     if (!nullToAbsent || openedAt != null) {
       map['opened_at'] = Variable<DateTime>(openedAt);
     }
@@ -1070,6 +1136,12 @@ class Item extends DataClass implements Insertable<Item> {
       remindPlaceName: remindPlaceName == null && nullToAbsent
           ? const Value.absent()
           : Value(remindPlaceName),
+      remindPlaceRef: remindPlaceRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindPlaceRef),
+      remindPlaceDay: remindPlaceDay == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindPlaceDay),
       openedAt: openedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(openedAt),
@@ -1133,6 +1205,8 @@ class Item extends DataClass implements Insertable<Item> {
       remindLatitude: serializer.fromJson<double?>(json['remindLatitude']),
       remindLongitude: serializer.fromJson<double?>(json['remindLongitude']),
       remindPlaceName: serializer.fromJson<String?>(json['remindPlaceName']),
+      remindPlaceRef: serializer.fromJson<String?>(json['remindPlaceRef']),
+      remindPlaceDay: serializer.fromJson<DateTime?>(json['remindPlaceDay']),
       openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
       goneAt: serializer.fromJson<DateTime?>(json['goneAt']),
       goneKept: serializer.fromJson<bool>(json['goneKept']),
@@ -1181,6 +1255,8 @@ class Item extends DataClass implements Insertable<Item> {
       'remindLatitude': serializer.toJson<double?>(remindLatitude),
       'remindLongitude': serializer.toJson<double?>(remindLongitude),
       'remindPlaceName': serializer.toJson<String?>(remindPlaceName),
+      'remindPlaceRef': serializer.toJson<String?>(remindPlaceRef),
+      'remindPlaceDay': serializer.toJson<DateTime?>(remindPlaceDay),
       'openedAt': serializer.toJson<DateTime?>(openedAt),
       'goneAt': serializer.toJson<DateTime?>(goneAt),
       'goneKept': serializer.toJson<bool>(goneKept),
@@ -1219,6 +1295,8 @@ class Item extends DataClass implements Insertable<Item> {
     Value<double?> remindLatitude = const Value.absent(),
     Value<double?> remindLongitude = const Value.absent(),
     Value<String?> remindPlaceName = const Value.absent(),
+    Value<String?> remindPlaceRef = const Value.absent(),
+    Value<DateTime?> remindPlaceDay = const Value.absent(),
     Value<DateTime?> openedAt = const Value.absent(),
     Value<DateTime?> goneAt = const Value.absent(),
     bool? goneKept,
@@ -1266,6 +1344,12 @@ class Item extends DataClass implements Insertable<Item> {
     remindPlaceName: remindPlaceName.present
         ? remindPlaceName.value
         : this.remindPlaceName,
+    remindPlaceRef: remindPlaceRef.present
+        ? remindPlaceRef.value
+        : this.remindPlaceRef,
+    remindPlaceDay: remindPlaceDay.present
+        ? remindPlaceDay.value
+        : this.remindPlaceDay,
     openedAt: openedAt.present ? openedAt.value : this.openedAt,
     goneAt: goneAt.present ? goneAt.value : this.goneAt,
     goneKept: goneKept ?? this.goneKept,
@@ -1327,6 +1411,12 @@ class Item extends DataClass implements Insertable<Item> {
       remindPlaceName: data.remindPlaceName.present
           ? data.remindPlaceName.value
           : this.remindPlaceName,
+      remindPlaceRef: data.remindPlaceRef.present
+          ? data.remindPlaceRef.value
+          : this.remindPlaceRef,
+      remindPlaceDay: data.remindPlaceDay.present
+          ? data.remindPlaceDay.value
+          : this.remindPlaceDay,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       goneAt: data.goneAt.present ? data.goneAt.value : this.goneAt,
       goneKept: data.goneKept.present ? data.goneKept.value : this.goneKept,
@@ -1373,6 +1463,8 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('remindLatitude: $remindLatitude, ')
           ..write('remindLongitude: $remindLongitude, ')
           ..write('remindPlaceName: $remindPlaceName, ')
+          ..write('remindPlaceRef: $remindPlaceRef, ')
+          ..write('remindPlaceDay: $remindPlaceDay, ')
           ..write('openedAt: $openedAt, ')
           ..write('goneAt: $goneAt, ')
           ..write('goneKept: $goneKept, ')
@@ -1413,6 +1505,8 @@ class Item extends DataClass implements Insertable<Item> {
     remindLatitude,
     remindLongitude,
     remindPlaceName,
+    remindPlaceRef,
+    remindPlaceDay,
     openedAt,
     goneAt,
     goneKept,
@@ -1452,6 +1546,8 @@ class Item extends DataClass implements Insertable<Item> {
           other.remindLatitude == this.remindLatitude &&
           other.remindLongitude == this.remindLongitude &&
           other.remindPlaceName == this.remindPlaceName &&
+          other.remindPlaceRef == this.remindPlaceRef &&
+          other.remindPlaceDay == this.remindPlaceDay &&
           other.openedAt == this.openedAt &&
           other.goneAt == this.goneAt &&
           other.goneKept == this.goneKept &&
@@ -1489,6 +1585,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<double?> remindLatitude;
   final Value<double?> remindLongitude;
   final Value<String?> remindPlaceName;
+  final Value<String?> remindPlaceRef;
+  final Value<DateTime?> remindPlaceDay;
   final Value<DateTime?> openedAt;
   final Value<DateTime?> goneAt;
   final Value<bool> goneKept;
@@ -1525,6 +1623,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.remindLatitude = const Value.absent(),
     this.remindLongitude = const Value.absent(),
     this.remindPlaceName = const Value.absent(),
+    this.remindPlaceRef = const Value.absent(),
+    this.remindPlaceDay = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.goneAt = const Value.absent(),
     this.goneKept = const Value.absent(),
@@ -1562,6 +1662,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.remindLatitude = const Value.absent(),
     this.remindLongitude = const Value.absent(),
     this.remindPlaceName = const Value.absent(),
+    this.remindPlaceRef = const Value.absent(),
+    this.remindPlaceDay = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.goneAt = const Value.absent(),
     this.goneKept = const Value.absent(),
@@ -1603,6 +1705,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<double>? remindLatitude,
     Expression<double>? remindLongitude,
     Expression<String>? remindPlaceName,
+    Expression<String>? remindPlaceRef,
+    Expression<DateTime>? remindPlaceDay,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? goneAt,
     Expression<bool>? goneKept,
@@ -1640,6 +1744,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (remindLatitude != null) 'remind_latitude': remindLatitude,
       if (remindLongitude != null) 'remind_longitude': remindLongitude,
       if (remindPlaceName != null) 'remind_place_name': remindPlaceName,
+      if (remindPlaceRef != null) 'remind_place_ref': remindPlaceRef,
+      if (remindPlaceDay != null) 'remind_place_day': remindPlaceDay,
       if (openedAt != null) 'opened_at': openedAt,
       if (goneAt != null) 'gone_at': goneAt,
       if (goneKept != null) 'gone_kept': goneKept,
@@ -1679,6 +1785,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<double?>? remindLatitude,
     Value<double?>? remindLongitude,
     Value<String?>? remindPlaceName,
+    Value<String?>? remindPlaceRef,
+    Value<DateTime?>? remindPlaceDay,
     Value<DateTime?>? openedAt,
     Value<DateTime?>? goneAt,
     Value<bool>? goneKept,
@@ -1716,6 +1824,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       remindLatitude: remindLatitude ?? this.remindLatitude,
       remindLongitude: remindLongitude ?? this.remindLongitude,
       remindPlaceName: remindPlaceName ?? this.remindPlaceName,
+      remindPlaceRef: remindPlaceRef ?? this.remindPlaceRef,
+      remindPlaceDay: remindPlaceDay ?? this.remindPlaceDay,
       openedAt: openedAt ?? this.openedAt,
       goneAt: goneAt ?? this.goneAt,
       goneKept: goneKept ?? this.goneKept,
@@ -1813,6 +1923,12 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (remindPlaceName.present) {
       map['remind_place_name'] = Variable<String>(remindPlaceName.value);
     }
+    if (remindPlaceRef.present) {
+      map['remind_place_ref'] = Variable<String>(remindPlaceRef.value);
+    }
+    if (remindPlaceDay.present) {
+      map['remind_place_day'] = Variable<DateTime>(remindPlaceDay.value);
+    }
     if (openedAt.present) {
       map['opened_at'] = Variable<DateTime>(openedAt.value);
     }
@@ -1876,6 +1992,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('remindLatitude: $remindLatitude, ')
           ..write('remindLongitude: $remindLongitude, ')
           ..write('remindPlaceName: $remindPlaceName, ')
+          ..write('remindPlaceRef: $remindPlaceRef, ')
+          ..write('remindPlaceDay: $remindPlaceDay, ')
           ..write('openedAt: $openedAt, ')
           ..write('goneAt: $goneAt, ')
           ..write('goneKept: $goneKept, ')
@@ -10955,6 +11073,8 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<double?> remindLatitude,
   Value<double?> remindLongitude,
   Value<String?> remindPlaceName,
+  Value<String?> remindPlaceRef,
+  Value<DateTime?> remindPlaceDay,
   Value<DateTime?> openedAt,
   Value<DateTime?> goneAt,
   Value<bool> goneKept,
@@ -10992,6 +11112,8 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<double?> remindLatitude,
   Value<double?> remindLongitude,
   Value<String?> remindPlaceName,
+  Value<String?> remindPlaceRef,
+  Value<DateTime?> remindPlaceDay,
   Value<DateTime?> openedAt,
   Value<DateTime?> goneAt,
   Value<bool> goneKept,
@@ -11134,6 +11256,16 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<String> get remindPlaceName => $composableBuilder(
     column: $table.remindPlaceName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remindPlaceRef => $composableBuilder(
+    column: $table.remindPlaceRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get remindPlaceDay => $composableBuilder(
+    column: $table.remindPlaceDay,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11317,6 +11449,16 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remindPlaceRef => $composableBuilder(
+    column: $table.remindPlaceRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get remindPlaceDay => $composableBuilder(
+    column: $table.remindPlaceDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get openedAt => $composableBuilder(
     column: $table.openedAt,
     builder: (column) => ColumnOrderings(column),
@@ -11472,6 +11614,16 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get remindPlaceRef => $composableBuilder(
+    column: $table.remindPlaceRef,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get remindPlaceDay => $composableBuilder(
+    column: $table.remindPlaceDay,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get openedAt =>
       $composableBuilder(column: $table.openedAt, builder: (column) => column);
 
@@ -11561,6 +11713,8 @@ class $$ItemsTableTableManager
                 Value<double?> remindLatitude = const Value.absent(),
                 Value<double?> remindLongitude = const Value.absent(),
                 Value<String?> remindPlaceName = const Value.absent(),
+                Value<String?> remindPlaceRef = const Value.absent(),
+                Value<DateTime?> remindPlaceDay = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
                 Value<DateTime?> goneAt = const Value.absent(),
                 Value<bool> goneKept = const Value.absent(),
@@ -11597,6 +11751,8 @@ class $$ItemsTableTableManager
                 remindLatitude: remindLatitude,
                 remindLongitude: remindLongitude,
                 remindPlaceName: remindPlaceName,
+                remindPlaceRef: remindPlaceRef,
+                remindPlaceDay: remindPlaceDay,
                 openedAt: openedAt,
                 goneAt: goneAt,
                 goneKept: goneKept,
@@ -11635,6 +11791,8 @@ class $$ItemsTableTableManager
                 Value<double?> remindLatitude = const Value.absent(),
                 Value<double?> remindLongitude = const Value.absent(),
                 Value<String?> remindPlaceName = const Value.absent(),
+                Value<String?> remindPlaceRef = const Value.absent(),
+                Value<DateTime?> remindPlaceDay = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
                 Value<DateTime?> goneAt = const Value.absent(),
                 Value<bool> goneKept = const Value.absent(),
@@ -11671,6 +11829,8 @@ class $$ItemsTableTableManager
                 remindLatitude: remindLatitude,
                 remindLongitude: remindLongitude,
                 remindPlaceName: remindPlaceName,
+                remindPlaceRef: remindPlaceRef,
+                remindPlaceDay: remindPlaceDay,
                 openedAt: openedAt,
                 goneAt: goneAt,
                 goneKept: goneKept,

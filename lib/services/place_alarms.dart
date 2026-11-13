@@ -16,15 +16,17 @@ const _shownItems = 3;
 /// Держит тревоги Android в согласии с базой: заметки с напоминанием по месту и покупки
 /// у отмеченных магазинов. Сработавшие снимает в базе, как «Готово».
 class PlaceAlarmService {
-  PlaceAlarmService(this._db, {required PlaceChannel channel, required ReturnSettings Function() settings, required L Function() l})
+  PlaceAlarmService(this._db, {required PlaceChannel channel, required ReturnSettings Function() settings, required L Function() l, DateTime Function()? clock})
     : _channel = channel, // ignore: prefer_initializing_formals
       _settings = settings, // ignore: prefer_initializing_formals
-      _l = l; // ignore: prefer_initializing_formals
+      _l = l, // ignore: prefer_initializing_formals
+      _clock = clock ?? DateTime.now;
 
   final AppDatabase _db;
   final PlaceChannel _channel;
   final ReturnSettings Function() _settings;
   final L Function() _l;
+  final DateTime Function() _clock;
 
   /// Снять сработавшее, собрать тревоги заново и отдать их Android.
   Future<void> sync() async {
@@ -37,14 +39,25 @@ class PlaceAlarmService {
     await _channel.sync(await build(), channelName: _l().placeChannel);
   }
 
-  /// Тревоги из базы. Дом или работа не отмечены — их заметки ждут, тревоги нет.
+  /// Тревоги из базы. Мест нужного вида нет или своё место удалено — заметка ждёт, тревоги нет.
+  /// Напоминание на прошедший день снимается, на будущий — ждёт своего дня.
   Future<List<PlaceAlarm>> build() async {
     final l = _l();
+    final now = _clock();
+    final today = DateTime(now.year, now.month, now.day);
     final places = await PlacesRepository(_db).all();
-    final home = places.where((place) => place.kind == PlaceKind.home).firstOrNull;
-    final work = places.where((place) => place.kind == PlaceKind.work).firstOrNull;
     final shops = [for (final place in places) if (place.kind == PlaceKind.shop) place];
-    final notes = await (_db.select(_db.items)..where((t) => t.remindPlace.isNotNull() & t.deletedAt.isNull())).get();
+    final items = ItemsRepository(_db);
+    final notes = <Item>[];
+    for (final item in await (_db.select(_db.items)..where((t) => t.remindPlace.isNotNull() & t.deletedAt.isNull())).get()) {
+      final day = item.remindPlaceDay;
+      final date = day == null ? null : DateTime(day.year, day.month, day.day);
+      if (date != null && date.isBefore(today)) {
+        await items.setPlaceReminder(item.id, null);
+      } else if (date == null || date == today) {
+        notes.add(item);
+      }
+    }
 
     final alarms = <PlaceAlarm>[];
     PlaceAlarm alarm(Item item, {required String id, required double latitude, required double longitude, int radius = 150, String? wifi}) => PlaceAlarm(
@@ -58,18 +71,17 @@ class PlaceAlarmService {
       wifi: wifi,
     );
     for (final item in notes) {
-      switch (item.remindPlace!) {
-        case PlaceReminderKind.point:
-          if (item.remindLatitude == null || item.remindLongitude == null) continue;
-          alarms.add(alarm(item, id: 'note:${item.id}', latitude: item.remindLatitude!, longitude: item.remindLongitude!));
-        case PlaceReminderKind.home || PlaceReminderKind.work:
-          final place = item.remindPlace == PlaceReminderKind.home ? home : work;
-          if (place == null) continue;
-          alarms.add(alarm(item, id: 'note:${item.id}', latitude: place.latitude, longitude: place.longitude, radius: place.radius, wifi: place.wifi));
-        case PlaceReminderKind.shop:
-          for (final shop in shops) {
-            alarms.add(alarm(item, id: 'note:${item.id}@${shop.id}', latitude: shop.latitude, longitude: shop.longitude, radius: shop.radius));
-          }
+      final kind = item.remindPlace!;
+      if (kind == PlaceReminderKind.point) {
+        if (item.remindLatitude == null || item.remindLongitude == null) continue;
+        alarms.add(alarm(item, id: 'note:${item.id}', latitude: item.remindLatitude!, longitude: item.remindLongitude!));
+        continue;
+      }
+      // своё место — одно; вид — все места вида: обе работы, каждая аптека
+      final wanted = placeKindOf(kind);
+      final targets = kind == PlaceReminderKind.place ? places.where((place) => place.id == item.remindPlaceRef) : places.where((place) => place.kind == wanted);
+      for (final place in targets) {
+        alarms.add(alarm(item, id: 'note:${item.id}@${place.id}', latitude: place.latitude, longitude: place.longitude, radius: place.radius, wifi: place.wifi));
       }
     }
 

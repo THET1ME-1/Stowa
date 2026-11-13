@@ -2005,7 +2005,7 @@ class LEn extends L {
 
   @override
   String get placesHint =>
-      'Places are for reminders like “remind me at home” or “at a store”.';
+      'Write “remind me at the pharmacy” and Stowa will remind you there.';
 
   @override
   String placesShopsCount(int count) {
@@ -2832,4 +2832,93 @@ class LEn extends L {
 
   @override
   String get iconsNone => 'No such icon, try another word.';
+
+  @override
+  String get placeKindHome => 'Home';
+
+  @override
+  String get placeKindWork => 'Work';
+
+  @override
+  String get placeKindStudy => 'Study';
+
+  @override
+  String get placeKindShop => 'Store';
+
+  @override
+  String get placeKindPharmacy => 'Pharmacy';
+
+  @override
+  String get placeKindFood => 'Cafés and restaurants';
+
+  @override
+  String get placeKindSport => 'Sport';
+
+  @override
+  String get placeKindGuests => 'Friends and family';
+
+  @override
+  String get placeKindOther => 'Other';
+
+  @override
+  String get placeRemindStudy => 'Remind at school';
+
+  @override
+  String get placeRemindPharmacy => 'Remind at a pharmacy';
+
+  @override
+  String get placeRemindFood => 'Remind at a café';
+
+  @override
+  String get placeRemindSport => 'Remind at the gym';
+
+  @override
+  String get placeRemindGuests => 'Remind when visiting';
+
+  @override
+  String get placeRemindOther => 'Remind at a place';
+
+  @override
+  String placeRemindDay(String place, String day) {
+    return '$place · $day';
+  }
+
+  @override
+  String get dayToday => 'today';
+
+  @override
+  String get dayTomorrow => 'tomorrow';
+
+  @override
+  String get placesMissingKind =>
+      'No such place yet: I’ll remind you once you add it in Places';
+
+  @override
+  String get placesAdd => 'Add a place';
+
+  @override
+  String get placesEmpty =>
+      'No places yet: add home, work, a favourite café or a friend.';
+
+  @override
+  String get placeNewTitle => 'New place';
+
+  @override
+  String get placeEditTitle => 'Place';
+
+  @override
+  String get placeNameHint => 'Name it: Uni, Sasha, Andy’s';
+
+  @override
+  String get placeKindTitle => 'What is it';
+
+  @override
+  String get placeWhereTitle => 'Where';
+
+  @override
+  String get placeHereNow => 'I’m here now';
+
+  @override
+  String get placeMapHint =>
+      'Move the map: the place is where the centre dot is.';
 }

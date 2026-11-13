@@ -2573,9 +2573,9 @@
   "@placesPermissionAllow": {
     "description": "Кнопка разрешения на место в фоне"
   },
-  "placesHint": "Places are for reminders like “remind me at home” or “at a store”.",
+  "placesHint": "Write “remind me at the pharmacy” and Stowa will remind you there.",
   "@placesHint": {
-    "description": "Подсказка внизу экрана мест"
+    "description": "Подсказка под списком мест"
   },
   "placesShopsCount": "{count, plural, one{{count} store} other{{count} stores}}",
   "@placesShopsCount": {
@@ -3606,5 +3606,125 @@
   "iconsNone": "No such icon, try another word.",
   "@iconsNone": {
     "description": "Поиск иконки ничего не нашёл"
+  },
+  "placeKindHome": "Home",
+  "@placeKindHome": {
+    "description": "Вид места"
+  },
+  "placeKindWork": "Work",
+  "@placeKindWork": {
+    "description": "Вид места"
+  },
+  "placeKindStudy": "Study",
+  "@placeKindStudy": {
+    "description": "Вид места: школа, универ, курсы"
+  },
+  "placeKindShop": "Store",
+  "@placeKindShop": {
+    "description": "Вид места"
+  },
+  "placeKindPharmacy": "Pharmacy",
+  "@placeKindPharmacy": {
+    "description": "Вид места"
+  },
+  "placeKindFood": "Cafés and restaurants",
+  "@placeKindFood": {
+    "description": "Вид места"
+  },
+  "placeKindSport": "Sport",
+  "@placeKindSport": {
+    "description": "Вид места: зал, бассейн"
+  },
+  "placeKindGuests": "Friends and family",
+  "@placeKindGuests": {
+    "description": "Вид места: у друга, у мамы"
+  },
+  "placeKindOther": "Other",
+  "@placeKindOther": {
+    "description": "Вид места"
+  },
+  "placeRemindStudy": "Remind at school",
+  "@placeRemindStudy": {
+    "description": "Чип и пункт листа: напоминание у любого места учёбы"
+  },
+  "placeRemindPharmacy": "Remind at a pharmacy",
+  "@placeRemindPharmacy": {
+    "description": "Чип: у любой отмеченной аптеки"
+  },
+  "placeRemindFood": "Remind at a café",
+  "@placeRemindFood": {
+    "description": "Чип: у любого кафе или ресторана"
+  },
+  "placeRemindSport": "Remind at the gym",
+  "@placeRemindSport": {
+    "description": "Чип: у любого места спорта"
+  },
+  "placeRemindGuests": "Remind when visiting",
+  "@placeRemindGuests": {
+    "description": "Чип: у любого места вида «Гости»"
+  },
+  "placeRemindOther": "Remind at a place",
+  "@placeRemindOther": {
+    "description": "Чип: у любого места вида «Другое»"
+  },
+  "placeRemindDay": "{place} · {day}",
+  "@placeRemindDay": {
+    "description": "Чип напоминания по месту с днём: «Напомнить у магазина · завтра»",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "dayToday": "today",
+  "@dayToday": {
+    "description": "День напоминания по месту"
+  },
+  "dayTomorrow": "tomorrow",
+  "@dayTomorrow": {
+    "description": "День напоминания по месту"
+  },
+  "placesMissingKind": "No such place yet: I’ll remind you once you add it in Places",
+  "@placesMissingKind": {
+    "description": "Плашка: напоминание у вида места, а мест этого вида нет"
+  },
+  "placesAdd": "Add a place",
+  "@placesAdd": {
+    "description": "Кнопка на экране «Места»"
+  },
+  "placesEmpty": "No places yet: add home, work, a favourite café or a friend.",
+  "@placesEmpty": {
+    "description": "Пустой список мест"
+  },
+  "placeNewTitle": "New place",
+  "@placeNewTitle": {
+    "description": "Заголовок экрана добавления места"
+  },
+  "placeEditTitle": "Place",
+  "@placeEditTitle": {
+    "description": "Заголовок экрана правки места"
+  },
+  "placeNameHint": "Name it: Uni, Sasha, Andy’s",
+  "@placeNameHint": {
+    "description": "Подсказка в поле имени места"
+  },
+  "placeKindTitle": "What is it",
+  "@placeKindTitle": {
+    "description": "Раздел выбора вида места"
+  },
+  "placeWhereTitle": "Where",
+  "@placeWhereTitle": {
+    "description": "Раздел точки на карте"
+  },
+  "placeHereNow": "I’m here now",
+  "@placeHereNow": {
+    "description": "Кнопка: взять текущее место"
+  },
+  "placeMapHint": "Move the map: the place is where the centre dot is.",
+  "@placeMapHint": {
+    "description": "Подсказка под картой выбора места"
   }
 }

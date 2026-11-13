@@ -16,6 +16,7 @@ import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
+import '../../data/db/database.dart' show Place;
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
@@ -24,6 +25,7 @@ import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/money.dart' show formatTotal;
+import '../../domain/place_cue.dart' show KnownPlace;
 import '../../domain/search_query.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
@@ -91,7 +93,11 @@ class LineDock extends ConsumerStatefulWidget {
 }
 
 class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderStateMixin {
-  late final LineController _line = LineController(clock: ref.read(clockProvider), workEnd: ref.read(workEndProvider), resolveFolder: _resolveFolder, folderMarks: !widget.writeOnly);
+  // под замком имена своих мест не показываются: строка узнаёт только виды
+  late final LineController _line = LineController(clock: ref.read(clockProvider), workEnd: ref.read(workEndProvider), resolveFolder: _resolveFolder, folderMarks: !widget.writeOnly)
+    ..places = widget.writeOnly ? null : _knownPlaces;
+
+  List<KnownPlace> _knownPlaces() => [for (final place in ref.read(placesProvider).value ?? const <Place>[]) (id: place.id, name: place.name, kind: place.kind)];
   late final FocusNode _focus = FocusNode(onKeyEvent: _onKey);
   final _undo = UndoHistoryController();
   final _fieldKey = GlobalKey();
@@ -1078,7 +1084,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
             decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(9)),
             child: Icon(symbolIcon('location_on', filled: true), size: 17, color: Tokens.onAccent),
           ),
-          label: remindPlaceLabel(l, place.kind),
+          label: remindPlaceLabel(l, place.kind, name: place.placeName, day: _line.placeDay, now: _now),
           removeTooltip: l.composerRemovePlace,
           onRemove: _line.dismissPlace,
         ),
