@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,9 +15,10 @@ import '../../data/repositories/items_repository.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Ближайшие напоминания наверху главной. Одно — белая карточка во всю ширину.
-/// Несколько — карусель M3: ведущая карточка широкая, следующие узкими полосками;
-/// при прокрутке следующая расширяется, светлеет и проявляет текст.
-/// Касание узкой выдвигает её вперёд, касание ведущей открывает заметку, галочка снимает напоминание.
+/// Несколько — карусель: ведущая по центру, по краям видны соседние, листается по кругу,
+/// один взмах — одна карточка, раз в минуту сама переходит на следующую.
+/// Соседние меньше и темнее; пока листаешь, следующая растёт и светлеет.
+/// Касание соседней выдвигает её в центр, касание ведущей открывает заметку, галочка снимает напоминание.
 class ReminderCarousel extends StatefulWidget {
   const ReminderCarousel({super.key, required this.items, required this.now, required this.onOpen, required this.onDone});
 
@@ -37,6 +40,18 @@ const _button = 40.0;
 /// Галочка карусели стоит в строке времени: меньше, чтобы ряд не рос.
 const _smallButton = 32.0;
 
+/// Доля ширины на одну карточку: по краям остаётся место соседним.
+const _pageFraction = 0.8;
+
+/// Соседняя карточка меньше ведущей.
+const _sideScale = 0.9;
+
+/// Как часто карусель сама переходит на следующую.
+const _autoTurn = Duration(minutes: 1);
+
+// «по кругу»: стартуем далеко от нуля, чтобы листать назад было куда
+const _startCycles = 1000;
+
 /// «завтра в 09:00» → «Завтра в 09:00»: время стоит первой строкой карточки.
 String _when(L l, DateTime at, DateTime now) {
   final text = formatReminder(l, at, now);
@@ -47,18 +62,38 @@ TextStyle _titleStyle(BuildContext context, Color color) =>
     Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: _titleSize, color: color, height: _titleHeight);
 
 class _ReminderCarouselState extends State<ReminderCarousel> {
-  final _controller = CarouselController();
+  late final _pages = PageController(viewportFraction: _pageFraction, initialPage: widget.items.length * _startCycles);
+  Timer? _turn;
+
+  @override
+  void initState() {
+    super.initState();
+    _restartTurn();
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _turn?.cancel();
+    _pages.dispose();
     super.dispose();
   }
 
-  /// Полоску — в центр.
-  void _bring(int index) {
+  // минута считается заново после каждого листания: карточка не уезжает из-под пальца
+  void _restartTurn() {
+    _turn?.cancel();
+    if (widget.items.length < 2) return;
+    _turn = Timer.periodic(_autoTurn, (_) {
+      if (!_pages.hasClients) return;
+      _pages.nextPage(duration: Motion.long, curve: Motion.emphasized);
+    });
+  }
+
+  double get _page => _pages.hasClients && _pages.position.haveDimensions ? _pages.page! : _pages.initialPage.toDouble();
+
+  void _bring(int page) {
     HapticFeedback.selectionClick();
-    _controller.animateToItem(index, duration: Motion.medium, curve: Motion.emphasized);
+    _pages.animateToPage(page, duration: Motion.medium, curve: Motion.emphasized);
+    _restartTurn();
   }
 
   /// Две строки заголовка нужны, только если хоть один не влезает в одну: иначе ряд ниже.
@@ -91,46 +126,51 @@ class _ReminderCarouselState extends State<ReminderCarousel> {
         ),
       );
     }
-    // ведущая по центру, слева и справа по полоске соседей, как hero-карусель M3
-    const weights = [1, 6, 1];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.screen - 4, 0, Space.screen - 4, 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final total = weights.fold(0, (sum, weight) => sum + weight);
-          final fullWidth = constraints.maxWidth * weights.reduce(math.max) / total - 8;
+          final cardWidth = constraints.maxWidth * _pageFraction - 8;
           final scale = MediaQuery.textScalerOf(context);
-          final lines = _titleLines(context, fullWidth - _pad * 2);
+          final lines = _titleLines(context, cardWidth - _pad * 2);
           final top = math.max(_smallButton, scale.scale(_whenSize) * 1.45);
           final height = _pad * 2 + top + 4 + scale.scale(_titleSize) * _titleHeight * lines + 2;
           return SizedBox(
             height: height,
-            // полоса прокрутки у ряда из трёх карточек только мешает
-            child: ScrollConfiguration(
-              behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-              child: CarouselView.weighted(
-                controller: _controller,
-                flexWeights: weights,
-                itemSnapping: true,
-                // по кругу в обе стороны: за последней снова первая, справа не остаётся пустоты
-                infinite: true,
-                // кнопки внутри карточки должны нажиматься: своя рябь у каждой карточки
-                enableSplash: false,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                backgroundColor: Colors.transparent,
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(Radii.card))),
-                children: [
-                  for (final (index, item) in items.indexed)
-                    _ReminderCard(
-                      key: ValueKey('reminder-${item.id}'),
-                      item: item,
-                      now: widget.now,
-                      fullWidth: fullWidth,
-                      onOpen: () => widget.onOpen(item),
-                      onBring: () => _bring(index),
-                      onDone: () => widget.onDone(item),
-                    ),
-                ],
+            // рука листает — минута автолистания начинается заново
+            child: NotificationListener<ScrollStartNotification>(
+              onNotification: (notification) {
+                if (notification.dragDetails != null) _restartTurn();
+                return false;
+              },
+              child: PageView.builder(
+                controller: _pages,
+                // ушедшая карточка уезжает за край экрана, а не обрезается
+                clipBehavior: Clip.none,
+                itemBuilder: (context, page) {
+                  final item = items[page % items.length];
+                  return AnimatedBuilder(
+                    animation: _pages,
+                    builder: (context, _) {
+                      // 1 — карточка по центру, 0 — соседняя
+                      final open = (1 - (_page - page).abs()).clamp(0.0, 1.0);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Transform.scale(
+                          scale: lerpDouble(_sideScale, 1, open)!,
+                          child: _ReminderCard(
+                            key: open > 0.5 ? const ValueKey('reminder-lead') : ValueKey('reminder-${item.id}'),
+                            item: item,
+                            now: widget.now,
+                            open: open,
+                            onTap: open > 0.5 ? () => widget.onOpen(item) : () => _bring(page),
+                            onDone: () => widget.onDone(item),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           );
@@ -192,115 +232,64 @@ class _SingleReminder extends StatelessWidget {
   }
 }
 
-/// Карточка карусели меняет вид по своей ширине: во всю — белая с текстом, галочкой и точками,
-/// уже — темнеет, текст тает, остаётся значок со временем, у самой узкой — один будильник.
+/// Карточка карусели: время, галочка и заголовок у всех, у ведущей ([open] 1) — белая,
+/// у соседней ([open] 0) — на подложке. Цвета тянутся за прокруткой, без прозрачности слоя.
 class _ReminderCard extends StatelessWidget {
-  const _ReminderCard({
-    super.key,
-    required this.item,
-    required this.now,
-    required this.fullWidth,
-    required this.onOpen,
-    required this.onBring,
-    required this.onDone,
-  });
+  const _ReminderCard({super.key, required this.item, required this.now, required this.open, required this.onTap, required this.onDone});
 
   final ItemCard item;
   final DateTime now;
-
-  /// Ширина ведущей карточки: на ней раскрытие полное.
-  final double fullWidth;
-
-  /// Касание раскрытой — открыть заметку, полоски — выдвинуть её в центр.
-  final VoidCallback onOpen;
-  final VoidCallback onBring;
+  final double open;
+  final VoidCallback onTap;
   final VoidCallback onDone;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        // 0 — полоска, 1 — ведущая во всю ширину; цвет и текст идут за шириной кадр в кадр
-        final open = ((width - fullWidth * 0.6) / (fullWidth * 0.35)).clamp(0.0, 1.0);
-        // серая середина проскакивает быстро: цвет меняется в средней трети раскрытия
-        final fill = Color.lerp(Tokens.containerHigh, Tokens.accent, Curves.easeInOutCubic.transform(open))!;
-        return Material(
-          color: fill,
-          borderRadius: BorderRadius.circular(Radii.card),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: open > 0.8 ? onOpen : onBring,
-            child: width >= 150 ? _wide(context, open) : _narrow(context, width, constraints.maxHeight),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _wide(BuildContext context, double open) {
     final l = L.of(context);
-    final ink = Color.lerp(Tokens.onSurface, Tokens.onAccent, open)!;
-    final soft = Color.lerp(Tokens.onSurfaceVariant, Tokens.onAccentVariant, open)!;
-    return CustomPaint(
-      painter: _Dots(ink.withValues(alpha: ink.a * open)),
-      child: Padding(
-        padding: const EdgeInsets.all(_pad),
-        // текст проявляется, пока карточка раскрывается
-        child: Opacity(
-          opacity: open,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: _smallButton,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _when(l, item.reminderAt!, now),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontSize: _whenSize, color: soft),
+    final shade = Curves.easeInOutCubic.transform(open);
+    final fill = Color.lerp(Tokens.containerHigh, Tokens.accent, shade)!;
+    final ink = Color.lerp(Tokens.onSurface, Tokens.onAccent, shade)!;
+    final soft = Color.lerp(Tokens.onSurfaceVariant, Tokens.onAccentVariant, shade)!;
+    return Material(
+      color: fill,
+      borderRadius: BorderRadius.circular(Radii.card),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: CustomPaint(
+          painter: _Dots(ink.withValues(alpha: ink.a * shade)),
+          child: Padding(
+            padding: const EdgeInsets.all(_pad),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: _smallButton,
+                  child: Row(
+                    children: [
+                      Icon(symbolIcon('alarm', filled: true), size: 16, color: soft),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          _when(l, item.reminderAt!, now),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontSize: _whenSize, color: soft),
+                        ),
                       ),
-                    ),
-                    // галочка только у раскрытой: у полуоткрытой её легко задеть, листая
-                    if (open > 0.6) _DoneButton(onDone: onDone, open: open, size: _smallButton),
-                  ],
+                      // галочка только у ведущей: у соседней её легко задеть, листая
+                      if (open > 0.5) _DoneButton(onDone: onDone, open: open, size: _smallButton),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              // заголовку вся ширина карточки
-              Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(context, ink)),
-            ],
+                const SizedBox(height: 4),
+                Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(context, ink)),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  /// Узкая: значок и время под ним, у самой узкой — только будильник.
-  Widget _narrow(BuildContext context, double width, double height) {
-    final time = MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(item.reminderAt!), alwaysUse24HourFormat: true);
-    final timeStyle = Theme.of(context).textTheme.labelMedium!.copyWith(color: Tokens.onSurfaceVariant);
-    // под значком строка времени: значок не выше, чем осталось над ней
-    final badge = math.min(52.0, math.min(width - 16, height - 40));
-    if (width < 64 || badge < 28) {
-      return Center(child: Icon(symbolIcon('alarm', filled: true), size: math.min(22.0, math.max(0.0, width - 8)), color: Tokens.onSurfaceVariant));
-    }
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ShapeBadge(
-          shape: BadgeShape.cookie9,
-          size: badge,
-          color: Tokens.containerHighest,
-          child: Icon(symbolIcon('alarm', filled: true), size: badge * 0.46, color: Tokens.onSurface),
-        ),
-        const SizedBox(height: 4),
-        Text(time, maxLines: 1, overflow: TextOverflow.clip, style: timeStyle),
-      ],
     );
   }
 }

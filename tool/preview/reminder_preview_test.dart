@@ -97,9 +97,9 @@ void main() {
     await tester.pumpAndSettle();
     await _shot(tester, 'reminders-1-покой');
 
-    final carousel = find.byType(CarouselView);
-    // шаг карусели — ширина полоски, восьмая часть ряда
-    final half = tester.getSize(carousel).width / 16;
+    final carousel = find.byType(PageView);
+    // половина шага: шаг карусели — ширина карточки, 0,8 ряда
+    final half = tester.getSize(carousel).width * 0.4;
     final gesture = await tester.startGesture(tester.getCenter(carousel));
     for (var step = 0; step < 10; step++) {
       await gesture.moveBy(Offset(-half / 10, 0));
