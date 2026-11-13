@@ -822,7 +822,11 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       ids.addAll(await _admitted(query, here, inFolders: inFolders));
     } else {
       if (words.isNotEmpty) {
-        final stems = {for (final word in words) for (final variant in word.variants) stemOf(variant.text)};
+        // и основы по правилам Snowball всех языков письма слова: «talossa» найдёт «talo» по началу
+        final stems = {
+          for (final word in words)
+            for (final variant in word.variants) ...{stemOf(variant.text), ...languageStems(variant.text)},
+        };
         ids.addAll(await _db.searchIds(stems.map((stem) => '"$stem"*').join(' OR ')));
       }
       final recent = await _db

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'language_guess.dart' show guessLanguage;
 import 'line_query.dart';
 import 'models.dart';
 import 'search_query.dart';
@@ -158,8 +159,9 @@ const _typo = 0.6;
 /// Короче основа формой не считается: «паро» — это начало «пароля», а не форма «пары».
 const _formStem = 4;
 
-// куски текста, где нашлось слово запроса в любом из его вариантов
-({double strength, List<TextMark> marks}) _hitsIn(String text, QueryWord query) {
+// куски текста, где нашлось слово запроса в любом из его вариантов; [language] — язык заметки,
+// если у него есть правила Snowball: тогда форма — и то, что они сводят к одной основе («chevaux» — «cheval»)
+({double strength, List<TextMark> marks}) _hitsIn(String text, QueryWord query, String? language) {
   var strength = 0.0;
   final marks = <TextMark>[];
   final folded = foldText(text);
@@ -183,6 +185,9 @@ const _formStem = 4;
         while (span < word.length && span < wanted.length && word[span] == wanted[span]) {
           span++;
         }
+      } else if (language != null && _sameLanguageStem(word, wanted, language)) {
+        hit = _form;
+        span = word.length;
       } else if (index == 0 &&
           wanted.length >= 4 &&
           // короткое слово текста — не опечатка длинного запроса: «лей» не «клей»
@@ -204,6 +209,20 @@ const _formStem = 4;
     }
   }
   return (strength: strength, marks: marks);
+}
+
+// одна основа по правилам языка заметки; короткая основа формой не считается, как и у своих языков
+bool _sameLanguageStem(String word, String wanted, String language) {
+  if (word.length < _formStem || wanted.length < _formStem) return false;
+  final stem = languageStem(word, language);
+  return stem != null && stem.length >= 3 && stem == languageStem(wanted, language);
+}
+
+// язык заметки по началу её текста: длинной статье хватит первых двух тысяч знаков
+String? _docLanguage(SearchDoc doc) {
+  final sample = '${doc.title}\n${doc.body}';
+  final language = guessLanguage(sample.length > 2000 ? sample.substring(0, 2000) : sample);
+  return hasLanguageStems(language) ? language : null;
 }
 
 /// Свежесть: прибавка, которая разводит равные совпадения в пользу новых.
@@ -231,12 +250,13 @@ List<SearchHit> rankSearch(
     var matched = 0;
     var strong = words.isNotEmpty && words.length <= 3;
     final marks = <SearchField, List<TextMark>>{};
+    final language = words.isEmpty ? null : _docLanguage(doc);
     for (final word in words) {
       var best = 0.0;
       var bestStrength = 0.0;
       SearchField? bestField;
       for (final field in SearchField.values) {
-        final found = _hitsIn(doc.field(field), word);
+        final found = _hitsIn(doc.field(field), word, language);
         if (found.strength == 0) continue;
         marks.putIfAbsent(field, () => []).addAll(found.marks);
         final weighted = found.strength * _weights[field]!;

@@ -3,7 +3,12 @@
 /// Без словарей и без ИИ: окончания срезаются по спискам каждого языка, как в
 /// лёгких стеммерах (Snowball, Savoy). Основа нужна поиску по началу слова:
 /// «креветками» → «креветк», и найдутся «креветки» и «креветка».
+///
+/// Ещё 22 языка — по правилам Snowball (пакет snowball_stemmer): [languageStem] под язык
+/// текста и [languageStems] для запроса, язык которого не узнать.
 library;
+
+import 'package:snowball_stemmer/snowball_stemmer.dart';
 
 /// Знаки над латинскими буквами снимаются, длина слова не меняется: подсветка
 /// найденного считает позиции по свёрнутому тексту.
@@ -152,4 +157,62 @@ String _cut(String word, List<String> endings, {bool latin = false}) {
     if (!_vowels.contains(before) && before != 's') return word.substring(0, word.length - 1);
   }
   return word;
+}
+
+// ---------------------------------------------------------------------------
+// Чужие языки по правилам Snowball. Свои семь языков режет список окончаний выше:
+// на нём стоят основы индекса и тесты поиска, менять их под Snowball незачем.
+
+const _snowball = {
+  'fr': Algorithm.french, 'it': Algorithm.italian, 'pt': Algorithm.portuguese, 'nl': Algorithm.dutch,
+  'sv': Algorithm.swedish, 'no': Algorithm.norwegian, 'da': Algorithm.danish, 'fi': Algorithm.finnish,
+  'hu': Algorithm.hungarian, 'tr': Algorithm.turkish, 'ca': Algorithm.catalan, 'eu': Algorithm.basque,
+  'ga': Algorithm.irish, 'lt': Algorithm.lithuanian, 'id': Algorithm.indonesian, 'el': Algorithm.greek,
+  'hy': Algorithm.armenian, 'ar': Algorithm.arabic, 'hi': Algorithm.hindi, 'ne': Algorithm.nepali,
+  'ta': Algorithm.tamil, 'sr': Algorithm.serbian, 'hr': Algorithm.serbian, 'bs': Algorithm.serbian,
+  'yi': Algorithm.yiddish,
+};
+
+// языки по письму: для запроса, язык которого по одному слову не узнать
+const _latinSnowball = ['fr', 'it', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'hu', 'tr', 'ca', 'eu', 'ga', 'lt', 'id', 'hr'];
+final _scriptSnowball = <(RegExp, List<String>)>[
+  (RegExp('[Ͱ-Ͽἀ-῿]'), ['el']),
+  (RegExp('[԰-֏]'), ['hy']),
+  (RegExp('[؀-ۿ]'), ['ar']),
+  (RegExp('[ऀ-ॿ]'), ['hi', 'ne']),
+  (RegExp('[஀-௿]'), ['ta']),
+  (RegExp('[֐-׿]'), ['yi']),
+  (RegExp('[ђћџљњј]'), ['sr']),
+];
+
+final _stemmers = <String, SnowballStemmer>{};
+
+// основа считается для каждого слова каждой найденной заметки: помнится
+final _languageStemMemo = <String, String>{};
+const _languageStemMemoSize = 20000;
+
+/// Есть ли у языка правила Snowball сверх своих семи языков.
+bool hasLanguageStems(String? language) => _snowball.containsKey(language);
+
+/// Основа слова по правилам Snowball этого языка: «talossa» → «talo» (финский),
+/// «chevaux» → «cheval» (французский). Нет правил — null.
+String? languageStem(String word, String language) {
+  final algorithm = _snowball[language];
+  if (algorithm == null) return null;
+  final key = '$language $word';
+  if (_languageStemMemo.length >= _languageStemMemoSize) _languageStemMemo.clear();
+  return _languageStemMemo[key] ??= _stemmers.putIfAbsent(language, () => SnowballStemmer(algorithm)).stem(word.toLowerCase());
+}
+
+/// Основы слова по правилам всех языков его письма, только срезанные и от 4 букв:
+/// поиск по началу найдёт «talo» по запросу «talossa», не зная, что это финский.
+Set<String> languageStems(String word) {
+  final lower = word.toLowerCase();
+  final languages = _scriptOf(lower) == _Script.latin
+      ? _latinSnowball
+      : [for (final (pattern, languages) in _scriptSnowball) if (pattern.hasMatch(lower)) ...languages];
+  return {
+    for (final language in languages)
+      if (languageStem(lower, language) case final stem? when stem.length >= 4 && stem.length < lower.length && lower.startsWith(stem)) stem,
+  };
 }

@@ -86,4 +86,25 @@ void main() {
       expect(stemOf('кофе').length, greaterThanOrEqualTo(3));
     });
   });
+
+  group('чужие языки по Snowball', () {
+    test('основа под язык текста', () {
+      expect(languageStem('talossa', 'fi'), languageStem('talo', 'fi'));
+      expect(languageStem('chevaux', 'fr'), languageStem('cheval', 'fr'));
+      expect(languageStem('kitapları', 'tr'), languageStem('kitap', 'tr'));
+      expect(languageStem('casas', 'pt'), languageStem('casa', 'pt'));
+      // свои семь языков и неизвестные — без Snowball
+      expect(languageStem('домами', 'ru'), isNull);
+      expect(languageStem('word', 'xx'), isNull);
+    });
+
+    test('основы запроса для поиска по началу: всех языков его письма, только срезанные', () {
+      expect(languageStems('talossa'), contains('talo'));
+      expect(languageStems('kitapları'), contains('kitap'));
+      for (final stem in languageStems('talossa')) {
+        expect('talossa'.startsWith(stem), isTrue, reason: stem);
+        expect(stem.length, greaterThanOrEqualTo(4), reason: stem);
+      }
+    });
+  });
 }

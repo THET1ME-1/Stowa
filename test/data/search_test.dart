@@ -297,4 +297,15 @@ void main() {
       expect((await find('rjat')).single.card.title, 'Купить кофе на рынке');
     });
   });
+
+  test('форма чужого языка находит заметку и за пятьсот свежими: «talossa» — «talo»', () async {
+    final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => now);
+    const finnish = 'Talo on punainen, mutta se ei ole kovin iso';
+    await capture.capture(CaptureInput(text: finnish, at: now.subtract(const Duration(days: 30))));
+    // свежие 500 смотрятся всегда; старую заметку должен отдать индекс по основе «talo»
+    for (var start = 0; start < 500; start += 50) {
+      await capture.captureAll([for (var index = start; index < start + 50; index++) CaptureInput(text: 'Заметка номер $index', at: now)]);
+    }
+    expect((await find('talossa')).map((found) => found.card.title), [finnish]);
+  });
 }

@@ -141,4 +141,19 @@ void main() {
     expect(hits, hasLength(4));
     expect(hits.first.doc.id, 'weather');
   });
+
+  test('формы слов чужих языков по правилам Snowball: «talossa» находит «talo», «cheval» — «chevaux»', () {
+    final world = [
+      _doc('fi', 'Talo on punainen, mutta se ei ole kovin iso', days: 3),
+      _doc('fr', 'Les chevaux sont dans le pré avec les vaches', days: 3),
+      _doc('tr', 'Kitaplar masada duruyor ve bunlar çok eski', days: 3),
+      _doc('hu', 'A házak nagyon szépek és régiek', days: 3),
+    ];
+    expect(rankSearch(world, _words(['talossa'])).map((hit) => hit.doc.id), ['fi']);
+    expect(rankSearch(world, _words(['cheval'])).map((hit) => hit.doc.id), ['fr']);
+    expect(rankSearch(world, _words(['kitapları'])).map((hit) => hit.doc.id), ['tr']);
+    expect(rankSearch(world, _words(['házban'])).map((hit) => hit.doc.id), ['hu']);
+    // слово целиком подсвечивается
+    expect(rankSearch(world, _words(['cheval'])).single.marks[SearchField.title], [(4, 7)]);
+  });
 }
