@@ -3000,4 +3000,49 @@ class LRo extends L {
 
   @override
   String get placeRadiusTitle => 'Raza mementoului';
+
+  @override
+  String get relatedInText => 'în textul notiței';
+
+  @override
+  String get relatedBacklink => 'trimite aici';
+
+  @override
+  String get relatedManual => 'legătură manuală';
+
+  @override
+  String relatedAi(String reason) {
+    return 'IA: $reason';
+  }
+
+  @override
+  String get relatedAiPlain => 'legătură de la IA';
+
+  @override
+  String get relatedUnlink => 'Elimină legătura';
+
+  @override
+  String get relatedUnlinked => 'Legătură eliminată';
+
+  @override
+  String get linkAdd => 'Leagă de o notiță';
+
+  @override
+  String get linkAddShort => 'Legătură';
+
+  @override
+  String get linkSearchHint => 'Caută o notiță după cuvinte';
+
+  @override
+  String get linkNone => 'Nu există o asemenea notiță';
+
+  @override
+  String linkAdded(String title) {
+    return 'Legată de „$title”';
+  }
+
+  @override
+  String linkMissing(String title) {
+    return 'Nu există notița „$title”';
+  }
 }

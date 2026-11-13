@@ -72,6 +72,14 @@ void main() {
     expect(renderMarkup('Море\n![[sea.jpg]]', const []).text, 'Море');
   });
 
+  test('[[Заметка]] — ссылка на заметку без скобок; подпись после | показывается вместо заголовка', () {
+    final pieces = parseInline('Купить [[Пиво]] и [[Хлеб|хлебушек]], ![[фото.jpg]] не трогать');
+    expect([for (final piece in pieces) if (piece.url != null) (piece.text, piece.url)], [('Пиво', 'stowa-note:Пиво'), ('хлебушек', 'stowa-note:Хлеб')]);
+    expect(pieces.map((piece) => piece.text).join(), 'Купить Пиво и хлебушек, ![[фото.jpg]] не трогать');
+    // в подсказках и карточках — тоже без скобок
+    expect(renderMarkup('Купить [[Пиво]]', const []).text, 'Купить Пиво');
+  });
+
   test('одиночная звёздочка или подчёркивание в слове — не разметка', () {
     expect(parseInline('snake_case и 2*3').single.text, 'snake_case и 2*3');
   });

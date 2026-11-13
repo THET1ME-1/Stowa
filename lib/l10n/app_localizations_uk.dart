@@ -3031,4 +3031,49 @@ class LUk extends L {
 
   @override
   String get placeRadiusTitle => 'Радіус нагадування';
+
+  @override
+  String get relatedInText => 'у тексті нотатки';
+
+  @override
+  String get relatedBacklink => 'посилається сюди';
+
+  @override
+  String get relatedManual => 'зв’язок вручну';
+
+  @override
+  String relatedAi(String reason) {
+    return 'ШІ: $reason';
+  }
+
+  @override
+  String get relatedAiPlain => 'зв’язок від ШІ';
+
+  @override
+  String get relatedUnlink => 'Прибрати зв’язок';
+
+  @override
+  String get relatedUnlinked => 'Зв’язок прибрано';
+
+  @override
+  String get linkAdd => 'Зв’язати з нотаткою';
+
+  @override
+  String get linkAddShort => 'Зв’язок';
+
+  @override
+  String get linkSearchHint => 'Знайти нотатку за словами';
+
+  @override
+  String get linkNone => 'Такої нотатки немає';
+
+  @override
+  String linkAdded(String title) {
+    return 'Зв’язано з «$title»';
+  }
+
+  @override
+  String linkMissing(String title) {
+    return 'Нотатки «$title» немає';
+  }
 }

@@ -557,5 +557,18 @@
   "placeNoPoint": "Niciun punct ales",
   "placeKindOwn": "Tip propriu",
   "placeRadiusValue": "{meters} m",
-  "placeRadiusTitle": "Raza mementoului"
+  "placeRadiusTitle": "Raza mementoului",
+  "relatedInText": "în textul notiței",
+  "relatedBacklink": "trimite aici",
+  "relatedManual": "legătură manuală",
+  "relatedAi": "IA: {reason}",
+  "relatedAiPlain": "legătură de la IA",
+  "relatedUnlink": "Elimină legătura",
+  "relatedUnlinked": "Legătură eliminată",
+  "linkAdd": "Leagă de o notiță",
+  "linkAddShort": "Legătură",
+  "linkSearchHint": "Caută o notiță după cuvinte",
+  "linkNone": "Nu există o asemenea notiță",
+  "linkAdded": "Legată de „{title}”",
+  "linkMissing": "Nu există notița „{title}”"
 }

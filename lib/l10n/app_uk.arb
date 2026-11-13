@@ -557,5 +557,18 @@
   "placeNoPoint": "Точку не вибрано",
   "placeKindOwn": "Свій вид",
   "placeRadiusValue": "{meters} м",
-  "placeRadiusTitle": "Радіус нагадування"
+  "placeRadiusTitle": "Радіус нагадування",
+  "relatedInText": "у тексті нотатки",
+  "relatedBacklink": "посилається сюди",
+  "relatedManual": "зв’язок вручну",
+  "relatedAi": "ШІ: {reason}",
+  "relatedAiPlain": "зв’язок від ШІ",
+  "relatedUnlink": "Прибрати зв’язок",
+  "relatedUnlinked": "Зв’язок прибрано",
+  "linkAdd": "Зв’язати з нотаткою",
+  "linkAddShort": "Зв’язок",
+  "linkSearchHint": "Знайти нотатку за словами",
+  "linkNone": "Такої нотатки немає",
+  "linkAdded": "Зв’язано з «{title}»",
+  "linkMissing": "Нотатки «{title}» немає"
 }

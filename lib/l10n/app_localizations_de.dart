@@ -2981,4 +2981,49 @@ class LDe extends L {
 
   @override
   String get placeRadiusTitle => 'Erinnerungsradius';
+
+  @override
+  String get relatedInText => 'im Text der Notiz';
+
+  @override
+  String get relatedBacklink => 'verweist hierher';
+
+  @override
+  String get relatedManual => 'von dir verknüpft';
+
+  @override
+  String relatedAi(String reason) {
+    return 'KI: $reason';
+  }
+
+  @override
+  String get relatedAiPlain => 'von der KI verknüpft';
+
+  @override
+  String get relatedUnlink => 'Verknüpfung entfernen';
+
+  @override
+  String get relatedUnlinked => 'Verknüpfung entfernt';
+
+  @override
+  String get linkAdd => 'Mit Notiz verknüpfen';
+
+  @override
+  String get linkAddShort => 'Link';
+
+  @override
+  String get linkSearchHint => 'Notiz nach Wörtern suchen';
+
+  @override
+  String get linkNone => 'Keine solche Notiz';
+
+  @override
+  String linkAdded(String title) {
+    return 'Mit „$title“ verknüpft';
+  }
+
+  @override
+  String linkMissing(String title) {
+    return 'Keine Notiz „$title“';
+  }
 }

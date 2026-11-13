@@ -4948,6 +4948,84 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Reminder radius'**
   String get placeRadiusTitle;
+
+  /// Почему связано: [[…]] в тексте этой заметки
+  ///
+  /// In en, this message translates to:
+  /// **'linked in the text'**
+  String get relatedInText;
+
+  /// Почему связано: та заметка упоминает эту в своём [[…]]
+  ///
+  /// In en, this message translates to:
+  /// **'links here'**
+  String get relatedBacklink;
+
+  /// Почему связано: «+ Связь»
+  ///
+  /// In en, this message translates to:
+  /// **'linked by you'**
+  String get relatedManual;
+
+  /// Почему связано: причина от модели
+  ///
+  /// In en, this message translates to:
+  /// **'AI: {reason}'**
+  String relatedAi(String reason);
+
+  /// Почему связано: модель, без причины
+  ///
+  /// In en, this message translates to:
+  /// **'linked by AI'**
+  String get relatedAiPlain;
+
+  /// Подсказка крестика у ручной связи
+  ///
+  /// In en, this message translates to:
+  /// **'Remove link'**
+  String get relatedUnlink;
+
+  /// Плашка после снятия ручной связи
+  ///
+  /// In en, this message translates to:
+  /// **'Link removed'**
+  String get relatedUnlinked;
+
+  /// Подсказка кнопки «+ Связь» и кнопки в полосе разметки
+  ///
+  /// In en, this message translates to:
+  /// **'Link a note'**
+  String get linkAdd;
+
+  /// Подпись кнопки «+ Связь» рядом с «+ Тег»
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get linkAddShort;
+
+  /// Поле поиска в листе «+ Связь»
+  ///
+  /// In en, this message translates to:
+  /// **'Find a note by words'**
+  String get linkSearchHint;
+
+  /// Поиск заметки для связи ничего не нашёл
+  ///
+  /// In en, this message translates to:
+  /// **'No such note'**
+  String get linkNone;
+
+  /// Плашка после «+ Связь»
+  ///
+  /// In en, this message translates to:
+  /// **'Linked with “{title}”'**
+  String linkAdded(String title);
+
+  /// Касание [[…]] в тексте, а такой заметки нет
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s no note “{title}”'**
+  String linkMissing(String title);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

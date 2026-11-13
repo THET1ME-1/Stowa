@@ -27,6 +27,7 @@ import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart';
+import '../../domain/note_links.dart';
 import '../../domain/shopping.dart';
 import '../../domain/vault_note.dart' show unpackVaultProperties;
 import '../../l10n/app_localizations.dart';
@@ -35,6 +36,8 @@ import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
+import '../composer/wiki_link_edit.dart';
+import '../composer/wiki_suggestions.dart';
 import '../places/place_kinds.dart';
 import '../places/places_screen.dart';
 import '../places/reminder_permissions.dart';
@@ -53,6 +56,7 @@ import 'markdown_controller.dart';
 import 'note_body.dart';
 import 'photo_viewer.dart';
 import 'properties_block.dart';
+import 'link_sheet.dart';
 import 'related_block.dart';
 
 /// Страница въезжает справа, как в макете.
@@ -127,6 +131,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     }).ignore();
     _title.addListener(_changed);
     _body.addListener(_changed);
+    _body.addListener(_watchWiki);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
     _items.markOpened(widget.id, _clock()).ignore();
   }
@@ -239,6 +244,22 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   void _markdown(MarkdownAction action) {
     _body.value = applyMarkdown(_body.value, action);
+    _bodyFocus.requestFocus();
+  }
+
+  /// Заметки для подсказки `[[…`: читаются один раз, когда курсор впервые встал в скобки.
+  List<LinkTarget>? _linkTargets;
+
+  void _watchWiki() {
+    if (_linkTargets != null || wikiQueryOf(_body.value) == null) return;
+    _linkTargets = const [];
+    _items.linkTargets().then((targets) {
+      if (mounted) setState(() => _linkTargets = targets);
+    }).ignore();
+  }
+
+  void _pickWiki(LinkTarget target) {
+    _body.value = completeWikiLink(_body.value, target.title);
     _bodyFocus.requestFocus();
   }
 
@@ -456,6 +477,16 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     if (name != null) await ref.read(tagsRepositoryProvider).link(_id, name);
   }
 
+  /// «+ Связь»: найти заметку по словам и связать, с «Отменить».
+  Future<void> _addLink() async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final target = await pickLinkTarget(context, ref, exceptId: _id);
+    if (target == null || !mounted) return;
+    await _items.link(_id, target.id);
+    showUndo(messenger, message: l.linkAdded(target.title), label: l.undo, onUndo: () => _items.unlink(_id, target.id), overDock: true);
+  }
+
   /// Ингредиенты рецепта — отдельной заметкой-списком «Купить: …», с «Открыть» в плашке.
   Future<void> _shoppingList(Item item, List<String> ingredients) async {
     final l = L.of(context);
@@ -498,6 +529,24 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   Future<void> _openLink(String url) async {
     final messenger = ScaffoldMessenger.of(context);
+    // [[Заметка]] в тексте: открыть заметку с этим заголовком
+    if (url.startsWith(noteLinkScheme)) {
+      final title = url.substring(noteLinkScheme.length);
+      // связи из текста уже посчитаны для «Связано»: заметка находится сразу, без запроса
+      final known = (ref.read(relatedProvider(_id)).value ?? const <LinkedNote>[])
+          .where((linked) => linked.kind == LinkKind.text && linked.card.title.trim().toLowerCase() == title.trim().toLowerCase())
+          .firstOrNull
+          ?.card
+          .id;
+      final target = known ?? await _items.findByTitle(title);
+      if (!mounted) return;
+      if (target == null || target == _id) {
+        showNote(messenger, L.of(context).linkMissing(title), overDock: true);
+        return;
+      }
+      await Navigator.of(context).push(itemRoute(target));
+      return;
+    }
     final message = L.of(context).linkOpenFailed;
     final uri = Uri.tryParse(url);
     final opened = uri != null && await launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) => false);
@@ -775,6 +824,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   onRemove: _editing ? () => ref.read(tagsRepositoryProvider).unlink(_id, tag) : null,
                                 ),
                               _TagPill(label: l.tagAdd, short: l.tagAddShort, add: true, onTap: _addTag),
+                              _TagPill(key: const ValueKey('link-add'), label: l.linkAdd, short: l.linkAddShort, add: true, onTap: _addLink),
                             ],
                           ),
                         ),
@@ -827,7 +877,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     maxLines: null,
                                     minLines: 5,
                                     keyboardType: TextInputType.multiline,
-                                    inputFormatters: [TextInputFormatter.withFunction(continueLists)],
+                                    inputFormatters: [TextInputFormatter.withFunction(continueLists), TextInputFormatter.withFunction(closeWikiBrackets)],
                                     textCapitalization: TextCapitalization.sentences,
                                     // строка с курсором не прячется под плавающую панель и полосу разметки над ней
                                     scrollPadding: const EdgeInsets.only(bottom: _dockHeight + _dockGap * 2 + _markdownStrip + 24),
@@ -876,6 +926,17 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                 key: const ValueKey('edit-dock'),
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  // курсор в [[…: заметки по словам набранного, касание ставит заголовок
+                                  ValueListenableBuilder(
+                                    valueListenable: _body,
+                                    builder: (context, value, _) => switch (wikiQueryOf(value)) {
+                                      final query? when _bodyFocus.hasFocus => Padding(
+                                        padding: const EdgeInsets.only(bottom: 8),
+                                        child: WikiSuggestions(query: query, targets: _linkTargets ?? const [], exceptId: _id, onPick: _pickWiki),
+                                      ),
+                                      _ => const SizedBox.shrink(),
+                                    },
+                                  ),
                                   // та же полоса разметки, что в строке на весь экран
                                   Container(
                                     height: _markdownStrip,
@@ -1120,7 +1181,7 @@ class _Header extends StatelessWidget {
 
 /// Пилюля тега. У «добавить» значок плюса и приглушённая подложка.
 class _TagPill extends StatelessWidget {
-  const _TagPill({required this.label, this.short, this.add = false, this.onTap, this.onRemove, this.removeTooltip});
+  const _TagPill({super.key, required this.label, this.short, this.add = false, this.onTap, this.onRemove, this.removeTooltip});
 
   final String label;
 

@@ -24,8 +24,9 @@ String kindIcon(ItemKind kind) => switch (kind) {
   ItemKind.voice => 'graphic_eq',
 };
 
-/// «Связано» внизу страницы вещи: похожие по редким словам или сайту, с причиной.
-/// Крестик говорит «не связаны», и пара больше не предлагается.
+/// «Связано» внизу страницы вещи: из текста (`[[…]]`), обратные, ручные, от ИИ и похожие
+/// по редким словам или сайту — с причиной. Крестик у ручной убирает связь, у ИИ и похожих
+/// говорит «не связаны», и пара больше не предлагается. У связи из текста крестика нет: её держит текст.
 class RelatedBlock extends ConsumerWidget {
   const RelatedBlock({super.key, required this.itemId, required this.onOpen});
 
@@ -47,23 +48,33 @@ class RelatedBlock extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
             child: Text(l.relatedTitle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
           ),
-          for (final (index, (:card, :why)) in related.indexed) ...[
+          for (final (index, linked) in related.indexed) ...[
             if (index > 0) const SizedBox(height: 3),
             _RelatedRow(
-              card: card,
-              why: why,
+              card: linked.card,
+              reason: _reason(l, linked),
               filesRoot: filesRoot,
               // блоки сцеплены: крупные углы только снаружи группы
               radius: BorderRadius.vertical(
                 top: Radius.circular(index == 0 ? 24 : 8),
                 bottom: Radius.circular(index == related.length - 1 ? 24 : 8),
               ),
-              onOpen: () => onOpen(card.id),
-              onHide: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final items = ref.read(itemsRepositoryProvider);
-                await items.rejectRelated(itemId, card.id);
-                showUndo(messenger, message: l.relatedHidden, label: l.undo, onUndo: () => items.restoreRelated(itemId, card.id), overDock: true);
+              onOpen: () => onOpen(linked.card.id),
+              hideTooltip: linked.kind == LinkKind.manual ? l.relatedUnlink : l.relatedHide,
+              onHide: switch (linked.kind) {
+                LinkKind.text || LinkKind.backlink => null,
+                LinkKind.manual => () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final items = ref.read(itemsRepositoryProvider);
+                  await items.unlink(itemId, linked.card.id);
+                  showUndo(messenger, message: l.relatedUnlinked, label: l.undo, onUndo: () => items.link(itemId, linked.card.id), overDock: true);
+                },
+                LinkKind.ai || LinkKind.similar => () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final items = ref.read(itemsRepositoryProvider);
+                  await items.rejectRelated(itemId, linked.card.id);
+                  showUndo(messenger, message: l.relatedHidden, label: l.undo, onUndo: () => items.restoreRelated(itemId, linked.card.id), overDock: true);
+                },
               },
             ),
           ],
@@ -73,22 +84,37 @@ class RelatedBlock extends ConsumerWidget {
   }
 }
 
+// почему связано: одной строкой под заголовком
+String _reason(L l, LinkedNote linked) {
+  final card = linked.card;
+  return switch (linked.kind) {
+    LinkKind.text => l.relatedInText,
+    LinkKind.backlink => l.relatedBacklink,
+    LinkKind.manual => l.relatedManual,
+    LinkKind.ai => linked.reason == null || linked.reason!.trim().isEmpty ? l.relatedAiPlain : l.relatedAi(linked.reason!.trim()),
+    LinkKind.similar => switch (linked.why) {
+      Related(:final words) when words.isNotEmpty => l.relatedWords(words.join(', ')),
+      _ => l.relatedSite(card.url == null ? '' : (Uri.tryParse(card.url!)?.host ?? '').replaceFirst(RegExp(r'^www\.'), '')),
+    },
+  };
+}
+
 class _RelatedRow extends StatelessWidget {
-  const _RelatedRow({required this.card, required this.why, required this.filesRoot, required this.radius, required this.onOpen, required this.onHide});
+  const _RelatedRow({required this.card, required this.reason, required this.filesRoot, required this.radius, required this.onOpen, required this.hideTooltip, required this.onHide});
 
   final ItemCard card;
-  final Related why;
+  final String reason;
   final Directory filesRoot;
   final BorderRadius radius;
   final VoidCallback onOpen;
-  final VoidCallback onHide;
+  final String hideTooltip;
+
+  /// null — связь держит текст, крестика нет.
+  final VoidCallback? onHide;
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
     final thumb = card.thumbPath;
-    final site = card.url == null ? '' : (Uri.tryParse(card.url!)?.host ?? '').replaceFirst(RegExp(r'^www\.'), '');
-    final reason = why.words.isNotEmpty ? l.relatedWords(why.words.join(', ')) : l.relatedSite(site);
     return Material(
       color: Tokens.container,
       borderRadius: radius,
@@ -128,18 +154,21 @@ class _RelatedRow extends StatelessWidget {
                   ],
                 ),
               ),
-              Tooltip(
-                message: l.relatedHide,
-                child: Material(
-                  color: Colors.transparent,
-                  shape: const CircleBorder(),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: onHide,
-                    child: SizedBox.square(dimension: 44, child: Icon(symbolIcon('close'), size: 20, color: Tokens.muted)),
+              if (onHide != null)
+                Tooltip(
+                  message: hideTooltip,
+                  child: Material(
+                    color: Colors.transparent,
+                    shape: const CircleBorder(),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: onHide,
+                      child: SizedBox.square(dimension: 44, child: Icon(symbolIcon('close'), size: 20, color: Tokens.muted)),
+                    ),
                   ),
-                ),
-              ),
+                )
+              else
+                const SizedBox(width: 12),
             ],
           ),
         ),

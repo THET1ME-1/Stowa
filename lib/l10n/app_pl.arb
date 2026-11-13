@@ -557,5 +557,18 @@
   "placeNoPoint": "Nie wybrano punktu",
   "placeKindOwn": "Własny rodzaj",
   "placeRadiusValue": "{meters} m",
-  "placeRadiusTitle": "Promień przypomnienia"
+  "placeRadiusTitle": "Promień przypomnienia",
+  "relatedInText": "w tekście notatki",
+  "relatedBacklink": "odsyła tutaj",
+  "relatedManual": "połączone ręcznie",
+  "relatedAi": "SI: {reason}",
+  "relatedAiPlain": "połączone przez SI",
+  "relatedUnlink": "Usuń połączenie",
+  "relatedUnlinked": "Połączenie usunięte",
+  "linkAdd": "Połącz z notatką",
+  "linkAddShort": "Połączenie",
+  "linkSearchHint": "Znajdź notatkę po słowach",
+  "linkNone": "Nie ma takiej notatki",
+  "linkAdded": "Połączono z „{title}”",
+  "linkMissing": "Nie ma notatki „{title}”"
 }

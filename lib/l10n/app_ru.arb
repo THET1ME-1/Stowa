@@ -806,5 +806,18 @@
   "placeNoPoint": "Точка не выбрана",
   "placeKindOwn": "Свой вид",
   "placeRadiusValue": "{meters} м",
-  "placeRadiusTitle": "Радиус напоминания"
+  "placeRadiusTitle": "Радиус напоминания",
+  "relatedInText": "в тексте заметки",
+  "relatedBacklink": "ссылается сюда",
+  "relatedManual": "связь вручную",
+  "relatedAi": "ИИ: {reason}",
+  "relatedAiPlain": "связь от ИИ",
+  "relatedUnlink": "Убрать связь",
+  "relatedUnlinked": "Связь убрана",
+  "linkAdd": "Связать с заметкой",
+  "linkAddShort": "Связь",
+  "linkSearchHint": "Найти заметку по словам",
+  "linkNone": "Такой заметки нет",
+  "linkAdded": "Связано с «{title}»",
+  "linkMissing": "Заметки «{title}» нет"
 }

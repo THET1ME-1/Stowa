@@ -3035,4 +3035,49 @@ class LRu extends L {
 
   @override
   String get placeRadiusTitle => 'Радиус напоминания';
+
+  @override
+  String get relatedInText => 'в тексте заметки';
+
+  @override
+  String get relatedBacklink => 'ссылается сюда';
+
+  @override
+  String get relatedManual => 'связь вручную';
+
+  @override
+  String relatedAi(String reason) {
+    return 'ИИ: $reason';
+  }
+
+  @override
+  String get relatedAiPlain => 'связь от ИИ';
+
+  @override
+  String get relatedUnlink => 'Убрать связь';
+
+  @override
+  String get relatedUnlinked => 'Связь убрана';
+
+  @override
+  String get linkAdd => 'Связать с заметкой';
+
+  @override
+  String get linkAddShort => 'Связь';
+
+  @override
+  String get linkSearchHint => 'Найти заметку по словам';
+
+  @override
+  String get linkNone => 'Такой заметки нет';
+
+  @override
+  String linkAdded(String title) {
+    return 'Связано с «$title»';
+  }
+
+  @override
+  String linkMissing(String title) {
+    return 'Заметки «$title» нет';
+  }
 }

@@ -31,9 +31,6 @@ class VaultScan {
 /// Тег вещи, которую надо разобрать руками: две версии одной заметки.
 const conflictTag = 'конфликт';
 
-// [[Заметка]] и [[Заметка|подпись]], но не вставка ![[фото.jpg]]
-final _wikiLink = RegExp(r'(?<!!)\[\[([^\]|#]+)(?:[#|][^\]]*)?\]\]');
-
 /// Забирает в базу то, что изменили в файлах снаружи (Obsidian, Syncthing, файловый
 /// менеджер), и собирает базу из папки целиком после переустановки. Своё забранное
 /// не ставит обратно в очередь записи: правки идут под флагом `importing`.
@@ -180,15 +177,12 @@ class VaultReader {
 
     // id в чужие заметки, карта файлов — одной пачкой
     final mapped = <VaultFilesCompanion>[];
-    final links = <String, List<String>>{};
     for (final one in incoming) {
       final file = File(_absolute(one.relative));
       if (one.newId) await _writeId(file, one.text, one.id);
       final after = await file.stat();
       mapped.add(VaultFilesCompanion.insert(itemId: one.id, path: one.relative, modified: after.modified.millisecondsSinceEpoch, size: after.size));
       one.exists ? scan.changed++ : scan.added++;
-      final targets = [for (final match in _wikiLink.allMatches(one.note.body)) match.group(1)!.trim()];
-      if (targets.isNotEmpty) links[one.id] = targets;
     }
     await _db.batch((batch) => batch.insertAllOnConflictUpdate(_db.vaultFiles, mapped));
     for (final one in incoming.where((one) => one.clash)) {
@@ -210,7 +204,7 @@ class VaultReader {
       scan.removed += gone.length;
     }
 
-    await _link(links);
+    // [[Заметка]] в тексте связью в таблицу не пишется: связь считается из текста (watchLinked)
     return scan;
   }
 
@@ -526,24 +520,6 @@ class VaultReader {
       await _db.into(_db.itemTags).insertOnConflictUpdate(ItemTagsCompanion.insert(itemId: id, tagId: tag.tagId, source: tag.source));
     }
     await _db.into(_db.itemTags).insertOnConflictUpdate(ItemTagsCompanion.insert(itemId: id, tagId: await _tagFor(conflictTag), source: TagSource.user));
-  }
-
-  /// `[[Заметка]]` — ручная связь с вещью того же заголовка.
-  Future<void> _link(Map<String, List<String>> links) async {
-    if (links.isEmpty) return;
-    final titles = <String, String>{};
-    for (final item in await (_db.select(_db.items)..where((t) => t.deletedAt.isNull())).get()) {
-      titles.putIfAbsent(item.title.toLowerCase(), () => item.id);
-    }
-    await _quietly(() async {
-      for (final MapEntry(key: from, value: targets) in links.entries) {
-        for (final target in targets) {
-          final to = titles[target.toLowerCase()];
-          if (to == null || to == from) continue;
-          await _db.into(_db.links).insert(LinksCompanion.insert(fromId: from, toId: to, source: LinkSource.manual), mode: InsertMode.insertOrIgnore);
-        }
-      }
-    });
   }
 
   /// `id` в свойства чужой заметки — единственная правка её файла.

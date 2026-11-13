@@ -2972,4 +2972,49 @@ class LEn extends L {
 
   @override
   String get placeRadiusTitle => 'Reminder radius';
+
+  @override
+  String get relatedInText => 'linked in the text';
+
+  @override
+  String get relatedBacklink => 'links here';
+
+  @override
+  String get relatedManual => 'linked by you';
+
+  @override
+  String relatedAi(String reason) {
+    return 'AI: $reason';
+  }
+
+  @override
+  String get relatedAiPlain => 'linked by AI';
+
+  @override
+  String get relatedUnlink => 'Remove link';
+
+  @override
+  String get relatedUnlinked => 'Link removed';
+
+  @override
+  String get linkAdd => 'Link a note';
+
+  @override
+  String get linkAddShort => 'Link';
+
+  @override
+  String get linkSearchHint => 'Find a note by words';
+
+  @override
+  String get linkNone => 'No such note';
+
+  @override
+  String linkAdded(String title) {
+    return 'Linked with “$title”';
+  }
+
+  @override
+  String linkMissing(String title) {
+    return 'There\'s no note “$title”';
+  }
 }

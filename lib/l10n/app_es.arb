@@ -557,5 +557,18 @@
   "placeNoPoint": "Sin punto todavía",
   "placeKindOwn": "Tipo propio",
   "placeRadiusValue": "{meters} m",
-  "placeRadiusTitle": "Radio del recordatorio"
+  "placeRadiusTitle": "Radio del recordatorio",
+  "relatedInText": "en el texto de la nota",
+  "relatedBacklink": "enlaza aquí",
+  "relatedManual": "enlazada a mano",
+  "relatedAi": "IA: {reason}",
+  "relatedAiPlain": "enlazada por la IA",
+  "relatedUnlink": "Quitar enlace",
+  "relatedUnlinked": "Enlace quitado",
+  "linkAdd": "Enlazar con una nota",
+  "linkAddShort": "Enlace",
+  "linkSearchHint": "Buscar una nota por palabras",
+  "linkNone": "No hay una nota así",
+  "linkAdded": "Enlazada con «{title}»",
+  "linkMissing": "No hay una nota «{title}»"
 }

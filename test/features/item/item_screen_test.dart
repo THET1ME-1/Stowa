@@ -778,4 +778,84 @@ void main() {
       expect((refused.fromId, refused.toId, refused.rejected), ('a', 'b', true));
     });
   });
+
+  group('связи руками', () {
+    Future<void> other(String id, String title, {String body = ''}) => world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: id, kind: ItemKind.note, title: title, body: Value(body.isEmpty ? title : '$title\n$body'), createdAt: world.now.subtract(const Duration(days: 1)), updatedAt: world.now),
+    );
+
+    testWidgets('[[Заметка]] в тексте — ссылка без скобок, касание открывает ту заметку; в «Связано» — «в тексте заметки»', (tester) async {
+      await other('hops', 'Хмель', body: 'каскад и цитра');
+      await open(tester, body: 'Пиво\nварить с [[Хмель]]', title: 'Пиво');
+      expect(find.textContaining('[[', findRichText: true), findsNothing);
+      await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(find.text('в тексте заметки'), findsOneWidget);
+      // у связи из текста крестика нет: её держит текст
+      expect(find.byTooltip('Не связывать'), findsNothing);
+      await tester.drag(find.byType(ListView).first, const Offset(0, 2000));
+      await tester.pumpAndSettle();
+      // касание ровно по слову «Хмель»: где оно в абзаце, говорит сам абзац
+      final paragraph = tester.renderObject<RenderParagraph>(find.textContaining('варить с', findRichText: true).first);
+      final shown = paragraph.text.toPlainText();
+      final start = shown.indexOf('Хмель');
+      final box = paragraph.getBoxesForSelection(TextSelection(baseOffset: start, extentOffset: start + 5)).first;
+      await tester.tapAt(paragraph.localToGlobal(box.toRect().center));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('каскад и цитра', findRichText: true), findsWidgets);
+    });
+
+    testWidgets('«+ Связь»: поиск по словам из текста, касание связывает вручную', (tester) async {
+      await other('list', 'Список вещей', body: 'палатка, спальник, горелка');
+      await other('car', 'Замена масла');
+      await open(tester, body: 'Отпуск в горах', title: 'Отпуск в горах');
+      await tester.tap(find.byKey(const ValueKey('link-add')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('link-search')), 'спальн');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('link-car')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('link-list')));
+      await tester.pumpAndSettle();
+      expect(find.text('Связано с «Список вещей»'), findsOneWidget);
+      // что связь появляется в «Связано», сторожит test/data/items_repository_links_test.dart:
+      // пересчёт потока в поддельном времени виджет-теста не доходит
+      final link = await world.db.select(world.db.links).getSingle();
+      expect((link.fromId, link.toId, link.source, link.rejected), ('a', 'list', LinkSource.manual, false));
+    });
+
+    testWidgets('ручная связь в «Связано» — «связь вручную», крестик «Убрать связь» её снимает', (tester) async {
+      await other('list', 'Список вещей');
+      await world.db.into(world.db.links).insert(LinksCompanion.insert(fromId: 'a', toId: 'list', source: LinkSource.manual));
+      await open(tester, body: 'Отпуск в горах', title: 'Отпуск в горах');
+      await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(find.text('связь вручную'), findsOneWidget);
+      await tester.tap(find.byTooltip('Убрать связь'));
+      await tester.pumpAndSettle();
+      expect(await world.db.select(world.db.links).get(), isEmpty);
+    });
+
+    testWidgets('правка: «[[» дописывает «]]», над клавиатурой заметки по словам, касание ставит заголовок', (tester) async {
+      await other('beer', 'Пиво я очень люблю', body: 'и обожаю');
+      await other('car', 'Замена масла');
+      await open(tester, body: 'Пятница', title: 'Пятница');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      final body = find.byType(TextField).last;
+      await tester.enterText(body, 'Пятница: [');
+      await tester.enterText(body, 'Пятница: [[');
+      await tester.pumpAndSettle();
+      final controller = tester.widget<TextField>(body).controller!;
+      expect(controller.text, 'Пятница: [[]]');
+      expect(find.byKey(const ValueKey('wiki-suggestions')), findsOneWidget);
+      // набранное между скобками ищет по словам
+      controller.value = const TextEditingValue(text: 'Пятница: [[обож]]', selection: TextSelection.collapsed(offset: 15));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('wiki-car')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('wiki-beer')));
+      await tester.pumpAndSettle();
+      expect(controller.text, 'Пятница: [[Пиво я очень люблю]]');
+      expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
+    });
+  });
 }

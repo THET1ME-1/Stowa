@@ -9,6 +9,7 @@ import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart' show searchWords;
 import '../../domain/models.dart';
 import '../../domain/money.dart' show sumByCurrency;
+import '../../domain/note_links.dart';
 import '../../domain/place_groups.dart';
 import '../../domain/qr.dart' show QrKind, parseQr;
 import '../../domain/related.dart';
@@ -143,6 +144,13 @@ class ItemCard {
   /// Длина ролика по ссылке, если страница её назвала.
   final int? durationSeconds;
 }
+
+/// Откуда связь: `[[…]]` в тексте этой заметки, `[[…]]` в тексте той (обратная),
+/// «+ Связь», ИИ по ключу, похожие по словам или сайту.
+enum LinkKind { text, backlink, manual, ai, similar }
+
+/// Связанная заметка и почему: у ИИ — [reason], у похожих — [why] (общие слова, сайт).
+typedef LinkedNote = ({ItemCard card, LinkKind kind, String? reason, Related? why});
 
 /// Вещи и связи между ними для графа.
 class GraphData {
@@ -426,13 +434,15 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
         return [for (final row in rows) if (_isSample(row, now)) _folderDoc(row)];
       });
 
-  /// Вещи, связанные с [id] общими редкими словами или сайтом, с причиной.
-  /// Пересчитываются, когда меняются вещи или человек отклонил связь.
-  Stream<List<({ItemCard card, Related why})>> watchRelated(String id) {
+  /// Все связи заметки [id] для «Связано»: из её текста (`[[…]]`), обратные (её упоминают
+  /// в своём `[[…]]`), ручные («+ Связь»), от ИИ и похожие по словам или сайту — в этом
+  /// порядке, каждая заметка один раз. Отклонённые человеком не показываются.
+  /// Пересчитываются, когда меняются заметки или связи.
+  Stream<List<LinkedNote>> watchLinked(String id) {
     return _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.links}).watch().asyncMap((_) async {
       final rows = await _db
           .customSelect(
-            "SELECT items.id, items.url, items.title || ' ' || items.body || ' ' || coalesce(items.transcript, '') || ' ' || "
+            "SELECT items.id, items.url, items.title, items.body, items.title || ' ' || items.body || ' ' || coalesce(items.transcript, '') || ' ' || "
             "coalesce(items.preview_text, '') AS text FROM items WHERE items.deleted_at IS NULL",
           )
           .get();
@@ -447,21 +457,96 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
             },
           ),
       ];
-      final refused = await (_db.select(_db.links)..where((t) => t.rejected.equals(true) & (t.fromId.equals(id) | t.toId.equals(id)))).get();
-      final related = findRelated(id, docs, rejected: {for (final link in refused) link.fromId == id ? link.toId : link.fromId});
-      if (related.isEmpty) return const <({ItemCard card, Related why})>[];
+      final own = rows.where((row) => row.read<String>('id') == id).firstOrNull;
+      if (own == null) return const <LinkedNote>[];
+      final byTitle = _idsByTitle(rows);
+      final ownTitle = own.read<String>('title').trim().toLowerCase();
+
+      final found = <String, ({LinkKind kind, String? reason, Related? why})>{};
+      void put(String other, LinkKind kind, {String? reason, Related? why}) {
+        if (other == id || found.containsKey(other)) return;
+        found[other] = (kind: kind, reason: reason, why: why);
+      }
+
+      for (final title in wikiTitles(own.read<String>('body'))) {
+        if (byTitle[title.toLowerCase()] case final other?) put(other, LinkKind.text);
+      }
+      for (final row in rows) {
+        if (ownTitle.isNotEmpty && wikiTitles(row.read<String>('body')).any((title) => title.toLowerCase() == ownTitle)) put(row.read<String>('id'), LinkKind.backlink);
+      }
+      final stored = await (_db.select(_db.links)..where((t) => t.fromId.equals(id) | t.toId.equals(id))).get();
+      final refused = {for (final link in stored) if (link.rejected) link.fromId == id ? link.toId : link.fromId};
+      for (final link in stored.where((link) => !link.rejected && link.source == LinkSource.manual)) {
+        final other = link.fromId == id ? link.toId : link.fromId;
+        if (!refused.contains(other)) put(other, LinkKind.manual);
+      }
+      for (final link in stored.where((link) => !link.rejected && link.source == LinkSource.ai)) {
+        final other = link.fromId == id ? link.toId : link.fromId;
+        if (!refused.contains(other)) put(other, LinkKind.ai, reason: link.reason);
+      }
+      for (final one in findRelated(id, docs, rejected: {...refused, ...found.keys})) {
+        put(one.id, LinkKind.similar, why: one);
+      }
+      if (found.isEmpty) return const <LinkedNote>[];
       final cards = await _db
-          .customSelect(
-            '$_cardSelect AND items.id IN (${List.filled(related.length, '?').join(',')})',
-            variables: [for (final one in related) Variable.withString(one.id)],
-          )
+          .customSelect('$_cardSelect AND items.id IN (${List.filled(found.length, '?').join(',')})', variables: [for (final other in found.keys) Variable.withString(other)])
           .get();
       final byId = {for (final row in cards) row.read<String>('id'): _card(row)};
       return [
-        for (final one in related)
-          if (byId[one.id] case final card?) (card: card, why: one),
+        for (final MapEntry(key: other, value: why) in found.entries)
+          if (byId[other] case final card?) (card: card, kind: why.kind, reason: why.reason, why: why.why),
       ];
     });
+  }
+
+  // заголовок без регистра → заметка; у одинаковых заголовков — первая
+  Map<String, String> _idsByTitle(List<QueryRow> rows) {
+    final byTitle = <String, String>{};
+    for (final row in rows) {
+      byTitle.putIfAbsent(row.read<String>('title').trim().toLowerCase(), () => row.read<String>('id'));
+    }
+    return byTitle;
+  }
+
+  /// Заметка с этим заголовком (без учёта регистра), самая старая из одинаковых; нет — null.
+  Future<String?> findByTitle(String title) async {
+    final wanted = title.trim().toLowerCase();
+    final rows = await _db
+        .customSelect('SELECT id FROM items WHERE deleted_at IS NULL AND lower(trim(title)) = ? ORDER BY created_at LIMIT 1', variables: [Variable.withString(wanted)], readsFrom: {_db.items})
+        .get();
+    if (rows.isNotEmpty) return rows.first.read<String>('id');
+    // lower() в SQLite не знает кириллицы: сверка в Dart
+    final all = await (_db.select(_db.items)
+          ..where((t) => t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .get();
+    return all.where((item) => item.title.trim().toLowerCase() == wanted).firstOrNull?.id;
+  }
+
+  /// Связать вручную («+ Связь»). Отклонённая раньше пара снова связана.
+  Future<void> link(String id, String otherId) async {
+    if (id == otherId) return;
+    await _db.transaction(() async {
+      await (_db.delete(_db.links)..where((t) => t.rejected.equals(true) & ((t.fromId.equals(id) & t.toId.equals(otherId)) | (t.fromId.equals(otherId) & t.toId.equals(id))))).go();
+      await _db.into(_db.links).insert(LinksCompanion.insert(fromId: id, toId: otherId, source: LinkSource.manual), mode: InsertMode.insertOrReplace);
+    });
+  }
+
+  /// Убрать ручную связь, с какой стороны её ни ставили.
+  Future<void> unlink(String id, String otherId) => (_db.delete(_db.links)
+        ..where((t) => t.source.equalsValue(LinkSource.manual) & ((t.fromId.equals(id) & t.toId.equals(otherId)) | (t.fromId.equals(otherId) & t.toId.equals(id)))))
+      .go();
+
+  /// С чем можно связать: все живые заметки, свежие первыми; текст — началом, для поиска по словам.
+  Future<List<LinkTarget>> linkTargets() async {
+    final rows = await (_db.select(_db.items)
+          ..where((t) => t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+    return [
+      for (final item in rows)
+        (id: item.id, title: item.title, text: item.body.length > 400 ? item.body.substring(0, 400) : item.body, at: item.createdAt, kind: item.kind),
+    ];
   }
 
   /// Граф папки или тега: вещи точками, связи — от ИИ, ручные и похожие по словам,
@@ -482,8 +567,16 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     final refused = {for (final link in links) if (link.rejected) _pair(link.fromId, link.toId)};
     final edges = <String>{
       for (final link in links)
-        if (!link.rejected && inside.contains(link.fromId) && inside.contains(link.toId)) _pair(link.fromId, link.toId),
+        if (!link.rejected && inside.contains(link.fromId) && inside.contains(link.toId) && !refused.contains(_pair(link.fromId, link.toId))) _pair(link.fromId, link.toId),
     };
+    // связи из текста: [[Заголовок]] внутри той же папки или тега
+    final byTitle = <String, String>{for (final card in cards.reversed) card.title.trim().toLowerCase(): card.id};
+    final bodies = await (_db.select(_db.items)..where((t) => t.id.isIn(inside))).get();
+    for (final item in bodies) {
+      for (final title in wikiTitles(item.body)) {
+        if (byTitle[title.toLowerCase()] case final other? when other != item.id) edges.add(_pair(item.id, other));
+      }
+    }
 
     // похожие считаются по всей базе: редкость слова меряется на всех вещах
     final rows = await _db

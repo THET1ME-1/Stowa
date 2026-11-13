@@ -13,7 +13,7 @@ void main() {
     }
     final repo = ItemsRepository(db);
     final events = <int>[];
-    final sub = repo.watchRelated('a').listen((list) => events.add(list.length), onError: (Object e) => events.add(-1));
+    final sub = repo.watchLinked('a').listen((list) => events.add(list.length), onError: (Object e) => events.add(-1));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     await repo.rejectRelated('a', 'b');
     await Future<void>.delayed(const Duration(milliseconds: 50));

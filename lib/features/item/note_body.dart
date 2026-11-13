@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../domain/note_blocks.dart';
+import '../../domain/note_links.dart' show noteLinkScheme;
 
 const _markWidth = 32.0;
 
@@ -184,12 +185,14 @@ class _RichLineState extends State<RichLine> {
         tap = TapGestureRecognizer()..onTap = () => widget.onLink(url);
         _taps.add(tap);
       }
+      // [[заметка]] полужирная: видно, что это ссылка на свою заметку, а не на сайт
+      final note = url != null && url.startsWith(noteLinkScheme);
       spans.add(
         TextSpan(
           text: piece.text,
           recognizer: tap,
           style: TextStyle(
-            fontWeight: piece.bold ? FontWeight.w700 : null,
+            fontWeight: piece.bold ? FontWeight.w700 : (note ? FontWeight.w600 : null),
             fontStyle: piece.italic ? FontStyle.italic : null,
             decoration: piece.strike ? TextDecoration.lineThrough : (url != null ? TextDecoration.underline : null),
             decorationColor: url != null ? Tokens.onSurfaceVariant : null,

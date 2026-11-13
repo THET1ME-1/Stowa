@@ -2,6 +2,7 @@ import 'dart:math' show min;
 
 import 'item_kind.dart';
 import 'item_title.dart';
+import 'note_links.dart' show noteLinkScheme, wikiLink;
 
 /// Кусок текста заметки, как его рисует страница вещи.
 sealed class NoteBlock {
@@ -216,22 +217,41 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
       at = from + sign.length;
     }
     final lineStart = out.length;
-    for (final match in inlineMarks.allMatches(line, at - from)) {
-      keep(at, from + match.start);
-      final width = match.group(1) != null || match.group(4) != null ? 2 : 1;
-      final style = match.group(1) != null
-          ? MarkupStyle.bold
-          : match.group(4) != null
-          ? MarkupStyle.strike
-          : match.group(5) != null
-          ? MarkupStyle.code
-          : MarkupStyle.italic;
-      drop(from + match.start, from + match.start + width);
-      final innerStart = out.length;
-      keep(from + match.start + width, from + match.end - width);
-      styles.add((innerStart, out.length - innerStart, style));
-      drop(from + match.end - width, from + match.end);
-      at = from + match.end;
+    // разметка и [[ссылки]] по порядку; наложившиеся не берутся
+    final found = <(int start, int end, int innerStart, int innerEnd, MarkupStyle? style)>[
+      for (final match in inlineMarks.allMatches(line, at - from))
+        if ((match.group(1) != null || match.group(4) != null ? 2 : 1) case final width)
+          (
+            match.start,
+            match.end,
+            match.start + width,
+            match.end - width,
+            match.group(1) != null
+                ? MarkupStyle.bold
+                : match.group(4) != null
+                ? MarkupStyle.strike
+                : match.group(5) != null
+                ? MarkupStyle.code
+                : MarkupStyle.italic,
+          ),
+      // [[Заметка]] — видна без скобок, [[Заметка|подпись]] — подписью
+      for (final match in wikiLink.allMatches(line, at - from))
+        if (match.group(2) case final label? when label.trim().isNotEmpty)
+          (match.start, match.end, match.end - 2 - label.length, match.end - 2, null)
+        else
+          (match.start, match.end, match.start + 2, match.start + 2 + match.group(1)!.length, null),
+    ]..sort((a, b) => a.$1.compareTo(b.$1));
+    var lastEnd = at - from;
+    for (final (start, end, innerStart, innerEnd, style) in found) {
+      if (start < lastEnd) continue;
+      keep(at, from + start);
+      drop(from + start, from + innerStart);
+      final shownStart = out.length;
+      keep(from + innerStart, from + innerEnd);
+      if (style != null) styles.add((shownStart, out.length - shownStart, style));
+      drop(from + innerEnd, from + end);
+      at = from + end;
+      lastEnd = end;
     }
     keep(at, lineEnd);
     if (lineStyle != null && out.length > lineStart) styles.add((lineStart, out.length - lineStart, lineStyle));
@@ -266,8 +286,23 @@ typedef InlinePiece = ({String text, bool bold, bool italic, bool strike, bool c
 /// Строчная разметка: 1 — жирный, 2 и 3 — курсив, 4 — зачёркнутый, 5 — код.
 final inlineMarks = RegExp(r'\*\*(.+?)\*\*|(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])|(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)|~~(.+?)~~|`(.+?)`');
 
-/// Строка в куски: жирный, курсив, зачёркнутый, код, ссылки.
+/// Строка в куски: жирный, курсив, зачёркнутый, код, ссылки и `[[заметки]]` — ссылкой
+/// `stowa-note:Заголовок`, видна подписью или заголовком без скобок.
 List<InlinePiece> parseInline(String text) {
+  final pieces = <InlinePiece>[];
+  var last = 0;
+  for (final match in wikiLink.allMatches(text)) {
+    if (match.start > last) pieces.addAll(_parseMarks(text.substring(last, match.start)));
+    final title = match.group(1)!.trim();
+    final label = match.group(2)?.trim();
+    pieces.add((text: label == null || label.isEmpty ? title : label, bold: false, italic: false, strike: false, code: false, url: '$noteLinkScheme$title'));
+    last = match.end;
+  }
+  if (last < text.length) pieces.addAll(_parseMarks(text.substring(last)));
+  return pieces;
+}
+
+List<InlinePiece> _parseMarks(String text) {
   final pieces = <InlinePiece>[];
   void plain(String part) {
     var last = 0;

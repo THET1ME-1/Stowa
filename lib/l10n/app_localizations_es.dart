@@ -2976,4 +2976,49 @@ class LEs extends L {
 
   @override
   String get placeRadiusTitle => 'Radio del recordatorio';
+
+  @override
+  String get relatedInText => 'en el texto de la nota';
+
+  @override
+  String get relatedBacklink => 'enlaza aquí';
+
+  @override
+  String get relatedManual => 'enlazada a mano';
+
+  @override
+  String relatedAi(String reason) {
+    return 'IA: $reason';
+  }
+
+  @override
+  String get relatedAiPlain => 'enlazada por la IA';
+
+  @override
+  String get relatedUnlink => 'Quitar enlace';
+
+  @override
+  String get relatedUnlinked => 'Enlace quitado';
+
+  @override
+  String get linkAdd => 'Enlazar con una nota';
+
+  @override
+  String get linkAddShort => 'Enlace';
+
+  @override
+  String get linkSearchHint => 'Buscar una nota por palabras';
+
+  @override
+  String get linkNone => 'No hay una nota así';
+
+  @override
+  String linkAdded(String title) {
+    return 'Enlazada con «$title»';
+  }
+
+  @override
+  String linkMissing(String title) {
+    return 'No hay una nota «$title»';
+  }
 }

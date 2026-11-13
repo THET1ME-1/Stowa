@@ -3030,4 +3030,49 @@ class LPl extends L {
 
   @override
   String get placeRadiusTitle => 'Promień przypomnienia';
+
+  @override
+  String get relatedInText => 'w tekście notatki';
+
+  @override
+  String get relatedBacklink => 'odsyła tutaj';
+
+  @override
+  String get relatedManual => 'połączone ręcznie';
+
+  @override
+  String relatedAi(String reason) {
+    return 'SI: $reason';
+  }
+
+  @override
+  String get relatedAiPlain => 'połączone przez SI';
+
+  @override
+  String get relatedUnlink => 'Usuń połączenie';
+
+  @override
+  String get relatedUnlinked => 'Połączenie usunięte';
+
+  @override
+  String get linkAdd => 'Połącz z notatką';
+
+  @override
+  String get linkAddShort => 'Połączenie';
+
+  @override
+  String get linkSearchHint => 'Znajdź notatkę po słowach';
+
+  @override
+  String get linkNone => 'Nie ma takiej notatki';
+
+  @override
+  String linkAdded(String title) {
+    return 'Połączono z „$title”';
+  }
+
+  @override
+  String linkMissing(String title) {
+    return 'Nie ma notatki „$title”';
+  }
 }

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/services/vault/vault_reader.dart';
 import 'package:stowa/services/vault/vault_writer.dart';
@@ -104,7 +105,7 @@ void main() {
     expect(file('Сад/Весна/Март/Апрель/Полив.md').existsSync(), isTrue);
   });
 
-  test('[[Заметка]] — ручная связь, ![[фото.jpg]] рядом с заметкой — вложение', () async {
+  test('[[Заметка]] — связь из текста (в таблицу не пишется), ![[фото.jpg]] рядом с заметкой — вложение', () async {
     put('Чеснок.md', 'Сорт Любаша');
     put('Сад/Грядки.md', 'Посадить, см. [[Чеснок]]\n\n![[фото.jpg]]\n');
     put('Сад/фото.jpg', 'jpeg');
@@ -112,8 +113,10 @@ void main() {
     final all = await items();
     final beds = all.firstWhere((one) => one.title == 'Грядки');
     final garlic = all.firstWhere((one) => one.title == 'Чеснок');
-    final link = (await db.select(db.links).get()).single;
-    expect((link.fromId, link.toId, link.source), (beds.id, garlic.id, LinkSource.manual));
+    // связь считается из текста: убрали [[…]] в Obsidian — пропала и в Stowa
+    expect(await db.select(db.links).get(), isEmpty);
+    final linked = await ItemsRepository(db).watchLinked(beds.id).first;
+    expect([for (final one in linked) (one.card.id, one.kind)], [(garlic.id, LinkKind.text)]);
     final attachment = (await db.select(db.attachments).get()).single;
     expect(attachment.path, 'Сад/фото.jpg');
     expect(attachment.mime, 'image/jpeg');

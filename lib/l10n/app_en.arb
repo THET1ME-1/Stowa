@@ -3796,5 +3796,72 @@
   "placeRadiusTitle": "Reminder radius",
   "@placeRadiusTitle": {
     "description": "Заголовок листа выбора радиуса места"
+  },
+  "relatedInText": "linked in the text",
+  "@relatedInText": {
+    "description": "Почему связано: [[…]] в тексте этой заметки"
+  },
+  "relatedBacklink": "links here",
+  "@relatedBacklink": {
+    "description": "Почему связано: та заметка упоминает эту в своём [[…]]"
+  },
+  "relatedManual": "linked by you",
+  "@relatedManual": {
+    "description": "Почему связано: «+ Связь»"
+  },
+  "relatedAi": "AI: {reason}",
+  "@relatedAi": {
+    "description": "Почему связано: причина от модели",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "relatedAiPlain": "linked by AI",
+  "@relatedAiPlain": {
+    "description": "Почему связано: модель, без причины"
+  },
+  "relatedUnlink": "Remove link",
+  "@relatedUnlink": {
+    "description": "Подсказка крестика у ручной связи"
+  },
+  "relatedUnlinked": "Link removed",
+  "@relatedUnlinked": {
+    "description": "Плашка после снятия ручной связи"
+  },
+  "linkAdd": "Link a note",
+  "@linkAdd": {
+    "description": "Подсказка кнопки «+ Связь» и кнопки в полосе разметки"
+  },
+  "linkAddShort": "Link",
+  "@linkAddShort": {
+    "description": "Подпись кнопки «+ Связь» рядом с «+ Тег»"
+  },
+  "linkSearchHint": "Find a note by words",
+  "@linkSearchHint": {
+    "description": "Поле поиска в листе «+ Связь»"
+  },
+  "linkNone": "No such note",
+  "@linkNone": {
+    "description": "Поиск заметки для связи ничего не нашёл"
+  },
+  "linkAdded": "Linked with “{title}”",
+  "@linkAdded": {
+    "description": "Плашка после «+ Связь»",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "linkMissing": "There's no note “{title}”",
+  "@linkMissing": {
+    "description": "Касание [[…]] в тексте, а такой заметки нет",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   }
 }

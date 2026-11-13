@@ -49,6 +49,8 @@ class MarkdownBar extends StatelessWidget {
         button('check_box', l.mdChecklist, () => onAction(MarkdownAction.checklist)),
         button('format_quote', l.mdQuote, () => onAction(MarkdownAction.quote)),
         button('code', l.mdCode, () => onAction(MarkdownAction.code)),
+        // [[ ]] с курсором внутри: сразу появляется список заметок
+        button('add_link', l.linkAdd, () => onAction(MarkdownAction.link)),
         ...tail,
       ],
     );

@@ -27,6 +27,7 @@ import '../../domain/language_guess.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/money.dart' show formatTotal;
+import '../../domain/note_links.dart' show LinkTarget;
 import '../../domain/place_cue.dart' show KnownPlace;
 import '../../domain/search_query.dart';
 import '../../l10n/app_localizations.dart';
@@ -38,6 +39,8 @@ import '../places/reminder_permissions.dart';
 import 'attach_tray.dart';
 import 'line_controller.dart';
 import 'line_panel.dart';
+import 'wiki_link_edit.dart';
+import 'wiki_suggestions.dart';
 import 'markdown_bar.dart';
 import 'markdown_edit.dart';
 import 'panel_model.dart';
@@ -200,7 +203,24 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _manual = false;
     if (_line.text.isEmpty) _filter = null;
     _scheduleSearch();
+    // заметки для подсказки [[… читаются один раз, когда курсор впервые встал в скобки
+    if (_wikiQuery != null && _linkTargets == null) {
+      _linkTargets = const [];
+      ref.read(itemsRepositoryProvider).linkTargets().then((targets) {
+        if (mounted) setState(() => _linkTargets = targets);
+      }).ignore();
+    }
     setState(() {});
+  }
+
+  List<LinkTarget>? _linkTargets;
+
+  /// Набранное в [[… под курсором; под замком подсказки нет — строка ничего из базы не показывает.
+  String? get _wikiQuery => widget.writeOnly || !_focus.hasFocus ? null : wikiQueryOf(_line.value);
+
+  void _pickWiki(LinkTarget target) {
+    _line.value = completeWikiLink(_line.value, target.title);
+    _focus.requestFocus();
   }
 
   // поиск идёт по словам без команды, тегов и папок; чипы — фильтр
@@ -750,7 +770,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     );
     final rows = _panel.rows;
     _shownSelected = !_manual || _selected >= rows.length ? _panel.pick : _selected;
-    final showPanel = _active && !_full && !_morph.isAnimating && _voice == null && (_tray || rows.isNotEmpty);
+    // курсор в [[…: над полем список заметок, поиск строки не мешает
+    final showPanel = _active && !_full && !_morph.isAnimating && _voice == null && _wikiQuery == null && (_tray || rows.isNotEmpty);
     final shade = showPanel || _full;
     final rest = queryOf(_line.text, keys).rest;
     // знак «успокоилась» уходит после кадра: плашка, вставшая следом за закрытием, его отменяет
@@ -914,6 +935,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         onTap: _activate,
         cursorColor: Tokens.accent,
         style: fieldStyle,
+        // второй «[» дописывает «]]»; под замком подсказки нет, но скобки закрываются
+        inputFormatters: [TextInputFormatter.withFunction(closeWikiBrackets)],
         decoration: InputDecoration.collapsed(
           hintText: _full ? l.fullHint : (widget.homeFolder != null ? l.dropHere : (widget.writeOnly ? l.composerHintNoSearch : l.composerHint)),
           hintMaxLines: _full ? null : 1,
@@ -960,6 +983,11 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
               // Строкой, а не чипом: длинный текст в ряду чипов увёл бы крестик за край
               if (!_languageHidden && _line.reminder == null && _line.placeCue == null && unsupportedLanguage(_line.text))
                 _LanguageHint(text: l.lineLanguageHint, hideTooltip: l.lineLanguageHide, onHide: () => setState(() => _languageHidden = true)),
+              if (_wikiQuery case final query?)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 8),
+                  child: WikiSuggestions(query: query, targets: _linkTargets ?? const [], onPick: _pickWiki),
+                ),
               if (chips.isNotEmpty)
                 Stack(
                   children: [

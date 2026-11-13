@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/composer/line_dock.dart';
 import 'package:stowa/features/composer/line_panel.dart';
 
 import '../../helpers/test_app.dart';
@@ -39,6 +40,40 @@ void main() {
           updatedAt: at,
         ));
   }
+
+  testWidgets('«[[» в строке: «]]» дописывается, над полем заметки по словам, выбор ставит заголовок', (tester) async {
+    await note('beer', 'Пиво я очень люблю', body: 'и обожаю светлое');
+    await note('car', 'Замена масла');
+    await open(tester);
+    await type(tester, 'Купить к пятнице [');
+    await type(tester, 'Купить к пятнице [[');
+    final line = tester.widget<TextField>(find.byType(TextField)).controller!;
+    expect(line.text, 'Купить к пятнице [[]]');
+    // заметки читаются из базы при первом «[[»
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('wiki-suggestions')), findsOneWidget);
+    line.value = const TextEditingValue(text: 'Купить к пятнице [[свет]]', selection: TextSelection.collapsed(offset: 23));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('wiki-car')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('wiki-beer')));
+    await tester.pumpAndSettle();
+    expect(line.text, 'Купить к пятнице [[Пиво я очень люблю]]');
+    expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
+  });
+
+  testWidgets('под замком подсказки «[[» нет: строка ничего из базы не показывает', (tester) async {
+    await note('beer', 'Пиво я очень люблю');
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(Scaffold(body: Align(alignment: Alignment.bottomCenter, child: LineDock(onOpenItem: (_) {}, writeOnly: true)))));
+    await tester.pumpAndSettle();
+    await type(tester, 'Купить [');
+    await type(tester, 'Купить [[');
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'Купить [[]]');
+    expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
+  });
 
   testWidgets('новая мысль: строка «Закинуть» с причиной и напоминанием, сохраняет и чистит', (tester) async {
     await open(tester);

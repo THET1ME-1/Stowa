@@ -18,7 +18,6 @@ import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
 import '../domain/models.dart' show FactKind;
 import '../domain/place_groups.dart' show guessHomeAndWork;
-import '../domain/related.dart';
 import '../services/ai_image.dart';
 import '../services/ai_worker.dart';
 import '../services/auto_sorter.dart';
@@ -732,7 +731,7 @@ final rulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider)
 final allRulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvider).watchAll());
 
 /// Вещи, связанные с открытой, с причиной: общие редкие слова или сайт.
-final relatedProvider = StreamProvider.family<List<({ItemCard card, Related why})>, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchRelated(id));
+final relatedProvider = StreamProvider.family<List<LinkedNote>, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchLinked(id));
 
 /// Одна вещь целиком для её страницы, обновляется вместе с базой.
 final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchItem(id));

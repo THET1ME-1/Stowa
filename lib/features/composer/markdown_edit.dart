@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-enum MarkdownAction { heading, bold, italic, strike, bullets, checklist, quote, code }
+enum MarkdownAction { heading, bold, italic, strike, bullets, checklist, quote, code, link }
 
 const _prefixes = {MarkdownAction.heading: '# ', MarkdownAction.bullets: '- ', MarkdownAction.checklist: '- [ ] ', MarkdownAction.quote: '> '};
 
@@ -10,6 +10,14 @@ const _wraps = {MarkdownAction.bold: '**', MarkdownAction.italic: '_', MarkdownA
 TextEditingValue applyMarkdown(TextEditingValue value, MarkdownAction action) {
   final text = value.text;
   final selection = value.selection.isValid ? value.selection : TextSelection.collapsed(offset: text.length);
+  // «Связь»: [[выделенное]], курсор перед «]]» — выделенное слово сразу ищется в подсказке
+  if (action == MarkdownAction.link) {
+    final selected = text.substring(selection.start, selection.end);
+    return TextEditingValue(
+      text: text.replaceRange(selection.start, selection.end, '[[$selected]]'),
+      selection: TextSelection.collapsed(offset: selection.start + 2 + selected.length),
+    );
+  }
   final prefix = _prefixes[action];
   if (prefix != null) {
     final lineStart = selection.start == 0 ? 0 : text.lastIndexOf('\n', selection.start - 1) + 1;

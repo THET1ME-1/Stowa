@@ -557,5 +557,18 @@
   "placeNoPoint": "Noch kein Punkt",
   "placeKindOwn": "Eigene Art",
   "placeRadiusValue": "{meters} m",
-  "placeRadiusTitle": "Erinnerungsradius"
+  "placeRadiusTitle": "Erinnerungsradius",
+  "relatedInText": "im Text der Notiz",
+  "relatedBacklink": "verweist hierher",
+  "relatedManual": "von dir verknüpft",
+  "relatedAi": "KI: {reason}",
+  "relatedAiPlain": "von der KI verknüpft",
+  "relatedUnlink": "Verknüpfung entfernen",
+  "relatedUnlinked": "Verknüpfung entfernt",
+  "linkAdd": "Mit Notiz verknüpfen",
+  "linkAddShort": "Link",
+  "linkSearchHint": "Notiz nach Wörtern suchen",
+  "linkNone": "Keine solche Notiz",
+  "linkAdded": "Mit „{title}“ verknüpft",
+  "linkMissing": "Keine Notiz „{title}“"
 }
