@@ -34,8 +34,40 @@ Future<void> _shot(WidgetTester tester, String name) async {
   });
 }
 
+Future<void> _remindAll(TestWorld world, List<(String, String, Duration)> reminders) async {
+  for (final (id, title, later) in reminders) {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+          id: id,
+          kind: ItemKind.note,
+          title: title,
+          body: Value(title),
+          sortState: const Value(SortState.sorted),
+          reminderAt: Value(world.now.add(later)),
+          createdAt: world.now.subtract(const Duration(hours: 2)),
+          updatedAt: world.now.subtract(const Duration(hours: 2)),
+        ));
+  }
+}
+
 void main() {
   setUpAll(_loadFonts);
+
+  for (final (name, reminders) in [
+    ('reminders-0-одно', [('protein', 'Надо выпить протеин', const Duration(hours: 23))]),
+    ('reminders-0-короткие', [('protein', 'Надо выпить протеин', const Duration(hours: 23)), ('gym', 'Зал, ноги', const Duration(hours: 34)), ('call', 'Позвонить маме', const Duration(days: 2))]),
+  ]) {
+    testWidgets(name, (tester) async {
+      final world = TestWorld();
+      addTearDown(world.dispose);
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(392, 850);
+      addTearDown(tester.view.reset);
+      await _remindAll(world, reminders);
+      await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: world.app()));
+      await tester.pumpAndSettle();
+      await _shot(tester, name);
+    });
+  }
 
   testWidgets('карусель напоминаний', (tester) async {
     final world = TestWorld();

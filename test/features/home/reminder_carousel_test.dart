@@ -49,6 +49,24 @@ void main() {
     expect(find.byType(ItemScreen), findsOneWidget);
   });
 
+  testWidgets('время с заглавной: «Завтра в 09:00», а не «завтра»', (tester) async {
+    await remind('protein', 'Надо выпить протеин', const Duration(days: 1));
+    await open(tester);
+    expect(find.descendant(of: find.byType(ReminderCarousel), matching: find.textContaining(RegExp('^Завтра'))), findsOneWidget);
+  });
+
+  testWidgets('короткие заголовки — ряд ниже, чем с длинными: пустой полосы под текстом нет', (tester) async {
+    // в тестовом шрифте буква — квадрат с кегль: заголовки взяты заведомо короткие
+    await remind('protein', 'Сок', const Duration(hours: 2));
+    await remind('gym', 'Зал', const Duration(hours: 3));
+    await open(tester);
+    final short = tester.getSize(find.byType(CarouselView)).height;
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('protein'))).write(const ItemsCompanion(title: Value('Футбольный матч Молдова Казахстан на арене Зимбру')));
+    await tester.pumpAndSettle();
+    final long = tester.getSize(find.byType(CarouselView)).height;
+    expect(short, lessThan(long - 15));
+  });
+
   testWidgets('несколько напоминаний — карусель: ведущая широкая с текстом, следующие полосками', (tester) async {
     await remind('shirt', 'Закинуть футболку', const Duration(hours: 1));
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
