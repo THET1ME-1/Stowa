@@ -246,7 +246,7 @@ void main() {
 
   testWidgets('экран «Уведомления»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
     await openSection(tester, 'Уведомления');
-    for (final label in ['Посмотреть потом', 'В этот день', 'Сводка недели', 'Покупки у магазина', '20:00', '22:00–08:00', 'воскресенье', 'Работа до', '18:00', 'Места']) {
+    for (final label in ['Посмотреть потом', 'В этот день', 'Сводка недели', 'Покупки у магазина', '20:00', '22:00–08:00', 'Воскресенье', 'Работа до', '18:00', 'Места']) {
       await tester.scrollUntilVisible(find.text(label), 100);
       expect(find.text(label), findsOneWidget);
     }
@@ -267,10 +267,12 @@ void main() {
     await tester.scrollUntilVisible(find.text('День сводки'), 100);
     await tester.tap(find.text('День сводки'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('суббота').last);
+    // лист — блоками с кружком «Сб», дни с заглавной
+    expect(find.text('Сб'), findsOneWidget);
+    await tester.tap(find.text('Суббота').last);
     await tester.pumpAndSettle();
     expect(settings.returns.weekDay, DateTime.saturday);
-    expect(find.text('суббота'), findsOneWidget);
+    expect(find.text('Суббота'), findsOneWidget);
 
     // выключенный вид уходит из итога на главном экране настроек
     await tester.ensureVisible(find.text('В этот день'));

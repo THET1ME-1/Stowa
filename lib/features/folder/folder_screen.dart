@@ -12,6 +12,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -110,11 +111,9 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     final items = ref.read(itemsRepositoryProvider);
     final clock = ref.read(clockProvider);
     final folders = ref.read(foldersProvider).value ?? const <FolderCard>[];
-    final picked = await showModalBottomSheet<FolderCard>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => FolderPickerSheet(
+    final picked = await showOptionsSheetWith<FolderCard>(
+      context,
+      (sheet) => FolderPickerSheet(
         title: l.folderPickTitle,
         folders: [
           for (final folder in folders)
@@ -204,29 +203,15 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
   /// [colored] — у картинок папки уже есть главные цвета: можно разложить по цвету.
   Future<void> _pickOrder({required bool colored}) async {
     final l = L.of(context);
-    final picked = await showModalBottomSheet<FolderOrder>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (context) => SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final (order, label) in [
-              (FolderOrder.newest, l.sortNewest),
-              (FolderOrder.oldest, l.sortOldest),
-              (FolderOrder.name, l.sortByName),
-              if (colored) (FolderOrder.color, l.sortByColor),
-            ])
-              ListTile(
-                title: Text(label),
-                trailing: order == _order ? Icon(symbolIcon('check'), color: Tokens.accent) : null,
-                onTap: () => Navigator.pop(context, order),
-              ),
-          ],
-        ),
-      ),
+    final picked = await showOptionsSheet<FolderOrder>(
+      context,
+      selected: _order,
+      options: [
+        SheetChoice(value: FolderOrder.newest, title: l.sortNewest, icon: 'arrow_downward'),
+        SheetChoice(value: FolderOrder.oldest, title: l.sortOldest, icon: 'arrow_upward'),
+        SheetChoice(value: FolderOrder.name, title: l.sortByName, icon: 'sort_by_alpha'),
+        if (colored) SheetChoice(value: FolderOrder.color, title: l.sortByColor, icon: 'palette'),
+      ],
     );
     if (picked != null && mounted) setState(() => _order = picked);
   }
@@ -273,39 +258,16 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         if (one.id != folder.parentId && tree.canMoveInto(folder.id, one.id)) one,
     ];
     final top = folder.parentId != null && tree.canMoveInto(folder.id, null);
-    final picked = await showModalBottomSheet<({String? parentId})>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen + 8, 0, Space.screen, 8),
-              child: Text(l.folderMoveTo, style: Theme.of(sheet).textTheme.titleMedium),
-            ),
-            if (targets.isEmpty && !top)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(Space.screen + 8, 0, Space.screen + 8, Space.screen),
-                child: Text(l.folderMoveNone, style: Theme.of(sheet).textTheme.bodyMedium!.copyWith(color: Tokens.muted)),
-              ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-                children: [
-                  if (top) FolderOption(icon: 'vertical_align_top', shape: 'squircle', name: l.folderMoveTop, onTap: () => Navigator.pop(sheet, (parentId: null))),
-                  for (final one in targets)
-                    FolderOption(icon: one.icon, shape: one.shape, name: one.name, path: one.parentsLabel, onTap: () => Navigator.pop(sheet, (parentId: one.id))),
-                ],
-              ),
-            ),
-          ],
-        ),
+    final picked = await showOptionsSheetWith<({String? parentId})>(
+      context,
+      (sheet) => SheetOptionsBody(
+        title: l.folderMoveTo,
+        top: targets.isEmpty && !top ? Text(l.folderMoveNone, style: Theme.of(sheet).textTheme.bodyMedium!.copyWith(color: Tokens.muted)) : null,
+        children: [
+          if (top) folderOption(icon: 'vertical_align_top', shape: 'squircle', name: l.folderMoveTop, onTap: () => Navigator.pop(sheet, (parentId: null))),
+          for (final one in targets)
+            folderOption(icon: one.icon, shape: one.shape, name: one.name, path: one.parentsLabel, onTap: () => Navigator.pop(sheet, (parentId: one.id))),
+        ],
       ),
     );
     if (picked != null) await ref.read(foldersRepositoryProvider).move(folder.id, picked.parentId);

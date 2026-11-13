@@ -5,6 +5,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -37,28 +38,13 @@ class SmartFolderScreen extends ConsumerWidget {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    Widget row(String icon, String label, _SmartAction action, {bool danger = false}) => ListTile(
-      leading: Icon(symbolIcon(icon), color: danger ? Tokens.error : Tokens.onSurface),
-      title: Text(label, style: TextStyle(color: danger ? Tokens.error : Tokens.onSurface)),
-      onTap: () => Navigator.pop(context, action),
-    );
-    final action = await showModalBottomSheet<_SmartAction>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              row('edit', l.folderRename, _SmartAction.rename),
-              row('delete', l.smartDelete, _SmartAction.delete, danger: true),
-            ],
-          ),
-        ),
-      ),
+    final action = await showOptionsSheet<_SmartAction>(
+      context,
+      title: folder.name,
+      options: [
+        SheetChoice(value: _SmartAction.rename, title: l.folderRename, icon: 'edit'),
+        SheetChoice(value: _SmartAction.delete, title: l.smartDelete, icon: 'delete', danger: true),
+      ],
     );
     if (!context.mounted || action == null) return;
     final repository = ref.read(smartFoldersRepositoryProvider);

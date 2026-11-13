@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -33,28 +33,19 @@ Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet
 /// [hidden] — папка скрыта: вместо «Скрыть» — «Не скрывать».
 Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true, bool hidden = false}) {
   final l = L.of(context);
-  Widget row(String icon, String label, FolderAction action, {bool danger = false}) => ListTile(
-    leading: Icon(symbolIcon(icon), color: danger ? Tokens.error : Tokens.onSurface),
-    title: Text(label, style: TextStyle(color: danger ? Tokens.error : Tokens.onSurface)),
-    onTap: () => Navigator.pop(context, action),
-  );
-  return _sheet(
+  return showOptionsSheet<FolderAction>(
     context,
-    Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          row('hub', l.graphTitle, FolderAction.graph),
-          if (canNest) row('create_new_folder', l.folderNewInside, FolderAction.nest),
-          row('drive_file_move', l.folderMoveTo, FolderAction.move),
-          row('edit', l.folderRename, FolderAction.rename),
-          row('palette', l.folderLook, FolderAction.look),
-          hidden ? row('visibility', l.folderUnhide, FolderAction.unhide) : row('visibility_off', l.folderHide, FolderAction.hide),
-          row('delete', l.folderDelete, FolderAction.delete, danger: true),
-        ],
-      ),
-    ),
+    options: [
+      SheetChoice(value: FolderAction.graph, title: l.graphTitle, icon: 'hub'),
+      if (canNest) SheetChoice(value: FolderAction.nest, title: l.folderNewInside, icon: 'create_new_folder'),
+      SheetChoice(value: FolderAction.move, title: l.folderMoveTo, icon: 'drive_file_move'),
+      SheetChoice(value: FolderAction.rename, title: l.folderRename, icon: 'edit'),
+      SheetChoice(value: FolderAction.look, title: l.folderLook, icon: 'palette'),
+      hidden
+          ? SheetChoice(value: FolderAction.unhide, title: l.folderUnhide, icon: 'visibility')
+          : SheetChoice(value: FolderAction.hide, title: l.folderHide, icon: 'visibility_off'),
+      SheetChoice(value: FolderAction.delete, title: l.folderDelete, icon: 'delete', danger: true),
+    ],
   );
 }
 

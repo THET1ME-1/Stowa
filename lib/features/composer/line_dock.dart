@@ -15,6 +15,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../data/db/database.dart' show Place;
 import '../../data/providers.dart';
@@ -1145,11 +1146,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   Future<void> _pickFolder() async {
     final l = L.of(context);
     final folders = ref.read(foldersProvider).value ?? const [];
-    final picked = await showModalBottomSheet<FolderCard?>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => FolderPickerSheet(title: l.folderPickTitle, folders: folders, onNew: () => askNewFolder(sheet, ref)),
+    final picked = await showOptionsSheetWith<FolderCard?>(
+      context,
+      (sheet) => FolderPickerSheet(title: l.folderPickTitle, folders: folders, onNew: () => askNewFolder(sheet, ref)),
     );
     if (picked != null) _line.chooseFolder(picked);
   }
@@ -1258,90 +1257,41 @@ class FolderPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return SafeArea(
-      top: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Space.screen + 8, 0, Space.screen, 8),
-            child: Text(title, style: text.titleMedium),
+    return SheetOptionsBody(
+      title: title,
+      children: [
+        if (allowNone) folderOption(icon: 'inbox', shape: 'squircle', name: noneLabel ?? '', onTap: () => Navigator.pop(context, none)),
+        // деревом: вложенная сразу под родителем, путь родителей мелко под именем
+        for (final folder in inTreeOrder(folders))
+          folderOption(icon: folder.icon, shape: folder.shape, name: folder.name, path: folder.parentsLabel, onTap: () => Navigator.pop(context, folder)),
+        if (onNew != null)
+          folderOption(
+            icon: 'create_new_folder',
+            shape: 'squircle',
+            name: L.of(context).folderPickNew,
+            onTap: () async {
+              final created = await onNew!();
+              if (created != null && context.mounted) Navigator.pop(context, created);
+            },
           ),
-          Flexible(
-            child: ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-              children: [
-                if (allowNone) FolderOption(icon: 'inbox', shape: 'squircle', name: noneLabel ?? '', onTap: () => Navigator.pop(context, none)),
-                // деревом: вложенная сразу под родителем, путь родителей мелко под именем
-                for (final folder in inTreeOrder(folders))
-                  FolderOption(icon: folder.icon, shape: folder.shape, name: folder.name, path: folder.parentsLabel, onTap: () => Navigator.pop(context, folder)),
-                if (onNew != null)
-                  FolderOption(
-                    icon: 'create_new_folder',
-                    shape: 'squircle',
-                    name: L.of(context).folderPickNew,
-                    onTap: () async {
-                      final created = await onNew!();
-                      if (created != null && context.mounted) Navigator.pop(context, created);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
 
-/// Строка выбора папки: значок, имя и, у вложенной, путь родителей под ним.
-class FolderOption extends StatelessWidget {
-  const FolderOption({super.key, required this.icon, required this.shape, required this.name, this.path, required this.onTap});
-
-  final String icon;
-  final String shape;
-  final String name;
-
-  /// «Дом / Ремонт» у вложенной папки; у верхней — null.
-  final String? path;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(Radii.tile),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Row(
-          children: [
-            ShapeBadge(
-              shape: BadgeShape.values.asNameMap()[shape] ?? BadgeShape.squircle,
-              size: 44,
-              color: Tokens.containerHighest,
-              child: Icon(symbolIcon(icon), color: Tokens.onSurface),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(name, style: Theme.of(context).textTheme.titleMedium),
-                  if (path case final path?)
-                    Text(path, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+/// Строка выбора папки блоком, как в меню заметки: значок в форме папки, имя и, у вложенной,
+/// путь родителей под ним («Дом / Ремонт»).
+SheetOption folderOption({required String icon, required String shape, required String name, String? path, required VoidCallback onTap}) => SheetOption(
+  title: name,
+  subtitle: path,
+  leading: ShapeBadge(
+    shape: BadgeShape.values.asNameMap()[shape] ?? BadgeShape.squircle,
+    size: 40,
+    color: Tokens.graphite,
+    child: Icon(symbolIcon(icon), size: 20, color: Tokens.onSurface),
+  ),
+  onTap: onTap,
+);
 
 /// Чип над строкой: тег, папка или напоминание, крестик снимает.
 /// Подсказка над строкой: значок, текст в несколько строк и крестик, который всегда на виду.

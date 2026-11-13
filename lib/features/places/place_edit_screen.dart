@@ -10,6 +10,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/icons/icon_words.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -152,39 +153,17 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
 
   /// Лист всех видов с поиском: готовые, свои и «Создать «…»».
   Future<void> _findType(List<Place> places) async {
-    final picked = await showModalBottomSheet<PlaceType>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      isScrollControlled: true,
-      backgroundColor: Tokens.container,
-      builder: (sheet) => _TypeSheet(places: places),
-    );
+    final picked = await showOptionsSheetWith<PlaceType>(context, (sheet) => _TypeSheet(places: places));
     if (picked != null && mounted) _pick(picked);
   }
 
   Future<void> _pickRadius() async {
     final l = L.of(context);
-    final picked = await showSettingsSheet<int>(
+    final picked = await showOptionsSheet<int>(
       context,
-      Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Space.screen + 8, 20, Space.screen, 8),
-            child: Text(l.placeRadiusTitle, style: Theme.of(context).textTheme.titleMedium),
-          ),
-          for (final meters in placeRadii)
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: Space.screen + 8),
-              title: Text(l.placeRadiusValue(meters)),
-              trailing: meters == _radius ? Icon(symbolIcon('check'), color: Tokens.onSurface) : null,
-              onTap: () => Navigator.pop(context, meters),
-            ),
-          const SizedBox(height: 12),
-        ],
-      ),
+      title: l.placeRadiusTitle,
+      selected: _radius,
+      options: [for (final meters in placeRadii) SheetChoice(value: meters, title: l.placeRadiusValue(meters), mark: '$meters')],
     );
     if (picked != null && mounted) setState(() => _radius = picked);
   }
@@ -1034,50 +1013,31 @@ class _TypeSheetState extends State<_TypeSheet> {
     final shown = query.isEmpty ? types : types.where((type) => placeTypeLabel(l, type).toLowerCase().contains(query.toLowerCase())).toList();
     final exact = types.any((type) => placeTypeLabel(l, type).toLowerCase() == query.toLowerCase());
     final created = query.isEmpty ? '' : query[0].toUpperCase() + query.substring(1);
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.75),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 8),
-                child: TextField(
-                  key: const ValueKey('type-search'),
-                  autofocus: true,
-                  decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.placeKindSearchHint),
-                  textCapitalization: TextCapitalization.sentences,
-                  onChanged: (value) => setState(() => _query = value),
-                ),
-              ),
-              Flexible(
-                child: ListView(
-                  key: const ValueKey('type-sheet'),
-                  shrinkWrap: true,
-                  children: [
-                    if (query.isNotEmpty && !exact)
-                      ListTile(
-                        leading: Icon(symbolIcon('add')),
-                        title: Text(l.placeKindCreate(created)),
-                        onTap: () => Navigator.pop(context, (kind: PlaceKind.other, label: created, icon: _iconFor(created))),
-                      ),
-                    for (final type in shown)
-                      ListTile(
-                        key: ValueKey('type-${placeTypeLabel(l, type)}'),
-                        leading: Icon(symbolIcon(placeTypeIcon(type))),
-                        title: Text(placeTypeLabel(l, type)),
-                        onTap: () => Navigator.pop(context, type),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    return KeyedSubtree(
+      key: const ValueKey('type-sheet'),
+      child: SheetOptionsBody(
+        top: TextField(
+          key: const ValueKey('type-search'),
+          autofocus: true,
+          decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.placeKindSearchHint),
+          textCapitalization: TextCapitalization.sentences,
+          onChanged: (value) => setState(() => _query = value),
         ),
+        children: [
+          if (query.isNotEmpty && !exact)
+            SheetOption(
+              title: l.placeKindCreate(created),
+              icon: 'add',
+              onTap: () => Navigator.pop(context, (kind: PlaceKind.other, label: created, icon: _iconFor(created))),
+            ),
+          for (final type in shown)
+            SheetOption(
+              key: ValueKey('type-${placeTypeLabel(l, type)}'),
+              title: placeTypeLabel(l, type),
+              icon: placeTypeIcon(type),
+              onTap: () => Navigator.pop(context, type),
+            ),
+        ],
       ),
     );
   }

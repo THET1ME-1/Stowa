@@ -6,9 +6,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
@@ -719,88 +719,46 @@ class _ModelSheetState extends ConsumerState<_ModelSheet> {
                   AsyncSnapshot(data: null) => l.aiModelsNeedKey,
                   _ => null,
                 };
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-                  children: [
-                    if (widget.speech) _ModelTile(title: l.aiSpeechOff, selected: current == null, onTap: () => _pick(null)),
-                    if (query.isNotEmpty && !models.any((model) => model.id.toLowerCase() == query))
-                      _ModelTile(title: l.aiModelOwn(_query.trim()), selected: false, onTap: () => _pick(_query.trim())),
+                // моделей бывают сотни: строки-блоки строятся по мере прокрутки
+                final rows = <SheetOption>[
+                  if (widget.speech) SheetOption(title: l.aiSpeechOff, icon: 'mic_off', selected: current == null, onTap: () => _pick(null)),
+                  if (query.isNotEmpty && !models.any((model) => model.id.toLowerCase() == query))
+                    SheetOption(title: l.aiModelOwn(_query.trim()), icon: 'edit', onTap: () => _pick(_query.trim())),
+                  for (final model in shown)
+                    SheetOption(
+                      title: model.name,
+                      subtitle: model.id,
+                      icon: widget.speech ? 'graphic_eq' : 'smart_toy',
+                      badges: [if (model.free) l.aiModelFree, if (model.seesImages) l.aiModelVision],
+                      selected: model.id == current,
+                      onTap: () => _pick(model.id),
+                    ),
+                ];
+                return CustomScrollView(
+                  slivers: [
                     if (snapshot.connectionState == ConnectionState.waiting)
-                      const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator())),
+                      const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))),
                     if (note != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Text(note, textAlign: TextAlign.center, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 16),
+                          child: Text(note, textAlign: TextAlign.center, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
+                        ),
                       ),
-                    for (final model in shown)
-                      _ModelTile(
-                        title: model.name,
-                        subtitle: model.id,
-                        badges: [if (model.free) l.aiModelFree, if (model.seesImages) l.aiModelVision],
-                        selected: model.id == current,
-                        onTap: () => _pick(model.id),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                      sliver: SliverList.separated(
+                        itemCount: rows.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 4),
+                        itemBuilder: (context, index) => rows[index].withRadius(sheetRowRadius(index, rows.length)),
                       ),
+                    ),
                   ],
                 );
               },
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ModelTile extends StatelessWidget {
-  const _ModelTile({required this.title, this.subtitle, this.badges = const [], required this.selected, required this.onTap});
-
-  final String title;
-  final String? subtitle;
-  final List<String> badges;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Pressable(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: Motion.short,
-          padding: const EdgeInsets.fromLTRB(16, 12, 14, 12),
-          decoration: BoxDecoration(color: selected ? Tokens.accent : Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.tile)),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: text.bodyLarge!.copyWith(color: selected ? Tokens.onAccent : Tokens.onSurface)),
-                    if (subtitle != null)
-                      Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(color: selected ? Tokens.onAccentVariant : Tokens.muted)),
-                    if (badges.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        children: [
-                          for (final badge in badges)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(color: selected ? Tokens.onAccent.withValues(alpha: 0.1) : Tokens.graphite, borderRadius: BorderRadius.circular(100)),
-                              child: Text(badge, style: text.labelSmall!.copyWith(color: selected ? Tokens.onAccent : Tokens.onSurfaceVariant)),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (selected) Icon(symbolIcon('check'), color: Tokens.onAccent),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -821,15 +779,13 @@ class _LanguageSheet extends ConsumerWidget {
       if (context.mounted) Navigator.pop(context);
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _ModelTile(title: l.languageSystem, selected: current == null, onTap: () => pick(null)),
-          for (final language in AppLanguage.values) _ModelTile(title: language.label, selected: language == current, onTap: () => pick(language)),
-        ],
-      ),
+    return SheetOptionsBody(
+      title: l.settingsLanguage,
+      children: [
+        SheetOption(title: l.languageSystem, icon: 'smartphone', selected: current == null, onTap: () => pick(null)),
+        for (final language in AppLanguage.values)
+          SheetOption(title: language.label, mark: language.code.toUpperCase(), selected: language == current, onTap: () => pick(language)),
+      ],
     );
   }
 }
@@ -854,14 +810,19 @@ class _TitleDateSheet extends ConsumerWidget {
       if (context.mounted) Navigator.pop(context);
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final date in TitleDate.values) _ModelTile(title: titleDateLabel(l, date), selected: date == current, onTap: () => pick(date)),
-        ],
-      ),
+    return SheetOptionsBody(
+      children: [
+        for (final date in TitleDate.values)
+          SheetOption(
+            title: titleDateLabel(l, date),
+            icon: switch (date) {
+              TitleDate.shot => 'photo_camera',
+              TitleDate.saved => 'save',
+            },
+            selected: date == current,
+            onTap: () => pick(date),
+          ),
+      ],
     );
   }
 }
@@ -884,14 +845,21 @@ class _StartSheet extends ConsumerWidget {
       if (context.mounted) Navigator.pop(context);
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final start in StartScreen.values) _ModelTile(title: startLabel(l, start), selected: start == current, onTap: () => pick(start)),
-        ],
-      ),
+    return SheetOptionsBody(
+      title: l.startOpen,
+      children: [
+        for (final start in StartScreen.values)
+          SheetOption(
+            title: startLabel(l, start),
+            icon: switch (start) {
+              StartScreen.home => 'home',
+              StartScreen.last => 'history',
+              StartScreen.random => 'shuffle',
+            },
+            selected: start == current,
+            onTap: () => pick(start),
+          ),
+      ],
     );
   }
 }

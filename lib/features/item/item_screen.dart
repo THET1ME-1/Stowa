@@ -14,6 +14,7 @@ import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
@@ -257,11 +258,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   Future<void> _move(Item item, List<FolderCard> folders) async {
     final l = L.of(context);
-    final target = await showModalBottomSheet<FolderCard>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => FolderPickerSheet(
+    final target = await showOptionsSheetWith<FolderCard>(
+      context,
+      (sheet) => FolderPickerSheet(
         title: l.folderPickTitle,
         folders: [for (final folder in folders) if (folder.id != item.folderId) folder],
         // угадыватель ошибся папкой — заметку можно вынуть совсем, он это запомнит
@@ -293,20 +292,13 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   Future<void> _changeDate(Item item) async {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(leading: Icon(symbolIcon('schedule')), title: Text(l.itemDateNow), onTap: () => Navigator.pop(sheet, 'now')),
-            ListTile(leading: Icon(symbolIcon('calendar_today')), title: Text(l.itemDatePick), onTap: () => Navigator.pop(sheet, 'pick')),
-          ],
-        ),
-      ),
+    final choice = await showOptionsSheet<String>(
+      context,
+      title: l.itemDateChange,
+      options: [
+        SheetChoice(value: 'now', title: l.itemDateNow, icon: 'schedule'),
+        SheetChoice(value: 'pick', title: l.itemDatePick, icon: 'calendar_today'),
+      ],
     );
     if (choice == null || !mounted) return;
     final now = _clock();
@@ -364,35 +356,24 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
         ? const [PlaceKind.home, PlaceKind.work, PlaceKind.shop]
         : [for (final kind in PlaceKind.values) if ((counts[kind] ?? 0) > 1) kind];
     final groups = [for (final MapEntry(key: label, value: count) in labels.entries) if (count > 1) label];
-    Widget row(String icon, String title, Object choice) => ListTile(leading: Icon(symbolIcon(icon)), title: Text(title), onTap: () => Navigator.pop(context, choice));
     // «time», «places» или готовое напоминание по месту; смахнули лист — null
-    final choice = await showModalBottomSheet<Object>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.75),
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              row('schedule', l.itemRemindTime, 'time'),
-              row('my_location', l.placeRemindHere, const PlaceReminder(PlaceReminderKind.point)),
-              for (final place in places) row(placeTypeIcon(typeOf(place)), l.placeRemindAt(place.name), PlaceReminder(PlaceReminderKind.place, ref: place.id, name: place.name)),
-              for (final kind in kinds) row(placeKindIcon(kind), remindPlaceLabel(l, remindAtKind(kind)), PlaceReminder(remindAtKind(kind))),
-              for (final label in groups)
-                row(
-                  placeTypeIcon(typeOf(places.firstWhere((place) => place.label == label))),
-                  l.placeRemindAt(label),
-                  PlaceReminder(PlaceReminderKind.place, ref: placeTypeRef(label), name: label),
-                ),
-              row('add_location_alt', l.placesTitle, 'places'),
-            ],
+    final choice = await showOptionsSheet<Object>(
+      context,
+      title: l.itemRemind,
+      options: [
+        SheetChoice(value: 'time', title: l.itemRemindTime, icon: 'schedule'),
+        SheetChoice(value: const PlaceReminder(PlaceReminderKind.point), title: l.placeRemindHere, icon: 'my_location'),
+        for (final place in places)
+          SheetChoice(value: PlaceReminder(PlaceReminderKind.place, ref: place.id, name: place.name), title: l.placeRemindAt(place.name), icon: place.icon ?? placeTypeIcon(typeOf(place))),
+        for (final kind in kinds) SheetChoice(value: PlaceReminder(remindAtKind(kind)), title: remindPlaceLabel(l, remindAtKind(kind)), icon: placeKindIcon(kind)),
+        for (final label in groups)
+          SheetChoice(
+            value: PlaceReminder(PlaceReminderKind.place, ref: placeTypeRef(label), name: label),
+            title: l.placeRemindAt(label),
+            icon: placeTypeIcon(typeOf(places.firstWhere((place) => place.label == label))),
           ),
-        ),
-      ),
+        SheetChoice(value: 'places', title: l.placesTitle, icon: 'add_location_alt'),
+      ],
     );
     if (choice == null || !mounted) return;
     switch (choice) {
@@ -434,24 +415,12 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   Future<void> _placeMenu(PlaceReminder current) async {
     final l = L.of(context);
-    final remove = await showModalBottomSheet<bool>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(leading: Icon(symbolIcon('edit_location_alt')), title: Text(l.itemPlaceChange), onTap: () => Navigator.pop(sheet, false)),
-            ListTile(
-              leading: Icon(symbolIcon('location_off'), color: Tokens.error),
-              title: Text(l.itemReminderRemove, style: TextStyle(color: Tokens.error)),
-              onTap: () => Navigator.pop(sheet, true),
-            ),
-          ],
-        ),
-      ),
+    final remove = await showOptionsSheet<bool>(
+      context,
+      options: [
+        SheetChoice(value: false, title: l.itemPlaceChange, icon: 'edit_location_alt'),
+        SheetChoice(value: true, title: l.itemReminderRemove, icon: 'location_off', danger: true),
+      ],
     );
     if (remove == null || !mounted) return;
     if (remove) {
@@ -464,24 +433,12 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   Future<void> _reminderMenu(DateTime current) async {
     final l = L.of(context);
-    final remove = await showModalBottomSheet<bool>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(leading: Icon(symbolIcon('edit_calendar')), title: Text(l.itemReminderChange), onTap: () => Navigator.pop(sheet, false)),
-            ListTile(
-              leading: Icon(symbolIcon('notifications_off'), color: Tokens.error),
-              title: Text(l.itemReminderRemove, style: TextStyle(color: Tokens.error)),
-              onTap: () => Navigator.pop(sheet, true),
-            ),
-          ],
-        ),
-      ),
+    final remove = await showOptionsSheet<bool>(
+      context,
+      options: [
+        SheetChoice(value: false, title: l.itemReminderChange, icon: 'edit_calendar'),
+        SheetChoice(value: true, title: l.itemReminderRemove, icon: 'notifications_off', danger: true),
+      ],
     );
     if (remove == null || !mounted) return;
     if (remove) {
@@ -576,14 +533,18 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   Future<void> _menu(Item item) async {
+    final l = L.of(context);
     final hasHistory = (ref.read(noteVersionsProvider(_id)).value ?? const []).isNotEmpty;
-    final action = await showModalBottomSheet<_MenuAction>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      // пять пунктов выше обычного потолка листа на низком экране
-      isScrollControlled: true,
-      builder: (sheet) => _ItemMenu(title: item.title, history: hasHistory),
+    final action = await showOptionsSheet<_MenuAction>(
+      context,
+      title: item.title,
+      options: [
+        SheetChoice(value: _MenuAction.copy, title: l.itemCopy, icon: 'content_copy'),
+        SheetChoice(value: _MenuAction.date, title: l.itemDateChange, icon: 'calendar_today'),
+        SheetChoice(value: _MenuAction.property, title: l.propertyAdd, icon: 'list_alt'),
+        if (hasHistory) SheetChoice(value: _MenuAction.history, title: l.historyTitle, icon: 'history'),
+        SheetChoice(value: _MenuAction.delete, title: l.itemDelete, icon: 'delete', danger: true),
+      ],
     );
     if (action == null || !mounted) return;
     switch (action) {
@@ -1555,75 +1516,6 @@ class _Dock extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-/// Лист «⋮»: скопировать текст и удалить. Блоки сцеплены, как в настройках.
-class _ItemMenu extends StatelessWidget {
-  const _ItemMenu({required this.title, this.history = false});
-
-  final String title;
-
-  /// Есть хоть один снимок: пункт «История».
-  final bool history;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    Widget row(_MenuAction action, String icon, String label, BorderRadius radius, {bool danger = false}) {
-      final color = danger ? Tokens.error : Tokens.onSurface;
-      return Material(
-        color: Tokens.containerHigh,
-        borderRadius: radius,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => Navigator.pop(context, action),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(color: danger ? Tokens.error.withValues(alpha: 0.14) : Tokens.graphite, shape: BoxShape.circle),
-                  child: Icon(symbolIcon(icon), size: 20, color: color),
-                ),
-                const SizedBox(width: 14),
-                Expanded(child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color))),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return SafeArea(
-      top: false,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.muted)),
-            ),
-            row(_MenuAction.copy, 'content_copy', l.itemCopy, const BorderRadius.vertical(top: Radius.circular(24), bottom: Radius.circular(8))),
-            const SizedBox(height: 4),
-            row(_MenuAction.date, 'calendar_today', l.itemDateChange, const BorderRadius.all(Radius.circular(8))),
-            const SizedBox(height: 4),
-            row(_MenuAction.property, 'list_alt', l.propertyAdd, const BorderRadius.all(Radius.circular(8))),
-            const SizedBox(height: 4),
-            if (history) ...[
-              row(_MenuAction.history, 'history', l.historyTitle, const BorderRadius.all(Radius.circular(8))),
-              const SizedBox(height: 4),
-            ],
-            row(_MenuAction.delete, 'delete', l.itemDelete, const BorderRadius.vertical(top: Radius.circular(8), bottom: Radius.circular(24)), danger: true),
-          ],
-        ),
-      ),
     );
   }
 }

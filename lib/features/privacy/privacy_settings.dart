@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/pressable.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/privacy/privacy_service.dart';
@@ -83,56 +81,15 @@ class PrivacySettings extends ConsumerWidget {
 
   Future<void> _pickDelay(BuildContext context, WidgetRef ref, Duration current) async {
     final l = L.of(context);
-    final picked = await showModalBottomSheet<Duration>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (sheet) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final delay in lockDelays) _Choice(title: closeAfterLabel(l, delay), selected: delay == current, onTap: () => Navigator.pop(sheet, delay)),
-            ],
-          ),
-        ),
-      ),
+    final picked = await showOptionsSheet<Duration>(
+      context,
+      selected: current,
+      options: [
+        for (final delay in lockDelays)
+          SheetChoice(value: delay, title: closeAfterLabel(l, delay), icon: delay == Duration.zero ? 'lock' : 'timer'),
+      ],
     );
     if (picked != null) await ref.read(privacyServiceProvider).setCloseAfter(picked);
   }
 }
 
-class _Choice extends StatelessWidget {
-  const _Choice({required this.title, required this.selected, required this.onTap});
-
-  final String title;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Pressable(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: Motion.short,
-          padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
-          decoration: BoxDecoration(color: selected ? Tokens.accent : Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.tile)),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(title, style: text.bodyLarge!.copyWith(color: selected ? Tokens.onAccent : Tokens.onSurface)),
-              ),
-              if (selected) Icon(symbolIcon('check'), color: Tokens.onAccent),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

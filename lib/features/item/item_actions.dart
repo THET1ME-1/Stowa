@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/icons/icon_registry.dart';
-import '../../core/theme/tokens.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -24,11 +23,9 @@ Future<void> moveItemById(BuildContext context, WidgetRef ref, {required String 
   final items = ref.read(itemsRepositoryProvider);
   final clock = ref.read(clockProvider);
   final folders = ref.read(foldersProvider).value ?? const <FolderCard>[];
-  final picked = await showModalBottomSheet<FolderCard>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    builder: (sheet) => FolderPickerSheet(
+  final picked = await showOptionsSheetWith<FolderCard>(
+    context,
+    (sheet) => FolderPickerSheet(
       title: l.folderPickTitle,
       folders: [for (final folder in folders) if (folder.id != from) folder],
       // угадыватель ошибся папкой — заметку можно вынуть совсем, он это запомнит
@@ -49,33 +46,14 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final navigator = Navigator.of(context);
-  Widget row(String icon, String label, _Action action, {bool danger = false}) => Builder(
-    builder: (context) => ListTile(
-      leading: Icon(symbolIcon(icon), color: danger ? Tokens.error : Tokens.onSurface),
-      title: Text(label, style: TextStyle(color: danger ? Tokens.error : Tokens.onSurface)),
-      onTap: () => Navigator.pop(context, action),
-    ),
-  );
-  final action = await showModalBottomSheet<_Action>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    builder: (context) => SafeArea(
-      top: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Space.screen + 8, 0, Space.screen, 8),
-            child: Text(card.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium),
-          ),
-          row('open_in_new', l.actionOpen, _Action.open),
-          row('drive_file_move', l.itemMove, _Action.move),
-          row('delete', l.itemDelete, _Action.delete, danger: true),
-        ],
-      ),
-    ),
+  final action = await showOptionsSheet<_Action>(
+    context,
+    title: card.title,
+    options: [
+      SheetChoice(value: _Action.open, title: l.actionOpen, icon: 'open_in_new'),
+      SheetChoice(value: _Action.move, title: l.itemMove, icon: 'drive_file_move'),
+      SheetChoice(value: _Action.delete, title: l.itemDelete, icon: 'delete', danger: true),
+    ],
   );
   if (action == null || !context.mounted) return;
   final items = ref.read(itemsRepositoryProvider);

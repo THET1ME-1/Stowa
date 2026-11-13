@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../data/providers.dart';
 import '../../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../../domain/return_plan.dart';
@@ -44,7 +44,9 @@ class ReturnsScreen extends ConsumerWidget {
 
     String clock(int minutes) => DateFormat.Hm(l.localeName).format(DateTime(2026, 1, 1, minutes ~/ 60, minutes % 60));
     // 1 ноября 2026 — воскресенье: день недели 1…7 ложится на 2…8 ноября
-    String weekday(int day) => DateFormat.EEEE(l.localeName).format(DateTime(2026, 11, 1 + day));
+    String weekday(int day) => capitalized(DateFormat.EEEE(l.localeName).format(DateTime(2026, 11, 1 + day)));
+    // «Пн», «Вт» — в круге строки выбора
+    String weekdayShort(int day) => capitalized(DateFormat.E(l.localeName).format(DateTime(2026, 11, 1 + day))).replaceAll('.', '');
     Future<int?> pickTime(int minutes, String help) async {
       final picked = await showTimePicker(context: context, initialTime: TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60), helpText: help);
       return picked == null ? null : picked.hour * 60 + picked.minute;
@@ -57,21 +59,13 @@ class ReturnsScreen extends ConsumerWidget {
     }
 
     Future<void> pickWeekDay() async {
-      final day = await showModalBottomSheet<int>(
-        context: context,
-        showDragHandle: true,
-        useSafeArea: true,
-        backgroundColor: Tokens.container,
-        builder: (sheet) => SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var day = DateTime.monday; day <= DateTime.sunday; day++)
-                ListTile(title: Text(weekday(day)), trailing: day == returns.weekDay ? Icon(symbolIcon('check')) : null, onTap: () => Navigator.pop(sheet, day)),
-            ],
-          ),
-        ),
+      final day = await showOptionsSheet<int>(
+        context,
+        title: l.returnWeekDayRow,
+        selected: returns.weekDay,
+        options: [
+          for (var day = DateTime.monday; day <= DateTime.sunday; day++) SheetChoice(value: day, title: weekday(day), mark: weekdayShort(day)),
+        ],
       );
       if (day != null) await save(returns.copyWith(weekDay: day));
     }
