@@ -180,6 +180,34 @@ void main() {
     expect((await saved()).reminderAt, morning.add(const Duration(hours: 1, minutes: 30)));
   });
 
+  testWidgets('стёр время и набрал то же, пока правка не сохранилась, — напоминание встаёт по тексту', (tester) async {
+    // напоминание разошлось с текстом: «8 часов вечера», а стоит 6 утра (старая сборка так ставила)
+    await open(tester, body: 'В 8 часов вечера пить пиво', title: 'Пить пиво');
+    final wrong = DateTime(world.now.year, world.now.month, world.now.day, 6);
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(reminderAt: Value(wrong)));
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    // быстрее паузы автосохранения: стёр «8» и набрал заново
+    await tester.enterText(find.byType(TextField).last, 'В  часов вечера пить пиво');
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.enterText(find.byType(TextField).last, 'В 8 часов вечера пить пиво');
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 20));
+  });
+
+  testWidgets('правка рядом со временем, само время не трогали — напоминание не сбивается', (tester) async {
+    await open(tester, body: 'В 8 часов вечера пить пиво', title: 'Пить пиво');
+    final mine = DateTime(world.now.year, world.now.month, world.now.day, 21, 30);
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(reminderAt: Value(mine)));
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'В 8 часов вечера пить пиво с Сашей');
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect((await saved()).reminderAt, mine);
+  });
+
   testWidgets('время вписали в готовую заметку без напоминания — напоминание встаёт', (tester) async {
     await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
     expect((await saved()).reminderAt, isNull);

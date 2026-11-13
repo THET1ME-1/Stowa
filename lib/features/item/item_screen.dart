@@ -18,7 +18,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
-import '../../domain/reminder_parser.dart' show reminderAfterEdit;
+import '../../domain/reminder_parser.dart' show parseReminder, reminderAfterEdit, reminderPhrase;
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
@@ -147,12 +147,24 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _title.text = titleIsFirstLine(body, item.title) ? '' : item.title;
     _body.text = append && body.trim().isNotEmpty && !body.endsWith('\n') ? '$body\n' : body;
     _body.selection = TextSelection.collapsed(offset: _body.text.length);
+    _seenPhrase = reminderPhrase('${_title.text}\n${_body.text}', _clock(), workEnd: _workEnd());
+    _timeTouched = false;
     setState(() => _editing = true);
     _bodyFocus.requestFocus();
   }
 
+  // время в тексте, каким его видели на прошлом нажатии
+  String? _seenPhrase;
+
+  /// Время в тексте трогали с прошлого сохранения: стёр «8» и набрал заново — тоже трогали,
+  /// хотя текст вышел прежним. Тогда напоминание встаёт по тексту.
+  bool _timeTouched = false;
+
   void _changed() {
     if (!_editing) return;
+    final phrase = reminderPhrase('${_title.text}\n${_body.text}', _clock(), workEnd: _workEnd());
+    if (phrase != _seenPhrase) _timeTouched = true;
+    _seenPhrase = phrase;
     _autosave?.cancel();
     _autosave = Timer(_autosaveDelay, _save);
   }
@@ -162,12 +174,21 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final typed = _title.text.trim();
     // заголовок стёрли — берётся из текста, как при сохранении из строки
     final title = typed.isNotEmpty ? typed : titleFor(body);
-    if (title == _savedTitle && body == _savedBody) return;
-    // поменял в тексте «в 7:00» на «в 8:30» — напоминание переезжает вместе с ним
-    final moved = reminderAfterEdit('${_savedTitle ?? ''}\n${_savedBody ?? ''}', '$title\n$body', _clock(), workEnd: _workEnd());
-    _savedTitle = title;
-    _savedBody = body;
-    await _items.setTitleBody(_id, title: title, body: body, at: _clock());
+    final touched = _timeTouched;
+    _timeTouched = false;
+    final same = title == _savedTitle && body == _savedBody;
+    if (same && !touched) return;
+    // трогали время — напоминание по тексту; иначе только если время в тексте поменялось
+    // («в 7:00» → «в 8:30»), а правка рядом переставленное руками не сбивает
+    final text = '$title\n$body';
+    final moved = touched
+        ? parseReminder(text, _clock(), workEnd: _workEnd())?.at
+        : reminderAfterEdit('${_savedTitle ?? ''}\n${_savedBody ?? ''}', text, _clock(), workEnd: _workEnd());
+    if (!same) {
+      _savedTitle = title;
+      _savedBody = body;
+      await _items.setTitleBody(_id, title: title, body: body, at: _clock());
+    }
     if (moved != null) await _items.setReminder(_id, moved);
   }
 

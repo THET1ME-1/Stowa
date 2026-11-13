@@ -186,6 +186,12 @@ DateTime? reminderAfterEdit(String before, String after, DateTime now, {int work
   return found.at;
 }
 
+/// Как дата и время написаны в тексте, без регистра; нет — null. По нему видно, трогали ли время, правя заметку.
+String? reminderPhrase(String text, DateTime now, {int workEnd = defaultWorkEnd}) {
+  final found = parseReminder(text, now, workEnd: workEnd);
+  return found == null ? null : _phrase(text, found);
+}
+
 // куски даты и времени как написаны, без регистра: «Завтра в 10» и «завтра в 10» — одно
 String _phrase(String text, ReminderMatch match) => [for (final (from, to) in match.parts) text.substring(from, to).toLowerCase()].join(' ');
 
