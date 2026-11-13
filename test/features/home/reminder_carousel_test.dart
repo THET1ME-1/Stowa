@@ -42,7 +42,7 @@ void main() {
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
     await open(tester);
     expect(inCarousel('Футбольный матч'), findsOneWidget);
-    expect(find.byType(PageView), findsNothing);
+    expect(find.byType(CarouselView), findsNothing);
 
     await tester.tap(inCarousel('Футбольный матч'));
     await tester.pumpAndSettle();
@@ -60,10 +60,10 @@ void main() {
     await remind('protein', 'Сок', const Duration(hours: 2));
     await remind('gym', 'Зал', const Duration(hours: 3));
     await open(tester);
-    final short = tester.getSize(find.byType(PageView)).height;
+    final short = tester.getSize(find.byType(CarouselView)).height;
     await (world.db.update(world.db.items)..where((t) => t.id.equals('protein'))).write(const ItemsCompanion(title: Value('Футбольный матч Молдова Казахстан на арене Зимбру')));
     await tester.pumpAndSettle();
-    final long = tester.getSize(find.byType(PageView)).height;
+    final long = tester.getSize(find.byType(CarouselView)).height;
     expect(short, lessThan(long - 15));
   });
 
@@ -74,31 +74,31 @@ void main() {
 
   /// Обычный взмах пальцем на ширину карточки: [count] вперёд, минус — назад.
   Future<void> swipe(WidgetTester tester, int count) async {
-    final page = tester.getSize(find.byType(PageView)).width * 0.8;
+    final page = tester.getSize(find.byType(CarouselView)).width * 0.75;
     for (var step = 0; step < count.abs(); step++) {
-      await tester.fling(find.byType(PageView), Offset(count > 0 ? -page * 0.6 : page * 0.6, 0), 800);
+      await tester.fling(find.byType(CarouselView), Offset(count > 0 ? -page * 0.6 : page * 0.6, 0), 800);
       await tester.pumpAndSettle();
     }
   }
 
-  testWidgets('несколько напоминаний — ведущая по центру, по краям соседние, текст виден у всех', (tester) async {
+  testWidgets('несколько напоминаний — карусель M3: ведущая широкая по центру, по краям узкие полоски', (tester) async {
     await remind('shirt', 'Закинуть футболку', const Duration(hours: 1));
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
     await remind('dentist', 'Зубной', const Duration(days: 2));
     await open(tester);
-    expect(find.byType(PageView), findsOneWidget);
+    expect(find.byType(CarouselView), findsOneWidget);
     expect(lead('Закинуть футболку'), findsOneWidget);
-    // «ещё 2» больше не нужно: соседние карточки видны по краям
     expect(find.textContaining('ещё'), findsNothing);
-    final row = tester.getRect(find.byType(PageView));
+    final row = tester.getRect(find.byType(CarouselView));
     final center = tester.getRect(find.byKey(const ValueKey('reminder-lead')));
-    // ведущая посередине ряда, справа следующая, слева по кругу последняя
+    // ведущая посередине ряда, справа полоской следующая, слева по кругу последняя
     expect((center.center.dx - row.center.dx).abs(), lessThan(4));
-    expect(tester.getRect(card('match')).left, greaterThan(center.right - 1));
-    expect(tester.getRect(card('dentist')).right, lessThan(center.left + 1));
-    // пустых плашек нет: у соседних тот же текст, просто меньше и темнее
-    expect(inCarousel('Футбольный матч'), findsWidgets);
-    expect(inCarousel('Зубной'), findsWidgets);
+    final right = tester.getRect(card('match'));
+    final left = tester.getRect(card('dentist'));
+    expect(right.left, greaterThan(center.right - 1));
+    expect(left.right, lessThan(center.left + 1));
+    expect(right.width, lessThan(center.width / 4));
+    expect(left.width, lessThan(center.width / 4));
   });
 
   testWidgets('один взмах — ровно одна карточка, касание ведущей открывает её заметку', (tester) async {
@@ -108,7 +108,7 @@ void main() {
     await remind('mama', 'Позвонить маме', const Duration(days: 3));
     await open(tester);
     // быстрый сильный взмах всё равно перелистывает одну
-    await tester.fling(find.byType(PageView), const Offset(-300, 0), 4000);
+    await tester.fling(find.byType(CarouselView), const Offset(-300, 0), 4000);
     await tester.pumpAndSettle();
     expect(lead('Футбольный матч'), findsOneWidget);
 
@@ -167,7 +167,7 @@ void main() {
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
     await remind('dentist', 'Зубной', const Duration(days: 2));
     await open(tester);
-    final row = tester.getRect(find.byType(PageView));
+    final row = tester.getRect(find.byType(CarouselView));
     // край правой соседки
     await tester.tapAt(Offset(row.right - 12, row.center.dy));
     await tester.pumpAndSettle();
