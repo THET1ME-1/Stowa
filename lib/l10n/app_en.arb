@@ -3590,5 +3590,21 @@
   "propertyNo": "No",
   "@propertyNo": {
     "description": "Значение свойства-галочки в блоке свойств: не стоит"
+  },
+  "lookSuggested": "Match the name",
+  "@lookSuggested": {
+    "description": "Раздел иконок, подобранных по имени папки"
+  },
+  "lookPopular": "Popular",
+  "@lookPopular": {
+    "description": "Раздел ходовых иконок"
+  },
+  "lookAll": "All icons",
+  "@lookAll": {
+    "description": "Раздел со всем набором иконок"
+  },
+  "iconsNone": "No such icon, try another word.",
+  "@iconsNone": {
+    "description": "Поиск иконки ничего не нашёл"
   }
 }

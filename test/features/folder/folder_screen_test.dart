@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/core/icons/icon_registry.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/folder/folder_cards.dart';
@@ -122,6 +123,77 @@ void main() {
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     expect(find.text('Еда дома'), findsOneWidget);
+  });
+
+  Future<void> openLook(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Цвет и значок'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('«Цвет и значок» — свой экран: цвет, иконка, «Сохранить» меняет папку', (tester) async {
+    await seed();
+    await openFolder(tester);
+    await openLook(tester);
+    expect(find.byKey(const ValueKey('folder-look')), findsOneWidget);
+    // иконки под имя «Рецепты» идут первыми
+    expect(find.text('Подходят к имени'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('color-mint')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'кофе');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('icon-local_cafe')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    final folder = await world.db.select(world.db.folders).getSingle();
+    expect(folder.color, 'mint');
+    expect(folder.icon, 'local_cafe');
+    expect(find.byKey(const ValueKey('folder-look')), findsNothing);
+  });
+
+  testWidgets('иконки листаются до конца всего набора', (tester) async {
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(400, 800);
+    await seed();
+    await openFolder(tester);
+    await openLook(tester);
+    final scroll = find.descendant(of: find.byKey(const ValueKey('look-scroll')), matching: find.byType(Scrollable)).first;
+    expect(find.text('Все иконки'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Все иконки'), 400, scrollable: scroll);
+    expect(find.text('Все иконки'), findsOneWidget);
+    // последняя иконка набора достаётся прокруткой и выбирается
+    final last = find.byKey(ValueKey('icon-${symbolNames.last}'));
+    await tester.scrollUntilVisible(last, 4000, scrollable: scroll, maxScrolls: 40);
+    await tester.ensureVisible(last);
+    await tester.pumpAndSettle();
+    await tester.tap(last);
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+    expect((await world.db.select(world.db.folders).getSingle()).icon, symbolNames.last);
+  });
+
+  testWidgets('«Цвет и значок» влезает в 320 точек при крупном шрифте и раскладывается вширь на планшете', (tester) async {
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 640);
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    await seed();
+    await openFolder(tester);
+    await openLook(tester);
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('look-wide')), findsNothing);
+
+    tester.view.physicalSize = const Size(1000, 700);
+    tester.platformDispatcher.clearTextScaleFactorTestValue();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('look-wide')), findsOneWidget);
   });
 
   testWidgets('удалить папку: вещи без папки, «Вернуть» возвращает', (tester) async {

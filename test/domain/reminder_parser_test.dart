@@ -41,6 +41,33 @@ void main() {
     expect(at('в полдень обед'), DateTime(2026, 11, 2, 12));
   });
 
+  test('час с частью суток: «6 часов вечера», «с утра в 8»', () {
+    expect(at('в 6 часов вечера тренировка'), DateTime(2026, 11, 2, 18));
+    expect(at('6 часов вечера тренировка'), DateTime(2026, 11, 2, 18));
+    expect(at('тренировка в 6 вечера'), DateTime(2026, 11, 2, 18));
+    expect(at('завтра в 6 часов вечера'), DateTime(2026, 11, 3, 18));
+    expect(at('8 утра пробежка'), DateTime(2026, 11, 3, 8));
+    expect(at('с утра в 8 пробежка'), DateTime(2026, 11, 3, 8));
+    expect(at('завтра с утра в 8'), DateTime(2026, 11, 3, 8));
+    expect(at('вечером в 6 позвонить'), DateTime(2026, 11, 2, 18));
+    expect(at('сегодня вечером в 7'), DateTime(2026, 11, 2, 19));
+    expect(at('в 9 вечером кино'), DateTime(2026, 11, 2, 21));
+    expect(at('завтра утром в 7'), DateTime(2026, 11, 3, 7));
+    expect(at('с утра позвонить'), DateTime(2026, 11, 3, 9));
+  });
+
+  test('часть суток и час вырезаются из заголовка вместе', () {
+    const evening = 'позвонить маме в 6 часов вечера';
+    expect(parseReminder(evening, now)!.restOf(evening), 'позвонить маме');
+    const morning = 'с утра в 8 пробежка';
+    expect(parseReminder(morning, now)!.restOf(morning), 'пробежка');
+  });
+
+  test('число без «в» и без части суток — не время', () {
+    expect(parseReminder('работал 6 часов', now), isNull);
+    expect(parseReminder('купить 8 яиц', now), isNull);
+  });
+
   test('через сколько-то', () {
     expect(at('через 2 часа выключить духовку'), DateTime(2026, 11, 2, 12));
     expect(at('через полчаса'), DateTime(2026, 11, 2, 10, 30));

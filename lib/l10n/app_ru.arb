@@ -759,5 +759,9 @@
   "propertyRemoved": "Свойство удалено",
   "propertyOtherHint": "Такое значение меняется в файле заметки.",
   "propertyYes": "Да",
-  "propertyNo": "Нет"
+  "propertyNo": "Нет",
+  "lookSuggested": "Подходят к имени",
+  "lookPopular": "Частые",
+  "lookAll": "Все иконки",
+  "iconsNone": "Такой иконки нет, попробуй другое слово или по-английски."
 }

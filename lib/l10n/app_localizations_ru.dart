@@ -2883,4 +2883,17 @@ class LRu extends L {
 
   @override
   String get propertyNo => 'Нет';
+
+  @override
+  String get lookSuggested => 'Подходят к имени';
+
+  @override
+  String get lookPopular => 'Частые';
+
+  @override
+  String get lookAll => 'Все иконки';
+
+  @override
+  String get iconsNone =>
+      'Такой иконки нет, попробуй другое слово или по-английски.';
 }

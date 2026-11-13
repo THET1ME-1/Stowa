@@ -154,6 +154,23 @@ void main() {
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
   });
 
+  testWidgets('«@папка #тег текст» и «Закинуть»: новая папка, тег и текст без меток', (tester) async {
+    await open(tester);
+    await type(tester, '@референс #фото_груди Это фото женской груди');
+    await tester.tap(find.text('Закинуть').last);
+    await tester.pumpAndSettle();
+
+    final folder = await world.db.select(world.db.folders).getSingle();
+    expect(folder.name, 'Референс');
+    final item = await world.db.select(world.db.items).getSingle();
+    expect(item.folderId, folder.id);
+    expect(item.body, 'Это фото женской груди');
+    final tags = await world.db.select(world.db.tags).get();
+    expect(tags.map((tag) => tag.name), ['фото_груди']);
+    final links = await world.db.select(world.db.itemTags).get();
+    expect(links.single.itemId, item.id);
+  });
+
   testWidgets('/ показывает команды, «/задача» кладёт с галочкой', (tester) async {
     await open(tester);
     await type(tester, '/за');

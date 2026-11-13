@@ -79,7 +79,7 @@ const _months = [
   ('дек', 12),
 ];
 
-const _dayParts = {'утром': 9, 'днем': 13, 'вечером': 19, 'ночью': 23, 'в полдень': 12, 'в полночь': 0};
+const _dayParts = {'с утра': 9, 'утром': 9, 'днем': 13, 'вечером': 19, 'ночью': 23, 'в полдень': 12, 'в полночь': 0};
 
 // слова после «в 13», с которыми число — не час: «в 13 лет», «в 2 раза»
 final _notHour = RegExp(r'^\s*(лет|год|года|раз|раза|процент|%|штук|рубл|лей|долл|евро|км|кг|м\b|см|человек|этаж|класс|сери|сезон|минут|секунд|мес|недел|дн)');
@@ -89,7 +89,8 @@ final _weekday = RegExp('(?<![$_letter])во?\\s+(${_weekdays.keys.join('|')})(?
 final _monthDate = RegExp('(?<![$_letter])(\\d{1,2})\\s+(${_months.map((month) => month.$1).join('|')})\\.?(?:\\s+(\\d{4}))?(?![$_letter])');
 final _dotDate = RegExp('(?<![$_letter.:]|в )(\\d{1,2})\\.(\\d{2})(?:\\.(\\d{4}|\\d{2}))?(?![$_letter.:])');
 final _clock = RegExp('(?<![$_letter])(?:(?:в|к)\\s+)?(\\d{1,2})[:.](\\d{2})(?![$_letter])');
-final _hour = RegExp('(?<![$_letter])(?:в|к)\\s+(\\d{1,2})(?:\\s+(утра|дня|вечера|ночи|часов|часа|час))?(?![$_letter:.])');
+// «в 6», «в 6 часов», «6 часов вечера», «в 6 вечера»; без «в» число — час только с частью суток
+final _hour = RegExp('(?<![$_letter])(?:(в|к)\\s+)?(\\d{1,2})(?:\\s+(?:часов|часа|час))?(?:\\s+(утра|дня|вечера|ночи))?(?![$_letter:.])');
 final _dayPart = RegExp('(?<![$_letter])(${_dayParts.keys.join('|')})(?![$_letter])');
 final _weekend = RegExp('(?<![$_letter])на\\s+выходных(?![$_letter])');
 final _afterWork = RegExp('(?<![$_letter])после\\s+работы(?![$_letter])');
@@ -279,20 +280,52 @@ List<_Time> _times(String text, int workEnd) {
     if (hour > 23 || minute > 59) continue;
     times.add(_Time(match.start, match.end, hour, minute));
   }
+  // часы без части суток: «вечером в 6» их уточнит
+  final bare = <_Time>[];
   for (final match in _hour.allMatches(text)) {
-    var hour = int.parse(match.group(1)!);
-    final qualifier = match.group(2);
+    final hour = int.parse(match.group(2)!);
+    final qualifier = match.group(3);
     if (hour > 23) continue;
+    if (match.group(1) == null && qualifier == null) continue;
     if (qualifier == null && _notHour.hasMatch(text.substring(match.end))) continue;
     if (times.any((time) => time.start <= match.start && match.start < time.end)) continue;
-    if ((qualifier == 'дня' && hour <= 5) || (qualifier == 'вечера' && hour < 12) || (qualifier == 'ночи' && hour >= 6 && hour < 12)) {
-      hour += 12;
-    }
-    if (qualifier == 'ночи' && hour == 12) hour = 0;
-    times.add(_Time(match.start, match.end, hour, 0));
+    final time = _Time(match.start, match.end, _hourOfPart(hour, qualifier), 0);
+    times.add(time);
+    if (qualifier == null) bare.add(time);
   }
   for (final match in _dayPart.allMatches(text)) {
-    times.add(_Time(match.start, match.end, _dayParts[match.group(1)]!, 0));
+    final part = match.group(1)!;
+    final near = bare.where((time) => _touching(text, match.start, match.end, time)).firstOrNull;
+    if (near == null) {
+      times.add(_Time(match.start, match.end, _dayParts[part]!, 0));
+      continue;
+    }
+    // «вечером в 6» и «в 6 вечером» — один кусок, час с поправкой на вечер
+    times.remove(near);
+    bare.remove(near);
+    final start = match.start < near.start ? match.start : near.start;
+    final end = match.end > near.end ? match.end : near.end;
+    times.add(_Time(start, end, _hourOfPart(near.hour, part), 0));
   }
   return times;
+}
+
+/// Час с частью суток: «6 вечера» — 18, «3 дня» — 15, «12 ночи» — 0.
+int _hourOfPart(int hour, String? part) {
+  switch (part) {
+    case 'дня' || 'днем':
+      return hour <= 5 ? hour + 12 : hour;
+    case 'вечера' || 'вечером':
+      return hour < 12 ? hour + 12 : hour;
+    case 'ночи' || 'ночью':
+      if (hour == 12) return 0;
+      return hour >= 6 && hour < 12 ? hour + 12 : hour;
+  }
+  return hour;
+}
+
+// часть суток и час рядом, между ними только пробелы и запятая
+bool _touching(String text, int start, int end, _Time time) {
+  final gap = end <= time.start ? text.substring(end, time.start) : (time.end <= start ? text.substring(time.end, start) : null);
+  return gap != null && RegExp(r'^[\s,]{0,3}$').hasMatch(gap);
 }

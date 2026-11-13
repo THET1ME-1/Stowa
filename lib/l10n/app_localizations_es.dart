@@ -2824,4 +2824,16 @@ class LEs extends L {
 
   @override
   String get propertyNo => 'No';
+
+  @override
+  String get lookSuggested => 'Encajan con el nombre';
+
+  @override
+  String get lookPopular => 'Frecuentes';
+
+  @override
+  String get lookAll => 'Todos los iconos';
+
+  @override
+  String get iconsNone => 'No hay ese icono, prueba otra palabra.';
 }

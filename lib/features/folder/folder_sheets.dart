@@ -2,13 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/icons/icon_words.dart';
-import '../../core/theme/folder_palette.dart';
-import '../../core/theme/motion.dart';
-import '../../core/theme/palette.dart';
-import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/shape_badge.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -92,131 +86,6 @@ Future<String?> showRenameSheet(BuildContext context, String current) {
       ),
     ),
   );
-}
-
-/// Цвет, иконка и форма значка папки. Сверху ходовые иконки, поиск по всему набору.
-Future<({String icon, String shape, String? color})?> showLookSheet(BuildContext context, FolderCard folder) {
-  return _sheet(context, _LookSheet(folder: folder));
-}
-
-class _LookSheet extends StatefulWidget {
-  const _LookSheet({required this.folder});
-
-  final FolderCard folder;
-
-  @override
-  State<_LookSheet> createState() => _LookSheetState();
-}
-
-class _LookSheetState extends State<_LookSheet> {
-  late String _icon = widget.folder.icon;
-  late String _shape = widget.folder.shape;
-  late String? _color = widget.folder.colorKey;
-  String _query = '';
-
-  Color get _fill => FolderPalette.of(_color, widget.folder.order);
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    final text = Theme.of(context).textTheme;
-    // по-русски («машина», «кофе») и по английским именам
-    final icons = _query.trim().isEmpty ? pickableSymbols : searchIcons(_query);
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height * 0.7,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: ShapeBadge(
-                shape: BadgeShape.values.asNameMap()[_shape] ?? BadgeShape.squircle,
-                size: 72,
-                color: _fill,
-                child: Icon(symbolIcon(_icon, filled: true), size: 34, color: inkOn(_fill)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(l.lookColor, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
-            const SizedBox(height: 8),
-            // двенадцать кружков в две строки по шесть
-            GridView.count(
-              crossAxisCount: 6,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              children: [
-                for (final MapEntry(key: key, value: color) in FolderPalette.colors.entries)
-                  GestureDetector(
-                    key: ValueKey('color-$key'),
-                    onTap: () => setState(() => _color = key),
-                    child: AnimatedContainer(
-                      duration: Motion.short,
-                      curve: Motion.emphasized,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        // выбранный — кольцом цвета фона внутри: видно на любом цвете
-                        border: Border.all(color: color == _fill ? Tokens.onSurface : Colors.transparent, width: 3),
-                      ),
-                      child: color == _fill ? Icon(symbolIcon('check'), size: 20, color: inkOn(color)) : null,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l.lookShape, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                for (final shape in BadgeShape.values)
-                  GestureDetector(
-                    onTap: () => setState(() => _shape = shape.name),
-                    child: ShapeBadge(
-                      shape: shape,
-                      size: 48,
-                      color: shape.name == _shape ? _fill : Tokens.containerHighest,
-                      child: Icon(symbolIcon(_icon), size: 22, color: shape.name == _shape ? Tokens.onAccent : Tokens.onSurface),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(l.lookIcon, style: text.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
-            const SizedBox(height: 8),
-            TextField(
-              decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.iconSearch),
-              onChanged: (value) => setState(() => _query = value),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 56, mainAxisSpacing: 6, crossAxisSpacing: 6),
-                itemCount: icons.length,
-                itemBuilder: (context, index) {
-                  final name = icons[index];
-                  final on = name == _icon;
-                  return GestureDetector(
-                    onTap: () => setState(() => _icon = name),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      decoration: BoxDecoration(color: on ? Tokens.accent : Tokens.containerHighest, borderRadius: BorderRadius.circular(16)),
-                      child: Icon(symbolIcon(name), color: on ? Tokens.onAccent : Tokens.onSurface),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(onPressed: () => Navigator.pop(context, (icon: _icon, shape: _shape, color: _color)), child: Text(l.save)),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 /// Спросить перед удалением: вещи останутся без папки.

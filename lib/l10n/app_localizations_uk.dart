@@ -2879,4 +2879,17 @@ class LUk extends L {
 
   @override
   String get propertyNo => 'Ні';
+
+  @override
+  String get lookSuggested => 'Пасують до назви';
+
+  @override
+  String get lookPopular => 'Часті';
+
+  @override
+  String get lookAll => 'Усі іконки';
+
+  @override
+  String get iconsNone =>
+      'Такої іконки немає, спробуй інше слово або англійською.';
 }

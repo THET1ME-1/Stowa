@@ -2820,4 +2820,16 @@ class LEn extends L {
 
   @override
   String get propertyNo => 'No';
+
+  @override
+  String get lookSuggested => 'Match the name';
+
+  @override
+  String get lookPopular => 'Popular';
+
+  @override
+  String get lookAll => 'All icons';
+
+  @override
+  String get iconsNone => 'No such icon, try another word.';
 }

@@ -2848,4 +2848,17 @@ class LRo extends L {
 
   @override
   String get propertyNo => 'Nu';
+
+  @override
+  String get lookSuggested => 'Se potrivesc cu numele';
+
+  @override
+  String get lookPopular => 'Frecvente';
+
+  @override
+  String get lookAll => 'Toate pictogramele';
+
+  @override
+  String get iconsNone =>
+      'Nu există o astfel de pictogramă, încearcă alt cuvânt.';
 }

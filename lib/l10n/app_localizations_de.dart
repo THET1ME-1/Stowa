@@ -2828,4 +2828,16 @@ class LDe extends L {
 
   @override
   String get propertyNo => 'Nein';
+
+  @override
+  String get lookSuggested => 'Passend zum Namen';
+
+  @override
+  String get lookPopular => 'Häufig';
+
+  @override
+  String get lookAll => 'Alle Symbole';
+
+  @override
+  String get iconsNone => 'Kein passendes Symbol, versuch ein anderes Wort.';
 }

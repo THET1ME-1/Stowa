@@ -511,5 +511,9 @@
   "propertyRemoved": "Eigenschaft gelöscht",
   "propertyOtherHint": "Dieser Wert lässt sich in der Notizdatei ändern.",
   "propertyYes": "Ja",
-  "propertyNo": "Nein"
+  "propertyNo": "Nein",
+  "lookSuggested": "Passend zum Namen",
+  "lookPopular": "Häufig",
+  "lookAll": "Alle Symbole",
+  "iconsNone": "Kein passendes Symbol, versuch ein anderes Wort."
 }

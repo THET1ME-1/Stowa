@@ -4666,6 +4666,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'No'**
   String get propertyNo;
+
+  /// Раздел иконок, подобранных по имени папки
+  ///
+  /// In en, this message translates to:
+  /// **'Match the name'**
+  String get lookSuggested;
+
+  /// Раздел ходовых иконок
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get lookPopular;
+
+  /// Раздел со всем набором иконок
+  ///
+  /// In en, this message translates to:
+  /// **'All icons'**
+  String get lookAll;
+
+  /// Поиск иконки ничего не нашёл
+  ///
+  /// In en, this message translates to:
+  /// **'No such icon, try another word.'**
+  String get iconsNone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

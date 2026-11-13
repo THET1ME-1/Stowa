@@ -2878,4 +2878,16 @@ class LPl extends L {
 
   @override
   String get propertyNo => 'Nie';
+
+  @override
+  String get lookSuggested => 'Pasują do nazwy';
+
+  @override
+  String get lookPopular => 'Częste';
+
+  @override
+  String get lookAll => 'Wszystkie ikony';
+
+  @override
+  String get iconsNone => 'Nie ma takiej ikony, spróbuj innego słowa.';
 }

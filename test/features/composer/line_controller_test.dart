@@ -26,6 +26,52 @@ void main() {
     expect(line.selection.baseOffset, line.text.length);
   });
 
+  test('при сохранении метки забираются из текста: тег в чипы, имя папки отдельно', () {
+    line.value = _typed('@референс #фото_груди Это фото #лето');
+    expect(line.takeMarks(), 'референс');
+    expect(line.tags, ['фото_груди', 'лето']);
+    expect(line.text, 'Это фото');
+  });
+
+  test('метки на своих строках уходят вместе со строкой, пустых строк не остаётся', () {
+    line.value = _typed('@референс\n#фото_груди\nЭто фото\nещё строка #лето');
+    expect(line.takeMarks(), 'референс');
+    expect(line.tags, ['фото_груди', 'лето']);
+    expect(line.text, 'Это фото\nещё строка');
+  });
+
+  test('метка посреди текста на своей строке не склеивает соседние', () {
+    line.value = _typed('первая\n#дом\nвторая');
+    line.takeMarks();
+    expect(line.text, 'первая\nвторая');
+  });
+
+  test('без папок в строке «@слово» остаётся текстом, тег всё равно забирается', () {
+    final locked = LineController(clock: () => now, folderMarks: false);
+    addTearDown(locked.dispose);
+    locked.value = _typed('@референс Это фото #лето');
+    expect(locked.takeMarks(), isNull);
+    expect(locked.tags, ['лето']);
+    expect(locked.text, '@референс Это фото');
+  });
+
+  test('цвет и почта при сохранении остаются текстом', () {
+    line.value = _typed('фон #FF0000 пиши на me@mail.ru');
+    expect(line.takeMarks(), isNull);
+    expect(line.tags, isEmpty);
+    expect(line.text, 'фон #FF0000 пиши на me@mail.ru');
+  });
+
+  test('существующая папка из «@имя» при сохранении встаёт чипом', () {
+    const car = FolderCard(id: 'car', name: 'Машина', icon: 'folder', shape: 'pill', count: 0, covers: [], recentTitles: [], createdByAi: false);
+    final known = LineController(clock: () => now, resolveFolder: (name) => name == 'машина' ? car : null);
+    addTearDown(known.dispose);
+    known.value = _typed('летняя резина @Машина');
+    expect(known.takeMarks(), isNull);
+    expect(known.folder, car);
+    expect(known.text, 'летняя резина');
+  });
+
   test('тег без пробела после ещё пишется и остаётся в тексте', () {
     line.value = _typed('купить хлеб #до');
     expect(line.text, 'купить хлеб #до');

@@ -30,6 +30,7 @@ import '../sort/sort_screen.dart';
 import '../privacy/privacy_flows.dart';
 import '../tags/tag_picker.dart';
 import 'canvas_view.dart';
+import 'folder_look_screen.dart';
 import 'folder_cards.dart';
 import 'folder_sheets.dart';
 import 'folder_view.dart';
@@ -249,7 +250,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         final name = await showRenameSheet(context, folder.name);
         if (name != null) await repository.rename(folder.id, name);
       case FolderAction.look:
-        final look = await showLookSheet(context, folder);
+        final look = await Navigator.of(context).push(folderLookRoute(folder));
         if (look != null) await repository.setLook(folder.id, icon: look.icon, shape: look.shape, color: look.color);
       case FolderAction.delete:
         final l = L.of(context);

@@ -10,7 +10,9 @@ import '../../domain/tag_name.dart';
 
 // тег и папка по тем же правилам, что в тексте вещи, и уже с пробелом после
 final _finishedMark = RegExp(r'(?<![\p{L}\p{N}_#@])([#@])([\p{L}\p{N}_][^\s#@]*)(?=\s)', unicode: true);
-final _typingMark = RegExp(r'(?<![\p{L}\p{N}_#@])[#@][^\s#@]*$', unicode: true);
+// то же, но и в самом конце строки: при сохранении пробела после метки может не быть
+final _anyMark = RegExp(r'(?<![\p{L}\p{N}_#@])([#@])([\p{L}\p{N}_][^\s#@]*)(?=\s|$)', unicode: true);
+final _typingMark =RegExp(r'(?<![\p{L}\p{N}_#@])[#@][^\s#@]*$', unicode: true);
 final _hexColor = RegExp(r'^[0-9a-fA-F]{6}$');
 final _tagName = RegExp(r'^[\p{L}_][\p{L}\p{N}_]*$', unicode: true);
 final _commandMark = RegExp(r'^/\S+');
@@ -150,6 +152,48 @@ class LineController extends TextEditingController {
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
     );
+  }
+
+  /// Перед сохранением: каждый `#тег` из текста уходит в чипы, первое `@имя` — в папку,
+  /// даже если человек не нажал пробел и не выбрал её в подсказках.
+  /// Вернёт имя папки, которой ещё нет: её создаёт строка.
+  String? takeMarks() {
+    String? newFolder;
+    final cuts = <(int, int)>[];
+    for (final match in _anyMark.allMatches(text)) {
+      final raw = match.group(2)!;
+      if (match.group(1) == '#') {
+        if (_hexColor.hasMatch(raw) || !_tagName.hasMatch(raw)) continue;
+        final name = normalizeTagName(raw);
+        if (name.isEmpty) continue;
+        if (!_tags.contains(name)) _tags.add(name);
+      } else {
+        // папка уже выбрана чипом или строка о папках не знает — «@слово» остаётся текстом
+        if (!folderMarks || _folder != null || newFolder != null) continue;
+        final found = resolveFolder?.call(normalizeQuery(raw));
+        if (found != null) {
+          _folder = found;
+        } else {
+          newFolder = raw;
+        }
+      }
+      // вместе с меткой уходит один пробел за ней, а в конце строки — перед ней; отступы списков целы
+      final spaceAfter = match.end < text.length && text[match.end] == ' ';
+      final taken = cuts.isEmpty ? 0 : cuts.last.$2;
+      final spaceBefore = !spaceAfter && match.start - 1 >= taken && text[match.start - 1] == ' ';
+      cuts.add((spaceBefore ? match.start - 1 : match.start, spaceAfter ? match.end + 1 : match.end));
+    }
+    if (cuts.isEmpty) return null;
+    var cleaned = text;
+    for (final (start, end) in cuts.reversed) {
+      cleaned = cleaned.replaceRange(start, end, '');
+    }
+    cleaned = cleaned.trim();
+    value = TextEditingValue(
+      text: cleaned,
+      selection: TextSelection.collapsed(offset: cleaned.length),
+    );
+    return newFolder;
   }
 
   /// Строка после отправки: пусто, без чипов, даты снова ищутся.

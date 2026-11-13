@@ -511,5 +511,9 @@
   "propertyRemoved": "Propiedad eliminada",
   "propertyOtherHint": "Este valor se cambia en el archivo de la nota.",
   "propertyYes": "Sí",
-  "propertyNo": "No"
+  "propertyNo": "No",
+  "lookSuggested": "Encajan con el nombre",
+  "lookPopular": "Frecuentes",
+  "lookAll": "Todos los iconos",
+  "iconsNone": "No hay ese icono, prueba otra palabra."
 }

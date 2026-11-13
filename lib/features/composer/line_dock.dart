@@ -466,6 +466,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   Future<void> _save() async {
     if (_sending || !_hasContent) return;
     final l = L.of(context);
+    // «Отменить» вернёт строку такой, какой её набрали, с метками в тексте
+    final typed = (text: _line.text, tags: _line.tags, folder: _line.folder);
+    final newFolder = _line.takeMarks();
     final query = queryOf(_line.text, commandKeys(l));
     final command = query.command;
     final rest = query.rest;
@@ -474,11 +477,12 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       LineCommand.task => '- [ ] ${rest.trim()}',
       _ => rest,
     };
-    final snapshot = (text: _line.text, tags: _line.tags, folder: _line.folder, dismissed: _line.reminderDismissed, placeDismissed: _line.placeDismissed, files: List.of(_files));
+    final snapshot = (text: typed.text, tags: typed.tags, folder: typed.folder, dismissed: _line.reminderDismissed, placeDismissed: _line.placeDismissed, files: List.of(_files));
     final reminderAt = _line.reminder?.at;
     setState(() => _sending = true);
     HapticFeedback.lightImpact();
     try {
+      if (newFolder != null) _line.chooseFolder(await ref.read(foldersRepositoryProvider).create(newFolder));
       final files = await Future.wait(_files.map((file) => file.future));
       final capture = ref.read(captureServiceProvider);
       final id = await capture.capture(
@@ -524,6 +528,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       // поставил напоминание — тут и спросить уведомления; про место «всегда» скажет карточка на главной
       if (saved?.item.reminderAt != null || saved?.item.remindPlace != null) askNotifications(ref).ignore();
     } catch (_) {
+      // не сохранилось: строка снова такая, как её набрали
+      _line.restore(text: typed.text, tags: typed.tags, folder: typed.folder, reminderDismissed: snapshot.dismissed, placeDismissed: snapshot.placeDismissed);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.saveFailed)));
     } finally {
       if (mounted) setState(() => _sending = false);

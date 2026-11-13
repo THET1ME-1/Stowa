@@ -511,5 +511,9 @@
   "propertyRemoved": "Proprietate ștearsă",
   "propertyOtherHint": "Valoarea aceasta se schimbă în fișierul notiței.",
   "propertyYes": "Da",
-  "propertyNo": "Nu"
+  "propertyNo": "Nu",
+  "lookSuggested": "Se potrivesc cu numele",
+  "lookPopular": "Frecvente",
+  "lookAll": "Toate pictogramele",
+  "iconsNone": "Nu există o astfel de pictogramă, încearcă alt cuvânt."
 }

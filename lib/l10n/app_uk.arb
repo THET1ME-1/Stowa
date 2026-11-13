@@ -511,5 +511,9 @@
   "propertyRemoved": "Властивість видалено",
   "propertyOtherHint": "Таке значення змінюється у файлі нотатки.",
   "propertyYes": "Так",
-  "propertyNo": "Ні"
+  "propertyNo": "Ні",
+  "lookSuggested": "Пасують до назви",
+  "lookPopular": "Часті",
+  "lookAll": "Усі іконки",
+  "iconsNone": "Такої іконки немає, спробуй інше слово або англійською."
 }

@@ -511,5 +511,9 @@
   "propertyRemoved": "Właściwość usunięta",
   "propertyOtherHint": "Tę wartość zmienia się w pliku notatki.",
   "propertyYes": "Tak",
-  "propertyNo": "Nie"
+  "propertyNo": "Nie",
+  "lookSuggested": "Pasują do nazwy",
+  "lookPopular": "Częste",
+  "lookAll": "Wszystkie ikony",
+  "iconsNone": "Nie ma takiej ikony, spróbuj innego słowa."
 }
