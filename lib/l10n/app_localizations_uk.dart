@@ -2994,4 +2994,11 @@ class LUk extends L {
 
   @override
   String get placeIcon => 'Значок';
+
+  @override
+  String get lineLanguageHint =>
+      'Час і місця розумію 7 мовами — тут пиши час цифрами: 14:30';
+
+  @override
+  String get lineLanguageHide => 'Сховати';
 }

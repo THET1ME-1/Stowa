@@ -2963,4 +2963,11 @@ class LRo extends L {
 
   @override
   String get placeIcon => 'Pictogramă';
+
+  @override
+  String get lineLanguageHint =>
+      'Înțeleg ora și locurile în 7 limbi — aici scrie ora cu cifre: 14:30';
+
+  @override
+  String get lineLanguageHide => 'Ascunde';
 }

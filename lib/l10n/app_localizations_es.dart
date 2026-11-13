@@ -2939,4 +2939,11 @@ class LEs extends L {
 
   @override
   String get placeIcon => 'Icono';
+
+  @override
+  String get lineLanguageHint =>
+      'Entiendo horas y lugares en 7 idiomas — aquí escribe la hora en cifras: 14:30';
+
+  @override
+  String get lineLanguageHide => 'Ocultar';
 }

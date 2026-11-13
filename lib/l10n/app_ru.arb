@@ -795,5 +795,7 @@
   "placeKindMore": "Найти или создать",
   "placeKindSearchHint": "Найти вид или назвать свой",
   "placeKindCreate": "Создать «{name}»",
-  "placeIcon": "Значок"
+  "placeIcon": "Значок",
+  "lineLanguageHint": "Время и места понимаю на 7 языках — здесь пиши время цифрами: 14:30",
+  "lineLanguageHide": "Скрыть"
 }

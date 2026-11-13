@@ -171,6 +171,27 @@ void main() {
     expect(links.single.itemId, item.id);
   });
 
+  testWidgets('чужой язык без времени — чип «пиши время цифрами», крестик убирает; со временем цифрами чипа нет', (tester) async {
+    const hint = 'Время и места понимаю на 7 языках — здесь пиши время цифрами: 14:30';
+    await open(tester);
+    await type(tester, 'demain appeler la banque et le dentiste');
+    expect(find.text(hint), findsOneWidget);
+    await tester.tap(find.byTooltip('Скрыть'));
+    await tester.pumpAndSettle();
+    expect(find.text(hint), findsNothing);
+
+    // время цифрами понимается на любом языке — подсказка не нужна
+    await type(tester, 'appeler la banque et le dentiste à 14:30');
+    expect(find.text(hint), findsNothing);
+    expect(find.byKey(const ValueKey('reminder')), findsOneWidget);
+  });
+
+  testWidgets('свои языки чипа не дают', (tester) async {
+    await open(tester);
+    await type(tester, 'mañana llamar al banco y al dentista');
+    expect(find.textContaining('понимаю на 7 языках'), findsNothing);
+  });
+
   testWidgets('/ показывает команды, «/задача» кладёт с галочкой', (tester) async {
     await open(tester);
     await type(tester, '/за');

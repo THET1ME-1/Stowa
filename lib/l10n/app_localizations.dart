@@ -4882,6 +4882,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Icon'**
   String get placeIcon;
+
+  /// Чип над строкой: текст на языке, где время и места не распознаются
+  ///
+  /// In en, this message translates to:
+  /// **'I read times and places in 7 languages — here write the time in digits: 14:30'**
+  String get lineLanguageHint;
+
+  /// Подсказка крестика чипа про язык
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get lineLanguageHide;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -2943,4 +2943,11 @@ class LDe extends L {
 
   @override
   String get placeIcon => 'Symbol';
+
+  @override
+  String get lineLanguageHint =>
+      'Zeiten und Orte verstehe ich in 7 Sprachen — schreib die Uhrzeit hier in Ziffern: 14:30';
+
+  @override
+  String get lineLanguageHide => 'Ausblenden';
 }

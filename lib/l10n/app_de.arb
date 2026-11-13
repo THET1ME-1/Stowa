@@ -546,5 +546,7 @@
   "placeKindMore": "Suchen oder neu",
   "placeKindSearchHint": "Art suchen oder eigene benennen",
   "placeKindCreate": "„{name}“ anlegen",
-  "placeIcon": "Symbol"
+  "placeIcon": "Symbol",
+  "lineLanguageHint": "Zeiten und Orte verstehe ich in 7 Sprachen — schreib die Uhrzeit hier in Ziffern: 14:30",
+  "lineLanguageHide": "Ausblenden"
 }

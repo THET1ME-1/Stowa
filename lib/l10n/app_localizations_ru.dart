@@ -2998,4 +2998,11 @@ class LRu extends L {
 
   @override
   String get placeIcon => 'Значок';
+
+  @override
+  String get lineLanguageHint =>
+      'Время и места понимаю на 7 языках — здесь пиши время цифрами: 14:30';
+
+  @override
+  String get lineLanguageHide => 'Скрыть';
 }

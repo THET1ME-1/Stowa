@@ -3747,5 +3747,13 @@
   "placeIcon": "Icon",
   "@placeIcon": {
     "description": "Подсказка кнопки выбора значка места"
+  },
+  "lineLanguageHint": "I read times and places in 7 languages — here write the time in digits: 14:30",
+  "@lineLanguageHint": {
+    "description": "Чип над строкой: текст на языке, где время и места не распознаются"
+  },
+  "lineLanguageHide": "Hide",
+  "@lineLanguageHide": {
+    "description": "Подсказка крестика чипа про язык"
   }
 }

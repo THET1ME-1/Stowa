@@ -22,6 +22,7 @@ import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/folder_guess.dart' show seriesOf;
 import '../../domain/item_kind.dart';
+import '../../domain/language_guess.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/money.dart' show formatTotal;
@@ -458,7 +459,11 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     widget.onOpenItem(id);
   }
 
+  /// Подсказку про чужой язык скрыли крестиком: до следующей заметки она не вернётся.
+  bool _languageHidden = false;
+
   void _clearLine() {
+    _languageHidden = false;
     _line.reset();
     // в папке строка и дальше кладёт сюда
     _line.chooseFolder(widget.homeFolder);
@@ -950,6 +955,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
               ),
               // рост под чипы ведёт рамка всей строки; край не маской (она перерисовывает слой
               // каждый кадр и рвёт анимацию на телефоне), а наложенным градиентом цвета строки
+              // чужой язык, а ни время, ни место не нашлись: время цифрами понимается на любом.
+              // Строкой, а не чипом: длинный текст в ряду чипов увёл бы крестик за край
+              if (!_languageHidden && _line.reminder == null && _line.placeCue == null && unsupportedLanguage(_line.text))
+                _LanguageHint(text: l.lineLanguageHint, hideTooltip: l.lineLanguageHide, onHide: () => setState(() => _languageHidden = true)),
               if (chips.isNotEmpty)
                 Stack(
                   children: [
@@ -1335,6 +1344,38 @@ class FolderOption extends StatelessWidget {
 }
 
 /// Чип над строкой: тег, папка или напоминание, крестик снимает.
+/// Подсказка над строкой: значок, текст в несколько строк и крестик, который всегда на виду.
+class _LanguageHint extends StatelessWidget {
+  const _LanguageHint({required this.text, required this.hideTooltip, required this.onHide});
+
+  final String text;
+  final String hideTooltip;
+  final VoidCallback onHide;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: const ValueKey('language-hint'),
+      padding: const EdgeInsets.fromLTRB(12, 2, 4, 6),
+      child: Row(
+        children: [
+          Icon(symbolIcon('translate'), size: 18, color: Tokens.onSurfaceVariant),
+          const SizedBox(width: 10),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.onSurfaceVariant, height: 1.3))),
+          IconButton(
+            tooltip: hideTooltip,
+            onPressed: onHide,
+            visualDensity: VisualDensity.compact,
+            iconSize: 16,
+            color: Tokens.muted,
+            icon: Icon(symbolIcon('close')),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _LineChip extends StatelessWidget {
   const _LineChip({super.key, required this.leading, required this.label, required this.removeTooltip, required this.onRemove});
 
