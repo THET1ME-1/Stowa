@@ -3755,5 +3755,46 @@
   "lineLanguageHide": "Hide",
   "@lineLanguageHide": {
     "description": "Подсказка крестика чипа про язык"
+  },
+  "placeSearchHint": "Find an address or place",
+  "@placeSearchHint": {
+    "description": "Поле поиска поверх карты на экране места"
+  },
+  "placeSearchNone": "Nothing found",
+  "@placeSearchNone": {
+    "description": "Поиск адреса ничего не дал"
+  },
+  "placeMapEmpty": "Find an address or press and hold the map to drop a pin",
+  "@placeMapEmpty": {
+    "description": "Подсказка на карте, пока точки нет"
+  },
+  "placeMapMove": "Press and hold the map to move the pin",
+  "@placeMapMove": {
+    "description": "Подсказка под адресом точки"
+  },
+  "placePointMoved": "Pin moved",
+  "@placePointMoved": {
+    "description": "Плашка после переноса точки долгим нажатием, с «Отменить»"
+  },
+  "placeNoPoint": "No pin yet",
+  "@placeNoPoint": {
+    "description": "Строка адреса под картой, пока точки нет"
+  },
+  "placeKindOwn": "Custom type",
+  "@placeKindOwn": {
+    "description": "Последний чип в строке видов места: поиск и создание своего вида"
+  },
+  "placeRadiusValue": "{meters} m",
+  "@placeRadiusValue": {
+    "description": "Радиус места в метрах на пилюле под картой",
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "placeRadiusTitle": "Reminder radius",
+  "@placeRadiusTitle": {
+    "description": "Заголовок листа выбора радиуса места"
   }
 }

@@ -36,6 +36,7 @@ import '../services/link_preview_service.dart';
 import '../services/media_probe.dart';
 import '../services/page_cache.dart';
 import '../services/place_channel.dart';
+import '../services/place_search.dart';
 import '../services/place_service.dart';
 import '../services/privacy/privacy_service.dart';
 import '../services/reminder_service.dart';
@@ -413,6 +414,12 @@ final currentPlaceProvider = Provider<Future<PlaceFix?> Function()>((ref) {
     accuracy: LocationAccuracy.high,
   );
   return source.current;
+});
+
+/// Поиск адреса и названия точки на экране места. Тесты подменяют.
+final placeLookupProvider = Provider<PlaceLookup>((ref) {
+  final settings = ref.watch(settingsRepositoryProvider);
+  return OnlinePlaceLookup(client: ref.watch(aiHttpProvider), language: () => settings.language?.code ?? PlatformDispatcher.instance.locale.languageCode);
 });
 
 /// Тронули заметки, теги или места — тревоги по месту, может быть, пора переставить.

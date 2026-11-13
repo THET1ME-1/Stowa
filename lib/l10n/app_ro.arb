@@ -548,5 +548,14 @@
   "placeKindCreate": "Creează „{name}”",
   "placeIcon": "Pictogramă",
   "lineLanguageHint": "Nu înțeleg ora în cuvinte în limba asta — scrie cu cifre: 14:30",
-  "lineLanguageHide": "Ascunde"
+  "lineLanguageHide": "Ascunde",
+  "placeSearchHint": "Caută o adresă sau un loc",
+  "placeSearchNone": "Nu s-a găsit nimic",
+  "placeMapEmpty": "Caută adresa sau ține apăsat pe hartă ca să pui punctul",
+  "placeMapMove": "Ține apăsat pe hartă ca să muți punctul",
+  "placePointMoved": "Punct mutat",
+  "placeNoPoint": "Niciun punct ales",
+  "placeKindOwn": "Tip propriu",
+  "placeRadiusValue": "{meters} m",
+  "placeRadiusTitle": "Raza mementoului"
 }

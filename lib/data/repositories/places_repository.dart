@@ -17,14 +17,22 @@ class PlacesRepository {
   Future<List<Place>> all() => (_db.select(_db.places)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
 
   /// Новое место: вторая работа рядом с первой, а не вместо неё.
-  /// [label] и [icon] — свой вид («Курсы»), тогда [kind] — other.
-  Future<String> add(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi, String? label, String? icon}) =>
-      _insert(kind, name: name, latitude: latitude, longitude: longitude, wifi: wifi, label: label, icon: icon);
+  /// [label] и [icon] — свой вид («Курсы»), тогда [kind] — other. [radius] в метрах, без него 150.
+  Future<String> add(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi, String? label, String? icon, int? radius}) =>
+      _insert(kind, name: name, latitude: latitude, longitude: longitude, wifi: wifi, label: label, icon: icon, radius: radius);
 
-  /// Правка места целиком: имя, вид (готовый или свой) и точка.
-  Future<void> update(String id, {required String name, required PlaceKind kind, String? label, String? icon, required double latitude, required double longitude}) {
+  /// Правка места целиком: имя, вид (готовый или свой), точка и, если дан, радиус.
+  Future<void> update(String id, {required String name, required PlaceKind kind, String? label, String? icon, required double latitude, required double longitude, int? radius}) {
     return (_db.update(_db.places)..where((t) => t.id.equals(id))).write(
-      PlacesCompanion(name: Value(name), kind: Value(kind), label: Value(label), icon: Value(icon), latitude: Value(latitude), longitude: Value(longitude)),
+      PlacesCompanion(
+        name: Value(name),
+        kind: Value(kind),
+        label: Value(label),
+        icon: Value(icon),
+        latitude: Value(latitude),
+        longitude: Value(longitude),
+        radius: radius == null ? const Value.absent() : Value(radius),
+      ),
     );
   }
 
@@ -38,7 +46,7 @@ class PlacesRepository {
 
   Future<void> remove(String id) => (_db.delete(_db.places)..where((t) => t.id.equals(id))).go();
 
-  Future<String> _insert(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi, String? label, String? icon}) async {
+  Future<String> _insert(PlaceKind kind, {required String name, required double latitude, required double longitude, String? wifi, String? label, String? icon, int? radius}) async {
     final id = _uuid.v4();
     await _db.into(_db.places).insert(
       PlacesCompanion.insert(
@@ -50,6 +58,7 @@ class PlacesRepository {
         latitude: latitude,
         longitude: longitude,
         wifi: Value(wifi),
+        radius: radius == null ? const Value.absent() : Value(radius),
         createdAt: _clock(),
       ),
     );

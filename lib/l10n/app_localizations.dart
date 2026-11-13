@@ -4894,6 +4894,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Hide'**
   String get lineLanguageHide;
+
+  /// Поле поиска поверх карты на экране места
+  ///
+  /// In en, this message translates to:
+  /// **'Find an address or place'**
+  String get placeSearchHint;
+
+  /// Поиск адреса ничего не дал
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found'**
+  String get placeSearchNone;
+
+  /// Подсказка на карте, пока точки нет
+  ///
+  /// In en, this message translates to:
+  /// **'Find an address or press and hold the map to drop a pin'**
+  String get placeMapEmpty;
+
+  /// Подсказка под адресом точки
+  ///
+  /// In en, this message translates to:
+  /// **'Press and hold the map to move the pin'**
+  String get placeMapMove;
+
+  /// Плашка после переноса точки долгим нажатием, с «Отменить»
+  ///
+  /// In en, this message translates to:
+  /// **'Pin moved'**
+  String get placePointMoved;
+
+  /// Строка адреса под картой, пока точки нет
+  ///
+  /// In en, this message translates to:
+  /// **'No pin yet'**
+  String get placeNoPoint;
+
+  /// Последний чип в строке видов места: поиск и создание своего вида
+  ///
+  /// In en, this message translates to:
+  /// **'Custom type'**
+  String get placeKindOwn;
+
+  /// Радиус места в метрах на пилюле под картой
+  ///
+  /// In en, this message translates to:
+  /// **'{meters} m'**
+  String placeRadiusValue(int meters);
+
+  /// Заголовок листа выбора радиуса места
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder radius'**
+  String get placeRadiusTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

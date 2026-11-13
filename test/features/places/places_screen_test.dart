@@ -1,9 +1,12 @@
 import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/places/place_edit_screen.dart' show KindChip;
 import 'package:stowa/features/places/places_screen.dart';
+import 'package:stowa/services/place_search.dart';
 import 'package:stowa/services/place_service.dart';
 
 import '../../helpers/test_app.dart';
@@ -24,86 +27,194 @@ void main() {
 
   Future<List<Place>> places() => (world.db.select(world.db.places)..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
 
-  /// Вид через «Найти или создать»: в листе у каждого вида свой ключ.
-  Future<void> pickType(WidgetTester tester, String label) async {
-    await tester.tap(find.text('Найти или создать'));
-    await tester.pumpAndSettle();
-    final row = find.byKey(ValueKey('type-$label'));
-    await tester.scrollUntilVisible(row, 120, scrollable: find.descendant(of: find.byKey(const ValueKey('type-sheet')), matching: find.byType(Scrollable)).first);
-    await tester.tap(row);
+  final name = find.byKey(const ValueKey('place-name'));
+  final search = find.byKey(const ValueKey('place-search'));
+  final map = find.byType(FlutterMap);
+
+  Future<void> newPlace(WidgetTester tester) async {
+    await tester.tap(find.text('Добавить место'));
     await tester.pumpAndSettle();
   }
 
-  Future<void> addPlace(WidgetTester tester, {required String name, required String kind}) async {
-    await tester.tap(find.text('Добавить место'));
+  Future<void> here(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Я сейчас здесь'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), name);
-    await pickType(tester, kind);
-    await tester.tap(find.text('Я сейчас здесь'));
-    await tester.pumpAndSettle();
+  }
+
+  Future<void> save(WidgetTester tester) async {
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
   }
 
-  testWidgets('вид — три плитки в ряд: выбранный, подходящий к имени и «Найти или создать»', (tester) async {
+  /// Чип вида в строке: строка листается вбок до него.
+  Future<void> pickKind(WidgetTester tester, String label) async {
+    final chip = find.byKey(ValueKey('kind-$label'));
+    await tester.scrollUntilVisible(chip, 120, scrollable: find.descendant(of: find.byKey(const ValueKey('kind-row')), matching: find.byType(Scrollable)).first);
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> addPlace(WidgetTester tester, {required String title, required String kind}) async {
+    await newPlace(tester);
+    await tester.enterText(name, title);
+    await pickKind(tester, kind);
+    await here(tester);
+    await save(tester);
+  }
+
+  /// Какой чип выбран: у выбранного ключ `kind-…` и пометка selected в семантике.
+  String? selectedKind(WidgetTester tester) {
+    for (final element in find.byWidgetPredicate((widget) => widget is KindChip && widget.selected).evaluate()) {
+      return (element.widget as KindChip).label;
+    }
+    return null;
+  }
+
+  testWidgets('вид — одна строка чипов: имя ведёт вид, выбор рукой закрепляет, чипы не меняются местами', (tester) async {
     world.placeChannel.background = true;
     await open(tester);
-    await tester.tap(find.text('Добавить место'));
-    await tester.pumpAndSettle();
-    final tiles = find.byKey(const ValueKey('type-row'));
-    final row = tester.getRect(tiles);
-    // три плитки одной ширины в одну строку, без переноса
-    final kids = find.descendant(of: tiles, matching: find.byWidgetPredicate((widget) => widget.key is ValueKey<String> && (widget.key! as ValueKey<String>).value.startsWith('tile-')));
-    expect(kids, findsNWidgets(3));
-    final rects = [for (final element in kids.evaluate()) tester.getRect(find.byWidget(element.widget))];
-    expect(rects.map((rect) => rect.top.round()).toSet(), hasLength(1));
-    expect(rects.every((rect) => rect.bottom <= row.bottom + 1), isTrue);
-    expect(find.text('Найти или создать'), findsOneWidget);
+    await newPlace(tester);
+    final row = tester.getRect(find.byKey(const ValueKey('kind-row')));
+    expect(row.height, lessThan(56));
+    List<String> order() => [for (final element in find.byType(KindChip).evaluate()) (element.widget as KindChip).label];
+    final before = order();
+    expect(before.take(3), ['Дом', 'Работа', 'Учёба']);
+    expect(before.last, 'Свой вид');
 
-    // имя ведёт вид, пока его не выбрали рукой: «Универ» — учёба выбрана сама
-    await tester.enterText(find.byType(TextField), 'Универ');
+    // имя ведёт вид, пока его не выбрали рукой
+    await tester.enterText(name, 'Универ');
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('tile-selected-Учёба')), findsOneWidget);
-    // выбрал рукой вторую плитку — имя больше не перебивает
-    final second = find.byWidgetPredicate((widget) => widget.key is ValueKey<String> && (widget.key! as ValueKey<String>).value.startsWith('tile-suggested-'));
-    final picked = ((tester.widget(second).key! as ValueKey<String>).value).substring('tile-suggested-'.length);
-    await tester.tap(second);
+    expect(selectedKind(tester), 'Учёба');
+    await pickKind(tester, 'Работа');
+    expect(selectedKind(tester), 'Работа');
+    expect(order(), before);
+    await tester.enterText(name, 'Универ на Ботанике');
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Универ на Ботанике');
-    await tester.pumpAndSettle();
-    expect(find.byKey(ValueKey('tile-selected-$picked')), findsOneWidget);
+    expect(selectedKind(tester), 'Работа');
   });
 
-  testWidgets('свой вид: «Найти или создать» → «Создать «Дача»», вид встаёт выбранным и сохраняется', (tester) async {
+  testWidgets('свой вид: «Свой вид» → «Создать «Дача»», чип встаёт выбранным и сохраняется', (tester) async {
     world.placeChannel.background = true;
     world.currentPlace = const PlaceFix(latitude: 47.1, longitude: 28.7, name: 'Вадул-луй-Водэ');
     await open(tester);
-    await tester.tap(find.text('Добавить место'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Дача родителей');
-    await tester.tap(find.text('Найти или создать'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'Дача');
+    await newPlace(tester);
+    await tester.enterText(name, 'Дача родителей');
+    await pickKind(tester, 'Свой вид');
+    await tester.enterText(find.byKey(const ValueKey('type-search')), 'Дача');
     await tester.pumpAndSettle();
     await tester.tap(find.text('Создать «Дача»'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('tile-selected-Дача')), findsOneWidget);
-    await tester.tap(find.text('Я сейчас здесь'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Сохранить'));
-    await tester.pumpAndSettle();
+    expect(selectedKind(tester), 'Дача');
+    await here(tester);
+    await save(tester);
     final dacha = (await places()).single;
     expect((dacha.name, dacha.kind, dacha.label), ('Дача родителей', PlaceKind.other, 'Дача'));
     expect(dacha.icon, isNotNull);
-    // в списке подпись — свой вид
     expect(find.text('Дача'), findsOneWidget);
 
-    // второе место: свой вид уже в листе, создавать заново не нужно
-    await tester.tap(find.text('Добавить место'));
+    // второе место: свой вид уже чипом в строке
+    await newPlace(tester);
+    expect(find.byKey(const ValueKey('kind-Дача')), findsOneWidget);
+  });
+
+  testWidgets('поиск адреса: список под полем, касание ставит точку, имя и вид', (tester) async {
+    world.placeChannel.background = true;
+    world.placeLookup.found = const [
+      FoundPlace(name: 'Universitatea de Stat', address: 'Strada Alexei Mateevici 60, Chișinău', latitude: 47.0189, longitude: 28.8245),
+      FoundPlace(name: 'Universitatea Tehnică', address: 'Bulevardul Ștefan cel Mare 168, Chișinău', latitude: 47.0336, longitude: 28.8169),
+    ];
+    world.placeLookup.pointName = 'Strada Alexei Mateevici 60, Chișinău';
+    await open(tester);
+    await newPlace(tester);
+    // точки нет — «Сохранить» не нажимается, на карте подсказка
+    expect(find.text('Найди адрес или зажми карту, чтобы поставить точку'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Сохранить')).onPressed, isNull);
+
+    await tester.tap(search);
+    await tester.enterText(search, 'univ');
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Найти или создать'));
+    expect(find.text('Universitatea de Stat'), findsOneWidget);
+    expect(find.text('Strada Alexei Mateevici 60, Chișinău'), findsOneWidget);
+    await tester.tap(find.text('Universitatea de Stat'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('type-Дача')), findsOneWidget);
+    // список закрыт, имя подставилось, адрес точки под картой
+    expect(find.text('Universitatea Tehnică'), findsNothing);
+    expect(tester.widget<TextField>(name).controller!.text, 'Universitatea de Stat');
+    expect(find.text('Strada Alexei Mateevici 60, Chișinău'), findsOneWidget);
+    expect(find.text('Найди адрес или зажми карту, чтобы поставить точку'), findsNothing);
+    await save(tester);
+    final place = (await places()).single;
+    expect((place.name, place.latitude, place.longitude), ('Universitatea de Stat', 47.0189, 28.8245));
+  });
+
+  testWidgets('коротко или ничего — «Ничего не нашлось», запрос от трёх букв', (tester) async {
+    world.placeChannel.background = true;
+    await open(tester);
+    await newPlace(tester);
+    await tester.tap(search);
+    await tester.enterText(search, 'ab');
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+    expect(world.placeLookup.queries, isEmpty);
+    await tester.enterText(search, 'abcdef');
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+    expect(find.text('Ничего не нашлось'), findsOneWidget);
+  });
+
+  testWidgets('карту листаешь — точка стоит; долгое нажатие переносит, «Отменить» возвращает', (tester) async {
+    world.placeChannel.background = true;
+    world.currentPlace = const PlaceFix(latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв');
+    await open(tester);
+    await newPlace(tester);
+    await tester.enterText(name, 'Офис');
+    await here(tester);
+    await tester.drag(map, const Offset(-120, 60));
+    await tester.pumpAndSettle();
+    expect(find.text('Ботаника, Кишинёв'), findsOneWidget);
+
+    // долгое нажатие сбоку от центра: точка уезжает туда
+    final center = tester.getCenter(map);
+    await tester.longPressAt(center + const Offset(60, 40));
+    await tester.pumpAndSettle();
+    expect(find.text('Точка перенесена'), findsOneWidget);
+    expect(find.text('Strada Pușkin 52, Chișinău'), findsOneWidget);
+    await tester.tap(find.text('Отменить'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ботаника, Кишинёв'), findsOneWidget);
+    await save(tester);
+    final place = (await places()).single;
+    expect((place.latitude, place.longitude), (47.0245, 28.8323));
+  });
+
+  testWidgets('долгое нажатие без точки ставит её, без плашки', (tester) async {
+    world.placeChannel.background = true;
+    await open(tester);
+    await newPlace(tester);
+    await tester.longPressAt(tester.getCenter(map));
+    await tester.pumpAndSettle();
+    expect(find.text('Точка перенесена'), findsNothing);
+    expect(find.text('Strada Pușkin 52, Chișinău'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Сохранить')).onPressed, isNotNull);
+    await save(tester);
+    expect((await places()).single.name, 'Strada Pușkin 52, Chișinău');
+  });
+
+  testWidgets('радиус: пилюля «150 м», выбор 300 м сохраняется', (tester) async {
+    world.placeChannel.background = true;
+    world.currentPlace = const PlaceFix(latitude: 47.0, longitude: 28.8, name: 'Центр');
+    await open(tester);
+    await newPlace(tester);
+    await tester.enterText(name, 'Mall Dova');
+    await here(tester);
+    await tester.tap(find.text('150 м'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('300 м').last);
+    await tester.pumpAndSettle();
+    expect(find.text('300 м'), findsOneWidget);
+    await save(tester);
+    expect((await places()).single.radius, 300);
   });
 
   testWidgets('без места «всегда» — карточка «Разрешить», после разрешения её нет', (tester) async {
@@ -127,17 +238,17 @@ void main() {
     world.placeChannel.background = true;
     world.currentPlace = const PlaceFix(latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв');
     await open(tester);
-    await addPlace(tester, name: 'Универ', kind: 'Учёба');
-    await addPlace(tester, name: 'Офис', kind: 'Работа');
-    await addPlace(tester, name: 'Склад', kind: 'Работа');
+    await addPlace(tester, title: 'Универ', kind: 'Учёба');
+    await addPlace(tester, title: 'Офис', kind: 'Работа');
+    await addPlace(tester, title: 'Склад', kind: 'Работа');
 
     expect([for (final place in await places()) (place.name, place.kind, place.latitude)], [
       ('Универ', PlaceKind.study, 47.0245),
       ('Офис', PlaceKind.work, 47.0245),
       ('Склад', PlaceKind.work, 47.0245),
     ]);
-    for (final name in ['Универ', 'Офис', 'Склад']) {
-      expect(find.text(name), findsOneWidget);
+    for (final title in ['Универ', 'Офис', 'Склад']) {
+      expect(find.text(title), findsOneWidget);
     }
     expect(find.text('Работа'), findsNWidgets(2));
   });
@@ -147,24 +258,20 @@ void main() {
     world.placeChannel.wifi = 'HomeNet';
     world.currentPlace = const PlaceFix(latitude: 47.0245, longitude: 28.8323, name: 'Ботаника, Кишинёв');
     await open(tester);
-    await addPlace(tester, name: 'Дом', kind: 'Дом');
+    await addPlace(tester, title: 'Дом', kind: 'Дом');
     final home = (await places()).single;
     expect((home.kind, home.name, home.wifi), (PlaceKind.home, 'Дом', 'HomeNet'));
-    // вид не повторяет имя: у «Дома» в подписи только сеть
     expect(find.text('Wi-Fi: HomeNet'), findsOneWidget);
   });
 
-  testWidgets('без имени имя берётся от места на карте', (tester) async {
+  testWidgets('без имени имя берётся от адреса точки', (tester) async {
     world.placeChannel.background = true;
     world.currentPlace = const PlaceFix(latitude: 47.01, longitude: 28.86, name: 'ул. Дечебал');
     await open(tester);
-    await tester.tap(find.text('Добавить место'));
-    await tester.pumpAndSettle();
-    await pickType(tester, 'Магазин');
-    await tester.tap(find.text('Я сейчас здесь'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Сохранить'));
-    await tester.pumpAndSettle();
+    await newPlace(tester);
+    await pickKind(tester, 'Магазин');
+    await here(tester);
+    await save(tester);
     expect(((await places()).single.name, (await places()).single.kind), ('ул. Дечебал', PlaceKind.shop));
   });
 
@@ -172,41 +279,38 @@ void main() {
     world.placeChannel.background = true;
     world.currentPlace = const PlaceFix(latitude: 47.0, longitude: 28.8, name: 'Центр');
     await open(tester);
-    await tester.tap(find.text('Добавить место'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Любимая кофейня');
+    await newPlace(tester);
+    await tester.enterText(name, 'Любимая кофейня');
     await tester.tap(find.byTooltip('Значок'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'кофе');
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('icon-local_cafe')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Я сейчас здесь'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Сохранить'));
-    await tester.pumpAndSettle();
+    await here(tester);
+    await save(tester);
     final cafe = (await places()).single;
     expect((cafe.name, cafe.kind, cafe.icon), ('Любимая кофейня', PlaceKind.food, 'local_cafe'));
 
     // правка вида значок не сбивает
     await tester.tap(find.text('Любимая кофейня'));
     await tester.pumpAndSettle();
-    await pickType(tester, 'Другое');
-    await tester.tap(find.text('Сохранить'));
-    await tester.pumpAndSettle();
+    await pickKind(tester, 'Другое');
+    await save(tester);
     expect((await places()).single.icon, 'local_cafe');
   });
 
-  testWidgets('касание места открывает правку: другой вид, другое имя; «Убрать» удаляет', (tester) async {
+  testWidgets('касание места открывает правку: точка на месте, адрес узнаётся; «Убрать» удаляет', (tester) async {
     world.placeChannel.background = true;
+    world.placeLookup.pointName = 'Strada Bucuriei 1, Chișinău';
     await world.db.into(world.db.places).insert(PlacesCompanion.insert(id: 'p', kind: PlaceKind.other, name: 'Курсы', latitude: 47.0, longitude: 28.8, createdAt: world.now));
     await open(tester);
     await tester.tap(find.text('Курсы'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Курсы английского');
-    await pickType(tester, 'Учёба');
-    await tester.tap(find.text('Сохранить'));
-    await tester.pumpAndSettle();
+    expect(find.text('Strada Bucuriei 1, Chișinău'), findsOneWidget);
+    await tester.enterText(name, 'Курсы английского');
+    await pickKind(tester, 'Учёба');
+    await save(tester);
     final changed = (await places()).single;
     expect((changed.name, changed.kind, changed.latitude), ('Курсы английского', PlaceKind.study, 47.0));
 
@@ -243,20 +347,25 @@ void main() {
   testWidgets('место не определилось — так и сказано', (tester) async {
     world.placeChannel.background = true;
     await open(tester);
-    await tester.tap(find.text('Добавить место'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Я сейчас здесь'));
-    await tester.pumpAndSettle();
+    await newPlace(tester);
+    await here(tester);
     expect(find.text('Не вышло узнать, где ты. Проверь, что место на телефоне включено и разрешено Stowa.'), findsOneWidget);
   });
 
-  testWidgets('экран места влезает в 320 точек при крупном шрифте', (tester) async {
+  testWidgets('экран места влезает в 320 точек при крупном шрифте, и со списком найденного', (tester) async {
     world.placeChannel.background = true;
+    world.placeLookup.found = const [
+      FoundPlace(name: 'Universitatea de Stat din Moldova, corpul central', address: 'Strada Alexei Mateevici 60, Chișinău', latitude: 47.0189, longitude: 28.8245),
+    ];
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     tester.platformDispatcher.textScaleFactorTestValue = 1.3;
     await open(tester, size: const Size(320, 700));
     expect(tester.takeException(), isNull);
-    await tester.tap(find.text('Добавить место'));
+    await newPlace(tester);
+    expect(tester.takeException(), isNull);
+    await tester.tap(search);
+    await tester.enterText(search, 'univ');
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });

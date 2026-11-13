@@ -548,5 +548,14 @@
   "placeKindCreate": "Створити «{name}»",
   "placeIcon": "Значок",
   "lineLanguageHint": "Час словами цією мовою не зрозумію — пиши цифрами: 14:30",
-  "lineLanguageHide": "Сховати"
+  "lineLanguageHide": "Сховати",
+  "placeSearchHint": "Знайти адресу або місце",
+  "placeSearchNone": "Нічого не знайшлося",
+  "placeMapEmpty": "Знайди адресу або затисни карту, щоб поставити точку",
+  "placeMapMove": "Затисни карту, щоб перенести точку",
+  "placePointMoved": "Точку перенесено",
+  "placeNoPoint": "Точку не вибрано",
+  "placeKindOwn": "Свій вид",
+  "placeRadiusValue": "{meters} м",
+  "placeRadiusTitle": "Радіус нагадування"
 }

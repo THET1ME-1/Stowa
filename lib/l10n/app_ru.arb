@@ -797,5 +797,14 @@
   "placeKindCreate": "Создать «{name}»",
   "placeIcon": "Значок",
   "lineLanguageHint": "Время словами на этом языке не пойму — пиши цифрами: 14:30",
-  "lineLanguageHide": "Скрыть"
+  "lineLanguageHide": "Скрыть",
+  "placeSearchHint": "Найти адрес или место",
+  "placeSearchNone": "Ничего не нашлось",
+  "placeMapEmpty": "Найди адрес или зажми карту, чтобы поставить точку",
+  "placeMapMove": "Зажми карту, чтобы перенести точку",
+  "placePointMoved": "Точка перенесена",
+  "placeNoPoint": "Точка не выбрана",
+  "placeKindOwn": "Свой вид",
+  "placeRadiusValue": "{meters} м",
+  "placeRadiusTitle": "Радиус напоминания"
 }

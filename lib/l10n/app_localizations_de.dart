@@ -2950,4 +2950,35 @@ class LDe extends L {
 
   @override
   String get lineLanguageHide => 'Ausblenden';
+
+  @override
+  String get placeSearchHint => 'Adresse oder Ort suchen';
+
+  @override
+  String get placeSearchNone => 'Nichts gefunden';
+
+  @override
+  String get placeMapEmpty =>
+      'Adresse suchen oder Karte gedrückt halten, um den Punkt zu setzen';
+
+  @override
+  String get placeMapMove =>
+      'Karte gedrückt halten, um den Punkt zu verschieben';
+
+  @override
+  String get placePointMoved => 'Punkt verschoben';
+
+  @override
+  String get placeNoPoint => 'Noch kein Punkt';
+
+  @override
+  String get placeKindOwn => 'Eigene Art';
+
+  @override
+  String placeRadiusValue(int meters) {
+    return '$meters m';
+  }
+
+  @override
+  String get placeRadiusTitle => 'Erinnerungsradius';
 }

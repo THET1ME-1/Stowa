@@ -2942,4 +2942,34 @@ class LEn extends L {
 
   @override
   String get lineLanguageHide => 'Hide';
+
+  @override
+  String get placeSearchHint => 'Find an address or place';
+
+  @override
+  String get placeSearchNone => 'Nothing found';
+
+  @override
+  String get placeMapEmpty =>
+      'Find an address or press and hold the map to drop a pin';
+
+  @override
+  String get placeMapMove => 'Press and hold the map to move the pin';
+
+  @override
+  String get placePointMoved => 'Pin moved';
+
+  @override
+  String get placeNoPoint => 'No pin yet';
+
+  @override
+  String get placeKindOwn => 'Custom type';
+
+  @override
+  String placeRadiusValue(int meters) {
+    return '$meters m';
+  }
+
+  @override
+  String get placeRadiusTitle => 'Reminder radius';
 }

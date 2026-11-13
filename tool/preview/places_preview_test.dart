@@ -14,6 +14,7 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/places/place_edit_screen.dart';
 import 'package:stowa/features/places/places_screen.dart';
+import 'package:stowa/services/place_search.dart';
 
 import '../../test/helpers/test_app.dart';
 
@@ -71,17 +72,20 @@ void main() {
     final cache = Directory.systemTemp.createTempSync('tiles');
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('plugins.flutter.io/path_provider'), (call) async => cache.path);
     final test = await world(tester);
+    test.placeLookup.found = const [
+      FoundPlace(name: 'Universitatea de Stat', address: 'Strada Alexei Mateevici 60, Chișinău', latitude: 47.0189, longitude: 28.8245),
+      FoundPlace(name: 'Universitatea Tehnică a Moldovei', address: 'Bulevardul Ștefan cel Mare 168, Chișinău', latitude: 47.0336, longitude: 28.8169),
+      FoundPlace(name: 'Strada Universității 2', address: 'Chișinău', latitude: 47.01, longitude: 28.83),
+    ];
     await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: test.wrap(const PlaceEditScreen())));
-    await tester.enterText(find.byType(TextField), 'Универ');
     await _shot(tester, 'places-2-новое');
-    await tester.tap(find.text('Найти или создать'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'Да');
+    await tester.tap(find.byKey(const ValueKey('place-search')));
+    await tester.enterText(find.byKey(const ValueKey('place-search')), 'univ');
+    await tester.pump(const Duration(milliseconds: 600));
     await _shot(tester, 'places-3-поиск');
-    await tester.tapAt(const Offset(200, 100));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Значок'));
-    await tester.pumpAndSettle();
-    await _shot(tester, 'places-4-значок');
+    await tester.tap(find.text('Universitatea de Stat'));
+    await _shot(tester, 'places-4-точка');
+    await tester.tap(find.text('150 м'));
+    await _shot(tester, 'places-5-радиус');
   });
 }

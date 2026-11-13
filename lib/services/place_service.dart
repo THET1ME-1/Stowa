@@ -153,28 +153,31 @@ class DevicePlaceSource implements PlaceSource {
     }
   }
 
-  Future<String?> _name(double latitude, double longitude) async {
-    try {
-      final marks = await Geocoding().placemarkFromCoordinates(latitude, longitude, locale: Locale(language())).timeout(const Duration(seconds: 6));
-      final mark = marks.firstOrNull;
-      final label = mark == null ? null : placeLabel(street: streetOf(street: mark.street, thoroughfare: mark.thoroughfare, subThoroughfare: mark.subThoroughfare), subLocality: mark.subLocality, locality: mark.locality, administrativeArea: mark.administrativeArea);
-      if (label != null) return label;
-    } catch (_) {
-      // на прошивке без геокодера спросим OpenStreetMap
-    }
-    try {
-      final uri = Uri.https('nominatim.openstreetmap.org', '/reverse', {
-        'format': 'jsonv2',
-        'lat': latitude.toStringAsFixed(5),
-        'lon': longitude.toStringAsFixed(5),
-        'zoom': '17',
-        'accept-language': language(),
-      });
-      final response = await client.get(uri, headers: {'user-agent': 'Stowa/0.1 (github.com/THET1ME-1/Stowa)'}).timeout(const Duration(seconds: 6));
-      if (response.statusCode != 200) return null;
-      return placeLabelFromNominatim(jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, Object?>);
-    } catch (_) {
-      return null;
-    }
+  Future<String?> _name(double latitude, double longitude) => lookupPlaceName(client, language(), latitude, longitude);
+}
+
+/// Название точки: геокодером телефона, без него — у OpenStreetMap. «Ботаника, Кишинёв».
+Future<String?> lookupPlaceName(http.Client client, String language, double latitude, double longitude) async {
+  try {
+    final marks = await Geocoding().placemarkFromCoordinates(latitude, longitude, locale: Locale(language)).timeout(const Duration(seconds: 6));
+    final mark = marks.firstOrNull;
+    final label = mark == null ? null : placeLabel(street: streetOf(street: mark.street, thoroughfare: mark.thoroughfare, subThoroughfare: mark.subThoroughfare), subLocality: mark.subLocality, locality: mark.locality, administrativeArea: mark.administrativeArea);
+    if (label != null) return label;
+  } catch (_) {
+    // на прошивке без геокодера спросим OpenStreetMap
+  }
+  try {
+    final uri = Uri.https('nominatim.openstreetmap.org', '/reverse', {
+      'format': 'jsonv2',
+      'lat': latitude.toStringAsFixed(5),
+      'lon': longitude.toStringAsFixed(5),
+      'zoom': '17',
+      'accept-language': language,
+    });
+    final response = await client.get(uri, headers: {'user-agent': 'Stowa/0.1 (github.com/THET1ME-1/Stowa)'}).timeout(const Duration(seconds: 6));
+    if (response.statusCode != 200) return null;
+    return placeLabelFromNominatim(jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, Object?>);
+  } catch (_) {
+    return null;
   }
 }

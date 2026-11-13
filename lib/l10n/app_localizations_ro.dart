@@ -2970,4 +2970,34 @@ class LRo extends L {
 
   @override
   String get lineLanguageHide => 'Ascunde';
+
+  @override
+  String get placeSearchHint => 'Caută o adresă sau un loc';
+
+  @override
+  String get placeSearchNone => 'Nu s-a găsit nimic';
+
+  @override
+  String get placeMapEmpty =>
+      'Caută adresa sau ține apăsat pe hartă ca să pui punctul';
+
+  @override
+  String get placeMapMove => 'Ține apăsat pe hartă ca să muți punctul';
+
+  @override
+  String get placePointMoved => 'Punct mutat';
+
+  @override
+  String get placeNoPoint => 'Niciun punct ales';
+
+  @override
+  String get placeKindOwn => 'Tip propriu';
+
+  @override
+  String placeRadiusValue(int meters) {
+    return '$meters m';
+  }
+
+  @override
+  String get placeRadiusTitle => 'Raza mementoului';
 }

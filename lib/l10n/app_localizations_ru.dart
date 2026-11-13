@@ -3005,4 +3005,34 @@ class LRu extends L {
 
   @override
   String get lineLanguageHide => 'Скрыть';
+
+  @override
+  String get placeSearchHint => 'Найти адрес или место';
+
+  @override
+  String get placeSearchNone => 'Ничего не нашлось';
+
+  @override
+  String get placeMapEmpty =>
+      'Найди адрес или зажми карту, чтобы поставить точку';
+
+  @override
+  String get placeMapMove => 'Зажми карту, чтобы перенести точку';
+
+  @override
+  String get placePointMoved => 'Точка перенесена';
+
+  @override
+  String get placeNoPoint => 'Точка не выбрана';
+
+  @override
+  String get placeKindOwn => 'Свой вид';
+
+  @override
+  String placeRadiusValue(int meters) {
+    return '$meters м';
+  }
+
+  @override
+  String get placeRadiusTitle => 'Радиус напоминания';
 }

@@ -548,5 +548,14 @@
   "placeKindCreate": "Utwórz „{name}”",
   "placeIcon": "Ikona",
   "lineLanguageHint": "W tym języku nie zrozumiem godziny słowami — pisz cyframi: 14:30",
-  "lineLanguageHide": "Ukryj"
+  "lineLanguageHide": "Ukryj",
+  "placeSearchHint": "Znajdź adres lub miejsce",
+  "placeSearchNone": "Nic nie znaleziono",
+  "placeMapEmpty": "Znajdź adres albo przytrzymaj mapę, żeby postawić punkt",
+  "placeMapMove": "Przytrzymaj mapę, żeby przenieść punkt",
+  "placePointMoved": "Punkt przeniesiony",
+  "placeNoPoint": "Nie wybrano punktu",
+  "placeKindOwn": "Własny rodzaj",
+  "placeRadiusValue": "{meters} m",
+  "placeRadiusTitle": "Promień przypomnienia"
 }

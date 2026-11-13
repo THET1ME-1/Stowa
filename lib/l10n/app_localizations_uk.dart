@@ -3001,4 +3001,34 @@ class LUk extends L {
 
   @override
   String get lineLanguageHide => 'Сховати';
+
+  @override
+  String get placeSearchHint => 'Знайти адресу або місце';
+
+  @override
+  String get placeSearchNone => 'Нічого не знайшлося';
+
+  @override
+  String get placeMapEmpty =>
+      'Знайди адресу або затисни карту, щоб поставити точку';
+
+  @override
+  String get placeMapMove => 'Затисни карту, щоб перенести точку';
+
+  @override
+  String get placePointMoved => 'Точку перенесено';
+
+  @override
+  String get placeNoPoint => 'Точку не вибрано';
+
+  @override
+  String get placeKindOwn => 'Свій вид';
+
+  @override
+  String placeRadiusValue(int meters) {
+    return '$meters м';
+  }
+
+  @override
+  String get placeRadiusTitle => 'Радіус нагадування';
 }

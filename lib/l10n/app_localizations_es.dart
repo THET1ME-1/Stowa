@@ -2946,4 +2946,34 @@ class LEs extends L {
 
   @override
   String get lineLanguageHide => 'Ocultar';
+
+  @override
+  String get placeSearchHint => 'Buscar una dirección o lugar';
+
+  @override
+  String get placeSearchNone => 'No se encontró nada';
+
+  @override
+  String get placeMapEmpty =>
+      'Busca la dirección o mantén pulsado el mapa para poner el punto';
+
+  @override
+  String get placeMapMove => 'Mantén pulsado el mapa para mover el punto';
+
+  @override
+  String get placePointMoved => 'Punto movido';
+
+  @override
+  String get placeNoPoint => 'Sin punto todavía';
+
+  @override
+  String get placeKindOwn => 'Tipo propio';
+
+  @override
+  String placeRadiusValue(int meters) {
+    return '$meters m';
+  }
+
+  @override
+  String get placeRadiusTitle => 'Radio del recordatorio';
 }

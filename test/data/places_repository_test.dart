@@ -47,4 +47,17 @@ void main() {
     expect([for (final place in await places.all()) place.id], [keep]);
     expect((await places.all()).single.wifi, 'HomeNet');
   });
+
+  test('радиус: по умолчанию 150, свой сохраняется и правится', () async {
+    final park = await places.add(PlaceKind.other, name: 'Парк', latitude: 47.0, longitude: 28.8);
+    final mall = await places.add(PlaceKind.shop, name: 'Mall Dova', latitude: 47.0, longitude: 28.8, radius: 300);
+    Future<int> radius(String id) async => (await places.all()).firstWhere((place) => place.id == id).radius;
+    expect(await radius(park), 150);
+    expect(await radius(mall), 300);
+    await places.update(mall, name: 'Mall Dova', kind: PlaceKind.shop, latitude: 47.0, longitude: 28.8, radius: 500);
+    expect(await radius(mall), 500);
+    // правка без радиуса его не трогает
+    await places.update(mall, name: 'Mall', kind: PlaceKind.shop, latitude: 47.0, longitude: 28.8);
+    expect(await radius(mall), 500);
+  });
 }

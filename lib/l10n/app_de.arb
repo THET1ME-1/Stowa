@@ -548,5 +548,14 @@
   "placeKindCreate": "„{name}“ anlegen",
   "placeIcon": "Symbol",
   "lineLanguageHint": "Uhrzeiten in Worten verstehe ich in dieser Sprache nicht — schreib Ziffern: 14:30",
-  "lineLanguageHide": "Ausblenden"
+  "lineLanguageHide": "Ausblenden",
+  "placeSearchHint": "Adresse oder Ort suchen",
+  "placeSearchNone": "Nichts gefunden",
+  "placeMapEmpty": "Adresse suchen oder Karte gedrückt halten, um den Punkt zu setzen",
+  "placeMapMove": "Karte gedrückt halten, um den Punkt zu verschieben",
+  "placePointMoved": "Punkt verschoben",
+  "placeNoPoint": "Noch kein Punkt",
+  "placeKindOwn": "Eigene Art",
+  "placeRadiusValue": "{meters} m",
+  "placeRadiusTitle": "Erinnerungsradius"
 }

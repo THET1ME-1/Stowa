@@ -20,6 +20,7 @@ import 'package:stowa/services/link_checker.dart';
 import 'package:stowa/services/media_probe.dart';
 import 'package:stowa/services/place_channel.dart';
 import 'package:stowa/services/place_service.dart';
+import 'package:stowa/services/place_search.dart';
 import 'package:stowa/services/reminder_service.dart';
 import 'package:stowa/services/share_intake.dart';
 import 'package:stowa/services/telegram_service.dart';
@@ -76,6 +77,9 @@ class TestWorld {
 
   /// Где телефон «сейчас» для «Я сейчас дома».
   PlaceFix? currentPlace;
+
+  /// Поиск адреса на экране места: что найдётся и как назовётся точка.
+  final placeLookup = FakePlaceLookup();
 
   /// Уведомления: сколько раз спросили разрешение.
   final notifications = FakeNotificationPort();
@@ -134,6 +138,7 @@ class TestWorld {
         // Android нет: место «всегда», Wi-Fi и тревоги — из полей мира
         placeChannelProvider.overrideWithValue(placeChannel),
         currentPlaceProvider.overrideWithValue(() async => currentPlace),
+        placeLookupProvider.overrideWithValue(placeLookup),
         // бота Telegram в тестах нет
         telegramPullProvider.overrideWithValue(() async => 0),
         telegramStateProvider.overrideWith((ref) => Stream.value(const TelegramState())),
@@ -220,6 +225,22 @@ class FakeNotificationPort implements NotificationPort {
 
   @override
   Future<void> show({required int id, required String title, required String body, required String payload}) async {}
+}
+
+/// Поиск адреса без сети: [found] на любой запрос от трёх букв, точка зовётся [pointName].
+class FakePlaceLookup implements PlaceLookup {
+  List<FoundPlace> found = const [];
+  String? pointName = 'Strada Pușkin 52, Chișinău';
+  final queries = <String>[];
+
+  @override
+  Future<List<FoundPlace>> search(String query, {double? nearLatitude, double? nearLongitude}) async {
+    queries.add(query);
+    return query.trim().length < 3 ? const [] : found;
+  }
+
+  @override
+  Future<String?> nameAt(double latitude, double longitude) async => pointName;
 }
 
 class FakePlaceChannel implements PlaceChannel {

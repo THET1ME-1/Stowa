@@ -3000,4 +3000,34 @@ class LPl extends L {
 
   @override
   String get lineLanguageHide => 'Ukryj';
+
+  @override
+  String get placeSearchHint => 'Znajdź adres lub miejsce';
+
+  @override
+  String get placeSearchNone => 'Nic nie znaleziono';
+
+  @override
+  String get placeMapEmpty =>
+      'Znajdź adres albo przytrzymaj mapę, żeby postawić punkt';
+
+  @override
+  String get placeMapMove => 'Przytrzymaj mapę, żeby przenieść punkt';
+
+  @override
+  String get placePointMoved => 'Punkt przeniesiony';
+
+  @override
+  String get placeNoPoint => 'Nie wybrano punktu';
+
+  @override
+  String get placeKindOwn => 'Własny rodzaj';
+
+  @override
+  String placeRadiusValue(int meters) {
+    return '$meters m';
+  }
+
+  @override
+  String get placeRadiusTitle => 'Promień przypomnienia';
 }
