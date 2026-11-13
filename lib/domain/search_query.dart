@@ -10,8 +10,10 @@ library;
 import 'dart:math';
 
 import 'image_colors.dart';
+import 'language_guess.dart' show ownLanguages;
 import 'models.dart';
 import 'money.dart';
+import 'stop_words.dart' show notServiceWords, stopWordsByLanguage;
 import 'word_forms.dart';
 import 'word_variants.dart';
 
@@ -504,8 +506,20 @@ final _stopWords = {
     if (word.isNotEmpty) word,
 };
 
-/// Служебное слово любого из семи языков: связи, угадыватель папки и поиск его не считают.
-bool isServiceWord(String word) => _stopWords.contains(word.toLowerCase());
+// служебные слова остальных 51 языка (stopwords-iso): «les», «och», «và», «için»; без тех, что в своих
+// языках — обычные слова («pour», «man»); сверяются свёрнутыми, как набранное без знаков
+final Set<String> _foreignStopWords = {
+  for (final MapEntry(key: language, value: words) in stopWordsByLanguage.entries)
+    if (!ownLanguages.contains(language))
+      for (final word in words.split(' '))
+        if (!notServiceWords.contains(foldText(word))) foldText(word),
+};
+
+/// Служебное слово любого из 58 языков: связи, угадыватель папки и поиск его не считают.
+bool isServiceWord(String word) {
+  final lower = word.toLowerCase();
+  return _stopWords.contains(lower) || _foreignStopWords.contains(foldText(lower));
+}
 
 // ---------------------------------------------------------------------------
 
@@ -621,7 +635,7 @@ class _Parser {
     final words = <QueryWord>[];
     for (final index in indexes) {
       final token = tokens[index];
-      if (!keepStop && (_stopWords.contains(token.raw) || _stopWords.contains(foldText(token.raw)))) continue;
+      if (!keepStop && (_stopWords.contains(token.raw) || _stopWords.contains(foldText(token.raw)) || _foreignStopWords.contains(foldText(token.raw)))) continue;
       for (final part in token.raw.split(RegExp("['’ʼ]"))) {
         final digits = RegExp(r'^\d+$').hasMatch(part);
         if (part.length < 2 && !digits) continue;

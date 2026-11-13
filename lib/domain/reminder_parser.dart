@@ -324,18 +324,18 @@ ReminderMatch? parseReminder(String text, DateTime now, {int workEnd = defaultWo
   // места кусков совпадают с текстом
   final lower = _plain(foldText(text));
   // текст на своём языке чужие таблицы не смотрят: «mañana será» — не «завтра вечером» по-итальянски
-  final world = !ownLanguages.contains(guessLanguage(text));
+  final world = ownLanguages.contains(guessLanguage(text)) ? null : _Text(lower);
 
-  final relatives = [_findRelative(lower), if (world) _worldRelative(lower)].nonNulls.toList()..sort((a, b) => a.start.compareTo(b.start));
+  final relatives = [_findRelative(lower), if (world != null) _worldRelative(world)].nonNulls.toList()..sort((a, b) => a.start.compareTo(b.start));
   if (relatives.firstOrNull case final relative?) {
     return ReminderMatch(start: relative.start, end: relative.end, at: _relativeMoment(relative.count, relative.unit, now), hasTime: true);
   }
 
   final dates = _dates(lower, now);
-  if (world) dates.addAll(_worldDates(lower, now, dates));
+  if (world != null) dates.addAll(_worldDates(world, now, dates));
   dates.sort((a, b) => a.start.compareTo(b.start));
   final times = _times(lower, workEnd);
-  if (world) times.addAll(_worldTimes(lower, dates, times));
+  if (world != null) times.addAll(_worldTimes(world, dates, times));
   times.sort((a, b) => a.start.compareTo(b.start));
   // «Cuma» без времени — скорее имя, чем пятница
   if (times.isEmpty) dates.removeWhere((date) => date.weak);
@@ -443,13 +443,13 @@ List<_Date> _dates(String text, DateTime now) {
 
   for (final match in _monthDate.allMatches(text)) {
     final month = _months.firstWhere((entry) => entry.$1 == match.group(2)).$2;
-    final date = _calendarDate(match, int.parse(match.group(1)!), month, int.tryParse(match.group(3) ?? ''), now);
+    final date = _calendarDate(match.start, match.end, int.parse(match.group(1)!), month, int.tryParse(match.group(3) ?? ''), now);
     if (date != null) dates.add(date);
   }
 
   for (final match in _monthFirst.allMatches(text)) {
     final month = _months.firstWhere((entry) => entry.$1 == match.group(1)).$2;
-    final date = _calendarDate(match, int.parse(match.group(2)!), month, int.tryParse(match.group(3) ?? ''), now);
+    final date = _calendarDate(match.start, match.end, int.parse(match.group(2)!), month, int.tryParse(match.group(3) ?? ''), now);
     if (date != null) dates.add(date);
   }
 
@@ -458,7 +458,7 @@ List<_Date> _dates(String text, DateTime now) {
     final month = int.parse(match.group(2)!);
     final rawYear = match.group(3);
     final year = rawYear == null ? null : (rawYear.length == 2 ? 2000 + int.parse(rawYear) : int.parse(rawYear));
-    final date = _calendarDate(match, day, month, year, now);
+    final date = _calendarDate(match.start, match.end, day, month, year, now);
     if (date != null) dates.add(date);
   }
   return dates;
@@ -471,9 +471,9 @@ DateTime Function(int hour, int minute) _weekdayMoment(int target, DateTime now)
   return at.isAfter(now) ? at : DateTime(now.year, now.month, now.day + ahead + 7, hour, minute);
 };
 
-_Date? _calendarDate(RegExpMatch match, int day, int month, int? year, DateTime now) {
+_Date? _calendarDate(int start, int end, int day, int month, int? year, DateTime now, {bool world = false}) {
   if (month < 1 || month > 12 || day < 1 || day > DateTime(2024, month + 1, 0).day) return null;
-  return _Date(match.start, match.end, (hour, minute) {
+  return _Date(start, end, world: world, (hour, minute) {
     final at = DateTime(year ?? now.year, month, day, hour, minute);
     // без года прошедшая дата значит следующий год
     if (year == null && at.isBefore(now)) return DateTime(now.year + 1, month, day, hour, minute);

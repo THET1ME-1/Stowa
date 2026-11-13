@@ -9,6 +9,20 @@ void main() {
 
   List<String> free(SearchQuery query) => [for (final word in query.words) word.word];
 
+  test('служебные слова 58 языков не ищутся, а обычные слова своих языков — ищутся', () {
+    expect(free(parseSearch('recette de la tarte avec les pommes', now)), ['recette', 'tarte', 'pommes']);
+    expect(free(parseSearch('ricetta della torta con le fragole', now)), ['ricetta', 'torta', 'fragole']);
+    expect(free(parseSearch('recept för äppelkaka och grädde', now)), ['recept', 'äppelkaka', 'grädde']);
+    expect(free(parseSearch('resep kue cokelat untuk keluarga', now)), ['resep', 'kue', 'cokelat', 'keluarga']);
+    for (final word in ['les', 'och', 'và', 'için', 'een', 'della']) {
+      expect(isServiceWord(word), isTrue, reason: word);
+    }
+    // во французском «pour» служебное, а в английском — «налить»
+    for (final word in ['pour', 'man', 'come', 'bank', 'хлеб', 'кофе']) {
+      expect(isServiceWord(word), isFalse, reason: word);
+    }
+  });
+
   group('даты', () {
     test('вчера на всех языках — весь вчерашний день', () {
       for (final word in ['вчера', 'вчора', 'yesterday', 'gestern', 'ayer', 'ieri', 'wczoraj']) {

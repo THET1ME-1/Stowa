@@ -6,11 +6,13 @@
     https://registry.npmjs.org/cldr-dates-full/-/cldr-dates-full-49.0.0.tgz
     https://registry.npmjs.org/cldr-core/-/cldr-core-49.0.0.tgz
   stopwords-iso 1.1.0 (MIT): https://registry.npmjs.org/stopwords-iso/-/stopwords-iso-1.1.0.tgz
-  словари LibreOffice: tool/typo_dicts.sh <папка>
+  словари LibreOffice: tool/typo_dicts.sh <папка> (слова от 4 букв, 11 языков) и те же словари
+    семи языков приложения целиком, только строчные записи (без имён и сокращений), по слову
+    в строке в <папка>/<имя словаря>.txt — например, ru_RU.txt, en_US.txt
 
 Запуск:
   python3 -I tool/cldr_words.py <cldr-dates-full/package> <cldr-core/package> \\
-      <stopwords-iso.json> <папка словарей>
+      <stopwords-iso.json> <папка словарей> <папка строчных словарей>
 
 Пишет lib/domain/cldr_time_words.dart и lib/domain/stop_words.dart.
 """
@@ -191,17 +193,17 @@ def time_words(dates, core, locales):
     return tables
 
 
-def dictionary_words(folder, wanted):
+def dictionary_words(folder, wanted, folding=True, only=None):
     """Какие из слов есть в словаре какого языка: слово → языки."""
     found = {}
     for file_name in sorted(os.listdir(folder)):
         name, extension = os.path.splitext(file_name)
-        if extension != '.txt' or name not in DICTS:
+        if extension != '.txt' or name not in DICTS or (only and DICTS[name] not in only):
             continue
         language = DICTS[name]
         with open(os.path.join(folder, file_name), encoding='utf-8') as file:
             for line in file:
-                word = fold(line.strip())
+                word = fold(line.strip()) if folding else line.strip()
                 if word in wanted:
                     found.setdefault(word, set()).add(language)
     return found
@@ -280,22 +282,39 @@ def wrap(entries, width=110):
     return lines
 
 
-def write_stop_words(stopwords, folder, short_folder):
+EN_FUNCTION = '''the a an of in on at to for from with by and or but is are was were be been my me i you your it its
+this that these those all some any about what where when which there here how why who we they he she our their us them
+can will just so not no do does did have has had get got into out up as if than then too very also only'''
+
+
+# самые частые служебные слова больших языков, которые словари своих языков держат как сокращения
+# или редкие слова («och», «aux», «des» у английского и испанского): они служебные всегда
+FORCE_SERVICE = {
+    'des', 'aux', 'och', 'het', 'een', 'dei', 'degli', 'della', 'delle', 'dalla', 'dalle', 'nel', 'nella',
+    'sul', 'sulla', 'dos', 'nos', 'nas', 'pelo', 'pela', 'yang', 'och', 'eller', 'ett', 'som',
+}
+
+
+def write_stop_words(stopwords, lowercase_folder):
     word = re.compile(r'^[^\W\d_]+$')
     by_language = {}
     for language, words in sorted(stopwords.items()):
         clean_words = sorted({entry.lower() for entry in words if word.match(entry)})
         by_language[language] = clean_words
-    own = set()
-    for language in OWN:
-        own.update(fold(entry) for entry in by_language.get(language, []))
-    foreign = {fold(entry) for language, words in by_language.items() if language not in OWN for entry in words}
-    # чужое служебное слово, которое в своих семи языках — обычное слово: «pour», «man»
-    in_dicts = dictionary_words(folder, foreign - own)
-    if short_folder:
-        for found, owners in dictionary_words(short_folder, foreign - own).items():
-            in_dicts.setdefault(found, set()).update(owners)
-    content = sorted(found for found, owners in in_dicts.items() if owners & OWN)
+    foreign = {entry for language, words in by_language.items() if language not in OWN for entry in words}
+    # чужое служебное слово, которое в своём языке — обычное слово: «pour», «man», «come».
+    # Обычное — есть в словаре строчным и не служебное там. Сверка как написано, без снятия знаков:
+    # иначе румынское «leş» совпало бы с французским «les». Словари польского и румынского
+    # полны междометий и нот («och», «la», «il»), их не берём; двухбуквенные служебные всегда служебные.
+    # У английского список stopwords-iso слишком широк («man», «come»), поэтому для него свой короткий
+    function = {language: set(by_language.get(language, [])) for language in OWN}
+    function['en'] = set(EN_FUNCTION.split())
+    content = set()
+    wanted = {entry for entry in foreign if len(entry) >= 3}
+    for found, owners in dictionary_words(lowercase_folder, wanted, folding=False, only={'en', 'de', 'es', 'ru', 'uk'}).items():
+        if any(found not in function[owner] for owner in owners):
+            content.add(fold(found))
+    content = sorted(content - FORCE_SERVICE)
 
     lines = [
         '// Собрано tool/cldr_words.py из stopwords-iso 1.1.0 (MIT), руками не править.',
@@ -317,15 +336,14 @@ def write_stop_words(stopwords, folder, short_folder):
 
 
 def main():
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 6:
         sys.exit(__doc__)
-    dates, core, stopwords_path, folder = sys.argv[1:5]
-    short_folder = sys.argv[5] if len(sys.argv) > 5 else None
+    dates, core, stopwords_path, folder, lowercase_folder = sys.argv[1:6]
     locales = languages(core)
     tables = time_words(dates, core, locales)
     weak = weak_words(tables, folder)
     write_time(tables, weak, [locale for locale in locales if locale not in OWN])
-    write_stop_words(load(stopwords_path), folder, short_folder)
+    write_stop_words(load(stopwords_path), lowercase_folder)
     for name, table in tables.items():
         print(name, len(table))
     print('weak', len(weak))
