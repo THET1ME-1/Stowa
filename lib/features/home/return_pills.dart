@@ -10,8 +10,56 @@ import '../../l10n/app_localizations.dart';
 import '../../services/return_service.dart' show returnText;
 import '../returns/return_screen.dart';
 
-/// Пилюли над «Только что»: «Посмотреть потом · 24 мин» и «Год назад». То же, что вечером
-/// придёт уведомлением, — но видно и без него.
+/// Круглая кнопка в шапке главной: «Год назад», «Месяц назад», «Неделю назад» — в подсказке.
+/// Есть, только когда в этот день раньше что-то сохраняли; блоком под напоминаниями главная
+/// была перегружена (хозяин, 13.11.2026).
+class OnThisDayButton extends ConsumerWidget {
+  const OnThisDayButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final day = ref.watch(onThisDayProvider).value;
+    if (day == null) return const SizedBox.shrink();
+    final label = returnText(L.of(context), ReturnPick(ReturnKind.onThisDay, day: day.found)).title;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Tooltip(
+        message: label,
+        child: Material(
+          key: const ValueKey('return-onThisDay'),
+          color: Tokens.containerHigh,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => Navigator.of(context).push(returnRoute(ReturnKind.onThisDay)),
+            child: SizedBox.square(
+              dimension: 48,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(symbolIcon('history'), size: 21, color: Tokens.onSurface),
+                  // точка: есть что вспомнить именно сегодня
+                  Positioned(
+                    top: 11,
+                    right: 11,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle, border: Border.all(color: Tokens.containerHigh, width: 1.5)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Пилюля над лентой: «Посмотреть потом · 24 мин». То же, что вечером придёт уведомлением,
+/// — но видно и без него.
 class ReturnPills extends ConsumerWidget {
   const ReturnPills({super.key});
 
@@ -19,10 +67,8 @@ class ReturnPills extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final queue = ref.watch(watchLaterProvider).value ?? const [];
-    final day = ref.watch(onThisDayProvider).value;
     final pills = [
       if (queue.isNotEmpty) (icon: 'smart_display', label: '${l.returnWatchTitle} · ${l.returnMinutesShort(summarizeWatchLater(queue).minutes)}', kind: ReturnKind.watchLater),
-      if (day != null) (icon: 'history', label: returnText(l, ReturnPick(ReturnKind.onThisDay, day: day.found)).title, kind: ReturnKind.onThisDay),
     ];
     if (pills.isEmpty) return const SizedBox.shrink();
     // во всю строку, две — пополам: справа не остаётся пустоты, стрелка говорит, что внутри список

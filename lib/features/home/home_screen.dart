@@ -313,6 +313,8 @@ class _Feed extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  // «Год назад», «Неделю назад»: круглой кнопкой, только когда есть что вспомнить
+                  const OnThisDayButton(),
                   // сцепленные кнопки, как «править» и «ещё» на странице заметки
                   _HeaderGroup(
                     buttons: [

@@ -35,23 +35,31 @@ void main() {
     expect(find.text('1 ролик — 13 минут'), findsOneWidget);
   });
 
-  testWidgets('год назад что-то сохранили — пилюля «Год назад» во всю строку', (tester) async {
+  testWidgets('год назад что-то сохранили — круглая кнопка «Год назад» в шапке, а не блок под напоминаниями', (tester) async {
     await note('Борщ бабушкин', DateTime(2025, 11, 6, 9));
     await open(tester);
-    expect(find.text('Год назад'), findsOneWidget);
-    expect(find.textContaining('Посмотреть потом'), findsNothing);
-    expect(tester.getRect(find.byKey(const ValueKey('return-onThisDay'))).width, closeTo(400 - 32, 1));
+    final button = find.byKey(const ValueKey('return-onThisDay'));
+    expect(find.byTooltip('Год назад'), findsOneWidget);
+    // круг в строке шапки, рядом с каталогом и картой
+    final rect = tester.getRect(button);
+    expect(rect.width, closeTo(rect.height, 1));
+    expect(rect.center.dy, closeTo(tester.getCenter(find.byTooltip('Карта')).dy, 1));
+    expect(find.text('Год назад'), findsNothing);
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    expect(find.text('Борщ бабушкин'), findsWidgets);
   });
 
-  testWidgets('две пилюли делят строку пополам', (tester) async {
-    await note('Борщ бабушкин', DateTime(2025, 11, 6, 9));
+  testWidgets('вспомнить нечего — кнопки в шапке нет', (tester) async {
+    await note('Мысль', world.now);
+    await open(tester);
+    expect(find.byKey(const ValueKey('return-onThisDay')), findsNothing);
+  });
+
+  testWidgets('«Посмотреть потом» — во всю строку', (tester) async {
     await note('Турка', world.now.subtract(const Duration(days: 1)), kind: ItemKind.video, seconds: 754);
     await open(tester);
-    final watch = tester.getRect(find.byKey(const ValueKey('return-watchLater')));
-    final day = tester.getRect(find.byKey(const ValueKey('return-onThisDay')));
-    expect(watch.top, day.top);
-    expect(watch.width, closeTo(day.width, 1));
-    expect(day.right, closeTo(400 - 16, 1));
+    expect(tester.getRect(find.byKey(const ValueKey('return-watchLater'))).width, closeTo(400 - 32, 1));
   });
 
   testWidgets('карточка «Возвращать сохранённое?» один раз: «Не сейчас» прячет её насовсем', (tester) async {
