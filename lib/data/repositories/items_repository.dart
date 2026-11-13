@@ -328,7 +328,7 @@ class ItemsRepository {
 
   /// Ближайшие напоминания с этого момента, по времени. Их мало, поэтому
   /// отбор идёт в Dart: время хранится текстом, сравнивать строки ненадёжно.
-  Stream<List<ItemCard>> watchUpcoming(DateTime now, {int limit = 3}) {
+  Stream<List<ItemCard>> watchUpcoming(DateTime now, {int limit = 12}) {
     return _db
         .customSelect('$_cardSelect AND items.reminder_at IS NOT NULL', readsFrom: _cardTables)
         .watch()

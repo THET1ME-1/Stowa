@@ -1,0 +1,83 @@
+// Кадры карусели напоминаний с настоящими шрифтами: в покое и посреди прокрутки.
+// Запуск: TMPDIR=~/.cache/flutter-tmp flutter test tool/preview/reminder_preview_test.dart
+// Картинки ложатся в build/previews/.
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/models.dart';
+
+import '../../test/helpers/test_app.dart';
+
+final _out = Directory('build/previews');
+
+Future<void> _loadFonts() async {
+  for (final family in ['Onest', 'Unbounded', 'StowaSymbols', 'StowaSymbolsFilled']) {
+    final bytes = File('assets/fonts/$family.ttf').readAsBytesSync();
+    await (FontLoader(family)..addFont(Future.value(ByteData.sublistView(bytes)))).load();
+  }
+}
+
+Future<void> _shot(WidgetTester tester, String name) async {
+  final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(const ValueKey('shot')));
+  await tester.runAsync(() async {
+    final image = await boundary.toImage(pixelRatio: 2);
+    final png = await image.toByteData(format: ui.ImageByteFormat.png);
+    _out.createSync(recursive: true);
+    File(p.join(_out.path, '$name.png')).writeAsBytesSync(png!.buffer.asUint8List());
+  });
+}
+
+void main() {
+  setUpAll(_loadFonts);
+
+  testWidgets('карусель напоминаний', (tester) async {
+    final world = TestWorld();
+    addTearDown(world.dispose);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(392, 850);
+    addTearDown(tester.view.reset);
+    final reminders = [
+      ('shirt', 'Закинуть футболку в пакет с тканью', const Duration(hours: 1)),
+      ('match', 'Футбольный матч Молдова Казахстан на арене Зимбру', const Duration(hours: 9)),
+      ('dentist', 'Зубной, взять снимок', const Duration(days: 2)),
+      ('mama', 'Позвонить маме', const Duration(days: 3)),
+    ];
+    for (final (id, title, later) in reminders) {
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+            id: id,
+            kind: ItemKind.note,
+            title: title,
+            body: Value(title),
+            sortState: const Value(SortState.sorted),
+            reminderAt: Value(world.now.add(later)),
+            createdAt: world.now.subtract(const Duration(hours: 2)),
+            updatedAt: world.now.subtract(const Duration(hours: 2)),
+          ));
+    }
+    await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: world.app()));
+    await tester.pumpAndSettle();
+    await _shot(tester, 'reminders-1-покой');
+
+    final carousel = find.byType(CarouselView);
+    final gesture = await tester.startGesture(tester.getCenter(carousel));
+    for (var step = 0; step < 10; step++) {
+      await gesture.moveBy(const Offset(-9, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await _shot(tester, 'reminders-2-половина');
+    for (var step = 0; step < 10; step++) {
+      await gesture.moveBy(const Offset(-9, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    await _shot(tester, 'reminders-3-следующая');
+  });
+}

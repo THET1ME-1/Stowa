@@ -30,7 +30,7 @@ import '../share/share_inbox.dart';
 import '../share/share_receiver.dart';
 import '../../domain/note_blocks.dart';
 import 'folder_shelf.dart';
-import 'next_reminder_card.dart';
+import 'reminder_carousel.dart';
 import 'note_timeline.dart';
 import 'pinned_tags_row.dart';
 import '../returns/return_screen.dart' show notificationRoute;
@@ -371,19 +371,16 @@ class _Feed extends ConsumerWidget {
           ),
         if (upcoming.isNotEmpty)
           SliverToBoxAdapter(
-            child: NextReminderCard(
-              key: ValueKey(upcoming.first.id),
-              item: upcoming.first,
-              more: upcoming.length - 1,
+            child: ReminderCarousel(
+              items: upcoming,
               now: now,
-              onDone: () async {
-                final next = upcoming.first;
+              onDone: (next) async {
                 final messenger = ScaffoldMessenger.of(context);
                 await items.clearReminder(next.id);
                 // случайный тап не стирает напоминание насовсем
                 showUndo(messenger, message: l.reminderCleared, label: l.undo, onUndo: () => items.snoozeReminder(next.id, next.reminderAt!), overDock: true);
               },
-              onTap: () => onOpen(upcoming.first.id),
+              onOpen: (next) => onOpen(next.id),
             ),
           ),
         // спросить про уведомления один раз, когда уже есть что возвращать
