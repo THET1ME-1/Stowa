@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart' show TileLayer;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
@@ -71,6 +72,21 @@ void main() {
     expect(find.text('Кофе'), findsOneWidget);
     expect(find.text('Круассаны'), findsOneWidget);
     expect(find.text('Без места'), findsNothing);
+  });
+
+  testWidgets('карта перекрашивается целым слоем, а не каждой плиткой; метки рисуются один раз', (tester) async {
+    await add('a', 'Кофейня', latitude: 47.0245, longitude: 28.8323, place: 'Ботаника');
+    await add('b', 'Парк', latitude: 47.05, longitude: 28.86, place: 'Центр');
+    await openMap(tester);
+    // перекраска на каждой плитке — два слоя на плитку, 40–60 слоёв на кадр прокрутки
+    final tiles = tester.widget<TileLayer>(find.byType(TileLayer));
+    expect(tiles.tileBuilder, isNull);
+    expect(find.ancestor(of: find.byType(TileLayer), matching: find.byType(ColorFiltered)), findsNWidgets(2));
+    // метка не перерисовывается при сдвиге карты: у каждой свой слой
+    for (final mark in find.byKey(const ValueKey('map-mark')).evaluate()) {
+      expect(find.ancestor(of: find.byWidget(mark.widget), matching: find.byType(RepaintBoundary)), findsWidgets);
+    }
+    expect(find.byKey(const ValueKey('map-mark')), findsNWidgets(2));
   });
 
   testWidgets('мест ещё нет — карта говорит, откуда они возьмутся', (tester) async {

@@ -18,6 +18,7 @@ import '../composer/panel_text.dart';
 import '../home/recent_strip.dart';
 import '../item/adult_veil.dart';
 import '../item/item_screen.dart';
+import 'map_tiles.dart';
 
 /// Карта заметок. [focusItemId] — открыть сразу на этой вещи (касание места на её странице).
 Route<void> mapRoute({String? focusItemId}) => PageRouteBuilder(
@@ -30,13 +31,6 @@ Route<void> mapRoute({String? focusItemId}) => PageRouteBuilder(
   ),
 );
 
-/// Насыщенность карты 45 %: парки ещё зелёные, но улицы не спорят с метками.
-const _calm = ColorFilter.matrix([
-  0.567, 0.393, 0.040, 0, 0, //
-  0.117, 0.843, 0.040, 0, 0, //
-  0.117, 0.393, 0.490, 0, 0, //
-  0, 0, 0, 1, 0, //
-]);
 
 /// Где что сохранено. Вещи рядом склеены в одно место, снизу — вещи выбранного.
 class MapScreen extends ConsumerStatefulWidget {
@@ -96,12 +90,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 onTap: (_, _) => setState(() => _selected = null),
               ),
               children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'app.stowa',
-                  // светлую карту OSM темним под графит приложения и приглушаем: метки заметок важнее улиц
-                  tileBuilder: (context, tile, image) => ColorFiltered(colorFilter: _calm, child: darkModeTileBuilder(context, tile, image)),
-                ),
+                const NightTiles(),
                 MarkerLayer(
                   markers: [
                     for (final group in groups)
@@ -109,11 +98,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         point: LatLng(group.latitude, group.longitude),
                         width: 64,
                         height: 64,
-                        child: _PlaceMark(
-                          cards: [for (final id in group.ids) ?byId[id]],
-                          filesRoot: filesRoot,
-                          selected: selected?.ids.first == group.ids.first,
-                          onTap: () => setState(() => _selected = group),
+                        // метка рисуется один раз: при сдвиге карты её слой только переезжает
+                        child: RepaintBoundary(
+                          child: _PlaceMark(
+                            key: const ValueKey('map-mark'),
+                            cards: [for (final id in group.ids) ?byId[id]],
+                            filesRoot: filesRoot,
+                            selected: selected?.ids.first == group.ids.first,
+                            onTap: () => setState(() => _selected = group),
+                          ),
                         ),
                       ),
                   ],
@@ -230,7 +223,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
 /// Метка места: фото, если есть, иначе значок вида; число, если вещей несколько.
 class _PlaceMark extends StatelessWidget {
-  const _PlaceMark({required this.cards, required this.filesRoot, required this.selected, required this.onTap});
+  const _PlaceMark({super.key, required this.cards, required this.filesRoot, required this.selected, required this.onTap});
 
   final List<ItemCard> cards;
   final Directory filesRoot;

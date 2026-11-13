@@ -14,6 +14,7 @@ import '../../data/providers.dart';
 import '../../domain/models.dart';
 import '../../domain/place_cue.dart' show kindOfWord;
 import '../../l10n/app_localizations.dart';
+import '../map/map_tiles.dart';
 import '../settings/settings_blocks.dart';
 import 'place_kinds.dart';
 
@@ -27,14 +28,6 @@ Route<void> placeEditRoute({Place? place}) => PageRouteBuilder(
     child: child,
   ),
 );
-
-// карта темнится под графит приложения и приглушается, как на экране карты
-const _calm = ColorFilter.matrix([
-  0.567, 0.393, 0.040, 0, 0, //
-  0.117, 0.843, 0.040, 0, 0, //
-  0.117, 0.393, 0.490, 0, 0, //
-  0, 0, 0, 1, 0, //
-]);
 
 /// Место для напоминаний: имя, вид и точка. Точку даёт «Я сейчас здесь» или карта:
 /// стоять у места не нужно — квартиру друга или ресторан ставят издалека.
@@ -301,11 +294,7 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
                           },
                         ),
                         children: [
-                          TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'app.stowa',
-                            tileBuilder: (context, tile, image) => ColorFiltered(colorFilter: _calm, child: darkModeTileBuilder(context, tile, image)),
-                          ),
+                          const NightTiles(),
                           // карта OpenStreetMap требует подписи
                           Align(
                             alignment: Alignment.bottomLeft,
