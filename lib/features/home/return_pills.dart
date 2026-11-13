@@ -25,33 +25,36 @@ class ReturnPills extends ConsumerWidget {
       if (day != null) (icon: 'history', label: returnText(l, ReturnPick(ReturnKind.onThisDay, day: day.found)).title, kind: ReturnKind.onThisDay),
     ];
     if (pills.isEmpty) return const SizedBox.shrink();
+    // во всю строку, две — пополам: справа не остаётся пустоты, стрелка говорит, что внутри список
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 16),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+      child: Row(
         children: [
-          for (final pill in pills)
-            Material(
-              key: ValueKey('return-${pill.kind.name}'),
-              color: Tokens.containerHigh,
-              shape: const StadiumBorder(),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => Navigator.of(context).push(returnRoute(pill.kind)),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 16, 10),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(symbolIcon(pill.icon), size: 18, color: Tokens.onSurfaceVariant),
-                      const SizedBox(width: 8),
-                      Flexible(child: Text(pill.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurface))),
-                    ],
+          for (final (index, pill) in pills.indexed) ...[
+            if (index > 0) const SizedBox(width: 8),
+            Expanded(
+              child: Material(
+                key: ValueKey('return-${pill.kind.name}'),
+                color: Tokens.containerHigh,
+                shape: const StadiumBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).push(returnRoute(pill.kind)),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+                    child: Row(
+                      children: [
+                        Icon(symbolIcon(pill.icon), size: 18, color: Tokens.onSurfaceVariant),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(pill.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurface))),
+                        Icon(symbolIcon('chevron_right'), size: 20, color: Tokens.onSurfaceVariant),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
+          ],
         ],
       ),
     );

@@ -93,20 +93,42 @@ void main() {
     expect((await world.db.select(world.db.items).getSingle()).body, 'Купить\n- [ ] Молоко\n- [x] Хлеб');
   });
 
-  testWidgets('папки пилюлями в две строки, остальные по «Ещё», «Свернуть» прячет обратно', (tester) async {
+  testWidgets('папки одной строкой во всю ширину, остальные в «+N», «Свернуть» прячет обратно', (tester) async {
     for (var index = 0; index < 12; index++) {
-      await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'f$index', name: 'Папка номер $index', icon: 'folder', shape: 'pill', sortOrder: Value(index)));
+      await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'f$index', name: 'Папка $index', icon: 'folder', shape: 'pill', sortOrder: Value(index)));
     }
     await open(tester);
 
-    final shown = find.byType(FolderPill).evaluate().length;
-    expect(shown, inInclusiveRange(2, 8));
-    await tester.tap(find.text('Ещё ${12 - shown}'));
+    final pills = find.byType(FolderPill);
+    final shown = pills.evaluate().length;
+    expect(shown, inInclusiveRange(1, 4));
+    final more = find.text('+${12 - shown}');
+    expect(more, findsOneWidget);
+    // одна строка: все на одной высоте, «+N» — у правого края экрана, пустоты справа нет
+    final rects = [for (var index = 0; index < shown; index++) tester.getRect(pills.at(index))];
+    expect({for (final rect in rects) rect.top}, hasLength(1));
+    final screen = tester.view.physicalSize.width / tester.view.devicePixelRatio;
+    expect(tester.getRect(find.byKey(const ValueKey('folders-more'))).right, closeTo(screen - 16, 1));
+
+    await tester.tap(more);
     await tester.pumpAndSettle();
-    expect(find.byType(FolderPill), findsNWidgets(12));
+    expect(pills, findsNWidgets(12));
     await tester.tap(find.text('Свернуть'));
     await tester.pumpAndSettle();
-    expect(find.byType(FolderPill), findsNWidgets(shown));
+    expect(pills, findsNWidgets(shown));
+  });
+
+  testWidgets('две папки растягиваются на всю строку', (tester) async {
+    for (final (index, name) in ['Дом', 'Работа'].indexed) {
+      await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'f$index', name: name, icon: 'folder', shape: 'pill', sortOrder: Value(index)));
+    }
+    await open(tester);
+    final screen = tester.view.physicalSize.width / tester.view.devicePixelRatio;
+    final home = tester.getRect(find.widgetWithText(FolderPill, 'Дом'));
+    final work = tester.getRect(find.widgetWithText(FolderPill, 'Работа'));
+    expect(home.left, closeTo(16, 1));
+    expect(work.right, closeTo(screen - 16, 1));
+    expect(home.top, work.top);
   });
 
   testWidgets('плашка «Закинул» уходит сама', (tester) async {
