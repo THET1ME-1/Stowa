@@ -5,6 +5,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../data/providers.dart';
+import '../../domain/note_blocks.dart' show renderMarkup;
 import '../../domain/note_links.dart';
 import '../../l10n/app_localizations.dart';
 import 'related_block.dart' show kindIcon;
@@ -72,7 +73,8 @@ class _LinkSheetState extends State<_LinkSheet> {
 String? _snippet(LinkTarget target) {
   final lines = target.text.split('\n').map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
   if (lines.isNotEmpty && lines.first == target.title.trim()) lines.removeAt(0);
-  final text = lines.join(' ');
+  // разметка снимается, как в карточках: галочки знаками, [[ссылки]] названиями
+  final text = renderMarkup(lines.join('\n'), const []).text.split('\n').where((line) => line.trim().isNotEmpty).join(' ');
   return text.isEmpty ? null : text;
 }
 

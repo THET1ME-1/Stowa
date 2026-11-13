@@ -5,6 +5,7 @@ import '../data/repositories/items_repository.dart';
 import '../data/repositories/places_repository.dart';
 import '../data/repositories/return_repository.dart';
 import '../domain/models.dart';
+import '../domain/note_links.dart' show shownTitle;
 import '../domain/return_plan.dart';
 import '../l10n/app_localizations.dart';
 import 'place_channel.dart';
@@ -63,7 +64,7 @@ class PlaceAlarmService {
     PlaceAlarm alarm(Item item, {required String id, required double latitude, required double longitude, int radius = 150, String? wifi}) => PlaceAlarm(
       id: id,
       title: item.title,
-      body: reminderText(item.title, item.body),
+      body: reminderText(shownTitle(item.title), item.body),
       payload: 'note:${item.id}',
       latitude: latitude,
       longitude: longitude,

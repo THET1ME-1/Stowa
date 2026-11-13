@@ -117,14 +117,14 @@ Future<void> _pickFromAll(BuildContext context, WidgetRef ref, List<KnownVault> 
     title: l.vaultsSection,
     options: [
       for (final one in others)
-        SheetChoice(value: one, title: vaultTitle(one.path), subtitle: _otherSubtitle(l, one), icon: one.mode == VaultMode.app ? 'smartphone' : 'folder'),
+        SheetChoice(value: one, title: knownVaultTitle(l, one), subtitle: _otherSubtitle(l, one), icon: one.mode == VaultMode.app ? 'smartphone' : 'folder'),
     ],
   );
   if (picked != null && context.mounted) await switchVault(context, ref, picked);
 }
 
 String _otherSubtitle(L l, KnownVault vault) => [
-  if (vaultParent(vault.path).isNotEmpty) vaultParent(vault.path),
+  if (vault.mode != VaultMode.app && vaultParent(vault.path).isNotEmpty) vaultParent(vault.path),
   if (vault.notes case final notes?) l.itemsCount(notes),
 ].join(' · ');
 
@@ -149,7 +149,7 @@ class _OtherVaultState extends ConsumerState<_OtherVault> {
     final settings = ref.read(settingsRepositoryProvider);
     final forget = await showOptionsSheet<bool>(
       context,
-      title: vaultTitle(widget.vault.path),
+      title: knownVaultTitle(l, widget.vault),
       options: [
         SheetChoice(value: false, title: l.vaultOpenIt, icon: 'folder_open'),
         SheetChoice(value: true, title: l.vaultForget, subtitle: l.vaultForgetHint, icon: 'playlist_remove', danger: true),
@@ -173,7 +173,7 @@ class _OtherVaultState extends ConsumerState<_OtherVault> {
         return _VaultRow(
           key: ValueKey('vault-${vault.db}'),
           icon: gone ? 'folder_off' : (vault.mode == VaultMode.app ? 'smartphone' : 'folder'),
-          title: vaultTitle(vault.path),
+          title: knownVaultTitle(l, vault),
           subtitle: gone ? l.vaultFolderGone : _otherSubtitle(l, vault),
           gone: gone,
           onTap: gone ? () => showNote(ScaffoldMessenger.of(context), l.vaultFolderGone) : () => switchVault(context, ref, vault),

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/auto_sorter.dart';
 import 'package:stowa/services/vault/vault_reader.dart';
 import 'package:stowa/services/vault/vault_writer.dart';
 
@@ -255,6 +256,26 @@ void main() {
     await reader().reconcile(progress: (done, total) => seen.add((done, total)));
     expect(seen.map((step) => step.$2).toSet(), {1});
     expect(seen.last, (1, 1));
+  });
+
+  test('заметка, написанная вне Stowa, лежит где положили: раскладка её не трогает и «разбираю» нет', () async {
+    put('Работа/Дела.md', 'Список дел\n\n- позвонить в банк');
+    put('План отпуска.md', 'Море в июле, билеты до 1 июня, работа подождёт');
+    await reader().rebuild();
+    final plan = (await items()).singleWhere((one) => one.title == 'План отпуска');
+    expect(plan.folderId, isNull);
+    expect(plan.sortedBy, SortedBy.user);
+    expect(plan.sortState, SortState.sorted);
+    expect(await AutoSorter(db, clock: () => now).sortInbox(), isEmpty);
+    expect(file('План отпуска.md').existsSync(), isTrue);
+  });
+
+  test('своя заметка Stowa без папки остаётся неразобранной: её разложат', () async {
+    put('Мысль.md', '---\nid: own-1\nkind: note\ncreated: 2026-11-06T10:00:00.000\nupdated: 2026-11-06T10:00:00.000\n---\nМысль');
+    await reader().rebuild();
+    final own = await item('own-1');
+    expect(own!.sortedBy, SortedBy.none);
+    expect(own.sortState, SortState.pending);
   });
 
   test('хранилище не выбрано — читатель ничего не делает', () async {

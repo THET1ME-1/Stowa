@@ -9,6 +9,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../core/widgets/shape_badge.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -257,7 +258,7 @@ class _SingleReminder extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(context, Tokens.onAccent)),
+                      Text(shownTitle(item.title), maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(context, Tokens.onAccent)),
                       const SizedBox(height: 2),
                       Text(_when(l, item.reminderAt!, now), style: text.bodyMedium!.copyWith(fontSize: _whenSize, color: Tokens.onAccentVariant)),
                     ],
@@ -364,7 +365,7 @@ class _ReminderCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               // заголовку вся ширина карточки
-              Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(context, ink)),
+              Text(shownTitle(item.title), maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(context, ink)),
             ],
         ),
       ),

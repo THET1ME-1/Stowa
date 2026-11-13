@@ -10,6 +10,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/models.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../domain/related.dart';
 import '../../l10n/app_localizations.dart';
 import 'adult_veil.dart';
@@ -148,7 +149,7 @@ class _RelatedRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(card.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
+                    Text(shownTitle(card.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
                     const SizedBox(height: 2),
                     Text(reason, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: Tokens.onSurfaceVariant)),
                   ],

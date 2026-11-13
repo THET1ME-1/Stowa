@@ -12,6 +12,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/canvas_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/canvas_layout.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
@@ -304,7 +305,7 @@ class _CanvasItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (card.kind != ItemKind.note) ...[Icon(symbolIcon(kindIcon(card.kind)), size: 18, color: Tokens.muted), const SizedBox(height: 8)],
-                Text(card.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
+                Text(shownTitle(card.title), maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
                 if (card.body.trim().isNotEmpty && card.body.trim() != card.title) ...[
                   const SizedBox(height: 6),
                   Expanded(

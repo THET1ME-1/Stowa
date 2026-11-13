@@ -85,6 +85,12 @@ void main() {
     expect(decision.tagNames, ['видео', 'рецепт']);
   });
 
+  test('день без часа (модель ставит полночь) звенит в 9 утра, как у разбора строки', () {
+    expect(parseSortDecision(answer({'reminder': '2027-06-01T00:00:00'}), context)!.reminder, DateTime(2027, 6, 1, 9));
+    expect(parseSortDecision(answer({'reminder': '2027-06-01'}), context)!.reminder, DateTime(2027, 6, 1, 9));
+    expect(parseSortDecision(answer({'reminder': '2027-06-01T00:30:00'}), context)!.reminder, DateTime(2027, 6, 1, 0, 30));
+  });
+
   test('напоминание в прошлом отбрасывается', () {
     expect(parseSortDecision(answer({'reminder': '2026-11-01T10:00:00'}), context)!.reminder, isNull);
   });

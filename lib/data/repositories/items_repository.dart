@@ -299,7 +299,7 @@ class ItemsRepository {
 
   /// Повтор, который обновляется, когда меняются заметки или их факты: отпечаток картинки приходит позже.
   Stream<RepeatNote?> watchRepeatOf(String id) =>
-      _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.facts, _db.folders}).watch().asyncMap((_) => repeatOf(id));
+      _db.changesOf([_db.items, _db.facts, _db.folders]).asyncMap((_) => repeatOf(id));
 
   Future<ItemFull?> get(String id) async {
     final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
@@ -439,7 +439,7 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
   /// порядке, каждая заметка один раз. Отклонённые человеком не показываются.
   /// Пересчитываются, когда меняются заметки или связи.
   Stream<List<LinkedNote>> watchLinked(String id) {
-    return _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.links}).watch().asyncMap((_) async {
+    return _db.changesOf([_db.items, _db.links]).asyncMap((_) async {
       final rows = await _db
           .customSelect(
             "SELECT items.id, items.url, items.title, items.body, items.title || ' ' || items.body || ' ' || coalesce(items.transcript, '') || ' ' || "
@@ -670,7 +670,7 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
 
   /// Вещь целиком и дальше при каждой правке.
   Stream<ItemFull?> watchItem(String id) {
-    return _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.itemTags, _db.tags, _db.attachments, _db.fileJobs}).watch().asyncMap((_) => get(id));
+    return _db.changesOf([_db.items, _db.itemTags, _db.tags, _db.attachments, _db.fileJobs]).asyncMap((_) => get(id));
   }
 
   /// Человек переложил вещь сам: ИИ её больше не трогает, а пример запоминается.

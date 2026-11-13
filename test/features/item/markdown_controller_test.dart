@@ -67,4 +67,40 @@ void main() {
     expect(piece('сделано').style!.decoration, TextDecoration.lineThrough);
     expect(piece('План').style!.fontWeight, FontWeight.w700);
   });
+
+  group('ссылка [[…]] как в Obsidian', () {
+    const text = 'См. [[План отпуска|план]] сегодня';
+
+    Future<List<TextSpan>> at(WidgetTester tester, int caret) async {
+      late List<TextSpan> result;
+      final controller = MarkdownController(text: text)..selection = TextSelection.collapsed(offset: caret);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              result = flat(controller.buildTextSpan(context: context, style: const TextStyle(fontSize: 16), withComposing: false));
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      return result;
+    }
+
+    testWidgets('курсор снаружи: скобки и название спрятаны, подпись — ссылкой', (tester) async {
+      final spans = await at(tester, text.length);
+      expect(spans.map((span) => span.text).join(), text, reason: 'текст в поле тот же до буквы');
+      final hidden = spans.firstWhere((span) => span.text == '[[План отпуска|');
+      expect(hidden.style!.fontSize, lessThan(1));
+      expect(spans.firstWhere((span) => span.text == ']]').style!.fontSize, lessThan(1));
+      expect(spans.firstWhere((span) => span.text == 'план').style!.decoration, TextDecoration.underline);
+    });
+
+    testWidgets('курсор внутри: скобки видны приглушённо', (tester) async {
+      final spans = await at(tester, 8);
+      final open = spans.firstWhere((span) => span.text == '[[План отпуска|');
+      expect(open.style!.fontSize, isNull);
+      expect(open.style!.color, Tokens.muted);
+    });
+  });
 }

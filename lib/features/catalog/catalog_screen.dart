@@ -13,6 +13,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/models.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_screen.dart';
 import '../item/item_actions.dart';
@@ -329,7 +330,7 @@ class _NoteRow extends ConsumerWidget {
             Icon(symbolIcon(icon), size: 18, color: card.folderColor == null ? Tokens.muted : FolderPalette.ink(card.folderColor!)),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(card.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurface)),
+              child: Text(shownTitle(card.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurface)),
             ),
             const SizedBox(width: 8),
             Text(date, style: text.bodySmall!.copyWith(fontSize: 12, color: Tokens.muted)),

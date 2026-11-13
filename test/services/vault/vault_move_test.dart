@@ -96,6 +96,41 @@ void main() {
     expect(at('Рецепты/Борщ.md').existsSync(), isTrue, reason: 'чужая для приложения папка остаётся как была');
   });
 
+  test('перенос берёт и файлы Obsidian: .canvas, .base, настройки, картинки без ссылок, скрытое', () async {
+    await move().moveTo(target, VaultMode.device);
+    final extra = {
+      'Доска.canvas': '{"nodes":[],"edges":[]}',
+      'Книги.base': 'views:\n  - type: table\n',
+      '.obsidian/app.json': '{}',
+      'Рецепты/фото без ссылки.png': 'png',
+      'Чертёж.excalidraw.md': '# Excalidraw',
+      '.stowa/sealed/abc.bin': 'шифр',
+    };
+    for (final MapEntry(key: path, value: body) in extra.entries) {
+      File(p.join(target.path, path))
+        ..createSync(recursive: true)
+        ..writeAsStringSync(body);
+    }
+    final second = Directory(p.join(target.parent.path, 'Другая'));
+    final report = await move(from: target, insideApp: false).moveTo(second, VaultMode.device);
+    expect(report.ok, isTrue, reason: report.missing.join(', '));
+    for (final MapEntry(key: path, value: body) in extra.entries) {
+      expect(File(p.join(second.path, path)).readAsStringSync(), body, reason: path);
+    }
+    // заметки не задвоились: файл заметки пишет писатель, а не копия
+    expect(second.listSync(recursive: true).whereType<File>().where((file) => p.basename(file.path) == 'Борщ.md'), hasLength(1));
+  });
+
+  test('перенос в папку внутри старой не копирует сам себя', () async {
+    await move().moveTo(target, VaultMode.device);
+    File(p.join(target.path, 'Доска.canvas')).writeAsStringSync('{}');
+    final inner = Directory(p.join(target.path, 'Новое'));
+    final report = await move(from: target, insideApp: false).moveTo(inner, VaultMode.device);
+    expect(report.ok, isTrue, reason: report.missing.join(', '));
+    expect(File(p.join(inner.path, 'Доска.canvas')).existsSync(), isTrue);
+    expect(Directory(p.join(inner.path, 'Новое')).existsSync(), isFalse);
+  });
+
   test('открытие готового хранилища после переустановки не переписывает его заметки', () async {
     await move().moveTo(target, VaultMode.device);
     final before = {for (final file in target.listSync(recursive: true).whereType<File>()) if (file.path.endsWith('.md')) file.path: file.lastModifiedSync()};

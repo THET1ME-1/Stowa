@@ -434,7 +434,7 @@ final placeLookupProvider = Provider<PlaceLookup>((ref) {
 /// Тронули заметки, теги или места — тревоги по месту, может быть, пора переставить.
 final placeChangesProvider = StreamProvider((ref) {
   final db = ref.watch(databaseProvider);
-  return db.customSelect('SELECT 1', readsFrom: {db.items, db.places, db.itemTags, db.tags}).watch();
+  return db.changesOf([db.items, db.places, db.itemTags, db.tags]);
 });
 
 /// Место «пока открыто» разрешено. Тесты подменяют.

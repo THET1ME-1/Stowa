@@ -13,6 +13,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../domain/item_title.dart';
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
@@ -201,7 +202,7 @@ class _VideoCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(card.title, style: text.titleMedium!.copyWith(fontSize: 16, height: 1.3)),
+                  Text(shownTitle(card.title), style: text.titleMedium!.copyWith(fontSize: 16, height: 1.3)),
                   _Meta(card: card, now: now),
                 ],
               ),
@@ -248,7 +249,7 @@ class _PhotoCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (captioned) Text(card.title, style: text.titleMedium!.copyWith(fontSize: 16, height: 1.3)),
+                    if (captioned) Text(shownTitle(card.title), style: text.titleMedium!.copyWith(fontSize: 16, height: 1.3)),
                     _Meta(card: card, now: now),
                   ],
                 ),
@@ -280,7 +281,7 @@ class _NoteCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(card.title, style: text.titleMedium!.copyWith(fontSize: 16, height: 1.3)),
+            Text(shownTitle(card.title), style: text.titleMedium!.copyWith(fontSize: 16, height: 1.3)),
             if (rest.isNotEmpty) ...[
               const SizedBox(height: 6),
               // оформление из разметки: жирное жирным, галочки значками
@@ -335,7 +336,7 @@ class _RowCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(card.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w500, height: 1.3)),
+                  Text(shownTitle(card.title), maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w500, height: 1.3)),
                   if (source.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
@@ -423,7 +424,7 @@ class BoardTile extends StatelessWidget {
             ? Container(
                 padding: const EdgeInsets.all(Space.tile),
                 color: Tokens.container,
-                child: Text(card.title, maxLines: 6, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(height: 1.4)),
+                child: Text(shownTitle(card.title), maxLines: 6, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(height: 1.4)),
               )
             : Stack(
                 children: [

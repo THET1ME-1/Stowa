@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -271,6 +272,23 @@ class AppDatabase extends _$AppDatabase {
   /// не просыпался, когда правка поднимала версию уже стоящей задачи: задач столько же, а файл старый.
   /// Очередь пишут триггеры, а о них drift не знает, поэтому запрос пересчитывается от записи
   /// в любую таблицу: он дешёвый, в очереди считанные строки.
+  /// Сигнал «таблицы [tables] поменялись»: сразу при подписке и после каждой правки, пока
+  /// подписчик считает — копится. `customSelect('SELECT 1').watch()` для этого не годится:
+  /// поток drift не повторяет одинаковый ответ, и на телефоне, где базу делят окно, фон и
+  /// «Поделиться», он молчал — связь ставилась, а «Связано» не менялось до переоткрытия.
+  Stream<void> changesOf(Iterable<TableInfo> tables) {
+    StreamSubscription<void>? updates;
+    late final StreamController<void> out;
+    out = StreamController<void>(
+      onListen: () {
+        out.add(null);
+        updates = tableUpdates(TableUpdateQuery.onAllTables(tables)).listen((_) => out.add(null));
+      },
+      onCancel: () => updates?.cancel(),
+    );
+    return out.stream;
+  }
+
   Stream<(int, int)> watchVaultQueue() => customSelect(
     'SELECT count(*) AS tasks, coalesce(sum(version), 0) AS versions FROM vault_queue',
     readsFrom: allTables.toSet(),

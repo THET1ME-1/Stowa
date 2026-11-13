@@ -19,6 +19,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../domain/models.dart';
 import '../../domain/note_blocks.dart';
 import '../../l10n/app_localizations.dart';
@@ -416,7 +417,7 @@ class _Text extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(item.title, maxLines: lines.isEmpty ? 6 : 3, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
+        Text(shownTitle(item.title), maxLines: lines.isEmpty ? 6 : 3, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
         if (lines.isNotEmpty) ...[const SizedBox(height: 6), _Lines(lines: lines, color: item.folderColor, onToggle: onToggle)],
       ],
     );
@@ -542,7 +543,7 @@ class _Photo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(item.title, maxLines: 3, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
+                Text(shownTitle(item.title), maxLines: 3, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
                 const SizedBox(height: 4),
                 _Lines(lines: lines, color: item.folderColor, onToggle: onToggle),
               ],
@@ -624,7 +625,7 @@ class _Attachment extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.title, maxLines: 3, overflow: TextOverflow.ellipsis, style: text.titleSmall!.copyWith(fontSize: 15, height: 1.3)),
+                  Text(shownTitle(item.title), maxLines: 3, overflow: TextOverflow.ellipsis, style: text.titleSmall!.copyWith(fontSize: 15, height: 1.3)),
                   if (source != null) ...[
                     const SizedBox(height: 4),
                     Row(

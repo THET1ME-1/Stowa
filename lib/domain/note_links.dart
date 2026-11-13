@@ -12,6 +12,24 @@ final wikiLink = RegExp(r'(?<!!)\[\[([^\]|#\n]+)(?:#[^\]|\n]*)?(?:\|([^\]\n]*))?
 /// Ссылка на заметку в разобранном тексте: касание открывает заметку с этим заголовком.
 const noteLinkScheme = 'stowa-note:';
 
+/// Ссылка `[[…]]` в тексте по кускам для живой разметки, как у Obsidian: [shownStart]..[shownEnd] —
+/// что видно ссылкой (подпись, иначе название), остальное от [start] до [end] прячется,
+/// пока курсор не внутри.
+typedef WikiPiece = ({int start, int end, int shownStart, int shownEnd});
+
+List<WikiPiece> wikiPieces(String text) => [
+  for (final match in wikiLink.allMatches(text))
+    if (match.group(2) case final label? when label.trim().isNotEmpty)
+      (start: match.start, end: match.end, shownStart: match.end - 2 - label.length, shownEnd: match.end - 2)
+    else
+      (start: match.start, end: match.end, shownStart: match.start + 2, shownEnd: match.start + 2 + match.group(1)!.length),
+];
+
+/// Заголовок для глаз: `[[Название|подпись]]` показывается подписью, `[[Название]]` — названием.
+/// Сам заголовок не меняется: по нему заметку находят ссылки и первая строка текста.
+String shownTitle(String title) =>
+    title.contains('[[') ? title.replaceAllMapped(wikiLink, (match) => (match.group(2)?.trim().isNotEmpty ?? false) ? match.group(2)!.trim() : match.group(1)!.trim()) : title;
+
 /// Заголовки из `[[…]]` по порядку, без повторов и пустых.
 List<String> wikiTitles(String text) {
   final titles = <String>[];

@@ -13,6 +13,7 @@ import '../../core/widgets/pressable.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../domain/note_blocks.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../domain/text_diff.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
@@ -61,7 +62,7 @@ class HistoryScreen extends ConsumerWidget {
             Text(l.historyTitle, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6)),
             if (item != null) ...[
               const SizedBox(height: 4),
-              Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
+              Text(shownTitle(item.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
             ],
             const SizedBox(height: 20),
             if (item != null)

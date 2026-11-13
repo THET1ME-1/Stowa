@@ -67,7 +67,7 @@ class ReturnRepository {
   /// С [clock] — ещё и когда наступил новый день: приложение живёт открытым сутками, а «год назад»
   /// и очередь зависят от даты. Проверка даты раз в [dayCheck] ничего не считает, пока день тот же.
   Stream<T> watch<T>(Future<T> Function() compute, {DateTime Function()? clock, Duration dayCheck = const Duration(minutes: 1)}) {
-    final changes = _db.customSelect('SELECT 1', readsFrom: {_db.items, _db.facts, _db.itemTags, _db.tags}).watch();
+    final changes = _db.changesOf([_db.items, _db.facts, _db.itemTags, _db.tags]);
     if (clock == null) return changes.asyncMap((_) => compute());
     final out = StreamController<T>();
     StreamSubscription<void>? subscription;

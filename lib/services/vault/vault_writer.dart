@@ -122,8 +122,7 @@ class VaultWriter {
       // вещь стёрта насовсем: файл, вложения и добытое уходят следом
       if (known != null) {
         await _remove(known.path);
-        final attachments = Directory(_absolute(attachmentsDir(known.path)));
-        if (await attachments.exists()) await attachments.delete(recursive: true);
+        await _dropAttachments(attachmentsDir(known.path));
         await _prune(p.posix.dirname(known.path));
         await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(id))).go();
       }
@@ -362,9 +361,18 @@ class VaultWriter {
     final newDir = attachmentsDir(to);
     final folder = Directory(_absolute(oldDir));
     if (await folder.exists()) {
-      await Directory(p.dirname(_absolute(newDir))).create(recursive: true);
-      await folder.rename(_absolute(newDir));
+      // переезжают только свои вложения: папка рядом с заметкой бывает обычной папкой
+      // Obsidian («Рецепты.md» и «Рецепты/» с другими заметками), её содержимое не наше
       final moved = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get();
+      for (final attachment in moved) {
+        if (!attachment.path.startsWith('$oldDir/')) continue;
+        final source = File(_absolute(attachment.path));
+        if (!await source.exists()) continue;
+        final target = File(_absolute('$newDir${attachment.path.substring(oldDir.length)}'));
+        await target.parent.create(recursive: true);
+        await source.rename(target.path);
+      }
+      await _pruneTree(oldDir);
       await _quietly(() async {
         for (final attachment in moved) {
           if (!attachment.path.startsWith('$oldDir/')) continue;
@@ -431,6 +439,30 @@ class VaultWriter {
   Future<void> _remove(String relative) async {
     final file = File(_absolute(relative));
     if (await file.exists()) await file.delete();
+  }
+
+  /// Папка вложений стёртой заметки. Строки вложений к этому времени уже стёрты, поэтому
+  /// папка удаляется, только если похожа на вложения Stowa: без подпапок, заметок, холстов
+  /// и баз Obsidian. Иначе это обычная папка человека, и она остаётся как есть.
+  Future<void> _dropAttachments(String relativeDir) async {
+    final dir = Directory(_absolute(relativeDir));
+    if (!await dir.exists()) return;
+    await for (final entity in dir.list(followLinks: false)) {
+      if (entity is! File || const {'.md', '.canvas', '.base'}.contains(p.extension(entity.path).toLowerCase())) return;
+    }
+    await dir.delete(recursive: true);
+  }
+
+  /// Пустые подпапки бывшей папки вложений и она сама — снизу вверх; с чужими файлами остаются.
+  Future<void> _pruneTree(String relativeDir) async {
+    final dir = Directory(_absolute(relativeDir));
+    if (!await dir.exists()) return;
+    final nested = await dir.list(recursive: true, followLinks: false).where((entity) => entity is Directory).cast<Directory>().toList()
+      ..sort((a, b) => b.path.length.compareTo(a.path.length));
+    for (final folder in nested) {
+      if (await folder.list().isEmpty) await folder.delete();
+    }
+    if (await dir.list().isEmpty) await dir.delete();
   }
 
   // пустые папки, оставшиеся после переезда, убираются до корня

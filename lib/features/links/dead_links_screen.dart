@@ -8,6 +8,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart' show sourceName;
+import '../../domain/note_links.dart' show shownTitle;
 import '../../l10n/app_localizations.dart';
 import '../item/item_screen.dart';
 
@@ -146,7 +147,7 @@ class _DeadRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(card.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
+              Text(shownTitle(card.title), maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
               const SizedBox(height: 4),
               Text(sourceName(host), maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(color: Tokens.muted)),
               const SizedBox(height: 8),

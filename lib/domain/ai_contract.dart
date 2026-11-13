@@ -273,7 +273,9 @@ SortDecision? parseSortDecision(String content, SortContext context, {bool Funct
   final candidateIds = {for (final one in context.candidates) one.id};
   final folderId = _text(json['folder_id']);
   final newFolder = json['new_folder'];
-  final reminder = DateTime.tryParse(_text(json['reminder']) ?? '');
+  final parsed = DateTime.tryParse(_text(json['reminder']) ?? '');
+  // модель ставит полночь, когда в тексте только день («до 1 июня»): такой день звенит в 9 утра, как в строке
+  final reminder = parsed != null && parsed.hour == 0 && parsed.minute == 0 && parsed.second == 0 ? DateTime(parsed.year, parsed.month, parsed.day, 9) : parsed;
   return SortDecision(
     folderId: folderId != null && folderIds.contains(folderId) ? folderId : null,
     newFolder: newFolder is Map<String, Object?> && _text(newFolder['name']) != null ? NewFolder(name: _text(newFolder['name'])!, icon: icon(newFolder['icon'])) : null,

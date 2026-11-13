@@ -12,6 +12,7 @@ import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_title.dart';
+import '../../domain/note_links.dart' show shownTitle;
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../item/adult_veil.dart';
@@ -106,7 +107,7 @@ class _PhotoFace extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(Theme.of(context).textTheme)),
+              Text(shownTitle(item.title), maxLines: 2, overflow: TextOverflow.ellipsis, style: _titleStyle(Theme.of(context).textTheme)),
               where,
             ],
           ),
@@ -148,7 +149,7 @@ class _TextFace extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          Text(item.title, maxLines: preview.isEmpty ? 4 : 2, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
+          Text(shownTitle(item.title), maxLines: preview.isEmpty ? 4 : 2, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
           // строк текста столько, сколько влезает в остаток карточки
           Expanded(
             child: LayoutBuilder(

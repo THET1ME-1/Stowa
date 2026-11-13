@@ -153,6 +153,28 @@ void main() {
     expect(await pathOf('a'), isNull);
   });
 
+  test('заметка-папка Obsidian: в корзину и насовсем уходит только сама заметка, папка рядом с её заметками и холстом цела', () async {
+    await note('r', 'Рецепты');
+    await writer().drain();
+    for (final (path, body) in [('Рецепты/Борщ.md', 'Борщ'), ('Рецепты/Доска.canvas', '{}'), ('Рецепты/Супы/Уха.md', 'Уха')]) {
+      file(path)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(body);
+    }
+    await edit('r', ItemsCompanion(deletedAt: Value(now)));
+    await writer().drain();
+    expect(file('.trash/Рецепты.md').existsSync(), isTrue);
+    for (final path in ['Рецепты/Борщ.md', 'Рецепты/Доска.canvas', 'Рецепты/Супы/Уха.md']) {
+      expect(file(path).existsSync(), isTrue, reason: 'после корзины: $path');
+    }
+    await (db.delete(db.items)..where((t) => t.id.equals('r'))).go();
+    await writer().drain();
+    expect(file('.trash/Рецепты.md').existsSync(), isFalse);
+    for (final path in ['Рецепты/Борщ.md', 'Рецепты/Доска.canvas', 'Рецепты/Супы/Уха.md']) {
+      expect(file(path).existsSync(), isTrue, reason: 'после стирания: $path');
+    }
+  });
+
   test('факты, прогоны, расшифровка и описание ИИ — в .stowa/facts/<id>.json', () async {
     await note('a', 'Голосовое');
     await edit('a', const ItemsCompanion(transcript: Value('купить плитку'), aiDescription: Value('Список для ремонта')));

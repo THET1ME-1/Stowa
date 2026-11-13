@@ -54,7 +54,7 @@ class WikiSuggestions extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(target.title.trim().isEmpty ? '…' : target.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
+                                Text(target.title.trim().isEmpty ? '…' : shownTitle(target.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
                                 if (linkSnippet(target) case final snippet?)
                                   Text(snippet, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(color: Tokens.muted)),
                               ],

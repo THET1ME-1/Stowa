@@ -4,6 +4,7 @@ import '../../core/theme/tokens.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/line_query.dart';
+import '../../domain/note_links.dart' show wikiPieces;
 import '../../domain/place_cue.dart';
 import '../../domain/reminder_parser.dart';
 import '../../domain/tag_name.dart';
@@ -285,6 +286,16 @@ class LineController extends TextEditingController {
         match.end,
         TextStyle(color: Tokens.onSurfaceVariant, decoration: TextDecoration.underline, decorationColor: Tokens.onSurfaceVariant),
       ));
+    }
+    // [[ссылка]] как в Obsidian: видно название ссылкой, скобки спрятаны, пока курсор не внутри
+    final caret = selection.isValid && selection.isCollapsed ? selection.baseOffset : -1;
+    for (final piece in wikiPieces(text)) {
+      final open = caret >= piece.start && caret <= piece.end;
+      final aside = open ? TextStyle(color: Tokens.muted) : const TextStyle(fontSize: 0.01, color: Colors.transparent, letterSpacing: 0);
+      marks
+        ..add((piece.start, piece.shownStart, aside))
+        ..add((piece.shownStart, piece.shownEnd, TextStyle(fontWeight: FontWeight.w600, decoration: TextDecoration.underline, decorationColor: Tokens.onSurface)))
+        ..add((piece.shownEnd, piece.end, aside));
     }
     for (final match in _markdown.allMatches(text)) {
       marks.add((match.start, match.end, TextStyle(color: Tokens.muted)));

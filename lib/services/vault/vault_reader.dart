@@ -351,7 +351,7 @@ class VaultReader {
         body: Value(note.body),
         url: Value(note.url),
         folderId: Value(folderId),
-        sortedBy: Value(note.sortedBy ?? (folderId == null ? SortedBy.none : SortedBy.user)),
+        sortedBy: Value(note.sortedBy ?? (folderId == null && !one.newId ? SortedBy.none : SortedBy.user)),
         coverPath: Value(note.cover),
         previewText: Value(note.previewText),
         previewSite: Value(note.previewSite),
@@ -380,7 +380,9 @@ class VaultReader {
             id: Value(id),
             // у ссылки с превью из файла заново качать нечего
             previewAt: Value(note.previewSite != null || note.cover != null ? now : null),
-            sortState: Value(folderId == null ? SortState.pending : SortState.sorted),
+            // заметку без id Stowa написал человек снаружи (Obsidian): где она лежит, решил он,
+            // раскладка её не перекладывает и «разбираю» не показывается
+            sortState: Value(folderId == null && !one.newId ? SortState.pending : SortState.sorted),
           ),
         );
       }

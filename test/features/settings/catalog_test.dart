@@ -99,6 +99,18 @@ void main() {
     }
   });
 
+  testWidgets('прежнее хранилище внутри приложения называется «Внутри приложения», а не именем служебной папки', (tester) async {
+    await settings.setVault(obsidian.path, VaultMode.device);
+    final inside = await settings.rememberVault(p.join(world.files.path, 'vault'), VaultMode.app);
+    await settings.openKnownVault(inside, notesHere: 0);
+    await settings.openKnownVault(settings.vaults.firstWhere((one) => one.db == 'stowa-obs'), notesHere: 9);
+    await openCatalog(tester);
+    final row = find.byKey(ValueKey('vault-${inside.db}'));
+    expect(find.descendant(of: row, matching: find.text('Внутри приложения')), findsOneWidget);
+    expect(find.descendant(of: row, matching: find.text('vault')), findsNothing);
+    expect(find.descendant(of: row, matching: find.textContaining('9 заметок')), findsOneWidget);
+  });
+
   testWidgets('Stowa Sync: лист с одним предложением и «Понятно»', (tester) async {
     await openCatalog(tester);
     await tester.tap(find.text('Stowa Sync'));

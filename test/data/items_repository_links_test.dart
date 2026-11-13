@@ -27,6 +27,21 @@ void main() {
     }
   }
 
+  test('открытая страница видит связь руками сразу: поток связей просыпается', () async {
+    await noise();
+    await add('plan', 'План отпуска');
+    await add('ideas', 'Идеи');
+    final seen = <List<String>>[];
+    final watching = items.watchLinked('plan').listen((list) => seen.add([for (final one in list) if (one.kind == LinkKind.manual) one.card.id]));
+    await pumpEventQueue();
+    await items.link('plan', 'ideas');
+    await pumpEventQueue();
+    await items.unlink('plan', 'ideas');
+    await pumpEventQueue();
+    await watching.cancel();
+    expect(seen.map((ids) => ids.join()).toList(), containsAllInOrder(['', 'ideas', '']));
+  });
+
   test('[[Заголовок]] в тексте связывает, у второй заметки — обратная связь', () async {
     await noise();
     await add('beer', 'Пиво', body: 'варить с [[хмель]] и [[Солод|солодом]]');

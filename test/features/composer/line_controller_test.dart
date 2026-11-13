@@ -198,6 +198,25 @@ void main() {
     expect(dotted, ['Завтра', 'в 14:00']);
   });
 
+  testWidgets('[[ссылка]] в строке как в Obsidian: курсор снаружи — видно только название ссылкой', (tester) async {
+    line.value = const TextEditingValue(text: 'See [[Buy milk]] ok', selection: TextSelection.collapsed(offset: 19));
+    late TextSpan span;
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
+      span = line.buildTextSpan(context: context, withComposing: false);
+      return const SizedBox();
+    })));
+    final hidden = <String>[];
+    final linked = <String>[];
+    span.visitChildren((child) {
+      final style = (child as TextSpan).style;
+      if ((style?.fontSize ?? 16) < 1) hidden.add(child.text!);
+      if (style?.decoration == TextDecoration.underline && style?.decorationStyle != TextDecorationStyle.dotted) linked.add(child.text!);
+      return true;
+    });
+    expect(hidden, ['[[', ']]']);
+    expect(linked, ['Buy milk']);
+  });
+
   // куски строки, подсвеченные фоном как тег или папка, которые пишутся сейчас
   Future<List<String>> highlighted(WidgetTester tester, LineController from) async {
     late TextSpan span;

@@ -172,6 +172,9 @@ Future<void> rebuildIndex(BuildContext context, WidgetRef ref) async {
   }
 }
 
+/// Имя хранилища из списка: у хранилища внутри приложения папка служебная («vault»), его зовём словами.
+String knownVaultTitle(L l, KnownVault vault) => vault.mode == VaultMode.app ? l.vaultInsideApp : vaultTitle(vault.path);
+
 /// Папка открытого хранилища: выбранная или, у старой установки, папка файлов.
 String _openPath(WidgetRef ref) => ref.read(vaultRootProvider)?.path ?? ref.read(settingsRepositoryProvider).vaultPath ?? ref.read(filesRootProvider).path;
 
@@ -256,7 +259,7 @@ Future<void> switchVault(BuildContext context, WidgetRef ref, KnownVault target)
   if (!context.mounted) return;
   final navigator = Navigator.of(context, rootNavigator: true);
   final db = ref.read(databaseProvider);
-  final status = ValueNotifier<(String, double?)>((l.vaultSwitching(vaultTitle(target.path)), null));
+  final status = ValueNotifier<(String, double?)>((l.vaultSwitching(knownVaultTitle(l, target)), null));
   unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
   final AppDatabase prepared;
   try {

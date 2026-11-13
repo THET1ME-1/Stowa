@@ -73,6 +73,11 @@ class VaultMove {
       }
     }
 
+    // всё остальное в папке хранилища — как есть: холсты и базы Obsidian, его настройки,
+    // картинки и PDF без ссылок, запечатанное скрытое. У старой установки (файлы в папке
+    // приложения) остального нет: там лежит само приложение
+    if (settings.vaultPath != null) copies.addAll(await _others(target, copies));
+
     final items = await _db.select(_db.items).get();
     final total = copies.length + items.length;
     var done = 0;
@@ -134,13 +139,28 @@ class VaultMove {
           await (_db.update(_db.items)..where((t) => t.id.equals(copy.id))).write(ItemsCompanion(coverPath: Value(path)));
         case _Kind.tagIcon:
           await (_db.update(_db.tags)..where((t) => t.id.equals(copy.id))).write(TagsCompanion(iconValue: Value(path)));
-        case _Kind.page:
+        case _Kind.page || _Kind.other:
           break;
       }
     }
   }
 
   Future<void> _enqueueAll() => _db.enqueueWholeVault();
+
+  /// Файлы папки, которые Stowa сама не пишет. Заметки, которые знает база, сюда не идут: их
+  /// перепишет писатель на новом месте, копия дала бы дубль. Новое место внутри старого не обходится.
+  Future<List<_Copy>> _others(Directory target, List<_Copy> known) async {
+    final skip = {for (final copy in known) copy.from, for (final row in await _db.select(_db.vaultFiles).get()) row.path};
+    final out = <_Copy>[];
+    if (!await _from.exists()) return out;
+    await for (final entity in _from.list(recursive: true, followLinks: false)) {
+      if (entity is! File || p.isWithin(target.path, entity.path)) continue;
+      final relative = p.relative(entity.path, from: _from.path).split(p.separator).join('/');
+      if (skip.contains(relative) || relative.endsWith('.part')) continue;
+      out.add(_Copy(_Kind.other, '', relative, relative));
+    }
+    return out;
+  }
 
   /// Каждая вещь — файлом, каждый скопированный файл — на месте и той же длины.
   Future<List<String>> _check(Directory target, List<_Copy> copies, Map<String, int> sizes) async {
@@ -175,7 +195,8 @@ class VaultMove {
   String _at(Directory root, String relative) => p.joinAll([root.path, ...relative.split('/')]);
 }
 
-enum _Kind { attachment, cover, tagIcon, page }
+/// [other] — файл, который Stowa не пишет сама (холст и база Obsidian, его настройки, картинка без ссылки).
+enum _Kind { attachment, cover, tagIcon, page, other }
 
 class _Copy {
   const _Copy(this.kind, this.id, this.from, this.to);

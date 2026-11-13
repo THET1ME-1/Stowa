@@ -49,4 +49,23 @@ void main() {
       expect(rankLinkTargets('cafe olm', cafe), hasLength(1));
     });
   });
+
+  test('куски ссылки для живой разметки: видна подпись или название, остальное прячется', () {
+    const text = 'См. [[План отпуска]] и [[Дела#Сегодня|список]]';
+    final pieces = wikiPieces(text);
+    expect(pieces, hasLength(2));
+    final (first, second) = (pieces[0], pieces[1]);
+    expect(text.substring(first.start, first.end), '[[План отпуска]]');
+    expect(text.substring(first.shownStart, first.shownEnd), 'План отпуска');
+    expect(text.substring(second.shownStart, second.shownEnd), 'список');
+    expect(text.substring(second.start, second.shownStart), '[[Дела#Сегодня|');
+    expect(wikiPieces('![[фото.jpg]]'), isEmpty);
+  });
+
+  test('заголовок для глаз: ссылка без скобок, подпись вместо названия, картинка не трогается', () {
+    expect(shownTitle('See [[Buy milk]]'), 'See Buy milk');
+    expect(shownTitle('Смотри [[План отпуска|план]] и [[Дела#Сегодня]]'), 'Смотри план и Дела');
+    expect(shownTitle('![[фото.jpg]] утро'), '![[фото.jpg]] утро');
+    expect(shownTitle('Просто заголовок'), 'Просто заголовок');
+  });
 }

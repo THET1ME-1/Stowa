@@ -789,7 +789,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     style: titleStyle,
                                     decoration: _bare(l.itemTitleHint),
                                   )
-                                : GestureDetector(onTap: () => _startEditing(item), child: Text(item.title, style: linkLike ? titleStyle.copyWith(fontSize: 22) : titleStyle)),
+                                : GestureDetector(onTap: () => _startEditing(item), child: Text(shownTitle(item.title), style: linkLike ? titleStyle.copyWith(fontSize: 22) : titleStyle)),
                           ),
                         if (videoLink && item.previewAuthor != null)
                           Padding(
