@@ -168,6 +168,35 @@ void main() {
     expect(((await places()).single.name, (await places()).single.kind), ('ул. Дечебал', PlaceKind.shop));
   });
 
+  testWidgets('свой значок места: поиск по набору, выбранный сохраняется и виден в списке', (tester) async {
+    world.placeChannel.background = true;
+    world.currentPlace = const PlaceFix(latitude: 47.0, longitude: 28.8, name: 'Центр');
+    await open(tester);
+    await tester.tap(find.text('Добавить место'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Любимая кофейня');
+    await tester.tap(find.byTooltip('Значок'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'кофе');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('icon-local_cafe')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Я сейчас здесь'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+    final cafe = (await places()).single;
+    expect((cafe.name, cafe.kind, cafe.icon), ('Любимая кофейня', PlaceKind.food, 'local_cafe'));
+
+    // правка вида значок не сбивает
+    await tester.tap(find.text('Любимая кофейня'));
+    await tester.pumpAndSettle();
+    await pickType(tester, 'Другое');
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+    expect((await places()).single.icon, 'local_cafe');
+  });
+
   testWidgets('касание места открывает правку: другой вид, другое имя; «Убрать» удаляет', (tester) async {
     world.placeChannel.background = true;
     await world.db.into(world.db.places).insert(PlacesCompanion.insert(id: 'p', kind: PlaceKind.other, name: 'Курсы', latitude: 47.0, longitude: 28.8, createdAt: world.now));

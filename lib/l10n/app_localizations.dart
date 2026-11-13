@@ -4876,6 +4876,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Create “{name}”'**
   String placeKindCreate(String name);
+
+  /// Подсказка кнопки выбора значка места
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get placeIcon;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

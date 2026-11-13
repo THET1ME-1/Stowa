@@ -2990,4 +2990,7 @@ class LPl extends L {
   String placeKindCreate(String name) {
     return 'Utwórz „$name”';
   }
+
+  @override
+  String get placeIcon => 'Ikona';
 }

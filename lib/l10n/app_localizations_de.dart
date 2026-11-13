@@ -2940,4 +2940,7 @@ class LDe extends L {
   String placeKindCreate(String name) {
     return '„$name“ anlegen';
   }
+
+  @override
+  String get placeIcon => 'Symbol';
 }

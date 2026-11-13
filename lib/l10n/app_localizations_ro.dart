@@ -2960,4 +2960,7 @@ class LRo extends L {
   String placeKindCreate(String name) {
     return 'Creează „$name”';
   }
+
+  @override
+  String get placeIcon => 'Pictogramă';
 }

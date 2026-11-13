@@ -545,5 +545,6 @@
   "placeMapHint": "Рухай мапу: місце там, де крапка в центрі.",
   "placeKindMore": "Знайти чи створити",
   "placeKindSearchHint": "Знайти вид або назвати свій",
-  "placeKindCreate": "Створити «{name}»"
+  "placeKindCreate": "Створити «{name}»",
+  "placeIcon": "Значок"
 }

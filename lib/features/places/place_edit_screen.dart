@@ -51,6 +51,25 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
   late final _name = TextEditingController(text: widget.place?.name ?? '')..addListener(_named);
   final _map = MapController();
   late PlaceType _type = widget.place == null ? builtInType(PlaceKind.other) : typeOf(widget.place!);
+
+  /// Свой значок места поверх значка вида; null — значок вида.
+  late String? _icon = widget.place?.icon;
+
+  String get _shownIcon => _icon ?? placeTypeIcon(_type);
+
+  Future<void> _pickIcon() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: Tokens.container,
+      builder: (sheet) => _IconSheet(name: _name.text, current: _shownIcon),
+    );
+    if (picked == null || !mounted) return;
+    HapticFeedback.selectionClick();
+    setState(() => _icon = picked);
+  }
   String _typedName = '';
   late LatLng? _point = widget.place == null ? null : LatLng(widget.place!.latitude, widget.place!.longitude);
 
@@ -172,9 +191,9 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
     if (current == null) {
       // Wi-Fi узнаёт дом и работу без GPS; у кафе и друзей сеть чужая
       final ownNetwork = type.label == null && (type.kind == PlaceKind.home || type.kind == PlaceKind.work);
-      await places.add(type.kind, name: name, label: type.label, icon: type.icon, latitude: point.latitude, longitude: point.longitude, wifi: ownNetwork ? _wifi : null);
+      await places.add(type.kind, name: name, label: type.label, icon: _icon ?? type.icon, latitude: point.latitude, longitude: point.longitude, wifi: ownNetwork ? _wifi : null);
     } else {
-      await places.update(current.id, name: name, kind: type.kind, label: type.label, icon: type.icon, latitude: point.latitude, longitude: point.longitude);
+      await places.update(current.id, name: name, kind: type.kind, label: type.label, icon: _icon ?? type.icon, latitude: point.latitude, longitude: point.longitude);
     }
     if (mounted) Navigator.pop(context);
   }
@@ -206,10 +225,24 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextField(
-                      controller: _name,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: InputDecoration(hintText: l.placeNameHint),
+                    Row(
+                      children: [
+                        // значок места: касание — выбор из всего набора
+                        IconButton(
+                          tooltip: l.placeIcon,
+                          onPressed: _pickIcon,
+                          style: IconButton.styleFrom(backgroundColor: Tokens.accent, foregroundColor: Tokens.onAccent, fixedSize: const Size.square(56)),
+                          icon: Icon(symbolIcon(_shownIcon, filled: true), size: 26),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: _name,
+                            textCapitalization: TextCapitalization.sentences,
+                            decoration: InputDecoration(hintText: l.placeNameHint),
+                          ),
+                        ),
+                      ],
                     ),
                     SettingsSection(l.placeKindTitle),
                     // три плитки одной ширины: выбранный вид, подходящий к имени и все остальные поиском
@@ -285,7 +318,7 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
                       ),
                       IgnorePointer(
                         child: Center(
-                          child: Icon(symbolIcon(placeTypeIcon(_type), filled: true), size: 36, color: _point == null ? Tokens.muted : Tokens.accent),
+                          child: Icon(symbolIcon(_shownIcon, filled: true), size: 36, color: _point == null ? Tokens.muted : Tokens.accent),
                         ),
                       ),
                       Positioned(
@@ -357,6 +390,83 @@ class _TypeTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelLarge!.copyWith(color: ink, height: 1.2),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// весь набор один раз; «10k», «4g» и прочие цифры в конце
+final List<String> _allIcons = [
+  ...symbolNames.where((name) => !name.startsWith(RegExp('[0-9]'))),
+  ...symbolNames.where((name) => name.startsWith(RegExp('[0-9]'))),
+];
+
+/// Значок места поиском по всему набору: без запроса — подходящие к имени, частые, потом все.
+class _IconSheet extends StatefulWidget {
+  const _IconSheet({required this.name, required this.current});
+
+  final String name;
+  final String current;
+
+  @override
+  State<_IconSheet> createState() => _IconSheetState();
+}
+
+class _IconSheetState extends State<_IconSheet> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final query = _query.trim();
+    final icons = query.isEmpty
+        ? {...searchIcons(widget.name, limit: 18), ...pickableSymbols, ..._allIcons}.toList()
+        : searchIcons(query, limit: 120);
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 8),
+                child: TextField(
+                  decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.iconSearch),
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              Expanded(
+                child: icons.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(Space.screen),
+                        child: Text(l.iconsNone, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, Space.screen),
+                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 60, mainAxisSpacing: 8, crossAxisSpacing: 8),
+                        itemCount: icons.length,
+                        itemBuilder: (context, index) {
+                          final name = icons[index];
+                          final chosen = name == widget.current;
+                          return Material(
+                            key: ValueKey('icon-$name'),
+                            color: chosen ? Tokens.accent : Tokens.containerHigh,
+                            borderRadius: BorderRadius.circular(chosen ? 30 : 18),
+                            clipBehavior: Clip.antiAlias,
+                            child: InkWell(
+                              onTap: () => Navigator.pop(context, name),
+                              child: Icon(symbolIcon(name, filled: chosen), size: 26, color: chosen ? Tokens.onAccent : Tokens.onSurface),
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),

@@ -545,5 +545,6 @@
   "placeMapHint": "Verschiebe die Karte: Der Ort ist dort, wo der Punkt in der Mitte ist.",
   "placeKindMore": "Suchen oder neu",
   "placeKindSearchHint": "Art suchen oder eigene benennen",
-  "placeKindCreate": "„{name}“ anlegen"
+  "placeKindCreate": "„{name}“ anlegen",
+  "placeIcon": "Symbol"
 }

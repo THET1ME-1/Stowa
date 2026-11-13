@@ -78,5 +78,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Да');
     await _shot(tester, 'places-3-поиск');
+    await tester.tapAt(const Offset(200, 100));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Значок'));
+    await tester.pumpAndSettle();
+    await _shot(tester, 'places-4-значок');
   });
 }

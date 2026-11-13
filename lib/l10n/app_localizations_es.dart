@@ -2936,4 +2936,7 @@ class LEs extends L {
   String placeKindCreate(String name) {
     return 'Crear «$name»';
   }
+
+  @override
+  String get placeIcon => 'Icono';
 }

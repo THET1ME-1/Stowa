@@ -3743,5 +3743,9 @@
         "type": "String"
       }
     }
+  },
+  "placeIcon": "Icon",
+  "@placeIcon": {
+    "description": "Подсказка кнопки выбора значка места"
   }
 }

@@ -2995,4 +2995,7 @@ class LRu extends L {
   String placeKindCreate(String name) {
     return 'Создать «$name»';
   }
+
+  @override
+  String get placeIcon => 'Значок';
 }

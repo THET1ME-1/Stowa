@@ -794,5 +794,6 @@
   "placeMapHint": "Двигай карту: место там, где точка в центре.",
   "placeKindMore": "Найти или создать",
   "placeKindSearchHint": "Найти вид или назвать свой",
-  "placeKindCreate": "Создать «{name}»"
+  "placeKindCreate": "Создать «{name}»",
+  "placeIcon": "Значок"
 }

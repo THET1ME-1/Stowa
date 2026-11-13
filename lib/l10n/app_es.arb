@@ -545,5 +545,6 @@
   "placeMapHint": "Mueve el mapa: el lugar está donde el punto del centro.",
   "placeKindMore": "Buscar o crear",
   "placeKindSearchHint": "Busca un tipo o pon el tuyo",
-  "placeKindCreate": "Crear «{name}»"
+  "placeKindCreate": "Crear «{name}»",
+  "placeIcon": "Icono"
 }

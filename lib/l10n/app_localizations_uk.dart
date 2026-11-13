@@ -2991,4 +2991,7 @@ class LUk extends L {
   String placeKindCreate(String name) {
     return 'Створити «$name»';
   }
+
+  @override
+  String get placeIcon => 'Значок';
 }

@@ -2932,4 +2932,7 @@ class LEn extends L {
   String placeKindCreate(String name) {
     return 'Create “$name”';
   }
+
+  @override
+  String get placeIcon => 'Icon';
 }
