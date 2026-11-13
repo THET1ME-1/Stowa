@@ -98,14 +98,16 @@ void main() {
     await _shot(tester, 'reminders-1-покой');
 
     final carousel = find.byType(CarouselView);
+    // шаг карусели — ширина полоски, восьмая часть ряда
+    final half = tester.getSize(carousel).width / 16;
     final gesture = await tester.startGesture(tester.getCenter(carousel));
     for (var step = 0; step < 10; step++) {
-      await gesture.moveBy(const Offset(-9, 0));
+      await gesture.moveBy(Offset(-half / 10, 0));
       await tester.pump(const Duration(milliseconds: 16));
     }
     await _shot(tester, 'reminders-2-половина');
     for (var step = 0; step < 10; step++) {
-      await gesture.moveBy(const Offset(-9, 0));
+      await gesture.moveBy(Offset(-half / 10, 0));
       await tester.pump(const Duration(milliseconds: 16));
     }
     await gesture.up();

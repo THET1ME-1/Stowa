@@ -48,7 +48,6 @@ TextStyle _titleStyle(BuildContext context, Color color) =>
 
 class _ReminderCarouselState extends State<ReminderCarousel> {
   final _controller = CarouselController();
-  int _lead = 0;
 
   @override
   void dispose() {
@@ -56,8 +55,8 @@ class _ReminderCarouselState extends State<ReminderCarousel> {
     super.dispose();
   }
 
-  void _tap(int index) {
-    if (index == _lead) return widget.onOpen(widget.items[index]);
+  /// Полоску — в центр.
+  void _bring(int index) {
     HapticFeedback.selectionClick();
     _controller.animateToItem(index, duration: Motion.medium, curve: Motion.emphasized);
   }
@@ -92,14 +91,14 @@ class _ReminderCarouselState extends State<ReminderCarousel> {
         ),
       );
     }
-    // большая, средняя и узкая, как в галерее M3, только низкие и вытянутые по ширине
-    final weights = items.length == 2 ? const [6, 3] : const [6, 3, 1];
+    // ведущая по центру, слева и справа по полоске соседей, как hero-карусель M3
+    const weights = [1, 6, 1];
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen - 4, 0, Space.screen - 4, 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final total = weights.fold(0, (sum, weight) => sum + weight);
-          final fullWidth = constraints.maxWidth * weights.first / total - 8;
+          final fullWidth = constraints.maxWidth * weights.reduce(math.max) / total - 8;
           final scale = MediaQuery.textScalerOf(context);
           final lines = _titleLines(context, fullWidth - _pad * 2);
           final top = math.max(_smallButton, scale.scale(_whenSize) * 1.45);
@@ -113,12 +112,13 @@ class _ReminderCarouselState extends State<ReminderCarousel> {
                 controller: _controller,
                 flexWeights: weights,
                 itemSnapping: true,
+                // по кругу в обе стороны: за последней снова первая, справа не остаётся пустоты
+                infinite: true,
                 // кнопки внутри карточки должны нажиматься: своя рябь у каждой карточки
                 enableSplash: false,
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 backgroundColor: Colors.transparent,
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(Radii.card))),
-                onIndexChanged: (index) => _lead = index,
                 children: [
                   for (final (index, item) in items.indexed)
                     _ReminderCard(
@@ -126,7 +126,8 @@ class _ReminderCarouselState extends State<ReminderCarousel> {
                       item: item,
                       now: widget.now,
                       fullWidth: fullWidth,
-                      onTap: () => _tap(index),
+                      onOpen: () => widget.onOpen(item),
+                      onBring: () => _bring(index),
                       onDone: () => widget.onDone(item),
                     ),
                 ],
@@ -194,14 +195,25 @@ class _SingleReminder extends StatelessWidget {
 /// Карточка карусели меняет вид по своей ширине: во всю — белая с текстом, галочкой и точками,
 /// уже — темнеет, текст тает, остаётся значок со временем, у самой узкой — один будильник.
 class _ReminderCard extends StatelessWidget {
-  const _ReminderCard({super.key, required this.item, required this.now, required this.fullWidth, required this.onTap, required this.onDone});
+  const _ReminderCard({
+    super.key,
+    required this.item,
+    required this.now,
+    required this.fullWidth,
+    required this.onOpen,
+    required this.onBring,
+    required this.onDone,
+  });
 
   final ItemCard item;
   final DateTime now;
 
   /// Ширина ведущей карточки: на ней раскрытие полное.
   final double fullWidth;
-  final VoidCallback onTap;
+
+  /// Касание раскрытой — открыть заметку, полоски — выдвинуть её в центр.
+  final VoidCallback onOpen;
+  final VoidCallback onBring;
   final VoidCallback onDone;
 
   @override
@@ -218,7 +230,7 @@ class _ReminderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(Radii.card),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: onTap,
+            onTap: open > 0.8 ? onOpen : onBring,
             child: width >= 150 ? _wide(context, open) : _narrow(context, width, constraints.maxHeight),
           ),
         );

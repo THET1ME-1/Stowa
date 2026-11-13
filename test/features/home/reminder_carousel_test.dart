@@ -67,21 +67,34 @@ void main() {
     expect(short, lessThan(long - 15));
   });
 
-  testWidgets('несколько напоминаний — карусель: ведущая широкая с текстом, следующие полосками', (tester) async {
+  Finder card(String id) => find.byKey(ValueKey('reminder-$id')).first;
+
+  /// Листнуть на [count] карточек: шаг карусели — ширина узкой полоски.
+  Future<void> swipe(WidgetTester tester, int count) async {
+    final step = tester.getSize(find.byType(CarouselView)).width / 8;
+    await tester.timedDrag(find.byType(CarouselView), Offset(-step * count, 0), Duration(milliseconds: 250 * count.abs()));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('несколько напоминаний — ведущая по центру, слева и справа по полоске', (tester) async {
     await remind('shirt', 'Закинуть футболку', const Duration(hours: 1));
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
     await remind('dentist', 'Зубной', const Duration(days: 2));
     await open(tester);
     expect(find.byType(CarouselView), findsOneWidget);
     expect(inCarousel('Закинуть футболку'), findsOneWidget);
-    // «ещё 2» больше не нужно: следующие карточки видны полосками
+    // «ещё 2» больше не нужно: соседние карточки видны полосками
     expect(find.textContaining('ещё'), findsNothing);
-    double width(String id) => tester.getSize(find.byKey(ValueKey('reminder-$id'))).width;
-    // большая, средняя, узкая — как в галерее M3
-    expect(width('shirt'), greaterThan(width('match') * 1.4));
-    expect(width('match'), greaterThan(width('dentist') * 2));
-    // у полоски текста нет, только значок и время
+    final carousel = tester.getRect(find.byType(CarouselView));
+    final lead = tester.getRect(card('shirt'));
+    // ведущая посередине ряда, справа следующая, слева по кругу последняя
+    expect((lead.center.dx - carousel.center.dx).abs(), lessThan(4));
+    expect(lead.width, greaterThan(tester.getSize(card('match')).width * 4));
+    expect(tester.getRect(card('match')).left, greaterThan(lead.right));
+    expect(tester.getRect(card('dentist')).right, lessThan(lead.left));
+    // у полосок текста нет, только будильник
     expect(inCarousel('Футбольный матч'), findsNothing);
+    expect(inCarousel('Зубной'), findsNothing);
   });
 
   testWidgets('прокрутка расширяет следующую карточку, касание ведущей открывает её заметку', (tester) async {
@@ -89,10 +102,7 @@ void main() {
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
     await remind('dentist', 'Зубной', const Duration(days: 2));
     await open(tester);
-    // на одну карточку: на ширину ведущей
-    final lead = tester.getSize(find.byKey(const ValueKey('reminder-shirt'))).width;
-    await tester.timedDrag(find.byType(CarouselView), Offset(-lead, 0), const Duration(milliseconds: 400));
-    await tester.pumpAndSettle();
+    await swipe(tester, 1);
     expect(inCarousel('Футбольный матч'), findsOneWidget);
 
     await tester.tap(inCarousel('Футбольный матч'));
@@ -101,24 +111,53 @@ void main() {
     expect(find.text('Футбольный матч'), findsWidgets);
   });
 
-  testWidgets('касание полоски выдвигает её вперёд, а не открывает', (tester) async {
+  testWidgets('карусель по кругу: назад от первой — последняя, вперёд от последней — первая', (tester) async {
     await remind('shirt', 'Закинуть футболку', const Duration(hours: 1));
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
+    await remind('dentist', 'Зубной', const Duration(days: 2));
     await open(tester);
-    await tester.tap(find.byKey(const ValueKey('reminder-match')));
+    // назад от первой: ведущей становится последняя
+    await swipe(tester, -1);
+    expect(inCarousel('Зубной'), findsOneWidget);
+    // и дальше вперёд по кругу: первая, вторая, третья, снова первая
+    await swipe(tester, 1);
+    expect(inCarousel('Закинуть футболку'), findsOneWidget);
+    await swipe(tester, 1);
+    await swipe(tester, 1);
+    expect(inCarousel('Зубной'), findsOneWidget);
+    await swipe(tester, 1);
+    expect(inCarousel('Закинуть футболку'), findsOneWidget);
+    // касание ведущей и после круга открывает её заметку
+    await tester.tap(inCarousel('Закинуть футболку'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ItemScreen), findsOneWidget);
+  });
+
+  testWidgets('касание полоски выдвигает её в центр, а не открывает: и справа, и слева', (tester) async {
+    await remind('shirt', 'Закинуть футболку', const Duration(hours: 1));
+    await remind('match', 'Футбольный матч', const Duration(hours: 5));
+    await remind('dentist', 'Зубной', const Duration(days: 2));
+    await open(tester);
+    await tester.tap(card('match'));
     await tester.pumpAndSettle();
     expect(find.byType(ItemScreen), findsNothing);
     expect(inCarousel('Футбольный матч'), findsOneWidget);
+
+    // слева теперь первая: касание возвращает её
+    await tester.tap(card('shirt'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ItemScreen), findsNothing);
+    expect(inCarousel('Закинуть футболку'), findsOneWidget);
   });
 
   testWidgets('галочка снимает напоминание у своей карточки, «Отменить» возвращает', (tester) async {
     await remind('shirt', 'Закинуть футболку', const Duration(hours: 1));
     await remind('match', 'Футбольный матч', const Duration(hours: 5));
     await open(tester);
-    // палец ведёт плавно: мгновенный рывок карусель с прилипанием возвращает назад
-    await tester.timedDrag(find.byType(CarouselView), const Offset(-300, 0), const Duration(milliseconds: 400));
-    await tester.pumpAndSettle();
-    final done = find.descendant(of: find.byKey(const ValueKey('reminder-match')), matching: find.byTooltip('Готово'));
+    await swipe(tester, 1);
+    final done = find.byTooltip('Готово');
+    // галочка есть только у ведущей
+    expect(done, findsOneWidget);
     await tester.tap(done);
     await tester.pumpAndSettle();
     Future<Item> read(String id) => (world.db.select(world.db.items)..where((t) => t.id.equals(id))).getSingle();
