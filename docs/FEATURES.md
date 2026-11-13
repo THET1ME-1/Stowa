@@ -64,7 +64,7 @@
 - Карта заметок с местами
 
 ### Напомнить
-- Даты в тексте: «завтра в 10», «в субботу», «12 ноября»
+- Даты в тексте: «завтра в 10», «в субботу», «12 ноября». С 13 ноября — на семи языках приложения, без ИИ: «tomorrow at 9 pm», «morgen um 9 Uhr abends», «mañana a las 9», «jutro o 9», «mâine la 9 seara», «завтра о 9 вечора»; знаки над буквами необязательны. Места тоже: «when I pass by the pharmacy», «wenn ich an der Apotheke vorbeigehe», «cuando pase por la farmacia», «gdy będę przechodzić obok apteki», «când trec pe lângă farmacie», «проходитиму повз аптеку»
 - Уведомление с «Готово» и «Через час», карточка «Сегодня»
 
 ### Настройки и данные

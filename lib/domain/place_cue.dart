@@ -7,7 +7,7 @@
 library;
 
 import 'models.dart';
-import 'word_forms.dart' show stemOf;
+import 'word_forms.dart' show foldText, stemOf;
 
 /// Найденное место: какое и где оно в тексте (строка его подчёркивает).
 /// У своего места — его id и имя.
@@ -81,43 +81,118 @@ PlaceCue? parsePlaceCue(String text, {List<KnownPlace> places = const []}) {
 }
 
 // Русский разбор без «напомни»: глагол движения или «буду», предлог и место.
+// Разбор без «напомни» на семи языках: союз, глагол движения или «буду», предлог и место.
+// Слова — без знаков над буквами: сверка идёт по тексту, где «mâine» уже «maine».
 // Глаголы — только будущее, инфинитив и деепричастие: «зашёл в магазин» уже было, звенеть незачем.
+
+// «когда», «when», «wenn», «cuando», «gdy», «când», «коли» — уходят из заголовка вместе с глаголом
+const _conj =
+    r'когда|если|как\s+только|как|пока|коли|якщо|як\s+тільки'
+    r'|when|whenever|if|once|next\s+time|wenn|sobald|falls|cuando|si|en\s+cuanto|al|gdy|jak|kiedy|jesli|jezeli|cand|daca|imediat\s+ce';
+
+const _subject = r'я|мы|ми|i|we|ich|wir|yo|ja|my|eu|noi';
+
 const _verbs =
+    // русский
     r'(?:буду|будем)\s+(?:проходить|проезжать|пробегать|подходить|подъезжать|заходить|заезжать|приходить|приезжать|возвращаться|находиться)'
     r'|проходя|проезжая|прохожу|проезжаю|пройду|проеду|пробегу|подойду|подъеду|подхожу|подъезжаю'
     r'|зайду|заеду|забегу|загляну|заскочу|приду|приеду|прибегу|вернусь|доберусь|доеду|дойду|окажусь|окажемся|попаду'
     r'|иду|идём|идем|пойду|пойдём|пойдем|еду|едем|поеду|поедем|схожу|съезжу|сгоняю|собираюсь'
     r'|зайти|заехать|забежать|заглянуть|прийти|приехать|вернуться|добраться|дойти|доехать|попасть|пойти|поехать|сходить|съездить'
-    r'|буду|будем';
+    r'|буду|будем'
+    // украинский
+    r'|буду\s+(?:проходити|проїжджати|заходити)|проходитиму|проїжджатиму|пройду|проїду|зайду|забіжу|загляну|піду|поїду|прийду|приїду'
+    r'|повернуся|дійду|доїду|потраплю|опинюся|іду|йду|їду'
+    // английский
+    r"|(?:pass(?:ing)?|walk(?:ing)?\s+past|driv(?:e|ing)\s+past|go(?:ing)?\s+past|walk(?:ing)?\s+by|driv(?:e|ing)\s+by|go(?:ing)?\s+by"
+    r"|stop(?:ping)?\s+by|drop(?:ping)?\s+by|swing\s+by|get(?:ting)?\s+to|go(?:ing)?\s+to|head(?:ing)?\s+to|come\s+to|coming\s+to|arrive\s+at|visit(?:ing)?|'ll\s+be|will\s+be)"
+    // немецкий
+    r'|gehe|gehen|fahre|fahren|komme|kommen|laufe|laufen'
+    // испанский
+    r'|pase|pasare|pasar|pasando|paso|vaya|ire|voy|vamos|llegue|llegare|llegar|llegando|entre|entrare'
+    // польский
+    r'|bede\s+(?:przechodzic|przechodzil|przechodzila|przejezdzac)|przechodzac|przejde|przejade|wejde|wpadne|zajrze|pojde|pojade|dojde|dojade|wroce|zajde|zajade|ide|jade|bede'
+    // румынский
+    r'|voi\s+trece|o\s+sa\s+trec|trec|trecand|voi\s+ajunge|o\s+sa\s+ajung|ajung|voi\s+fi|o\s+sa\s+fiu|merg|ma\s+duc|voi\s+intra|intru|vin';
 
-const _prepositions = r'мимо|около|возле|рядом\s+со?|в\s+гости\s+ко?|в\s+гостях\s+у|в|во|на|ко?|до|у';
+// «буду» по-английски, по-испански и по-румынски — настоящее время: «I'm at the store» —
+// просто где я, а «when I'm at the store» — напоминание. Эти глаголы — только после союза
+const _beVerbs = r"'m|am|are|'re|be|bin|sind|este|estoy|estemos|sunt|suntem";
+
+const _prepositions =
+    r'мимо|около|возле|рядом\s+со?|в\s+гости\s+ко?|в\s+гостях\s+у|в|во|на|ко?|до|у'
+    r'|повз|біля|коло|в\s+гості\s+до|у\s+гостях\s+у'
+    r'|past|by|near|at|into|in|to|over'
+    r'|zum|zur|zu|ins|im|in\s+die|in\s+den|in\s+das|in\s+der|beim|bei\s+der|nach|an\s+der|an\s+dem|am|an'
+    r'|por\s+delante\s+de|por|cerca\s+de|hacia|al|a|en'
+    r'|obok|kolo|przy|do|na|we?'
+    r'|pe\s+langa|pe\s+la|la|spre|catre';
+
+// «по дороге», «on my way», «auf dem Weg», «de camino», «po drodze», «în drum spre», «дорогою»
+const _road = r'по\s+дороге|по\s+пути|дорогою|по\s+дорозі|on\s+my\s+way|on\s+the\s+way|auf\s+dem\s+weg|de\s+camino|camino|po\s+drodze|w\s+drodze|in\s+drum|pe\s+drum';
+
+// после «по дороге» свой предлог: «по дороге в аптеку», «on my way to the store»
+final _afterRoad = RegExp(r'^\s+(?:в|во|на|ко?|до|to|zum|zur|nach|in|a|al|do|spre|catre)(?=\s)', unicode: true);
 
 final _moving = RegExp(
-  '(?<![\\p{L}\\p{N}])'
-  // «когда», «если», «как только» и «я» перед глаголом уходят из заголовка вместе с ним
-  '(?:(?:когда|если|как\\s+только|как|пока)\\s+)?(?:(?:я|мы)\\s+)?'
-  '(?:(?:по\\s+дороге|по\\s+пути)|в\\s+гостях\\s+у|(?:$_verbs)(?:\\s+(?:$_prepositions))?)'
-  '(?=[\\s,]+[\\p{L}\\p{N}])',
-  caseSensitive: false,
+  '(?<![\\p{L}\\p{N}])(?:'
+  // «когда я буду проходить мимо», «when I pass by», «cuando pase por»
+  '(?:(?:$_conj)\\s+)?(?:(?:$_subject)\\s*)?(?:(?:$_road)|в\\s+гостях\\s+у|(?:$_verbs)(?:\\s+(?:morgen|heute|tomorrow|today|manana|hoy|jutro|maine|azi))?(?:\\s+(?:$_prepositions))?)'
+  // «when I'm at», «wenn ich bin», «cuando esté en», «când sunt la» — только после союза
+  '|(?:$_conj)\\s+(?:(?:$_subject)\\s*)?(?:$_beVerbs)\\s+(?:$_prepositions)'
+  // немецкий порядок: «wenn ich an der Apotheke vorbeigehe» — место до глагола
+  '|(?:wenn|sobald|falls)\\s+(?:ich|wir)\\s+(?:an\\s+der|an\\s+dem|am|an|beim|bei\\s+der|im|in\\s+der|in\\s+den|zum|zur|nach)'
+  ')(?=[\\s,]+[\\p{L}\\p{N}])',
   unicode: true,
 );
 
-// после «по дороге» свой предлог: «по дороге в аптеку», «по пути домой»
-final _afterRoad = RegExp(r'^\s+(?:в|во|на|ко?|до)(?=\s)', unicode: true);
+// немецкий глагол после места уходит из заголовка вместе с оборотом
+final _germanTail = RegExp(r'^\s+(?:vorbei\w*|bin|sind|komme|kommen|gehe|gehen|fahre|fahren|ankomme|ankommen)(?![\p{L}\p{N}])', unicode: true);
 
-// слова вида места; основы считаются от всех форм, где беглая гласная их меняет: «рынок» и «рынке»
+// артикли перед местом не мешают: «the pharmacy», «la farmacia», «der Apotheke»
+const _articles = {'the', 'a', 'an', 'der', 'die', 'das', 'dem', 'den', 'des', 'el', 'la', 'los', 'las', 'un', 'una', 'lo', 'my', 'mein', 'meine', 'mi'};
+
+// слова вида места на семи языках; основы считаются от всех форм, где беглая гласная их меняет: «рынок» и «рынке»
 const _kindWords = {
-  PlaceKind.home: ['дом', 'домой', 'дома', 'квартира', 'хата'],
-  PlaceKind.work: ['работа', 'офис', 'служба'],
-  PlaceKind.study: ['универ', 'университет', 'институт', 'колледж', 'школа', 'учеба', 'курсы', 'лекция', 'лицей', 'техникум', 'академия'],
-  PlaceKind.shop: ['магазин', 'супермаркет', 'гипермаркет', 'маркет', 'рынок', 'рынке', 'ларек', 'ларьке', 'магаз'],
-  PlaceKind.pharmacy: ['аптека'],
-  PlaceKind.food: ['кафе', 'кафешка', 'ресторан', 'кофейня', 'кофейне', 'бар', 'столовая', 'пиццерия', 'бистро', 'шаурмичная', 'суши'],
-  PlaceKind.sport: ['зал', 'спортзал', 'качалка', 'бассейн', 'тренировка', 'фитнес', 'стадион', 'каток'],
-  PlaceKind.guests: ['гости', 'гостях', 'друг', 'подруга', 'друзья', 'друзей', 'родители', 'бабушка', 'дедушка'],
+  PlaceKind.home: [
+    'дом', 'домой', 'дома', 'квартира', 'хата', 'дім', 'додому', 'вдома', 'хати',
+    'home', 'house', 'hause', 'zuhause', 'casa', 'dom', 'domu', 'acasa', 'casa',
+  ],
+  PlaceKind.work: [
+    'работа', 'офис', 'служба', 'робота', 'роботу', 'роботи', 'офіс',
+    'work', 'office', 'job', 'arbeit', 'buro', 'trabajo', 'oficina', 'praca', 'pracy', 'prace', 'biuro', 'biura', 'serviciu', 'munca', 'birou',
+  ],
+  PlaceKind.study: [
+    'универ', 'университет', 'институт', 'колледж', 'школа', 'учеба', 'курсы', 'лекция', 'лицей', 'техникум', 'академия',
+    'універ', 'університет', 'школу', 'курси', 'пари',
+    'school', 'university', 'uni', 'college', 'class', 'classes', 'schule', 'universitat', 'vorlesung',
+    'escuela', 'universidad', 'facultad', 'clase', 'clases', 'szkola', 'szkoly', 'uczelnia', 'uczelni', 'zajecia',
+    'scoala', 'facultate', 'universitate', 'cursuri',
+  ],
+  PlaceKind.shop: [
+    'магазин', 'супермаркет', 'гипермаркет', 'маркет', 'рынок', 'рынке', 'ларек', 'ларьке', 'магаз', 'ринок', 'ринку',
+    'store', 'shop', 'supermarket', 'market', 'grocery', 'laden', 'supermarkt', 'geschaft', 'markt',
+    'tienda', 'supermercado', 'mercado', 'sklep', 'sklepu', 'sklepie', 'marketu', 'magazin', 'magazinul', 'piata',
+  ],
+  PlaceKind.pharmacy: ['аптека', 'pharmacy', 'drugstore', 'chemist', 'apotheke', 'farmacia', 'apteka', 'apteki', 'aptece', 'apteke', 'farmacie', 'farmaciei'],
+  PlaceKind.food: [
+    'кафе', 'кафешка', 'ресторан', 'кофейня', 'кофейне', 'бар', 'столовая', 'пиццерия', 'бистро', 'шаурмичная', 'суши', 'кавʼярня', 'кавярня',
+    'cafe', 'restaurant', 'bar', 'pub', 'diner', 'kneipe', 'cafeteria', 'restaurante', 'kawiarnia', 'kawiarni', 'restauracja', 'restauracji',
+    'cafenea', 'cafeneaua', 'restaurantul',
+  ],
+  PlaceKind.sport: [
+    'зал', 'спортзал', 'качалка', 'бассейн', 'тренировка', 'фитнес', 'стадион', 'каток', 'басейн', 'спортзалі',
+    'gym', 'pool', 'fitness', 'stadium', 'fitnessstudio', 'schwimmbad', 'gimnasio', 'piscina', 'silownia', 'silowni', 'basen', 'basenu',
+    'sala', 'sala de sport',
+  ],
+  PlaceKind.guests: [
+    'гости', 'гостях', 'друг', 'подруга', 'друзья', 'друзей', 'родители', 'бабушка', 'дедушка', 'гості', 'друга', 'друзів',
+    'friend', 'friends', 'freund', 'freundin', 'freunden', 'amigo', 'amiga', 'amigos', 'przyjaciel', 'przyjaciela', 'znajomych',
+    'prieten', 'prietena', 'prietenului',
+  ],
 };
 
-const _hereWords = ['здесь', 'тут', 'сюда'];
+const _hereWords = ['здесь', 'тут', 'сюда', 'сюди', 'here', 'hier', 'aqui', 'aca', 'tutaj', 'aici'];
 
 final Map<String, PlaceKind> _kindByStem = {
   for (final MapEntry(key: kind, value: words) in _kindWords.entries)
@@ -140,20 +215,30 @@ PlaceCue? _movingCue(String text, List<KnownPlace> places) {
     for (final place in places)
       (place: place, stems: [for (final match in _placeWord.allMatches(place.name)) stemOf(match.group(0)!)]),
   ];
-  for (final match in _moving.allMatches(text)) {
+  // сверка по тексту без знаков над буквами, длина та же: места совпадают с исходным
+  final folded = foldText(text);
+  for (final match in _moving.allMatches(folded)) {
     var tailStart = match.end;
-    final road = match.group(0)!.toLowerCase().contains(RegExp(r'по\s+(?:дороге|пути)'));
+    final road = RegExp('$_road\$', unicode: true).hasMatch(match.group(0)!);
     if (road) {
-      final preposition = _afterRoad.firstMatch(text.substring(tailStart));
+      final preposition = _afterRoad.firstMatch(folded.substring(tailStart));
       if (preposition != null) tailStart += preposition.end;
     }
-    // место — в первых трёх словах после предлога, до знака препинания
+    // место — в первых трёх словах после предлога, до знака препинания; артикли не в счёт
     final tail = text.substring(tailStart);
     final stop = tail.indexOf(RegExp(r'[,.;:!?\n—–]'));
-    final words = _placeWord.allMatches(stop < 0 ? tail : tail.substring(0, stop)).take(3).toList();
+    final words = [
+      for (final word in _placeWord.allMatches(stop < 0 ? tail : tail.substring(0, stop)))
+        if (!_articles.contains(foldText(word.group(0)!))) word,
+    ].take(3).toList();
     if (words.isEmpty || _verbEnding.hasMatch(words.first.group(0)!.toLowerCase())) continue;
     final stems = [for (final word in words) stemOf(word.group(0)!)];
-    int endOf(int index) => tailStart + words[index].end;
+    // немецкий глагол после места: «an der Apotheke vorbeigehe» — уходит вместе с оборотом
+    int endOf(int index) {
+      final end = tailStart + words[index].end;
+      final verb = _germanTail.firstMatch(folded.substring(end));
+      return verb == null ? end : end + verb.end;
+    }
 
     // своё место по имени: со слова сразу после предлога, по всем словам имени или по первому;
     // совпало у нескольких одинаково («Дача родителей», «Дача Саши») — решает вид ниже
@@ -197,7 +282,7 @@ PlaceCue? _movingCue(String text, List<KnownPlace> places) {
       if (kind != null) return PlaceCue(kind: remindAtKind(kind), start: match.start, end: endOf(index));
     }
     // «в гости к Маше», «в гостях у Маши»: место не отмечено, но вид ясен
-    if (match.group(0)!.toLowerCase().contains('гост')) {
+    if (RegExp('гост|гості').hasMatch(match.group(0)!)) {
       return PlaceCue(kind: PlaceReminderKind.guests, start: match.start, end: endOf(0));
     }
   }

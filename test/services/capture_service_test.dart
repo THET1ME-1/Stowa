@@ -175,6 +175,14 @@ void main() {
     expect(item.title, 'Купить хлеб');
   });
 
+  test('на других языках так же: «tomorrow when I pass by the store buy bread» — магазин на завтра', () async {
+    final id = await capture.capture(const CaptureInput(text: 'tomorrow when I pass by the store buy bread'));
+    final item = (await items.get(id))!.item;
+    expect((item.remindPlace, item.remindPlaceDay, item.reminderAt, item.title), (PlaceReminderKind.shop, DateTime(2026, 11, 3), null, 'Buy bread'));
+    final german = await capture.capture(const CaptureInput(text: 'morgen um 9 Uhr Bank anrufen'));
+    expect((await items.get(german))!.item.reminderAt, DateTime(2026, 11, 3, 9));
+  });
+
   test('«завтра в 18 буду у Саши» — своё место по имени, а час остаётся напоминанием', () async {
     final sasha = await PlacesRepository(db).add(PlaceKind.guests, name: 'Саша', latitude: 47.0, longitude: 28.8);
     final id = await capture.capture(const CaptureInput(text: 'завтра в 18 буду у Саши, отдать книгу'));
