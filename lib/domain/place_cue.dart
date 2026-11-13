@@ -21,8 +21,12 @@ class PlaceCue {
   final String? placeName;
 
   /// Текст без места и без «напомни»: из него получается заголовок.
-  String restOf(String text) =>
-      '${text.substring(0, start)} ${text.substring(end)}'.replaceAll(RegExp(r'\s+'), ' ').replaceAll(RegExp(r'^[\s,.:;—–-]+|[\s,.:;—–-]+$'), '').trim();
+  /// «в 9 и когда буду мимо магазина купить хлеб» без времени и места — «купить хлеб», без висящего «и».
+  String restOf(String text) => '${text.substring(0, start)} ${text.substring(end)}'
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .replaceAll(RegExp(r'^[\s,.:;—–-]+|[\s,.:;—–-]+$'), '')
+      .replaceAll(RegExp(r'^(?:и|а|and|und|și|si|i|y)\s+|\s+(?:и|а|and|und|și|si|i|y)$', caseSensitive: false, unicode: true), '')
+      .trim();
 }
 
 // «напомни» на семи языках, с «мне» там, где его говорят

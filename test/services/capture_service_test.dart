@@ -167,6 +167,14 @@ void main() {
     expect((item.remindPlace, item.remindPlaceDay, item.reminderAt, item.title), (PlaceReminderKind.shop, DateTime(2026, 11, 3), null, 'Купить хлеб'));
   });
 
+  test('«напомни в 9 часов и когда буду проходить мимо магазина» — оба напоминания, «и» из заголовка уходит', () async {
+    final id = await capture.capture(const CaptureInput(text: 'Напомни в 9 часов и когда буду проходить мимо магазина купить хлеб'));
+    final item = (await items.get(id))!.item;
+    // сейчас полдень 2 ноября: 9 утра уже прошло — завтра
+    expect((item.reminderAt, item.remindPlace, item.remindPlaceDay), (DateTime(2026, 11, 3, 9), PlaceReminderKind.shop, null));
+    expect(item.title, 'Купить хлеб');
+  });
+
   test('«завтра в 18 буду у Саши» — своё место по имени, а час остаётся напоминанием', () async {
     final sasha = await PlacesRepository(db).add(PlaceKind.guests, name: 'Саша', latitude: 47.0, longitude: 28.8);
     final id = await capture.capture(const CaptureInput(text: 'завтра в 18 буду у Саши, отдать книгу'));

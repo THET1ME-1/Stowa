@@ -27,7 +27,9 @@ class ReminderMatch {
         .replaceAllMapped(RegExp(r' ([,.:;!?])'), (match) => match[1]!)
         .trim()
         .replaceFirst(RegExp(r'^(напомни(ть)?|напоминание)(\s+мне)?[\s,:]*', caseSensitive: false), '')
-        .replaceAll(RegExp(r'^[\s,.:;-]+|[\s,.:;-]+$'), '');
+        .replaceAll(RegExp(r'^[\s,.:;-]+|[\s,.:;-]+$'), '')
+        // «напомни в 9 и купить хлеб» без времени — «купить хлеб», без висящего «и»
+        .replaceAll(RegExp(r'^(?:и|а)\s+|\s+(?:и|а)$', caseSensitive: false), '');
   }
 }
 

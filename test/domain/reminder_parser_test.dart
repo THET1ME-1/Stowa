@@ -104,6 +104,14 @@ void main() {
     expect(parseReminder('позвонить маме завтра в 10', now)!.restOf('позвонить маме завтра в 10'), 'позвонить маме');
   });
 
+  test('время ушло из заголовка — висящее «и» уходит с ним', () {
+    const text = 'напомни в 9 и купить хлеб';
+    expect(parseReminder(text, now)!.restOf(text), 'купить хлеб');
+    // «и» внутри фразы остаётся
+    const inside = 'купить хлеб и молоко завтра';
+    expect(parseReminder(inside, now)!.restOf(inside), 'купить хлеб и молоко');
+  });
+
   test('вырезанное время посреди фразы не оставляет пробела перед запятой', () {
     const text = 'в зал в 7, ноги и пресс';
     expect(parseReminder(text, now)!.restOf(text), 'в зал, ноги и пресс');
