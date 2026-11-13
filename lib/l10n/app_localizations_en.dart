@@ -3017,4 +3017,108 @@ class LEn extends L {
   String linkMissing(String title) {
     return 'There\'s no note “$title”';
   }
+
+  @override
+  String get settingsCatalog => 'Catalog';
+
+  @override
+  String get settingsLook => 'Look';
+
+  @override
+  String get settingsHelpers => 'Sorting and notifications';
+
+  @override
+  String get settingsCopies => 'Backups';
+
+  @override
+  String get vaultsSection => 'Vaults';
+
+  @override
+  String get vaultOpenNow => 'Open';
+
+  @override
+  String get vaultAdd => 'Add a vault';
+
+  @override
+  String get vaultAddNew => 'Create new';
+
+  @override
+  String get vaultAddNewHint => 'An empty folder for new notes';
+
+  @override
+  String get vaultAddOpen => 'Open a folder';
+
+  @override
+  String get vaultAddOpenHint => 'An earlier Stowa vault or an Obsidian vault';
+
+  @override
+  String get vaultsHint =>
+      'Tap another vault to open it; reminders come only from the open one.';
+
+  @override
+  String get vaultFolderGone => 'Folder not found';
+
+  @override
+  String get vaultForget => 'Remove from the list';
+
+  @override
+  String get vaultForgetHint => 'The files stay in the folder';
+
+  @override
+  String get vaultForgotten =>
+      'Vault removed from the list; the files are still there';
+
+  @override
+  String get vaultOpenIt => 'Open';
+
+  @override
+  String get vaultAlreadyOpen => 'This vault is already open';
+
+  @override
+  String get vaultHasNotes => 'This folder already has notes';
+
+  @override
+  String get vaultOpenSeparately => 'Open as a separate vault';
+
+  @override
+  String get vaultOpenSeparatelyHint => 'The current one stays in the list';
+
+  @override
+  String get vaultMergeHere => 'Move here and merge';
+
+  @override
+  String get vaultMergeHereHint => 'Notes from both end up in one folder';
+
+  @override
+  String vaultSwitching(String name) {
+    return 'Opening “$name”';
+  }
+
+  @override
+  String get vaultChangeFolder => 'Change folder';
+
+  @override
+  String vaultAllCount(int count) {
+    return 'All vaults · $count';
+  }
+
+  @override
+  String get syncTitle => 'Stowa Sync';
+
+  @override
+  String get syncPaid => 'Paid';
+
+  @override
+  String get syncSoon => 'Coming soon';
+
+  @override
+  String get syncAbout =>
+      'Your notes will stay the same on your phone, tablet and computer by themselves.';
+
+  @override
+  String get syncLater =>
+      'The subscription will arrive in one of the next updates.';
+
+  @override
+  String get syncOk => 'Got it';
 }

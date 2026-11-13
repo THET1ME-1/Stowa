@@ -16,6 +16,7 @@ import '../core/icons/icon_registry.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
+import '../domain/known_vaults.dart' show VaultList;
 import '../domain/models.dart' show FactKind;
 import '../domain/place_groups.dart' show guessHomeAndWork;
 import '../services/ai_image.dart';
@@ -62,6 +63,12 @@ import 'settings_repository.dart';
 /// База и папка файлов открываются в main и подставляются сюда.
 final databaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('база открывается в main'));
 
+/// Открыть базу хранилища по имени. Тесты подменяют базой в памяти.
+final vaultDatabaseProvider = Provider<AppDatabase Function(String name)>((ref) => AppDatabase.named);
+
+/// Пересобрать приложение на другом хранилище (`SessionHost`). Без main — ничего не делает.
+final reopenSessionProvider = Provider<Future<void> Function(AppDatabase? prepared)>((ref) => (prepared) async {});
+
 /// Корень файлов этого запуска (`VaultLocation.resolve`): хранилище или, до переноса, папка приложения.
 final startFilesRootProvider = Provider<Directory>((ref) => throw UnimplementedError('папка файлов задаётся в main'));
 
@@ -100,6 +107,9 @@ final vaultLocationProvider = Provider(
 
 /// Место хранилища уже выбирали на экране первого запуска.
 final vaultAskedProvider = Provider<bool>((ref) => ref.watch(settingsRepositoryProvider).vaultAsked);
+
+/// Хранилища, которые открывали, и база открытого — для «Каталога» в настройках.
+final vaultsProvider = StreamProvider<VaultList>((ref) => ref.watch(settingsRepositoryProvider).watchVaults());
 
 /// Что открыть при этом запуске: читается один раз, смена в настройках сработает со следующего.
 final startScreenProvider = Provider<StartScreen>((ref) => ref.read(settingsRepositoryProvider).startScreen);

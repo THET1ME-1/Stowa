@@ -3076,4 +3076,106 @@ class LUk extends L {
   String linkMissing(String title) {
     return 'Нотатки «$title» немає';
   }
+
+  @override
+  String get settingsCatalog => 'Каталог';
+
+  @override
+  String get settingsLook => 'Вигляд';
+
+  @override
+  String get settingsHelpers => 'Розбір і сповіщення';
+
+  @override
+  String get settingsCopies => 'Копії';
+
+  @override
+  String get vaultsSection => 'Сховища';
+
+  @override
+  String get vaultOpenNow => 'Відкрито';
+
+  @override
+  String get vaultAdd => 'Додати сховище';
+
+  @override
+  String get vaultAddNew => 'Створити нове';
+
+  @override
+  String get vaultAddNewHint => 'Порожня тека для нових нотаток';
+
+  @override
+  String get vaultAddOpen => 'Відкрити теку';
+
+  @override
+  String get vaultAddOpenHint => 'Колишнє сховище Stowa або Obsidian';
+
+  @override
+  String get vaultsHint =>
+      'Дотик до іншого сховища відкриває його, нагадування приходять лише з відкритого.';
+
+  @override
+  String get vaultFolderGone => 'Теку не знайдено';
+
+  @override
+  String get vaultForget => 'Прибрати зі списку';
+
+  @override
+  String get vaultForgetHint => 'Файли залишаться в теці';
+
+  @override
+  String get vaultForgotten => 'Сховище прибрано зі списку, файли на місці';
+
+  @override
+  String get vaultOpenIt => 'Відкрити';
+
+  @override
+  String get vaultAlreadyOpen => 'Це сховище вже відкрите';
+
+  @override
+  String get vaultHasNotes => 'У цій теці вже є нотатки';
+
+  @override
+  String get vaultOpenSeparately => 'Відкрити окремим сховищем';
+
+  @override
+  String get vaultOpenSeparatelyHint => 'Поточне залишиться у списку';
+
+  @override
+  String get vaultMergeHere => 'Перенести сюди й об’єднати';
+
+  @override
+  String get vaultMergeHereHint => 'Нотатки обох опиняться в одній теці';
+
+  @override
+  String vaultSwitching(String name) {
+    return 'Відкриваю «$name»';
+  }
+
+  @override
+  String get vaultChangeFolder => 'Змінити теку';
+
+  @override
+  String vaultAllCount(int count) {
+    return 'Усі сховища · $count';
+  }
+
+  @override
+  String get syncTitle => 'Stowa Sync';
+
+  @override
+  String get syncPaid => 'Платно';
+
+  @override
+  String get syncSoon => 'Незабаром';
+
+  @override
+  String get syncAbout =>
+      'Нотатки самі зійдуться на телефоні, планшеті й комп’ютері.';
+
+  @override
+  String get syncLater => 'Підписка з’явиться в одному з наступних оновлень.';
+
+  @override
+  String get syncOk => 'Зрозуміло';
 }

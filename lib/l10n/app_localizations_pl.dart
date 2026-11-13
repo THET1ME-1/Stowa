@@ -3075,4 +3075,107 @@ class LPl extends L {
   String linkMissing(String title) {
     return 'Nie ma notatki „$title”';
   }
+
+  @override
+  String get settingsCatalog => 'Katalog';
+
+  @override
+  String get settingsLook => 'Wygląd';
+
+  @override
+  String get settingsHelpers => 'Porządkowanie i powiadomienia';
+
+  @override
+  String get settingsCopies => 'Kopie';
+
+  @override
+  String get vaultsSection => 'Magazyny';
+
+  @override
+  String get vaultOpenNow => 'Otwarty';
+
+  @override
+  String get vaultAdd => 'Dodaj magazyn';
+
+  @override
+  String get vaultAddNew => 'Utwórz nowy';
+
+  @override
+  String get vaultAddNewHint => 'Pusty folder na nowe notatki';
+
+  @override
+  String get vaultAddOpen => 'Otwórz folder';
+
+  @override
+  String get vaultAddOpenHint => 'Wcześniejszy magazyn Stowa albo Obsidian';
+
+  @override
+  String get vaultsHint =>
+      'Dotknij innego magazynu, aby go otworzyć; przypomnienia przychodzą tylko z otwartego.';
+
+  @override
+  String get vaultFolderGone => 'Nie znaleziono folderu';
+
+  @override
+  String get vaultForget => 'Usuń z listy';
+
+  @override
+  String get vaultForgetHint => 'Pliki zostaną w folderze';
+
+  @override
+  String get vaultForgotten => 'Magazyn usunięty z listy, pliki zostały';
+
+  @override
+  String get vaultOpenIt => 'Otwórz';
+
+  @override
+  String get vaultAlreadyOpen => 'Ten magazyn jest już otwarty';
+
+  @override
+  String get vaultHasNotes => 'W tym folderze są już notatki';
+
+  @override
+  String get vaultOpenSeparately => 'Otwórz jako osobny magazyn';
+
+  @override
+  String get vaultOpenSeparatelyHint => 'Obecny zostanie na liście';
+
+  @override
+  String get vaultMergeHere => 'Przenieś tutaj i połącz';
+
+  @override
+  String get vaultMergeHereHint => 'Notatki z obu trafią do jednego folderu';
+
+  @override
+  String vaultSwitching(String name) {
+    return 'Otwieram „$name”';
+  }
+
+  @override
+  String get vaultChangeFolder => 'Zmień folder';
+
+  @override
+  String vaultAllCount(int count) {
+    return 'Wszystkie magazyny · $count';
+  }
+
+  @override
+  String get syncTitle => 'Stowa Sync';
+
+  @override
+  String get syncPaid => 'Płatne';
+
+  @override
+  String get syncSoon => 'Wkrótce';
+
+  @override
+  String get syncAbout =>
+      'Notatki same zgrają się na telefonie, tablecie i komputerze.';
+
+  @override
+  String get syncLater =>
+      'Subskrypcja pojawi się w jednej z kolejnych aktualizacji.';
+
+  @override
+  String get syncOk => 'Rozumiem';
 }

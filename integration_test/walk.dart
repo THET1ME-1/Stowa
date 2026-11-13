@@ -134,7 +134,11 @@ Future<List<WalkStep>> walkScreens(
     await tester.scrollUntilVisible(row, 240, scrollable: find.byType(Scrollable).last);
     await tester.tap(row);
   });
-  await step('хранилище', () => openSetting(l.vaultSection));
+  // строка «Каталога» называется именем открытого хранилища: ищется по ключу
+  await step('хранилище', () async {
+    await openSettings();
+    await tester.tap(find.byKey(const ValueKey('settings-catalog')));
+  });
   await step('корзина', () => openSetting(l.trashTitle));
   await step('бот-telegram', () => openSetting(l.tgTitle));
   await step('теги-и-правила', () => openSetting(l.settingsTooltip));

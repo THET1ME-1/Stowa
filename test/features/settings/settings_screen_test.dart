@@ -85,7 +85,7 @@ void main() {
     expect(find.textContaining('Работает · '), findsOneWidget);
   });
 
-  for (final section in ['Разбор ИИ', 'Уведомления', 'Хранилище']) {
+  for (final section in ['Разбор ИИ', 'Уведомления']) {
     testWidgets('320 точек и крупный шрифт: «$section» влезает', (tester) async {
       await open(tester, keyStatus: 200, size: const Size(320, 700), textScale: 1.3);
       expect(tester.takeException(), isNull);
@@ -184,30 +184,7 @@ void main() {
     expect(find.text('По дню сохранения'), findsOneWidget);
   });
 
-  testWidgets('экран «Хранилище»: где лежит, перенос, «Пересобрать указатель» и копии', (tester) async {
-    await openSection(tester, 'Хранилище');
-    for (final label in ['Внутри приложения', 'Перенести в другую папку', 'Пересобрать указатель', 'Сохранить копию', 'Выгрузить в Markdown', 'Восстановить из копии']) {
-      await tester.scrollUntilVisible(find.text(label), 100);
-      expect(find.text(label), findsOneWidget);
-    }
-  });
-
-  testWidgets('iPhone: папка одна — в «Файлах», переноса нет, строка не нажимается', (tester) async {
-    world.vaultHome = world.files;
-    await open(tester, keyStatus: 200);
-    expect(find.text('«Файлы» → Stowa'), findsOneWidget);
-    await tester.tap(find.text('Хранилище'));
-    await tester.pumpAndSettle();
-    expect(find.text('«Файлы» → Stowa'), findsOneWidget);
-    expect(find.text('Перенести в другую папку'), findsNothing);
-    expect(find.textContaining('видно в приложении «Файлы»'), findsOneWidget);
-    expect(find.textContaining('Obsidian'), findsNothing);
-    // выбирать нечего: строка без стрелки и без касания
-    final row = find.ancestor(of: find.text('Папка'), matching: find.byType(InkWell)).first;
-    expect(tester.widget<InkWell>(row).onTap, isNull);
-    expect(find.descendant(of: row, matching: find.byType(Icon)), findsOneWidget);
-    expect(find.text('Пересобрать указатель'), findsOneWidget);
-  });
+  // экран «Хранилище» и iPhone — в catalog_test.dart
 
   testWidgets('«ИИ в приоритете» по умолчанию выключен, касание включает', (tester) async {
     await openSection(tester, 'Разбор ИИ');

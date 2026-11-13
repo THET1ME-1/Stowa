@@ -69,6 +69,12 @@ class TestWorld {
   /// Единственное место хранилища, как на iPhone; null — как на Android.
   Directory? vaultHome;
 
+  /// Базы других хранилищ по имени — в памяти, открываются при смене хранилища.
+  final vaultDatabases = <String, AppDatabase>{};
+
+  /// С какой готовой базой просили пересобрать приложение (смена хранилища).
+  final reopened = <AppDatabase?>[];
+
   /// Дан ли «Доступ ко всем файлам».
   var allFiles = true;
 
@@ -119,6 +125,8 @@ class TestWorld {
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
         vaultHomeProvider.overrideWithValue(vaultHome),
         vaultChannelProvider.overrideWithValue(_TestChannel(this)),
+        vaultDatabaseProvider.overrideWithValue((name) => vaultDatabases[name] ??= AppDatabase.memory()),
+        reopenSessionProvider.overrideWithValue((prepared) async => reopened.add(prepared)),
         clockProvider.overrideWithValue(() => now),
         // обоев в тестах нет: как Android до 12
         wallpaperProvider.overrideWith((ref) async => wallpaper),
@@ -151,6 +159,7 @@ class TestWorld {
         else ...[
           aiSettingsProvider.overrideWith((ref) => Stream.value(aiSettings)),
           languageProvider.overrideWith((ref) => Stream.value(null)),
+          vaultsProvider.overrideWith((ref) => Stream.value((current: 'stowa', all: const []))),
           placeEnabledProvider.overrideWith((ref) => Stream.value(true)),
           showAdultProvider.overrideWith((ref) => Stream.value(showAdult)),
           crashReportsProvider.overrideWith((ref) => Stream.value(true)),
@@ -206,6 +215,9 @@ class TestWorld {
     await _dismissed.close();
     shared.close().ignore();
     await db.close();
+    for (final other in vaultDatabases.values) {
+      await other.close();
+    }
     if (files.existsSync()) files.deleteSync(recursive: true);
   }
 }

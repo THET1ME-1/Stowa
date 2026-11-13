@@ -3026,4 +3026,108 @@ class LDe extends L {
   String linkMissing(String title) {
     return 'Keine Notiz „$title“';
   }
+
+  @override
+  String get settingsCatalog => 'Katalog';
+
+  @override
+  String get settingsLook => 'Aussehen';
+
+  @override
+  String get settingsHelpers => 'Sortieren und Mitteilungen';
+
+  @override
+  String get settingsCopies => 'Sicherungen';
+
+  @override
+  String get vaultsSection => 'Tresore';
+
+  @override
+  String get vaultOpenNow => 'Offen';
+
+  @override
+  String get vaultAdd => 'Tresor hinzufügen';
+
+  @override
+  String get vaultAddNew => 'Neu anlegen';
+
+  @override
+  String get vaultAddNewHint => 'Ein leerer Ordner für neue Notizen';
+
+  @override
+  String get vaultAddOpen => 'Ordner öffnen';
+
+  @override
+  String get vaultAddOpenHint =>
+      'Ein früherer Stowa-Tresor oder ein Obsidian-Tresor';
+
+  @override
+  String get vaultsHint =>
+      'Tippe auf einen anderen Tresor, um ihn zu öffnen; Erinnerungen kommen nur aus dem offenen.';
+
+  @override
+  String get vaultFolderGone => 'Ordner nicht gefunden';
+
+  @override
+  String get vaultForget => 'Aus der Liste entfernen';
+
+  @override
+  String get vaultForgetHint => 'Die Dateien bleiben im Ordner';
+
+  @override
+  String get vaultForgotten =>
+      'Tresor aus der Liste entfernt, die Dateien sind noch da';
+
+  @override
+  String get vaultOpenIt => 'Öffnen';
+
+  @override
+  String get vaultAlreadyOpen => 'Dieser Tresor ist schon offen';
+
+  @override
+  String get vaultHasNotes => 'In diesem Ordner liegen schon Notizen';
+
+  @override
+  String get vaultOpenSeparately => 'Als eigenen Tresor öffnen';
+
+  @override
+  String get vaultOpenSeparatelyHint => 'Der jetzige bleibt in der Liste';
+
+  @override
+  String get vaultMergeHere => 'Hierher verschieben und zusammenführen';
+
+  @override
+  String get vaultMergeHereHint => 'Die Notizen beider landen in einem Ordner';
+
+  @override
+  String vaultSwitching(String name) {
+    return 'Öffne „$name“';
+  }
+
+  @override
+  String get vaultChangeFolder => 'Ordner wechseln';
+
+  @override
+  String vaultAllCount(int count) {
+    return 'Alle Tresore · $count';
+  }
+
+  @override
+  String get syncTitle => 'Stowa Sync';
+
+  @override
+  String get syncPaid => 'Kostenpflichtig';
+
+  @override
+  String get syncSoon => 'Bald';
+
+  @override
+  String get syncAbout =>
+      'Deine Notizen gleichen sich von selbst auf Handy, Tablet und Computer ab.';
+
+  @override
+  String get syncLater => 'Das Abo kommt mit einem der nächsten Updates.';
+
+  @override
+  String get syncOk => 'Verstanden';
 }

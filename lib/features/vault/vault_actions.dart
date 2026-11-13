@@ -6,14 +6,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
+import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
+import '../../domain/known_vaults.dart';
 import '../../domain/vault_note.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_location.dart';
 import '../../services/vault/vault_move.dart';
 import '../../services/vault/vault_reader.dart';
+import '../../services/vault/vault_switch.dart';
 
 /// Дан ли «Доступ ко всем файлам». Нет — лист с объяснением и переход в системные настройки;
 /// ответ узнаётся, когда человек вернётся в приложение.
@@ -168,17 +172,112 @@ Future<void> rebuildIndex(BuildContext context, WidgetRef ref) async {
   }
 }
 
-/// Перенести хранилище в другую папку из настроек.
-Future<void> moveVaultElsewhere(BuildContext context, WidgetRef ref) async {
+/// Папка открытого хранилища: выбранная или, у старой установки, папка файлов.
+String _openPath(WidgetRef ref) => ref.read(vaultRootProvider)?.path ?? ref.read(settingsRepositoryProvider).vaultPath ?? ref.read(filesRootProvider).path;
+
+/// Сменить папку открытого хранилища (касание его строки). В выбранной папке уже есть
+/// заметки или другое хранилище из списка — человек решает: открыть её отдельно или
+/// перенести своё туда и объединить. Пустая папка — обычный перенос.
+Future<void> changeVaultFolder(BuildContext context, WidgetRef ref) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
+  final settings = ref.read(settingsRepositoryProvider);
   final picked = await ref.read(vaultPickerProvider)();
-  if (picked == null || !context.mounted) return;
+  if (picked == null || !context.mounted || sameVaultPath(picked, _openPath(ref))) return;
   if (!await ensureFileAccess(context, ref) || !context.mounted) return;
   final target = Directory(picked);
-  final existing = await target.exists() && await target.list(recursive: true).any((entity) => entity.path.endsWith('.md'));
+  final known = settings.vaults.where((one) => one.db != settings.vaultDb && sameVaultPath(one.path, picked)).firstOrNull;
+  final hasNotes = await folderHasNotes(target);
   if (!context.mounted) return;
-  if (await moveVault(context, ref, target, VaultMode.device, openExisting: existing)) showNote(messenger, l.vaultMoved);
+  if (known != null || hasNotes) {
+    final choice = await showOptionsSheet<bool>(
+      context,
+      title: l.vaultHasNotes,
+      options: [
+        SheetChoice(value: false, title: l.vaultOpenSeparately, subtitle: l.vaultOpenSeparatelyHint, icon: 'folder_open'),
+        SheetChoice(value: true, title: l.vaultMergeHere, subtitle: l.vaultMergeHereHint, icon: 'merge'),
+      ],
+    );
+    if (choice == null || !context.mounted) return;
+    if (!choice) {
+      final entry = known ?? await settings.rememberVault(picked, VaultMode.device);
+      if (context.mounted) await switchVault(context, ref, entry);
+      return;
+    }
+    // папка другого хранилища становится общей: в списке её больше нет
+    if (known != null) await settings.forgetVault(known.db);
+    if (!context.mounted) return;
+  }
+  if (await moveVault(context, ref, target, VaultMode.device, openExisting: hasNotes)) showNote(messenger, l.vaultMoved);
+}
+
+/// «Добавить хранилище»: новое пустое или готовая папка (Stowa, Obsidian) — и сразу открыть его.
+Future<void> addVault(BuildContext context, WidgetRef ref) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final create = await showOptionsSheet<bool>(
+    context,
+    title: l.vaultAdd,
+    options: [
+      SheetChoice(value: true, title: l.vaultAddNew, subtitle: l.vaultAddNewHint, icon: 'create_new_folder'),
+      SheetChoice(value: false, title: l.vaultAddOpen, subtitle: l.vaultAddOpenHint, icon: 'folder_open'),
+    ],
+  );
+  if (create == null || !context.mounted) return;
+  final path = create
+      ? await showModalBottomSheet<String>(context: context, isScrollControlled: true, backgroundColor: Tokens.container, builder: (context) => const _CreateSheet())
+      : await ref.read(vaultPickerProvider)();
+  if (path == null || !context.mounted) return;
+  if (sameVaultPath(path, _openPath(ref))) {
+    showNote(messenger, l.vaultAlreadyOpen);
+    return;
+  }
+  if (!await ensureFileAccess(context, ref) || !context.mounted) return;
+  if (create) await Directory(path).create(recursive: true);
+  final entry = await ref.read(settingsRepositoryProvider).rememberVault(path, VaultMode.device);
+  if (!context.mounted) return;
+  await switchVault(context, ref, entry);
+}
+
+/// Открыть другое хранилище: своё скрытое запечатать, свои правки дописать в файлы,
+/// базу цели открыть (пустую — собрать из папки) и пересобрать приложение на ней.
+/// Очередь файлов старого хранилища живёт в его базе и доедет, когда его откроют снова.
+Future<void> switchVault(BuildContext context, WidgetRef ref, KnownVault target) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final settings = ref.read(settingsRepositoryProvider);
+  if (target.db == settings.vaultDb) return;
+  if (!await Directory(target.path).exists()) {
+    showNote(messenger, l.vaultFolderGone);
+    return;
+  }
+  if (!context.mounted) return;
+  if (target.mode == VaultMode.device && !await ensureFileAccess(context, ref)) return;
+  if (!context.mounted) return;
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final db = ref.read(databaseProvider);
+  final status = ValueNotifier<(String, double?)>((l.vaultSwitching(vaultTitle(target.path)), null));
+  unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
+  final AppDatabase prepared;
+  try {
+    await ref.read(privacyServiceProvider).close().catchError((_) {});
+    await ref.read(vaultWriterProvider).drain().catchError((_) => 0);
+    final notes = await db.customSelect('SELECT count(*) AS n FROM items WHERE deleted_at IS NULL').getSingle().then((row) => row.read<int>('n'));
+    prepared = await prepareVaultDatabase(
+      target,
+      open: ref.read(vaultDatabaseProvider),
+      clock: ref.read(clockProvider),
+      progress: (done, total) => status.value = (l.vaultBuilding(done, total), total == 0 ? null : done / total),
+    );
+    await settings.openKnownVault(target, notesHere: notes);
+    // уведомления старого хранилища: их заметок в новой базе нет
+    await ref.read(notificationPortProvider).cancelAll().catchError((_) {});
+  } finally {
+    navigator.pop();
+    status.dispose();
+  }
+  // дальше приложение строится заново: этот экран и его ref уже не живут
+  await ref.read(reopenSessionProvider)(prepared);
 }
 
 /// Окно с подписью и полоской, которое не закрыть, пока идёт долгая работа: перенос, сборка, импорт.

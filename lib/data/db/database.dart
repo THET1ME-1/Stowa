@@ -88,14 +88,18 @@ class AppDatabase extends _$AppDatabase {
   // одна база на процесс: кнопки уведомлений пишут из фонового Dart, и ленты приложения это видят
   // на iPhone «Документы» видны в «Файлах» и заняты хранилищем: база лежит в скрытой папке приложения.
   // На Android место прежнее: там живые установки
-  AppDatabase([QueryExecutor? executor])
+  // у каждого хранилища своя база: [name] — `vault_db` из настроек, у первого хранилища `stowa`
+  AppDatabase([QueryExecutor? executor, String name = 'stowa'])
     : super(
         executor ??
             driftDatabase(
-              name: 'stowa',
+              name: name,
               native: DriftNativeOptions(shareAcrossIsolates: true, databaseDirectory: Platform.isIOS ? getApplicationSupportDirectory : null),
             ),
       );
+
+  /// База хранилища [name] на диске.
+  AppDatabase.named(String name) : this(null, name);
 
   /// База в памяти для тестов. Стримы закрываются сразу: иначе drift ждёт
   /// оборот цикла событий, а часы теста поддельные, и закрытие виснет.

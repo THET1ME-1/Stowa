@@ -5026,6 +5026,198 @@ abstract class L {
   /// In en, this message translates to:
   /// **'There\'s no note “{title}”'**
   String linkMissing(String title);
+
+  /// settingsCatalog
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog'**
+  String get settingsCatalog;
+
+  /// settingsLook
+  ///
+  /// In en, this message translates to:
+  /// **'Look'**
+  String get settingsLook;
+
+  /// settingsHelpers
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting and notifications'**
+  String get settingsHelpers;
+
+  /// settingsCopies
+  ///
+  /// In en, this message translates to:
+  /// **'Backups'**
+  String get settingsCopies;
+
+  /// vaultsSection
+  ///
+  /// In en, this message translates to:
+  /// **'Vaults'**
+  String get vaultsSection;
+
+  /// vaultOpenNow
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get vaultOpenNow;
+
+  /// vaultAdd
+  ///
+  /// In en, this message translates to:
+  /// **'Add a vault'**
+  String get vaultAdd;
+
+  /// vaultAddNew
+  ///
+  /// In en, this message translates to:
+  /// **'Create new'**
+  String get vaultAddNew;
+
+  /// vaultAddNewHint
+  ///
+  /// In en, this message translates to:
+  /// **'An empty folder for new notes'**
+  String get vaultAddNewHint;
+
+  /// vaultAddOpen
+  ///
+  /// In en, this message translates to:
+  /// **'Open a folder'**
+  String get vaultAddOpen;
+
+  /// vaultAddOpenHint
+  ///
+  /// In en, this message translates to:
+  /// **'An earlier Stowa vault or an Obsidian vault'**
+  String get vaultAddOpenHint;
+
+  /// vaultsHint
+  ///
+  /// In en, this message translates to:
+  /// **'Tap another vault to open it; reminders come only from the open one.'**
+  String get vaultsHint;
+
+  /// vaultFolderGone
+  ///
+  /// In en, this message translates to:
+  /// **'Folder not found'**
+  String get vaultFolderGone;
+
+  /// vaultForget
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from the list'**
+  String get vaultForget;
+
+  /// vaultForgetHint
+  ///
+  /// In en, this message translates to:
+  /// **'The files stay in the folder'**
+  String get vaultForgetHint;
+
+  /// vaultForgotten
+  ///
+  /// In en, this message translates to:
+  /// **'Vault removed from the list; the files are still there'**
+  String get vaultForgotten;
+
+  /// vaultOpenIt
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get vaultOpenIt;
+
+  /// vaultAlreadyOpen
+  ///
+  /// In en, this message translates to:
+  /// **'This vault is already open'**
+  String get vaultAlreadyOpen;
+
+  /// vaultHasNotes
+  ///
+  /// In en, this message translates to:
+  /// **'This folder already has notes'**
+  String get vaultHasNotes;
+
+  /// vaultOpenSeparately
+  ///
+  /// In en, this message translates to:
+  /// **'Open as a separate vault'**
+  String get vaultOpenSeparately;
+
+  /// vaultOpenSeparatelyHint
+  ///
+  /// In en, this message translates to:
+  /// **'The current one stays in the list'**
+  String get vaultOpenSeparatelyHint;
+
+  /// vaultMergeHere
+  ///
+  /// In en, this message translates to:
+  /// **'Move here and merge'**
+  String get vaultMergeHere;
+
+  /// vaultMergeHereHint
+  ///
+  /// In en, this message translates to:
+  /// **'Notes from both end up in one folder'**
+  String get vaultMergeHereHint;
+
+  /// vaultSwitching
+  ///
+  /// In en, this message translates to:
+  /// **'Opening “{name}”'**
+  String vaultSwitching(String name);
+
+  /// vaultChangeFolder
+  ///
+  /// In en, this message translates to:
+  /// **'Change folder'**
+  String get vaultChangeFolder;
+
+  /// vaultAllCount
+  ///
+  /// In en, this message translates to:
+  /// **'All vaults · {count}'**
+  String vaultAllCount(int count);
+
+  /// syncTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Stowa Sync'**
+  String get syncTitle;
+
+  /// syncPaid
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get syncPaid;
+
+  /// syncSoon
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get syncSoon;
+
+  /// syncAbout
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes will stay the same on your phone, tablet and computer by themselves.'**
+  String get syncAbout;
+
+  /// syncLater
+  ///
+  /// In en, this message translates to:
+  /// **'The subscription will arrive in one of the next updates.'**
+  String get syncLater;
+
+  /// syncOk
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get syncOk;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

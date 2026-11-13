@@ -1,9 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/db/database.dart';
 import '../data/repositories/items_repository.dart';
+import '../data/settings_repository.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import 'reminder_service.dart';
@@ -44,7 +46,9 @@ Future<void> reminderActionInBackground(NotificationResponse response) async {
   final actionId = response.actionId;
   if (itemId == null || actionId == null) return;
   DartPluginRegistrant.ensureInitialized();
-  final db = AppDatabase();
+  // база открытого хранилища: уведомления других при смене хранилища снимаются
+  final settings = SettingsRepository(await SharedPreferences.getInstance(), const SecureKeyStore());
+  final db = AppDatabase.named(settings.vaultDb);
   try {
     // скрытая заметка в базе, только пока скрытое открыто; закрытое кнопки не трогают
     final hidden = itemId.startsWith('hidden:');

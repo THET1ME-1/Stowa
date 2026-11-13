@@ -3021,4 +3021,108 @@ class LEs extends L {
   String linkMissing(String title) {
     return 'No hay una nota «$title»';
   }
+
+  @override
+  String get settingsCatalog => 'Catálogo';
+
+  @override
+  String get settingsLook => 'Aspecto';
+
+  @override
+  String get settingsHelpers => 'Orden y avisos';
+
+  @override
+  String get settingsCopies => 'Copias';
+
+  @override
+  String get vaultsSection => 'Bóvedas';
+
+  @override
+  String get vaultOpenNow => 'Abierta';
+
+  @override
+  String get vaultAdd => 'Añadir bóveda';
+
+  @override
+  String get vaultAddNew => 'Crear nueva';
+
+  @override
+  String get vaultAddNewHint => 'Una carpeta vacía para notas nuevas';
+
+  @override
+  String get vaultAddOpen => 'Abrir una carpeta';
+
+  @override
+  String get vaultAddOpenHint => 'Una bóveda anterior de Stowa u Obsidian';
+
+  @override
+  String get vaultsHint =>
+      'Toca otra bóveda para abrirla; los recordatorios llegan solo de la abierta.';
+
+  @override
+  String get vaultFolderGone => 'No se encuentra la carpeta';
+
+  @override
+  String get vaultForget => 'Quitar de la lista';
+
+  @override
+  String get vaultForgetHint => 'Los archivos se quedan en la carpeta';
+
+  @override
+  String get vaultForgotten =>
+      'Bóveda quitada de la lista; los archivos siguen ahí';
+
+  @override
+  String get vaultOpenIt => 'Abrir';
+
+  @override
+  String get vaultAlreadyOpen => 'Esta bóveda ya está abierta';
+
+  @override
+  String get vaultHasNotes => 'Esta carpeta ya tiene notas';
+
+  @override
+  String get vaultOpenSeparately => 'Abrir como bóveda aparte';
+
+  @override
+  String get vaultOpenSeparatelyHint => 'La actual se queda en la lista';
+
+  @override
+  String get vaultMergeHere => 'Mover aquí y unir';
+
+  @override
+  String get vaultMergeHereHint => 'Las notas de ambas quedan en una carpeta';
+
+  @override
+  String vaultSwitching(String name) {
+    return 'Abriendo «$name»';
+  }
+
+  @override
+  String get vaultChangeFolder => 'Cambiar carpeta';
+
+  @override
+  String vaultAllCount(int count) {
+    return 'Todas las bóvedas · $count';
+  }
+
+  @override
+  String get syncTitle => 'Stowa Sync';
+
+  @override
+  String get syncPaid => 'De pago';
+
+  @override
+  String get syncSoon => 'Próximamente';
+
+  @override
+  String get syncAbout =>
+      'Las notas se mantendrán iguales en el móvil, la tableta y el ordenador.';
+
+  @override
+  String get syncLater =>
+      'La suscripción llegará en una de las próximas actualizaciones.';
+
+  @override
+  String get syncOk => 'Entendido';
 }

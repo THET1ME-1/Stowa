@@ -3863,5 +3863,143 @@
         "type": "String"
       }
     }
+  },
+  "settingsCatalog": "Catalog",
+  "@settingsCatalog": {
+    "description": "settingsCatalog"
+  },
+  "settingsLook": "Look",
+  "@settingsLook": {
+    "description": "settingsLook"
+  },
+  "settingsHelpers": "Sorting and notifications",
+  "@settingsHelpers": {
+    "description": "settingsHelpers"
+  },
+  "settingsCopies": "Backups",
+  "@settingsCopies": {
+    "description": "settingsCopies"
+  },
+  "vaultsSection": "Vaults",
+  "@vaultsSection": {
+    "description": "vaultsSection"
+  },
+  "vaultOpenNow": "Open",
+  "@vaultOpenNow": {
+    "description": "vaultOpenNow"
+  },
+  "vaultAdd": "Add a vault",
+  "@vaultAdd": {
+    "description": "vaultAdd"
+  },
+  "vaultAddNew": "Create new",
+  "@vaultAddNew": {
+    "description": "vaultAddNew"
+  },
+  "vaultAddNewHint": "An empty folder for new notes",
+  "@vaultAddNewHint": {
+    "description": "vaultAddNewHint"
+  },
+  "vaultAddOpen": "Open a folder",
+  "@vaultAddOpen": {
+    "description": "vaultAddOpen"
+  },
+  "vaultAddOpenHint": "An earlier Stowa vault or an Obsidian vault",
+  "@vaultAddOpenHint": {
+    "description": "vaultAddOpenHint"
+  },
+  "vaultsHint": "Tap another vault to open it; reminders come only from the open one.",
+  "@vaultsHint": {
+    "description": "vaultsHint"
+  },
+  "vaultFolderGone": "Folder not found",
+  "@vaultFolderGone": {
+    "description": "vaultFolderGone"
+  },
+  "vaultForget": "Remove from the list",
+  "@vaultForget": {
+    "description": "vaultForget"
+  },
+  "vaultForgetHint": "The files stay in the folder",
+  "@vaultForgetHint": {
+    "description": "vaultForgetHint"
+  },
+  "vaultForgotten": "Vault removed from the list; the files are still there",
+  "@vaultForgotten": {
+    "description": "vaultForgotten"
+  },
+  "vaultOpenIt": "Open",
+  "@vaultOpenIt": {
+    "description": "vaultOpenIt"
+  },
+  "vaultAlreadyOpen": "This vault is already open",
+  "@vaultAlreadyOpen": {
+    "description": "vaultAlreadyOpen"
+  },
+  "vaultHasNotes": "This folder already has notes",
+  "@vaultHasNotes": {
+    "description": "vaultHasNotes"
+  },
+  "vaultOpenSeparately": "Open as a separate vault",
+  "@vaultOpenSeparately": {
+    "description": "vaultOpenSeparately"
+  },
+  "vaultOpenSeparatelyHint": "The current one stays in the list",
+  "@vaultOpenSeparatelyHint": {
+    "description": "vaultOpenSeparatelyHint"
+  },
+  "vaultMergeHere": "Move here and merge",
+  "@vaultMergeHere": {
+    "description": "vaultMergeHere"
+  },
+  "vaultMergeHereHint": "Notes from both end up in one folder",
+  "@vaultMergeHereHint": {
+    "description": "vaultMergeHereHint"
+  },
+  "vaultSwitching": "Opening “{name}”",
+  "@vaultSwitching": {
+    "description": "vaultSwitching",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultChangeFolder": "Change folder",
+  "@vaultChangeFolder": {
+    "description": "vaultChangeFolder"
+  },
+  "vaultAllCount": "All vaults · {count}",
+  "@vaultAllCount": {
+    "description": "vaultAllCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncTitle": "Stowa Sync",
+  "@syncTitle": {
+    "description": "syncTitle"
+  },
+  "syncPaid": "Paid",
+  "@syncPaid": {
+    "description": "syncPaid"
+  },
+  "syncSoon": "Coming soon",
+  "@syncSoon": {
+    "description": "syncSoon"
+  },
+  "syncAbout": "Your notes will stay the same on your phone, tablet and computer by themselves.",
+  "@syncAbout": {
+    "description": "syncAbout"
+  },
+  "syncLater": "The subscription will arrive in one of the next updates.",
+  "@syncLater": {
+    "description": "syncLater"
+  },
+  "syncOk": "Got it",
+  "@syncOk": {
+    "description": "syncOk"
   }
 }

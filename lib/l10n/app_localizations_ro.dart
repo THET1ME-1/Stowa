@@ -3045,4 +3045,109 @@ class LRo extends L {
   String linkMissing(String title) {
     return 'Nu există notița „$title”';
   }
+
+  @override
+  String get settingsCatalog => 'Catalog';
+
+  @override
+  String get settingsLook => 'Aspect';
+
+  @override
+  String get settingsHelpers => 'Sortare și notificări';
+
+  @override
+  String get settingsCopies => 'Copii';
+
+  @override
+  String get vaultsSection => 'Seifuri';
+
+  @override
+  String get vaultOpenNow => 'Deschis';
+
+  @override
+  String get vaultAdd => 'Adaugă un seif';
+
+  @override
+  String get vaultAddNew => 'Creează unul nou';
+
+  @override
+  String get vaultAddNewHint => 'Un dosar gol pentru notițe noi';
+
+  @override
+  String get vaultAddOpen => 'Deschide un dosar';
+
+  @override
+  String get vaultAddOpenHint => 'Un seif Stowa mai vechi sau unul Obsidian';
+
+  @override
+  String get vaultsHint =>
+      'Atinge alt seif ca să-l deschizi; mementourile vin doar din cel deschis.';
+
+  @override
+  String get vaultFolderGone => 'Dosarul nu a fost găsit';
+
+  @override
+  String get vaultForget => 'Scoate din listă';
+
+  @override
+  String get vaultForgetHint => 'Fișierele rămân în dosar';
+
+  @override
+  String get vaultForgotten =>
+      'Seiful a fost scos din listă, fișierele sunt la locul lor';
+
+  @override
+  String get vaultOpenIt => 'Deschide';
+
+  @override
+  String get vaultAlreadyOpen => 'Acest seif e deja deschis';
+
+  @override
+  String get vaultHasNotes => 'Dosarul are deja notițe';
+
+  @override
+  String get vaultOpenSeparately => 'Deschide ca seif separat';
+
+  @override
+  String get vaultOpenSeparatelyHint => 'Cel actual rămâne în listă';
+
+  @override
+  String get vaultMergeHere => 'Mută aici și unește';
+
+  @override
+  String get vaultMergeHereHint =>
+      'Notițele ambelor ajung într-un singur dosar';
+
+  @override
+  String vaultSwitching(String name) {
+    return 'Deschid „$name”';
+  }
+
+  @override
+  String get vaultChangeFolder => 'Schimbă dosarul';
+
+  @override
+  String vaultAllCount(int count) {
+    return 'Toate seifurile · $count';
+  }
+
+  @override
+  String get syncTitle => 'Stowa Sync';
+
+  @override
+  String get syncPaid => 'Cu plată';
+
+  @override
+  String get syncSoon => 'În curând';
+
+  @override
+  String get syncAbout =>
+      'Notițele se vor potrivi singure pe telefon, tabletă și calculator.';
+
+  @override
+  String get syncLater =>
+      'Abonamentul va apărea într-una dintre actualizările următoare.';
+
+  @override
+  String get syncOk => 'Am înțeles';
 }

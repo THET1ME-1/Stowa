@@ -3080,4 +3080,106 @@ class LRu extends L {
   String linkMissing(String title) {
     return 'Заметки «$title» нет';
   }
+
+  @override
+  String get settingsCatalog => 'Каталог';
+
+  @override
+  String get settingsLook => 'Внешний вид';
+
+  @override
+  String get settingsHelpers => 'Разбор и уведомления';
+
+  @override
+  String get settingsCopies => 'Копии';
+
+  @override
+  String get vaultsSection => 'Хранилища';
+
+  @override
+  String get vaultOpenNow => 'Открыто';
+
+  @override
+  String get vaultAdd => 'Добавить хранилище';
+
+  @override
+  String get vaultAddNew => 'Создать новое';
+
+  @override
+  String get vaultAddNewHint => 'Пустая папка для новых заметок';
+
+  @override
+  String get vaultAddOpen => 'Открыть папку';
+
+  @override
+  String get vaultAddOpenHint => 'Прежнее хранилище Stowa или Obsidian';
+
+  @override
+  String get vaultsHint =>
+      'Касание другого хранилища открывает его, напоминания приходят только из открытого.';
+
+  @override
+  String get vaultFolderGone => 'Папка не найдена';
+
+  @override
+  String get vaultForget => 'Убрать из списка';
+
+  @override
+  String get vaultForgetHint => 'Файлы останутся в папке';
+
+  @override
+  String get vaultForgotten => 'Хранилище убрано из списка, файлы на месте';
+
+  @override
+  String get vaultOpenIt => 'Открыть';
+
+  @override
+  String get vaultAlreadyOpen => 'Это хранилище уже открыто';
+
+  @override
+  String get vaultHasNotes => 'В этой папке уже есть заметки';
+
+  @override
+  String get vaultOpenSeparately => 'Открыть отдельным хранилищем';
+
+  @override
+  String get vaultOpenSeparatelyHint => 'Нынешнее останется в списке';
+
+  @override
+  String get vaultMergeHere => 'Перенести сюда и объединить';
+
+  @override
+  String get vaultMergeHereHint => 'Заметки обоих окажутся в одной папке';
+
+  @override
+  String vaultSwitching(String name) {
+    return 'Открываю «$name»';
+  }
+
+  @override
+  String get vaultChangeFolder => 'Сменить папку';
+
+  @override
+  String vaultAllCount(int count) {
+    return 'Все хранилища · $count';
+  }
+
+  @override
+  String get syncTitle => 'Stowa Sync';
+
+  @override
+  String get syncPaid => 'Платно';
+
+  @override
+  String get syncSoon => 'Скоро';
+
+  @override
+  String get syncAbout =>
+      'Заметки сами сойдутся на телефоне, планшете и компьютере.';
+
+  @override
+  String get syncLater => 'Подписка появится в одном из следующих обновлений.';
+
+  @override
+  String get syncOk => 'Понятно';
 }

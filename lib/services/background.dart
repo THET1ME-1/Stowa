@@ -112,8 +112,8 @@ void backgroundDispatcher() {
     final scratch = await getApplicationSupportDirectory();
     // сорванная задача молчит: без отчёта о ней никто не узнает
     final crashes = crashReporterFor(scratch, settings, 'background');
-    // база общая с открытым приложением, если оно сейчас живо
-    final db = AppDatabase();
+    // база общая с открытым приложением, если оно сейчас живо; у каждого хранилища своя
+    final db = AppDatabase.named(settings.vaultDb);
     // возврат — короткий проход по базе: хранилище, факты и сеть ему не нужны
     if (task == _returnTask) {
       try {

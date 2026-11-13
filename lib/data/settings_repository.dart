@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:uuid/uuid.dart';
+
 import '../domain/appearance.dart';
+import '../domain/known_vaults.dart' as known;
 import '../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../domain/return_plan.dart';
 import '../l10n/app_language.dart';
@@ -87,10 +90,11 @@ class AiSettings {
 
 /// Настройки приложения: ключ ИИ, поставщик, модели, пауза очереди и язык.
 class SettingsRepository {
-  SettingsRepository(this._prefs, this._keys);
+  SettingsRepository(this._prefs, this._keys, {DateTime Function() clock = DateTime.now}) : _clock = clock; // ignore: prefer_initializing_formals
 
   final SharedPreferences _prefs;
   final KeyStore _keys;
+  final DateTime Function() _clock;
   final _changes = StreamController<void>.broadcast();
 
   static const _baseUrl = 'ai_base_url';
@@ -127,6 +131,49 @@ class SettingsRepository {
     await _prefs.setString(_vaultMode, mode.name);
     return _prefs.setBool(_vaultAsked, asked);
   });
+
+  static const _vaultDb = 'vault_db';
+  static const _knownVaults = 'known_vaults';
+
+  /// Имя базы открытого хранилища. У установок до 13.11.2026 — прежняя `stowa`.
+  String get vaultDb => _prefs.getString(_vaultDb) ?? 'stowa';
+
+  List<known.KnownVault> get _stored => known.KnownVault.decodeList(_prefs.getString(_knownVaults));
+
+  known.CurrentVault get _current => known.CurrentVault(path: vaultPath, mode: vaultMode, db: vaultDb);
+
+  /// Хранилища для экрана: открытое первым, потом недавние.
+  List<known.KnownVault> get vaults => known.knownVaults(_stored, current: _current);
+
+  /// Список и база открытого — для экрана «Хранилище»; меняется при каждой правке настроек.
+  Stream<known.VaultList> watchVaults() async* {
+    yield (current: vaultDb, all: vaults);
+    yield* _changes.stream.map((_) => (current: vaultDb, all: vaults));
+  }
+
+  /// Запись для папки: знакомая — она же, новая — со своей базой.
+  Future<known.KnownVault> rememberVault(String path, VaultMode mode) async {
+    final (list, entry) = known.rememberVault(_stored, path: path, mode: mode, newDb: 'stowa-${const Uuid().v4().substring(0, 8)}');
+    await _set(() => _prefs.setString(_knownVaults, known.KnownVault.encodeList(list)));
+    return entry;
+  }
+
+  /// Открыть [target]: уходящее запоминает [notesHere], всё пишется одним изменением.
+  Future<void> openKnownVault(known.KnownVault target, {required int notesHere}) => _set(() async {
+    final now = _clock();
+    final list = known.touchVault(known.leaveVault(_stored, current: _current, notes: notesHere, now: now), db: target.db, now: now);
+    await _prefs.setString(_knownVaults, known.KnownVault.encodeList(list));
+    await _prefs.setString(_vaultPath, target.path);
+    await _prefs.setString(_vaultMode, target.mode.name);
+    await _prefs.setString(_vaultDb, target.db);
+    return _prefs.setBool(_vaultAsked, true);
+  });
+
+  /// Убрать из списка: папка и база остаются.
+  Future<void> forgetVault(String db) => _set(() => _prefs.setString(_knownVaults, known.KnownVault.encodeList(known.forgetVault(_stored, db: db))));
+
+  /// «Отменить» после «Убрать из списка».
+  Future<void> restoreVault(String db) => _set(() => _prefs.setString(_knownVaults, known.KnownVault.encodeList(known.touchVault(_stored, db: db, now: _clock()))));
 
   AiSettings get ai {
     final retry = _prefs.getInt(_retryAt);

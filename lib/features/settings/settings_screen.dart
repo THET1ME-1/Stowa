@@ -76,7 +76,20 @@ class SettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             SettingsHeader(l.settingsTitle),
-            const SizedBox(height: 18),
+            SettingsSection(l.settingsCatalog),
+            SettingsGroup(
+              tint: settingsTint('teal'),
+              children: [
+                SettingsRow(
+                  key: const ValueKey('settings-catalog'),
+                  icon: ref.watch(vaultHomeProvider) == null ? 'folder_open' : 'folder',
+                  title: openVaultTitle(ref, l),
+                  value: openVaultSubtitle(ref, l),
+                  onTap: () => Navigator.of(context).push(storageRoute()),
+                ),
+              ],
+            ),
+            SettingsSection(l.settingsLook),
             SettingsGroup(
               tint: settingsTint('rose'),
               children: [
@@ -88,22 +101,12 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SettingsSection(l.settingsHelpers),
             SettingsGroup(
               tint: settingsTint('violet'),
-              children: [SettingsRow(icon: 'auto_awesome', title: l.settingsAi, value: aiSummary(l, ai), onTap: () => Navigator.of(context).push(aiRoute()))],
-            ),
-            const SizedBox(height: 8),
-            SettingsGroup(
-              tint: settingsTint('tangerine'),
-              children: [SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute()))],
-            ),
-            const SizedBox(height: 8),
-            SettingsGroup(
-              tint: settingsTint('teal'),
               children: [
-                SettingsRow(icon: 'inventory_2', title: l.vaultSection, value: vaultPlace(ref, l), onTap: () => Navigator.of(context).push(storageRoute())),
-                SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute())),
+                SettingsRow(icon: 'auto_awesome', title: l.settingsAi, value: aiSummary(l, ai), onTap: () => Navigator.of(context).push(aiRoute())),
+                SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute())),
               ],
             ),
             SettingsSection(l.settingsOutside),
@@ -119,6 +122,11 @@ class SettingsScreen extends ConsumerWidget {
               children: [SettingsRow(icon: 'label', title: l.settingsTooltip, onTap: () => Navigator.of(context).push(tagsRoute()))],
             ),
             SettingsSection(l.settingsData),
+            SettingsGroup(
+              tint: settingsTint('teal'),
+              children: [SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute()))],
+            ),
+            const SizedBox(height: 8),
             SettingsGroup(
               tint: settingsTint('mint'),
               children: [

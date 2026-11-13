@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
+import 'app_session.dart';
 import 'core/theme/tokens.dart';
 import 'data/db/database.dart';
 import 'data/providers.dart';
@@ -69,37 +70,49 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
   final appearance = settings.appearance;
   Tokens.use(paletteFor(appearance, brightnessFor(appearance, PlatformDispatcher.instance.platformBrightness, DateTime.now())));
   final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
-  final db = AppDatabase();
-  // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
   final home = await vaultHome();
-  final place = await VaultLocation(settings: settings, appSupport: appSupport, home: home).resolve(hasData: await hasSavedItems(db));
-  // скрытое, оставшееся открытым от убитого приложения, запечатывается до первого кадра;
-  // там же читается замок, чтобы запереть приложение до того, как что-то покажется
-  final privacy = PrivacyService(
-    db: db,
-    vault: place.vault,
-    appData: appSupport,
-    flush: VaultWriter(db, root: place.vault, clock: DateTime.now).drain,
-    fingerprintKey: const SecureKeyStore('sealed_key'),
-  );
-  await privacy.settle().catchError((_) {});
+
+  // открытое хранилище: своя база, место файлов и замок; другое хранилище — новая сессия
+  Future<VaultSession> open(AppDatabase? prepared) async {
+    final db = prepared ?? AppDatabase.named(settings.vaultDb);
+    // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
+    final place = await VaultLocation(settings: settings, appSupport: appSupport, home: home).resolve(hasData: await hasSavedItems(db));
+    // скрытое, оставшееся открытым от убитого приложения, запечатывается до первого кадра;
+    // там же читается замок, чтобы запереть приложение до того, как что-то покажется
+    final privacy = PrivacyService(
+      db: db,
+      vault: place.vault,
+      appData: appSupport,
+      flush: VaultWriter(db, root: place.vault, clock: DateTime.now).drain,
+      fingerprintKey: const SecureKeyStore('sealed_key'),
+    );
+    await privacy.settle().catchError((_) {});
+    return VaultSession(db: db, place: place, lock: privacy.lock);
+  }
+
+  final first = await open(null);
   runApp(
-    ProviderScope(
-      overrides: [
-        databaseProvider.overrideWithValue(db),
-        startFilesRootProvider.overrideWithValue(place.files),
-        vaultRootProvider.overrideWith(() => VaultRootNotifier(place.vault)),
-        vaultMissingProvider.overrideWithValue(!place.reachable),
-        appSupportProvider.overrideWithValue(appSupport),
-        vaultHomeProvider.overrideWithValue(home),
-        startLockProvider.overrideWithValue(privacy.lock),
-        cacheRootProvider.overrideWithValue(cache),
-        notificationPortProvider.overrideWithValue(notifications),
-        settingsRepositoryProvider.overrideWithValue(settings),
-        preferencesProvider.overrideWithValue(prefs),
-        timeZoneProvider.overrideWithValue(timeZone),
-      ],
-      child: app,
+    SessionHost(
+      first: first,
+      open: open,
+      app: (session, reopen) => ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(session.db),
+          reopenSessionProvider.overrideWithValue(reopen),
+          startFilesRootProvider.overrideWithValue(session.place.files),
+          vaultRootProvider.overrideWith(() => VaultRootNotifier(session.place.vault)),
+          vaultMissingProvider.overrideWithValue(!session.place.reachable),
+          appSupportProvider.overrideWithValue(appSupport),
+          vaultHomeProvider.overrideWithValue(home),
+          startLockProvider.overrideWithValue(session.lock),
+          cacheRootProvider.overrideWithValue(cache),
+          notificationPortProvider.overrideWithValue(notifications),
+          settingsRepositoryProvider.overrideWithValue(settings),
+          preferencesProvider.overrideWithValue(prefs),
+          timeZoneProvider.overrideWithValue(timeZone),
+        ],
+        child: app,
+      ),
     ),
   );
   unawaited(notifications.start());
