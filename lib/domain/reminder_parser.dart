@@ -175,6 +175,20 @@ ReminderMatch? parseReminder(String text, DateTime now, {int workEnd = defaultWo
   return null;
 }
 
+/// Правка текста: время в нём поменяли или дописали — напоминание идёт за ним.
+/// Вернёт новое время или null, если трогать не надо: время то же (переставленное руками
+/// не сбивается правкой рядом) или его стёрли (снимает галочка, а не правка).
+DateTime? reminderAfterEdit(String before, String after, DateTime now, {int workEnd = defaultWorkEnd}) {
+  final found = parseReminder(after, now, workEnd: workEnd);
+  if (found == null) return null;
+  final was = parseReminder(before, now, workEnd: workEnd);
+  if (was != null && _phrase(before, was) == _phrase(after, found)) return null;
+  return found.at;
+}
+
+// куски даты и времени как написаны, без регистра: «Завтра в 10» и «завтра в 10» — одно
+String _phrase(String text, ReminderMatch match) => [for (final (from, to) in match.parts) text.substring(from, to).toLowerCase()].join(' ');
+
 // между датой и временем только пробелы и запятые: «23 декабря, 13:00»
 bool _adjacent(String text, _Date date, _Time time) {
   final String gap;

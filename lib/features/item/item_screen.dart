@@ -18,6 +18,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
+import '../../domain/reminder_parser.dart' show reminderAfterEdit;
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
@@ -107,6 +108,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   // берутся в initState: сохранять приходится и в dispose, когда ref уже нельзя трогать
   late final ItemsRepository _items;
   late final DateTime Function() _clock;
+  late final int Function() _workEnd;
 
   String get _id => widget.id;
 
@@ -115,6 +117,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     super.initState();
     _items = ref.read(itemsRepositoryProvider);
     _clock = ref.read(clockProvider);
+    _workEnd = ref.read(workEndProvider);
     _title.addListener(_changed);
     _body.addListener(_changed);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
@@ -159,9 +162,12 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     // заголовок стёрли — берётся из текста, как при сохранении из строки
     final title = typed.isNotEmpty ? typed : titleFor(body);
     if (title == _savedTitle && body == _savedBody) return;
+    // поменял в тексте «в 7:00» на «в 8:30» — напоминание переезжает вместе с ним
+    final moved = reminderAfterEdit('${_savedTitle ?? ''}\n${_savedBody ?? ''}', '$title\n$body', _clock(), workEnd: _workEnd());
     _savedTitle = title;
     _savedBody = body;
     await _items.setTitleBody(_id, title: title, body: body, at: _clock());
+    if (moved != null) await _items.setReminder(_id, moved);
   }
 
   Future<void> _finish() async {

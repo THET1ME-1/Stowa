@@ -147,6 +147,41 @@ void main() {
     expect(find.text('Борщ зелёный\nЩавель пучок'), findsOneWidget);
   });
 
+  testWidgets('правка времени в тексте переставляет напоминание', (tester) async {
+    await open(tester, body: 'в 7:00 закинуть футболку в пакет', title: 'Закинуть футболку в пакет');
+    final morning = DateTime(world.now.year, world.now.month, world.now.day + 1, 7);
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(reminderAt: Value(morning)));
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'в 8:30 закинуть футболку в пакет');
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect((await saved()).reminderAt, morning.add(const Duration(hours: 1, minutes: 30)));
+  });
+
+  testWidgets('время вписали в готовую заметку без напоминания — напоминание встаёт', (tester) async {
+    await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
+    expect((await saved()).reminderAt, isNull);
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Купить хлеб завтра в 9');
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day + 1, 9));
+  });
+
+  testWidgets('стёрли время из текста — напоминание остаётся', (tester) async {
+    await open(tester, body: 'в 7:00 закинуть футболку', title: 'Закинуть футболку');
+    final morning = DateTime(world.now.year, world.now.month, world.now.day + 1, 7);
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(reminderAt: Value(morning)));
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'закинуть футболку');
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect((await saved()).reminderAt, morning);
+  });
+
   testWidgets('свой заголовок стоит над текстом, текст при этом целый', (tester) async {
     await open(tester, body: 'Дипломная работа\nКлючевые слова оставить', title: 'Дипломная работа');
     expect(find.byType(TextField), findsNothing);
