@@ -835,6 +835,23 @@ void main() {
       expect(await world.db.select(world.db.links).get(), isEmpty);
     });
 
+    testWidgets('правка: << >> -- в тексте и заголовке становятся « » —, а --- в начале строки — черта', (tester) async {
+      await open(tester, body: 'Пятница', title: 'Пятница');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      final body = find.byType(TextField).last;
+      for (final step in ['Пятница <', 'Пятница <<', 'Пятница «кино>', 'Пятница «кино>>', 'Пятница «кино» -', 'Пятница «кино» --', 'Пятница «кино» —\n-', 'Пятница «кино» —\n--', 'Пятница «кино» —\n—-']) {
+        await tester.enterText(body, step);
+      }
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(body).controller!.text, 'Пятница «кино» —\n---');
+      final title = find.byType(TextField).first;
+      await tester.enterText(title, 'Итоги -');
+      await tester.enterText(title, 'Итоги --');
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(title).controller!.text, 'Итоги —');
+    });
+
     testWidgets('правка: «[[» дописывает «]]», над клавиатурой заметки по словам, касание ставит заголовок', (tester) async {
       await other('beer', 'Пиво я очень люблю', body: 'и обожаю');
       await other('car', 'Замена масла');

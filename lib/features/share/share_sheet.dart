@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
@@ -9,6 +10,7 @@ import '../../core/theme/tokens.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
+import '../composer/smart_punctuation.dart';
 import '../folder/folder_sheets.dart';
 
 const _countdown = Duration(seconds: 3);
@@ -178,6 +180,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
             TextField(
               controller: _words,
               onTap: _hold,
+              inputFormatters: [TextInputFormatter.withFunction(smartPunctuation)],
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 prefixIcon: Icon(symbolIcon('edit'), size: 20),

@@ -62,6 +62,19 @@ void main() {
     expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
   });
 
+  testWidgets('в строке << >> -- становятся « » —', (tester) async {
+    await open(tester);
+    await type(tester, 'Фильм <');
+    await type(tester, 'Фильм <<');
+    await type(tester, 'Фильм «Солярис>');
+    await type(tester, 'Фильм «Солярис>>');
+    final line = tester.widget<TextField>(find.byType(TextField)).controller!;
+    expect(line.text, 'Фильм «Солярис»');
+    await type(tester, 'Фильм «Солярис» -');
+    await type(tester, 'Фильм «Солярис» --');
+    expect(line.text, 'Фильм «Солярис» —');
+  });
+
   testWidgets('под замком подсказки «[[» нет: строка ничего из базы не показывает', (tester) async {
     await note('beer', 'Пиво я очень люблю');
     addTearDown(() => tester.pumpWidget(const SizedBox()));

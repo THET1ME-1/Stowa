@@ -36,6 +36,7 @@ import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
 import '../composer/panel_text.dart';
+import '../composer/smart_punctuation.dart';
 import '../composer/wiki_link_edit.dart';
 import '../composer/wiki_suggestions.dart';
 import '../places/place_kinds.dart';
@@ -786,6 +787,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     textCapitalization: TextCapitalization.sentences,
                                     textInputAction: TextInputAction.next,
                                     onSubmitted: (_) => _bodyFocus.requestFocus(),
+                                    inputFormatters: [TextInputFormatter.withFunction(smartPunctuation)],
                                     style: titleStyle,
                                     decoration: _bare(l.itemTitleHint),
                                   )
@@ -877,7 +879,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     maxLines: null,
                                     minLines: 5,
                                     keyboardType: TextInputType.multiline,
-                                    inputFormatters: [TextInputFormatter.withFunction(continueLists), TextInputFormatter.withFunction(closeWikiBrackets)],
+                                    inputFormatters: [
+                                      TextInputFormatter.withFunction(continueLists),
+                                      TextInputFormatter.withFunction(closeWikiBrackets),
+                                      TextInputFormatter.withFunction(smartPunctuation),
+                                    ],
                                     textCapitalization: TextCapitalization.sentences,
                                     // строка с курсором не прячется под плавающую панель и полосу разметки над ней
                                     scrollPadding: const EdgeInsets.only(bottom: _dockHeight + _dockGap * 2 + _markdownStrip + 24),

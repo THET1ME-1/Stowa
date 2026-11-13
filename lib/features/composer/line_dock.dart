@@ -39,6 +39,7 @@ import '../places/reminder_permissions.dart';
 import 'attach_tray.dart';
 import 'line_controller.dart';
 import 'line_panel.dart';
+import 'smart_punctuation.dart';
 import 'wiki_link_edit.dart';
 import 'wiki_suggestions.dart';
 import 'markdown_bar.dart';
@@ -935,8 +936,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         onTap: _activate,
         cursorColor: Tokens.accent,
         style: fieldStyle,
-        // второй «[» дописывает «]]»; под замком подсказки нет, но скобки закрываются
-        inputFormatters: [TextInputFormatter.withFunction(closeWikiBrackets)],
+        // второй «[» дописывает «]]»; под замком подсказки нет, но скобки закрываются; << >> -- — в « » —
+        inputFormatters: [TextInputFormatter.withFunction(closeWikiBrackets), TextInputFormatter.withFunction(smartPunctuation)],
         decoration: InputDecoration.collapsed(
           hintText: _full ? l.fullHint : (widget.homeFolder != null ? l.dropHere : (widget.writeOnly ? l.composerHintNoSearch : l.composerHint)),
           hintMaxLines: _full ? null : 1,

@@ -8,11 +8,14 @@ const aiTextLimit = 6000;
 
 /// Вещь для модели: текст, адрес, заголовок и описание страницы, картинка.
 class ItemForAi {
-  const ItemForAi({required this.id, required this.kind, required this.text, this.url, this.pageTitle, this.pageDescription, this.imageBase64Jpeg});
+  const ItemForAi({required this.id, required this.kind, required this.text, this.url, this.pageTitle, this.pageDescription, this.imageBase64Jpeg, this.writtenAt});
 
   final String id;
   final ItemKind kind;
   final String text;
+
+  /// День записи: «завтра» в заметке трёхлетней давности — уже прошлое.
+  final DateTime? writtenAt;
   final String? url;
   final String? pageTitle;
   final String? pageDescription;
@@ -22,11 +25,14 @@ class ItemForAi {
 }
 
 class FolderForAi {
-  const FolderForAi({required this.id, required this.name, this.topTags = const []});
+  const FolderForAi({required this.id, required this.name, this.topTags = const [], this.samples = const []});
 
   final String id;
   final String name;
   final List<String> topTags;
+
+  /// Заголовки заметок, которые человек сам положил в папку: по ним видно, как он раскладывает.
+  final List<String> samples;
 }
 
 class TagForAi {
@@ -126,17 +132,26 @@ class ClusterDecision {
 const _sortSystem = '''
 Ты раскладываешь заметки в приложении Stowa: человек быстро закидывает мысли, ссылки, фото и файлы, а ты решаешь, куда их положить.
 Правила:
+- Как хозяин раскладывает, понимай по имени папки и по заметкам, которые в ней уже лежат: по теме, по виду (журнал по дням, входящие, шаблоны) или по проекту. Новую заметку клади по тому же принципу.
 - Папку выбирай из списка по id, только если вещь действительно про то же, что в ней лежит. Новую предлагай, если ни одна не подходит, а вещь явно начинает новую тему.
 - Не клади наугад: статья про программирование не идёт в «Рецепты» только потому, что других папок нет. Сомневаешься — folder_id null и new_folder null, вещь останется «Без папки».
 - Теги короткие, в нижнем регистре, 1–3 штуки, по возможности из списка тегов.
 - description — что это за вещь и весь текст с картинки, если он есть. Оно нужно для поиска.
 - title — короткий заголовок, только если у вещи его нет или он из одного адреса.
-- reminder — только если в тексте явно названо время. Формат ГГГГ-ММ-ДДTчч:мм:сс по поясу человека.
+- reminder — только если в тексте явно названо время. Формат ГГГГ-ММ-ДДTчч:мм:сс по поясу человека. «Завтра», «в пятницу», дату без года считай от дня, когда заметка написана, а не от сегодня. Время уже прошло — reminder null.
 - links — только на кандидатов из списка, с причиной в два-три слова.
 - Иконки — имена Material Symbols, например restaurant, directions_car, book.
 Отвечай одним JSON по схеме, без пояснений.''';
 
 String _cut(String text, int limit) => text.length <= limit ? text : text.substring(0, limit);
+
+String _folderHints(FolderForAi folder) {
+  final hints = [
+    if (folder.topTags.isNotEmpty) 'частые теги: ${folder.topTags.join(', ')}',
+    if (folder.samples.isNotEmpty) 'заметки: ${[for (final title in folder.samples) '«${_cut(title, 60)}»'].join(', ')}',
+  ];
+  return hints.isEmpty ? '' : ' (${hints.join('; ')})';
+}
 
 /// Сообщения для разбора одной вещи.
 List<Map<String, Object?>> buildSortMessages(SortContext context) {
@@ -144,7 +159,7 @@ List<Map<String, Object?>> buildSortMessages(SortContext context) {
   final lines = <String>[
     'Папки:',
     if (context.folders.isEmpty) '(пока нет)',
-    for (final folder in context.folders) '- ${folder.id}: ${folder.name}${folder.topTags.isEmpty ? '' : ' (частые теги: ${folder.topTags.join(', ')})'}',
+    for (final folder in context.folders) '- ${folder.id}: ${folder.name}${_folderHints(folder)}',
     '',
     'Теги:',
     if (context.tags.isEmpty) '(пока нет)',
@@ -158,6 +173,7 @@ List<Map<String, Object?>> buildSortMessages(SortContext context) {
     if (item.pageTitle != null) 'Заголовок страницы: ${item.pageTitle}',
     if (item.pageDescription != null) 'Описание страницы: ${item.pageDescription}',
     '',
+    if (item.writtenAt != null) 'Написано: ${item.writtenAt!.toIso8601String()}',
     'Сейчас: ${context.now.toIso8601String()} ${context.timeZone}',
   ];
   return [

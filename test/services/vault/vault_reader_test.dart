@@ -270,6 +270,18 @@ void main() {
     expect(file('План отпуска.md').existsSync(), isTrue);
   });
 
+  test('раскладка Obsidian — образец для новых заметок: угадыватель кладёт новую туда же', () async {
+    put('Встречи/Созвон с Олегом.md', 'Созвон по бюджету, договорились о сроках');
+    put('Встречи/Созвон с заказчиком.md', 'Созвон: макет, правки, сроки сдачи');
+    put('Встречи/Планёрка.md', 'Планёрка в понедельник, созвон с командой');
+    put('Кухня/Сырники.md', 'Творог, яйцо, мука, сковорода');
+    put('Кухня/Блины.md', 'Мука, молоко, яйца, тесто на сковороде');
+    await reader().rebuild();
+    final index = await ItemsRepository(db, clock: () => now).folderIndex();
+    final meetings = (await db.select(db.folders).get()).singleWhere((folder) => folder.name == 'Встречи');
+    expect(index.guess('Созвон с Петей про сроки и бюджет')?.folderId, meetings.id);
+  });
+
   test('своя заметка Stowa без папки остаётся неразобранной: её разложат', () async {
     put('Мысль.md', '---\nid: own-1\nkind: note\ncreated: 2026-11-06T10:00:00.000\nupdated: 2026-11-06T10:00:00.000\n---\nМысль');
     await reader().rebuild();

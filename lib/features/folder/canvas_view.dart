@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
@@ -17,6 +18,7 @@ import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
 import '../composer/panel_text.dart';
+import '../composer/smart_punctuation.dart';
 import '../item/adult_veil.dart';
 
 /// Мир холста: вещи лежат в нём со сдвигом, чтобы отрицательные координаты тоже помещались.
@@ -457,6 +459,7 @@ Future<String?> _askNote(BuildContext context) {
                 autofocus: true,
                 minLines: 2,
                 maxLines: 6,
+                inputFormatters: [TextInputFormatter.withFunction(smartPunctuation)],
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(hintText: l.canvasNoteHint),
               ),

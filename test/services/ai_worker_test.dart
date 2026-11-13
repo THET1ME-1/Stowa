@@ -152,6 +152,21 @@ void main() {
     expect([for (final job in await db.select(db.aiJobs).get()) job.itemId], isNot(contains(hidden)));
   });
 
+  test('в запросе — заголовки заметок, которые человек сам положил в папку; догадки ИИ туда не идут', () async {
+    final placed = await add('Борщ бабушки', folder: 'food', by: SortedBy.user);
+    final guessed = await add('Карбонара от модели', folder: 'food', by: SortedBy.ai);
+    await (db.delete(db.aiJobs)..where((t) => t.itemId.isIn([placed, guessed]))).go();
+    String? asked;
+    reply = (body) {
+      asked = jsonEncode(body);
+      return answer({'folder_id': 'food'});
+    };
+    await add('Плов');
+    await worker().runOnce();
+    expect(asked, contains('food: Еда (заметки: «Борщ бабушки»)'));
+    expect(asked, isNot(contains('Карбонара')));
+  });
+
   test('401 ставит очередь на паузу и больше не зовёт клиента', () async {
     reply = (_) => http.Response('{}', 401);
     await add('a');

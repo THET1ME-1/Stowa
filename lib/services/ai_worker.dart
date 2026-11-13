@@ -13,6 +13,7 @@ import '../data/settings_repository.dart';
 import '../domain/ai_contract.dart';
 import '../domain/folder_tree.dart';
 import '../domain/models.dart';
+import '../domain/note_links.dart' show shownTitle;
 import '../domain/related.dart';
 import '../domain/tag_name.dart';
 import 'ai_client.dart';
@@ -278,6 +279,7 @@ class AiWorker {
       pageTitle: previewed ? item.title : null,
       pageDescription: item.previewText,
       imageBase64Jpeg: image,
+      writtenAt: item.createdAt,
     );
   }
 
@@ -291,7 +293,10 @@ class AiWorker {
           'SELECT folders.id, folders.name, folders.parent_id, '
           '(SELECT group_concat(name, char(31)) FROM (SELECT tags.name AS name FROM item_tags JOIN tags ON tags.id = item_tags.tag_id '
           'JOIN items ON items.id = item_tags.item_id WHERE items.folder_id = folders.id AND items.deleted_at IS NULL '
-          'GROUP BY tags.name ORDER BY count(*) DESC LIMIT 3)) AS top_tags '
+          'GROUP BY tags.name ORDER BY count(*) DESC LIMIT 3)) AS top_tags, '
+          // образцы раскладки — только решения человека и его правил (и заметки из Obsidian), не догадки
+          "(SELECT group_concat(title, char(31)) FROM (SELECT items.title AS title FROM items WHERE items.folder_id = folders.id AND items.deleted_at IS NULL "
+          "AND items.sorted_by IN ('user', 'rule') AND trim(items.title) <> '' ORDER BY items.updated_at DESC LIMIT 4)) AS samples "
           // скрытые папки ИИ не видит даже открытыми: ни имён, ни тегов
           'FROM folders WHERE folders.deleted_at IS NULL AND folders.hidden = 0 ORDER BY folders.sort_order',
         )
@@ -306,6 +311,7 @@ class AiWorker {
           id: row.read<String>('id'),
           name: tree.pathLabel(row.read<String>('id')),
           topTags: (row.readNullable<String>('top_tags') ?? '').split('\x1f').where((tag) => tag.isNotEmpty).toList(),
+          samples: [for (final title in (row.readNullable<String>('samples') ?? '').split('\x1f')) if (title.isNotEmpty) shownTitle(title)],
         ),
     ];
   }

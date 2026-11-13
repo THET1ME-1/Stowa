@@ -91,6 +91,38 @@ void main() {
     expect(parseSortDecision(answer({'reminder': '2027-06-01T00:30:00'}), context)!.reminder, DateTime(2027, 6, 1, 0, 30));
   });
 
+  test('модель видит, что уже лежит в папках: по ним понимает, как раскладывает хозяин', () {
+    final sorted = SortContext(
+      item: const ItemForAi(id: 'new', kind: ItemKind.note, text: 'Созвон с Петей про макет'),
+      folders: const [FolderForAi(id: 'work', name: 'Журнал', samples: ['2026-11-10 Планёрка', '2026-11-11 Встреча с заказчиком'])],
+      tags: const [],
+      examples: const [],
+      candidates: const [],
+      now: now,
+      timeZone: 'Europe/Chisinau',
+    );
+    final text = jsonEncode(buildSortMessages(sorted));
+    expect(text, contains('- work: Журнал (заметки: «2026-11-10 Планёрка», «2026-11-11 Встреча с заказчиком»)'));
+    expect(text, contains('по заметкам, которые в ней уже лежат'));
+  });
+
+  test('модель знает день, когда заметка написана: «завтра» в старой заметке — прошлое', () {
+    final old = SortContext(
+      item: ItemForAi(id: 'old', kind: ItemKind.note, text: 'Завтра к врачу в 10', writtenAt: DateTime(2023, 3, 14, 18)),
+      folders: const [],
+      tags: const [],
+      examples: const [],
+      candidates: const [],
+      now: now,
+      timeZone: 'Europe/Chisinau',
+    );
+    final text = jsonEncode(buildSortMessages(old));
+    expect(text, contains('Написано: 2023-03-14'));
+    expect(text, contains('от дня, когда заметка написана'));
+    // модель посчитала «завтра» от дня записи — прошлое не ставится
+    expect(parseSortDecision(answer({'reminder': '2023-03-15T10:00:00'}), old)!.reminder, isNull);
+  });
+
   test('напоминание в прошлом отбрасывается', () {
     expect(parseSortDecision(answer({'reminder': '2026-11-01T10:00:00'}), context)!.reminder, isNull);
   });
