@@ -68,24 +68,10 @@ void main() {
     expect(parseReminder('купить 8 яиц', now), isNull);
   });
 
-  group('правка текста', () {
-    test('поменял время в тексте — напоминание идёт за ним', () {
-      expect(reminderAfterEdit('в 7:00 закинуть футболку', 'в 8:30 закинуть футболку', now), DateTime(2026, 11, 2, 8, 30).add(const Duration(days: 1)));
-      expect(reminderAfterEdit('матч в пятницу в 6 вечера', 'матч в субботу в 6 вечера', now), DateTime(2026, 11, 7, 18));
-    });
-
-    test('время в тексте то же — не трогать: правка рядом не сбивает переставленное руками', () {
-      expect(reminderAfterEdit('в 7:00 закинуть футболку', 'в 7:00 закинуть футболку и носки', now), isNull);
-      expect(reminderAfterEdit('Завтра в 10 сервис', 'завтра в 10 сервис, взять документы', now), isNull);
-    });
-
-    test('время дописали в заметку без него — напоминание встаёт', () {
-      expect(reminderAfterEdit('купить хлеб', 'купить хлеб завтра в 9', now), DateTime(2026, 11, 3, 9));
-    });
-
-    test('время стёрли — напоминание остаётся, его снимает галочка', () {
-      expect(reminderAfterEdit('в 7:00 закинуть футболку', 'закинуть футболку', now), isNull);
-    });
+  test('как время написано: без регистра, правка рядом его не меняет', () {
+    expect(reminderPhrase('Завтра в 10 сервис', now), reminderPhrase('завтра в 10 сервис, взять документы', now));
+    expect(reminderPhrase('в 7:00 закинуть футболку', now), isNot(reminderPhrase('в 8:30 закинуть футболку', now)));
+    expect(reminderPhrase('купить хлеб', now), isNull);
   });
 
   test('через сколько-то', () {

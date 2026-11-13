@@ -18,7 +18,8 @@ import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
-import '../../domain/reminder_parser.dart' show parseReminder, reminderAfterEdit, reminderPhrase;
+import '../../domain/place_cue.dart' show KnownPlace, parsePlaceCue;
+import '../../domain/reminder_parser.dart' show parseReminder, reminderPhrase;
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
@@ -119,6 +120,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _items = ref.read(itemsRepositoryProvider);
     _clock = ref.read(clockProvider);
     _workEnd = ref.read(workEndProvider);
+    // свои места заранее: правка узнаёт «у Саши», даже если поток мест ещё не пришёл
+    ref.read(placesRepositoryProvider).all().then((places) {
+      if (mounted) _known = _knownOf(places);
+    }).ignore();
     _title.addListener(_changed);
     _body.addListener(_changed);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
@@ -147,24 +152,46 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _title.text = titleIsFirstLine(body, item.title) ? '' : item.title;
     _body.text = append && body.trim().isNotEmpty && !body.endsWith('\n') ? '$body\n' : body;
     _body.selection = TextSelection.collapsed(offset: _body.text.length);
-    _seenPhrase = reminderPhrase('${_title.text}\n${_body.text}', _clock(), workEnd: _workEnd());
+    final now = '${_title.text}\n${_body.text}';
+    if (ref.read(placesProvider).value case final places?) _known = _knownOf(places);
+    _seenPhrase = reminderPhrase(now, _clock(), workEnd: _workEnd());
+    _seenPlace = _placePhrase(now);
     _timeTouched = false;
+    _placeTouched = false;
     setState(() => _editing = true);
     _bodyFocus.requestFocus();
   }
 
-  // время в тексте, каким его видели на прошлом нажатии
+  // время и место в тексте, какими их видели на прошлом нажатии
   String? _seenPhrase;
+  String? _seenPlace;
 
-  /// Время в тексте трогали с прошлого сохранения: стёр «8» и набрал заново — тоже трогали,
-  /// хотя текст вышел прежним. Тогда напоминание встаёт по тексту.
+  /// Время или место в тексте трогали с прошлого сохранения: стёр «8» и набрал заново — тоже
+  /// трогали, хотя текст вышел прежним. Тогда напоминание встаёт по тексту. Не трогали — правка
+  /// рядом переставленное руками не сбивает.
   bool _timeTouched = false;
+  bool _placeTouched = false;
+
+  /// Свои места: «буду у Саши» узнаёт «Сашу». Берутся при входе в правку — сохранять
+  /// приходится и в dispose, когда ref уже нельзя трогать.
+  List<KnownPlace> _known = const [];
+
+  List<KnownPlace> _knownOf(List<Place> places) => [for (final place in places) (id: place.id, name: place.name, kind: place.kind, label: place.label)];
+
+  String? _placePhrase(String text) {
+    final cue = parsePlaceCue(text, places: _known);
+    return cue == null ? null : '${cue.kind.name}|${cue.placeId}|${text.substring(cue.start, cue.end).toLowerCase()}';
+  }
 
   void _changed() {
     if (!_editing) return;
-    final phrase = reminderPhrase('${_title.text}\n${_body.text}', _clock(), workEnd: _workEnd());
+    final text = '${_title.text}\n${_body.text}';
+    final phrase = reminderPhrase(text, _clock(), workEnd: _workEnd());
     if (phrase != _seenPhrase) _timeTouched = true;
     _seenPhrase = phrase;
+    final place = _placePhrase(text);
+    if (place != _seenPlace) _placeTouched = true;
+    _seenPlace = place;
     _autosave?.cancel();
     _autosave = Timer(_autosaveDelay, _save);
   }
@@ -174,22 +201,31 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final typed = _title.text.trim();
     // заголовок стёрли — берётся из текста, как при сохранении из строки
     final title = typed.isNotEmpty ? typed : titleFor(body);
-    final touched = _timeTouched;
+    final timeTouched = _timeTouched;
+    final placeTouched = _placeTouched;
     _timeTouched = false;
+    _placeTouched = false;
     final same = title == _savedTitle && body == _savedBody;
-    if (same && !touched) return;
-    // трогали время — напоминание по тексту; иначе только если время в тексте поменялось
-    // («в 7:00» → «в 8:30»), а правка рядом переставленное руками не сбивает
+    if (same && !timeTouched && !placeTouched) return;
     final text = '$title\n$body';
-    final moved = touched
-        ? parseReminder(text, _clock(), workEnd: _workEnd())?.at
-        : reminderAfterEdit('${_savedTitle ?? ''}\n${_savedBody ?? ''}', text, _clock(), workEnd: _workEnd());
+    final now = _clock();
+    // «здесь» требует точки с телефона: его ставит только строка и лист «Напомнить»
+    final cue = placeTouched ? parsePlaceCue(text, places: _known) : null;
+    final place = cue?.kind == PlaceReminderKind.point ? null : cue;
+    final found = timeTouched || place != null ? parseReminder(text, now, workEnd: _workEnd()) : null;
+    // «завтра буду проходить мимо магазина»: день без часа рядом с местом — день места, а не звонок в 9 утра
+    final placeDay = place != null && found != null && !found.hasTime ? DateTime(found.at.year, found.at.month, found.at.day) : null;
     if (!same) {
       _savedTitle = title;
       _savedBody = body;
-      await _items.setTitleBody(_id, title: title, body: body, at: _clock());
+      await _items.setTitleBody(_id, title: title, body: body, at: now);
     }
-    if (moved != null) await _items.setReminder(_id, moved);
+    if (place != null) {
+      await _items.setPlaceReminder(_id, PlaceReminder(place.kind, ref: place.placeId, name: place.placeName, day: placeDay));
+      if (placeDay != null) await _items.setReminder(_id, null);
+    }
+    // стёрли время или место — напоминание остаётся, его снимает галочка
+    if (timeTouched && placeDay == null && found != null) await _items.setReminder(_id, found.at);
   }
 
   Future<void> _finish() async {

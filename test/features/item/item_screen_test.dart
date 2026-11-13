@@ -180,6 +180,58 @@ void main() {
     expect((await saved()).reminderAt, morning.add(const Duration(hours: 1, minutes: 30)));
   });
 
+  group('правка без «Готово»: время и место встают сами после паузы', () {
+    Future<void> edit(WidgetTester tester, String text) async {
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, text);
+      // пауза автосохранения, «Готово» не нажимаем
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('время', (tester) async {
+      await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
+      await edit(tester, 'Купить хлеб в 6 вечера');
+      expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 18));
+    });
+
+    testWidgets('вписал место — напоминание у магазина', (tester) async {
+      await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
+      await edit(tester, 'Купить хлеб, буду проходить мимо магазина');
+      expect((await saved()).remindPlace, PlaceReminderKind.shop);
+    });
+
+    testWidgets('поменял место — напоминание переезжает', (tester) async {
+      await open(tester, body: 'Буду проходить мимо магазина, купить пластырь', title: 'Купить пластырь');
+      await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(const ItemsCompanion(remindPlace: Value(PlaceReminderKind.shop)));
+      await edit(tester, 'Буду проходить мимо аптеки, купить пластырь');
+      expect((await saved()).remindPlace, PlaceReminderKind.pharmacy);
+    });
+
+    testWidgets('«завтра» рядом с местом — день места, а не звонок в 9 утра', (tester) async {
+      await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
+      await edit(tester, 'Завтра буду проходить мимо магазина, купить хлеб');
+      final item = await saved();
+      expect((item.remindPlace, item.remindPlaceDay, item.reminderAt), (PlaceReminderKind.shop, DateTime(world.now.year, world.now.month, world.now.day + 1), null));
+    });
+
+    testWidgets('своё место по имени', (tester) async {
+      await world.db.into(world.db.places).insert(PlacesCompanion.insert(id: 'sasha', kind: PlaceKind.guests, name: 'Саша', latitude: 47.0, longitude: 28.8, createdAt: world.now));
+      await open(tester, body: 'Отдать книгу', title: 'Отдать книгу');
+      await edit(tester, 'Буду у Саши, отдать книгу');
+      final item = await saved();
+      expect((item.remindPlace, item.remindPlaceRef), (PlaceReminderKind.place, 'sasha'));
+    });
+
+    testWidgets('стёр место — напоминание остаётся', (tester) async {
+      await open(tester, body: 'Буду проходить мимо магазина, купить хлеб', title: 'Купить хлеб');
+      await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(const ItemsCompanion(remindPlace: Value(PlaceReminderKind.shop)));
+      await edit(tester, 'Купить хлеб');
+      expect((await saved()).remindPlace, PlaceReminderKind.shop);
+    });
+  });
+
   testWidgets('стёр время и набрал то же, пока правка не сохранилась, — напоминание встаёт по тексту', (tester) async {
     // напоминание разошлось с текстом: «8 часов вечера», а стоит 6 утра (старая сборка так ставила)
     await open(tester, body: 'В 8 часов вечера пить пиво', title: 'Пить пиво');
