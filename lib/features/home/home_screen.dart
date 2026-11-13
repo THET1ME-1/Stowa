@@ -395,6 +395,8 @@ class _Feed extends ConsumerWidget {
         if (recent.isNotEmpty)
           SliverToBoxAdapter(
             child: NoteTimeline(
+              // точки заметок держатся над строкой ввода, как аватарки в чате
+              bottomInset: _dockSpace + bottom,
               items: recent,
               filesRoot: filesRoot,
               now: now,

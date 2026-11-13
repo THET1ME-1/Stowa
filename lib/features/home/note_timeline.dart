@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
@@ -30,8 +31,11 @@ const _rail = Space.screen + 6;
 /// Отступ карточки заметки от края экрана: ось с точкой занимает узкую полосу слева.
 const _indent = Space.screen + 22;
 
-/// Точка заметки на оси — на уровне заголовка карточки.
+/// Точка заметки не выше уровня заголовка карточки.
 const _dotTop = 18.0;
+
+/// Точка у низа карточки — на уровне строки с меткой и временем.
+const _dotBottom = 22.0;
 
 /// Фото в ленте не выше этого: лента листается быстро, а целиком оно на странице заметки.
 const _photoMax = 220.0;
@@ -50,6 +54,7 @@ class NoteTimeline extends StatefulWidget {
     required this.filesRoot,
     required this.now,
     this.aiSorting = false,
+    this.bottomInset = 0,
     required this.onOpen,
     required this.onMove,
     required this.onAct,
@@ -57,6 +62,9 @@ class NoteTimeline extends StatefulWidget {
   });
 
   final List<ItemCard> items;
+
+  /// Сколько снизу экрана закрывает строка ввода: точка заметки держится над ней.
+  final double bottomInset;
   final Directory filesRoot;
   final DateTime now;
 
@@ -113,6 +121,7 @@ class _NoteTimelineState extends State<NoteTimeline> {
                           filesRoot: widget.filesRoot,
                           now: widget.now,
                           aiSorting: widget.aiSorting,
+                          bottomInset: widget.bottomInset,
                           onOpen: () => widget.onOpen(item),
                           onMove: () => widget.onMove(item),
                           onAct: () => widget.onAct(item),
@@ -131,6 +140,106 @@ class _NoteTimelineState extends State<NoteTimeline> {
 }
 
 String _capitalized(String text) => text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
+
+/// Точка заметки на оси, как аватарка в чате Telegram: у низа своей карточки; низ ушёл под
+/// строку ввода — держится над строкой и едет с лентой, пока не упрётся в верх карточки.
+class _TimelineDot extends LeafRenderObjectWidget {
+  const _TimelineDot({super.key, required this.color, required this.ring, required this.bottomInset});
+
+  final Color color;
+  final Color ring;
+  final double bottomInset;
+
+  @override
+  RenderTimelineDot createRenderObject(BuildContext context) =>
+      RenderTimelineDot(color: color, ring: ring, bottomInset: bottomInset, scroll: Scrollable.maybeOf(context)?.position);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderTimelineDot renderObject) {
+    renderObject
+      ..color = color
+      ..ring = ring
+      ..bottomInset = bottomInset
+      ..scroll = Scrollable.maybeOf(context)?.position;
+  }
+}
+
+/// Точка ленты сама решает, где стоять, по месту карточки на экране. Прокрутка её только
+/// перерисовывает: ни сборки, ни раскладки ленты на каждый кадр.
+class RenderTimelineDot extends RenderBox {
+  RenderTimelineDot({required Color color, required Color ring, required double bottomInset, ScrollPosition? scroll})
+    : _color = color, // ignore: prefer_initializing_formals
+      _ring = ring, // ignore: prefer_initializing_formals
+      _bottomInset = bottomInset, // ignore: prefer_initializing_formals
+      _scroll = scroll; // ignore: prefer_initializing_formals
+
+  Color _color;
+  set color(Color value) {
+    if (value == _color) return;
+    _color = value;
+    markNeedsPaint();
+  }
+
+  Color _ring;
+  set ring(Color value) {
+    if (value == _ring) return;
+    _ring = value;
+    markNeedsPaint();
+  }
+
+  double _bottomInset;
+  set bottomInset(double value) {
+    if (value == _bottomInset) return;
+    _bottomInset = value;
+    markNeedsPaint();
+  }
+
+  ScrollPosition? _scroll;
+  set scroll(ScrollPosition? value) {
+    if (value == _scroll) return;
+    if (attached) _scroll?.removeListener(markNeedsPaint);
+    _scroll = value;
+    if (attached) _scroll?.addListener(markNeedsPaint);
+    markNeedsPaint();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _scroll?.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _scroll?.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) => constraints.biggest;
+
+  /// Середина точки от верха карточки: у низа, но не ниже кромки строки ввода и не выше заголовка.
+  double get dotCenter {
+    final natural = size.height - _dotBottom;
+    final viewport = RenderAbstractViewport.maybeOf(this);
+    final box = viewport is RenderBox ? viewport as RenderBox : null;
+    if (box == null || !box.hasSize) return math.max(_dotTop, natural);
+    final edge = box.localToGlobal(Offset(0, box.size.height)).dy - _bottomInset - _dotBottom;
+    final top = localToGlobal(Offset.zero).dy;
+    return math.max(_dotTop, math.min(natural, edge - top));
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final center = offset + Offset(size.width / 2, dotCenter);
+    context.canvas
+      ..drawCircle(center, 6, Paint()..color = _ring)
+      ..drawCircle(center, 3.5, Paint()..color = _color);
+  }
+}
 
 /// «Сегодня 7 ноября», «Вчера 6 ноября», «Среда 4 ноября».
 class _DayHeader extends StatelessWidget {
@@ -200,6 +309,7 @@ class _Entry extends StatelessWidget {
     required this.filesRoot,
     required this.now,
     required this.aiSorting,
+    required this.bottomInset,
     required this.onOpen,
     required this.onMove,
     required this.onAct,
@@ -210,6 +320,7 @@ class _Entry extends StatelessWidget {
   final Directory filesRoot;
   final DateTime now;
   final bool aiSorting;
+  final double bottomInset;
   final VoidCallback onOpen;
   final VoidCallback onMove;
   final VoidCallback onAct;
@@ -238,18 +349,18 @@ class _Entry extends StatelessWidget {
     );
     return Stack(
       children: [
-        // точка в цвет папки, у неразложенной серая; кольцо цвета фона разрывает пунктир
+        // точка в цвет папки, у неразложенной серая; кольцо цвета фона разрывает пунктир.
+        // Как аватарка в Telegram: у низа карточки, а низ под строкой ввода — над строкой
         Positioned(
           left: _rail - 6,
-          top: _dotTop - 6,
-          child: Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!),
-              shape: BoxShape.circle,
-              border: Border.all(color: Tokens.background, width: 2.5),
-            ),
+          top: 0,
+          bottom: 0,
+          width: 12,
+          child: _TimelineDot(
+            key: ValueKey('dot-${item.id}'),
+            color: item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!),
+            ring: Tokens.background,
+            bottomInset: bottomInset,
           ),
         ),
         Padding(
