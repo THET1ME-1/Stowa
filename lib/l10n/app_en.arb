@@ -2368,9 +2368,9 @@
   "@returnShopping": {
     "description": "Экран и настройка покупок у магазина"
   },
-  "settingsReturns": "Bring back",
+  "settingsReturns": "Notifications",
   "@settingsReturns": {
-    "description": "Раздел настроек: что из сохранённого возвращать уведомлениями"
+    "description": "Раздел настроек: вечерние уведомления, тихие часы и места"
   },
   "returnWeekSetting": "Weekly summary",
   "@returnWeekSetting": {

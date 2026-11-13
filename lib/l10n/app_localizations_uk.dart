@@ -1898,7 +1898,7 @@ class LUk extends L {
   String get returnShopping => 'Купити';
 
   @override
-  String get settingsReturns => 'Повертати';
+  String get settingsReturns => 'Сповіщення';
 
   @override
   String get returnWeekSetting => 'Підсумок тижня';

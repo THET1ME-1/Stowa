@@ -1875,7 +1875,7 @@ class LRo extends L {
   String get returnShopping => 'De cumpărat';
 
   @override
-  String get settingsReturns => 'Readu aminte';
+  String get settingsReturns => 'Notificări';
 
   @override
   String get returnWeekSetting => 'Rezumatul săptămânii';

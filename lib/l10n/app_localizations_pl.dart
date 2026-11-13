@@ -1897,7 +1897,7 @@ class LPl extends L {
   String get returnShopping => 'Do kupienia';
 
   @override
-  String get settingsReturns => 'Przypominaj';
+  String get settingsReturns => 'Powiadomienia';
 
   @override
   String get returnWeekSetting => 'Podsumowanie tygodnia';

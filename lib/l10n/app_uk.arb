@@ -241,7 +241,7 @@
   "returnShopTitle": "У магазині «{shop}»",
   "returnShopMore": "{items} і ще {count}",
   "returnShopping": "Купити",
-  "settingsReturns": "Повертати",
+  "settingsReturns": "Сповіщення",
   "returnWeekSetting": "Підсумок тижня",
   "returnShoppingSetting": "Покупки біля магазину",
   "returnEveningRow": "Увечері о",

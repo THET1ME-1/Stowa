@@ -1863,7 +1863,7 @@ class LDe extends L {
   String get returnShopping => 'Einkaufen';
 
   @override
-  String get settingsReturns => 'Zurückbringen';
+  String get settingsReturns => 'Benachrichtigungen';
 
   @override
   String get returnWeekSetting => 'Wochenrückblick';

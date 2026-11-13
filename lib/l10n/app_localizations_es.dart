@@ -1859,7 +1859,7 @@ class LEs extends L {
   String get returnShopping => 'Por comprar';
 
   @override
-  String get settingsReturns => 'Recordar lo guardado';
+  String get settingsReturns => 'Notificaciones';
 
   @override
   String get returnWeekSetting => 'Resumen semanal';

@@ -1858,7 +1858,7 @@ class LEn extends L {
   String get returnShopping => 'To buy';
 
   @override
-  String get settingsReturns => 'Bring back';
+  String get settingsReturns => 'Notifications';
 
   @override
   String get returnWeekSetting => 'Weekly summary';

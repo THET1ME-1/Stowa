@@ -489,7 +489,7 @@
   "returnShopTitle": "В магазине «{shop}»",
   "returnShopMore": "{items} и ещё {count}",
   "returnShopping": "Купить",
-  "settingsReturns": "Возвращать",
+  "settingsReturns": "Уведомления",
   "returnWeekSetting": "Сводка недели",
   "returnShoppingSetting": "Покупки у магазина",
   "returnEveningRow": "Вечером в",

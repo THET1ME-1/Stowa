@@ -241,7 +241,7 @@
   "returnShopTitle": "W sklepie {shop}",
   "returnShopMore": "{items} i jeszcze {count}",
   "returnShopping": "Do kupienia",
-  "settingsReturns": "Przypominaj",
+  "settingsReturns": "Powiadomienia",
   "returnWeekSetting": "Podsumowanie tygodnia",
   "returnShoppingSetting": "Zakupy przy sklepie",
   "returnEveningRow": "Wieczorem o",

@@ -1902,7 +1902,7 @@ class LRu extends L {
   String get returnShopping => 'Купить';
 
   @override
-  String get settingsReturns => 'Возвращать';
+  String get settingsReturns => 'Уведомления';
 
   @override
   String get returnWeekSetting => 'Сводка недели';

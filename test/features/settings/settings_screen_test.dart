@@ -85,7 +85,7 @@ void main() {
     expect(find.textContaining('Работает · '), findsOneWidget);
   });
 
-  for (final section in ['Разбор ИИ', 'Возвращать', 'Хранилище']) {
+  for (final section in ['Разбор ИИ', 'Уведомления', 'Хранилище']) {
     testWidgets('320 точек и крупный шрифт: «$section» влезает', (tester) async {
       await open(tester, keyStatus: 200, size: const Size(320, 700), textScale: 1.3);
       expect(tester.takeException(), isNull);
@@ -244,8 +244,8 @@ void main() {
     expect(settings.placeEnabled, isTrue);
   });
 
-  testWidgets('экран «Возвращать»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
-    await openSection(tester, 'Возвращать');
+  testWidgets('экран «Уведомления»: виды включаются по одному, час вечера и день сводки видны', (tester) async {
+    await openSection(tester, 'Уведомления');
     for (final label in ['Посмотреть потом', 'В этот день', 'Сводка недели', 'Покупки у магазина', '20:00', '22:00–08:00', 'воскресенье', 'Работа до', '18:00', 'Места']) {
       await tester.scrollUntilVisible(find.text(label), 100);
       expect(find.text(label), findsOneWidget);

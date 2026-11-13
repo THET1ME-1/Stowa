@@ -3041,10 +3041,10 @@ abstract class L {
   /// **'To buy'**
   String get returnShopping;
 
-  /// Раздел настроек: что из сохранённого возвращать уведомлениями
+  /// Раздел настроек: вечерние уведомления, тихие часы и места
   ///
   /// In en, this message translates to:
-  /// **'Bring back'**
+  /// **'Notifications'**
   String get settingsReturns;
 
   /// Переключатель сводки недели
