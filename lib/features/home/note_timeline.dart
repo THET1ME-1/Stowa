@@ -386,6 +386,73 @@ class _Entry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // точка в цвет папки, у неразложенной серая; кольцо цвета фона разрывает пунктир.
+        // Как аватарка в Telegram: у низа карточки, а низ под строкой ввода — над строкой
+        Positioned(
+          left: _rail - 6,
+          top: 0,
+          bottom: 0,
+          width: 12,
+          child: _TimelineDot(
+            key: ValueKey('dot-${item.id}'),
+            color: item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!),
+            ring: Tokens.background,
+            bottomInset: bottomInset,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: _indent, right: Space.screen),
+          child: NoteCard(
+            item: item,
+            dated: dated,
+            filesRoot: filesRoot,
+            now: now,
+            aiSorting: aiSorting,
+            onOpen: onOpen,
+            onMove: onMove,
+            onAct: onAct,
+            onToggle: onToggle,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Карточка заметки, как в ленте главной: текст в две строки, фото, ссылка или файл, метка
+/// папки и время. Её же показывает полка «Под рукой»; [trailing] — кнопка в правом верхнем углу.
+class NoteCard extends StatelessWidget {
+  const NoteCard({
+    super.key,
+    required this.item,
+    this.dated = false,
+    required this.filesRoot,
+    required this.now,
+    this.aiSorting = false,
+    required this.onOpen,
+    required this.onMove,
+    required this.onAct,
+    required this.onToggle,
+    this.trailing,
+  });
+
+  final ItemCard item;
+
+  /// В углу день записи вместо часа.
+  final bool dated;
+  final Directory filesRoot;
+  final DateTime now;
+  final bool aiSorting;
+  final VoidCallback onOpen;
+  final VoidCallback onMove;
+  final VoidCallback onAct;
+  final ValueChanged<int> onToggle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
     final l = L.of(context);
     final at = item.createdAt;
     final stamp = !dated
@@ -411,53 +478,39 @@ class _Entry extends StatelessWidget {
       stamp,
       style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()]),
     );
-    return Stack(
-      children: [
-        // точка в цвет папки, у неразложенной серая; кольцо цвета фона разрывает пунктир.
-        // Как аватарка в Telegram: у низа карточки, а низ под строкой ввода — над строкой
-        Positioned(
-          left: _rail - 6,
-          top: 0,
-          bottom: 0,
-          width: 12,
-          child: _TimelineDot(
-            key: ValueKey('dot-${item.id}'),
-            color: item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!),
-            ring: Tokens.background,
-            bottomInset: bottomInset,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: _indent, right: Space.screen),
-          child: Pressable(
-            onTap: onOpen,
-            onLongPress: onAct,
-            pressedScale: 0.98,
-            child: Container(
-              decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(_cardRadius)),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  content,
-                  // время — в углу рядом с меткой папки, а не отдельной строкой над карточкой
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(pad, 12, pad + 2, pad),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(child: _Marks(item: item, now: now, aiSorting: aiSorting, onMove: onMove)),
-                        const SizedBox(width: 8),
-                        Padding(padding: const EdgeInsets.only(bottom: 6), child: time),
-                      ],
-                    ),
+    final trailing = this.trailing;
+    return Pressable(
+      onTap: onOpen,
+      onLongPress: onAct,
+      pressedScale: 0.98,
+      child: Container(
+        decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(_cardRadius)),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // у текста место под кнопку в углу, фото и обложка идут под неё
+                if (trailing != null && thumb == null) Padding(padding: const EdgeInsets.only(right: 36), child: content) else content,
+                // время — в углу рядом с меткой папки, а не отдельной строкой над карточкой
+                Padding(
+                  padding: EdgeInsets.fromLTRB(pad, 12, pad + 2, pad),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(child: _Marks(item: item, now: now, aiSorting: aiSorting, onMove: onMove)),
+                      const SizedBox(width: 8),
+                      Padding(padding: const EdgeInsets.only(bottom: 6), child: time),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
+            if (trailing != null) Positioned(top: 8, right: 8, child: trailing),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
