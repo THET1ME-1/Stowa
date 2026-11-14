@@ -38,6 +38,8 @@ class EdgeService : Service() {
             onSpines = { spines -> handle?.spines = spines },
             onShown = ::spinesAway,
             onClosing = ::spinesBack,
+            onApply = { applyPrefs(animated = true) },
+            onStop = ::hideHandle,
         )
     }
 
@@ -148,7 +150,8 @@ class EdgeService : Service() {
                 windows.updateViewLayout(view, params)
                 handleParams = params
                 view.translationX = outside(view, next)
-                view.animate().translationX(0f).setDuration(350).setInterpolator(DECELERATE).start()
+                // край сменили в открытой полке: корешки ждут за новым краем и выедут, когда она уйдёт
+                if (!panel.isShown) view.animate().translationX(0f).setDuration(350).setInterpolator(DECELERATE).start()
             }.start()
             return
         }

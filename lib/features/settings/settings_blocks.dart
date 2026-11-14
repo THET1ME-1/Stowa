@@ -185,6 +185,9 @@ class SettingsRow extends StatelessWidget {
   }
 }
 
+/// Строка уже этого (без отступов) показывается без значка.
+const _iconRowMin = 280.0;
+
 /// Строка с переключателем: касание по всей строке переключает.
 class SettingsSwitchRow extends StatelessWidget {
   const SettingsSwitchRow({super.key, required this.icon, required this.title, this.subtitle, required this.value, required this.onChanged});
@@ -203,15 +206,18 @@ class SettingsSwitchRow extends StatelessWidget {
         onTap: () => onChanged(!value),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-          child: Row(
-            children: [
-              SettingsIconChip(icon),
-              const SizedBox(width: 16),
-              // под переключателем пояснение, что он делает: обрезанное на полуслове не помогает
-              Expanded(child: _RowText(title: title, value: subtitle, valueLines: null)),
-              const SizedBox(width: 8),
-              Switch(value: value, onChanged: onChanged),
-            ],
+          // в узком окне (полка «Под рукой») значок отдаёт место тексту: иначе длинное слово
+          // заголовка рвалось посередине («полн / оэкранном»)
+          child: LayoutBuilder(
+            builder: (context, constraints) => Row(
+              children: [
+                if (constraints.maxWidth >= _iconRowMin) ...[SettingsIconChip(icon), const SizedBox(width: 16)],
+                // под переключателем пояснение, что он делает: обрезанное на полуслове не помогает
+                Expanded(child: _RowText(title: title, value: subtitle, valueLines: null)),
+                const SizedBox(width: 8),
+                Switch(value: value, onChanged: onChanged),
+              ],
+            ),
           ),
         ),
       ),

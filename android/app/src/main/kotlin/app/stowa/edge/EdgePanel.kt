@@ -35,6 +35,10 @@ class EdgePanel(
     private val onShown: () -> Unit,
     /** Полка начала уезжать или окно убрано: корешкам вернуться. */
     private val onClosing: () -> Unit,
+    /** Настройку корешков поменяли в самой полке: край, высота, размер, заметность. */
+    private val onApply: () -> Unit,
+    /** «Под рукой» выключили в самой полке. */
+    private val onStop: () -> Unit,
 ) {
     private var engine: FlutterEngine? = null
     private var channel: MethodChannel? = null
@@ -189,6 +193,18 @@ class EdgePanel(
                     handOff(args["action"] as String, args["text"] as String? ?: "")
                     result.success(null)
                 }
+                // настройка корешков открыта прямо в полке: она зовёт те же команды, что главное окно.
+                // Без них смена края в полке двигала саму полку, а корешки оставались на старом краю
+                "apply" -> {
+                    onApply()
+                    result.success(null)
+                }
+                "stop" -> {
+                    onStop()
+                    result.success(null)
+                }
+                "start" -> result.success(null)
+                "canDraw" -> result.success(true)
                 // плагин записи без Activity право не видит: проверяем сами, писать он может
                 "micGranted" -> result.success(
                     context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,
