@@ -24,6 +24,7 @@ class QuickHost extends ConsumerStatefulWidget {
   const QuickHost({
     super.key,
     this.action = quickAction,
+    this.carried = carriedText,
     this.takePhoto = pickCameraPhoto,
     this.openNote = openNoteInApp,
     this.onFinish = SystemNavigator.pop,
@@ -31,6 +32,9 @@ class QuickHost extends ConsumerStatefulWidget {
 
   /// Какую кнопку виджета нажали. В тестах подменяется.
   final Future<LaunchAction> Function() action;
+
+  /// Что набрали в полке «Под рукой», прежде чем она передала дело сюда.
+  final Future<String?> Function() carried;
 
   /// Камера телефона.
   final Future<List<PickedFile>> Function() takePhoto;
@@ -106,11 +110,15 @@ class _QuickHostState extends ConsumerState<QuickHost> with WidgetsBindingObserv
     if (_started || !mounted) return;
     _started = true;
     final action = await widget.action();
+    final carried = await widget.carried();
     final dock = _dock.currentState;
     if (!mounted || _finishing || dock == null) return;
+    if (carried != null && carried.isNotEmpty) dock.prefill(carried);
     switch (action) {
       case LaunchAction.compose:
         _compose(dock);
+      case LaunchAction.attach:
+        dock.openTray();
       case LaunchAction.voice:
         if (await dock.startVoice()) return;
         // строка уже сказала «Нет доступа к микрофону»: даём прочитать

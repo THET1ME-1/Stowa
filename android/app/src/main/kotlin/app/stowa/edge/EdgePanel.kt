@@ -1,7 +1,9 @@
 package app.stowa.edge
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
@@ -10,6 +12,7 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.WindowManager
 import app.stowa.MainActivity
+import app.stowa.QuickActivity
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterTextureView
 import io.flutter.embedding.android.FlutterView
@@ -145,6 +148,18 @@ class EdgePanel(
         context.startActivity(intent)
     }
 
+    /** Окно виджета с нужной кнопкой и набранным в полке: stowa://attach?text=… */
+    private fun handOff(action: String, text: String) {
+        val address = Uri.Builder().scheme("stowa").authority(action)
+        if (text.isNotEmpty()) address.appendQueryParameter("text", text)
+        val intent = Intent(context, QuickActivity::class.java)
+            .setData(address.build())
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        close()
+        context.startActivity(intent)
+        Log.d(EdgeHandle.TAG, "hand off $action")
+    }
+
     private fun createEngine(): FlutterEngine {
         val engine = FlutterEngine(context)
         // буфер, вибрация и звук нажатия: в окне без Activity их некому обслужить
@@ -167,6 +182,17 @@ class EdgePanel(
                     openApp(call.arguments as String?)
                     result.success(null)
                 }
+                // {action, text}: камера, файлы и запрос микрофона — в окне виджета, у него есть Activity
+                "handOff" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val args = call.arguments as Map<String, Any?>
+                    handOff(args["action"] as String, args["text"] as String? ?: "")
+                    result.success(null)
+                }
+                // плагин записи без Activity право не видит: проверяем сами, писать он может
+                "micGranted" -> result.success(
+                    context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,
+                )
                 // окна стикеров появятся следующей задачей плана, пока только след в журнале
                 "pinSticker" -> {
                     Log.d(EdgeHandle.TAG, "pin sticker")

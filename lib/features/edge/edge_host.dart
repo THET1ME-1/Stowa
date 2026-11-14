@@ -389,7 +389,16 @@ class _ShelfHome extends StatelessWidget {
               ],
             ),
           ),
-          Positioned.fill(child: LineDock(onOpenItem: open, writeOnly: scope.guarded)),
+          Positioned.fill(
+            child: LineDock(
+              onOpenItem: open,
+              writeOnly: scope.guarded,
+              elsewhere: LineElsewhere(
+                handOff: (action, text) => ProviderScope.containerOf(context).read(edgeChannelProvider).handOff(action, text).ignore(),
+                micGranted: () => ProviderScope.containerOf(context).read(edgeChannelProvider).micGranted(),
+              ),
+            ),
+          ),
         ],
       ),
     );

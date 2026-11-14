@@ -10,6 +10,7 @@ import 'package:stowa/app.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/composer/attach_tray.dart';
 import 'package:stowa/features/home/home_screen.dart';
 import 'package:stowa/features/quick/quick_host.dart';
 import 'package:stowa/services/capture_service.dart';
@@ -37,6 +38,7 @@ void main() {
   Future<void> open(
     WidgetTester tester, {
     LaunchAction action = LaunchAction.compose,
+    String? carried,
     PrivacyLock? lock,
     Future<List<PickedFile>> Function()? takePhoto,
   }) async {
@@ -56,6 +58,7 @@ void main() {
           lockable: false,
           home: QuickHost(
             action: () async => action,
+            carried: () async => carried,
             takePhoto: takePhoto ?? () async => const [],
             openNote: (id) async => opened.add(id),
             onFinish: () async => finished++,
@@ -175,6 +178,20 @@ void main() {
     expect(finished, 0);
     expect(find.text('Закинуть'), findsWidgets);
     await tester.pump(const Duration(milliseconds: 600));
+  });
+
+  testWidgets('из полки «Под рукой» по «+»: набранное там уже в строке, лоток открыт', (tester) async {
+    await open(tester, action: LaunchAction.attach, carried: 'купить хлеб');
+    // на открытом лотке крутилка галереи: pumpAndSettle не дождётся
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(AttachTray), findsOneWidget);
+    expect(tester.widget<EditableText>(find.byType(EditableText).first).controller.text, 'купить хлеб');
+    expect(finished, 0);
+  });
+
+  testWidgets('из полки «Под рукой» без набранного — просто строка', (tester) async {
+    await open(tester, carried: null);
+    expect(tester.widget<EditableText>(find.byType(EditableText).first).controller.text, isEmpty);
   });
 
   testWidgets('строка без поиска его и не обещает: ни «или найди», ни «Похожего нет»', (tester) async {

@@ -32,6 +32,7 @@ import '../../domain/place_cue.dart' show KnownPlace;
 import '../../domain/search_query.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
+import '../../services/launch_actions.dart' show LaunchAction;
 import '../../core/widgets/undo_snack.dart' show showNote;
 import '../folder/folder_sheets.dart';
 import '../home/saved_toast.dart';
@@ -79,8 +80,19 @@ class _Toast {
 
 /// Живая строка целиком: тень над лентой, плашка «Закинул», панель с поиском
 /// и подсказками, галерея, голосовое и редактор на весь экран.
+/// Что строка в окне без Activity делает не сама.
+class LineElsewhere {
+  const LineElsewhere({required this.handOff, required this.micGranted});
+
+  /// Отдать дело окну с Activity вместе с набранным.
+  final void Function(LaunchAction action, String text) handOff;
+
+  /// Есть ли право на микрофон: плагин записи без Activity всегда отвечает «нет».
+  final Future<bool> Function() micGranted;
+}
+
 class LineDock extends ConsumerStatefulWidget {
-  const LineDock({super.key, required this.onOpenItem, this.homeFolder, this.onRest, this.writeOnly = false});
+  const LineDock({super.key, required this.onOpenItem, this.homeFolder, this.onRest, this.writeOnly = false, this.elsewhere});
 
   final ValueChanged<String> onOpenItem;
 
@@ -93,6 +105,10 @@ class LineDock extends ConsumerStatefulWidget {
   /// Только закидывать: не искать и не называть ничего из базы — ни заметок, ни папок, ни тегов.
   /// Так работает окно виджета при коде на вход: с рабочего стола строка открыта любому.
   final bool writeOnly;
+
+  /// Строка в окне без Activity (полка «Под рукой»): лоток с камерой и файлами и запрос
+  /// микрофона ей недоступны. Вместо них она отдаёт дело сюда вместе с набранным.
+  final LineElsewhere? elsewhere;
 
   @override
   ConsumerState<LineDock> createState() => LineDockState();
@@ -329,6 +345,17 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   /// Камера виджета: готовый снимок встаёт вложением.
   void attach(List<PickedFile> files) => _addPicked(files);
+
+  /// Набранное в другом окне (полка «Под рукой») продолжается здесь.
+  void prefill(String text) {
+    _line.value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+    _activate();
+  }
+
+  /// «+» полки: лоток вложений сразу открыт.
+  void openTray() {
+    if (!_tray) _toggleTray();
+  }
 
   /// В строке запись голоса или вложения: заново их не наберёшь, случайное касание терять не должно.
   bool get holdsMedia => _voice != null || _files.isNotEmpty;
@@ -610,16 +637,26 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   Future<bool> _startVoice() async {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final elsewhere = widget.elsewhere;
+    // без Activity спросить микрофон некому: с правом пишем здесь, без него — в окне виджета
+    if (elsewhere != null && !await elsewhere.micGranted()) {
+      _handOff(LaunchAction.voice);
+      return false;
+    }
     final session = VoiceSession(_voiceFolder);
     var started = false;
     try {
-      started = await session.start();
+      started = await session.start(checked: elsewhere != null);
     } catch (_) {
       started = false;
     }
     if (!started) {
       session.dispose();
-      messenger.showSnackBar(SnackBar(content: Text(l.voiceDenied)));
+      if (elsewhere != null) {
+        _handOff(LaunchAction.voice);
+      } else {
+        messenger.showSnackBar(SnackBar(content: Text(l.voiceDenied)));
+      }
       return false;
     }
     HapticFeedback.mediumImpact();
@@ -664,12 +701,23 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   void _toggleTray() {
     final open = !_tray;
+    if (open && widget.elsewhere != null) return _handOff(LaunchAction.attach);
     if (open) _focus.unfocus();
     setState(() {
       _tray = open;
       _full = false;
       if (open) _active = true;
     });
+  }
+
+  /// Дело уходит в другое окно вместе с набранным: здесь строка пустеет, иначе то же
+  /// сохранилось бы второй раз следующим касанием кнопки.
+  void _handOff(LaunchAction action) {
+    final text = _line.text;
+    _line.clear();
+    _focus.unfocus();
+    setState(() => _active = false);
+    widget.elsewhere?.handOff(action, text);
   }
 
   void _setFull(bool on) {

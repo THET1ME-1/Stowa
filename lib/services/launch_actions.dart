@@ -1,7 +1,8 @@
 import 'package:flutter/services.dart';
 
-/// С чем открыли окно виджета: строка с клавиатурой, сразу запись голоса или камера.
-enum LaunchAction { compose, voice, camera }
+/// С чем открыли окно виджета: строка с клавиатурой, сразу запись голоса, камера или лоток
+/// вложений (его зовёт полка «Под рукой»: в окне поверх нет Activity для камеры и файлов).
+enum LaunchAction { compose, voice, camera, attach }
 
 /// Канал с окном. У главного: `initial` — с чем приложение открыли, `open` — касание
 /// уведомления по месту или заметки в окне виджета, когда приложение уже живо.
@@ -24,6 +25,15 @@ Future<String?> initialLaunch() async {
 
 /// Кнопка виджета, с которой открыли его окно. Не узнали — строка.
 Future<LaunchAction> quickAction() async => launchActionOf(await initialLaunch()) ?? LaunchAction.compose;
+
+/// Набранное в полке «Под рукой», которое она передала окну виджета. Нет — null.
+Future<String?> carriedText() async {
+  try {
+    return await launchChannel.invokeMethod<String>('text');
+  } on MissingPluginException {
+    return null;
+  }
+}
 
 /// Из окна виджета: открыть заметку в самом приложении.
 Future<void> openNoteInApp(String id) async {

@@ -23,8 +23,9 @@ class VoiceSession extends ChangeNotifier {
   Duration get elapsed => _startedAt == null ? Duration.zero : DateTime.now().difference(_startedAt!);
 
   /// Начать запись. Нет доступа к микрофону — false.
-  Future<bool> start() async {
-    if (!await _recorder.hasPermission()) return false;
+  /// [checked] — право уже проверено снаружи: плагин без Activity его не видит и отвечает «нет».
+  Future<bool> start({bool checked = false}) async {
+    if (!checked && !await _recorder.hasPermission()) return false;
     await _folder.create(recursive: true);
     final path = p.join(_folder.path, 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a');
     await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);

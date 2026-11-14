@@ -11,11 +11,15 @@ import io.flutter.plugin.common.MethodChannel
 /**
  * Окно виджета: прозрачное, одна строка поверх рабочего стола, главная не открывается.
  * Виджет зовёт его адресом stowa://compose (строка с клавиатурой), stowa://voice
- * (сразу запись) или stowa://camera (снимок). Dart спрашивает кнопку через `initial`.
+ * (сразу запись) или stowa://camera (снимок), полка «Под рукой» — stowa://attach (лоток)
+ * или stowa://voice с `?text=` набранного. Dart спрашивает кнопку через `initial`, текст — `text`.
  */
 class QuickActivity : FlutterActivity() {
     private var window: MethodChannel? = null
     private var pending: String? = null
+
+    /** Набранное в полке «Под рукой», которая передала дело сюда (stowa://attach?text=…). */
+    private var pendingText: String? = null
 
     override fun getDartEntrypointFunctionName(): String = "quickMain"
 
@@ -31,7 +35,9 @@ class QuickActivity : FlutterActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        pending = intent?.data?.takeIf { it.scheme == "stowa" }?.host
+        val address = intent?.data?.takeIf { it.scheme == "stowa" }
+        pending = address?.host
+        pendingText = address?.getQueryParameter("text")
         super.onCreate(savedInstanceState)
     }
 
@@ -45,6 +51,10 @@ class QuickActivity : FlutterActivity() {
                 "initial" -> {
                     result.success(pending)
                     pending = null
+                }
+                "text" -> {
+                    result.success(pendingText)
+                    pendingText = null
                 }
                 "openNote" -> {
                     openInApp(call.arguments as String)

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../data/settings_repository.dart';
 import '../domain/edge_settings.dart';
 import '../domain/spine_colors.dart';
+import 'launch_actions.dart' show LaunchAction;
 
 /// Что служба сообщает полке: корешки коснулись или тянут, человек хочет её убрать.
 sealed class EdgeEvent {
@@ -73,6 +74,13 @@ abstract class EdgeChannel {
 
   /// Из окна полки: повесить заметку стикером поверх приложений.
   Future<void> pinSticker(String noteId);
+
+  /// Из окна полки: камере, файлам и запросу микрофона нужна Activity — дело переходит
+  /// в окно виджета вместе с набранным, полка уходит.
+  Future<void> handOff(LaunchAction action, String text);
+
+  /// Из окна полки: есть ли право на микрофон (плагин записи без Activity его не видит).
+  Future<bool> micGranted();
 }
 
 class MethodEdgeChannel implements EdgeChannel {
@@ -130,6 +138,12 @@ class MethodEdgeChannel implements EdgeChannel {
 
   @override
   Future<void> pinSticker(String noteId) => _channel.invokeMethod('pinSticker', noteId);
+
+  @override
+  Future<void> handOff(LaunchAction action, String text) => _channel.invokeMethod('handOff', {'action': action.name, 'text': text});
+
+  @override
+  Future<bool> micGranted() async => await _channel.invokeMethod<bool>('micGranted') ?? false;
 }
 
 /// iPhone и всё, где окон поверх нет: ничего не делает, права нет.
@@ -169,6 +183,12 @@ class NoEdgeChannel implements EdgeChannel {
 
   @override
   Future<void> pinSticker(String noteId) async {}
+
+  @override
+  Future<void> handOff(LaunchAction action, String text) async {}
+
+  @override
+  Future<bool> micGranted() async => false;
 }
 
 /// Для тестов: пишет вызовы по именам, право — [canDrawAnswer].
@@ -176,6 +196,7 @@ class NoEdgeChannel implements EdgeChannel {
 class FakeEdgeChannel implements EdgeChannel {
   final calls = <String>[];
   var canDrawAnswer = true;
+  var micAnswer = true;
   List<Spine> lastSpines = const [];
   final _events = StreamController<EdgeEvent>.broadcast(sync: true);
 
@@ -221,6 +242,15 @@ class FakeEdgeChannel implements EdgeChannel {
 
   @override
   Future<void> pinSticker(String noteId) async => calls.add('pinSticker:$noteId');
+
+  @override
+  Future<void> handOff(LaunchAction action, String text) async => calls.add('handOff:${action.name}:$text');
+
+  @override
+  Future<bool> micGranted() async {
+    calls.add('micGranted');
+    return micAnswer;
+  }
 }
 
 /// Канал по платформе: окна поверх есть только на Android.

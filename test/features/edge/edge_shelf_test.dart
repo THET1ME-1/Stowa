@@ -8,6 +8,7 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/spine_colors.dart';
+import 'package:stowa/features/composer/attach_tray.dart';
 import 'package:stowa/features/edge/edge_host.dart';
 import 'package:stowa/features/item/item_screen.dart';
 import 'package:stowa/features/settings/edge_screen.dart';
@@ -111,6 +112,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ItemScreen), findsNothing);
     expect(inShelf('Закреплено'), findsOneWidget);
+  });
+
+  testWidgets('«+» в полке отдаёт лоток окну виджета вместе с набранным: камере и файлам нужно окно приложения', (tester) async {
+    await open(tester);
+    await tester.enterText(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(TextField)), 'купить хлеб');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Прикрепить'));
+    await tester.pumpAndSettle();
+    expect(world.edge.calls, contains('handOff:attach:купить хлеб'));
+    expect(find.byType(AttachTray), findsNothing);
+    // набранное ушло в окно виджета: в полке его больше нет, второй раз не сохранится
+    expect(tester.widget<EditableText>(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(EditableText))).controller.text, isEmpty);
+  });
+
+  testWidgets('микрофон без права: запись уходит в окно виджета, там спросят разрешение', (tester) async {
+    world.edge.micAnswer = false;
+    await open(tester);
+    await tester.tap(find.byTooltip('Записать голосовое'));
+    await tester.pumpAndSettle();
+    expect(world.edge.calls, contains('micGranted'));
+    expect(world.edge.calls, contains('handOff:voice:'));
   });
 
   testWidgets('шестерёнка открывает настройку корешков в самой полке', (tester) async {
