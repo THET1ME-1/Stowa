@@ -29,6 +29,8 @@
     <!-- напоминания: уведомление ровно в срок и после перезагрузки телефона -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- «Под рукой»: корешки, полка и стикеры поверх других приложений. Человек включает сам в настройках системы -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
     <application
@@ -99,6 +101,8 @@
               android:resource="@style/ShareTheme"
               />
         </activity>
+        <!-- «Под рукой»: хозяин окон поверх других приложений (корешки у края, полка, стикеры) -->
+        <service android:name=".edge.EdgeService" android:exported="false" />
         <!-- виджет-строка на рабочем столе (STOWA-1) -->
         <receiver android:name=".ComposerWidgetProvider" android:exported="false" android:label="@string/widget_hint">
             <intent-filter>

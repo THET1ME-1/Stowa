@@ -5,6 +5,9 @@ CLAUDE.local.md
 # Служебное проверки дизайна
 .impeccable/
 
+# Журнал хода планов, личный
+.superpowers/
+
 # Ключи выпуска
 *.jks
 *.keystore
