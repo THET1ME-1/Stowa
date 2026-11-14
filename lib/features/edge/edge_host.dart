@@ -549,17 +549,16 @@ class _ShelfHome extends StatelessWidget {
   }
 }
 
-/// Строка полки поднимается и проявляется при открытии: каждая на 25 мс позже предыдущей.
+/// Строка полки поднимается при открытии: каждая на 25 мс позже предыдущей. Без проявления:
+/// полупрозрачная строка рисуется отдельным слоем — восемь карточек разом давали кадры
+/// по 40–50 мс, а шапка, папки и подписи — ещё 30–50 при открытии против 4–12 при закрытии
+/// (эмулятор с видеокартой, 14.11.2026; на телефоне хозяин видел дрожь).
 class _Rise extends StatelessWidget {
-  const _Rise({required this.animation, required this.row, required this.child, this.fade = true});
+  const _Rise({required this.animation, required this.row, required this.child});
 
   final Animation<double> animation;
   final int row;
   final Widget child;
-
-  /// Карточки только поднимаются: полупрозрачная карточка рисуется отдельным слоем, и
-  /// восемь таких разом на открытии давали кадры по 40–50 мс (эмулятор с видеокартой, 14.11).
-  final bool fade;
 
   @override
   Widget build(BuildContext context) {
@@ -570,10 +569,7 @@ class _Rise extends StatelessWidget {
     return AnimatedBuilder(
       animation: shown,
       child: child,
-      builder: (context, child) {
-        final risen = Transform.translate(offset: Offset(0, 16 * (1 - shown.value)), child: child);
-        return fade ? Opacity(opacity: shown.value, child: risen) : risen;
-      },
+      builder: (context, child) => Transform.translate(offset: Offset(0, 16 * (1 - shown.value)), child: child),
     );
   }
 }
@@ -705,7 +701,7 @@ class _Shelf extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [for (final (index, row) in rows.indexed) _Rise(animation: rise, row: first + index, fade: row is _SectionLabel, child: row)],
+            children: [for (final (index, row) in rows.indexed) _Rise(animation: rise, row: first + index, child: row)],
           ),
         ),
       ],
