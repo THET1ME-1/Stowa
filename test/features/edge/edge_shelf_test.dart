@@ -96,6 +96,10 @@ void main() {
     await tester.tap(find.byTooltip('Повесить стикером'));
     await tester.pumpAndSettle();
     expect(world.edge.calls, contains('pinSticker:wifi'));
+    // полка уходит: стикер встаёт поверх самого приложения
+    expect(world.edge.calls.last, 'close');
+    world.edge.send(const EdgeOpen());
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Открыть Stowa'));
     await tester.pumpAndSettle();
     expect(world.edge.calls, contains('openApp:null'));
@@ -125,6 +129,35 @@ void main() {
     expect(find.byType(AttachTray), findsNothing);
     // набранное ушло в окно виджета: в полке его больше нет, второй раз не сохранится
     expect(tester.widget<EditableText>(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(EditableText))).controller.text, isEmpty);
+  });
+
+  testWidgets('карточку унесли за край полки: полка отъезжает, отпустил — стикер там, где отпустили', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await open(tester);
+    final card = find.byKey(const ValueKey('edge-card-wifi'));
+    final gesture = await tester.startGesture(tester.getCenter(card));
+    await tester.pump(const Duration(milliseconds: 600));
+    await gesture.moveBy(const Offset(-40, 0));
+    await gesture.moveBy(const Offset(-160, 120));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    // полка уехала, чтобы было видно, куда кладёшь
+    expect(shelf(tester).left, greaterThan(openLeft + 100));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(world.edge.calls.where((call) => call.startsWith('pinSticker:wifi@')), hasLength(1));
+    expect(world.edge.calls.last, 'close');
+  });
+
+  testWidgets('карточку подержали и отпустили в полке — меню действий, стикера нет', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await open(tester);
+    final gesture = await tester.startGesture(tester.getCenter(find.byKey(const ValueKey('edge-card-wifi'))));
+    await tester.pump(const Duration(milliseconds: 600));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(world.edge.calls.where((call) => call.startsWith('pinSticker')), isEmpty);
   });
 
   testWidgets('микрофон без права: запись уходит в окно виджета, там спросят разрешение', (tester) async {

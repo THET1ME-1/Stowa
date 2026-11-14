@@ -5416,6 +5416,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Set up the spines'**
   String get edgeSpinesSetup;
+
+  /// Кнопка «×» на стикере поверх приложений
+  ///
+  /// In en, this message translates to:
+  /// **'Remove sticker'**
+  String get edgeUnstick;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

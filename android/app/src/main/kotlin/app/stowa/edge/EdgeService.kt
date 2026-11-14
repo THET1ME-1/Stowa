@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.graphics.PointF
+import android.graphics.RectF
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
@@ -13,6 +15,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import android.view.animation.PathInterpolator
+import io.flutter.embedding.engine.FlutterEngineGroup
 
 /**
  * «Под рукой»: хозяин окон поверх других приложений — корешков у края и полки.
@@ -29,6 +32,10 @@ class EdgeService : Service() {
     private var move: ValueAnimator? = null
     private var leaving = false
 
+    /** Движки стикеров из одной группы: каждый следующий почти бесплатен. */
+    private lateinit var stickerEngines: FlutterEngineGroup
+    private val stickers = mutableListOf<EdgeSticker>()
+
     override fun onCreate() {
         super.onCreate()
         windows = getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -40,7 +47,36 @@ class EdgeService : Service() {
             onClosing = ::spinesBack,
             onApply = { applyPrefs(animated = true) },
             onStop = ::hideHandle,
+            onPinSticker = ::pinSticker,
         )
+        stickerEngines = FlutterEngineGroup(this)
+    }
+
+    /**
+     * Стикер заметки: уже висит — новый не заводится; четвёртый снимает самый старый.
+     * Принесли карточку — встаёт там ([at]); кнопкой — у края корешков, под висящими.
+     */
+    private fun pinSticker(noteId: String, at: PointF?) {
+        if (stickers.any { it.noteId == noteId }) return
+        if (stickers.size >= MAX_STICKERS) stickers.first().remove()
+        if (at != null) {
+            val start = RectF(at.x, at.y, at.x + STICKER_WIDTH_DP, at.y + STICKER_START_HEIGHT_DP)
+            stickers += EdgeSticker(this, windows, stickerEngines, noteId, start) { gone -> stickers.remove(gone) }
+            return
+        }
+        val area = EdgeSticker.usableArea(this, windows)
+        val width = area.width() / density()
+        val height = area.height() / density()
+        // у края корешков стикер отступает на их ширину с полосой касания: круг не закрывает корешки
+        val settings = prefs ?: EdgePrefs.read(this)
+        val gap = STICKER_MARGIN_DP + settings.shelfWidthDp + EdgePrefs.TOUCH_EXTRA_DP
+        val left = if (settings.rightSide) width - gap - STICKER_WIDTH_DP else gap
+        // под нижним из висящих, с зазором; внизу места нет — лесенкой от верха
+        val first = height * 0.16f
+        val below = stickers.maxOfOrNull { it.bottomDp() }?.plus(STICKER_GAP_DP) ?: first
+        val top = if (below + STICKER_START_HEIGHT_DP <= height - STICKER_MARGIN_DP) below else first + 28f * stickers.size
+        val start = RectF(left, top, left + STICKER_WIDTH_DP, top + STICKER_START_HEIGHT_DP)
+        stickers += EdgeSticker(this, windows, stickerEngines, noteId, start) { gone -> stickers.remove(gone) }
     }
 
     /** Полка выезжает: корешки уходят за свой край, 200 мс, emphasizedAccelerate. */
@@ -197,12 +233,14 @@ class EdgeService : Service() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // поворот, складной экран: корешки на той же доле высоты нового экрана
+        // поворот, складной экран: корешки на той же доле высоты нового экрана, стикеры внутри
         applyPrefs(animated = false)
+        stickers.toList().forEach { it.screenChanged() }
     }
 
     override fun onDestroy() {
         move?.cancel()
+        stickers.toList().forEach { it.remove() }
         panel.destroy()
         handle?.let { windows.removeView(it) }
         handle = null
@@ -212,6 +250,15 @@ class EdgeService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {
+        // как в lib/domain/sticker_geometry.dart
+        private const val MAX_STICKERS = 3
+        private const val STICKER_WIDTH_DP = 236f
+        private const val STICKER_MARGIN_DP = 8f
+        private const val STICKER_GAP_DP = 12f
+
+        // до первого кадра: дальше Dart ставит высоту по содержимому
+        private const val STICKER_START_HEIGHT_DP = 160f
+
         private const val ACTION_APPLY = "app.stowa.edge.APPLY"
         private const val ACTION_STOP = "app.stowa.edge.STOP"
 

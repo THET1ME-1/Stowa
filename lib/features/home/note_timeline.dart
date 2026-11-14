@@ -433,7 +433,7 @@ class NoteCard extends StatelessWidget {
     this.aiSorting = false,
     required this.onOpen,
     required this.onMove,
-    required this.onAct,
+    this.onAct,
     required this.onToggle,
     this.trailing,
   });
@@ -447,7 +447,10 @@ class NoteCard extends StatelessWidget {
   final bool aiSorting;
   final VoidCallback onOpen;
   final VoidCallback onMove;
-  final VoidCallback onAct;
+
+  /// Долгое нажатие — меню действий. Нет — долгое нажатие свободно для перетаскивания
+  /// (полка «Под рукой» решает сама: унёс — стикер, отпустил на месте — меню).
+  final VoidCallback? onAct;
   final ValueChanged<int> onToggle;
   final Widget? trailing;
 

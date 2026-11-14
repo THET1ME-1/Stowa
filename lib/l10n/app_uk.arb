@@ -635,5 +635,6 @@
   "edgeRecent": "Нещодавні",
   "edgeOpenApp": "Відкрити Stowa",
   "edgeStick": "Повісити стікером",
-  "edgeSpinesSetup": "Налаштувати корінці"
+  "edgeSpinesSetup": "Налаштувати корінці",
+  "edgeUnstick": "Зняти стікер"
 }

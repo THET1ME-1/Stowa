@@ -3235,4 +3235,7 @@ class LEn extends L {
 
   @override
   String get edgeSpinesSetup => 'Set up the spines';
+
+  @override
+  String get edgeUnstick => 'Remove sticker';
 }

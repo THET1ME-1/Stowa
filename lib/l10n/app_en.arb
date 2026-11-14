@@ -4133,5 +4133,9 @@
   "edgeSpinesSetup": "Set up the spines",
   "@edgeSpinesSetup": {
     "description": "Кнопка-шестерёнка в шапке полки"
+  },
+  "edgeUnstick": "Remove sticker",
+  "@edgeUnstick": {
+    "description": "Кнопка «×» на стикере поверх приложений"
   }
 }

@@ -3265,4 +3265,7 @@ class LRo extends L {
 
   @override
   String get edgeSpinesSetup => 'Configurează cotoarele';
+
+  @override
+  String get edgeUnstick => 'Elimină autocolantul';
 }

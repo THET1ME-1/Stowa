@@ -3239,4 +3239,7 @@ class LEs extends L {
 
   @override
   String get edgeSpinesSetup => 'Ajustar los lomos';
+
+  @override
+  String get edgeUnstick => 'Quitar pegatina';
 }

@@ -635,5 +635,6 @@
   "edgeRecent": "Recente",
   "edgeOpenApp": "Deschide Stowa",
   "edgeStick": "Fixează ca autocolant",
-  "edgeSpinesSetup": "Configurează cotoarele"
+  "edgeSpinesSetup": "Configurează cotoarele",
+  "edgeUnstick": "Elimină autocolantul"
 }

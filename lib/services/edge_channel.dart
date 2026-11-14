@@ -72,8 +72,9 @@ abstract class EdgeChannel {
   /// Из окна полки: открыть Stowa, с заметкой [noteId] или на главной, полку убрать.
   Future<void> openApp(String? noteId);
 
-  /// Из окна полки: повесить заметку стикером поверх приложений.
-  Future<void> pinSticker(String noteId);
+  /// Из окна полки: повесить заметку стикером поверх приложений. [at] — куда, в точках от
+  /// левого верхнего угла свободной части экрана; нет — служба поставит сама у края.
+  Future<void> pinSticker(String noteId, {Offset? at});
 
   /// Из окна полки: камере, файлам и запросу микрофона нужна Activity — дело переходит
   /// в окно виджета вместе с набранным, полка уходит.
@@ -137,7 +138,7 @@ class MethodEdgeChannel implements EdgeChannel {
   Future<void> openApp(String? noteId) => _channel.invokeMethod('openApp', noteId);
 
   @override
-  Future<void> pinSticker(String noteId) => _channel.invokeMethod('pinSticker', noteId);
+  Future<void> pinSticker(String noteId, {Offset? at}) => _channel.invokeMethod('pinSticker', {'id': noteId, if (at != null) 'x': at.dx, if (at != null) 'y': at.dy});
 
   @override
   Future<void> handOff(LaunchAction action, String text) => _channel.invokeMethod('handOff', {'action': action.name, 'text': text});
@@ -182,7 +183,7 @@ class NoEdgeChannel implements EdgeChannel {
   Future<void> openApp(String? noteId) async {}
 
   @override
-  Future<void> pinSticker(String noteId) async {}
+  Future<void> pinSticker(String noteId, {Offset? at}) async {}
 
   @override
   Future<void> handOff(LaunchAction action, String text) async {}
@@ -241,7 +242,7 @@ class FakeEdgeChannel implements EdgeChannel {
   Future<void> openApp(String? noteId) async => calls.add('openApp:$noteId');
 
   @override
-  Future<void> pinSticker(String noteId) async => calls.add('pinSticker:$noteId');
+  Future<void> pinSticker(String noteId, {Offset? at}) async => calls.add('pinSticker:$noteId${at == null ? '' : '@${at.dx.round()},${at.dy.round()}'}');
 
   @override
   Future<void> handOff(LaunchAction action, String text) async => calls.add('handOff:${action.name}:$text');

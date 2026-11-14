@@ -3294,4 +3294,7 @@ class LUk extends L {
 
   @override
   String get edgeSpinesSetup => 'Налаштувати корінці';
+
+  @override
+  String get edgeUnstick => 'Зняти стікер';
 }

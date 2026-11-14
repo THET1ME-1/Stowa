@@ -3298,4 +3298,7 @@ class LRu extends L {
 
   @override
   String get edgeSpinesSetup => 'Настроить корешки';
+
+  @override
+  String get edgeUnstick => 'Снять стикер';
 }

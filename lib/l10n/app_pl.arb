@@ -635,5 +635,6 @@
   "edgeRecent": "Ostatnie",
   "edgeOpenApp": "Otwórz Stowa",
   "edgeStick": "Przypnij jako naklejkę",
-  "edgeSpinesSetup": "Ustaw grzbiety"
+  "edgeSpinesSetup": "Ustaw grzbiety",
+  "edgeUnstick": "Zdejmij naklejkę"
 }

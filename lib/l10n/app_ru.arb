@@ -884,5 +884,6 @@
   "edgeRecent": "Недавние",
   "edgeOpenApp": "Открыть Stowa",
   "edgeStick": "Повесить стикером",
-  "edgeSpinesSetup": "Настроить корешки"
+  "edgeSpinesSetup": "Настроить корешки",
+  "edgeUnstick": "Снять стикер"
 }

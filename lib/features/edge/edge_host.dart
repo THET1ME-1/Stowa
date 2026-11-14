@@ -239,6 +239,28 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
     _reveal.animateTo(0, duration: duration < Motion.tap ? Motion.tap : duration, curve: Motion.emphasizedAccelerate).then((_) => gone(), onError: (_) {});
   }
 
+  /// Карточку унесли за край полки: полка отъезжает, чтобы было видно, куда кладёшь;
+  /// вернули — полка возвращается.
+  bool _cardAway = false;
+
+  void _cardDrag(bool outside) {
+    if (outside == _cardAway) return;
+    _cardAway = outside;
+    if (_still) {
+      _reveal.value = outside ? 0 : 1;
+      return;
+    }
+    _reveal.animateTo(outside ? 0 : 1, duration: Motion.medium, curve: outside ? Motion.emphasizedAccelerate : Motion.emphasizedDecelerate).ignore();
+  }
+
+  /// Карточку отпустили за полкой: заметка ложится стикером там, где отпустили.
+  void _cardDrop(String noteId, Offset topLeft) {
+    _cardAway = false;
+    final padding = MediaQuery.paddingOf(context);
+    ref.read(edgeChannelProvider).pinSticker(noteId, at: topLeft - Offset(padding.left, padding.top)).ignore();
+    _close();
+  }
+
   /// Свайп по самой полке: она идёт за пальцем к краю.
   void _shelfDragStart(DragStartDetails details) => _swipeStart(opens: false);
 
@@ -294,6 +316,8 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
         onDragStart: _shelfDragStart,
         onDrag: (details) => _shelfDrag(details, right: right),
         onDragEnd: (details) => _shelfDragEnd(details, right: right),
+        onCardDrag: _cardDrag,
+        onCardDrop: _cardDrop,
         child: NavigatorPopHandler(
           onPopWithResult: (_) => _shelfNavigator.currentState?.maybePop(),
           child: Navigator(
@@ -347,6 +371,8 @@ class _ShelfScope extends InheritedWidget {
     required this.onDragStart,
     required this.onDrag,
     required this.onDragEnd,
+    required this.onCardDrag,
+    required this.onCardDrop,
     required super.child,
   });
 
@@ -357,6 +383,12 @@ class _ShelfScope extends InheritedWidget {
   final GestureDragStartCallback onDragStart;
   final GestureDragUpdateCallback onDrag;
   final GestureDragEndCallback onDragEnd;
+
+  /// Карточку тянут: за краем полки она или нет.
+  final ValueChanged<bool> onCardDrag;
+
+  /// Карточку отпустили за полкой: id заметки и левый верхний угол карточки на экране.
+  final void Function(String noteId, Offset topLeft) onCardDrop;
 
   static _ShelfScope of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<_ShelfScope>()!;
 
@@ -503,23 +535,26 @@ class _Shelf extends ConsumerWidget {
     final now = ref.read(clockProvider)();
     final items = ref.read(itemsRepositoryProvider);
 
-    Widget card(ItemCard item) => Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: NoteCard(
-        key: ValueKey('edge-card-${item.id}'),
-        item: item,
-        dated: true,
-        filesRoot: filesRoot,
-        now: now,
-        onOpen: () => onOpen(item.id),
-        onMove: () => moveItem(context, ref, item),
-        onAct: () => showItemActions(context, ref, item),
-        onToggle: (line) {
-          final body = toggleCheckLine(item.body, line);
-          if (body != item.body) items.setBody(item.id, body, ref.read(clockProvider)()).ignore();
-        },
-        trailing: _StickButton(item: item),
-      ),
+    // долгое нажатие у карточки свободно: его ловит перетаскивание (_DragOut)
+    Widget note(ItemCard item, {Key? key}) => NoteCard(
+      key: key,
+      item: item,
+      dated: true,
+      filesRoot: filesRoot,
+      now: now,
+      onOpen: () => onOpen(item.id),
+      onMove: () => moveItem(context, ref, item),
+      onToggle: (line) {
+        final body = toggleCheckLine(item.body, line);
+        if (body != item.body) items.setBody(item.id, body, ref.read(clockProvider)()).ignore();
+      },
+      trailing: _StickButton(item: item),
+    );
+
+    Widget card(ItemCard item) => _DragOut(
+      item: item,
+      feedback: note(item),
+      child: Padding(padding: const EdgeInsets.only(bottom: 10), child: note(item, key: ValueKey('edge-card-${item.id}'))),
     );
 
     // строки по порядку сверху: каждая проявляется на шаг позже предыдущей (шапка — нулевая)
@@ -578,6 +613,73 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
+/// Карточка, которую можно вытащить из полки стикером: удержание поднимает её под палец,
+/// место в списке схлопывается. Унёс за край полки — полка отъезжает, отпустил там —
+/// стикер на этом месте. Отпустил на месте — меню действий, как долгое нажатие в приложении.
+class _DragOut extends ConsumerStatefulWidget {
+  const _DragOut({required this.item, required this.feedback, required this.child});
+
+  final ItemCard item;
+  final Widget feedback;
+  final Widget child;
+
+  @override
+  ConsumerState<_DragOut> createState() => _DragOutState();
+}
+
+class _DragOutState extends ConsumerState<_DragOut> {
+  /// Полка в начале перетаскивания: «за краем» считается от неё, а не от отъезжающей.
+  Rect _shelf = Rect.zero;
+  Offset _start = Offset.zero;
+  bool _moved = false;
+  bool _outside = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = _ShelfScope.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) => AnimatedSize(
+        duration: Motion.medium,
+        curve: Motion.emphasized,
+        alignment: Alignment.topCenter,
+        child: _draggable(scope, constraints.maxWidth),
+      ),
+    );
+  }
+
+  Widget _draggable(_ShelfScope scope, double width) => LongPressDraggable<String>(
+        data: widget.item.id,
+        // поверх всего окна, а не внутри скруглённой полки: карточку видно и за её краем
+        rootOverlay: true,
+        feedback: Material(type: MaterialType.transparency, child: SizedBox(width: width, child: IgnorePointer(child: widget.feedback))),
+        childWhenDragging: const SizedBox(width: double.infinity),
+        onDragStarted: () {
+          // рамка полки — её навигатор: внутри него вся полка
+          final box = Navigator.of(context).context.findRenderObject()! as RenderBox;
+          _shelf = box.localToGlobal(Offset.zero) & box.size;
+          _moved = false;
+          _outside = false;
+          _start = Offset.infinite;
+        },
+        onDragUpdate: (details) {
+          if (_start == Offset.infinite) _start = details.globalPosition;
+          if ((details.globalPosition - _start).distance > 16) _moved = true;
+          final outside = details.globalPosition.dx < _shelf.left || details.globalPosition.dx > _shelf.right;
+          if (outside != _outside) {
+            _outside = outside;
+            scope.onCardDrag(outside);
+          }
+        },
+        onDragEnd: (details) {
+          if (_outside) return scope.onCardDrop(widget.item.id, details.offset);
+          // не унесли за полку: полка на месте, а удержание без сдвига — меню действий
+          scope.onCardDrag(false);
+          if (!_moved) showItemActions(context, ref, widget.item);
+        },
+        child: widget.child,
+      );
+}
+
 /// Кнопка в углу карточки: повесить заметку стикером поверх приложений.
 class _StickButton extends ConsumerWidget {
   const _StickButton({required this.item});
@@ -590,7 +692,11 @@ class _StickButton extends ConsumerWidget {
     return Tooltip(
       message: L.of(context).edgeStick,
       child: Pressable(
-        onTap: () => ref.read(edgeChannelProvider).pinSticker(item.id),
+        onTap: () {
+          ref.read(edgeChannelProvider).pinSticker(item.id).ignore();
+          // полка уходит: стикер встаёт поверх самого приложения
+          _ShelfScope.of(context).onClose();
+        },
         pressedScale: 0.9,
         child: Container(
           width: 34,

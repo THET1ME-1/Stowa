@@ -3244,4 +3244,7 @@ class LDe extends L {
 
   @override
   String get edgeSpinesSetup => 'Rücken einrichten';
+
+  @override
+  String get edgeUnstick => 'Sticker entfernen';
 }

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
+import android.graphics.PointF
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -39,6 +40,8 @@ class EdgePanel(
     private val onApply: () -> Unit,
     /** «Под рукой» выключили в самой полке. */
     private val onStop: () -> Unit,
+    /** Кнопка на карточке полки или карточка, вынесенная за полку: повесить заметку стикером. */
+    private val onPinSticker: (String, PointF?) -> Unit,
 ) {
     private var engine: FlutterEngine? = null
     private var channel: MethodChannel? = null
@@ -209,9 +212,13 @@ class EdgePanel(
                 "micGranted" -> result.success(
                     context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,
                 )
-                // окна стикеров появятся следующей задачей плана, пока только след в журнале
+                // {id, x?, y?}: место — куда принесли карточку, в точках свободной части экрана
                 "pinSticker" -> {
-                    Log.d(EdgeHandle.TAG, "pin sticker")
+                    @Suppress("UNCHECKED_CAST")
+                    val args = call.arguments as Map<String, Any?>
+                    val x = (args["x"] as Number?)?.toFloat()
+                    val y = (args["y"] as Number?)?.toFloat()
+                    onPinSticker(args["id"] as String, if (x != null && y != null) PointF(x, y) else null)
                     result.success(null)
                 }
                 // [{color: ARGB, weight: доля}, …] сверху вниз

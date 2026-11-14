@@ -16,6 +16,7 @@ import 'data/settings_repository.dart';
 import 'domain/appearance.dart';
 import 'domain/reminder_parser.dart' show warmUpReminders;
 import 'features/edge/edge_host.dart';
+import 'features/edge/sticker_host.dart';
 import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
@@ -58,6 +59,14 @@ Future<void> quickMain() async {
 Future<void> edgeMain() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _run(const StowaApp(home: EdgeHost(), lockable: false), reminderPort(), 'edge');
+}
+
+/// Стикер поверх приложений: его заводит EdgeService из общей группы движков,
+/// аргумент — id заметки. Окон до трёх, у каждого свой движок.
+@pragma('vm:entry-point')
+Future<void> stickerMain(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await _run(StowaApp(home: StickerHost(noteId: args.first), lockable: false), reminderPort(), 'sticker');
 }
 
 /// [window] — какое окно запущено: с ним ошибка уходит в отчёт.

@@ -635,5 +635,6 @@
   "edgeRecent": "Zuletzt",
   "edgeOpenApp": "Stowa öffnen",
   "edgeStick": "Als Sticker anheften",
-  "edgeSpinesSetup": "Rücken einrichten"
+  "edgeSpinesSetup": "Rücken einrichten",
+  "edgeUnstick": "Sticker entfernen"
 }

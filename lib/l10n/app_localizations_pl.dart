@@ -3294,4 +3294,7 @@ class LPl extends L {
 
   @override
   String get edgeSpinesSetup => 'Ustaw grzbiety';
+
+  @override
+  String get edgeUnstick => 'Zdejmij naklejkę';
 }
