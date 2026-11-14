@@ -3318,7 +3318,7 @@ class LPl extends L {
 
   @override
   String get edgeGestureHoldHint =>
-      'Nagrywa, gdy trzymasz, zapisuje, gdy puścisz.';
+      'Nagrywanie trwa też bez palca, dopóki nie dotkniesz Zapisz.';
 
   @override
   String get edgeGestureDouble =>
@@ -3327,4 +3327,10 @@ class LPl extends L {
   @override
   String get edgeGestureDoubleHint =>
       'Jedno dotknięcie działa wtedy nieco później.';
+
+  @override
+  String get edgeVoiceChannel => 'Nagrywanie głosu';
+
+  @override
+  String get edgeVoiceNow => 'Trwa nagrywanie głosówki';
 }

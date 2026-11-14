@@ -31,6 +31,10 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- «Под рукой»: корешки, полка и стикеры поверх других приложений. Человек включает сам в настройках системы -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- голос из полки «Под рукой»: на время записи служба переднего плана с микрофоном, иначе
+         Android глушит запись процесса, у которого видно только окно поверх -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
     <application
@@ -102,7 +106,7 @@
               />
         </activity>
         <!-- «Под рукой»: хозяин окон поверх других приложений (корешки у края, полка, стикеры) -->
-        <service android:name=".edge.EdgeService" android:exported="false" />
+        <service android:name=".edge.EdgeService" android:exported="false" android:foregroundServiceType="microphone" />
         <!-- виджет-строка на рабочем столе (STOWA-1) -->
         <receiver android:name=".ComposerWidgetProvider" android:exported="false" android:label="@string/widget_hint">
             <intent-filter>

@@ -111,6 +111,11 @@ abstract class EdgeChannel {
   /// Из окна полки: есть ли право на микрофон (плагин записи без Activity его не видит).
   Future<bool> micGranted();
 
+  /// Из окна полки: запись голоса началась ([on]) или кончилась. На это время служба —
+  /// переднего плана с микрофоном и уведомлением [text], иначе Android глушит запись.
+  /// false — служба не смогла.
+  Future<bool> recording(bool on, {String channel = '', String text = ''});
+
   /// Из окна полки: заметки, чьё напоминание по месту сработало за последние полчаса,
   /// свежие первыми. Пишет их приёмник мест, хранит служба.
   Future<List<String>> nearby();
@@ -188,6 +193,10 @@ class MethodEdgeChannel implements EdgeChannel {
 
   @override
   Future<List<String>> nearby() async => (await _channel.invokeListMethod<String>('nearby')) ?? const [];
+
+  @override
+  Future<bool> recording(bool on, {String channel = '', String text = ''}) async =>
+      await _channel.invokeMethod<bool>('recording', {'on': on, 'channel': channel, 'text': text}) ?? false;
 }
 
 /// iPhone и всё, где окон поверх нет: ничего не делает, права нет.
@@ -239,6 +248,9 @@ class NoEdgeChannel implements EdgeChannel {
 
   @override
   Future<List<String>> nearby() async => const [];
+
+  @override
+  Future<bool> recording(bool on, {String channel = '', String text = ''}) async => false;
 }
 
 /// Для тестов: пишет вызовы по именам, право — [canDrawAnswer].
@@ -311,6 +323,12 @@ class FakeEdgeChannel implements EdgeChannel {
   Future<List<String>> nearby() async {
     calls.add('nearby');
     return nearbyAnswer;
+  }
+
+  @override
+  Future<bool> recording(bool on, {String channel = '', String text = ''}) async {
+    calls.add('recording:$on');
+    return true;
   }
 }
 

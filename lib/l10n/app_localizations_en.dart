@@ -3259,7 +3259,7 @@ class LEn extends L {
 
   @override
   String get edgeGestureHoldHint =>
-      'Recording while you hold, saved when you let go.';
+      'Recording keeps going without your finger until you tap Save.';
 
   @override
   String get edgeGestureDouble => 'Double tap for the last note';
@@ -3267,4 +3267,10 @@ class LEn extends L {
   @override
   String get edgeGestureDoubleHint =>
       'A single tap then reacts a little later.';
+
+  @override
+  String get edgeVoiceChannel => 'Voice recording';
+
+  @override
+  String get edgeVoiceNow => 'Recording a voice note';
 }

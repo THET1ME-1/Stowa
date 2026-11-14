@@ -3319,7 +3319,7 @@ class LUk extends L {
 
   @override
   String get edgeGestureHoldHint =>
-      'Тримаєш — пишеться, відпустив — збережено.';
+      'Запис триває і без пальця, доки не натиснеш «Зберегти».';
 
   @override
   String get edgeGestureDouble => 'Подвійний дотик — остання нотатка';
@@ -3327,4 +3327,10 @@ class LUk extends L {
   @override
   String get edgeGestureDoubleHint =>
       'Один дотик тоді спрацьовує трохи пізніше.';
+
+  @override
+  String get edgeVoiceChannel => 'Запис голосу';
+
+  @override
+  String get edgeVoiceNow => 'Іде запис голосового';
 }

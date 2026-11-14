@@ -892,7 +892,9 @@
   "edgeGestureSwipe": "Свайп вниз — сразу писать",
   "edgeGestureSwipeHint": "Строка открывается сразу с клавиатурой.",
   "edgeGestureHold": "Удержание — голосовое",
-  "edgeGestureHoldHint": "Держишь — пишется, отпустил — сохранено.",
+  "edgeGestureHoldHint": "Запись идёт и без пальца, пока не нажмёшь «Сохранить».",
   "edgeGestureDouble": "Двойное касание — последняя заметка",
-  "edgeGestureDoubleHint": "Одно касание тогда срабатывает чуть позже."
+  "edgeGestureDoubleHint": "Одно касание тогда срабатывает чуть позже.",
+  "edgeVoiceChannel": "Запись голоса",
+  "edgeVoiceNow": "Идёт запись голосового"
 }

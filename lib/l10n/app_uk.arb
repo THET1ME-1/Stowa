@@ -643,7 +643,9 @@
   "edgeGestureSwipe": "Свайп униз — одразу писати",
   "edgeGestureSwipeHint": "Рядок відкривається одразу з клавіатурою.",
   "edgeGestureHold": "Утримання — голосове",
-  "edgeGestureHoldHint": "Тримаєш — пишеться, відпустив — збережено.",
+  "edgeGestureHoldHint": "Запис триває і без пальця, доки не натиснеш «Зберегти».",
   "edgeGestureDouble": "Подвійний дотик — остання нотатка",
-  "edgeGestureDoubleHint": "Один дотик тоді спрацьовує трохи пізніше."
+  "edgeGestureDoubleHint": "Один дотик тоді спрацьовує трохи пізніше.",
+  "edgeVoiceChannel": "Запис голосу",
+  "edgeVoiceNow": "Іде запис голосового"
 }

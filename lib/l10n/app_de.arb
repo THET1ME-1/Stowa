@@ -643,7 +643,9 @@
   "edgeGestureSwipe": "Nach unten wischen zum Schreiben",
   "edgeGestureSwipeHint": "Die Zeile öffnet sich gleich mit Tastatur.",
   "edgeGestureHold": "Halten für eine Sprachnotiz",
-  "edgeGestureHoldHint": "Nimmt auf, solange du hältst, und speichert beim Loslassen.",
+  "edgeGestureHoldHint": "Die Aufnahme läuft auch ohne Finger weiter, bis du auf Speichern tippst.",
   "edgeGestureDouble": "Doppeltippen für die letzte Notiz",
-  "edgeGestureDoubleHint": "Einmal tippen reagiert dann etwas später."
+  "edgeGestureDoubleHint": "Einmal tippen reagiert dann etwas später.",
+  "edgeVoiceChannel": "Sprachaufnahme",
+  "edgeVoiceNow": "Sprachnotiz wird aufgenommen"
 }

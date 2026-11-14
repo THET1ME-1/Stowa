@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:stowa/app.dart';
 import 'package:stowa/core/theme/folder_palette.dart';
 import 'package:stowa/data/db/database.dart';
@@ -232,16 +235,13 @@ void main() {
     expect(find.text('Купить молоко'), findsWidgets);
   });
 
-  testWidgets('удержание корешков: полка выезжает и строка начинает запись', (tester) async {
+  testWidgets('удержание без права на микрофон: запись уходит в окно виджета, там спросят разрешение', (tester) async {
     world.edge.micAnswer = false;
     await start(tester);
     world.edge.send(const EdgeVoiceStart());
     await tester.pumpAndSettle();
-    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
-    // права нет — запись уходит в окно виджета, как с кнопки микрофона
-    expect(world.edge.calls, contains('micGranted'));
-    world.edge.send(const EdgeVoiceStop());
-    await tester.pumpAndSettle();
+    expect(world.edge.calls, contains('handOff:voice:'));
+    expect(find.byKey(const ValueKey('edge-voice')), findsNothing);
   });
 
   testWidgets('полка подтверждает службе, что выезжает: без ответа служба уберёт окно сама', (tester) async {
@@ -278,6 +278,113 @@ void main() {
     expect(world.edge.calls, contains('opened'));
     await tester.pumpAndSettle();
     expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+  });
+
+  /// Плагин записи без телефона: вызовы пишутся, «stop» отдаёт [recorded] — путь готового файла.
+  List<String> fakeRecorder(WidgetTester tester, {String? recorded}) {
+    final calls = <String>[];
+    const channel = MethodChannel('com.llfbandit.record/messages');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call.method);
+      switch (call.method) {
+        // плагин слушает состояние записи по своему каналу событий с id записи
+        case 'create':
+          final id = (call.arguments as Map)['recorderId'];
+          tester.binding.defaultBinaryMessenger.setMockStreamHandler(
+            EventChannel('com.llfbandit.record/events/$id'),
+            MockStreamHandler.inline(onListen: (arguments, events) {}),
+          );
+          return null;
+        case 'getAmplitude':
+          return {'current': -40.0, 'max': -20.0};
+        case 'stop':
+          return recorded;
+        default:
+          return null;
+      }
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, null));
+    return calls;
+  }
+
+  // папка записи и файл — на диске: в поддельном времени теста это не идёт, нужно настоящее
+  Future<void> realTime(WidgetTester tester, [int frames = 10]) async {
+    for (var frame = 0; frame < frames; frame++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+  }
+
+  Finder voice() => find.byKey(const ValueKey('edge-voice'));
+
+  testWidgets('удержание: у корешков плашка записи, полка не выезжает; отпустил — запись идёт дальше', (tester) async {
+    final recorder = fakeRecorder(tester);
+    await start(tester);
+    world.edge.send(const EdgeVoiceStart());
+    await realTime(tester);
+    expect(voice(), findsOneWidget);
+    expect(recorder, contains('start'));
+    // без службы с микрофоном Android глушит запись из окна поверх
+    expect(world.edge.calls, contains('recording:true'));
+    expect(shelf(tester).left, greaterThanOrEqualTo(screenWidth));
+    world.edge.send(const EdgeVoiceStop());
+    await realTime(tester, 4);
+    // руки свободны: запись не останавливается и не уходит сама
+    expect(recorder, isNot(contains('stop')));
+    expect(voice(), findsOneWidget);
+    await tester.tap(find.descendant(of: voice(), matching: find.byTooltip('Отменить запись')));
+    await realTime(tester, 6);
+  });
+
+  testWidgets('«Сохранить» на плашке: голосовое легло, плашка и окно уходят', (tester) async {
+    final file = File(p.join(world.files.path, 'voice.m4a'));
+    await tester.runAsync(() => file.writeAsBytes(List.filled(64, 1)));
+    final recorder = fakeRecorder(tester, recorded: file.path);
+    await start(tester);
+    world.edge.send(const EdgeVoiceStart());
+    await realTime(tester);
+    world.edge.send(const EdgeVoiceStop());
+    await realTime(tester, 3);
+    await tester.tap(find.descendant(of: voice(), matching: find.byTooltip('Сохранить')));
+    await realTime(tester, 8);
+    expect(recorder, contains('stop'));
+    final saved = await tester.runAsync(() => world.db.select(world.db.items).get());
+    expect(saved!.map((item) => item.title), contains('Голосовое'));
+    // «Голосовое легло» видно чуть меньше секунды, потом плашка уезжает
+    expect(find.descendant(of: voice(), matching: find.text('Голосовое легло')), findsOneWidget);
+    await realTime(tester, 30);
+    expect(voice(), findsNothing);
+    // окно убрано; следом ещё приходят цвета корешков — новая заметка в базе
+    expect(world.edge.calls, contains('close'));
+    expect(world.edge.calls.where((call) => call.startsWith('recording')).last, 'recording:false');
+  });
+
+  testWidgets('«Отменить запись» на плашке: ничего не сохранено, окно уходит', (tester) async {
+    final recorder = fakeRecorder(tester);
+    await start(tester);
+    world.edge.send(const EdgeVoiceStart());
+    await realTime(tester);
+    await tester.tap(find.descendant(of: voice(), matching: find.byTooltip('Отменить запись')));
+    await realTime(tester, 10);
+    expect(recorder, contains('cancel'));
+    expect(world.edge.calls.where((call) => call.startsWith('recording')).last, 'recording:false');
+    final saved = await tester.runAsync(() => world.db.select(world.db.items).get());
+    expect(saved, isEmpty);
+    expect(voice(), findsNothing);
+    expect(world.edge.calls.last, 'close');
+  });
+
+  testWidgets('запись кнопкой микрофона в полке: строка записи помещается в узкую полку', (tester) async {
+    fakeRecorder(tester);
+    await open(tester);
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byTooltip('Записать голосовое')));
+    await realTime(tester);
+    expect(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byTooltip('Отменить запись')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    expect(world.edge.calls, contains('recording:true'));
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byTooltip('Отменить запись')));
+    await realTime(tester, 6);
+    expect(world.edge.calls.where((call) => call.startsWith('recording')).last, 'recording:false');
   });
 
   testWidgets('шестерёнка открывает настройку корешков в самой полке', (tester) async {

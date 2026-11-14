@@ -643,7 +643,9 @@
   "edgeGestureSwipe": "Desliza hacia abajo para escribir",
   "edgeGestureSwipeHint": "La línea se abre con el teclado listo.",
   "edgeGestureHold": "Mantén pulsado para una nota de voz",
-  "edgeGestureHoldHint": "Graba mientras mantienes y se guarda al soltar.",
+  "edgeGestureHoldHint": "La grabación sigue sin el dedo hasta que toques Guardar.",
   "edgeGestureDouble": "Toca dos veces para la última nota",
-  "edgeGestureDoubleHint": "Un solo toque reacciona entonces un poco más tarde."
+  "edgeGestureDoubleHint": "Un solo toque reacciona entonces un poco más tarde.",
+  "edgeVoiceChannel": "Grabación de voz",
+  "edgeVoiceNow": "Grabando una nota de voz"
 }

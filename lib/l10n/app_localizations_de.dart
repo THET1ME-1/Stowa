@@ -3269,7 +3269,7 @@ class LDe extends L {
 
   @override
   String get edgeGestureHoldHint =>
-      'Nimmt auf, solange du hältst, und speichert beim Loslassen.';
+      'Die Aufnahme läuft auch ohne Finger weiter, bis du auf Speichern tippst.';
 
   @override
   String get edgeGestureDouble => 'Doppeltippen für die letzte Notiz';
@@ -3277,4 +3277,10 @@ class LDe extends L {
   @override
   String get edgeGestureDoubleHint =>
       'Einmal tippen reagiert dann etwas später.';
+
+  @override
+  String get edgeVoiceChannel => 'Sprachaufnahme';
+
+  @override
+  String get edgeVoiceNow => 'Sprachnotiz wird aufgenommen';
 }

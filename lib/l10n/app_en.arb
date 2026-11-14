@@ -4162,7 +4162,7 @@
   "@edgeGestureHold": {
     "description": "Переключатель жеста корешков"
   },
-  "edgeGestureHoldHint": "Recording while you hold, saved when you let go.",
+  "edgeGestureHoldHint": "Recording keeps going without your finger until you tap Save.",
   "@edgeGestureHoldHint": {
     "description": "Пояснение под переключателем, одно предложение"
   },
@@ -4173,5 +4173,13 @@
   "edgeGestureDoubleHint": "A single tap then reacts a little later.",
   "@edgeGestureDoubleHint": {
     "description": "Пояснение под переключателем, одно предложение"
+  },
+  "edgeVoiceChannel": "Voice recording",
+  "@edgeVoiceChannel": {
+    "description": "Имя канала уведомлений: пока идёт запись голоса из «Под рукой»"
+  },
+  "edgeVoiceNow": "Recording a voice note",
+  "@edgeVoiceNow": {
+    "description": "Уведомление на время записи голоса из «Под рукой»"
   }
 }

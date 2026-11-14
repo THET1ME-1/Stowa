@@ -44,6 +44,8 @@ class EdgePanel(
     private val onStop: () -> Unit,
     /** Кнопка на карточке полки или карточка, вынесенная за полку: повесить заметку стикером. */
     private val onPinSticker: (String, PointF?) -> Unit,
+    /** Запись голоса началась или кончилась: служба на это время — с микрофоном. */
+    private val onRecording: (Boolean, String, String) -> Boolean,
 ) {
     private var engine: FlutterEngine? = null
     private var channel: MethodChannel? = null
@@ -239,6 +241,12 @@ class EdgePanel(
                 "start" -> result.success(null)
                 "canDraw" -> result.success(true)
                 "nearby" -> result.success(EdgeNearby.recent(context))
+                // {on, channel, text}: Dart зовёт до старта записи и после её конца
+                "recording" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val args = call.arguments as Map<String, Any?>
+                    result.success(onRecording(args["on"] == true, args["channel"] as String? ?: "", args["text"] as String? ?: ""))
+                }
                 // плагин записи без Activity право не видит: проверяем сами, писать он может
                 "micGranted" -> result.success(
                     context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,

@@ -3289,7 +3289,7 @@ class LRo extends L {
 
   @override
   String get edgeGestureHoldHint =>
-      'Înregistrează cât ții apăsat, se salvează când eliberezi.';
+      'Înregistrarea continuă și fără deget, până apeși Salvează.';
 
   @override
   String get edgeGestureDouble => 'Atinge de două ori pentru ultima notiță';
@@ -3297,4 +3297,10 @@ class LRo extends L {
   @override
   String get edgeGestureDoubleHint =>
       'O singură atingere reacționează atunci puțin mai târziu.';
+
+  @override
+  String get edgeVoiceChannel => 'Înregistrare vocală';
+
+  @override
+  String get edgeVoiceNow => 'Se înregistrează o notă vocală';
 }

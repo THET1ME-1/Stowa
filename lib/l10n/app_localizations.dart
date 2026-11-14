@@ -5462,7 +5462,7 @@ abstract class L {
   /// Пояснение под переключателем, одно предложение
   ///
   /// In en, this message translates to:
-  /// **'Recording while you hold, saved when you let go.'**
+  /// **'Recording keeps going without your finger until you tap Save.'**
   String get edgeGestureHoldHint;
 
   /// Переключатель жеста корешков
@@ -5476,6 +5476,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'A single tap then reacts a little later.'**
   String get edgeGestureDoubleHint;
+
+  /// Имя канала уведомлений: пока идёт запись голоса из «Под рукой»
+  ///
+  /// In en, this message translates to:
+  /// **'Voice recording'**
+  String get edgeVoiceChannel;
+
+  /// Уведомление на время записи голоса из «Под рукой»
+  ///
+  /// In en, this message translates to:
+  /// **'Recording a voice note'**
+  String get edgeVoiceNow;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

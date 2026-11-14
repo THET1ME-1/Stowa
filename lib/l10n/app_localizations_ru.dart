@@ -3321,7 +3321,8 @@ class LRu extends L {
   String get edgeGestureHold => 'Удержание — голосовое';
 
   @override
-  String get edgeGestureHoldHint => 'Держишь — пишется, отпустил — сохранено.';
+  String get edgeGestureHoldHint =>
+      'Запись идёт и без пальца, пока не нажмёшь «Сохранить».';
 
   @override
   String get edgeGestureDouble => 'Двойное касание — последняя заметка';
@@ -3329,4 +3330,10 @@ class LRu extends L {
   @override
   String get edgeGestureDoubleHint =>
       'Одно касание тогда срабатывает чуть позже.';
+
+  @override
+  String get edgeVoiceChannel => 'Запись голоса';
+
+  @override
+  String get edgeVoiceNow => 'Идёт запись голосового';
 }

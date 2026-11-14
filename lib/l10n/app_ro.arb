@@ -643,7 +643,9 @@
   "edgeGestureSwipe": "Glisează în jos ca să scrii",
   "edgeGestureSwipeHint": "Rândul se deschide direct cu tastatura.",
   "edgeGestureHold": "Ține apăsat pentru o notă vocală",
-  "edgeGestureHoldHint": "Înregistrează cât ții apăsat, se salvează când eliberezi.",
+  "edgeGestureHoldHint": "Înregistrarea continuă și fără deget, până apeși Salvează.",
   "edgeGestureDouble": "Atinge de două ori pentru ultima notiță",
-  "edgeGestureDoubleHint": "O singură atingere reacționează atunci puțin mai târziu."
+  "edgeGestureDoubleHint": "O singură atingere reacționează atunci puțin mai târziu.",
+  "edgeVoiceChannel": "Înregistrare vocală",
+  "edgeVoiceNow": "Se înregistrează o notă vocală"
 }

@@ -18,6 +18,8 @@ import '../../domain/note_blocks.dart' show toggleCheckLine;
 import '../../domain/spine_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/edge_channel.dart';
+import '../../services/launch_actions.dart' show LaunchAction;
+import 'edge_voice.dart';
 import '../../services/privacy/hidden_rows.dart' show hiddenFolderIds;
 import '../composer/line_dock.dart';
 import '../folder/folder_screen.dart';
@@ -163,11 +165,14 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
       case EdgeOpenLast():
         _open();
         _openLast().ignore();
+      // удержание: у корешков плашка записи, полка не выезжает
       case EdgeVoiceStart():
-        _open();
-        _withLine((line) => line.startVoice().ignore());
+        if (_voice || _reveal.value > 0) return;
+        ref.read(edgeChannelProvider).opened().ignore();
+        setState(() => _voice = true);
+      // палец поднят — запись идёт дальше: руки свободны, остановит кнопка на плашке
       case EdgeVoiceStop():
-        _line.currentState?.finishVoice().ignore();
+        break;
       case EdgeDragStart():
         _swipeStart(opens: true);
       case EdgeDrag(:final distance):
@@ -179,6 +184,8 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
       // окна уже нет: без движения в закрытое состояние, иначе следующее открытие решило бы,
       // что полка на месте, не выехало бы и не ответило службе
       case EdgeClosed():
+        // идущая запись отменится сама: плашка уходит вместе с окном
+        if (_voice) setState(() => _voice = false);
         _reveal.stop();
         _reveal.value = 0;
         _closing = false;
@@ -200,6 +207,24 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
 
   /// Строка полки: жесты корешков фокусируют её или начинают запись.
   final _line = GlobalKey<LineDockState>();
+
+  /// Идёт запись с удержания корешков: на экране плашка записи, а не полка.
+  bool _voice = false;
+
+  /// Плашка ушла (сохранили или отменили): корешки возвращаются, окно убирается.
+  void _voiceDone() {
+    if (!_voice) return;
+    setState(() => _voice = false);
+    final channel = ref.read(edgeChannelProvider);
+    channel.closing().ignore();
+    channel.close().ignore();
+  }
+
+  /// Права на микрофон нет: запись — в окне виджета, там его спросят.
+  void _voiceElsewhere() {
+    setState(() => _voice = false);
+    ref.read(edgeChannelProvider).handOff(LaunchAction.voice, '').ignore();
+  }
 
   /// Жест — со строкой первой страницы полки: открытая заметка закрывается, строка — после кадра.
   void _withLine(void Function(LineDockState line) act) {
@@ -421,6 +446,16 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
                   child: Transform.translate(offset: Offset((right ? 1 : -1) * (1 - shown) * _travel, 0), child: shelf),
                 ),
               ),
+              if (_voice)
+                Positioned.fill(
+                  child: EdgeVoice(
+                    // окно корешков система ставит под строкой состояния, а это окно — от верха экрана
+                    spines: spineBox(MediaQuery.sizeOf(context), settings).shift(Offset(0, MediaQuery.paddingOf(context).top)),
+                    right: right,
+                    onDone: _voiceDone,
+                    onElsewhere: _voiceElsewhere,
+                  ),
+                ),
             ],
           );
         },
@@ -501,6 +536,10 @@ class _ShelfHome extends StatelessWidget {
               elsewhere: LineElsewhere(
                 handOff: (action, text) => ProviderScope.containerOf(context).read(edgeChannelProvider).handOff(action, text).ignore(),
                 micGranted: () => ProviderScope.containerOf(context).read(edgeChannelProvider).micGranted(),
+                recording: (on) => ProviderScope.containerOf(context)
+                    .read(edgeChannelProvider)
+                    .recording(on, channel: L.of(context).edgeVoiceChannel, text: L.of(context).edgeVoiceNow)
+                    .then((_) {}),
               ),
             ),
           ),

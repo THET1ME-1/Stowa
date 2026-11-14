@@ -1,7 +1,12 @@
 package app.stowa.edge
 
 import android.animation.ValueAnimator
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
+import android.content.pm.ServiceInfo
+import app.stowa.R
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -54,6 +59,7 @@ class EdgeService : Service() {
             onApply = { applyPrefs(animated = true) },
             onStop = ::hideHandle,
             onPinSticker = ::pinSticker,
+            onRecording = ::recording,
         )
         stickerEngines = FlutterEngineGroup(this)
         stickerPrefs().registerOnSharedPreferenceChangeListener(vaultWatch)
@@ -139,6 +145,37 @@ class EdgeService : Service() {
         // стикеры встали у края экрана другого размера — внутрь
         stickers.forEach { it.screenChanged() }
         Log.d(EdgeHandle.TAG, "stickers restored: ${stickers.size}")
+    }
+
+    /**
+     * Голос из полки: на время записи служба — переднего плана с микрофоном и тихим уведомлением.
+     * Без этого Android глушит запись: у процесса видно только окно поверх, права на микрофон
+     * у него нет (`silenced:true` в dumpsys audio, эмулятор 14.11.2026). Кончилась запись —
+     * уведомление уходит, служба снова обычная.
+     */
+    fun recording(on: Boolean, channelName: String, text: String): Boolean {
+        if (!on) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            return true
+        }
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(NotificationChannel(VOICE_CHANNEL, channelName.ifEmpty { "Voice" }, NotificationManager.IMPORTANCE_LOW))
+        val notification = Notification.Builder(this, VOICE_CHANNEL)
+            .setSmallIcon(R.drawable.ic_widget_mic)
+            .setContentTitle(text)
+            .setOngoing(true)
+            .build()
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(VOICE_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+            } else {
+                startForeground(VOICE_ID, notification)
+            }
+            true
+        } catch (error: Exception) {
+            Log.w(EdgeHandle.TAG, "voice foreground refused", error)
+            false
+        }
     }
 
     /** Сработало напоминание по месту: корешки мягко пульсируют, пока полку не открыли. */
@@ -381,6 +418,8 @@ class EdgeService : Service() {
 
     companion object {
         private const val STICKERS_KEY = "flutter.edge_stickers"
+        private const val VOICE_CHANNEL = "edge_voice"
+        private const val VOICE_ID = 7301
 
         /** Живая служба этого процесса: приёмник мест зовёт пульс прямо, он в том же процессе. */
         @Volatile

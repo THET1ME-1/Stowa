@@ -643,7 +643,9 @@
   "edgeGestureSwipe": "Przesuń w dół, by pisać",
   "edgeGestureSwipeHint": "Wiersz otwiera się od razu z klawiaturą.",
   "edgeGestureHold": "Przytrzymaj, by nagrać głosówkę",
-  "edgeGestureHoldHint": "Nagrywa, gdy trzymasz, zapisuje, gdy puścisz.",
+  "edgeGestureHoldHint": "Nagrywanie trwa też bez palca, dopóki nie dotkniesz Zapisz.",
   "edgeGestureDouble": "Dotknij dwa razy, by otworzyć ostatnią notatkę",
-  "edgeGestureDoubleHint": "Jedno dotknięcie działa wtedy nieco później."
+  "edgeGestureDoubleHint": "Jedno dotknięcie działa wtedy nieco później.",
+  "edgeVoiceChannel": "Nagrywanie głosu",
+  "edgeVoiceNow": "Trwa nagrywanie głosówki"
 }

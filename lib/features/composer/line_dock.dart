@@ -82,13 +82,17 @@ class _Toast {
 /// и подсказками, галерея, голосовое и редактор на весь экран.
 /// Что строка в окне без Activity делает не сама.
 class LineElsewhere {
-  const LineElsewhere({required this.handOff, required this.micGranted});
+  const LineElsewhere({required this.handOff, required this.micGranted, required this.recording});
 
   /// Отдать дело окну с Activity вместе с набранным.
   final void Function(LaunchAction action, String text) handOff;
 
   /// Есть ли право на микрофон: плагин записи без Activity всегда отвечает «нет».
   final Future<bool> Function() micGranted;
+
+  /// Запись началась или кончилась: окну поверх нужна служба с микрофоном, иначе Android
+  /// глушит запись (в файле тишина).
+  final Future<void> Function(bool on) recording;
 }
 
 class LineDock extends ConsumerStatefulWidget {
@@ -190,6 +194,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _searchTimer?.cancel();
     _toastTimer?.cancel();
     _morph.dispose();
+    // строку убрали посреди записи (полку закрыли): службе микрофон больше не нужен
+    if (_voice != null) widget.elsewhere?.recording(false).ignore();
     _voice?.dispose();
     _line.dispose();
     _focus.dispose();
@@ -352,11 +358,6 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   /// Микрофон виджета: запись начинается сразу, без касания строки. false — записи нет.
   Future<bool> startVoice() async => _voice != null || await _startVoice();
-
-  /// Палец отпустил корешки «Под рукой»: идущая запись сохраняется, как второй кнопкой.
-  Future<void> finishVoice() async {
-    if (_voice != null) await _stopVoice(keep: true);
-  }
 
   /// Камера виджета: готовый снимок встаёт вложением.
   void attach(List<PickedFile> files) => _addPicked(files);
@@ -667,6 +668,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       _handOff(LaunchAction.voice);
       return false;
     }
+    await elsewhere?.recording(true);
     final session = VoiceSession(_voiceFolder);
     var started = false;
     try {
@@ -676,6 +678,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     }
     if (!started) {
       session.dispose();
+      elsewhere?.recording(false).ignore();
       if (elsewhere != null) {
         _handOff(LaunchAction.voice);
       } else {
@@ -702,11 +705,13 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     if (!keep) {
       await session.cancel();
       session.dispose();
+      widget.elsewhere?.recording(false).ignore();
       return;
     }
     final l = L.of(context);
     final file = await session.stop();
     session.dispose();
+    widget.elsewhere?.recording(false).ignore();
     if (file == null || !mounted) return;
     final id = await ref.read(captureServiceProvider).capture(CaptureInput(files: [file], title: l.voiceTitle));
     if (!mounted) return;
@@ -1333,7 +1338,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
               ),
             ],
             if (voice != null)
-              _SendButton(label: label, icon: icon, tooltip: label, busy: _sending, onTap: _act)
+              // в узкой полке «Под рукой» подпись сжимается, а не ряд вылезает за край
+              Flexible(child: _SendButton(label: label, icon: icon, tooltip: label, busy: _sending, onTap: _act))
             else
               // на узком экране сжимается подпись кнопки, а не ряд
               Expanded(

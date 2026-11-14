@@ -3263,7 +3263,7 @@ class LEs extends L {
 
   @override
   String get edgeGestureHoldHint =>
-      'Graba mientras mantienes y se guarda al soltar.';
+      'La grabación sigue sin el dedo hasta que toques Guardar.';
 
   @override
   String get edgeGestureDouble => 'Toca dos veces para la última nota';
@@ -3271,4 +3271,10 @@ class LEs extends L {
   @override
   String get edgeGestureDoubleHint =>
       'Un solo toque reacciona entonces un poco más tarde.';
+
+  @override
+  String get edgeVoiceChannel => 'Grabación de voz';
+
+  @override
+  String get edgeVoiceNow => 'Grabando una nota de voz';
 }
