@@ -5,13 +5,25 @@ import '../../domain/note_blocks.dart';
 /// Текст с оформлением из разметки заметки и подсвеченными совпадениями поиска:
 /// жирное жирным, сделанное зачёркнуто, найденное на фоне, ширина букв та же.
 class MarkedText extends StatelessWidget {
-  const MarkedText({super.key, required this.text, required this.marks, required this.style, required this.markColor, this.styles = const [], this.maxLines = 1});
+  const MarkedText({
+    super.key,
+    required this.text,
+    required this.marks,
+    required this.style,
+    required this.markColor,
+    this.styles = const [],
+    this.maxLines = 1,
+    this.overflow = TextOverflow.ellipsis,
+  });
 
   /// Короткая заметка с её оформлением, без подсветки: карточки на главной и в папке.
-  factory MarkedText.note(String markdown, {required TextStyle style, int maxLines = 1}) {
+  factory MarkedText.note(String markdown, {required TextStyle style, int maxLines = 1, TextOverflow overflow = TextOverflow.ellipsis}) {
     final shown = renderMarkup(markdown, const []);
-    return MarkedText(text: shown.text, marks: const [], styles: shown.styles, style: style, markColor: Colors.transparent, maxLines: maxLines);
+    return MarkedText(text: shown.text, marks: const [], styles: shown.styles, style: style, markColor: Colors.transparent, maxLines: maxLines, overflow: overflow);
   }
+
+  /// Что с текстом длиннее [maxLines]: многоточие или обрез (карточка главной растворяет конец сама).
+  final TextOverflow overflow;
 
   final String text;
 
@@ -58,7 +70,7 @@ class MarkedText extends StatelessWidget {
     return Text.rich(
       TextSpan(style: style, children: spans),
       maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
+      overflow: overflow,
     );
   }
 }

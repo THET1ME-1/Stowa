@@ -41,8 +41,8 @@ const _dotBottom = 22.0;
 /// Фото в ленте не выше этого: лента листается быстро, а целиком оно на странице заметки.
 const _photoMax = 220.0;
 
-/// Сколько строк заметки видно в ленте; дальше — на её странице.
-const _lines = 8;
+/// Сколько строк текста видно на карточке; целиком заметку читают на её странице.
+const _excerptLines = 2;
 
 const _cardRadius = 24.0;
 
@@ -400,13 +400,13 @@ class _Entry extends StatelessWidget {
     };
     // у ссылки обложка слева с узким полем, у текста и фото поле шире
     final pad = attachment ? 10.0 : 16.0;
-    final Widget content = switch (item.kind) {
-      _ when attachment => Padding(padding: EdgeInsets.fromLTRB(pad, pad, pad, 0), child: _Attachment(item: item, thumb: thumb)),
-      _ when thumb != null => _Photo(item: item, path: thumb, onToggle: onToggle),
-      _ => Padding(padding: EdgeInsets.fromLTRB(pad, 14, pad, 0), child: _Text(item: item, onToggle: onToggle)),
-    };
     // карточка чуть в цвет папки: заметки одной папки узнаются в ленте издалека
     final fill = item.folderColor == null ? Tokens.container : FolderPalette.tint(item.folderColor!, 0.1);
+    final Widget content = switch (item.kind) {
+      _ when attachment => Padding(padding: EdgeInsets.fromLTRB(pad, pad, pad, 0), child: _Attachment(item: item, thumb: thumb)),
+      _ when thumb != null => _Photo(item: item, path: thumb, fill: fill, onToggle: onToggle),
+      _ => Padding(padding: EdgeInsets.fromLTRB(pad, 14, pad, 0), child: _Text(item: item, fill: fill, onToggle: onToggle)),
+    };
     final time = Text(
       stamp,
       style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()]),
@@ -466,30 +466,91 @@ TextStyle _titleStyle(TextTheme text) => text.titleMedium!.copyWith(fontSize: 17
 
 TextStyle _bodyStyle(TextTheme text) => text.bodyMedium!.copyWith(fontSize: 15, height: 1.45, color: Tokens.onSurfaceVariant);
 
-/// Заметка текстом: заголовок и строки под ним, пункты списка с галочками.
+/// Заметка текстом: заголовок и две строки под ним — целиком её читают на странице заметки.
+/// Список начинается с пунктов — два пункта с галочками, которые отмечаются прямо отсюда.
 class _Text extends StatelessWidget {
-  const _Text({required this.item, required this.onToggle});
+  const _Text({required this.item, required this.fill, required this.onToggle});
 
   final ItemCard item;
+
+  /// Цвет карточки: в него растворяется конец второй строки.
+  final Color fill;
   final ValueChanged<int> onToggle;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final lines = noteLinesUnderTitle(item.body, item.title);
+    final checklist = lines.isNotEmpty && lines.first.done != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(shownTitle(item.title), maxLines: lines.isEmpty ? 6 : 3, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
-        if (lines.isNotEmpty) ...[const SizedBox(height: 6), _Lines(lines: lines, color: item.folderColor, onToggle: onToggle)],
+        Text(shownTitle(item.title), maxLines: lines.isEmpty ? 4 : 2, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
+        if (lines.isNotEmpty) const SizedBox(height: 6),
+        if (checklist)
+          _Checks(lines: lines, color: item.folderColor, onToggle: onToggle)
+        else if (lines.isNotEmpty)
+          _Excerpt(id: item.id, lines: lines, fill: fill),
       ],
     );
   }
 }
 
-/// Строки заметки: обычные текстом, пункты — галочкой, которую можно отметить отсюда.
-class _Lines extends StatelessWidget {
-  const _Lines({required this.lines, required this.color, required this.onToggle});
+/// Две строки текста. Не влез — конец второй строки растворяется в цвете карточки,
+/// и поверх тихо сказано, сколько строк ещё внутри: вместо многоточия.
+class _Excerpt extends StatelessWidget {
+  const _Excerpt({required this.id, required this.lines, required this.fill});
+
+  final String id;
+  final List<NoteLine> lines;
+  final Color fill;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final style = _bodyStyle(Theme.of(context).textTheme);
+    // пункты среди текста — значком, как их видно в заметке
+    final markdown = [for (final line in lines) line.done == null ? line.text : '${line.done! ? '☑' : '☐'} ${line.text}'].join('\n');
+    return LayoutBuilder(
+      builder: (context, box) {
+        final painter = TextPainter(
+          text: TextSpan(text: renderMarkup(markdown, const []).text, style: style),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: box.maxWidth);
+        final hidden = painter.computeLineMetrics().length - _excerptLines;
+        final line = painter.preferredLineHeight;
+        painter.dispose();
+        return Stack(
+          children: [
+            KeyedSubtree(key: ValueKey('excerpt-$id'), child: MarkedText.note(markdown, maxLines: _excerptLines, overflow: TextOverflow.clip, style: style)),
+            if (hidden > 0)
+              Positioned(
+                key: ValueKey('excerpt-fade-$id'),
+                right: 0,
+                bottom: 0,
+                height: line,
+                width: math.min(box.maxWidth * 0.6, 220),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [fill.withValues(alpha: 0), fill, fill], stops: const [0, 0.42, 1]),
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(l.homeMoreLines(hidden), maxLines: 1, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: Tokens.muted)),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Список: первые два пункта галочками, которые отмечаются отсюда, остальное — «ещё N».
+class _Checks extends StatelessWidget {
+  const _Checks({required this.lines, required this.color, required this.onToggle});
 
   final List<NoteLine> lines;
   final Color? color;
@@ -499,23 +560,16 @@ class _Lines extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    final shown = lines.take(_lines).toList();
-    final hiddenChecks = lines.skip(_lines).where((line) => line.done != null).length;
+    final shown = lines.where((line) => line.done != null).take(_excerptLines).toList();
+    final hidden = lines.length - shown.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final line in shown)
-          if (line.done case final done?)
-            _CheckRow(text: line.text, done: done, color: color ?? Tokens.accent, onTap: () => onToggle(line.index))
-          else
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: MarkedText.note(line.text, maxLines: 4, style: _bodyStyle(text)),
-            ),
-        if (hiddenChecks > 0)
+        for (final line in shown) _CheckRow(text: line.text, done: line.done!, color: color ?? Tokens.accent, onTap: () => onToggle(line.index)),
+        if (hidden > 0)
           Padding(
             padding: const EdgeInsets.only(left: 32, top: 2),
-            child: Text(l.homeChecksMore(hiddenChecks), style: text.bodySmall!.copyWith(color: Tokens.muted)),
+            child: Text(l.homeChecksMore(hidden), style: text.bodySmall!.copyWith(color: Tokens.muted)),
           ),
       ],
     );
@@ -569,15 +623,15 @@ class _CheckRow extends StatelessWidget {
 
 /// Своя картинка заметки во всю ширину; подпись, если человек её написал.
 class _Photo extends StatelessWidget {
-  const _Photo({required this.item, required this.path, required this.onToggle});
+  const _Photo({required this.item, required this.path, required this.fill, required this.onToggle});
 
   final ItemCard item;
   final String path;
+  final Color fill;
   final ValueChanged<int> onToggle;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     final lines = noteLinesUnderTitle(item.body, item.title);
     final width = (360 * MediaQuery.devicePixelRatioOf(context)).round();
     return Column(
@@ -600,18 +654,8 @@ class _Photo extends StatelessWidget {
           ),
         ),
         // у фото без текста заголовок — «Фото от 7 ноября», день и так над ним
-        if (lines.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(shownTitle(item.title), maxLines: 3, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
-                const SizedBox(height: 4),
-                _Lines(lines: lines, color: item.folderColor, onToggle: onToggle),
-              ],
-            ),
-          ),
+        // подпись — как текст заметки: заголовок и две строки
+        if (lines.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 0), child: _Text(item: item, fill: fill, onToggle: onToggle)),
       ],
     );
   }

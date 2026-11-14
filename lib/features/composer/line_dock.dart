@@ -152,6 +152,14 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     unawaited(_cleanVoiceDrafts().catchError((_) {}));
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // поверх открыли заметку или настройки — фокус уходит. Иначе при возврате Flutter вернёт его
+    // строке сам, и вылезет клавиатура: на Android «назад» прячет клавиатуру, а фокус оставляет
+    if (ModalRoute.isCurrentOf(context) == false && _focus.hasFocus) _focus.unfocus();
+  }
+
   Future<void> _cleanVoiceDrafts() async {
     final db = ref.read(databaseProvider);
     final waiting = {for (final job in await db.select(db.fileJobs).get()) job.source};
@@ -1184,11 +1192,14 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   Future<void> _pickFolder() async {
     final l = L.of(context);
     final folders = ref.read(foldersProvider).value ?? const [];
+    // лист перекрывает строку и снимает с неё фокус; набирали — набор продолжается после выбора
+    final typing = _focus.hasFocus;
     final picked = await showOptionsSheetWith<FolderCard?>(
       context,
       (sheet) => FolderPickerSheet(title: l.folderPickTitle, folders: folders, onNew: () => askNewFolder(sheet, ref)),
     );
     if (picked != null) _line.chooseFolder(picked);
+    if (typing && mounted) _focus.requestFocus();
   }
 
   Widget _controls(L l) {

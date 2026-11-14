@@ -3217,4 +3217,17 @@ class LRu extends L {
 
   @override
   String get linkCreateAction => 'Создать';
+
+  @override
+  String homeMoreLines(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ещё $count строки',
+      many: 'ещё $count строк',
+      few: 'ещё $count строки',
+      one: 'ещё $count строка',
+    );
+    return '$_temp0';
+  }
 }

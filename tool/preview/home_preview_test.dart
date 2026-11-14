@@ -489,6 +489,31 @@ void main() {
     await _shot(tester, '18-рецепт');
   });
 
+  testWidgets('карточки по две строки', (tester) async {
+    await tester.runAsync(() async {
+      final db = world.db;
+      await db.into(db.folders).insert(FoldersCompanion.insert(id: 'work', name: 'Togetherly', icon: 'favorite', shape: 'squircle'));
+      Future<void> put(String id, String title, String body, int minutes, {String? folder}) => db.into(db.items).insert(ItemsCompanion.insert(
+        id: id,
+        kind: ItemKind.note,
+        title: title,
+        body: Value(body),
+        folderId: Value(folder),
+        sortState: const Value(SortState.sorted),
+        createdAt: world.now.subtract(Duration(minutes: minutes)),
+        updatedAt: world.now,
+      ));
+      await put('a', 'Оплата Плюса через lava', 'Оплата Плюса через lava\nОплатить можно по этой ссылке, на почту приходит чек. Укажи при оплате ту почту, с которой входишь в Togetherly, Плюс включится на неё.\nЕсли хочешь и партнёру, то это вторая оплата с его почтой.\nЕсли приложение из RuStore, можно платить прямо в нём.', 5, folder: 'work');
+      await put('b', 'Купить', 'Купить\n- [ ] хлеб\n- [x] молоко\n- [ ] сыр\n- [ ] яйца', 20);
+      await put('c', 'Послезавтра сдать кровь', 'Послезавтра сдать кровь', 40);
+      await put('d', 'Идея для ролика', 'Идея для ролика\nСравнить виджеты с Widgetable в одном кадре.', 60);
+    });
+    await open(tester);
+    await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -120));
+    await tester.pumpAndSettle();
+    await _shot(tester, '2в-две-строки');
+  });
+
   testWidgets('подсказка [[ у строки с курсором', (tester) async {
     final long = [for (var index = 1; index <= 14; index++) 'Мысль номер $index про пиво и хмель'].join('\n');
     await tester.runAsync(() async {

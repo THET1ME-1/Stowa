@@ -3213,4 +3213,17 @@ class LPl extends L {
 
   @override
   String get linkCreateAction => 'Utwórz';
+
+  @override
+  String homeMoreLines(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'jeszcze $count linii',
+      many: 'jeszcze $count linii',
+      few: 'jeszcze $count linie',
+      one: 'jeszcze $count linia',
+    );
+    return '$_temp0';
+  }
 }

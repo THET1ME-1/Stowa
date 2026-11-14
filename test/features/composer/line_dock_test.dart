@@ -62,6 +62,22 @@ void main() {
     expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
   });
 
+  testWidgets('строка была в фокусе, открыл заметку и вернулся — фокуса и клавиатуры нет, пока сам не нажмёшь', (tester) async {
+    await note('beer', 'Пиво я очень люблю');
+    await open(tester);
+    await tester.showKeyboard(find.byType(TextField));
+    await tester.pumpAndSettle();
+    // клавиатуру спрятали «назад»: на Android фокус при этом остаётся у строки
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Пиво я очень люблю'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Назад').last);
+    await tester.pumpAndSettle();
+    expect(tester.widget<EditableText>(find.byType(EditableText).first).focusNode.hasFocus, isFalse);
+    expect(tester.testTextInput.isVisible, isFalse);
+  });
+
   testWidgets('«[[» в строке: заметки с набранным названием нет — «Создать заметку» заводит её', (tester) async {
     await note('beer', 'Пиво я очень люблю');
     await open(tester);

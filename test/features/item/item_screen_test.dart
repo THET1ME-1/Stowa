@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
@@ -529,6 +530,19 @@ void main() {
     final field = find.byType(TextField).last;
     final bar = find.byKey(const ValueKey('edit-dock'));
     expect(tester.getBottomLeft(field).dy, lessThanOrEqualTo(tester.getTopLeft(bar).dy));
+  });
+
+  testWidgets('«Поделиться» у заметки без файлов отдаёт текст системе (share_plus не пускал пустой список файлов)', (tester) async {
+    Map<Object?, Object?>? shared;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('dev.fluttercommunity.plus/share'), (call) async {
+      shared = call.arguments as Map<Object?, Object?>;
+      return 'dev.fluttercommunity.plus/share/success';
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('dev.fluttercommunity.plus/share'), null));
+    await open(tester, body: 'Купить хмель и солод', title: 'Купить хмель и солод');
+    await tester.tap(find.byTooltip('Поделиться'));
+    await tester.pumpAndSettle();
+    expect(shared?['text'], 'Купить хмель и солод');
   });
 
   testWidgets('«⋮» → «Закрепить», потом там же «Открепить»', (tester) async {

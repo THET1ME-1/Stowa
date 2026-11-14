@@ -612,5 +612,6 @@
   "homePinnedLess": "Mostrar menos",
   "catalogReorderHint": "Mantén pulsada una carpeta y arrástrala: en este orden aparecen también en el inicio.",
   "linkCreate": "Crear nota «{title}»",
-  "linkCreateAction": "Crear"
+  "linkCreateAction": "Crear",
+  "homeMoreLines": "{count, plural, one{{count} línea más} other{{count} líneas más}}"
 }

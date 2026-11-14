@@ -4041,5 +4041,9 @@
   "linkCreateAction": "Create",
   "@linkCreateAction": {
     "description": "Кнопка в плашке «Такой заметки нет»: завести заметку по ссылке"
+  },
+  "homeMoreLines": "{count, plural, one{{count} more line} other{{count} more lines}}",
+  "@homeMoreLines": {
+    "description": "На карточке заметки на главной: сколько строк текста не видно"
   }
 }

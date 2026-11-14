@@ -3213,4 +3213,17 @@ class LUk extends L {
 
   @override
   String get linkCreateAction => 'Створити';
+
+  @override
+  String homeMoreLines(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ще $count рядка',
+      many: 'ще $count рядків',
+      few: 'ще $count рядки',
+      one: 'ще $count рядок',
+    );
+    return '$_temp0';
+  }
 }

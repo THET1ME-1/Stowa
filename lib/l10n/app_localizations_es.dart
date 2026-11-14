@@ -3160,4 +3160,15 @@ class LEs extends L {
 
   @override
   String get linkCreateAction => 'Crear';
+
+  @override
+  String homeMoreLines(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count líneas más',
+      one: '$count línea más',
+    );
+    return '$_temp0';
+  }
 }

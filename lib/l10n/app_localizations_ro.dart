@@ -3185,4 +3185,16 @@ class LRo extends L {
 
   @override
   String get linkCreateAction => 'Creează';
+
+  @override
+  String homeMoreLines(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'încă $count de rânduri',
+      few: 'încă $count rânduri',
+      one: 'încă $count rând',
+    );
+    return '$_temp0';
+  }
 }

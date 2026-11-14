@@ -612,5 +612,6 @@
   "homePinnedLess": "Weniger",
   "catalogReorderHint": "Halte einen Ordner gedrückt und zieh ihn: In dieser Reihenfolge stehen die Ordner auch auf der Startseite.",
   "linkCreate": "Notiz „{title}“ anlegen",
-  "linkCreateAction": "Anlegen"
+  "linkCreateAction": "Anlegen",
+  "homeMoreLines": "{count, plural, one{noch {count} Zeile} other{noch {count} Zeilen}}"
 }

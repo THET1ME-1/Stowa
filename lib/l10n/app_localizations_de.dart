@@ -3165,4 +3165,15 @@ class LDe extends L {
 
   @override
   String get linkCreateAction => 'Anlegen';
+
+  @override
+  String homeMoreLines(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'noch $count Zeilen',
+      one: 'noch $count Zeile',
+    );
+    return '$_temp0';
+  }
 }

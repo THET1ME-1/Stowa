@@ -861,5 +861,6 @@
   "homePinnedLess": "Свернуть",
   "catalogReorderHint": "Зажми папку и перетащи: в этом порядке папки стоят и на главной.",
   "linkCreate": "Создать заметку «{title}»",
-  "linkCreateAction": "Создать"
+  "linkCreateAction": "Создать",
+  "homeMoreLines": "{count, plural, one{ещё {count} строка} few{ещё {count} строки} many{ещё {count} строк} other{ещё {count} строки}}"
 }

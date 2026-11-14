@@ -612,5 +612,6 @@
   "homePinnedLess": "Restrânge",
   "catalogReorderHint": "Ține apăsat pe un dosar și trage-l: pe pagina principală dosarele stau în aceeași ordine.",
   "linkCreate": "Creează notița „{title}”",
-  "linkCreateAction": "Creează"
+  "linkCreateAction": "Creează",
+  "homeMoreLines": "{count, plural, one{încă {count} rând} few{încă {count} rânduri} other{încă {count} de rânduri}}"
 }

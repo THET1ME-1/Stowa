@@ -5278,6 +5278,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Create'**
   String get linkCreateAction;
+
+  /// На карточке заметки на главной: сколько строк текста не видно
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} more line} other{{count} more lines}}'**
+  String homeMoreLines(num count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

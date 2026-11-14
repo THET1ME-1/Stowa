@@ -624,10 +624,18 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   Future<void> _share(Item item, List<Attachment> attachments, Directory filesRoot) async {
     final box = context.findRenderObject() as RenderBox?;
+    // share_plus 13 бросает ошибку на пустой список файлов и пустой текст: у заметки без вложений
+    // «Поделиться» молча не делало ничего. Файл, которого уже нет на диске, тоже уронил бы всё
+    final files = [
+      for (final file in attachments)
+        if (File(p.join(filesRoot.path, file.path)).existsSync()) XFile(p.join(filesRoot.path, file.path), mimeType: file.mime),
+    ];
+    final text = _plainText(item).trim();
+    if (files.isEmpty && text.isEmpty) return;
     await SharePlus.instance.share(ShareParams(
-      text: _plainText(item),
+      text: text.isEmpty ? null : text,
       subject: item.title,
-      files: [for (final file in attachments) XFile(p.join(filesRoot.path, file.path), mimeType: file.mime)],
+      files: files.isEmpty ? null : files,
       sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
     ));
   }
