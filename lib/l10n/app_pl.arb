@@ -637,5 +637,13 @@
   "edgeStick": "Przypnij jako naklejkę",
   "edgeSpinesSetup": "Ustaw grzbiety",
   "edgeUnstick": "Zdejmij naklejkę",
-  "edgeNearby": "W pobliżu"
+  "edgeNearby": "W pobliżu",
+  "suggestPaste": "Wklej ze schowka",
+  "edgeGestures": "Gesty",
+  "edgeGestureSwipe": "Przesuń w dół, by pisać",
+  "edgeGestureSwipeHint": "Wiersz otwiera się od razu z klawiaturą.",
+  "edgeGestureHold": "Przytrzymaj, by nagrać głosówkę",
+  "edgeGestureHoldHint": "Nagrywa, gdy trzymasz, zapisuje, gdy puścisz.",
+  "edgeGestureDouble": "Dotknij dwa razy, by otworzyć ostatnią notatkę",
+  "edgeGestureDoubleHint": "Jedno dotknięcie działa wtedy nieco później."
 }

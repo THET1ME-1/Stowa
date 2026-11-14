@@ -21,6 +21,22 @@ void main() {
 
   Switch mainSwitch(WidgetTester tester) => tester.widget<Switch>(find.descendant(of: find.byKey(const ValueKey('edge-switch')), matching: find.byType(Switch)));
 
+  testWidgets('жесты корешков: три переключателя, каждый пишется сразу и доходит до корешков', (tester) async {
+    world.edgeSettings = const EdgeSettings(enabled: true);
+    await open(tester);
+    for (final key in ['edge-gesture-swipe', 'edge-gesture-hold', 'edge-gesture-double']) {
+      // список ленивый: нижние строки строятся, когда до них докрутили
+      await tester.scrollUntilVisible(find.byKey(ValueKey(key)), 200, scrollable: find.byType(Scrollable).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(ValueKey(key)));
+      await tester.pumpAndSettle();
+    }
+    expect(world.edgeSettings.swipeDownTypes, isFalse);
+    expect(world.edgeSettings.holdRecords, isFalse);
+    expect(world.edgeSettings.doubleTapLast, isTrue);
+    expect(world.edge.calls.where((call) => call == 'apply'), hasLength(3));
+  });
+
   testWidgets('включатель без права ведёт к праву и остаётся выключенным', (tester) async {
     world.edge.canDrawAnswer = false;
     await open(tester);

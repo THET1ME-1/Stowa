@@ -637,5 +637,13 @@
   "edgeStick": "Повісити стікером",
   "edgeSpinesSetup": "Налаштувати корінці",
   "edgeUnstick": "Зняти стікер",
-  "edgeNearby": "Поруч"
+  "edgeNearby": "Поруч",
+  "suggestPaste": "Вставити з буфера",
+  "edgeGestures": "Жести",
+  "edgeGestureSwipe": "Свайп униз — одразу писати",
+  "edgeGestureSwipeHint": "Рядок відкривається одразу з клавіатурою.",
+  "edgeGestureHold": "Утримання — голосове",
+  "edgeGestureHoldHint": "Тримаєш — пишеться, відпустив — збережено.",
+  "edgeGestureDouble": "Подвійний дотик — остання нотатка",
+  "edgeGestureDoubleHint": "Один дотик тоді спрацьовує трохи пізніше."
 }

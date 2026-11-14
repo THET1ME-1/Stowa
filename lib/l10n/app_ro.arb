@@ -637,5 +637,13 @@
   "edgeStick": "Fixează ca autocolant",
   "edgeSpinesSetup": "Configurează cotoarele",
   "edgeUnstick": "Elimină autocolantul",
-  "edgeNearby": "În apropiere"
+  "edgeNearby": "În apropiere",
+  "suggestPaste": "Lipește din clipboard",
+  "edgeGestures": "Gesturi",
+  "edgeGestureSwipe": "Glisează în jos ca să scrii",
+  "edgeGestureSwipeHint": "Rândul se deschide direct cu tastatura.",
+  "edgeGestureHold": "Ține apăsat pentru o notă vocală",
+  "edgeGestureHoldHint": "Înregistrează cât ții apăsat, se salvează când eliberezi.",
+  "edgeGestureDouble": "Atinge de două ori pentru ultima notiță",
+  "edgeGestureDoubleHint": "O singură atingere reacționează atunci puțin mai târziu."
 }

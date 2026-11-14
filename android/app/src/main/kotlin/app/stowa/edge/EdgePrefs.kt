@@ -17,6 +17,12 @@ data class EdgePrefs(
     /** Заметность, 0,4–1. */
     val alpha: Float,
     val hideInFullscreen: Boolean,
+    /** Свайп вниз — полка со строкой и клавиатурой. */
+    val swipeDownTypes: Boolean = true,
+    /** Удержание — запись голоса, отпустил — сохранено. */
+    val holdRecords: Boolean = true,
+    /** Двойное касание — последняя открытая заметка; одно касание тогда ждёт второго. */
+    val doubleTapLast: Boolean = false,
 ) {
     companion object {
         private const val FILE = "FlutterSharedPreferences"
@@ -42,6 +48,9 @@ data class EdgePrefs(
                 shelfHeightDp = height,
                 alpha = prefs.getLong("flutter.edge_alpha", 86L).toInt().coerceIn(40, 100) / 100f,
                 hideInFullscreen = prefs.getBoolean("flutter.edge_hide_fullscreen", true),
+                swipeDownTypes = prefs.getBoolean("flutter.edge_gesture_swipe", true),
+                holdRecords = prefs.getBoolean("flutter.edge_gesture_hold", true),
+                doubleTapLast = prefs.getBoolean("flutter.edge_gesture_double", false),
             )
         }
     }

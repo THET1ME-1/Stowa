@@ -3250,4 +3250,31 @@ class LDe extends L {
 
   @override
   String get edgeNearby => 'In der Nähe';
+
+  @override
+  String get suggestPaste => 'Aus der Zwischenablage einfügen';
+
+  @override
+  String get edgeGestures => 'Gesten';
+
+  @override
+  String get edgeGestureSwipe => 'Nach unten wischen zum Schreiben';
+
+  @override
+  String get edgeGestureSwipeHint =>
+      'Die Zeile öffnet sich gleich mit Tastatur.';
+
+  @override
+  String get edgeGestureHold => 'Halten für eine Sprachnotiz';
+
+  @override
+  String get edgeGestureHoldHint =>
+      'Nimmt auf, solange du hältst, und speichert beim Loslassen.';
+
+  @override
+  String get edgeGestureDouble => 'Doppeltippen für die letzte Notiz';
+
+  @override
+  String get edgeGestureDoubleHint =>
+      'Einmal tippen reagiert dann etwas später.';
 }

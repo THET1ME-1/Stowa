@@ -637,5 +637,13 @@
   "edgeStick": "Als Sticker anheften",
   "edgeSpinesSetup": "Rücken einrichten",
   "edgeUnstick": "Sticker entfernen",
-  "edgeNearby": "In der Nähe"
+  "edgeNearby": "In der Nähe",
+  "suggestPaste": "Aus der Zwischenablage einfügen",
+  "edgeGestures": "Gesten",
+  "edgeGestureSwipe": "Nach unten wischen zum Schreiben",
+  "edgeGestureSwipeHint": "Die Zeile öffnet sich gleich mit Tastatur.",
+  "edgeGestureHold": "Halten für eine Sprachnotiz",
+  "edgeGestureHoldHint": "Nimmt auf, solange du hältst, und speichert beim Loslassen.",
+  "edgeGestureDouble": "Doppeltippen für die letzte Notiz",
+  "edgeGestureDoubleHint": "Einmal tippen reagiert dann etwas später."
 }

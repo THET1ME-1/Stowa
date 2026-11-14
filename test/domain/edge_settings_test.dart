@@ -54,4 +54,18 @@ void main() {
     expect(EdgeSettings.fromPrefs(const {}), const EdgeSettings());
     expect(settings.copyWith(height: 20), isNot(settings));
   });
+
+  test('жесты: свайп вниз и удержание включены, двойное касание выключено — оно задерживает обычное', () {
+    const settings = EdgeSettings();
+    expect(settings.swipeDownTypes, isTrue);
+    expect(settings.holdRecords, isTrue);
+    expect(settings.doubleTapLast, isFalse);
+  });
+
+  test('жесты в prefs без потерь', () {
+    const settings = EdgeSettings(swipeDownTypes: false, holdRecords: false, doubleTapLast: true);
+    expect(EdgeSettings.fromPrefs(settings.toPrefs()), settings);
+    expect(settings.toPrefs().keys, containsAll(['edge_gesture_swipe', 'edge_gesture_hold', 'edge_gesture_double']));
+    expect(settings.copyWith(doubleTapLast: false), isNot(settings));
+  });
 }

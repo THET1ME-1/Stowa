@@ -5428,6 +5428,54 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Nearby'**
   String get edgeNearby;
+
+  /// Подсказка над строкой в полке «Под рукой»: буфер читается только по касанию
+  ///
+  /// In en, this message translates to:
+  /// **'Paste from clipboard'**
+  String get suggestPaste;
+
+  /// Раздел экрана «Под рукой»: жесты по корешкам
+  ///
+  /// In en, this message translates to:
+  /// **'Gestures'**
+  String get edgeGestures;
+
+  /// Переключатель жеста корешков
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe down to type'**
+  String get edgeGestureSwipe;
+
+  /// Пояснение под переключателем, одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'The line opens with the keyboard ready.'**
+  String get edgeGestureSwipeHint;
+
+  /// Переключатель жеста корешков
+  ///
+  /// In en, this message translates to:
+  /// **'Hold for a voice note'**
+  String get edgeGestureHold;
+
+  /// Пояснение под переключателем, одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'Recording while you hold, saved when you let go.'**
+  String get edgeGestureHoldHint;
+
+  /// Переключатель жеста корешков
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap for the last note'**
+  String get edgeGestureDouble;
+
+  /// Пояснение под переключателем, одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'A single tap then reacts a little later.'**
+  String get edgeGestureDoubleHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

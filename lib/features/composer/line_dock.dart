@@ -154,6 +154,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   int _toastCount = 0;
 
   String? _clip;
+
+  /// В буфере есть текст, но строка в окне поверх его не читала: прочтёт по касанию.
+  bool _clipUnread = false;
   AssetEntity? _shot;
   Uint8List? _shotThumb;
   final _usedSuggestions = <String>{};
@@ -284,6 +287,13 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   Future<void> _loadSuggestions() async {
     if (_line.text.isNotEmpty) return;
+    // в полке «Под рукой» буфер не читается сам: Android сообщает о каждом чтении. Спрашиваем
+    // только, есть ли там текст (без сообщения), а читаем по касанию подсказки
+    if (widget.elsewhere != null) {
+      final has = await Clipboard.hasStrings().catchError((_) => false);
+      if (mounted) setState(() => _clipUnread = has);
+      return;
+    }
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       final text = data?.text?.trim() ?? '';
@@ -342,6 +352,11 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   /// Микрофон виджета: запись начинается сразу, без касания строки. false — записи нет.
   Future<bool> startVoice() async => _voice != null || await _startVoice();
+
+  /// Палец отпустил корешки «Под рукой»: идущая запись сохраняется, как второй кнопкой.
+  Future<void> finishVoice() async {
+    if (_voice != null) await _stopVoice(keep: true);
+  }
 
   /// Камера виджета: готовый снимок встаёт вложением.
   void attach(List<PickedFile> files) => _addPicked(files);
@@ -449,7 +464,16 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _focus.requestFocus();
   }
 
-  void _useClip() {
+  Future<void> _useClip() async {
+    if (_clipUnread) {
+      setState(() => _clipUnread = false);
+      final data = await Clipboard.getData(Clipboard.kTextPlain).catchError((_) => null);
+      final text = data?.text?.trim() ?? '';
+      if (!mounted || text.isEmpty) return;
+      _line.value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+      _focus.requestFocus();
+      return;
+    }
     final clip = _clip;
     if (clip == null) return;
     _usedSuggestions.add(clip);
@@ -1198,8 +1222,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       chips.add(_AttachmentTile(key: ValueKey('p${file.key}'), attached: file, tooltip: l.removeAttachment, onTap: () => setState(() => _files.remove(file))));
     }
     final suggest = chips.isEmpty && _active && !_full && !_tray && _voice == null && _line.text.isEmpty;
-    if (suggest && _clip != null) {
-      final address = firstUrl(_clip!)?.host;
+    if (suggest && (_clip != null || _clipUnread)) {
+      final address = _clip == null ? null : firstUrl(_clip!)?.host;
       final host = address == null ? '' : sourceName(address);
       chips.add(
         _Suggestion(
@@ -1210,7 +1234,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
             decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
             child: Icon(symbolIcon('content_paste'), size: 18, color: Tokens.onAccent),
           ),
-          label: l.suggestClip,
+          label: _clip == null ? l.suggestPaste : l.suggestClip,
           hint: host,
           onTap: _useClip,
         ),

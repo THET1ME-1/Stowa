@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.animation.PathInterpolator
 import io.flutter.embedding.engine.FlutterEngineGroup
@@ -136,10 +137,49 @@ class EdgeService : Service() {
         view.animate().translationX(outside(view, settings)).setDuration(200).setInterpolator(ACCELERATE).start()
     }
 
+    /** Другое приложение показывает что-то на весь экран (видео, игра): строки состояния нет. */
+    private var fullscreen = false
+
+    /**
+     * Полноэкранное видео: корешки уезжают за край и не ловят касания — невидимая полоса
+     * у края не должна мешать ни видео, ни жесту «назад». Строка вернулась — выезжают.
+     */
+    private fun watchFullscreen(view: EdgeHandle) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        view.setOnApplyWindowInsetsListener { target, insets ->
+            val full = !insets.isVisible(WindowInsets.Type.statusBars())
+            if (full != fullscreen) {
+                fullscreen = full
+                applyFullscreen()
+            }
+            target.onApplyWindowInsets(insets)
+        }
+    }
+
+    private fun applyFullscreen() {
+        val view = handle ?: return
+        val settings = prefs ?: return
+        val params = handleParams ?: return
+        val hide = fullscreen && settings.hideInFullscreen && !leaving
+        if (hide == view.hidden) return
+        view.hidden = hide
+        params.flags = touchable(params.flags, !hide)
+        windows.updateViewLayout(view, params)
+        Log.d(EdgeHandle.TAG, if (hide) "fullscreen: spines hidden" else "fullscreen over: spines back")
+        if (hide) {
+            view.animate().translationX(outside(view, settings)).setDuration(200).setInterpolator(ACCELERATE).start()
+        } else if (!panel.isShown) {
+            view.animate().translationX(0f).setDuration(350).setInterpolator(DECELERATE).start()
+        }
+    }
+
+    private fun touchable(flags: Int, on: Boolean) =
+        if (on) flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv() else flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+
     /** Полка уезжает: корешки выезжают обратно, 350 мс, emphasizedDecelerate. */
     private fun spinesBack() {
         val view = handle ?: return
-        if (leaving || view.translationX == 0f) return
+        if (leaving || view.hidden || view.translationX == 0f) return
         view.animate().translationX(0f).setDuration(350).setInterpolator(DECELERATE).start()
     }
 
@@ -151,6 +191,14 @@ class EdgeService : Service() {
         override fun onDrag(distanceDp: Float) = panel.drag(distanceDp)
 
         override fun onDragEnd(velocityDp: Float) = panel.dragEnd(velocityDp)
+
+        override fun onSwipeDown() = panel.gesture("type")
+
+        override fun onHoldStart() = panel.gesture("voiceStart")
+
+        override fun onHoldEnd() = panel.gesture("voiceStop")
+
+        override fun onDoubleTap() = panel.gesture("openLast")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -187,9 +235,13 @@ class EdgeService : Service() {
             ((settings.shelfWidthDp + EdgePrefs.TOUCH_EXTRA_DP) * density).toInt(),
             (settings.shelfHeightDp * density).toInt(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            // спрятанные под полноэкранным видео не ловят касаний и после правки настроек
+            touchable(
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                handle?.hidden != true,
+            ),
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or (if (settings.rightSide) Gravity.END else Gravity.START)
@@ -205,6 +257,7 @@ class EdgeService : Service() {
         val settings = EdgePrefs.read(this)
         val view = EdgeHandle(this, gestures)
         view.apply(settings)
+        watchFullscreen(view)
         val params = paramsFor(settings)
         // выезжает из-за своего края, 350 мс, emphasizedDecelerate
         view.translationX = outside(view, settings)
@@ -229,6 +282,8 @@ class EdgeService : Service() {
         val old = prefs ?: return
         val next = EdgePrefs.read(this)
         prefs = next
+        // «Прятать в полноэкранном видео» могли выключить прямо во время видео
+        applyFullscreen()
         if (old.rightSide != next.rightSide) {
             view.animate().translationX(outside(view, old)).setDuration(200).setInterpolator(ACCELERATE).withEndAction {
                 view.apply(next)
@@ -237,7 +292,7 @@ class EdgeService : Service() {
                 handleParams = params
                 view.translationX = outside(view, next)
                 // край сменили в открытой полке: корешки ждут за новым краем и выедут, когда она уйдёт
-                if (!panel.isShown) view.animate().translationX(0f).setDuration(350).setInterpolator(DECELERATE).start()
+                if (!panel.isShown && !view.hidden) view.animate().translationX(0f).setDuration(350).setInterpolator(DECELERATE).start()
             }.start()
             return
         }
@@ -245,6 +300,7 @@ class EdgeService : Service() {
         val to = paramsFor(next)
         val fromAlpha = view.shelfAlpha
         view.rightSide = next.rightSide
+        view.useGestures(next)
         move?.cancel()
         if (!animated) {
             view.apply(next)

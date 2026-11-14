@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/app.dart';
@@ -186,6 +187,61 @@ void main() {
     await open(tester);
     expect(inShelf('Рядом'), findsNothing);
     expect(world.edge.calls, contains('nearby'));
+  });
+
+  testWidgets('буфер в полке читается только по касанию подсказки: Android сообщает о каждом чтении', (tester) async {
+    final platform = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      platform.add(call.method);
+      return switch (call.method) {
+        'Clipboard.hasStrings' => {'value': true},
+        'Clipboard.getData' => {'text': 'https://example.com/recipe'},
+        _ => null,
+      };
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    await open(tester);
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(TextField)));
+    await tester.pumpAndSettle();
+    expect(platform, contains('Clipboard.hasStrings'));
+    expect(platform, isNot(contains('Clipboard.getData')));
+    await tester.tap(find.text('Вставить из буфера'));
+    await tester.pumpAndSettle();
+    expect(platform, contains('Clipboard.getData'));
+    expect(tester.widget<EditableText>(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(EditableText))).controller.text, 'https://example.com/recipe');
+  });
+
+  testWidgets('свайп вниз по корешкам: полка выезжает, строка сразу в фокусе', (tester) async {
+    await start(tester);
+    world.edge.send(const EdgeOpen(typing: true));
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+    final field = tester.widget<EditableText>(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(EditableText)));
+    expect(field.focusNode.hasFocus, isTrue);
+  });
+
+  testWidgets('двойное касание корешков: полка сразу с последней открытой заметкой', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await note('milk', 'Купить молоко', minutes: 5);
+    await world.db.customStatement("UPDATE items SET opened_at = '2026-11-14T10:00:00.000' WHERE id = 'milk'");
+    await start(tester);
+    world.edge.send(const EdgeOpenLast());
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+    expect(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(ItemScreen)), findsOneWidget);
+    expect(find.text('Купить молоко'), findsWidgets);
+  });
+
+  testWidgets('удержание корешков: полка выезжает и строка начинает запись', (tester) async {
+    world.edge.micAnswer = false;
+    await start(tester);
+    world.edge.send(const EdgeVoiceStart());
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+    // права нет — запись уходит в окно виджета, как с кнопки микрофона
+    expect(world.edge.calls, contains('micGranted'));
+    world.edge.send(const EdgeVoiceStop());
+    await tester.pumpAndSettle();
   });
 
   testWidgets('шестерёнка открывает настройку корешков в самой полке', (tester) async {

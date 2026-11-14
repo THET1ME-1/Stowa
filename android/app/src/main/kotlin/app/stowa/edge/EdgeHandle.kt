@@ -10,6 +10,7 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.VelocityTracker
@@ -35,7 +36,23 @@ class EdgeHandle(context: Context, private val gestures: Gestures) : View(contex
 
         /** Отпустили; [velocityDp] — точек в секунду, плюс — внутрь экрана. */
         fun onDragEnd(velocityDp: Float)
+
+        /** Свайп вниз вдоль корешков: полка сразу со строкой и клавиатурой. */
+        fun onSwipeDown()
+
+        /** Удержание: полка и запись голоса; [onHoldEnd] — палец отпустил. */
+        fun onHoldStart()
+
+        fun onHoldEnd()
+
+        /** Двойное касание: последняя открытая заметка. */
+        fun onDoubleTap()
     }
+
+    /** Какие жесты включены на экране «Под рукой». */
+    private var swipeDownTypes = true
+    private var holdRecords = true
+    private var doubleTapLast = false
 
     private val density = resources.displayMetrics.density
 
@@ -104,6 +121,14 @@ class EdgeHandle(context: Context, private val gestures: Gestures) : View(contex
         rightSide = settings.rightSide
         shelfWidth = settings.shelfWidthDp * density
         shelfAlpha = settings.alpha
+        useGestures(settings)
+    }
+
+    /** Какие жесты включены: меняется сразу, без движения. */
+    fun useGestures(settings: EdgePrefs) {
+        swipeDownTypes = settings.swipeDownTypes
+        holdRecords = settings.holdRecords
+        doubleTapLast = settings.doubleTapLast
     }
 
     private val backing = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(0x14, 0x15, 0x17) }
@@ -124,7 +149,18 @@ class EdgeHandle(context: Context, private val gestures: Gestures) : View(contex
     // на край, крупные корешки — 168), эмулятор 14.11.2026
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        systemGestureExclusionRects = listOf(Rect(0, 0, width, height))
+        excludeGestures()
+    }
+
+    /** Спрятаны (полноэкранное видео): жест «назад» у края снова системе. */
+    var hidden = false
+        set(value) {
+            field = value
+            excludeGestures()
+        }
+
+    private fun excludeGestures() {
+        systemGestureExclusionRects = if (hidden) emptyList() else listOf(Rect(0, 0, width, height))
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -159,6 +195,43 @@ class EdgeHandle(context: Context, private val gestures: Gestures) : View(contex
         }
     }
 
+    /** Палец держит корешки без сдвига: пишется голос. */
+    private var holding = false
+
+    /** Свайп вниз уже сработал: до конца касания корешки больше ничего не делают. */
+    private var swiped = false
+
+    /** Первое касание ждёт второго, если двойное включено. */
+    private var tapPending = false
+
+    private val hold = Runnable {
+        holding = true
+        performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        Log.d(TAG, "hold")
+        gestures.onHoldStart()
+    }
+
+    private val singleTap = Runnable {
+        tapPending = false
+        Log.d(TAG, "tap")
+        gestures.onTap()
+    }
+
+    private fun tap() {
+        if (!doubleTapLast) {
+            Log.d(TAG, "tap")
+            return gestures.onTap()
+        }
+        if (tapPending) {
+            removeCallbacks(singleTap)
+            tapPending = false
+            Log.d(TAG, "double tap")
+            return gestures.onDoubleTap()
+        }
+        tapPending = true
+        postDelayed(singleTap, DOUBLE_TAP_MS)
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         // скорость по экранным координатам: окно корешков само не двигается, но так надёжнее
@@ -168,37 +241,57 @@ class EdgeHandle(context: Context, private val gestures: Gestures) : View(contex
                 downX = event.rawX
                 downY = event.rawY
                 dragging = false
+                holding = false
+                swiped = false
                 velocity?.recycle()
                 velocity = VelocityTracker.obtain().also { it.addMovement(screen) }
+                if (holdRecords) postDelayed(hold, HOLD_MS)
             }
             MotionEvent.ACTION_MOVE -> {
                 velocity?.addMovement(screen)
                 val inward = inward(event)
-                // свайп внутрь, а не вдоль края: полка выходит и дальше идёт за пальцем
-                if (!dragging && inward > touchSlop && inward > abs(event.rawY - downY)) {
-                    dragging = true
-                    Log.d(TAG, "drag")
-                    gestures.onDragStart()
+                val down = event.rawY - downY
+                if (!holding && (abs(inward) > touchSlop || abs(down) > touchSlop)) removeCallbacks(hold)
+                when {
+                    holding || swiped -> {}
+                    // свайп внутрь, а не вдоль края: полка выходит и дальше идёт за пальцем
+                    !dragging && inward > touchSlop && inward > abs(down) -> {
+                        dragging = true
+                        Log.d(TAG, "drag")
+                        gestures.onDragStart()
+                    }
+                    // вниз вдоль корешков: сразу писать
+                    !dragging && swipeDownTypes && down > touchSlop * 3 && down > abs(inward) * 1.5f -> {
+                        swiped = true
+                        Log.d(TAG, "swipe down")
+                        gestures.onSwipeDown()
+                    }
                 }
                 if (dragging) gestures.onDrag(inward.coerceAtLeast(0f) / density)
             }
             MotionEvent.ACTION_UP -> {
+                removeCallbacks(hold)
                 velocity?.addMovement(screen)
-                if (dragging) {
-                    val tracker = velocity
-                    tracker?.computeCurrentVelocity(1000)
-                    val dx = tracker?.xVelocity ?: 0f
-                    gestures.onDragEnd((if (rightSide) -dx else dx) / density)
-                } else if (abs(event.rawX - downX) < touchSlop && abs(event.rawY - downY) < touchSlop) {
-                    Log.d(TAG, "tap")
-                    gestures.onTap()
+                when {
+                    holding -> gestures.onHoldEnd()
+                    dragging -> {
+                        val tracker = velocity
+                        tracker?.computeCurrentVelocity(1000)
+                        val dx = tracker?.xVelocity ?: 0f
+                        gestures.onDragEnd((if (rightSide) -dx else dx) / density)
+                    }
+                    !swiped && abs(event.rawX - downX) < touchSlop && abs(event.rawY - downY) < touchSlop -> tap()
                 }
                 dragging = false
+                holding = false
             }
             MotionEvent.ACTION_CANCEL -> {
-                // система забрала жест — полка возвращается туда, откуда её тянули
+                removeCallbacks(hold)
+                // система забрала жест — полка возвращается туда, откуда её тянули, запись сохраняется
                 if (dragging) gestures.onDragEnd(0f)
+                if (holding) gestures.onHoldEnd()
                 dragging = false
+                holding = false
             }
         }
         screen.recycle()
@@ -207,5 +300,11 @@ class EdgeHandle(context: Context, private val gestures: Gestures) : View(contex
 
     companion object {
         const val TAG = "StowaEdge"
+
+        /** Удержание дольше этого без сдвига — запись голоса. */
+        private const val HOLD_MS = 450L
+
+        /** Второе касание в этот срок — двойное. */
+        private const val DOUBLE_TAP_MS = 260L
     }
 }

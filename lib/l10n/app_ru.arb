@@ -886,5 +886,13 @@
   "edgeStick": "Повесить стикером",
   "edgeSpinesSetup": "Настроить корешки",
   "edgeUnstick": "Снять стикер",
-  "edgeNearby": "Рядом"
+  "edgeNearby": "Рядом",
+  "suggestPaste": "Вставить из буфера",
+  "edgeGestures": "Жесты",
+  "edgeGestureSwipe": "Свайп вниз — сразу писать",
+  "edgeGestureSwipeHint": "Строка открывается сразу с клавиатурой.",
+  "edgeGestureHold": "Удержание — голосовое",
+  "edgeGestureHoldHint": "Держишь — пишется, отпустил — сохранено.",
+  "edgeGestureDouble": "Двойное касание — последняя заметка",
+  "edgeGestureDoubleHint": "Одно касание тогда срабатывает чуть позже."
 }

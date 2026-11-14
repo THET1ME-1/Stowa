@@ -3245,4 +3245,30 @@ class LEs extends L {
 
   @override
   String get edgeNearby => 'Cerca';
+
+  @override
+  String get suggestPaste => 'Pegar del portapapeles';
+
+  @override
+  String get edgeGestures => 'Gestos';
+
+  @override
+  String get edgeGestureSwipe => 'Desliza hacia abajo para escribir';
+
+  @override
+  String get edgeGestureSwipeHint => 'La línea se abre con el teclado listo.';
+
+  @override
+  String get edgeGestureHold => 'Mantén pulsado para una nota de voz';
+
+  @override
+  String get edgeGestureHoldHint =>
+      'Graba mientras mantienes y se guarda al soltar.';
+
+  @override
+  String get edgeGestureDouble => 'Toca dos veces para la última nota';
+
+  @override
+  String get edgeGestureDoubleHint =>
+      'Un solo toque reacciona entonces un poco más tarde.';
 }

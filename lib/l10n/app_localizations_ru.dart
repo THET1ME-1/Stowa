@@ -3304,4 +3304,29 @@ class LRu extends L {
 
   @override
   String get edgeNearby => 'Рядом';
+
+  @override
+  String get suggestPaste => 'Вставить из буфера';
+
+  @override
+  String get edgeGestures => 'Жесты';
+
+  @override
+  String get edgeGestureSwipe => 'Свайп вниз — сразу писать';
+
+  @override
+  String get edgeGestureSwipeHint => 'Строка открывается сразу с клавиатурой.';
+
+  @override
+  String get edgeGestureHold => 'Удержание — голосовое';
+
+  @override
+  String get edgeGestureHoldHint => 'Держишь — пишется, отпустил — сохранено.';
+
+  @override
+  String get edgeGestureDouble => 'Двойное касание — последняя заметка';
+
+  @override
+  String get edgeGestureDoubleHint =>
+      'Одно касание тогда срабатывает чуть позже.';
 }

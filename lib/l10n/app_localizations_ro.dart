@@ -3271,4 +3271,30 @@ class LRo extends L {
 
   @override
   String get edgeNearby => 'În apropiere';
+
+  @override
+  String get suggestPaste => 'Lipește din clipboard';
+
+  @override
+  String get edgeGestures => 'Gesturi';
+
+  @override
+  String get edgeGestureSwipe => 'Glisează în jos ca să scrii';
+
+  @override
+  String get edgeGestureSwipeHint => 'Rândul se deschide direct cu tastatura.';
+
+  @override
+  String get edgeGestureHold => 'Ține apăsat pentru o notă vocală';
+
+  @override
+  String get edgeGestureHoldHint =>
+      'Înregistrează cât ții apăsat, se salvează când eliberezi.';
+
+  @override
+  String get edgeGestureDouble => 'Atinge de două ori pentru ultima notiță';
+
+  @override
+  String get edgeGestureDoubleHint =>
+      'O singură atingere reacționează atunci puțin mai târziu.';
 }

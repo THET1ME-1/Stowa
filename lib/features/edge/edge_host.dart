@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
@@ -156,8 +157,17 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
   void _onEvent(EdgeEvent event) {
     if (!mounted) return;
     switch (event) {
-      case EdgeOpen():
+      case EdgeOpen(:final typing):
         _open();
+        if (typing) _withLine(_type);
+      case EdgeOpenLast():
+        _open();
+        _openLast().ignore();
+      case EdgeVoiceStart():
+        _open();
+        _withLine((line) => line.startVoice().ignore());
+      case EdgeVoiceStop():
+        _line.currentState?.finishVoice().ignore();
       case EdgeDragStart():
         _swipeStart(opens: true);
       case EdgeDrag(:final distance):
@@ -177,6 +187,35 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
     ref.read(edgeChannelProvider).nearby().then((ids) {
       if (mounted && !listEquals(ids, _nearby)) setState(() => _nearby = ids);
     }).ignore();
+  }
+
+  /// Строка полки: жесты корешков фокусируют её или начинают запись.
+  final _line = GlobalKey<LineDockState>();
+
+  /// Жест — со строкой первой страницы полки: открытая заметка закрывается, строка — после кадра.
+  void _withLine(void Function(LineDockState line) act) {
+    _shelfNavigator.currentState?.popUntil((route) => route.isFirst);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final line = _line.currentState;
+      if (mounted && line != null) act(line);
+    });
+  }
+
+  void _type(LineDockState line) {
+    line.focusLine();
+    // окно получает фокус позже первого кадра, первый запрос клавиатуры Android пропускает
+    Future.delayed(const Duration(milliseconds: 450), () {
+      if (mounted && !_closing) SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+    }).ignore();
+  }
+
+  /// Двойное касание: последняя открытая заметка — прямо в полке.
+  Future<void> _openLast() async {
+    final id = await ref.read(itemsRepositoryProvider).lastOpenedId();
+    if (!mounted || id == null) return;
+    final navigator = _shelfNavigator.currentState;
+    navigator?.popUntil((route) => route.isFirst);
+    navigator?.push(itemRoute(id)).ignore();
   }
 
   /// Касание корешков: полка выезжает за `long`, строки проявляются одна за другой.
@@ -326,6 +365,7 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
         right: right,
         guarded: guarded,
         nearby: _nearby,
+        line: _line,
         rise: _rise,
         onClose: _close,
         onDragStart: _shelfDragStart,
@@ -382,6 +422,7 @@ class _ShelfScope extends InheritedWidget {
     required this.right,
     required this.guarded,
     required this.nearby,
+    required this.line,
     required this.rise,
     required this.onClose,
     required this.onDragStart,
@@ -395,6 +436,7 @@ class _ShelfScope extends InheritedWidget {
   final bool right;
   final bool guarded;
   final List<String> nearby;
+  final GlobalKey<LineDockState> line;
   final Animation<double> rise;
   final VoidCallback onClose;
   final GestureDragStartCallback onDragStart;
@@ -440,6 +482,7 @@ class _ShelfHome extends StatelessWidget {
           ),
           Positioned.fill(
             child: LineDock(
+              key: scope.line,
               onOpenItem: open,
               writeOnly: scope.guarded,
               elsewhere: LineElsewhere(

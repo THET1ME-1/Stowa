@@ -32,6 +32,9 @@ class EdgeSettings {
     this.size = SpineSize.normal,
     int alpha = 86,
     this.hideInFullscreen = true,
+    this.swipeDownTypes = true,
+    this.holdRecords = true,
+    this.doubleTapLast = false,
   }) : height = height < 0 ? 0 : (height > 100 ? 100 : height),
        alpha = alpha < 40 ? 40 : (alpha > 100 ? 100 : alpha);
 
@@ -48,13 +51,36 @@ class EdgeSettings {
   /// Прятать корешки, пока другое приложение показывает что-то на весь экран (видео).
   final bool hideInFullscreen;
 
-  EdgeSettings copyWith({bool? enabled, EdgeSide? side, int? height, SpineSize? size, int? alpha, bool? hideInFullscreen}) => EdgeSettings(
+  /// Свайп вниз по корешкам — полка сразу со строкой и клавиатурой.
+  final bool swipeDownTypes;
+
+  /// Удержание корешков — запись голоса, отпустил — сохранено.
+  final bool holdRecords;
+
+  /// Двойное касание — последняя открытая заметка в полке. Выключено по умолчанию:
+  /// чтобы отличить его от одного касания, полка открывалась бы на четверть секунды позже.
+  final bool doubleTapLast;
+
+  EdgeSettings copyWith({
+    bool? enabled,
+    EdgeSide? side,
+    int? height,
+    SpineSize? size,
+    int? alpha,
+    bool? hideInFullscreen,
+    bool? swipeDownTypes,
+    bool? holdRecords,
+    bool? doubleTapLast,
+  }) => EdgeSettings(
     enabled: enabled ?? this.enabled,
     side: side ?? this.side,
     height: height ?? this.height,
     size: size ?? this.size,
     alpha: alpha ?? this.alpha,
     hideInFullscreen: hideInFullscreen ?? this.hideInFullscreen,
+    swipeDownTypes: swipeDownTypes ?? this.swipeDownTypes,
+    holdRecords: holdRecords ?? this.holdRecords,
+    doubleTapLast: doubleTapLast ?? this.doubleTapLast,
   );
 
   static const _enabled = 'edge_enabled';
@@ -63,9 +89,12 @@ class EdgeSettings {
   static const _size = 'edge_size';
   static const _alpha = 'edge_alpha';
   static const _hideInFullscreen = 'edge_hide_fullscreen';
+  static const _swipeDown = 'edge_gesture_swipe';
+  static const _hold = 'edge_gesture_hold';
+  static const _doubleTap = 'edge_gesture_double';
 
   /// Ключи prefs; [fromPrefs] читает то же самое.
-  static const keys = [_enabled, _side, _height, _size, _alpha, _hideInFullscreen];
+  static const keys = [_enabled, _side, _height, _size, _alpha, _hideInFullscreen, _swipeDown, _hold, _doubleTap];
 
   Map<String, Object> toPrefs() => {
     _enabled: enabled,
@@ -74,6 +103,9 @@ class EdgeSettings {
     _size: size.name,
     _alpha: alpha,
     _hideInFullscreen: hideInFullscreen,
+    _swipeDown: swipeDownTypes,
+    _hold: holdRecords,
+    _doubleTap: doubleTapLast,
   };
 
   factory EdgeSettings.fromPrefs(Map<String, Object?> prefs) {
@@ -85,6 +117,9 @@ class EdgeSettings {
       size: SpineSize.values.asNameMap()[prefs[_size]] ?? fallback.size,
       alpha: prefs[_alpha] as int? ?? fallback.alpha,
       hideInFullscreen: prefs[_hideInFullscreen] as bool? ?? fallback.hideInFullscreen,
+      swipeDownTypes: prefs[_swipeDown] as bool? ?? fallback.swipeDownTypes,
+      holdRecords: prefs[_hold] as bool? ?? fallback.holdRecords,
+      doubleTapLast: prefs[_doubleTap] as bool? ?? fallback.doubleTapLast,
     );
   }
 
@@ -96,10 +131,13 @@ class EdgeSettings {
       other.height == height &&
       other.size == size &&
       other.alpha == alpha &&
-      other.hideInFullscreen == hideInFullscreen;
+      other.hideInFullscreen == hideInFullscreen &&
+      other.swipeDownTypes == swipeDownTypes &&
+      other.holdRecords == holdRecords &&
+      other.doubleTapLast == doubleTapLast;
 
   @override
-  int get hashCode => Object.hash(enabled, side, height, size, alpha, hideInFullscreen);
+  int get hashCode => Object.hash(enabled, side, height, size, alpha, hideInFullscreen, swipeDownTypes, holdRecords, doubleTapLast);
 }
 
 /// Окно корешков на экране [screen] (в точках): подложка у своего края и запас для пальца.

@@ -4141,5 +4141,37 @@
   "edgeNearby": "Nearby",
   "@edgeNearby": {
     "description": "Раздел полки «Под рукой»: напоминание по месту только что сработало"
+  },
+  "suggestPaste": "Paste from clipboard",
+  "@suggestPaste": {
+    "description": "Подсказка над строкой в полке «Под рукой»: буфер читается только по касанию"
+  },
+  "edgeGestures": "Gestures",
+  "@edgeGestures": {
+    "description": "Раздел экрана «Под рукой»: жесты по корешкам"
+  },
+  "edgeGestureSwipe": "Swipe down to type",
+  "@edgeGestureSwipe": {
+    "description": "Переключатель жеста корешков"
+  },
+  "edgeGestureSwipeHint": "The line opens with the keyboard ready.",
+  "@edgeGestureSwipeHint": {
+    "description": "Пояснение под переключателем, одно предложение"
+  },
+  "edgeGestureHold": "Hold for a voice note",
+  "@edgeGestureHold": {
+    "description": "Переключатель жеста корешков"
+  },
+  "edgeGestureHoldHint": "Recording while you hold, saved when you let go.",
+  "@edgeGestureHoldHint": {
+    "description": "Пояснение под переключателем, одно предложение"
+  },
+  "edgeGestureDouble": "Double tap for the last note",
+  "@edgeGestureDouble": {
+    "description": "Переключатель жеста корешков"
+  },
+  "edgeGestureDoubleHint": "A single tap then reacts a little later.",
+  "@edgeGestureDoubleHint": {
+    "description": "Пояснение под переключателем, одно предложение"
   }
 }

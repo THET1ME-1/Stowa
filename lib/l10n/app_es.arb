@@ -637,5 +637,13 @@
   "edgeStick": "Fijar como pegatina",
   "edgeSpinesSetup": "Ajustar los lomos",
   "edgeUnstick": "Quitar pegatina",
-  "edgeNearby": "Cerca"
+  "edgeNearby": "Cerca",
+  "suggestPaste": "Pegar del portapapeles",
+  "edgeGestures": "Gestos",
+  "edgeGestureSwipe": "Desliza hacia abajo para escribir",
+  "edgeGestureSwipeHint": "La línea se abre con el teclado listo.",
+  "edgeGestureHold": "Mantén pulsado para una nota de voz",
+  "edgeGestureHoldHint": "Graba mientras mantienes y se guarda al soltar.",
+  "edgeGestureDouble": "Toca dos veces para la última nota",
+  "edgeGestureDoubleHint": "Un solo toque reacciona entonces un poco más tarde."
 }

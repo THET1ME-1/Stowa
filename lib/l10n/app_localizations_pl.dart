@@ -3300,4 +3300,31 @@ class LPl extends L {
 
   @override
   String get edgeNearby => 'W pobliżu';
+
+  @override
+  String get suggestPaste => 'Wklej ze schowka';
+
+  @override
+  String get edgeGestures => 'Gesty';
+
+  @override
+  String get edgeGestureSwipe => 'Przesuń w dół, by pisać';
+
+  @override
+  String get edgeGestureSwipeHint => 'Wiersz otwiera się od razu z klawiaturą.';
+
+  @override
+  String get edgeGestureHold => 'Przytrzymaj, by nagrać głosówkę';
+
+  @override
+  String get edgeGestureHoldHint =>
+      'Nagrywa, gdy trzymasz, zapisuje, gdy puścisz.';
+
+  @override
+  String get edgeGestureDouble =>
+      'Dotknij dwa razy, by otworzyć ostatnią notatkę';
+
+  @override
+  String get edgeGestureDoubleHint =>
+      'Jedno dotknięcie działa wtedy nieco później.';
 }

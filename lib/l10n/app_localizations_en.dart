@@ -3241,4 +3241,30 @@ class LEn extends L {
 
   @override
   String get edgeNearby => 'Nearby';
+
+  @override
+  String get suggestPaste => 'Paste from clipboard';
+
+  @override
+  String get edgeGestures => 'Gestures';
+
+  @override
+  String get edgeGestureSwipe => 'Swipe down to type';
+
+  @override
+  String get edgeGestureSwipeHint => 'The line opens with the keyboard ready.';
+
+  @override
+  String get edgeGestureHold => 'Hold for a voice note';
+
+  @override
+  String get edgeGestureHoldHint =>
+      'Recording while you hold, saved when you let go.';
+
+  @override
+  String get edgeGestureDouble => 'Double tap for the last note';
+
+  @override
+  String get edgeGestureDoubleHint =>
+      'A single tap then reacts a little later.';
 }

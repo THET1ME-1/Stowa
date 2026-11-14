@@ -14,9 +14,27 @@ sealed class EdgeEvent {
   const EdgeEvent();
 }
 
-/// Касание корешков: окно полки уже стоит, полке выехать.
+/// Касание корешков: окно полки уже стоит, полке выехать. [typing] — свайп вниз:
+/// строка сразу в фокусе, с клавиатурой.
 class EdgeOpen extends EdgeEvent {
-  const EdgeOpen();
+  const EdgeOpen({this.typing = false});
+
+  final bool typing;
+}
+
+/// Двойное касание корешков: полка сразу с последней открытой заметкой.
+class EdgeOpenLast extends EdgeEvent {
+  const EdgeOpenLast();
+}
+
+/// Корешки удерживают: полка выезжает и строка пишет голос.
+class EdgeVoiceStart extends EdgeEvent {
+  const EdgeVoiceStart();
+}
+
+/// Палец отпустил корешки: голосовое сохраняется.
+class EdgeVoiceStop extends EdgeEvent {
+  const EdgeVoiceStop();
 }
 
 /// Палец потянул корешки внутрь экрана: окно полки стоит, дальше полка идёт за пальцем.
@@ -98,6 +116,10 @@ class MethodEdgeChannel implements EdgeChannel {
     onListen: () => _channel.setMethodCallHandler((call) async {
       final event = switch (call.method) {
         'open' => const EdgeOpen(),
+        'type' => const EdgeOpen(typing: true),
+        'openLast' => const EdgeOpenLast(),
+        'voiceStart' => const EdgeVoiceStart(),
+        'voiceStop' => const EdgeVoiceStop(),
         'dragStart' => const EdgeDragStart(),
         'drag' => EdgeDrag((call.arguments as num).toDouble()),
         'dragEnd' => EdgeDragEnd((call.arguments as num).toDouble()),

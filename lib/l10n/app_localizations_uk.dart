@@ -3300,4 +3300,31 @@ class LUk extends L {
 
   @override
   String get edgeNearby => 'Поруч';
+
+  @override
+  String get suggestPaste => 'Вставити з буфера';
+
+  @override
+  String get edgeGestures => 'Жести';
+
+  @override
+  String get edgeGestureSwipe => 'Свайп униз — одразу писати';
+
+  @override
+  String get edgeGestureSwipeHint =>
+      'Рядок відкривається одразу з клавіатурою.';
+
+  @override
+  String get edgeGestureHold => 'Утримання — голосове';
+
+  @override
+  String get edgeGestureHoldHint =>
+      'Тримаєш — пишеться, відпустив — збережено.';
+
+  @override
+  String get edgeGestureDouble => 'Подвійний дотик — остання нотатка';
+
+  @override
+  String get edgeGestureDoubleHint =>
+      'Один дотик тоді спрацьовує трохи пізніше.';
 }

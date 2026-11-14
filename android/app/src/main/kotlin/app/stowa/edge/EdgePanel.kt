@@ -66,6 +66,12 @@ class EdgePanel(
         channel?.invokeMethod("dragStart", null)
     }
 
+    /** Жесты корешков: свайп вниз, двойное касание, удержание и отпускание. */
+    fun gesture(method: String) {
+        if (method != "voiceStop") show()
+        if (view != null) channel?.invokeMethod(method, null)
+    }
+
     fun drag(distanceDp: Float) {
         if (view != null) channel?.invokeMethod("drag", distanceDp.toDouble())
     }
