@@ -169,8 +169,19 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
     }
   }
 
+  /// Заметки, чьё напоминание по месту только что сработало: раздел «Рядом» первым.
+  List<String> _nearby = const [];
+
+  /// При каждом открытии: сработать могло, пока полка была закрыта.
+  void _loadNearby() {
+    ref.read(edgeChannelProvider).nearby().then((ids) {
+      if (mounted && !listEquals(ids, _nearby)) setState(() => _nearby = ids);
+    }).ignore();
+  }
+
   /// Касание корешков: полка выезжает за `long`, строки проявляются одна за другой.
   void _open() {
+    _loadNearby();
     if (_reveal.value == 0) _riseRowsIn();
     _closing = false;
     if (_still) {
@@ -193,7 +204,10 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
     _closing = false;
     _swipeOpens = opens;
     _swipeFrom = _reveal.value;
-    if (opens && _reveal.value == 0) _riseRowsIn();
+    if (opens && _reveal.value == 0) {
+      _riseRowsIn();
+      _loadNearby();
+    }
   }
 
   /// Палец отпустили: бросок решает сам; иначе открывают дальше трети — доезжает,
@@ -311,6 +325,7 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
       child: _ShelfScope(
         right: right,
         guarded: guarded,
+        nearby: _nearby,
         rise: _rise,
         onClose: _close,
         onDragStart: _shelfDragStart,
@@ -366,6 +381,7 @@ class _ShelfScope extends InheritedWidget {
   const _ShelfScope({
     required this.right,
     required this.guarded,
+    required this.nearby,
     required this.rise,
     required this.onClose,
     required this.onDragStart,
@@ -378,6 +394,7 @@ class _ShelfScope extends InheritedWidget {
 
   final bool right;
   final bool guarded;
+  final List<String> nearby;
   final Animation<double> rise;
   final VoidCallback onClose;
   final GestureDragStartCallback onDragStart;
@@ -393,7 +410,7 @@ class _ShelfScope extends InheritedWidget {
   static _ShelfScope of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<_ShelfScope>()!;
 
   @override
-  bool updateShouldNotify(_ShelfScope old) => right != old.right || guarded != old.guarded;
+  bool updateShouldNotify(_ShelfScope old) => right != old.right || guarded != old.guarded || !listEquals(nearby, old.nearby);
 }
 
 /// Первая страница полки: шапка, папки, заметки и строка. Свайп к краю по ней убирает полку.
@@ -417,7 +434,7 @@ class _ShelfHome extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _Rise(animation: scope.rise, row: 0, child: _Header(right: scope.right, onClose: scope.onClose)),
-                if (!scope.guarded) Expanded(child: _Shelf(onOpen: open, rise: scope.rise)) else const Spacer(),
+                if (!scope.guarded) Expanded(child: _Shelf(onOpen: open, rise: scope.rise, nearby: scope.nearby)) else const Spacer(),
               ],
             ),
           ),
@@ -518,19 +535,29 @@ class _RoundButton extends StatelessWidget {
   }
 }
 
-/// Папки, «Закреплено», «Недавние» — те же карточки, что на главной.
+/// Карточки раздела «Рядом» по id, через перевод строки: ключ семейства должен сравниваться по значению.
+final _nearbyCards = StreamProvider.autoDispose.family<List<ItemCard>, String>(
+  (ref, ids) => ref.watch(itemsRepositoryProvider).watchCards(ids.split('\n')),
+);
+
+/// «Рядом», папки, «Закреплено», «Недавние» — те же карточки, что на главной.
 class _Shelf extends ConsumerWidget {
-  const _Shelf({required this.onOpen, required this.rise});
+  const _Shelf({required this.onOpen, required this.rise, required this.nearby});
 
   final ValueChanged<String> onOpen;
   final Animation<double> rise;
+  final List<String> nearby;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final folders = ref.watch(foldersProvider).value ?? const [];
-    final pinned = ref.watch(pinnedItemsProvider).value ?? const <ItemCard>[];
-    final recent = (ref.watch(recentItemsProvider).value ?? const <ItemCard>[]).take(_recentOnShelf).toList();
+    // «Рядом» — первым и в порядке срабатывания; ниже эти заметки не повторяются
+    final nearbyFound = nearby.isEmpty ? const <ItemCard>[] : (ref.watch(_nearbyCards(nearby.join('\n'))).value ?? const <ItemCard>[]);
+    final near = [for (final id in nearby) ...nearbyFound.where((card) => card.id == id)];
+    final shown = {for (final card in near) card.id};
+    final pinned = [...?ref.watch(pinnedItemsProvider).value?.where((card) => !shown.contains(card.id))];
+    final recent = (ref.watch(recentItemsProvider).value ?? const <ItemCard>[]).where((card) => !shown.contains(card.id)).take(_recentOnShelf).toList();
     final filesRoot = ref.watch(filesRootProvider);
     final now = ref.read(clockProvider)();
     final items = ref.read(itemsRepositoryProvider);
@@ -559,6 +586,7 @@ class _Shelf extends ConsumerWidget {
 
     // строки по порядку сверху: каждая проявляется на шаг позже предыдущей (шапка — нулевая)
     final rows = <Widget>[
+      if (near.isNotEmpty) ...[_SectionLabel(icon: 'near_me', filled: true, text: l.edgeNearby), for (final item in near) card(item)],
       if (pinned.isNotEmpty) ...[_SectionLabel(icon: 'keep', filled: true, text: l.homePinned), for (final item in pinned) card(item)],
       if (recent.isNotEmpty) ...[_SectionLabel(icon: 'schedule', text: l.edgeRecent), for (final item in recent) card(item)],
     ];

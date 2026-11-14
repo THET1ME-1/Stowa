@@ -1,5 +1,6 @@
 package app.stowa.edge
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
@@ -13,6 +14,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.VelocityTracker
 import android.view.ViewConfiguration
+import android.view.animation.AccelerateDecelerateInterpolator
 import kotlin.math.abs
 
 /**
@@ -69,6 +71,33 @@ class EdgeHandle(context: Context, private val gestures: Gestures) : View(contex
             field = value
             invalidate()
         }
+
+    private var pulseAnimator: ValueAnimator? = null
+    private val stopPulse = Runnable { pulse(false) }
+
+    /**
+     * Мягкая волна прозрачности 1 ↔ 0,6 за 1,2 с, не мигание: рядом сработало напоминание.
+     * Сама гаснет через полчаса, как и раздел «Рядом».
+     */
+    fun pulse(on: Boolean) {
+        removeCallbacks(stopPulse)
+        if (!on) {
+            pulseAnimator?.cancel()
+            pulseAnimator = null
+            animate().alpha(1f).setDuration(200).start()
+            return
+        }
+        if (pulseAnimator != null) return
+        pulseAnimator = ValueAnimator.ofFloat(1f, 0.6f).apply {
+            duration = 600
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { alpha = it.animatedValue as Float }
+            start()
+        }
+        postDelayed(stopPulse, 30 * 60 * 1000L)
+    }
 
     /** Край, ширина и заметность из настроек — сразу, без движения. */
     fun apply(settings: EdgePrefs) {

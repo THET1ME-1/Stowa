@@ -41,6 +41,7 @@ class EdgeService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        running = this
         windows = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         panel = EdgePanel(
             this,
@@ -120,10 +121,17 @@ class EdgeService : Service() {
         Log.d(EdgeHandle.TAG, "stickers restored: ${stickers.size}")
     }
 
+    /** Сработало напоминание по месту: корешки мягко пульсируют, пока полку не открыли. */
+    fun pulse() {
+        handle?.pulse(true)
+    }
+
     /** Полка выезжает: корешки уходят за свой край, 200 мс, emphasizedAccelerate. */
     private fun spinesAway() {
         val view = handle ?: return
         val settings = prefs ?: return
+        // заметку «рядом» увидели — пульс больше не нужен
+        view.pulse(false)
         if (leaving) return
         view.animate().translationX(outside(view, settings)).setDuration(200).setInterpolator(ACCELERATE).start()
     }
@@ -281,6 +289,8 @@ class EdgeService : Service() {
     }
 
     override fun onDestroy() {
+        running = null
+        handle?.pulse(false)
         move?.cancel()
         // служба уходит — стикеры помнятся и встанут на место при следующем запуске
         stickers.toList().forEach { it.dispose() }
@@ -295,6 +305,11 @@ class EdgeService : Service() {
 
     companion object {
         private const val STICKERS_KEY = "flutter.edge_stickers"
+
+        /** Живая служба этого процесса: приёмник мест зовёт пульс прямо, он в том же процессе. */
+        @Volatile
+        var running: EdgeService? = null
+            private set
 
         // как в lib/domain/sticker_geometry.dart
         private const val MAX_STICKERS = 3

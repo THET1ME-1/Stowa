@@ -82,6 +82,10 @@ abstract class EdgeChannel {
 
   /// Из окна полки: есть ли право на микрофон (плагин записи без Activity его не видит).
   Future<bool> micGranted();
+
+  /// Из окна полки: заметки, чьё напоминание по месту сработало за последние полчаса,
+  /// свежие первыми. Пишет их приёмник мест, хранит служба.
+  Future<List<String>> nearby();
 }
 
 class MethodEdgeChannel implements EdgeChannel {
@@ -145,6 +149,9 @@ class MethodEdgeChannel implements EdgeChannel {
 
   @override
   Future<bool> micGranted() async => await _channel.invokeMethod<bool>('micGranted') ?? false;
+
+  @override
+  Future<List<String>> nearby() async => (await _channel.invokeListMethod<String>('nearby')) ?? const [];
 }
 
 /// iPhone и всё, где окон поверх нет: ничего не делает, права нет.
@@ -190,6 +197,9 @@ class NoEdgeChannel implements EdgeChannel {
 
   @override
   Future<bool> micGranted() async => false;
+
+  @override
+  Future<List<String>> nearby() async => const [];
 }
 
 /// Для тестов: пишет вызовы по именам, право — [canDrawAnswer].
@@ -251,6 +261,14 @@ class FakeEdgeChannel implements EdgeChannel {
   Future<bool> micGranted() async {
     calls.add('micGranted');
     return micAnswer;
+  }
+
+  List<String> nearbyAnswer = const [];
+
+  @override
+  Future<List<String>> nearby() async {
+    calls.add('nearby');
+    return nearbyAnswer;
   }
 }
 

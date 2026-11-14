@@ -3297,4 +3297,7 @@ class LUk extends L {
 
   @override
   String get edgeUnstick => 'Зняти стікер';
+
+  @override
+  String get edgeNearby => 'Поруч';
 }

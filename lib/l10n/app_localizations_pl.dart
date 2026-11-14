@@ -3297,4 +3297,7 @@ class LPl extends L {
 
   @override
   String get edgeUnstick => 'Zdejmij naklejkę';
+
+  @override
+  String get edgeNearby => 'W pobliżu';
 }

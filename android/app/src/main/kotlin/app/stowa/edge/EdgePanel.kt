@@ -208,6 +208,7 @@ class EdgePanel(
                 }
                 "start" -> result.success(null)
                 "canDraw" -> result.success(true)
+                "nearby" -> result.success(EdgeNearby.recent(context))
                 // плагин записи без Activity право не видит: проверяем сами, писать он может
                 "micGranted" -> result.success(
                     context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,

@@ -169,6 +169,25 @@ void main() {
     expect(world.edge.calls, contains('handOff:voice:'));
   });
 
+  testWidgets('«Рядом»: заметка, чьё напоминание по месту только что сработало, — первой и один раз', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await note('milk', 'Купить молоко', minutes: 5);
+    world.edge.nearbyAnswer = ['milk'];
+    await open(tester);
+    expect(inShelf('Рядом'), findsOneWidget);
+    expect(inShelf('Купить молоко'), findsOneWidget);
+    final nearby = tester.getTopLeft(inShelf('Рядом')).dy;
+    expect(nearby, lessThan(tester.getTopLeft(inShelf('Закреплено')).dy));
+    expect(tester.getTopLeft(inShelf('Купить молоко')).dy, lessThan(tester.getTopLeft(inShelf('Закреплено')).dy));
+  });
+
+  testWidgets('без сработавших мест раздела «Рядом» нет', (tester) async {
+    await note('milk', 'Купить молоко', minutes: 5);
+    await open(tester);
+    expect(inShelf('Рядом'), findsNothing);
+    expect(world.edge.calls, contains('nearby'));
+  });
+
   testWidgets('шестерёнка открывает настройку корешков в самой полке', (tester) async {
     await open(tester);
     await tester.tap(find.byTooltip('Настроить корешки'));

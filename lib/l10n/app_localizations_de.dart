@@ -3247,4 +3247,7 @@ class LDe extends L {
 
   @override
   String get edgeUnstick => 'Sticker entfernen';
+
+  @override
+  String get edgeNearby => 'In der Nähe';
 }

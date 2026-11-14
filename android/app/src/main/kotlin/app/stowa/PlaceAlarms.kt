@@ -22,6 +22,7 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import io.flutter.embedding.engine.FlutterEngine
+import app.stowa.edge.EdgeNearby
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONArray
 import org.json.JSONObject
@@ -199,6 +200,8 @@ object PlaceAlarms {
             val fired = fired(context)
             if (fired.any { noteKey(it) == noteKey(id) }) return
             flutter.edit().putString(FIRED, JSONArray(fired + id).toString()).apply()
+            // полка «Под рукой» покажет заметку в «Рядом», корешки мягко запульсируют
+            if (noteKey(id).startsWith("note:")) EdgeNearby.record(context, noteKey(id).removePrefix("note:"))
             // одно напоминание — одна тревога на все магазины: остальные снимаются
             val locations = context.getSystemService(LocationManager::class.java)
             for (other in alarms(context)) {

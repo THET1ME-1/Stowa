@@ -5422,6 +5422,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Remove sticker'**
   String get edgeUnstick;
+
+  /// Раздел полки «Под рукой»: напоминание по месту только что сработало
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get edgeNearby;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

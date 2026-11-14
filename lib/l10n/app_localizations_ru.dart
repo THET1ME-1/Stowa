@@ -3301,4 +3301,7 @@ class LRu extends L {
 
   @override
   String get edgeUnstick => 'Снять стикер';
+
+  @override
+  String get edgeNearby => 'Рядом';
 }

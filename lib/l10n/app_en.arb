@@ -4137,5 +4137,9 @@
   "edgeUnstick": "Remove sticker",
   "@edgeUnstick": {
     "description": "Кнопка «×» на стикере поверх приложений"
+  },
+  "edgeNearby": "Nearby",
+  "@edgeNearby": {
+    "description": "Раздел полки «Под рукой»: напоминание по месту только что сработало"
   }
 }

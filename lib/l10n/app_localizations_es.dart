@@ -3242,4 +3242,7 @@ class LEs extends L {
 
   @override
   String get edgeUnstick => 'Quitar pegatina';
+
+  @override
+  String get edgeNearby => 'Cerca';
 }

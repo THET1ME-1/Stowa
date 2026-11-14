@@ -3268,4 +3268,7 @@ class LRo extends L {
 
   @override
   String get edgeUnstick => 'Elimină autocolantul';
+
+  @override
+  String get edgeNearby => 'În apropiere';
 }

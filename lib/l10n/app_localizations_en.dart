@@ -3238,4 +3238,7 @@ class LEn extends L {
 
   @override
   String get edgeUnstick => 'Remove sticker';
+
+  @override
+  String get edgeNearby => 'Nearby';
 }
