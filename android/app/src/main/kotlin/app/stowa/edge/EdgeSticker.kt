@@ -1,19 +1,20 @@
 package app.stowa.edge
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
+import android.graphics.Matrix
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.SurfaceTexture
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.view.Gravity
+import android.view.TextureView
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.view.animation.PathInterpolator
 import app.stowa.MainActivity
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterTextureView
@@ -50,11 +51,14 @@ class EdgeSticker(
     private val density = context.resources.displayMetrics.density
     private val engine: FlutterEngine
     private val channel: MethodChannel
-    private val view = FlutterView(context, FlutterTextureView(context))
+    private val texture = FlutterTextureView(context)
+    private val view = FlutterView(context, texture)
     private val frame: StickerFrame
     private val params: WindowManager.LayoutParams
-    private var morph: ValueAnimator? = null
     private var removed = false
+
+    /** Окно сменило размер, а Flutter ещё не нарисовал кадр в новом: картинка держится на месте. */
+    private var holding = false
 
     init {
         val bundle = FlutterInjector.instance().flutterLoader().findAppBundlePath()
@@ -69,22 +73,11 @@ class EdgeSticker(
             when (call.method) {
                 "placement" -> result.success(placement())
                 "frame" -> {
-                    morph?.cancel()
                     val rect = rectOf(call.arguments)
                     remember(rect)
                     place(rect)
                     onChanged()
                     result.success(null)
-                }
-                "morph" -> {
-                    @Suppress("UNCHECKED_CAST")
-                    val args = call.arguments as Map<String, Number>
-                    val rect = rectOf(args)
-                    remember(rect)
-                    morphTo(rect, args["ms"]!!.toLong()) {
-                        onChanged()
-                        result.success(null)
-                    }
                 }
                 "remove" -> {
                     remove()
@@ -99,6 +92,28 @@ class EdgeSticker(
                     result.success(null)
                 }
                 else -> result.notImplemented()
+            }
+        }
+        // первый кадр Flutter в новом размере снимает удержание картинки (см. place)
+        val flutterListener = texture.surfaceTextureListener
+        texture.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+            override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+                flutterListener?.onSurfaceTextureAvailable(surface, width, height)
+            }
+
+            override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+                flutterListener?.onSurfaceTextureSizeChanged(surface, width, height)
+            }
+
+            override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean =
+                flutterListener?.onSurfaceTextureDestroyed(surface) ?: true
+
+            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+                flutterListener?.onSurfaceTextureUpdated(surface)
+                if (holding) {
+                    holding = false
+                    texture.setTransform(null)
+                }
             }
         }
         frame = StickerFrame(context, Dragger())
@@ -170,49 +185,31 @@ class EdgeSticker(
         if (rect.width() > STICKER_MIN_WIDTH_DP) stickerHeight = rect.height()
     }
 
+    /**
+     * Окно — в [rect] одним шагом. Само сворачивание Dart рисует внутри окна, поэтому размер
+     * меняется только на краю движения. В этот один кадр Android растянул бы прежнюю картинку
+     * на новое окно (круг мелькнул бы сплющенным): преобразование держит её пиксели на тех же
+     * местах экрана, пока Flutter не пришлёт кадр в новом размере.
+     */
     private fun place(rect: RectF) {
         if (removed) return
         val area = usableArea(context, windows)
-        params.x = area.left + px(rect.left)
-        params.y = area.top + px(rect.top)
-        params.width = px(rect.width())
-        params.height = px(rect.height())
+        val x = area.left + px(rect.left)
+        val y = area.top + px(rect.top)
+        val width = px(rect.width())
+        val height = px(rect.height())
+        if ((width != params.width || height != params.height) && params.width > 0 && params.height > 0) {
+            val keep = Matrix()
+            keep.setScale(params.width.toFloat() / width, params.height.toFloat() / height)
+            keep.postTranslate((params.x - x).toFloat(), (params.y - y).toFloat())
+            texture.setTransform(keep)
+            holding = true
+        }
+        params.x = x
+        params.y = y
+        params.width = width
+        params.height = height
         windows.updateViewLayout(frame, params)
-    }
-
-    /** Окно перетекает в [target] по кривой emphasized; Dart рисует стикер по размеру окна. */
-    private fun morphTo(target: RectF, ms: Long, done: () -> Unit) {
-        morph?.cancel()
-        if (ms <= 0) {
-            place(target)
-            return done()
-        }
-        val area = usableArea(context, windows)
-        val from = RectF(dp(params.x - area.left), dp(params.y - area.top), 0f, 0f).apply {
-            right = left + dp(params.width)
-            bottom = top + dp(params.height)
-        }
-        morph = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = ms
-            interpolator = EMPHASIZED
-            addUpdateListener { animator ->
-                val t = animator.animatedValue as Float
-                fun lerp(a: Float, b: Float) = a + (b - a) * t
-                place(RectF(lerp(from.left, target.left), lerp(from.top, target.top), lerp(from.right, target.right), lerp(from.bottom, target.bottom)))
-            }
-            addListener(object : android.animation.AnimatorListenerAdapter() {
-                // и прерванное, и законченное движение отвечает: Dart ждёт ответа
-                private var answered = false
-
-                override fun onAnimationEnd(animation: android.animation.Animator) {
-                    if (answered) return
-                    answered = true
-                    place(target)
-                    done()
-                }
-            })
-            start()
-        }
     }
 
     /** Нижний край окна в точках свободной части экрана: под ним встанет следующий стикер. */
@@ -241,7 +238,6 @@ class EdgeSticker(
     fun dispose() {
         if (removed) return
         removed = true
-        morph?.cancel()
         view.detachFromFlutterEngine()
         windows.removeView(frame)
         engine.destroy()
@@ -253,7 +249,6 @@ class EdgeSticker(
         private var area = Rect()
 
         override fun start() {
-            morph?.cancel()
             area = usableArea(context, windows)
         }
 
@@ -273,8 +268,6 @@ class EdgeSticker(
     }
 
     companion object {
-        private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
-
         /** Окно шире этого — раскрытый стикер (236), уже — круг (52) или середина движения. */
         private const val STICKER_MIN_WIDTH_DP = 200f
 

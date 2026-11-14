@@ -10,6 +10,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
+import '../../data/db/database.dart' show Item;
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../domain/note_blocks.dart';
@@ -52,8 +53,12 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
   Size _screen = Size.zero;
 
   bool _folded = false;
-  bool _morphing = false;
   bool _removing = false;
+
+  /// Форма: 0 — раскрытый стикер, 1 — круг. Сжимается картинка, а не окно: окно меняет
+  /// размер один раз, на краю движения. Смена окна на каждом кадре стоила кадров — на
+  /// эмуляторе 15–20 % опаздывали, хозяин видел дрожь на телефоне (14.11.2026).
+  late final _shape = AnimationController(vsync: this, duration: Motion.long);
 
   /// Высота раскрытого стикера — по содержимому.
   double _height = 0;
@@ -77,6 +82,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
         _screen = placement.screen;
         _folded = placement.window.width < stickerWidth / 2;
         _height = placement.stickerHeight ?? 0;
+        _shape.value = _folded ? 1 : 0;
       });
       // поднят свёрнутым: замера не будет, круг виден сразу
       if (_folded) _still ? _appear.value = 1 : _appear.forward().ignore();
@@ -111,6 +117,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
     _events?.cancel().ignore();
     _appear.dispose();
     _leave.dispose();
+    _shape.dispose();
     super.dispose();
   }
 
@@ -120,7 +127,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
   void _measure() {
     final window = _window;
     final box = _content.currentContext?.findRenderObject() as RenderBox?;
-    if (window == null || box == null || !box.hasSize || _folded || _morphing || _removing) return;
+    if (window == null || box == null || !box.hasSize || _folded || _shape.isAnimating || _removing) return;
     final height = box.size.height;
     if ((height - _height).abs() > 0.5 || (window.height - height).abs() > 0.5) {
       _height = height;
@@ -136,18 +143,20 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
   /// Угол [big], ближний к [small]: туда стягивается стикер и оттуда раскрывается.
   Alignment _anchorOf(Rect big, Rect small) => Alignment(small.center.dx > big.center.dx ? 1 : -1, small.center.dy > big.center.dy ? 1 : -1);
 
-  Future<void> _morph(Rect target) async {
-    _morphing = true;
-    await _channel.morph(target, _still ? Duration.zero : Motion.long);
-    _window = target;
-    _morphing = false;
-    if (mounted) setState(() {});
+  /// Форма к [value] за `long`; «Убрать анимацию» — сразу.
+  Future<void> _reshape(double value) async {
+    if (_still) {
+      _shape.value = value;
+      return;
+    }
+    await _shape.animateTo(value).orCancel.catchError((_) {});
   }
 
-  /// «—»: круг на том же месте, в углу стикера у ближнего края экрана.
+  /// «—»: круг на том же месте, в углу стикера у ближнего края экрана. Картинка сжимается
+  /// в этот угол внутри прежнего окна, окно встаёт по кругу в конце.
   Future<void> _fold() async {
     final window = _window;
-    if (window == null || _folded || _morphing) return;
+    if (window == null || _folded || _shape.isAnimating) return;
     final circle = circleOf(window.topLeft, _screen);
     final target = Rect.fromLTWH(circle.dx, circle.dy, circleSize, circleSize);
     setState(() {
@@ -155,22 +164,26 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
       _height = window.height;
       _anchor = _anchorOf(window, target);
     });
-    await _morph(target);
+    await _reshape(1);
+    if (!mounted) return;
+    _window = target;
+    await _channel.frame(target);
   }
 
-  /// Касание круга: стикер раскрывается туда, где есть место.
+  /// Касание круга: стикер раскрывается туда, где есть место. Окно сразу встаёт по
+  /// стикеру, картинка растёт в нём от круга.
   Future<void> _unfold() async {
     final window = _window;
-    if (window == null || !_folded || _morphing) return;
+    if (window == null || !_folded || _shape.isAnimating) return;
     // высоты не помним (поднят свёрнутым со старой записи) — раскрыться на примерную, замер поправит
     final height = _height > 0 ? _height : _fallbackHeight;
     final at = stickerOf(window.topLeft, height, _screen);
     final target = Rect.fromLTWH(at.dx, at.dy, stickerWidth, height);
-    setState(() {
-      _folded = false;
-      _anchor = _anchorOf(target, window);
-    });
-    await _morph(target);
+    setState(() => _anchor = _anchorOf(target, window));
+    _window = target;
+    await _channel.frame(target);
+    await _reshape(0);
+    if (mounted) setState(() => _folded = false);
   }
 
   /// Замок: содержимое пропадает сразу, окно уходит.
@@ -206,27 +219,47 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
     final left = lines.where((line) => line.done == false).length;
     final circleFill = color ?? Tokens.accent;
 
-    // насколько стикер раскрыт: по ширине окна, которую ведёт Kotlin
-    final width = MediaQuery.sizeOf(context).width;
-    final open = ((width - circleSize) / (stickerWidth - circleSize)).clamp(0.0, 1.0);
-    // текст гаснет в первой части сворачивания, число проступает в последней
-    final textShown = Curves.easeOut.transform(((open - 0.55) / 0.45).clamp(0.0, 1.0));
-    final faceShown = ((0.45 - open) / 0.45).clamp(0.0, 1.0);
-    if (!_folded && !_morphing) WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    final window = MediaQuery.sizeOf(context);
+    if (!_folded && !_shape.isAnimating) WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AnimatedBuilder(
-        animation: Listenable.merge([_appear, _leave]),
-        builder: (context, child) {
+        animation: Listenable.merge([_appear, _leave, _shape]),
+        builder: (context, _) {
           final appear = Motion.emphasizedDecelerate.transform(_appear.value);
           final leave = Motion.emphasizedAccelerate.transform(_leave.value);
+          // насколько стикер раскрыт: 1 — стикер, 0 — круг
+          final open = 1 - Motion.emphasized.transform(_shape.value);
+          // в покое картинка — ровно окно; в движении — сжимается к углу внутри большего окна
+          final fullHeight = _height > 0 ? _height : window.height;
+          final size = switch (_shape.value) {
+            0 => window,
+            1 => const Size.square(circleSize),
+            _ => Size(lerpDouble(circleSize, stickerWidth, open)!, lerpDouble(circleSize, fullHeight, open)!),
+          };
           return Opacity(
             opacity: (appear * (1 - leave)).clamp(0.0, 1.0),
-            child: Transform.scale(scale: (0.92 + 0.08 * appear) * (1 - 0.1 * leave), alignment: _anchor, child: child),
+            child: Transform.scale(
+              scale: (0.92 + 0.08 * appear) * (1 - 0.1 * leave),
+              alignment: _anchor,
+              child: Align(
+                alignment: _anchor,
+                child: SizedBox.fromSize(size: size, child: _face(open, item, lines, left, color, circleFill)),
+              ),
+            ),
           );
         },
-        child: ClipRRect(
+      ),
+    );
+  }
+
+  /// Стикер или круг при раскрытости [open]: углы, цвет, текст и число в круге — от неё.
+  Widget _face(double open, Item? item, List<NoteLine> lines, int left, Color? color, Color circleFill) {
+    // текст гаснет в первой части сворачивания, число проступает в последней
+    final textShown = Curves.easeOut.transform(((open - 0.55) / 0.45).clamp(0.0, 1.0));
+    final faceShown = ((0.45 - open) / 0.45).clamp(0.0, 1.0);
+    return ClipRRect(
           borderRadius: BorderRadius.circular(lerpDouble(circleSize / 2, _stickerRadius, open)!),
           child: ColoredBox(
             color: Color.lerp(circleFill, color == null ? Tokens.container : FolderPalette.tint(color), open)!,
@@ -275,9 +308,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
               ],
             ),
           ),
-        ),
-      ),
-    );
+        );
   }
 }
 

@@ -37,11 +37,9 @@ abstract class StickerChannel {
   /// Где окно сейчас и каков экран.
   Future<StickerPlacement> placement();
 
-  /// Поставить окно сразу: стикер поменял высоту.
+  /// Поставить окно сразу: стикер поменял высоту, свернулся в круг или раскрывается.
+  /// Само движение рисует Dart внутри окна — окно меняет размер одним шагом.
   Future<void> frame(Rect window);
-
-  /// Плавно перевести окно в [window] за [duration] по кривой emphasized; завершается в конце.
-  Future<void> morph(Rect window, Duration duration);
 
   /// Снять стикер: окно и движок уходят.
   Future<void> remove();
@@ -87,8 +85,6 @@ class MethodStickerChannel implements StickerChannel {
   @override
   Future<void> frame(Rect window) => _channel.invokeMethod('frame', _rect(window));
 
-  @override
-  Future<void> morph(Rect window, Duration duration) => _channel.invokeMethod('morph', {..._rect(window), 'ms': duration.inMilliseconds});
 
   @override
   Future<void> remove() => _channel.invokeMethod('remove');
@@ -122,11 +118,6 @@ class FakeStickerChannel implements StickerChannel {
     window = next;
   }
 
-  @override
-  Future<void> morph(Rect next, Duration duration) async {
-    calls.add('morph');
-    window = next;
-  }
 
   @override
   Future<void> remove() async => calls.add('remove');

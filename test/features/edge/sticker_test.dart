@@ -91,9 +91,17 @@ void main() {
   testWidgets('«—»: стикер справа сворачивается в круг в своём правом верхнем углу', (tester) async {
     await note('list', 'Купить', 'Купить\n- [ ] молоко\n- [ ] хлеб\n- [x] сыр');
     final channel = await open(tester);
+    final before = channel.window;
+    channel.calls.clear();
     await tester.tap(find.byTooltip('Свернуть'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    // посреди движения окно не трогают: сжимается картинка, а не окно — каждая смена окна стоит кадра
+    expect(channel.window, before);
+    expect(channel.calls, isEmpty);
     await tester.pumpAndSettle();
-    expect(channel.calls, contains('morph'));
+    // окно встаёт по кругу один раз, в конце
+    expect(channel.calls, ['frame']);
     expect(channel.window, Rect.fromLTWH(right.left + stickerWidth - circleSize, right.top, circleSize, circleSize));
     await follow(tester, channel);
     // в круге — сколько пунктов осталось
@@ -108,9 +116,18 @@ void main() {
     await tester.tap(find.byTooltip('Свернуть'));
     await tester.pumpAndSettle();
     await follow(tester, channel);
+    channel.calls.clear();
     await tester.tap(find.byKey(const ValueKey('sticker-circle')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    // окно раскрывается сразу, один раз, а картинка растёт в нём от круга
+    expect(channel.calls, ['frame']);
     expect(channel.window, Rect.fromLTWH(right.left, right.top, stickerWidth, height));
+    tester.view.physicalSize = channel.window.size;
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('sticker-circle')), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(channel.calls, ['frame']);
+    expect(find.text('молоко'), findsOneWidget);
   });
 
   testWidgets('круг утащили вниз — раскрывается вверх и остаётся на экране', (tester) async {
@@ -136,8 +153,12 @@ void main() {
     final channel = await open(tester, window: circle, stickerHeight: 140);
     expect(find.byKey(const ValueKey('sticker-circle')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('sticker-circle')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    // раскрывается на запомненную высоту; после движения окно подгонится под содержимое
     expect(channel.window, const Rect.fromLTWH(160, 120, stickerWidth, 140));
+    tester.view.physicalSize = channel.window.size;
+    await tester.pumpAndSettle();
+    expect(channel.window.topLeft, const Offset(160, 120));
   });
 
   testWidgets('«×» гасит стикер и снимает его', (tester) async {
