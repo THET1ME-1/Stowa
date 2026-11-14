@@ -396,6 +396,7 @@ class SettingsRepository {
           await _prefs.setString(key, text);
       }
     }
+    return null;
   });
 
   /// Язык, выбранный руками. Пусто — язык устройства.
