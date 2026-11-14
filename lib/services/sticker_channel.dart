@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 
 /// Где окно стикера и каков экран, в точках. Начало координат — левый верхний угол
 /// свободной части экрана (под строкой состояния), ширина и высота — её размер.
-typedef StickerPlacement = ({Rect window, Size screen});
+/// [stickerHeight] — высота раскрытого стикера, если служба её помнит: поднятый после
+/// перезапуска свёрнутым раскрывается на неё, не дожидаясь замера.
+typedef StickerPlacement = ({Rect window, Size screen, double? stickerHeight});
 
 /// Что служба сообщает стикеру: его утащили пальцем или экран стал другим.
 sealed class StickerEvent {
@@ -67,7 +69,11 @@ class MethodStickerChannel implements StickerChannel {
   static StickerPlacement _placementOf(Map raw) {
     final value = raw.cast<String, num>();
     double of(String key) => value[key]!.toDouble();
-    return (window: Rect.fromLTWH(of('x'), of('y'), of('w'), of('h')), screen: Size(of('screenW'), of('screenH')));
+    return (
+      window: Rect.fromLTWH(of('x'), of('y'), of('w'), of('h')),
+      screen: Size(of('screenW'), of('screenH')),
+      stickerHeight: value['stickerH']?.toDouble(),
+    );
   }
 
   static Map<String, double> _rect(Rect rect) => {'x': rect.left, 'y': rect.top, 'w': rect.width, 'h': rect.height};
@@ -94,10 +100,11 @@ class MethodStickerChannel implements StickerChannel {
 /// Для тестов: окно и экран — поля, вызовы пишутся по именам.
 @visibleForTesting
 class FakeStickerChannel implements StickerChannel {
-  FakeStickerChannel({required this.window, this.screen = const Size(411, 860)});
+  FakeStickerChannel({required this.window, this.screen = const Size(411, 860), this.stickerHeight});
 
   Rect window;
   Size screen;
+  double? stickerHeight;
   final calls = <String>[];
   final _events = StreamController<StickerEvent>.broadcast(sync: true);
 
@@ -107,7 +114,7 @@ class FakeStickerChannel implements StickerChannel {
   Stream<StickerEvent> get events => _events.stream;
 
   @override
-  Future<StickerPlacement> placement() async => (window: window, screen: screen);
+  Future<StickerPlacement> placement() async => (window: window, screen: screen, stickerHeight: stickerHeight);
 
   @override
   Future<void> frame(Rect next) async {

@@ -34,8 +34,8 @@ void main() {
   // стикер справа от середины экрана 411 × 860
   const right = Rect.fromLTWH(160, 120, stickerWidth, 200);
 
-  Future<FakeStickerChannel> open(WidgetTester tester, {Rect window = right}) async {
-    final channel = FakeStickerChannel(window: window);
+  Future<FakeStickerChannel> open(WidgetTester tester, {Rect window = right, double? stickerHeight}) async {
+    final channel = FakeStickerChannel(window: window, stickerHeight: stickerHeight);
     tester.view.physicalSize = window.size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -119,6 +119,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(channel.window.bottom, bottom.dy + circleSize);
     expect(channel.window.height, height);
+  });
+
+  testWidgets('поднятый после перезапуска свёрнутым раскрывается на прежнюю высоту', (tester) async {
+    await note('list', 'Купить', 'Купить\n- [ ] молоко');
+    const circle = Rect.fromLTWH(344, 120, circleSize, circleSize);
+    final channel = await open(tester, window: circle, stickerHeight: 140);
+    expect(find.byKey(const ValueKey('sticker-circle')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('sticker-circle')));
+    await tester.pumpAndSettle();
+    expect(channel.window, const Rect.fromLTWH(160, 120, stickerWidth, 140));
   });
 
   testWidgets('«×» гасит стикер и снимает его', (tester) async {

@@ -16,6 +16,9 @@ import android.view.Gravity
 import android.view.WindowManager
 import android.view.animation.PathInterpolator
 import io.flutter.embedding.engine.FlutterEngineGroup
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlin.math.min
 
 /**
  * «Под рукой»: хозяин окон поверх других приложений — корешков у края и полки.
@@ -60,8 +63,7 @@ class EdgeService : Service() {
         if (stickers.any { it.noteId == noteId }) return
         if (stickers.size >= MAX_STICKERS) stickers.first().remove()
         if (at != null) {
-            val start = RectF(at.x, at.y, at.x + STICKER_WIDTH_DP, at.y + STICKER_START_HEIGHT_DP)
-            stickers += EdgeSticker(this, windows, stickerEngines, noteId, start) { gone -> stickers.remove(gone) }
+            addSticker(noteId, RectF(at.x, at.y, at.x + STICKER_WIDTH_DP, at.y + STICKER_START_HEIGHT_DP), null)
             return
         }
         val area = EdgeSticker.usableArea(this, windows)
@@ -75,8 +77,47 @@ class EdgeService : Service() {
         val first = height * 0.16f
         val below = stickers.maxOfOrNull { it.bottomDp() }?.plus(STICKER_GAP_DP) ?: first
         val top = if (below + STICKER_START_HEIGHT_DP <= height - STICKER_MARGIN_DP) below else first + 28f * stickers.size
-        val start = RectF(left, top, left + STICKER_WIDTH_DP, top + STICKER_START_HEIGHT_DP)
-        stickers += EdgeSticker(this, windows, stickerEngines, noteId, start) { gone -> stickers.remove(gone) }
+        addSticker(noteId, RectF(left, top, left + STICKER_WIDTH_DP, top + STICKER_START_HEIGHT_DP), null)
+    }
+
+    private fun addSticker(noteId: String, start: RectF, stickerHeight: Float?) {
+        stickers += EdgeSticker(this, windows, stickerEngines, noteId, start, stickerHeight, onChanged = ::saveStickers) { gone ->
+            stickers.remove(gone)
+            saveStickers()
+        }
+        saveStickers()
+    }
+
+    /** Список стикеров в prefs (`flutter.edge_stickers`): у каждого хранилища свой. */
+    private fun stickerPrefs() = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+
+    // база открытого хранилища — его имя; заметки другого хранилища в этой базе не найдутся
+    private fun vaultKey() = stickerPrefs().getString("flutter.vault_db", null) ?: "stowa.sqlite"
+
+    private fun saveStickers() {
+        val all = runCatching { JSONObject(stickerPrefs().getString(STICKERS_KEY, null) ?: "{}") }.getOrDefault(JSONObject())
+        all.put(vaultKey(), JSONArray(stickers.map { it.state() }))
+        stickerPrefs().edit().putString(STICKERS_KEY, all.toString()).apply()
+    }
+
+    /** Служба поднялась: стикеры этого хранилища — на свои места и в свой вид. */
+    private fun restoreStickers() {
+        val all = runCatching { JSONObject(stickerPrefs().getString(STICKERS_KEY, null) ?: "{}") }.getOrNull() ?: return
+        val saved = all.optJSONArray(vaultKey()) ?: return
+        for (index in 0 until min(saved.length(), MAX_STICKERS)) {
+            val sticker = saved.optJSONObject(index) ?: continue
+            val noteId = sticker.optString("id").takeIf { it.isNotEmpty() } ?: continue
+            if (stickers.any { it.noteId == noteId }) continue
+            val x = sticker.optDouble("x").toFloat()
+            val y = sticker.optDouble("y").toFloat()
+            val start = RectF(x, y, x + sticker.optDouble("w").toFloat(), y + sticker.optDouble("h").toFloat())
+            if (start.isEmpty) continue
+            val height = if (sticker.isNull("stickerH")) null else sticker.optDouble("stickerH").toFloat()
+            addSticker(noteId, start, height)
+        }
+        // стикеры встали у края экрана другого размера — внутрь
+        stickers.forEach { it.screenChanged() }
+        Log.d(EdgeHandle.TAG, "stickers restored: ${stickers.size}")
     }
 
     /** Полка выезжает: корешки уходят за свой край, 200 мс, emphasizedAccelerate. */
@@ -165,6 +206,7 @@ class EdgeService : Service() {
         handleParams = params
         prefs = settings
         Log.d(EdgeHandle.TAG, "handle shown")
+        if (stickers.isEmpty()) restoreStickers()
     }
 
     /** Сдвиг, при котором корешки целиком за своим краем. */
@@ -240,7 +282,9 @@ class EdgeService : Service() {
 
     override fun onDestroy() {
         move?.cancel()
-        stickers.toList().forEach { it.remove() }
+        // служба уходит — стикеры помнятся и встанут на место при следующем запуске
+        stickers.toList().forEach { it.dispose() }
+        stickers.clear()
         panel.destroy()
         handle?.let { windows.removeView(it) }
         handle = null
@@ -250,6 +294,8 @@ class EdgeService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {
+        private const val STICKERS_KEY = "flutter.edge_stickers"
+
         // как в lib/domain/sticker_geometry.dart
         private const val MAX_STICKERS = 3
         private const val STICKER_WIDTH_DP = 236f

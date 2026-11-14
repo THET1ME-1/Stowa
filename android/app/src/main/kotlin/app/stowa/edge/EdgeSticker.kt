@@ -22,6 +22,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineGroup
 import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONObject
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -37,8 +38,13 @@ class EdgeSticker(
     private val windows: WindowManager,
     group: FlutterEngineGroup,
     val noteId: String,
-    /** Где поставить новый стикер, в точках свободной части экрана. */
+    /** Где поставить стикер, в точках свободной части экрана; свёрнутый — размером с круг. */
     start: RectF,
+    /** Высота раскрытого стикера, если помнится: свёрнутый раскроется на неё. */
+    private var stickerHeight: Float?,
+    /** Окно встало на новое место или поменяло вид: список стикеров пора записать. */
+    private val onChanged: () -> Unit,
+    /** Стикер сняли насовсем: «×», вытеснен четвёртым, заметки больше нет. */
     private val onRemoved: (EdgeSticker) -> Unit,
 ) {
     private val density = context.resources.displayMetrics.density
@@ -64,13 +70,21 @@ class EdgeSticker(
                 "placement" -> result.success(placement())
                 "frame" -> {
                     morph?.cancel()
-                    place(rectOf(call.arguments))
+                    val rect = rectOf(call.arguments)
+                    remember(rect)
+                    place(rect)
+                    onChanged()
                     result.success(null)
                 }
                 "morph" -> {
                     @Suppress("UNCHECKED_CAST")
                     val args = call.arguments as Map<String, Number>
-                    morphTo(rectOf(args), args["ms"]!!.toLong()) { result.success(null) }
+                    val rect = rectOf(args)
+                    remember(rect)
+                    morphTo(rect, args["ms"]!!.toLong()) {
+                        onChanged()
+                        result.success(null)
+                    }
                 }
                 "remove" -> {
                     remove()
@@ -126,7 +140,7 @@ class EdgeSticker(
     }
 
     /** Окно и свободная часть экрана в точках, для Dart. */
-    private fun placement(): Map<String, Double> {
+    private fun placement(): Map<String, Double?> {
         val area = usableArea(context, windows)
         return mapOf(
             "x" to dp(params.x - area.left).toDouble(),
@@ -135,7 +149,25 @@ class EdgeSticker(
             "h" to dp(params.height).toDouble(),
             "screenW" to dp(area.width()).toDouble(),
             "screenH" to dp(area.height()).toDouble(),
+            "stickerH" to stickerHeight?.toDouble(),
         )
+    }
+
+    /** Что помнить между перезапусками: заметка, окно в точках, высота раскрытого. */
+    fun state(): JSONObject {
+        val area = usableArea(context, windows)
+        return JSONObject()
+            .put("id", noteId)
+            .put("x", dp(params.x - area.left).toDouble())
+            .put("y", dp(params.y - area.top).toDouble())
+            .put("w", dp(params.width).toDouble())
+            .put("h", dp(params.height).toDouble())
+            .put("stickerH", stickerHeight?.toDouble() ?: JSONObject.NULL)
+    }
+
+    /** Конечный размер раскрытого стикера (не круга и не кадра движения) — его высоту и помним. */
+    private fun remember(rect: RectF) {
+        if (rect.width() > STICKER_MIN_WIDTH_DP) stickerHeight = rect.height()
     }
 
     private fun place(rect: RectF) {
@@ -197,15 +229,22 @@ class EdgeSticker(
         channel.invokeMethod("screen", placement())
     }
 
+    /** Снять насовсем: стикер уходит и из памяти. */
     fun remove() {
+        if (removed) return
+        dispose()
+        onRemoved(this)
+        Log.d(EdgeHandle.TAG, "sticker removed")
+    }
+
+    /** Убрать окно и движок, не забывая стикер: служба останавливается, после поднимет. */
+    fun dispose() {
         if (removed) return
         removed = true
         morph?.cancel()
         view.detachFromFlutterEngine()
         windows.removeView(frame)
         engine.destroy()
-        onRemoved(this)
-        Log.d(EdgeHandle.TAG, "sticker removed")
     }
 
     /** Окно за пальцем, зажатое в экран; отпустил — Dart узнаёт новое место. */
@@ -226,11 +265,15 @@ class EdgeSticker(
         override fun end() {
             val area = usableArea(context, windows)
             channel.invokeMethod("moved", mapOf("x" to dp(params.x - area.left).toDouble(), "y" to dp(params.y - area.top).toDouble()))
+            onChanged()
         }
     }
 
     companion object {
         private val EMPHASIZED = PathInterpolator(0.2f, 0f, 0f, 1f)
+
+        /** Окно шире этого — раскрытый стикер (236), уже — круг (52) или середина движения. */
+        private const val STICKER_MIN_WIDTH_DP = 200f
 
         /** Экран без строки состояния, панели навигации и выреза, в пикселях. */
         fun usableArea(context: Context, windows: WindowManager): Rect {

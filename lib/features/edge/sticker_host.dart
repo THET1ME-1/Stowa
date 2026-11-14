@@ -73,7 +73,10 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
         _window = placement.window;
         _screen = placement.screen;
         _folded = placement.window.width < stickerWidth / 2;
+        _height = placement.stickerHeight ?? 0;
       });
+      // поднят свёрнутым: замера не будет, круг виден сразу
+      if (_folded) _still ? _appear.value = 1 : _appear.forward().ignore();
     }).ignore();
     _events = _channel.events.listen((event) {
       final window = _window;
