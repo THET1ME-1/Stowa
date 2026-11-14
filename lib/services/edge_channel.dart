@@ -56,6 +56,12 @@ class EdgeDragEnd extends EdgeEvent {
   final double velocity;
 }
 
+/// Служба убрала окно сама («Открыть Stowa», переход в окно виджета, выключение):
+/// полка за краем и на первой странице, следующее касание выдвигает её заново.
+class EdgeClosed extends EdgeEvent {
+  const EdgeClosed();
+}
+
 /// «Назад» или касание мимо окна: полке уехать.
 class EdgeDismiss extends EdgeEvent {
   const EdgeDismiss();
@@ -128,6 +134,7 @@ class MethodEdgeChannel implements EdgeChannel {
         'drag' => EdgeDrag((call.arguments as num).toDouble()),
         'dragEnd' => EdgeDragEnd((call.arguments as num).toDouble()),
         'dismiss' => const EdgeDismiss(),
+        'closed' => const EdgeClosed(),
         _ => null,
       };
       if (event != null) _events.add(event);

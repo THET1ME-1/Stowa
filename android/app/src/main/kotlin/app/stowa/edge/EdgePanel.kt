@@ -156,6 +156,8 @@ class EdgePanel(
         flutterView.detachFromFlutterEngine()
         windows.removeView(flutterView)
         view = null
+        // убрали и не по просьбе Dart («Открыть Stowa», окно виджета): полка сбрасывается
+        channel?.invokeMethod("closed", null)
         onClosing()
         Log.d(EdgeHandle.TAG, "shelf closed")
     }

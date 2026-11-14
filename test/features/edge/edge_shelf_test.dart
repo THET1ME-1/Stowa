@@ -262,6 +262,24 @@ void main() {
     expect(world.edge.calls, contains('opened'));
   });
 
+  testWidgets('окно убрала служба («Открыть Stowa», камера) — следующее касание снова выдвигает полку', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await open(tester);
+    await tester.tap(inShelf('Wi‑Fi на даче'));
+    await tester.pumpAndSettle();
+    world.edge.send(const EdgeClosed());
+    await tester.pumpAndSettle();
+    // полка за краем и снова на своей первой странице
+    expect(shelf(tester).left, greaterThanOrEqualTo(screenWidth));
+    expect(find.byType(ItemScreen), findsNothing);
+    world.edge.calls.clear();
+    world.edge.send(const EdgeOpen());
+    await tester.pump();
+    expect(world.edge.calls, contains('opened'));
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+  });
+
   testWidgets('шестерёнка открывает настройку корешков в самой полке', (tester) async {
     await open(tester);
     await tester.tap(find.byTooltip('Настроить корешки'));

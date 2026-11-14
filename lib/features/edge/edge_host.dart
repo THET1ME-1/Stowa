@@ -176,6 +176,15 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
         _settle(velocity / _travel);
       case EdgeDismiss():
         _close();
+      // окна уже нет: без движения в закрытое состояние, иначе следующее открытие решило бы,
+      // что полка на месте, не выехало бы и не ответило службе
+      case EdgeClosed():
+        _reveal.stop();
+        _reveal.value = 0;
+        _closing = false;
+        _cardAway = false;
+        _shelfNavigator.currentState?.popUntil((route) => route.isFirst);
+        FocusManager.instance.primaryFocus?.unfocus();
     }
   }
 

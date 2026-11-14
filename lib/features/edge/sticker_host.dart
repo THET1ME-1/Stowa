@@ -24,6 +24,9 @@ const _linesOnSticker = 8;
 /// Скругление раскрытого стикера; круг — половина своей стороны.
 const _stickerRadius = 24.0;
 
+/// Высота раскрытия, пока настоящая не замерена.
+const _fallbackHeight = 160.0;
+
 /// Стикер поверх любого приложения: одна заметка в своём окне (движок `stickerMain`).
 /// Окно двигает Kotlin, стикер рисуется по размеру окна: сворачиваясь, окно сжимается
 /// к кругу в угле у ближнего края, и картинка следует за ним кадр в кадр — углы
@@ -159,8 +162,10 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
   Future<void> _unfold() async {
     final window = _window;
     if (window == null || !_folded || _morphing) return;
-    final at = stickerOf(window.topLeft, _height, _screen);
-    final target = Rect.fromLTWH(at.dx, at.dy, stickerWidth, _height);
+    // высоты не помним (поднят свёрнутым со старой записи) — раскрыться на примерную, замер поправит
+    final height = _height > 0 ? _height : _fallbackHeight;
+    final at = stickerOf(window.topLeft, height, _screen);
+    final target = Rect.fromLTWH(at.dx, at.dy, stickerWidth, height);
     setState(() {
       _folded = false;
       _anchor = _anchorOf(target, window);

@@ -249,13 +249,16 @@ class EdgeSticker(
 
     /** Окно за пальцем, зажатое в экран; отпустил — Dart узнаёт новое место. */
     private inner class Dragger : StickerFrame.Mover {
+        // границы экрана снимаются раз на перетаскивание, а не на каждый сдвиг пальца
+        private var area = Rect()
+
         override fun start() {
             morph?.cancel()
+            area = usableArea(context, windows)
         }
 
         override fun move(dx: Float, dy: Float) {
             if (removed) return
-            val area = usableArea(context, windows)
             val margin = px(8f)
             params.x = max(area.left + margin, min(params.x + dx.roundToInt(), area.right - margin - params.width))
             params.y = max(area.top + margin, min(params.y + dy.roundToInt(), area.bottom - margin - params.height))
