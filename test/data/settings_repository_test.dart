@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/appearance.dart';
+import 'package:stowa/domain/edge_settings.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/l10n/app_language.dart';
 import 'package:stowa/services/ai_client.dart';
@@ -84,6 +85,23 @@ void main() {
     await settings.setAppearance(chosen.copyWith(seed: () => null));
     expect(settings.appearance.seed, isNull);
     expect(settings.appearance.choice, ThemeChoice.byTime);
+  });
+
+  test('«Под рукой»: по умолчанию выключено; выбор пишется в prefs edge_* и приходит потоком', () async {
+    expect(settings.edge, const EdgeSettings());
+    const chosen = EdgeSettings(enabled: true, side: EdgeSide.left, height: 70, size: SpineSize.large, alpha: 60, hideInFullscreen: false);
+    final seen = <EdgeSettings>[];
+    final subscription = settings.watchEdge().listen(seen.add);
+    await Future<void>.delayed(Duration.zero);
+    await settings.setEdge(chosen);
+    await Future<void>.delayed(Duration.zero);
+    await subscription.cancel();
+    expect(settings.edge, chosen);
+    expect(seen, [const EdgeSettings(), chosen]);
+    // Kotlin читает те же ключи: целые и строки, без дробных
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getInt('edge_height'), 70);
+    expect(prefs.getString('edge_side'), 'left');
   });
 
   test('изменения приходят потоком', () async {

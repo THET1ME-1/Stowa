@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../domain/appearance.dart';
+import '../domain/edge_settings.dart';
 import '../domain/known_vaults.dart' as known;
 import '../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../domain/return_plan.dart';
@@ -374,6 +375,27 @@ class SettingsRepository {
     await _prefs.setBool('appearance_vibrant', value.vibrant);
     await _prefs.setBool('appearance_wallpaper', value.wallpaper);
     return _prefs.setBool('appearance_amoled', value.amoled);
+  });
+
+  /// «Под рукой»: корешки у края поверх других приложений.
+  EdgeSettings get edge => EdgeSettings.fromPrefs({for (final key in EdgeSettings.keys) key: _prefs.get(key)});
+
+  Stream<EdgeSettings> watchEdge() async* {
+    yield edge;
+    yield* _changes.stream.map((_) => edge).distinct();
+  }
+
+  Future<void> setEdge(EdgeSettings settings) => _set(() async {
+    for (final MapEntry(:key, value: stored) in settings.toPrefs().entries) {
+      switch (stored) {
+        case final bool on:
+          await _prefs.setBool(key, on);
+        case final int number:
+          await _prefs.setInt(key, number);
+        case final String text:
+          await _prefs.setString(key, text);
+      }
+    }
   });
 
   /// Язык, выбранный руками. Пусто — язык устройства.
