@@ -93,6 +93,8 @@ class EdgePanel(private val context: Context, private val windows: WindowManager
 
     private fun createEngine(): FlutterEngine {
         val engine = FlutterEngine(context)
+        // буфер, вибрация и звук нажатия: в окне без Activity их некому обслужить
+        engine.platformChannel.setPlatformMessageHandler(EdgePlatform(context, { view }, ::close))
         MethodChannel(engine.dartExecutor.binaryMessenger, "stowa/edge").setMethodCallHandler { call, result ->
             when (call.method) {
                 "setFocusable" -> {

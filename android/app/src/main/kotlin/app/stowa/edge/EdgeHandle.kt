@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
 import android.view.MotionEvent
@@ -62,6 +63,14 @@ class EdgeHandle(context: Context, private val onTap: () -> Unit) : View(context
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
     private var downY = 0f
+
+    // при навигации жестами свайп от края забирает себе системное «назад»: касание корешков
+    // приходило и тут же отменялось. Корешки исключены из зоны жеста (система даёт до 200 dp
+    // на край, крупные корешки — 168), эмулятор 14.11.2026
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        systemGestureExclusionRects = listOf(Rect(0, 0, width, height))
+    }
 
     override fun onDraw(canvas: Canvas) {
         val outer = 10f * density
