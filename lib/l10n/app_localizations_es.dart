@@ -3148,4 +3148,8 @@ class LEs extends L {
 
   @override
   String get homePinnedLess => 'Mostrar menos';
+
+  @override
+  String get catalogReorderHint =>
+      'Mantén pulsada una carpeta y arrástrala: en este orden aparecen también en el inicio.';
 }

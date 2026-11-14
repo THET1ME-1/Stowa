@@ -3144,4 +3144,8 @@ class LEn extends L {
 
   @override
   String get homePinnedLess => 'Show less';
+
+  @override
+  String get catalogReorderHint =>
+      'Hold a folder and drag it: Home shows folders in the same order.';
 }

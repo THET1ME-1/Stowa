@@ -3201,4 +3201,8 @@ class LUk extends L {
 
   @override
   String get homePinnedLess => 'Згорнути';
+
+  @override
+  String get catalogReorderHint =>
+      'Затисни папку й перетягни: у цьому порядку папки стоять і на головній.';
 }

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
@@ -92,5 +92,50 @@ void main() {
     await tester.tap(inCatalog('Супы'));
     await tester.pumpAndSettle();
     expect(inCatalog('Щи'), findsOneWidget);
+  });
+
+  group('порядок папок перетаскиванием', () {
+    Future<void> folders(List<String> names) async {
+      for (final (index, name) in names.indexed) {
+        await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: name, name: name, icon: 'folder', shape: 'pill', sortOrder: Value(index)));
+      }
+    }
+
+    Future<List<String>> order() async => [
+      for (final row in await (world.db.select(world.db.folders)..where((t) => t.parentId.isNull())..orderBy([(t) => OrderingTerm.asc(t.sortOrder)])).get()) row.name,
+    ];
+
+    Future<void> drag(WidgetTester tester, String from, String to) async {
+      final gesture = await tester.startGesture(tester.getCenter(inCatalog(from)));
+      await tester.pump(const Duration(milliseconds: 600));
+      final target = tester.getCenter(inCatalog(to));
+      for (var step = 1; step <= 5; step++) {
+        await gesture.moveTo(Offset.lerp(tester.getCenter(inCatalog(from).first), target, step / 5)!);
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('вниз: папка встаёт на место той, на которую бросили; на главной тот же порядок', (tester) async {
+      await folders(['Работа', 'Здоровье', 'Пиво', 'Рецепты']);
+      await open(tester);
+      await drag(tester, 'Работа', 'Пиво');
+      expect(await order(), ['Здоровье', 'Пиво', 'Работа', 'Рецепты']);
+      expect(tester.getTopLeft(inCatalog('Пиво')).dy, lessThan(tester.getTopLeft(inCatalog('Работа')).dy));
+    });
+
+    testWidgets('вверх: перетащил последнюю на первую — она первая', (tester) async {
+      await folders(['Работа', 'Здоровье', 'Пиво']);
+      await open(tester);
+      await drag(tester, 'Пиво', 'Работа');
+      expect(await order(), ['Пиво', 'Работа', 'Здоровье']);
+    });
+
+    testWidgets('внизу подсказка, как менять порядок', (tester) async {
+      await folders(['Работа', 'Здоровье']);
+      await open(tester);
+      expect(find.textContaining('Зажми папку и перетащи'), findsOneWidget);
+    });
   });
 }

@@ -4029,5 +4029,9 @@
   "homePinnedLess": "Show less",
   "@homePinnedLess": {
     "description": "Под раскрытыми закреплёнными на главной: снова показать первые"
+  },
+  "catalogReorderHint": "Hold a folder and drag it: Home shows folders in the same order.",
+  "@catalogReorderHint": {
+    "description": "Подсказка внизу каталога: как менять порядок папок"
   }
 }

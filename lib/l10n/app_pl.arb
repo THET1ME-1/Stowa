@@ -609,5 +609,6 @@
   "itemUnpinned": "Odpięto",
   "homePinned": "Przypięte",
   "homePinnedMore": "Jeszcze {count}",
-  "homePinnedLess": "Zwiń"
+  "homePinnedLess": "Zwiń",
+  "catalogReorderHint": "Przytrzymaj folder i przeciągnij: w tej kolejności foldery stoją też na ekranie głównym."
 }

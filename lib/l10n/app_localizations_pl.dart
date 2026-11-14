@@ -3201,4 +3201,8 @@ class LPl extends L {
 
   @override
   String get homePinnedLess => 'Zwiń';
+
+  @override
+  String get catalogReorderHint =>
+      'Przytrzymaj folder i przeciągnij: w tej kolejności foldery stoją też na ekranie głównym.';
 }

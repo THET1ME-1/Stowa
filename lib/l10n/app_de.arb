@@ -609,5 +609,6 @@
   "itemUnpinned": "Gelöst",
   "homePinned": "Angeheftet",
   "homePinnedMore": "{count} weitere",
-  "homePinnedLess": "Weniger"
+  "homePinnedLess": "Weniger",
+  "catalogReorderHint": "Halte einen Ordner gedrückt und zieh ihn: In dieser Reihenfolge stehen die Ordner auch auf der Startseite."
 }

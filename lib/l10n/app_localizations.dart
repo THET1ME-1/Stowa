@@ -5260,6 +5260,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Show less'**
   String get homePinnedLess;
+
+  /// Подсказка внизу каталога: как менять порядок папок
+  ///
+  /// In en, this message translates to:
+  /// **'Hold a folder and drag it: Home shows folders in the same order.'**
+  String get catalogReorderHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -858,5 +858,6 @@
   "itemUnpinned": "Открепил",
   "homePinned": "Закреплено",
   "homePinnedMore": "Ещё {count}",
-  "homePinnedLess": "Свернуть"
+  "homePinnedLess": "Свернуть",
+  "catalogReorderHint": "Зажми папку и перетащи: в этом порядке папки стоят и на главной."
 }

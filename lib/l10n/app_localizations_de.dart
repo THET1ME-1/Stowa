@@ -3153,4 +3153,8 @@ class LDe extends L {
 
   @override
   String get homePinnedLess => 'Weniger';
+
+  @override
+  String get catalogReorderHint =>
+      'Halte einen Ordner gedrückt und zieh ihn: In dieser Reihenfolge stehen die Ordner auch auf der Startseite.';
 }

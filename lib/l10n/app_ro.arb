@@ -609,5 +609,6 @@
   "itemUnpinned": "Nu mai e fixată",
   "homePinned": "Fixate",
   "homePinnedMore": "Încă {count}",
-  "homePinnedLess": "Restrânge"
+  "homePinnedLess": "Restrânge",
+  "catalogReorderHint": "Ține apăsat pe un dosar și trage-l: pe pagina principală dosarele stau în aceeași ordine."
 }

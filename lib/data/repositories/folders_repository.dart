@@ -154,6 +154,23 @@ ORDER BY folders.sort_order, folders.name''',
         });
   }
 
+  /// Новый порядок папок на главной и везде: [idsInOrder] первыми, остальные (вложенные,
+  /// не названные) следом в прежнем порядке. Цвет папки без выбранного цвета берётся по её
+  /// месту в списке, поэтому перед перестановкой он записывается: папки не перекрашиваются.
+  Future<void> reorder(List<String> idsInOrder) => _db.transaction(() async {
+    final rows = await (_db.select(_db.folders)
+          ..where((t) => t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.sortOrder), (t) => OrderingTerm.asc(t.name)]))
+        .get();
+    final byId = {for (final row in rows) row.id: row};
+    final ordered = [for (final id in idsInOrder) ?byId[id], for (final row in rows) if (!idsInOrder.contains(row.id)) row];
+    for (final (index, row) in ordered.indexed) {
+      final color = row.color ?? FolderPalette.colors.keys.elementAt(row.sortOrder % FolderPalette.colors.length);
+      if (row.sortOrder == index && row.color == color) continue;
+      await (_db.update(_db.folders)..where((t) => t.id.equals(row.id))).write(FoldersCompanion(sortOrder: Value(index), color: Value(color)));
+    }
+  });
+
   /// Папка из строки «@Имя»: с заглавной буквы, форма значка по очереди, в конец списка.
   /// С [parentId] — внутри той папки.
   Future<FolderCard> create(String rawName, {String? parentId}) async {

@@ -609,5 +609,6 @@
   "itemUnpinned": "Desfijada",
   "homePinned": "Fijadas",
   "homePinnedMore": "{count} más",
-  "homePinnedLess": "Mostrar menos"
+  "homePinnedLess": "Mostrar menos",
+  "catalogReorderHint": "Mantén pulsada una carpeta y arrástrala: en este orden aparecen también en el inicio."
 }

@@ -609,5 +609,6 @@
   "itemUnpinned": "Відкріпив",
   "homePinned": "Закріплено",
   "homePinnedMore": "Ще {count}",
-  "homePinnedLess": "Згорнути"
+  "homePinnedLess": "Згорнути",
+  "catalogReorderHint": "Затисни папку й перетягни: у цьому порядку папки стоять і на головній."
 }

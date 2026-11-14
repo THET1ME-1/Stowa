@@ -3205,4 +3205,8 @@ class LRu extends L {
 
   @override
   String get homePinnedLess => 'Свернуть';
+
+  @override
+  String get catalogReorderHint =>
+      'Зажми папку и перетащи: в этом порядке папки стоят и на главной.';
 }

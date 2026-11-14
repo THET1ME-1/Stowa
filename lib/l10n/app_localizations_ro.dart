@@ -3173,4 +3173,8 @@ class LRo extends L {
 
   @override
   String get homePinnedLess => 'Restrânge';
+
+  @override
+  String get catalogReorderHint =>
+      'Ține apăsat pe un dosar și trage-l: pe pagina principală dosarele stau în aceeași ordine.';
 }

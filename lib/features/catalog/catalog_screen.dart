@@ -57,6 +57,13 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
   void _toggle(String key) => setState(() => _open.contains(key) ? _open.remove(key) : _open.add(key));
 
+  /// Папку бросили на соседку: встаёт на её место, соседи сдвигаются. Тот же порядок у чипов на главной.
+  void _drop(FolderCard dragged, FolderCard target, List<FolderCard> siblings) {
+    final next = [...siblings]..removeWhere((one) => one.id == dragged.id);
+    next.insert(siblings.indexWhere((one) => one.id == target.id), dragged);
+    ref.read(foldersRepositoryProvider).reorder([for (final one in next) one.id]).ignore();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -78,11 +85,16 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     // вложенные папки сперва, заметки папки под ними, как в дереве файлов
     final ids = {for (final folder in folders) folder.id};
     void folderBranch(String? parentId, int depth) {
-      for (final folder in folders) {
-        final parent = ids.contains(folder.parentId) ? folder.parentId : null;
-        if (parent != parentId) continue;
+      final siblings = [for (final folder in folders) if ((ids.contains(folder.parentId) ? folder.parentId : null) == parentId) folder];
+      for (final folder in siblings) {
         rows.add(
-          _FolderRow(folder: folder, depth: depth, open: opened(folder.id), onTap: () => _toggle(folder.id), onOpen: () => Navigator.of(context).push(folderRoute(folder.id))),
+          _Reorderable(
+            key: ValueKey('catalog-folder-${folder.id}'),
+            folder: folder,
+            siblings: siblings,
+            onDrop: (dragged) => _drop(dragged, folder, siblings),
+            child: _FolderRow(folder: folder, depth: depth, open: opened(folder.id), onTap: () => _toggle(folder.id), onOpen: () => Navigator.of(context).push(folderRoute(folder.id))),
+          ),
         );
         if (!opened(folder.id)) continue;
         folderBranch(folder.id, depth + 1);
@@ -102,6 +114,15 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         _HiddenRow(
           open: hiddenOpen,
           onTap: () => hiddenOpen ? ref.read(privacyServiceProvider).close() : openHiddenFlow(context, ref),
+        ),
+      );
+    }
+    // порядок есть смысл менять, когда папок хотя бы две
+    if (folders.where((folder) => !ids.contains(folder.parentId)).length > 1) {
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(Space.screen, 20, Space.screen, 0),
+          child: Text(l.catalogReorderHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
         ),
       );
     }
@@ -170,6 +191,54 @@ class _HeaderButton extends StatelessWidget {
       onPressed: onTap,
       style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
       icon: Icon(symbolIcon(icon), size: 20, color: Tokens.onSurface),
+    );
+  }
+}
+
+/// Папку зажали — она поднимается и едет за пальцем; бросили на соседку того же уровня —
+/// встаёт на её место. Строка, над которой держат, подсвечена.
+class _Reorderable extends StatelessWidget {
+  const _Reorderable({super.key, required this.folder, required this.siblings, required this.onDrop, required this.child});
+
+  final FolderCard folder;
+  final List<FolderCard> siblings;
+  final ValueChanged<FolderCard> onDrop;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return DragTarget<FolderCard>(
+      onWillAcceptWithDetails: (details) => details.data.id != folder.id && siblings.any((one) => one.id == details.data.id),
+      onAcceptWithDetails: (details) => onDrop(details.data),
+      builder: (context, candidates, _) => LongPressDraggable<FolderCard>(
+        data: folder,
+        axis: Axis.vertical,
+        feedback: Material(
+          color: Tokens.containerHigh,
+          borderRadius: BorderRadius.circular(Radii.tile),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(width: width, child: child),
+        ),
+        childWhenDragging: Opacity(opacity: 0.3, child: child),
+        // подсветка под строкой с полями по краям, сама строка не сдвигается
+        child: Stack(
+          children: [
+            Positioned.fill(
+              left: 8,
+              right: 8,
+              child: AnimatedContainer(
+                duration: Motion.short,
+                decoration: BoxDecoration(
+                  color: candidates.isEmpty ? Colors.transparent : Tokens.containerHigh,
+                  borderRadius: BorderRadius.circular(Radii.tile),
+                ),
+              ),
+            ),
+            child,
+          ],
+        ),
+      ),
     );
   }
 }

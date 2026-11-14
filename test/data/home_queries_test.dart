@@ -110,6 +110,22 @@ void main() {
     expect(await items.watchPinned().first, isEmpty);
   });
 
+  test('порядок папок: выбранные встают первыми, вложенные и остальные — следом, цвет у папок без выбора прежний', () async {
+    final folders = FoldersRepository(db);
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'a', name: 'Рецепты', icon: 'restaurant', shape: 'pill'));
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'b', name: 'Машина', icon: 'directions_car', shape: 'pill', sortOrder: const Value(1)));
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'inner', name: 'Шины', icon: 'tire_repair', shape: 'pill', sortOrder: const Value(2), parentId: const Value('b')));
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'c', name: 'Работа', icon: 'work', shape: 'pill', sortOrder: const Value(3), color: const Value('sky')));
+    final before = {for (final card in await folders.watchAll().first) card.id: card.color};
+
+    await folders.reorder(['c', 'b', 'a']);
+    final after = await folders.watchAll().first;
+    expect([for (final card in after) if (card.parentId == null) card.id], ['c', 'b', 'a']);
+    expect({for (final card in after) card.id: card.color}, before);
+    // вложенная осталась на месте внутри своей
+    expect(after.singleWhere((card) => card.id == 'inner').parentId, 'b');
+  });
+
   test('удалённая папка не показывается', () async {
     await db.into(db.folders).insert(FoldersCompanion.insert(id: 'x', name: 'Старое', icon: 'folder', shape: 'gem', deletedAt: Value(_day)));
     expect(await FoldersRepository(db).watchAll().first, isEmpty);
