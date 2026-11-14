@@ -12,10 +12,12 @@ import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/appearance.dart';
 import 'package:stowa/domain/article_text.dart';
+import 'package:stowa/domain/edge_settings.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/features/privacy/privacy_flows.dart';
 import 'package:stowa/features/share/share_receiver.dart';
 import 'package:stowa/services/privacy/seal_crypto.dart';
+import 'package:stowa/services/edge_channel.dart';
 import 'package:stowa/services/link_checker.dart';
 import 'package:stowa/services/media_probe.dart';
 import 'package:stowa/services/place_channel.dart';
@@ -101,6 +103,11 @@ class TestWorld {
   /// Что ответят адреса проверке ссылок; кого нет — живой.
   final linkReplies = <String, LinkReply>{};
 
+  /// «Под рукой»: канал к службе (вызовы по именам) и настройки корешков без настоящих prefs.
+  final edge = FakeEdgeChannel();
+  EdgeSettings edgeSettings = const EdgeSettings();
+  final _edgeChanges = StreamController<EdgeSettings>.broadcast();
+
   /// Ключ отпечатка и сам палец: по умолчанию датчика нет.
   final fingerprintKey = MemoryKeyStore();
   final biometrics = FakeBiometrics();
@@ -153,6 +160,7 @@ class TestWorld {
         onlineProvider.overrideWith((ref) => const Stream.empty()),
         // фоновой работы системы в тестах нет: сколько раз её просили, видно по счётчику
         fileWorkProvider.overrideWithValue(() async => fileWorkAsked++),
+        edgeChannelProvider.overrideWithValue(edge),
         sharedInboxProvider.overrideWithValue(shared.stream),
         if (settings case final settings?)
           settingsRepositoryProvider.overrideWithValue(settings)
@@ -183,6 +191,20 @@ class TestWorld {
             _dismissed.add(dismissedSuggestions);
           }),
           returnSettingsProvider.overrideWith((ref) => Stream.value(const ReturnSettings())),
+          edgeSettingsProvider.overrideWith((ref) async* {
+            yield edgeSettings;
+            yield* _edgeChanges.stream;
+          }),
+          edgeControlProvider.overrideWithValue(
+            EdgeControl(
+              read: () => edgeSettings,
+              write: (next) async {
+                edgeSettings = next;
+                _edgeChanges.add(next);
+              },
+              channel: edge,
+            ),
+          ),
         ],
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
       ];
@@ -213,6 +235,7 @@ class TestWorld {
 
   Future<void> dispose() async {
     await _dismissed.close();
+    await _edgeChanges.close();
     shared.close().ignore();
     await db.close();
     for (final other in vaultDatabases.values) {

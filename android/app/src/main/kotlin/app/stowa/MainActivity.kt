@@ -2,6 +2,7 @@ package app.stowa
 
 import android.content.Intent
 import android.os.Bundle
+import app.stowa.edge.registerEdgeChannel
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -38,6 +39,7 @@ class MainActivity : FlutterFragmentActivity() {
         registerVaultChannel(flutterEngine, this)
         registerPlaceChannel(flutterEngine, this)
         registerMediaChannel(flutterEngine)
+        registerEdgeChannel(flutterEngine, this)
         window = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/window")
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/launch").apply {
             setMethodCallHandler { call, result ->

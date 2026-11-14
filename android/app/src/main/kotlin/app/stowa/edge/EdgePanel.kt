@@ -18,7 +18,12 @@ import io.flutter.plugin.common.MethodChannel
  * второе открытие — без холодного старта. Окно не берёт фокус, пока Dart не попросит
  * (`setFocusable`): иначе у приложения под полкой пропала бы клавиатура.
  */
-class EdgePanel(private val context: Context, private val windows: WindowManager) {
+class EdgePanel(
+    private val context: Context,
+    private val windows: WindowManager,
+    /** Движок полки прислал цвета корешков: закреплённые заметки цветом их папок. */
+    private val onSpines: (List<Pair<Int, Float>>) -> Unit,
+) {
     private var engine: FlutterEngine? = null
     private var view: FlutterView? = null
     private var params: WindowManager.LayoutParams? = null
@@ -30,7 +35,7 @@ class EdgePanel(private val context: Context, private val windows: WindowManager
         if (engine == null) engine = createEngine()
     }
 
-    fun show() {
+    fun show(settings: EdgePrefs) {
         if (view != null) return
         val engine = engine ?: createEngine().also { engine = it }
         val density = context.resources.displayMetrics.density
@@ -45,7 +50,8 @@ class EdgePanel(private val context: Context, private val windows: WindowManager
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.TOP or Gravity.END
+            // полка у того же края, что корешки
+            gravity = Gravity.TOP or (if (settings.rightSide) Gravity.END else Gravity.START)
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
             title = "Stowa shelf"
         }
@@ -103,6 +109,13 @@ class EdgePanel(private val context: Context, private val windows: WindowManager
                 }
                 "close" -> {
                     close()
+                    result.success(null)
+                }
+                // [{color: ARGB, weight: доля}, …] сверху вниз
+                "spines" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val list = call.arguments as List<Map<String, Any>>
+                    onSpines(list.map { (it["color"] as Number).toInt() to (it["weight"] as Number).toFloat() })
                     result.success(null)
                 }
                 else -> result.notImplemented()

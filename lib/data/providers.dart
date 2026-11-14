@@ -22,6 +22,7 @@ import '../domain/place_groups.dart' show guessHomeAndWork;
 import '../services/ai_image.dart';
 import '../services/ai_worker.dart';
 import '../services/auto_sorter.dart';
+import '../services/edge_channel.dart';
 import '../services/backup_service.dart';
 import '../services/background.dart';
 import '../services/capture_service.dart';
@@ -526,6 +527,15 @@ final fileProgressProvider = StreamProvider<Map<String, double>>((ref) async* {
 /// Настройки и ключ ИИ. SharedPreferences открываются в main.
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('настройки открываются в main'));
 final aiSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchAi());
+
+/// «Под рукой»: канал к службе окон поверх (на iPhone — пустой). Тесты подменяют.
+final edgeChannelProvider = Provider<EdgeChannel>((ref) => platformEdgeChannel());
+
+/// Включение и правка корешков: настройка и служба вместе.
+final edgeControlProvider = Provider((ref) => EdgeControl.over(ref.watch(settingsRepositoryProvider), ref.watch(edgeChannelProvider)));
+
+/// Настройки корешков для экрана: тесты без настоящих настроек подменяют поток.
+final edgeSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchEdge());
 
 /// Пояс устройства для напоминаний от ИИ: main подставляет имя вроде Europe/Chisinau.
 final timeZoneProvider = Provider<String>((ref) => DateTime.now().timeZoneName);

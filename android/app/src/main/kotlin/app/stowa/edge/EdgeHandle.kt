@@ -56,6 +56,13 @@ class EdgeHandle(context: Context, private val onTap: () -> Unit) : View(context
             invalidate()
         }
 
+    /** Край, ширина и заметность из настроек — сразу, без движения. */
+    fun apply(settings: EdgePrefs) {
+        rightSide = settings.rightSide
+        shelfWidth = settings.shelfWidthDp * density
+        shelfAlpha = settings.alpha
+    }
+
     private val backing = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(0x14, 0x15, 0x17) }
     private val spinePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()

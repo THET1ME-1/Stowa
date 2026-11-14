@@ -243,6 +243,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     ref.invalidate(upcomingProvider);
     // вернулся в приложение: то, что фон не успел, разбирается сейчас
     ref.read(aiDrainProvider)().ignore();
+    // корешки «Под рукой» включены — служба на месте; вернулся с правом — включаются
+    ref.read(edgeControlProvider).resumed().ignore();
     ref.read(telegramPullProvider)().ignore();
   }
 
