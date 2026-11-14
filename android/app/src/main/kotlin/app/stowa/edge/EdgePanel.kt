@@ -8,6 +8,8 @@ import android.graphics.PixelFormat
 import android.graphics.PointF
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
@@ -64,6 +66,18 @@ class EdgePanel(
     fun dragStart() {
         show()
         channel?.invokeMethod("dragStart", null)
+    }
+
+    /** Полка подтвердила, что выезжает: страж окно не тронет. */
+    private var acknowledged = false
+    private val watchdog = Handler(Looper.getMainLooper())
+
+    // окно во весь экран без полки забрало бы все касания: Dart занят или не ответил — убираем
+    private val unanswered = Runnable {
+        if (view != null && !acknowledged) {
+            Log.w(EdgeHandle.TAG, "shelf did not answer, window removed")
+            close()
+        }
     }
 
     /** Жесты корешков: свайп вниз, двойное касание, удержание и отпускание. */
@@ -127,12 +141,16 @@ class EdgePanel(
         windows.addView(flutterView, layout)
         engine.lifecycleChannel.appIsResumed()
         view = flutterView
+        acknowledged = false
+        watchdog.removeCallbacks(unanswered)
+        watchdog.postDelayed(unanswered, ANSWER_MS)
         onShown()
         Log.d(EdgeHandle.TAG, "shelf shown")
     }
 
     /** Убрать окно сразу. Полка к этому времени уже уехала за край (или её выключили). */
     fun close() {
+        watchdog.removeCallbacks(unanswered)
         val flutterView = view ?: return
         engine?.lifecycleChannel?.appIsInactive()
         flutterView.detachFromFlutterEngine()
@@ -181,6 +199,10 @@ class EdgePanel(
         this.channel = channel
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
+                "opened" -> {
+                    acknowledged = true
+                    result.success(null)
+                }
                 // полка поехала за край: корешки возвращаются в такт, окно уберёт "close"
                 "closing" -> {
                     onClosing()
@@ -241,5 +263,10 @@ class EdgePanel(
         val bundle = FlutterInjector.instance().flutterLoader().findAppBundlePath()
         engine.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint(bundle, "edgeMain"))
         return engine
+    }
+
+    companion object {
+        /** Сколько окно полки ждёт, что Dart начнёт её выдвигать. */
+        private const val ANSWER_MS = 3000L
     }
 }

@@ -221,7 +221,10 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
   /// Касание корешков: полка выезжает за `long`, строки проявляются одна за другой.
   void _open() {
     _loadNearby();
-    if (_reveal.value == 0) _riseRowsIn();
+    if (_reveal.value == 0) {
+      _riseRowsIn();
+      ref.read(edgeChannelProvider).opened().ignore();
+    }
     _closing = false;
     if (_still) {
       _reveal.value = 1;
@@ -246,6 +249,7 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
     if (opens && _reveal.value == 0) {
       _riseRowsIn();
       _loadNearby();
+      ref.read(edgeChannelProvider).opened().ignore();
     }
   }
 

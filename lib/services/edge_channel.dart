@@ -71,6 +71,10 @@ abstract class EdgeChannel {
   /// Из окна полки: полка начала уезжать, корешкам пора возвращаться.
   Future<void> closing();
 
+  /// Из окна полки: окно поставили, полка выезжает. Нет ответа — служба уберёт окно сама:
+  /// невидимое окно во весь экран забрало бы все касания.
+  Future<void> opened();
+
   Future<bool> canDraw();
 
   /// Системный экран права «Поверх других приложений» для Stowa.
@@ -137,6 +141,9 @@ class MethodEdgeChannel implements EdgeChannel {
   Future<void> closing() => _channel.invokeMethod('closing');
 
   @override
+  Future<void> opened() => _channel.invokeMethod('opened');
+
+  @override
   Future<bool> canDraw() async => await _channel.invokeMethod<bool>('canDraw') ?? false;
 
   @override
@@ -185,6 +192,9 @@ class NoEdgeChannel implements EdgeChannel {
 
   @override
   Future<void> closing() async {}
+
+  @override
+  Future<void> opened() async {}
 
   @override
   Future<bool> canDraw() async => false;
@@ -241,6 +251,9 @@ class FakeEdgeChannel implements EdgeChannel {
 
   @override
   Future<void> closing() async => calls.add('closing');
+
+  @override
+  Future<void> opened() async => calls.add('opened');
 
   @override
   Future<bool> canDraw() async {

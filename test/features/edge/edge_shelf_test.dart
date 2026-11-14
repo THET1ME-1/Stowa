@@ -244,6 +244,24 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('полка подтверждает службе, что выезжает: без ответа служба уберёт окно сама', (tester) async {
+    await start(tester);
+    world.edge.send(const EdgeOpen());
+    await tester.pump();
+    expect(world.edge.calls, contains('opened'));
+    await tester.pumpAndSettle();
+    world.edge.calls.clear();
+    world.edge.send(const EdgeDragStart());
+    await tester.pump();
+    expect(world.edge.calls, isNot(contains('opened')));
+    world.edge.send(const EdgeDismiss());
+    await tester.pumpAndSettle();
+    world.edge.calls.clear();
+    world.edge.send(const EdgeDragStart());
+    await tester.pump();
+    expect(world.edge.calls, contains('opened'));
+  });
+
   testWidgets('шестерёнка открывает настройку корешков в самой полке', (tester) async {
     await open(tester);
     await tester.tap(find.byTooltip('Настроить корешки'));

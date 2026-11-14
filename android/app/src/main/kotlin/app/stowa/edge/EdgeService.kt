@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.graphics.PointF
@@ -55,6 +56,24 @@ class EdgeService : Service() {
             onPinSticker = ::pinSticker,
         )
         stickerEngines = FlutterEngineGroup(this)
+        stickerPrefs().registerOnSharedPreferenceChangeListener(vaultWatch)
+    }
+
+    /**
+     * В приложении открыли другое хранилище: стикеры прежнего уходят (они помнятся за ним),
+     * встают стикеры нового, полка — с новым движком на его базе. Пересобрать сессию в старом
+     * движке нельзя: закрытая полка кадров не рисует, а пересборка ждёт кадра — полка висла
+     * невидимым окном (эмулятор 14.11.2026). Новый движок рисует: хранилище меняют в самой
+     * Stowa, она в это время на экране (см. риск 4а).
+     */
+    private val vaultWatch = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key != "flutter.vault_db") return@OnSharedPreferenceChangeListener
+        Log.d(EdgeHandle.TAG, "vault changed")
+        panel.destroy()
+        panel.warmUp()
+        stickers.toList().forEach { it.dispose() }
+        stickers.clear()
+        restoreStickers()
     }
 
     /**
@@ -346,6 +365,7 @@ class EdgeService : Service() {
 
     override fun onDestroy() {
         running = null
+        stickerPrefs().unregisterOnSharedPreferenceChangeListener(vaultWatch)
         handle?.pulse(false)
         move?.cancel()
         // служба уходит — стикеры помнятся и встанут на место при следующем запуске

@@ -6,7 +6,10 @@ import 'package:stowa/app.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/sticker_geometry.dart';
+import 'package:stowa/data/providers.dart';
 import 'package:stowa/features/edge/sticker_host.dart';
+import 'package:stowa/services/privacy/privacy_service.dart';
+import 'package:stowa/services/privacy/seal_crypto.dart';
 import 'package:stowa/services/sticker_channel.dart';
 
 import '../../helpers/test_app.dart';
@@ -33,6 +36,12 @@ void main() {
 
   // стикер справа от середины экрана 411 × 860
   const right = Rect.fromLTWH(160, 120, stickerWidth, 200);
+
+  // код на вход включён: ключи замка стикеру не нужны, только сам флажок
+  const locked = PrivacyLock(
+    keys: LockFile(salt: [], kdf: KdfSettings(memoryKib: 256, passes: 1), publicKey: [], wrapped: []),
+    appLock: true,
+  );
 
   Future<FakeStickerChannel> open(WidgetTester tester, {Rect window = right, double? stickerHeight}) async {
     final channel = FakeStickerChannel(window: window, stickerHeight: stickerHeight);
@@ -147,6 +156,24 @@ void main() {
     await world.db.delete(world.db.items).go();
     await tester.pumpAndSettle();
     expect(channel.calls, contains('remove'));
+  });
+
+  testWidgets('«Код на вход» включён — стикер снимается: текст заметки не висит поверх всего', (tester) async {
+    await note('list', 'Купить', 'Купить\n- [ ] молоко');
+    final channel = FakeStickerChannel(window: right);
+    tester.view.physicalSize = right.size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [...world.overrides, startLockProvider.overrideWithValue(locked)],
+        child: StowaApp(locale: const Locale('ru'), lockable: false, home: StickerHost(noteId: 'list', channel: channel)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(channel.calls, contains('remove'));
+    expect(find.text('молоко'), findsNothing);
   });
 
   testWidgets('касание заголовка открывает заметку в Stowa', (tester) async {

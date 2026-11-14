@@ -95,6 +95,12 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
     ref.listenManual(itemProvider(widget.noteId), (previous, next) {
       if (next.hasValue && (next.value == null || next.value!.item.deletedAt != null)) _remove();
     });
+    // «Код на вход»: текст заметки поверх всего висеть не должен — стикер снимается,
+    // ничего не показав
+    if (ref.read(startLockProvider)?.appLock ?? false) _lock();
+    ref.listenManual(privacyLockProvider, (previous, next) {
+      if (next.value?.appLock ?? false) _lock();
+    });
   }
 
   @override
@@ -162,6 +168,17 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
     await _morph(target);
   }
 
+  /// Замок: содержимое пропадает сразу, окно уходит.
+  bool _locked = false;
+
+  void _lock() {
+    if (_locked) return;
+    _locked = true;
+    _removing = true;
+    if (mounted) setState(() {});
+    _channel.remove().ignore();
+  }
+
   void _remove() {
     if (_removing) return;
     _removing = true;
@@ -174,6 +191,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    if (_locked) return const Scaffold(backgroundColor: Colors.transparent);
     final full = ref.watch(itemProvider(widget.noteId)).value;
     final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
     final item = full?.item;
