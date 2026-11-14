@@ -282,6 +282,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _pinnedAtMeta = const VerificationMeta(
+    'pinnedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> pinnedAt = GeneratedColumn<DateTime>(
+    'pinned_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _openedAtMeta = const VerificationMeta(
     'openedAt',
   );
@@ -424,6 +435,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     remindPlaceName,
     remindPlaceRef,
     remindPlaceDay,
+    pinnedAt,
     openedAt,
     goneAt,
     goneKept,
@@ -608,6 +620,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
           data['remind_place_day']!,
           _remindPlaceDayMeta,
         ),
+      );
+    }
+    if (data.containsKey('pinned_at')) {
+      context.handle(
+        _pinnedAtMeta,
+        pinnedAt.isAcceptableOrUnknown(data['pinned_at']!, _pinnedAtMeta),
       );
     }
     if (data.containsKey('opened_at')) {
@@ -801,6 +819,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}remind_place_day'],
       ),
+      pinnedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}pinned_at'],
+      ),
       openedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}opened_at'],
@@ -909,6 +931,9 @@ class Item extends DataClass implements Insertable<Item> {
   /// Прошёл — напоминание снимается. Пусто — любой день.
   final DateTime? remindPlaceDay;
 
+  /// Когда закреплена наверху главной (v18); null — не закреплена. В файле — свойство `pinned`.
+  final DateTime? pinnedAt;
+
   /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   final DateTime? openedAt;
@@ -959,6 +984,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.remindPlaceName,
     this.remindPlaceRef,
     this.remindPlaceDay,
+    this.pinnedAt,
     this.openedAt,
     this.goneAt,
     required this.goneKept,
@@ -1051,6 +1077,9 @@ class Item extends DataClass implements Insertable<Item> {
     if (!nullToAbsent || remindPlaceDay != null) {
       map['remind_place_day'] = Variable<DateTime>(remindPlaceDay);
     }
+    if (!nullToAbsent || pinnedAt != null) {
+      map['pinned_at'] = Variable<DateTime>(pinnedAt);
+    }
     if (!nullToAbsent || openedAt != null) {
       map['opened_at'] = Variable<DateTime>(openedAt);
     }
@@ -1142,6 +1171,9 @@ class Item extends DataClass implements Insertable<Item> {
       remindPlaceDay: remindPlaceDay == null && nullToAbsent
           ? const Value.absent()
           : Value(remindPlaceDay),
+      pinnedAt: pinnedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pinnedAt),
       openedAt: openedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(openedAt),
@@ -1207,6 +1239,7 @@ class Item extends DataClass implements Insertable<Item> {
       remindPlaceName: serializer.fromJson<String?>(json['remindPlaceName']),
       remindPlaceRef: serializer.fromJson<String?>(json['remindPlaceRef']),
       remindPlaceDay: serializer.fromJson<DateTime?>(json['remindPlaceDay']),
+      pinnedAt: serializer.fromJson<DateTime?>(json['pinnedAt']),
       openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
       goneAt: serializer.fromJson<DateTime?>(json['goneAt']),
       goneKept: serializer.fromJson<bool>(json['goneKept']),
@@ -1257,6 +1290,7 @@ class Item extends DataClass implements Insertable<Item> {
       'remindPlaceName': serializer.toJson<String?>(remindPlaceName),
       'remindPlaceRef': serializer.toJson<String?>(remindPlaceRef),
       'remindPlaceDay': serializer.toJson<DateTime?>(remindPlaceDay),
+      'pinnedAt': serializer.toJson<DateTime?>(pinnedAt),
       'openedAt': serializer.toJson<DateTime?>(openedAt),
       'goneAt': serializer.toJson<DateTime?>(goneAt),
       'goneKept': serializer.toJson<bool>(goneKept),
@@ -1297,6 +1331,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<String?> remindPlaceName = const Value.absent(),
     Value<String?> remindPlaceRef = const Value.absent(),
     Value<DateTime?> remindPlaceDay = const Value.absent(),
+    Value<DateTime?> pinnedAt = const Value.absent(),
     Value<DateTime?> openedAt = const Value.absent(),
     Value<DateTime?> goneAt = const Value.absent(),
     bool? goneKept,
@@ -1350,6 +1385,7 @@ class Item extends DataClass implements Insertable<Item> {
     remindPlaceDay: remindPlaceDay.present
         ? remindPlaceDay.value
         : this.remindPlaceDay,
+    pinnedAt: pinnedAt.present ? pinnedAt.value : this.pinnedAt,
     openedAt: openedAt.present ? openedAt.value : this.openedAt,
     goneAt: goneAt.present ? goneAt.value : this.goneAt,
     goneKept: goneKept ?? this.goneKept,
@@ -1417,6 +1453,7 @@ class Item extends DataClass implements Insertable<Item> {
       remindPlaceDay: data.remindPlaceDay.present
           ? data.remindPlaceDay.value
           : this.remindPlaceDay,
+      pinnedAt: data.pinnedAt.present ? data.pinnedAt.value : this.pinnedAt,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       goneAt: data.goneAt.present ? data.goneAt.value : this.goneAt,
       goneKept: data.goneKept.present ? data.goneKept.value : this.goneKept,
@@ -1465,6 +1502,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('remindPlaceName: $remindPlaceName, ')
           ..write('remindPlaceRef: $remindPlaceRef, ')
           ..write('remindPlaceDay: $remindPlaceDay, ')
+          ..write('pinnedAt: $pinnedAt, ')
           ..write('openedAt: $openedAt, ')
           ..write('goneAt: $goneAt, ')
           ..write('goneKept: $goneKept, ')
@@ -1507,6 +1545,7 @@ class Item extends DataClass implements Insertable<Item> {
     remindPlaceName,
     remindPlaceRef,
     remindPlaceDay,
+    pinnedAt,
     openedAt,
     goneAt,
     goneKept,
@@ -1548,6 +1587,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.remindPlaceName == this.remindPlaceName &&
           other.remindPlaceRef == this.remindPlaceRef &&
           other.remindPlaceDay == this.remindPlaceDay &&
+          other.pinnedAt == this.pinnedAt &&
           other.openedAt == this.openedAt &&
           other.goneAt == this.goneAt &&
           other.goneKept == this.goneKept &&
@@ -1587,6 +1627,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String?> remindPlaceName;
   final Value<String?> remindPlaceRef;
   final Value<DateTime?> remindPlaceDay;
+  final Value<DateTime?> pinnedAt;
   final Value<DateTime?> openedAt;
   final Value<DateTime?> goneAt;
   final Value<bool> goneKept;
@@ -1625,6 +1666,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.remindPlaceName = const Value.absent(),
     this.remindPlaceRef = const Value.absent(),
     this.remindPlaceDay = const Value.absent(),
+    this.pinnedAt = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.goneAt = const Value.absent(),
     this.goneKept = const Value.absent(),
@@ -1664,6 +1706,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.remindPlaceName = const Value.absent(),
     this.remindPlaceRef = const Value.absent(),
     this.remindPlaceDay = const Value.absent(),
+    this.pinnedAt = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.goneAt = const Value.absent(),
     this.goneKept = const Value.absent(),
@@ -1707,6 +1750,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<String>? remindPlaceName,
     Expression<String>? remindPlaceRef,
     Expression<DateTime>? remindPlaceDay,
+    Expression<DateTime>? pinnedAt,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? goneAt,
     Expression<bool>? goneKept,
@@ -1746,6 +1790,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (remindPlaceName != null) 'remind_place_name': remindPlaceName,
       if (remindPlaceRef != null) 'remind_place_ref': remindPlaceRef,
       if (remindPlaceDay != null) 'remind_place_day': remindPlaceDay,
+      if (pinnedAt != null) 'pinned_at': pinnedAt,
       if (openedAt != null) 'opened_at': openedAt,
       if (goneAt != null) 'gone_at': goneAt,
       if (goneKept != null) 'gone_kept': goneKept,
@@ -1787,6 +1832,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String?>? remindPlaceName,
     Value<String?>? remindPlaceRef,
     Value<DateTime?>? remindPlaceDay,
+    Value<DateTime?>? pinnedAt,
     Value<DateTime?>? openedAt,
     Value<DateTime?>? goneAt,
     Value<bool>? goneKept,
@@ -1826,6 +1872,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       remindPlaceName: remindPlaceName ?? this.remindPlaceName,
       remindPlaceRef: remindPlaceRef ?? this.remindPlaceRef,
       remindPlaceDay: remindPlaceDay ?? this.remindPlaceDay,
+      pinnedAt: pinnedAt ?? this.pinnedAt,
       openedAt: openedAt ?? this.openedAt,
       goneAt: goneAt ?? this.goneAt,
       goneKept: goneKept ?? this.goneKept,
@@ -1929,6 +1976,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (remindPlaceDay.present) {
       map['remind_place_day'] = Variable<DateTime>(remindPlaceDay.value);
     }
+    if (pinnedAt.present) {
+      map['pinned_at'] = Variable<DateTime>(pinnedAt.value);
+    }
     if (openedAt.present) {
       map['opened_at'] = Variable<DateTime>(openedAt.value);
     }
@@ -1994,6 +2044,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('remindPlaceName: $remindPlaceName, ')
           ..write('remindPlaceRef: $remindPlaceRef, ')
           ..write('remindPlaceDay: $remindPlaceDay, ')
+          ..write('pinnedAt: $pinnedAt, ')
           ..write('openedAt: $openedAt, ')
           ..write('goneAt: $goneAt, ')
           ..write('goneKept: $goneKept, ')
@@ -11179,6 +11230,7 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<String?> remindPlaceName,
   Value<String?> remindPlaceRef,
   Value<DateTime?> remindPlaceDay,
+  Value<DateTime?> pinnedAt,
   Value<DateTime?> openedAt,
   Value<DateTime?> goneAt,
   Value<bool> goneKept,
@@ -11218,6 +11270,7 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<String?> remindPlaceName,
   Value<String?> remindPlaceRef,
   Value<DateTime?> remindPlaceDay,
+  Value<DateTime?> pinnedAt,
   Value<DateTime?> openedAt,
   Value<DateTime?> goneAt,
   Value<bool> goneKept,
@@ -11370,6 +11423,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get remindPlaceDay => $composableBuilder(
     column: $table.remindPlaceDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get pinnedAt => $composableBuilder(
+    column: $table.pinnedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11563,6 +11621,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get pinnedAt => $composableBuilder(
+    column: $table.pinnedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get openedAt => $composableBuilder(
     column: $table.openedAt,
     builder: (column) => ColumnOrderings(column),
@@ -11728,6 +11791,9 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<DateTime> get pinnedAt =>
+      $composableBuilder(column: $table.pinnedAt, builder: (column) => column);
+
   GeneratedColumn<DateTime> get openedAt =>
       $composableBuilder(column: $table.openedAt, builder: (column) => column);
 
@@ -11819,6 +11885,7 @@ class $$ItemsTableTableManager
                 Value<String?> remindPlaceName = const Value.absent(),
                 Value<String?> remindPlaceRef = const Value.absent(),
                 Value<DateTime?> remindPlaceDay = const Value.absent(),
+                Value<DateTime?> pinnedAt = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
                 Value<DateTime?> goneAt = const Value.absent(),
                 Value<bool> goneKept = const Value.absent(),
@@ -11857,6 +11924,7 @@ class $$ItemsTableTableManager
                 remindPlaceName: remindPlaceName,
                 remindPlaceRef: remindPlaceRef,
                 remindPlaceDay: remindPlaceDay,
+                pinnedAt: pinnedAt,
                 openedAt: openedAt,
                 goneAt: goneAt,
                 goneKept: goneKept,
@@ -11897,6 +11965,7 @@ class $$ItemsTableTableManager
                 Value<String?> remindPlaceName = const Value.absent(),
                 Value<String?> remindPlaceRef = const Value.absent(),
                 Value<DateTime?> remindPlaceDay = const Value.absent(),
+                Value<DateTime?> pinnedAt = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
                 Value<DateTime?> goneAt = const Value.absent(),
                 Value<bool> goneKept = const Value.absent(),
@@ -11935,6 +12004,7 @@ class $$ItemsTableTableManager
                 remindPlaceName: remindPlaceName,
                 remindPlaceRef: remindPlaceRef,
                 remindPlaceDay: remindPlaceDay,
+                pinnedAt: pinnedAt,
                 openedAt: openedAt,
                 goneAt: goneAt,
                 goneKept: goneKept,

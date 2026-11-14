@@ -281,6 +281,8 @@ class _Feed extends ConsumerWidget {
     final pinned = ref.watch(pinnedTagsProvider).value ?? const [];
     final upcoming = ref.watch(upcomingProvider).value ?? const [];
     final recent = ref.watch(recentItemsProvider).value ?? const [];
+    final pinnedNotes = ref.watch(pinnedItemsProvider).value ?? const [];
+    final inbox = [...pinnedNotes, ...recent].any((card) => card.folderId == null);
     final folders = ref.watch(foldersProvider).value ?? const [];
     final smart = ref.watch(smartFoldersProvider).value ?? const [];
     final items = ref.read(itemsRepositoryProvider);
@@ -343,7 +345,7 @@ class _Feed extends ConsumerWidget {
             ),
           ),
         // папки первыми: куда что лежит, видно сразу при открытии
-        if (folders.isNotEmpty || smart.isNotEmpty || recent.any((card) => card.folderId == null))
+        if (folders.isNotEmpty || smart.isNotEmpty || inbox)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 6, bottom: 16),
@@ -354,7 +356,7 @@ class _Feed extends ConsumerWidget {
                 smart: smart,
                 onSmart: (one) => Navigator.of(context).push(smartFolderRoute(one.id)),
                 // всё, что ещё не разложено, одной лентой
-                onInbox: recent.any((card) => card.folderId == null) ? () => Navigator.of(context).push(folderRoute(null)) : null,
+                onInbox: inbox ? () => Navigator.of(context).push(folderRoute(null)) : null,
               ),
             ),
           ),
@@ -394,12 +396,13 @@ class _Feed extends ConsumerWidget {
         const SliverToBoxAdapter(child: ReturnPills()),
         // снаружи пришло много заметок (Syncthing, компьютер): видно, что приложение их забирает
         SliverToBoxAdapter(child: VaultSyncBar(sync: ref.watch(vaultSyncProvider))),
-        if (recent.isNotEmpty)
+        if (recent.isNotEmpty || pinnedNotes.isNotEmpty)
           SliverToBoxAdapter(
             child: NoteTimeline(
               // точки заметок держатся над строкой ввода, как аватарки в чате
               bottomInset: _dockSpace + bottom,
               items: recent,
+              pinned: pinnedNotes,
               filesRoot: filesRoot,
               now: now,
               aiSorting: ref.watch(aiSettingsProvider).value?.active ?? false,
@@ -413,7 +416,7 @@ class _Feed extends ConsumerWidget {
               },
             ),
           ),
-        if (recent.isEmpty && folders.isEmpty)
+        if (recent.isEmpty && pinnedNotes.isEmpty && folders.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
             child: Padding(

@@ -3130,4 +3130,27 @@ class LDe extends L {
 
   @override
   String get syncOk => 'Verstanden';
+
+  @override
+  String get itemPin => 'Anheften';
+
+  @override
+  String get itemUnpin => 'Lösen';
+
+  @override
+  String get itemPinned => 'Oben auf der Startseite angeheftet';
+
+  @override
+  String get itemUnpinned => 'Gelöst';
+
+  @override
+  String get homePinned => 'Angeheftet';
+
+  @override
+  String homePinnedMore(Object count) {
+    return '$count weitere';
+  }
+
+  @override
+  String get homePinnedLess => 'Weniger';
 }

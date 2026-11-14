@@ -5218,6 +5218,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Got it'**
   String get syncOk;
+
+  /// Пункт меню заметки: закрепить наверху главной
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get itemPin;
+
+  /// Пункт меню закреплённой заметки: снять закрепление
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get itemUnpin;
+
+  /// Плашка после закрепления заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned to the top of Home'**
+  String get itemPinned;
+
+  /// Плашка после открепления заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Unpinned'**
+  String get itemUnpinned;
+
+  /// Заголовок блока закреплённых заметок над лентой главной
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get homePinned;
+
+  /// Под закреплёнными на главной: показать остальные
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more'**
+  String homePinnedMore(Object count);
+
+  /// Под раскрытыми закреплёнными на главной: снова показать первые
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get homePinnedLess;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

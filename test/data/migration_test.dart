@@ -286,6 +286,29 @@ void main() {
     expect(folder.hidden, isFalse);
   });
 
+  test('v17 → v18: заметки на месте и не закреплены, закрепление ставит заметку в очередь', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 14);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'Пароли', createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropPinned(raw);
+    raw.execute('PRAGMA user_version = 17');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final item = await upgraded.select(upgraded.items).getSingle();
+    expect((item.title, item.pinnedAt), ('Пароли', null));
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('old'))).write(ItemsCompanion(pinnedAt: Value(now)));
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:old']);
+  });
+
   test('v16 → v17: места на месте без своего вида, свой вид пишется', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -394,8 +417,17 @@ void main() {
 // версия 11: папка в папке. Триггер переименования смотрит на parent_id, уходит первым
 // версия 15: свойства заметки, которых Stowa не знает. Триггер правки заметки ссылается
 // на поле: он снимается и встаёт обратно без него, как стоял в версии 14
+// версия 17: заметки ещё не закрепляются. Триггер правки заметки ссылается на поле
+void _dropPinned(Database raw) {
+  final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
+  raw.execute('DROP TRIGGER vault_items_update');
+  raw.execute('ALTER TABLE items DROP COLUMN pinned_at');
+  raw.execute(trigger.replaceFirst(' pinned_at,', ''));
+}
+
 // версия 16: у места ещё нет своего вида
 void _dropPlaceLabel(Database raw) {
+  _dropPinned(raw);
   raw.execute('ALTER TABLE places DROP COLUMN label');
   raw.execute('ALTER TABLE places DROP COLUMN icon');
 }

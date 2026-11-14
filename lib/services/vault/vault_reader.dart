@@ -368,6 +368,7 @@ class VaultReader {
         remindPlaceRef: Value(note.remindPlace?.ref),
         remindPlaceDay: Value(note.remindPlace?.day),
         properties: Value(packVaultProperties(note.extra)),
+        pinnedAt: Value(note.pinned),
         createdAt: Value(note.created),
         updatedAt: Value(updated),
         deletedAt: Value(deleted ? now : null),

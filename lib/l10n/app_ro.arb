@@ -602,5 +602,12 @@
   "syncSoon": "În curând",
   "syncAbout": "Notițele se vor potrivi singure pe telefon, tabletă și calculator.",
   "syncLater": "Abonamentul va apărea într-una dintre actualizările următoare.",
-  "syncOk": "Am înțeles"
+  "syncOk": "Am înțeles",
+  "itemPin": "Fixează",
+  "itemUnpin": "Anulează fixarea",
+  "itemPinned": "Fixată sus pe pagina principală",
+  "itemUnpinned": "Nu mai e fixată",
+  "homePinned": "Fixate",
+  "homePinnedMore": "Încă {count}",
+  "homePinnedLess": "Restrânge"
 }

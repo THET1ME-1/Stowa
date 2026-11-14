@@ -3121,4 +3121,27 @@ class LEn extends L {
 
   @override
   String get syncOk => 'Got it';
+
+  @override
+  String get itemPin => 'Pin';
+
+  @override
+  String get itemUnpin => 'Unpin';
+
+  @override
+  String get itemPinned => 'Pinned to the top of Home';
+
+  @override
+  String get itemUnpinned => 'Unpinned';
+
+  @override
+  String get homePinned => 'Pinned';
+
+  @override
+  String homePinnedMore(Object count) {
+    return '$count more';
+  }
+
+  @override
+  String get homePinnedLess => 'Show less';
 }

@@ -51,6 +51,7 @@ import '../reader/reader_screen.dart';
 import 'copying_bar.dart';
 import 'facts_block.dart';
 import 'history_screen.dart';
+import 'item_actions.dart' show togglePinned;
 import 'page_card.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
@@ -84,7 +85,7 @@ const _markdownStrip = 52.0;
 /// а пустая строка в конце сохраняться не должна.
 final _trailingSpace = RegExp(r'\s+$');
 
-enum _MenuAction { copy, date, property, history, delete }
+enum _MenuAction { pin, copy, date, property, history, delete }
 
 /// Вещь целиком, по образцу поста Togetherly: шапка с пилюлей папки, заголовок,
 /// теги и напоминание отдельными блоками, текст своей карточкой, внизу плавающая
@@ -589,6 +590,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       context,
       title: item.title,
       options: [
+        SheetChoice(value: _MenuAction.pin, title: item.pinnedAt == null ? l.itemPin : l.itemUnpin, icon: 'keep'),
         SheetChoice(value: _MenuAction.copy, title: l.itemCopy, icon: 'content_copy'),
         SheetChoice(value: _MenuAction.date, title: l.itemDateChange, icon: 'calendar_today'),
         SheetChoice(value: _MenuAction.property, title: l.propertyAdd, icon: 'list_alt'),
@@ -598,6 +600,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     );
     if (action == null || !mounted) return;
     switch (action) {
+      case _MenuAction.pin:
+        await togglePinned(context, ref, id: _id, pinned: item.pinnedAt != null, overDock: false);
       case _MenuAction.copy:
         await _copy(item);
       case _MenuAction.date:

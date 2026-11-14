@@ -717,6 +717,9 @@ final vaultQueueProvider = StreamProvider((ref) => ref.watch(databaseProvider).w
 
 final recentItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchRecent());
 
+/// Закреплённые наверху главной.
+final pinnedItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchPinned());
+
 /// Сколько всего живых заметок: подпись под именем приложения на главной.
 final notesCountProvider = StreamProvider((ref) {
   final db = ref.watch(databaseProvider);

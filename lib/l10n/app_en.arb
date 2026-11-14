@@ -4001,5 +4001,33 @@
   "syncOk": "Got it",
   "@syncOk": {
     "description": "syncOk"
+  },
+  "itemPin": "Pin",
+  "@itemPin": {
+    "description": "Пункт меню заметки: закрепить наверху главной"
+  },
+  "itemUnpin": "Unpin",
+  "@itemUnpin": {
+    "description": "Пункт меню закреплённой заметки: снять закрепление"
+  },
+  "itemPinned": "Pinned to the top of Home",
+  "@itemPinned": {
+    "description": "Плашка после закрепления заметки"
+  },
+  "itemUnpinned": "Unpinned",
+  "@itemUnpinned": {
+    "description": "Плашка после открепления заметки"
+  },
+  "homePinned": "Pinned",
+  "@homePinned": {
+    "description": "Заголовок блока закреплённых заметок над лентой главной"
+  },
+  "homePinnedMore": "{count} more",
+  "@homePinnedMore": {
+    "description": "Под закреплёнными на главной: показать остальные"
+  },
+  "homePinnedLess": "Show less",
+  "@homePinnedLess": {
+    "description": "Под раскрытыми закреплёнными на главной: снова показать первые"
   }
 }

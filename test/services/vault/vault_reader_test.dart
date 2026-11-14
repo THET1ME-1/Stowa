@@ -270,6 +270,15 @@ void main() {
     expect(file('План отпуска.md').existsSync(), isTrue);
   });
 
+  test('pinned в файле — заметка закреплена, без свойства — нет', () async {
+    put('Пароли.md', '---\npinned: 2026-11-14T09:15:00.000+02:00\n---\nWi-Fi дома');
+    put('Кофе.md', 'Купить кофе');
+    await reader().rebuild();
+    final all = await items();
+    expect(all.singleWhere((one) => one.title == 'Пароли').pinnedAt, DateTime.parse('2026-11-14T09:15:00.000+02:00').toLocal());
+    expect(all.singleWhere((one) => one.title == 'Кофе').pinnedAt, isNull);
+  });
+
   test('раскладка Obsidian — образец для новых заметок: угадыватель кладёт новую туда же', () async {
     put('Встречи/Созвон с Олегом.md', 'Созвон по бюджету, договорились о сроках');
     put('Встречи/Созвон с заказчиком.md', 'Созвон: макет, правки, сроки сдачи');

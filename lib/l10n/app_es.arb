@@ -602,5 +602,12 @@
   "syncSoon": "Próximamente",
   "syncAbout": "Las notas se mantendrán iguales en el móvil, la tableta y el ordenador.",
   "syncLater": "La suscripción llegará en una de las próximas actualizaciones.",
-  "syncOk": "Entendido"
+  "syncOk": "Entendido",
+  "itemPin": "Fijar",
+  "itemUnpin": "Desfijar",
+  "itemPinned": "Fijada arriba en el inicio",
+  "itemUnpinned": "Desfijada",
+  "homePinned": "Fijadas",
+  "homePinnedMore": "{count} más",
+  "homePinnedLess": "Mostrar menos"
 }

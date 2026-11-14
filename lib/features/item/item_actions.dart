@@ -11,7 +11,17 @@ import '../composer/line_dock.dart';
 import '../folder/folder_sheets.dart';
 import 'item_screen.dart';
 
-enum _Action { open, move, delete }
+enum _Action { open, pin, move, delete }
+
+/// Закрепить наверху главной или открепить, с «Отменить». Зовут лист долгого нажатия и «⋮» заметки.
+Future<void> togglePinned(BuildContext context, WidgetRef ref, {required String id, required bool pinned, bool overDock = true}) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final items = ref.read(itemsRepositoryProvider);
+  final was = await items.pinnedAt(id);
+  await items.setPinned(id, pinned ? null : ref.read(clockProvider)());
+  showUndo(messenger, message: pinned ? l.itemUnpinned : l.itemPinned, label: l.undo, onUndo: () => items.setPinned(id, was), overDock: overDock);
+}
 
 /// Переложить вещь в другую папку или новую, с «Отменить».
 Future<void> moveItem(BuildContext context, WidgetRef ref, ItemCard card) => moveItemById(context, ref, id: card.id, from: card.folderId);
@@ -41,7 +51,7 @@ Future<void> moveItemById(BuildContext context, WidgetRef ref, {required String 
   showUndo(messenger, message: l.itemMoved(to == null ? l.folderNone : picked.name), label: l.undo, onUndo: () => items.moveToFolder(id, from, clock()), overDock: true);
 }
 
-/// Долгое нажатие на вещь в ленте: открыть, переложить в другую папку, удалить с «Вернуть».
+/// Долгое нажатие на вещь в ленте: открыть, закрепить, переложить в другую папку, удалить с «Вернуть».
 Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
@@ -51,6 +61,7 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
     title: card.title,
     options: [
       SheetChoice(value: _Action.open, title: l.actionOpen, icon: 'open_in_new'),
+      SheetChoice(value: _Action.pin, title: card.pinned ? l.itemUnpin : l.itemPin, icon: 'keep'),
       SheetChoice(value: _Action.move, title: l.itemMove, icon: 'drive_file_move'),
       SheetChoice(value: _Action.delete, title: l.itemDelete, icon: 'delete', danger: true),
     ],
@@ -61,6 +72,8 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
   switch (action) {
     case _Action.open:
       await navigator.push(itemRoute(card.id));
+    case _Action.pin:
+      await togglePinned(context, ref, id: card.id, pinned: card.pinned);
     case _Action.move:
       await moveItem(context, ref, card);
     case _Action.delete:

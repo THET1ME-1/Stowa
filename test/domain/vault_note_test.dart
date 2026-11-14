@@ -84,6 +84,26 @@ void main() {
     expect(back.attachments, ['Карбонара/фото 1.jpg']);
   });
 
+  test('закреплённая заметка: время закрепления в свойстве pinned, круг без потерь', () {
+    final pinnedAt = DateTime(2026, 11, 14, 9, 15);
+    final note = VaultNote(id: 'a', kind: ItemKind.note, title: 'Пароли Wi-Fi', body: 'Пароли Wi-Fi', created: created, updated: updated, pinned: pinnedAt);
+    final text = writeVaultNote(note, fileName: 'Пароли Wi-Fi.md');
+    expect(text, contains('pinned: 2026-11-14T09:15:00.000'));
+    final back = readVaultNote(text, fileName: 'Пароли Wi-Fi.md', fileModified: DateTime(2000));
+    expect(back.pinned, pinnedAt);
+    expect(back.extra, isEmpty);
+    expect(isOwnVaultProperty('pinned'), isTrue);
+    // не закреплена — свойства нет
+    final plain = VaultNote(id: 'a', kind: ItemKind.note, title: 'Кофе', body: 'Кофе', created: created, updated: updated);
+    expect(writeVaultNote(plain, fileName: 'Кофе.md'), isNot(contains('pinned')));
+  });
+
+  test('pinned: true, поставленное в Obsidian руками, — закреплена с времени правки файла', () {
+    final back = readVaultNote('---\npinned: true\n---\nТекст', fileName: 'Важное.md', fileModified: created);
+    expect(back.pinned, created);
+    expect(readVaultNote('---\npinned: false\n---\nТекст', fileName: 'Важное.md', fileModified: created).pinned, isNull);
+  });
+
   test('заметка Obsidian без свойств: заголовок из имени, время файла', () {
     final back = readVaultNote('Текст', fileName: 'Идеи.md', fileModified: created);
     expect(back.title, 'Идеи');

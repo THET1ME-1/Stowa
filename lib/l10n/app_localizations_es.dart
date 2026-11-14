@@ -3125,4 +3125,27 @@ class LEs extends L {
 
   @override
   String get syncOk => 'Entendido';
+
+  @override
+  String get itemPin => 'Fijar';
+
+  @override
+  String get itemUnpin => 'Desfijar';
+
+  @override
+  String get itemPinned => 'Fijada arriba en el inicio';
+
+  @override
+  String get itemUnpinned => 'Desfijada';
+
+  @override
+  String get homePinned => 'Fijadas';
+
+  @override
+  String homePinnedMore(Object count) {
+    return '$count más';
+  }
+
+  @override
+  String get homePinnedLess => 'Mostrar menos';
 }

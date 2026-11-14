@@ -3178,4 +3178,27 @@ class LUk extends L {
 
   @override
   String get syncOk => 'Зрозуміло';
+
+  @override
+  String get itemPin => 'Закріпити';
+
+  @override
+  String get itemUnpin => 'Відкріпити';
+
+  @override
+  String get itemPinned => 'Закріпив угорі головної';
+
+  @override
+  String get itemUnpinned => 'Відкріпив';
+
+  @override
+  String get homePinned => 'Закріплено';
+
+  @override
+  String homePinnedMore(Object count) {
+    return 'Ще $count';
+  }
+
+  @override
+  String get homePinnedLess => 'Згорнути';
 }

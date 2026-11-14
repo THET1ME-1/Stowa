@@ -602,5 +602,12 @@
   "syncSoon": "Wkrótce",
   "syncAbout": "Notatki same zgrają się na telefonie, tablecie i komputerze.",
   "syncLater": "Subskrypcja pojawi się w jednej z kolejnych aktualizacji.",
-  "syncOk": "Rozumiem"
+  "syncOk": "Rozumiem",
+  "itemPin": "Przypnij",
+  "itemUnpin": "Odepnij",
+  "itemPinned": "Przypięto na górze ekranu głównego",
+  "itemUnpinned": "Odpięto",
+  "homePinned": "Przypięte",
+  "homePinnedMore": "Jeszcze {count}",
+  "homePinnedLess": "Zwiń"
 }

@@ -238,6 +238,19 @@ void main() {
     await _shot(tester, '2-с-вещами');
   });
 
+  testWidgets('закреплённые над лентой', (tester) async {
+    await tester.runAsync(() async {
+      await _seed(world);
+      for (final (id, hours) in [('c1', 1), ('w1', 2), ('f2', 3), ('g1', 4)]) {
+        await (world.db.update(world.db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(pinnedAt: Value(world.now.subtract(Duration(hours: hours)))));
+      }
+    });
+    await open(tester);
+    await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -150));
+    await tester.pumpAndSettle();
+    await _shot(tester, '2б-закреплённые');
+  });
+
   Future<void> type(WidgetTester tester, String text) async {
     await tester.showKeyboard(find.byType(TextField));
     await tester.enterText(find.byType(TextField), text);

@@ -91,6 +91,25 @@ void main() {
     expect(recent['loose']!.folderColor, isNull);
   });
 
+  test('закреплённые: свежезакреплённая первой, в ленте последних их нет, открепление возвращает', () async {
+    final items = ItemsRepository(db);
+    for (final (id, minutes) in [('a', 1), ('b', 2), ('c', 3)]) {
+      await _item(db, id, minutes: minutes);
+    }
+    await items.setPinned('a', _day.add(const Duration(hours: 1)));
+    await items.setPinned('b', _day.add(const Duration(hours: 2)));
+    final pinned = await items.watchPinned().first;
+    expect([for (final card in pinned) card.id], ['b', 'a']);
+    expect(pinned.first.pinned, isTrue);
+    expect([for (final card in await items.watchRecent().first) card.id], ['c']);
+    await items.setPinned('b', null);
+    expect([for (final card in await items.watchPinned().first) card.id], ['a']);
+    expect([for (final card in await items.watchRecent().first) card.id], ['c', 'b']);
+    // удалённая из закреплённых пропадает
+    await items.softDelete('a', _day);
+    expect(await items.watchPinned().first, isEmpty);
+  });
+
   test('удалённая папка не показывается', () async {
     await db.into(db.folders).insert(FoldersCompanion.insert(id: 'x', name: 'Старое', icon: 'folder', shape: 'gem', deletedAt: Value(_day)));
     expect(await FoldersRepository(db).watchAll().first, isEmpty);

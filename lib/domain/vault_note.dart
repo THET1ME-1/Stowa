@@ -42,6 +42,7 @@ class VaultNote {
     this.placeName,
     this.remindPlace,
     this.sortedBy,
+    this.pinned,
     this.attachments = const [],
     this.highlights = const [],
     this.extra = const {},
@@ -74,6 +75,9 @@ class VaultNote {
   /// Кто положил в папку: ручное решение должно пережить переустановку.
   final SortedBy? sortedBy;
 
+  /// Когда закреплена наверху главной; null — не закреплена. В Obsidian можно поставить и `pinned: true`.
+  final DateTime? pinned;
+
   /// Пути вложений от корня хранилища, по порядку.
   final List<String> attachments;
 
@@ -84,7 +88,7 @@ class VaultNote {
   final Map<String, Object?> extra;
 }
 
-const _known = {'id', 'kind', 'title', 'created', 'updated', 'tags', 'url', 'preview', 'cover', 'duration', 'reminder', 'place', 'remind_place', 'sorted_by', 'highlights'};
+const _known = {'id', 'kind', 'title', 'created', 'updated', 'tags', 'url', 'preview', 'cover', 'duration', 'reminder', 'place', 'remind_place', 'sorted_by', 'pinned', 'highlights'};
 
 /// Свойство, которое Stowa ведёт сама: второго с таким именем в файле быть не должно.
 bool isOwnVaultProperty(String name) => _known.contains(name);
@@ -147,6 +151,7 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
     }..removeWhere((key, value) => value == null));
   }
   if (note.sortedBy != null && note.sortedBy != SortedBy.none) put('sorted_by', note.sortedBy!.name);
+  put('pinned', note.pinned == null ? null : _time(note.pinned!));
   put('highlights', [
     for (final one in note.highlights) <String, Object?>{'quote': one.quote, 'note': ?one.note, 'at': _time(one.at), if (one.position != 0) 'pos': one.position},
   ]);
@@ -343,6 +348,7 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
             day: _parseTime(remind['day']),
           ),
     sortedBy: SortedBy.values.asNameMap()[stringOf('sorted_by')],
+    pinned: properties['pinned'] == true ? fileModified : _parseTime(properties['pinned']),
     attachments: attachments,
     highlights: [
       for (final one in (properties['highlights'] as List? ?? const []).whereType<Map<String, Object?>>())

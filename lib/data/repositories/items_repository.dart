@@ -63,7 +63,11 @@ class ItemCard {
     this.gone = false,
     this.hasCopy = false,
     this.mainColor,
+    this.pinned = false,
   });
+
+  /// Закреплена наверху главной.
+  final bool pinned;
 
   /// Главный цвет картинки или обложки «#1E3CC8»: доска «по цвету». Нет картинки — null.
   final String? mainColor;
@@ -106,6 +110,7 @@ class ItemCard {
     gone: gone,
     hasCopy: hasCopy,
     mainColor: mainColor,
+    pinned: pinned,
   );
 
   /// Где вещь сохранена. Пусто — место не снималось.
@@ -326,13 +331,32 @@ class ItemsRepository {
   Stream<List<ItemCard>> watchRecent({int limit = 20}) {
     return _db
         .customSelect(
-          '$_cardSelect ORDER BY items.created_at DESC, items.id DESC LIMIT ?',
+          // закреплённые стоят своим блоком над лентой, второй раз в ней не показываются
+          '$_cardSelect AND items.pinned_at IS NULL ORDER BY items.created_at DESC, items.id DESC LIMIT ?',
           variables: [Variable.withInt(limit)],
           readsFrom: _cardTables,
         )
         .watch()
         .map((rows) => [for (final row in rows) _card(row)]);
   }
+
+  /// Закреплённые наверху главной: последняя закреплённая первой.
+  Stream<List<ItemCard>> watchPinned() {
+    return _db
+        .customSelect('$_cardSelect AND items.pinned_at IS NOT NULL ORDER BY items.pinned_at DESC, items.id DESC', readsFrom: _cardTables)
+        .watch()
+        .map((rows) => [for (final row in rows) _card(row)]);
+  }
+
+  /// Закрепить заметку наверху главной ([at] — когда) или открепить (null). Это не правка
+  /// заметки: время правки не меняется, а в файл уходит свойство `pinned`.
+  Future<void> setPinned(String id, DateTime? at) {
+    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(pinnedAt: Value(at)));
+  }
+
+  /// Когда заметка закреплена: «Отменить» у открепления возвращает её на прежнее место в блоке.
+  Future<DateTime?> pinnedAt(String id) async =>
+      (await (_db.selectOnly(_db.items)..addColumns([_db.items.pinnedAt])..where(_db.items.id.equals(id))).getSingleOrNull())?.read(_db.items.pinnedAt);
 
   /// Карточки этих заметок в том же порядке: экраны возврата получают список id, а рисуют ленту.
   Stream<List<ItemCard>> watchCards(List<String> ids) {
@@ -1126,6 +1150,7 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       gone: item.goneAt != null,
       hasCopy: (row.readNullable<int>('has_copy') ?? 0) == 1,
       mainColor: row.data.containsKey('main_color') ? row.readNullable<String>('main_color') : null,
+      pinned: item.pinnedAt != null,
     );
   }
 

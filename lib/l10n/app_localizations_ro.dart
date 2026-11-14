@@ -3150,4 +3150,27 @@ class LRo extends L {
 
   @override
   String get syncOk => 'Am înțeles';
+
+  @override
+  String get itemPin => 'Fixează';
+
+  @override
+  String get itemUnpin => 'Anulează fixarea';
+
+  @override
+  String get itemPinned => 'Fixată sus pe pagina principală';
+
+  @override
+  String get itemUnpinned => 'Nu mai e fixată';
+
+  @override
+  String get homePinned => 'Fixate';
+
+  @override
+  String homePinnedMore(Object count) {
+    return 'Încă $count';
+  }
+
+  @override
+  String get homePinnedLess => 'Restrânge';
 }

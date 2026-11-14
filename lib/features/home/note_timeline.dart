@@ -52,6 +52,7 @@ class NoteTimeline extends StatefulWidget {
   const NoteTimeline({
     super.key,
     required this.items,
+    this.pinned = const [],
     required this.filesRoot,
     required this.now,
     this.aiSorting = false,
@@ -63,6 +64,9 @@ class NoteTimeline extends StatefulWidget {
   });
 
   final List<ItemCard> items;
+
+  /// Закреплённые: своим блоком над днями, у карточки вместо часа — день записи.
+  final List<ItemCard> pinned;
 
   /// Сколько снизу экрана закрывает строка ввода: точка заметки держится над ней.
   final double bottomInset;
@@ -86,12 +90,17 @@ class NoteTimeline extends StatefulWidget {
   State<NoteTimeline> createState() => _NoteTimelineState();
 }
 
+/// Сколько закреплённых видно сразу; остальные — по «Ещё N», чтобы лента не уезжала вниз.
+const pinnedShown = 3;
+
 class _NoteTimelineState extends State<NoteTimeline> {
   // заметки, которые уже были на экране: им въезжать не нужно
-  late final Set<String> _seen = {for (final item in widget.items) item.id};
+  late final Set<String> _seen = {for (final item in [...widget.pinned, ...widget.items]) item.id};
+  var _allPinned = false;
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     // заметки идут от новых к старым: день начинается, когда меняется дата
     final days = <(DateTime, List<ItemCard>)>[];
     for (final item in widget.items) {
@@ -100,42 +109,86 @@ class _NoteTimelineState extends State<NoteTimeline> {
       if (days.isEmpty || days.last.$1 != day) days.add((day, []));
       days.last.$2.add(item);
     }
+    final pinned = widget.pinned;
+    final hidden = pinned.length - pinnedShown;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (pinned.isNotEmpty) ...[
+          const _PinnedHeader(),
+          _group(_allPinned || hidden <= 0 ? pinned : pinned.take(pinnedShown).toList(), dated: true),
+          if (hidden > 0)
+            Padding(
+              padding: const EdgeInsets.only(left: _indent - 12),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: const ValueKey('pinned-more'),
+                  onPressed: () => setState(() => _allPinned = !_allPinned),
+                  icon: Icon(symbolIcon(_allPinned ? 'expand_less' : 'expand_more'), size: 18),
+                  label: Text(_allPinned ? l.homePinnedLess : l.homePinnedMore(hidden)),
+                ),
+              ),
+            ),
+        ],
         for (final (day, items) in days) ...[
           _DayHeader(day: day, now: widget.now),
-          Stack(
-            children: [
-              const Positioned(left: _rail - 0.75, top: _dotTop, bottom: 0, child: _DottedRail()),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final item in items)
-                    _Arrive(
-                      key: ValueKey(item.id),
-                      play: _seen.add(item.id),
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _Entry(
-                          item: item,
-                          filesRoot: widget.filesRoot,
-                          now: widget.now,
-                          aiSorting: widget.aiSorting,
-                          bottomInset: widget.bottomInset,
-                          onOpen: () => widget.onOpen(item),
-                          onMove: () => widget.onMove(item),
-                          onAct: () => widget.onAct(item),
-                          onToggle: (line) => widget.onToggle(item, line),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
+          _group(items),
         ],
       ],
+    );
+  }
+
+  /// Карточки на пунктирной оси. [dated] — у карточки день записи, а не час: закреплённые не по дням.
+  Widget _group(List<ItemCard> items, {bool dated = false}) => Stack(
+    children: [
+      const Positioned(left: _rail - 0.75, top: _dotTop, bottom: 0, child: _DottedRail()),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final item in items)
+            _Arrive(
+              key: ValueKey(item.id),
+              play: _seen.add(item.id),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _Entry(
+                  item: item,
+                  dated: dated,
+                  filesRoot: widget.filesRoot,
+                  now: widget.now,
+                  aiSorting: widget.aiSorting,
+                  bottomInset: widget.bottomInset,
+                  onOpen: () => widget.onOpen(item),
+                  onMove: () => widget.onMove(item),
+                  onAct: () => widget.onAct(item),
+                  onToggle: (line) => widget.onToggle(item, line),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ],
+  );
+}
+
+/// «Закреплено» над закреплёнными, тем же кеглем, что дни, со значком булавки.
+class _PinnedHeader extends StatelessWidget {
+  const _PinnedHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      key: const ValueKey('pinned-header'),
+      padding: const EdgeInsets.fromLTRB(Space.screen, 22, Space.screen, 12),
+      child: Row(
+        children: [
+          Text(L.of(context).homePinned, style: text.headlineSmall),
+          const SizedBox(width: 8),
+          Icon(symbolIcon('keep', filled: true), size: 20, color: Tokens.muted),
+        ],
+      ),
     );
   }
 }
@@ -307,6 +360,7 @@ class _DotsPainter extends CustomPainter {
 class _Entry extends StatelessWidget {
   const _Entry({
     required this.item,
+    this.dated = false,
     required this.filesRoot,
     required this.now,
     required this.aiSorting,
@@ -318,6 +372,9 @@ class _Entry extends StatelessWidget {
   });
 
   final ItemCard item;
+
+  /// В углу день записи вместо часа.
+  final bool dated;
   final Directory filesRoot;
   final DateTime now;
   final bool aiSorting;
@@ -330,6 +387,12 @@ class _Entry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
+    final at = item.createdAt;
+    final stamp = !dated
+        ? DateFormat.jm(l.localeName).format(at)
+        : at.year == now.year
+        ? DateFormat.MMMd(l.localeName).format(at)
+        : DateFormat.yMMMd(l.localeName).format(at);
     final thumb = item.thumbPath == null ? null : p.join(filesRoot.path, item.thumbPath!);
     final attachment = switch (item.kind) {
       ItemKind.link || ItemKind.video || ItemKind.file || ItemKind.voice => true,
@@ -345,7 +408,7 @@ class _Entry extends StatelessWidget {
     // карточка чуть в цвет папки: заметки одной папки узнаются в ленте издалека
     final fill = item.folderColor == null ? Tokens.container : FolderPalette.tint(item.folderColor!, 0.1);
     final time = Text(
-      DateFormat.jm(l.localeName).format(item.createdAt),
+      stamp,
       style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()]),
     );
     return Stack(

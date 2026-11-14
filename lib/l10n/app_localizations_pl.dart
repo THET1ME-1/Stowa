@@ -3178,4 +3178,27 @@ class LPl extends L {
 
   @override
   String get syncOk => 'Rozumiem';
+
+  @override
+  String get itemPin => 'Przypnij';
+
+  @override
+  String get itemUnpin => 'Odepnij';
+
+  @override
+  String get itemPinned => 'Przypięto na górze ekranu głównego';
+
+  @override
+  String get itemUnpinned => 'Odpięto';
+
+  @override
+  String get homePinned => 'Przypięte';
+
+  @override
+  String homePinnedMore(Object count) {
+    return 'Jeszcze $count';
+  }
+
+  @override
+  String get homePinnedLess => 'Zwiń';
 }

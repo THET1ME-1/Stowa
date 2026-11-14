@@ -48,6 +48,17 @@ void main() {
     expect(await queue(), isEmpty);
   });
 
+  test('закрепление и открепление переписывают свойство pinned в файле', () async {
+    await note('w', 'Пароли');
+    await writer().drain();
+    await edit('w', ItemsCompanion(pinnedAt: Value(now)));
+    await writer().drain();
+    expect(file('Пароли.md').readAsStringSync(), contains('pinned: '));
+    await edit('w', const ItemsCompanion(pinnedAt: Value(null)));
+    await writer().drain();
+    expect(file('Пароли.md').readAsStringSync(), isNot(contains('pinned')));
+  });
+
   test('перенос в другую папку переносит файл и вложения, пути в базе обновлены', () async {
     await note('a', 'Карбонара', folder: 'recipes');
     file('Рецепты/Карбонара/фото.jpg')

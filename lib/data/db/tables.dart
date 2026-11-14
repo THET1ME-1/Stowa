@@ -49,6 +49,9 @@ class Items extends Table {
   /// Прошёл — напоминание снимается. Пусто — любой день.
   DateTimeColumn get remindPlaceDay => dateTime().nullable()();
 
+  /// Когда закреплена наверху главной (v18); null — не закреплена. В файле — свойство `pinned`.
+  DateTimeColumn get pinnedAt => dateTime().nullable()();
+
   /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   DateTimeColumn get openedAt => dateTime().nullable()();

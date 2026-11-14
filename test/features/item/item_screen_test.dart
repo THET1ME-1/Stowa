@@ -506,6 +506,21 @@ void main() {
     expect((await saved()).deletedAt, isNotNull);
   });
 
+  testWidgets('«⋮» → «Закрепить», потом там же «Открепить»', (tester) async {
+    await open(tester, body: 'мысль', title: 'Мысль');
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Закрепить'));
+    await tester.pumpAndSettle();
+    expect((await saved()).pinnedAt, world.now);
+    expect(find.text('Закрепил наверху главной'), findsOneWidget);
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Открепить'));
+    await tester.pumpAndSettle();
+    expect((await saved()).pinnedAt, isNull);
+  });
+
   group('дата заметки', () {
     final written = DateTime(2026, 10, 30, 8, 15);
 

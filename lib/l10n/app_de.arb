@@ -602,5 +602,12 @@
   "syncSoon": "Bald",
   "syncAbout": "Deine Notizen gleichen sich von selbst auf Handy, Tablet und Computer ab.",
   "syncLater": "Das Abo kommt mit einem der nächsten Updates.",
-  "syncOk": "Verstanden"
+  "syncOk": "Verstanden",
+  "itemPin": "Anheften",
+  "itemUnpin": "Lösen",
+  "itemPinned": "Oben auf der Startseite angeheftet",
+  "itemUnpinned": "Gelöst",
+  "homePinned": "Angeheftet",
+  "homePinnedMore": "{count} weitere",
+  "homePinnedLess": "Weniger"
 }

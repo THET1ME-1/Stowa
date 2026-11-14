@@ -3182,4 +3182,27 @@ class LRu extends L {
 
   @override
   String get syncOk => 'Понятно';
+
+  @override
+  String get itemPin => 'Закрепить';
+
+  @override
+  String get itemUnpin => 'Открепить';
+
+  @override
+  String get itemPinned => 'Закрепил наверху главной';
+
+  @override
+  String get itemUnpinned => 'Открепил';
+
+  @override
+  String get homePinned => 'Закреплено';
+
+  @override
+  String homePinnedMore(Object count) {
+    return 'Ещё $count';
+  }
+
+  @override
+  String get homePinnedLess => 'Свернуть';
 }
