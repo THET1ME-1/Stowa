@@ -3226,4 +3226,60 @@ class LUk extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get edgeTitle => 'Під рукою';
+
+  @override
+  String get edgeSwitch => 'Корінці біля краю';
+
+  @override
+  String get edgeSwitchHint =>
+      'Закріплені нотатки чекають біля краю екрана, дотик відкриває їх поверх будь-якого застосунку.';
+
+  @override
+  String get edgePlace => 'Де';
+
+  @override
+  String get edgeLeft => 'Ліворуч';
+
+  @override
+  String get edgeRight => 'Праворуч';
+
+  @override
+  String get edgeHeight => 'Де по висоті';
+
+  @override
+  String get edgeHigher => 'вище';
+
+  @override
+  String get edgeMiddle => 'посередині';
+
+  @override
+  String get edgeLower => 'нижче';
+
+  @override
+  String get edgeSize => 'Розмір';
+
+  @override
+  String get edgeThin => 'тонкі';
+
+  @override
+  String get edgeNormal => 'звичайні';
+
+  @override
+  String get edgeLarge => 'великі';
+
+  @override
+  String get edgeAlpha => 'Помітність';
+
+  @override
+  String get edgeHideVideo => 'Ховати в повноекранному відео';
+
+  @override
+  String get edgeHideVideoHint =>
+      'Поки відео чи гра на весь екран, корінці не заважають.';
+
+  @override
+  String get edgeOff => 'Вимкнено';
 }

@@ -161,6 +161,7 @@ class TestWorld {
         // фоновой работы системы в тестах нет: сколько раз её просили, видно по счётчику
         fileWorkProvider.overrideWithValue(() async => fileWorkAsked++),
         edgeChannelProvider.overrideWithValue(edge),
+        edgeAvailableProvider.overrideWithValue(true),
         sharedInboxProvider.overrideWithValue(shared.stream),
         if (settings case final settings?)
           settingsRepositoryProvider.overrideWithValue(settings)

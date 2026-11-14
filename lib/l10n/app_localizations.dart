@@ -5284,6 +5284,114 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} more line} other{{count} more lines}}'**
   String homeMoreLines(num count);
+
+  /// Раздел настроек: заметки у края экрана поверх других приложений
+  ///
+  /// In en, this message translates to:
+  /// **'At hand'**
+  String get edgeTitle;
+
+  /// Включатель: цветные корешки заметок у края экрана
+  ///
+  /// In en, this message translates to:
+  /// **'Spines at the edge'**
+  String get edgeSwitch;
+
+  /// Подсказка под включателем корешков, одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned notes wait at the screen edge, and a tap opens them over any app.'**
+  String get edgeSwitchHint;
+
+  /// Заголовок блока: край и место корешков
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get edgePlace;
+
+  /// Корешки у левого края
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get edgeLeft;
+
+  /// Корешки у правого края
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get edgeRight;
+
+  /// Ползунок: где по высоте экрана корешки
+  ///
+  /// In en, this message translates to:
+  /// **'Height on screen'**
+  String get edgeHeight;
+
+  /// Значение ползунка высоты
+  ///
+  /// In en, this message translates to:
+  /// **'higher'**
+  String get edgeHigher;
+
+  /// Значение ползунка высоты
+  ///
+  /// In en, this message translates to:
+  /// **'middle'**
+  String get edgeMiddle;
+
+  /// Значение ползунка высоты
+  ///
+  /// In en, this message translates to:
+  /// **'lower'**
+  String get edgeLower;
+
+  /// Ползунок размера корешков
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get edgeSize;
+
+  /// Размер корешков
+  ///
+  /// In en, this message translates to:
+  /// **'thin'**
+  String get edgeThin;
+
+  /// Размер корешков
+  ///
+  /// In en, this message translates to:
+  /// **'regular'**
+  String get edgeNormal;
+
+  /// Размер корешков
+  ///
+  /// In en, this message translates to:
+  /// **'large'**
+  String get edgeLarge;
+
+  /// Ползунок прозрачности корешков
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get edgeAlpha;
+
+  /// Включатель: корешки прячутся, пока видео на весь экран
+  ///
+  /// In en, this message translates to:
+  /// **'Hide in full-screen video'**
+  String get edgeHideVideo;
+
+  /// Подсказка под включателем прятанья в видео, одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'While a video or game is full screen, the spines stay out of the way.'**
+  String get edgeHideVideoHint;
+
+  /// Значение строки «Под рукой» в настройках, когда корешки выключены
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get edgeOff;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

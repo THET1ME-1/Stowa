@@ -3197,4 +3197,60 @@ class LRo extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get edgeTitle => 'La îndemână';
+
+  @override
+  String get edgeSwitch => 'Cotoare la margine';
+
+  @override
+  String get edgeSwitchHint =>
+      'Notițele fixate așteaptă la marginea ecranului, o atingere le deschide peste orice aplicație.';
+
+  @override
+  String get edgePlace => 'Unde';
+
+  @override
+  String get edgeLeft => 'Stânga';
+
+  @override
+  String get edgeRight => 'Dreapta';
+
+  @override
+  String get edgeHeight => 'Înălțimea pe ecran';
+
+  @override
+  String get edgeHigher => 'mai sus';
+
+  @override
+  String get edgeMiddle => 'la mijloc';
+
+  @override
+  String get edgeLower => 'mai jos';
+
+  @override
+  String get edgeSize => 'Mărime';
+
+  @override
+  String get edgeThin => 'subțiri';
+
+  @override
+  String get edgeNormal => 'obișnuite';
+
+  @override
+  String get edgeLarge => 'mari';
+
+  @override
+  String get edgeAlpha => 'Vizibilitate';
+
+  @override
+  String get edgeHideVideo => 'Ascunde în video pe tot ecranul';
+
+  @override
+  String get edgeHideVideoHint =>
+      'Cât timp un video sau un joc e pe tot ecranul, cotoarele nu încurcă.';
+
+  @override
+  String get edgeOff => 'Oprit';
 }

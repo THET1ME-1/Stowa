@@ -3171,4 +3171,60 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get edgeTitle => 'A mano';
+
+  @override
+  String get edgeSwitch => 'Lomos en el borde';
+
+  @override
+  String get edgeSwitchHint =>
+      'Las notas fijadas esperan en el borde de la pantalla y un toque las abre sobre cualquier app.';
+
+  @override
+  String get edgePlace => 'Dónde';
+
+  @override
+  String get edgeLeft => 'Izquierda';
+
+  @override
+  String get edgeRight => 'Derecha';
+
+  @override
+  String get edgeHeight => 'Altura en la pantalla';
+
+  @override
+  String get edgeHigher => 'más arriba';
+
+  @override
+  String get edgeMiddle => 'en el medio';
+
+  @override
+  String get edgeLower => 'más abajo';
+
+  @override
+  String get edgeSize => 'Tamaño';
+
+  @override
+  String get edgeThin => 'finos';
+
+  @override
+  String get edgeNormal => 'normales';
+
+  @override
+  String get edgeLarge => 'grandes';
+
+  @override
+  String get edgeAlpha => 'Visibilidad';
+
+  @override
+  String get edgeHideVideo => 'Ocultar en vídeo a pantalla completa';
+
+  @override
+  String get edgeHideVideoHint =>
+      'Mientras un vídeo o juego está a pantalla completa, los lomos no estorban.';
+
+  @override
+  String get edgeOff => 'Desactivado';
 }

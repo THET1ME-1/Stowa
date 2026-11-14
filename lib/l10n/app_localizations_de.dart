@@ -3176,4 +3176,60 @@ class LDe extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get edgeTitle => 'Griffbereit';
+
+  @override
+  String get edgeSwitch => 'Rücken am Rand';
+
+  @override
+  String get edgeSwitchHint =>
+      'Angeheftete Notizen warten am Bildschirmrand, ein Tippen öffnet sie über jeder App.';
+
+  @override
+  String get edgePlace => 'Wo';
+
+  @override
+  String get edgeLeft => 'Links';
+
+  @override
+  String get edgeRight => 'Rechts';
+
+  @override
+  String get edgeHeight => 'Höhe am Bildschirm';
+
+  @override
+  String get edgeHigher => 'weiter oben';
+
+  @override
+  String get edgeMiddle => 'mittig';
+
+  @override
+  String get edgeLower => 'weiter unten';
+
+  @override
+  String get edgeSize => 'Größe';
+
+  @override
+  String get edgeThin => 'schmal';
+
+  @override
+  String get edgeNormal => 'normal';
+
+  @override
+  String get edgeLarge => 'groß';
+
+  @override
+  String get edgeAlpha => 'Sichtbarkeit';
+
+  @override
+  String get edgeHideVideo => 'Bei Vollbildvideo ausblenden';
+
+  @override
+  String get edgeHideVideoHint =>
+      'Solange ein Video oder Spiel im Vollbild läuft, stören die Rücken nicht.';
+
+  @override
+  String get edgeOff => 'Aus';
 }

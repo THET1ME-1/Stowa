@@ -531,6 +531,9 @@ final aiSettingsProvider = StreamProvider((ref) => ref.watch(settingsRepositoryP
 /// «Под рукой»: канал к службе окон поверх (на iPhone — пустой). Тесты подменяют.
 final edgeChannelProvider = Provider<EdgeChannel>((ref) => platformEdgeChannel());
 
+/// Есть ли окна поверх других приложений: только Android. Тесты включают.
+final edgeAvailableProvider = Provider<bool>((ref) => platformEdgeChannel() is MethodEdgeChannel);
+
 /// Включение и правка корешков: настройка и служба вместе.
 final edgeControlProvider = Provider((ref) => EdgeControl.over(ref.watch(settingsRepositoryProvider), ref.watch(edgeChannelProvider)));
 

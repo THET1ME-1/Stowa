@@ -67,6 +67,8 @@ void main() {
     expect(find.text('Ключ'), findsNothing);
     expect(find.text('Сводка недели'), findsNothing);
     expect(find.text('Перенести в другую папку'), findsNothing);
+    // «Корзина» ниже: список строится по мере прокрутки
+    await tester.scrollUntilVisible(find.text('Корзина'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('Корзина'), findsOneWidget);
   });
 
@@ -76,7 +78,9 @@ void main() {
     expect(find.text('Посмотреть потом · Сводка недели'), findsOneWidget);
     await settings.setReturns(const ReturnSettings(watchLater: false, onThisDay: false, week: false, shopping: false));
     await tester.pumpAndSettle();
-    expect(find.text('Выключено'), findsOneWidget);
+    // «Выключено» есть и у «Под рукой»: смотрим строку уведомлений
+    final returnsRow = find.ancestor(of: find.text('Уведомления'), matching: find.byType(InkWell)).first;
+    expect(find.descendant(of: returnsRow, matching: find.text('Выключено')), findsOneWidget);
   });
 
   testWidgets('итог разбора: с ключом — «Работает» и модель', (tester) async {

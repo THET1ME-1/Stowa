@@ -3226,4 +3226,60 @@ class LPl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get edgeTitle => 'Pod ręką';
+
+  @override
+  String get edgeSwitch => 'Grzbiety przy krawędzi';
+
+  @override
+  String get edgeSwitchHint =>
+      'Przypięte notatki czekają przy krawędzi ekranu, dotknięcie otwiera je nad każdą aplikacją.';
+
+  @override
+  String get edgePlace => 'Gdzie';
+
+  @override
+  String get edgeLeft => 'Z lewej';
+
+  @override
+  String get edgeRight => 'Z prawej';
+
+  @override
+  String get edgeHeight => 'Wysokość na ekranie';
+
+  @override
+  String get edgeHigher => 'wyżej';
+
+  @override
+  String get edgeMiddle => 'pośrodku';
+
+  @override
+  String get edgeLower => 'niżej';
+
+  @override
+  String get edgeSize => 'Rozmiar';
+
+  @override
+  String get edgeThin => 'cienkie';
+
+  @override
+  String get edgeNormal => 'zwykłe';
+
+  @override
+  String get edgeLarge => 'duże';
+
+  @override
+  String get edgeAlpha => 'Widoczność';
+
+  @override
+  String get edgeHideVideo => 'Ukrywaj przy filmie na pełnym ekranie';
+
+  @override
+  String get edgeHideVideoHint =>
+      'Gdy film lub gra są na pełnym ekranie, grzbiety nie przeszkadzają.';
+
+  @override
+  String get edgeOff => 'Wyłączone';
 }

@@ -3230,4 +3230,60 @@ class LRu extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get edgeTitle => 'Под рукой';
+
+  @override
+  String get edgeSwitch => 'Корешки у края';
+
+  @override
+  String get edgeSwitchHint =>
+      'Закреплённые заметки ждут у края экрана, касание открывает их поверх любого приложения.';
+
+  @override
+  String get edgePlace => 'Где';
+
+  @override
+  String get edgeLeft => 'Слева';
+
+  @override
+  String get edgeRight => 'Справа';
+
+  @override
+  String get edgeHeight => 'Где по высоте';
+
+  @override
+  String get edgeHigher => 'выше';
+
+  @override
+  String get edgeMiddle => 'посередине';
+
+  @override
+  String get edgeLower => 'ниже';
+
+  @override
+  String get edgeSize => 'Размер';
+
+  @override
+  String get edgeThin => 'тонкие';
+
+  @override
+  String get edgeNormal => 'обычные';
+
+  @override
+  String get edgeLarge => 'крупные';
+
+  @override
+  String get edgeAlpha => 'Заметность';
+
+  @override
+  String get edgeHideVideo => 'Прятать в полноэкранном видео';
+
+  @override
+  String get edgeHideVideoHint =>
+      'Пока видео или игра на весь экран, корешки не мешают.';
+
+  @override
+  String get edgeOff => 'Выключено';
 }

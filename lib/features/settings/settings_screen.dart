@@ -14,6 +14,7 @@ import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
 import '../composer/panel_text.dart' show untitledFor;
 import '../../domain/appearance.dart';
+import '../../domain/edge_settings.dart';
 import '../../domain/return_plan.dart';
 import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
@@ -24,6 +25,7 @@ import '../privacy/privacy_settings.dart';
 import '../tags/tags_screen.dart';
 import 'ai_log_screen.dart';
 import 'appearance_screen.dart';
+import 'edge_screen.dart';
 import 'returns_screen.dart';
 import 'settings_blocks.dart';
 import 'storage_screen.dart';
@@ -114,6 +116,15 @@ class SettingsScreen extends ConsumerWidget {
               tint: settingsTint('sky'),
               children: [
                 SettingsRow(icon: 'send', title: l.tgTitle, value: telegram.botName == null ? l.tgNone : '@${telegram.botName}', onTap: () => showSettingsSheet(context, const _BotSheet())),
+                // заметки у края поверх других приложений — только Android
+                if (ref.watch(edgeAvailableProvider))
+                  SettingsRow(
+                    key: const ValueKey('settings-edge'),
+                    icon: 'view_sidebar',
+                    title: l.edgeTitle,
+                    value: edgeSummary(l, ref.watch(edgeSettingsProvider).value ?? const EdgeSettings()),
+                    onTap: () => Navigator.of(context).push(edgeRoute()),
+                  ),
               ],
             ),
             SettingsSection(l.settingsOrder),

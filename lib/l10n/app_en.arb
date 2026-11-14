@@ -4045,5 +4045,77 @@
   "homeMoreLines": "{count, plural, one{{count} more line} other{{count} more lines}}",
   "@homeMoreLines": {
     "description": "На карточке заметки на главной: сколько строк текста не видно"
+  },
+  "edgeTitle": "At hand",
+  "@edgeTitle": {
+    "description": "Раздел настроек: заметки у края экрана поверх других приложений"
+  },
+  "edgeSwitch": "Spines at the edge",
+  "@edgeSwitch": {
+    "description": "Включатель: цветные корешки заметок у края экрана"
+  },
+  "edgeSwitchHint": "Pinned notes wait at the screen edge, and a tap opens them over any app.",
+  "@edgeSwitchHint": {
+    "description": "Подсказка под включателем корешков, одно предложение"
+  },
+  "edgePlace": "Where",
+  "@edgePlace": {
+    "description": "Заголовок блока: край и место корешков"
+  },
+  "edgeLeft": "Left",
+  "@edgeLeft": {
+    "description": "Корешки у левого края"
+  },
+  "edgeRight": "Right",
+  "@edgeRight": {
+    "description": "Корешки у правого края"
+  },
+  "edgeHeight": "Height on screen",
+  "@edgeHeight": {
+    "description": "Ползунок: где по высоте экрана корешки"
+  },
+  "edgeHigher": "higher",
+  "@edgeHigher": {
+    "description": "Значение ползунка высоты"
+  },
+  "edgeMiddle": "middle",
+  "@edgeMiddle": {
+    "description": "Значение ползунка высоты"
+  },
+  "edgeLower": "lower",
+  "@edgeLower": {
+    "description": "Значение ползунка высоты"
+  },
+  "edgeSize": "Size",
+  "@edgeSize": {
+    "description": "Ползунок размера корешков"
+  },
+  "edgeThin": "thin",
+  "@edgeThin": {
+    "description": "Размер корешков"
+  },
+  "edgeNormal": "regular",
+  "@edgeNormal": {
+    "description": "Размер корешков"
+  },
+  "edgeLarge": "large",
+  "@edgeLarge": {
+    "description": "Размер корешков"
+  },
+  "edgeAlpha": "Visibility",
+  "@edgeAlpha": {
+    "description": "Ползунок прозрачности корешков"
+  },
+  "edgeHideVideo": "Hide in full-screen video",
+  "@edgeHideVideo": {
+    "description": "Включатель: корешки прячутся, пока видео на весь экран"
+  },
+  "edgeHideVideoHint": "While a video or game is full screen, the spines stay out of the way.",
+  "@edgeHideVideoHint": {
+    "description": "Подсказка под включателем прятанья в видео, одно предложение"
+  },
+  "edgeOff": "Off",
+  "@edgeOff": {
+    "description": "Значение строки «Под рукой» в настройках, когда корешки выключены"
   }
 }

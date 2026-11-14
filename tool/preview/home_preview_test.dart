@@ -13,11 +13,13 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/domain/edge_settings.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/vault_note.dart' show packVaultProperties;
 import 'package:stowa/data/repositories/tags_repository.dart';
 import 'package:stowa/features/home/folder_shelf.dart';
 import 'package:stowa/features/item/item_screen.dart';
+import 'package:stowa/features/settings/edge_screen.dart';
 import 'package:stowa/services/capture_service.dart';
 import 'package:stowa/services/facts/facts_pipeline.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -487,6 +489,14 @@ void main() {
     await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: world.wrap(const ItemScreen(id: 'carbonara'))));
     await tester.pumpAndSettle();
     await _shot(tester, '18-рецепт');
+  });
+
+  testWidgets('настройки «Под рукой»', (tester) async {
+    world.edgeSettings = const EdgeSettings(enabled: true);
+    await open(tester);
+    await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: world.wrap(const EdgeScreen())));
+    await tester.pumpAndSettle();
+    await _shot(tester, '20-под-рукой');
   });
 
   testWidgets('карточки по две строки', (tester) async {

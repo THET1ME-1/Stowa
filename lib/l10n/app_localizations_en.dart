@@ -3167,4 +3167,60 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get edgeTitle => 'At hand';
+
+  @override
+  String get edgeSwitch => 'Spines at the edge';
+
+  @override
+  String get edgeSwitchHint =>
+      'Pinned notes wait at the screen edge, and a tap opens them over any app.';
+
+  @override
+  String get edgePlace => 'Where';
+
+  @override
+  String get edgeLeft => 'Left';
+
+  @override
+  String get edgeRight => 'Right';
+
+  @override
+  String get edgeHeight => 'Height on screen';
+
+  @override
+  String get edgeHigher => 'higher';
+
+  @override
+  String get edgeMiddle => 'middle';
+
+  @override
+  String get edgeLower => 'lower';
+
+  @override
+  String get edgeSize => 'Size';
+
+  @override
+  String get edgeThin => 'thin';
+
+  @override
+  String get edgeNormal => 'regular';
+
+  @override
+  String get edgeLarge => 'large';
+
+  @override
+  String get edgeAlpha => 'Visibility';
+
+  @override
+  String get edgeHideVideo => 'Hide in full-screen video';
+
+  @override
+  String get edgeHideVideoHint =>
+      'While a video or game is full screen, the spines stay out of the way.';
+
+  @override
+  String get edgeOff => 'Off';
 }
