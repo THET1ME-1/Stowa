@@ -15,6 +15,7 @@ import 'data/providers.dart';
 import 'data/settings_repository.dart';
 import 'domain/appearance.dart';
 import 'domain/reminder_parser.dart' show warmUpReminders;
+import 'features/edge/edge_probe.dart';
 import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
@@ -49,6 +50,14 @@ Future<void> shareMain() async {
 Future<void> quickMain() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _run(const StowaApp(home: QuickHost(), lockable: false), reminderPort(), 'quick');
+}
+
+/// Полка «Под рукой»: её запускает EdgeService в окне поверх других приложений.
+/// Пока пробная (этап 1 плана), без базы и хранилища.
+@pragma('vm:entry-point')
+Future<void> edgeMain() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const EdgeProbe());
 }
 
 /// [window] — какое окно запущено: с ним ошибка уходит в отчёт.

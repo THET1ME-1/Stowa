@@ -18,11 +18,13 @@ import android.view.WindowManager
  */
 class EdgeService : Service() {
     private lateinit var windows: WindowManager
+    private lateinit var panel: EdgePanel
     private var handle: EdgeHandle? = null
 
     override fun onCreate() {
         super.onCreate()
         windows = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        panel = EdgePanel(this, windows)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -32,12 +34,16 @@ class EdgeService : Service() {
             return START_NOT_STICKY
         }
         if (handle == null) showHandle()
+        // движок полки — сразу и на всё время службы. Impeller (OpenGL) не рисует в окне поверх,
+        // если движок заведён, пока свёрнутое главное окно держит свой: кадр так и не появлялся
+        // (эмулятор 14.11.2026). Заведённый при запуске службы — рисует и потом, при свёрнутом
+        panel.warmUp()
         return START_STICKY
     }
 
     private fun showHandle() {
         val density = resources.displayMetrics.density
-        val view = EdgeHandle(this) { Log.d(EdgeHandle.TAG, "open shelf") }
+        val view = EdgeHandle(this) { panel.show() }
         // подложка 15 × 128 точек, запас для пальца 18; треть высоты экрана сверху
         val height = (128 * density).toInt()
         val width = ((15 + 18) * density).toInt()
@@ -65,6 +71,7 @@ class EdgeService : Service() {
     }
 
     override fun onDestroy() {
+        panel.destroy()
         handle?.let { windows.removeView(it) }
         handle = null
         super.onDestroy()
