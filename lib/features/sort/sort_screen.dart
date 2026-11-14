@@ -19,15 +19,7 @@ import '../folder/folder_cards.dart';
 import '../folder/folder_sheets.dart';
 import '../item/item_screen.dart';
 
-Route<void> sortRoute() => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const SortScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> sortRoute() => MaterialPageRoute(builder: (_) => const SortScreen());
 
 /// «Разобрать»: всё, что без папки, по одной карточке. Касание папки кладёт туда,
 /// свайп вниз пропускает. Первые три папки — подсказки по словам.

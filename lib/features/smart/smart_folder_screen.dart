@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/sheet_options.dart';
@@ -15,15 +14,7 @@ import '../folder/folder_cards.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
 import '../item/item_screen.dart' show itemRoute;
 
-Route<void> smartFolderRoute(String id) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => SmartFolderScreen(id: id),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> smartFolderRoute(String id) => MaterialPageRoute(builder: (_) => SmartFolderScreen(id: id));
 
 enum _SmartAction { rename, delete }
 

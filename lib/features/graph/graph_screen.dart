@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
@@ -15,12 +14,8 @@ import '../../l10n/app_localizations.dart';
 import '../item/item_screen.dart';
 
 /// Граф связей папки или тега.
-Route<void> graphRoute({String? folderId, String? tag, required String title}) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => GraphScreen(folderId: folderId, tag: tag, title: title),
-  transitionsBuilder: (context, animation, secondary, child) => FadeTransition(opacity: animation, child: child),
-);
+Route<void> graphRoute({String? folderId, String? tag, required String title}) =>
+    MaterialPageRoute(builder: (_) => GraphScreen(folderId: folderId, tag: tag, title: title));
 
 /// 500 точек считаются заметную долю секунды: не на потоке экрана. Функция верхнего
 /// уровня нарочно — замыкание внутри состояния утащило бы в поток весь экран, а его

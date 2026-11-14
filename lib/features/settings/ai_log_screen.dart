@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
@@ -11,15 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/ai_client.dart';
 import 'settings_screen.dart' show aiFailureText;
 
-Route<void> aiLogRoute() => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const AiLogScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> aiLogRoute() => MaterialPageRoute(builder: (_) => const AiLogScreen());
 
 /// «AiFailure(timeout): нет ответа за 90 секунд» → «Модель не ответила вовремя · нет ответа за 90 секунд».
 String _errorText(L l, String error) {

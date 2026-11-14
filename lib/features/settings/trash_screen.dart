@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -15,15 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
 import '../item/adult_veil.dart';
 
-Route<void> trashRoute() => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const TrashScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> trashRoute() => MaterialPageRoute(builder: (_) => const TrashScreen());
 
 /// Корзина: удалённое лежит 30 дней. Вернуть одним касанием, стереть — смахнуть влево.
 class TrashScreen extends ConsumerWidget {

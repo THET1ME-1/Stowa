@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../motion/stowa_slide.dart';
+import '../motion/unfold/unfold_route.dart';
 import 'palette.dart';
 import 'tokens.dart';
+
+/// Цвет растущего окна: фон экранов. Цвет кнопки дал бы вспышку на тёмной кнопке.
+Color _screenFill(BuildContext context) => Theme.of(context).scaffoldBackgroundColor;
 
 const displayFont = 'Unbounded';
 const bodyFont = 'Onest';
@@ -82,6 +87,14 @@ ThemeData buildAppTheme([StowaPalette? palette]) {
     textTheme: text,
     scaffoldBackgroundColor: scheme.surface,
     shadowColor: Colors.transparent,
+    // экран вырастает из нажатой карточки или кнопки и складывается обратно в неё,
+    // как в Togetherly; открытый не касанием въезжает прежним сдвигом
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: <TargetPlatform, PageTransitionsBuilder>{
+        TargetPlatform.android: UnfoldPageTransitionsBuilder(fallback: StowaSlideTransitionsBuilder(), fill: _screenFill),
+        TargetPlatform.iOS: UnfoldPageTransitionsBuilder(fallback: StowaSlideTransitionsBuilder(), fill: _screenFill),
+      },
+    ),
     splashFactory: InkSparkle.splashFactory,
     appBarTheme: AppBarTheme(
       elevation: 0,

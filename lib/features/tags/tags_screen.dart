@@ -25,15 +25,7 @@ import '../folder/folder_sheets.dart';
 import 'rule_sheet.dart';
 import 'tag_sheet.dart';
 
-Route<void> tagsRoute() => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const TagsScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> tagsRoute() => MaterialPageRoute(builder: (_) => const TagsScreen());
 
 /// Теги и папки, как экран 10 макета: закреплённые теги, все теги, правила; папки отдельной вкладкой.
 class TagsScreen extends ConsumerStatefulWidget {

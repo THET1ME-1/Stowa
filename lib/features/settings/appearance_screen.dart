@@ -14,15 +14,7 @@ import '../../domain/appearance.dart';
 import '../../l10n/app_localizations.dart';
 import 'settings_blocks.dart';
 
-Route<void> appearanceRoute() => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const AppearanceScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> appearanceRoute() => MaterialPageRoute(builder: (_) => const AppearanceScreen());
 
 String themeChoiceLabel(L l, ThemeChoice choice) => switch (choice) {
   ThemeChoice.light => l.themeLight,

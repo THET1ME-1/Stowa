@@ -20,15 +20,7 @@ import '../item/item_actions.dart';
 import '../item/item_screen.dart';
 import '../privacy/privacy_flows.dart';
 
-Route<void> catalogRoute() => PageRouteBuilder(
-  transitionDuration: Motion.long,
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const CatalogScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> catalogRoute() => MaterialPageRoute(builder: (_) => const CatalogScreen());
 
 /// Высота строки дерева: плотно, как в Obsidian, но палец попадает.
 const _folderRow = 48.0;

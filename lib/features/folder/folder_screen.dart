@@ -38,17 +38,9 @@ import 'folder_view.dart';
 
 String folderRouteName(String? folderId) => 'folder/${folderId ?? ''}';
 
-/// Папка въезжает справа, как страница вещи.
-Route<void> folderRoute(String? folderId) => PageRouteBuilder(
-  settings: RouteSettings(name: folderRouteName(folderId)),
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => FolderScreen(folderId: folderId),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+/// Папка вырастает из нажатой плитки, как страница заметки (переход темы).
+Route<void> folderRoute(String? folderId) =>
+    MaterialPageRoute(settings: RouteSettings(name: folderRouteName(folderId)), builder: (_) => FolderScreen(folderId: folderId));
 
 /// Место под свёрнутую строку внизу, чтобы последняя карточка не пряталась.
 const _dockSpace = 150.0;

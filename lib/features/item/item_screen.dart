@@ -62,16 +62,9 @@ import 'properties_block.dart';
 import 'link_sheet.dart';
 import 'related_block.dart';
 
-/// Страница въезжает справа, как в макете.
-Route<void> itemRoute(String id) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => ItemScreen(id: id),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+/// Страница вырастает из нажатой карточки и складывается в неё (переход темы);
+/// открытая уведомлением или ссылкой — въезжает справа.
+Route<void> itemRoute(String id) => MaterialPageRoute(builder: (_) => ItemScreen(id: id));
 
 /// Пауза в наборе, после которой правка сохраняется сама.
 const _autosaveDelay = Duration(milliseconds: 700);

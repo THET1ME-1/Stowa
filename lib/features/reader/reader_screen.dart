@@ -12,7 +12,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -25,18 +24,8 @@ import '../../domain/highlight_marks.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart';
 
-Route<void> readerRoute(String itemId, {String? highlightId}) => PageRouteBuilder(
-  transitionDuration: Motion.long,
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => ReaderScreen(itemId: itemId, highlightId: highlightId),
-  transitionsBuilder: (context, animation, secondary, child) => FadeTransition(
-    opacity: CurvedAnimation(parent: animation, curve: Motion.emphasizedDecelerate),
-    child: SlideTransition(
-      position: Tween(begin: const Offset(0, 0.04), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-      child: child,
-    ),
-  ),
-);
+Route<void> readerRoute(String itemId, {String? highlightId}) =>
+    MaterialPageRoute(builder: (_) => ReaderScreen(itemId: itemId, highlightId: highlightId));
 
 /// Маркер цитаты: жёлтый, как у текстовыделителя; текст на нём тёмный.
 final _marker = FolderPalette.colors['lemon']!;

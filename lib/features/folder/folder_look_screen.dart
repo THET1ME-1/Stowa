@@ -15,16 +15,8 @@ import '../settings/settings_blocks.dart';
 
 typedef FolderLook = ({String icon, String shape, String? color});
 
-/// Экран «Цвет и значок» выезжает справа и отдаёт выбранное или null.
-Route<FolderLook> folderLookRoute(FolderCard folder) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => FolderLookScreen(folder: folder),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+/// Экран «Цвет и значок» вырастает из нажатой кнопки и отдаёт выбранное или null.
+Route<FolderLook> folderLookRoute(FolderCard folder) => MaterialPageRoute(builder: (_) => FolderLookScreen(folder: folder));
 
 // весь набор один раз: тысячи имён не пересобираются на каждый кадр;
 // «10k», «4g» и прочие цифры уходят в конец, иначе набор начинается с них

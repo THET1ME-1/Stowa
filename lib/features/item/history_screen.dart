@@ -7,7 +7,6 @@ import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/db/database.dart';
@@ -19,16 +18,8 @@ import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
 import 'note_body.dart';
 
-/// История въезжает справа, как страница заметки. Вернули версию — экран отдаёт true.
-Route<bool> historyRoute(String itemId) => PageRouteBuilder(
-  transitionDuration: Motion.long,
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => HistoryScreen(itemId: itemId),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+/// История вырастает из нажатой кнопки, как страница заметки. Вернули версию — экран отдаёт true.
+Route<bool> historyRoute(String itemId) => MaterialPageRoute(builder: (_) => HistoryScreen(itemId: itemId));
 
 /// «Сегодня, 14:05», «7 нояб., 10:20».
 String versionTime(L l, DateTime at, DateTime now) {
@@ -116,15 +107,7 @@ class HistoryScreen extends ConsumerWidget {
     return '+${counts.added} −${counts.removed}';
   }
 
-  Route<bool> _versionRoute(NoteVersion version) => PageRouteBuilder(
-    transitionDuration: Motion.long,
-    reverseTransitionDuration: Motion.medium,
-    pageBuilder: (context, animation, secondary) => VersionScreen(version: version),
-    transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-      position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-      child: child,
-    ),
-  );
+  Route<bool> _versionRoute(NoteVersion version) => MaterialPageRoute(builder: (_) => VersionScreen(version: version));
 }
 
 class _BackButton extends StatelessWidget {

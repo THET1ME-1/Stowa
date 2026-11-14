@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/return_repository.dart';
@@ -14,15 +13,7 @@ import '../folder/folder_cards.dart';
 import '../item/item_screen.dart';
 import '../privacy/hidden_item_route.dart';
 
-Route<void> returnRoute(ReturnKind kind) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => ReturnScreen(kind: kind),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> returnRoute(ReturnKind kind) => MaterialPageRoute(builder: (_) => ReturnScreen(kind: kind));
 
 /// Куда ведёт касание уведомления: `return:<вид>` — экран возврата, `note:<id>` — заметка,
 /// голый id — заметка, как у напоминаний до возврата.

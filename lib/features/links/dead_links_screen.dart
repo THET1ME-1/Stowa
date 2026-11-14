@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
@@ -12,15 +11,7 @@ import '../../domain/note_links.dart' show shownTitle;
 import '../../l10n/app_localizations.dart';
 import '../item/item_screen.dart';
 
-Route<void> deadLinksRoute() => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => const DeadLinksScreen(),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> deadLinksRoute() => MaterialPageRoute(builder: (_) => const DeadLinksScreen());
 
 /// Битые ссылки: сайт удалил страницу или закрылся. Решить по каждой —
 /// оставить заметку с копией или удалить в корзину. «Проверить сейчас» не ждёт недели.

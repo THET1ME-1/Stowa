@@ -2,23 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
-import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 
 /// Цвет значков группы из палитры папок: разделы различаются с первого взгляда.
 Color settingsTint(String key) => FolderPalette.colors[key]!;
 
-/// Экран настроек выезжает справа. Раздел длиннее пяти строк живёт на своём экране.
-Route<void> settingsPageRoute(Widget page) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => page,
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+/// Экран настроек вырастает из нажатой строки (переход темы). Раздел длиннее
+/// пяти строк живёт на своём экране.
+Route<void> settingsPageRoute(Widget page) => MaterialPageRoute(builder: (_) => page);
 
 /// Лист настроек снизу: поднимается над клавиатурой.
 Future<T?> showSettingsSheet<T>(BuildContext context, Widget child) => showModalBottomSheet<T>(

@@ -22,16 +22,8 @@ import '../map/map_tiles.dart';
 import '../settings/settings_blocks.dart';
 import 'place_kinds.dart';
 
-/// Экран места выезжает справа: новое — [place] null, иначе правка.
-Route<void> placeEditRoute({Place? place}) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => PlaceEditScreen(place: place),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+/// Экран места вырастает из нажатой строки: новое — [place] null, иначе правка.
+Route<void> placeEditRoute({Place? place}) => MaterialPageRoute(builder: (_) => PlaceEditScreen(place: place));
 
 /// Радиусы, из которых выбирают: дом и аптека — 100–150 м, университет и торговый центр — 300–500.
 const placeRadii = [100, 150, 300, 500];

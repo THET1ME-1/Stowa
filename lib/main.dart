@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'app_session.dart';
+import 'core/motion/unfold/unfold_touch.dart';
 import 'core/theme/tokens.dart';
 import 'data/db/database.dart';
 import 'data/providers.dart';
@@ -71,6 +72,8 @@ Future<void> stickerMain(List<String> args) async {
 
 /// [window] — какое окно запущено: с ним ошибка уходит в отчёт.
 Future<void> _run(StowaApp app, LocalNotificationPort notifications, String window) async {
+  // запоминает, по чему нажали: из этого места вырастет следующий экран
+  UnfoldTouch.install();
   // сюда выбор файлов, камера и «Поделиться» кладут свои копии: их можно переносить, а не копировать
   final cache = await getTemporaryDirectory();
   final prefs = await SharedPreferences.getInstance();

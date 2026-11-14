@@ -21,15 +21,7 @@ import '../item/item_screen.dart';
 import 'map_tiles.dart';
 
 /// Карта заметок. [focusItemId] — открыть сразу на этой вещи (касание места на её странице).
-Route<void> mapRoute({String? focusItemId}) => PageRouteBuilder(
-  transitionDuration: const Duration(milliseconds: 500),
-  reverseTransitionDuration: Motion.medium,
-  pageBuilder: (context, animation, secondary) => MapScreen(focusItemId: focusItemId),
-  transitionsBuilder: (context, animation, secondary, child) => SlideTransition(
-    position: Tween(begin: const Offset(1.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Motion.emphasized)),
-    child: child,
-  ),
-);
+Route<void> mapRoute({String? focusItemId}) => MaterialPageRoute(builder: (_) => MapScreen(focusItemId: focusItemId));
 
 
 /// Где что сохранено. Вещи рядом склеены в одно место, снизу — вещи выбранного.
