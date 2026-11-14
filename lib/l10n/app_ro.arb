@@ -631,5 +631,9 @@
   "edgeAlpha": "Vizibilitate",
   "edgeHideVideo": "Ascunde în video pe tot ecranul",
   "edgeHideVideoHint": "Cât timp un video sau un joc e pe tot ecranul, cotoarele nu încurcă.",
-  "edgeOff": "Oprit"
+  "edgeOff": "Oprit",
+  "edgeRecent": "Recente",
+  "edgeOpenApp": "Deschide Stowa",
+  "edgeStick": "Fixează ca autocolant",
+  "edgeSpinesSetup": "Configurează cotoarele"
 }

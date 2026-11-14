@@ -3227,4 +3227,16 @@ class LEs extends L {
 
   @override
   String get edgeOff => 'Desactivado';
+
+  @override
+  String get edgeRecent => 'Recientes';
+
+  @override
+  String get edgeOpenApp => 'Abrir Stowa';
+
+  @override
+  String get edgeStick => 'Fijar como pegatina';
+
+  @override
+  String get edgeSpinesSetup => 'Ajustar los lomos';
 }

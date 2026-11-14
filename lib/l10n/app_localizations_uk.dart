@@ -3282,4 +3282,16 @@ class LUk extends L {
 
   @override
   String get edgeOff => 'Вимкнено';
+
+  @override
+  String get edgeRecent => 'Нещодавні';
+
+  @override
+  String get edgeOpenApp => 'Відкрити Stowa';
+
+  @override
+  String get edgeStick => 'Повісити стікером';
+
+  @override
+  String get edgeSpinesSetup => 'Налаштувати корінці';
 }

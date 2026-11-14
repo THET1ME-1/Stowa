@@ -11,16 +11,30 @@ import android.graphics.RectF
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.VelocityTracker
 import android.view.ViewConfiguration
 import kotlin.math.abs
 
 /**
  * Корешки у края: тёмная подложка и столбик цветных отрезков — закреплённые заметки цветом
  * их папок. Подложка прижата к краю экрана, слева от неё (справа у левого края) — запас
- * для пальца, невидимый. Касание открывает полку.
+ * для пальца, невидимый. Касание открывает полку, свайп внутрь ведёт её за пальцем.
  */
 @SuppressLint("ViewConstructor")
-class EdgeHandle(context: Context, private val onTap: () -> Unit) : View(context) {
+class EdgeHandle(context: Context, private val gestures: Gestures) : View(context) {
+    /** Касание и свайп корешков: полку ведёт Dart, сюда только расстояния в точках экрана. */
+    interface Gestures {
+        fun onTap()
+
+        fun onDragStart()
+
+        /** Палец ушёл от края внутрь экрана на [distanceDp] с начала свайпа. */
+        fun onDrag(distanceDp: Float)
+
+        /** Отпустили; [velocityDp] — точек в секунду, плюс — внутрь экрана. */
+        fun onDragEnd(velocityDp: Float)
+    }
+
     private val density = resources.displayMetrics.density
 
     /** Корешки у правого края экрана; у левого всё зеркально. */
@@ -70,6 +84,11 @@ class EdgeHandle(context: Context, private val onTap: () -> Unit) : View(context
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
     private var downY = 0f
+    private var dragging = false
+    private var velocity: VelocityTracker? = null
+
+    /** Насколько палец ушёл от края внутрь экрана, в пикселях. */
+    private fun inward(event: MotionEvent) = if (rightSide) downX - event.rawX else event.rawX - downX
 
     // при навигации жестами свайп от края забирает себе системное «назад»: касание корешков
     // приходило и тут же отменялось. Корешки исключены из зоны жеста (система даёт до 200 dp
@@ -113,19 +132,47 @@ class EdgeHandle(context: Context, private val onTap: () -> Unit) : View(context
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        // скорость по экранным координатам: окно корешков само не двигается, но так надёжнее
+        val screen = MotionEvent.obtain(event).apply { setLocation(event.rawX, event.rawY) }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = event.rawX
                 downY = event.rawY
+                dragging = false
+                velocity?.recycle()
+                velocity = VelocityTracker.obtain().also { it.addMovement(screen) }
+            }
+            MotionEvent.ACTION_MOVE -> {
+                velocity?.addMovement(screen)
+                val inward = inward(event)
+                // свайп внутрь, а не вдоль края: полка выходит и дальше идёт за пальцем
+                if (!dragging && inward > touchSlop && inward > abs(event.rawY - downY)) {
+                    dragging = true
+                    Log.d(TAG, "drag")
+                    gestures.onDragStart()
+                }
+                if (dragging) gestures.onDrag(inward.coerceAtLeast(0f) / density)
             }
             MotionEvent.ACTION_UP -> {
-                // касание без сдвига — открыть; свайп внутрь — задача полки (этап 2)
-                if (abs(event.rawX - downX) < touchSlop && abs(event.rawY - downY) < touchSlop) {
+                velocity?.addMovement(screen)
+                if (dragging) {
+                    val tracker = velocity
+                    tracker?.computeCurrentVelocity(1000)
+                    val dx = tracker?.xVelocity ?: 0f
+                    gestures.onDragEnd((if (rightSide) -dx else dx) / density)
+                } else if (abs(event.rawX - downX) < touchSlop && abs(event.rawY - downY) < touchSlop) {
                     Log.d(TAG, "tap")
-                    onTap()
+                    gestures.onTap()
                 }
+                dragging = false
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                // система забрала жест — полка возвращается туда, откуда её тянули
+                if (dragging) gestures.onDragEnd(0f)
+                dragging = false
             }
         }
+        screen.recycle()
         return true
     }
 

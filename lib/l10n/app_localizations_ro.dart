@@ -3253,4 +3253,16 @@ class LRo extends L {
 
   @override
   String get edgeOff => 'Oprit';
+
+  @override
+  String get edgeRecent => 'Recente';
+
+  @override
+  String get edgeOpenApp => 'Deschide Stowa';
+
+  @override
+  String get edgeStick => 'Fixează ca autocolant';
+
+  @override
+  String get edgeSpinesSetup => 'Configurează cotoarele';
 }

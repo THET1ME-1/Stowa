@@ -32,7 +32,38 @@ class EdgeService : Service() {
     override fun onCreate() {
         super.onCreate()
         windows = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        panel = EdgePanel(this, windows, onSpines = { spines -> handle?.spines = spines })
+        panel = EdgePanel(
+            this,
+            windows,
+            onSpines = { spines -> handle?.spines = spines },
+            onShown = ::spinesAway,
+            onClosing = ::spinesBack,
+        )
+    }
+
+    /** Полка выезжает: корешки уходят за свой край, 200 мс, emphasizedAccelerate. */
+    private fun spinesAway() {
+        val view = handle ?: return
+        val settings = prefs ?: return
+        if (leaving) return
+        view.animate().translationX(outside(view, settings)).setDuration(200).setInterpolator(ACCELERATE).start()
+    }
+
+    /** Полка уезжает: корешки выезжают обратно, 350 мс, emphasizedDecelerate. */
+    private fun spinesBack() {
+        val view = handle ?: return
+        if (leaving || view.translationX == 0f) return
+        view.animate().translationX(0f).setDuration(350).setInterpolator(DECELERATE).start()
+    }
+
+    private val gestures = object : EdgeHandle.Gestures {
+        override fun onTap() = panel.open()
+
+        override fun onDragStart() = panel.dragStart()
+
+        override fun onDrag(distanceDp: Float) = panel.drag(distanceDp)
+
+        override fun onDragEnd(velocityDp: Float) = panel.dragEnd(velocityDp)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -85,7 +116,7 @@ class EdgeService : Service() {
 
     private fun showHandle() {
         val settings = EdgePrefs.read(this)
-        val view = EdgeHandle(this) { panel.show(settings = prefs ?: settings) }
+        val view = EdgeHandle(this, gestures)
         view.apply(settings)
         val params = paramsFor(settings)
         // выезжает из-за своего края, 350 мс, emphasizedDecelerate

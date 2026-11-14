@@ -5392,6 +5392,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Off'**
   String get edgeOff;
+
+  /// Раздел полки «Под рукой»: последние заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get edgeRecent;
+
+  /// Кнопка в шапке полки: открыть приложение
+  ///
+  /// In en, this message translates to:
+  /// **'Open Stowa'**
+  String get edgeOpenApp;
+
+  /// Кнопка на карточке полки: заметка окошком поверх приложений
+  ///
+  /// In en, this message translates to:
+  /// **'Pin as a sticker'**
+  String get edgeStick;
+
+  /// Кнопка-шестерёнка в шапке полки
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the spines'**
+  String get edgeSpinesSetup;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

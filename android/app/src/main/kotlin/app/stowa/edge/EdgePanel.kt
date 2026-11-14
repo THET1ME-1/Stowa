@@ -1,10 +1,15 @@
 package app.stowa.edge
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.PixelFormat
+import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.WindowManager
+import app.stowa.MainActivity
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterTextureView
 import io.flutter.embedding.android.FlutterView
@@ -14,19 +19,23 @@ import io.flutter.plugin.common.MethodChannel
 
 /**
  * Окно полки поверх других приложений. Внутри — FlutterView своего движка с точкой входа
- * `edgeMain`. Движок создаётся при первом открытии и остаётся тёплым, пока жива служба:
- * второе открытие — без холодного старта. Окно не берёт фокус, пока Dart не попросит
- * (`setFocusable`): иначе у приложения под полкой пропала бы клавиатура.
+ * `edgeMain`. Движок заводится при запуске службы и остаётся тёплым, пока она жива:
+ * открытие — без холодного старта. Окно стоит во весь экран только пока полка открыта;
+ * выезд, затемнение и уход полки рисует Dart, сюда приходят касания и свайп корешков.
  */
 class EdgePanel(
     private val context: Context,
     private val windows: WindowManager,
     /** Движок полки прислал цвета корешков: закреплённые заметки цветом их папок. */
     private val onSpines: (List<Pair<Int, Float>>) -> Unit,
+    /** Окно полки встало: корешкам уйти за край. */
+    private val onShown: () -> Unit,
+    /** Полка начала уезжать или окно убрано: корешкам вернуться. */
+    private val onClosing: () -> Unit,
 ) {
     private var engine: FlutterEngine? = null
+    private var channel: MethodChannel? = null
     private var view: FlutterView? = null
-    private var params: WindowManager.LayoutParams? = null
 
     val isShown: Boolean get() = view != null
 
@@ -35,24 +44,65 @@ class EdgePanel(
         if (engine == null) engine = createEngine()
     }
 
-    fun show(settings: EdgePrefs) {
+    /** Касание корешков: окно встаёт, полка выезжает (движение — в Dart). */
+    fun open() {
+        show()
+        channel?.invokeMethod("open", null)
+    }
+
+    /** Свайп корешков внутрь: окно встаёт, дальше полка идёт за пальцем. */
+    fun dragStart() {
+        show()
+        channel?.invokeMethod("dragStart", null)
+    }
+
+    fun drag(distanceDp: Float) {
+        if (view != null) channel?.invokeMethod("drag", distanceDp.toDouble())
+    }
+
+    fun dragEnd(velocityDp: Float) {
+        if (view != null) channel?.invokeMethod("dragEnd", velocityDp.toDouble())
+    }
+
+    /** «Назад» с пустым навигатором полки: пусть уедет плавно, окно Dart уберёт сам. */
+    fun dismiss() {
+        if (view != null) channel?.invokeMethod("dismiss", null)
+    }
+
+    private fun show() {
         if (view != null) return
         val engine = engine ?: createEngine().also { engine = it }
-        val density = context.resources.displayMetrics.density
         // TextureView, не SurfaceView: отдельная поверхность SurfaceView в окне поверх так и не
         // показала кадр (SurfaceSyncGroup ждал её и сдавался, эмулятор 14.11.2026). Прозрачна сама:
-        // вне скруглённой полки видно приложение под ней
-        val flutterView = FlutterView(context, FlutterTextureView(context))
+        // за полкой — затемнение, его рисует Dart вместе с выездом полки
+        val flutterView = object : FlutterView(context, FlutterTextureView(context)) {
+            // «назад» в окно без Activity приходит голой клавишей, Flutter о ней не знает. Отдаём его
+            // как системное: строка снимается, заметка в полке закрывается, потом уезжает сама полка
+            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                if (event.keyCode != KeyEvent.KEYCODE_BACK) return super.dispatchKeyEvent(event)
+                if (event.action == KeyEvent.ACTION_UP && !event.isCanceled) engine.navigationChannel.popRoute()
+                return true
+            }
+        }
+        // окно во весь экран, пока полка открыта: касание мимо полки — по затемнению, оно её убирает.
+        // Фокус у окна всё время: «назад» и клавиатура — полке, приложение под ней всё равно закрыто
         val layout = WindowManager.LayoutParams(
-            ((312 + 8) * density).toInt(),
+            WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT,
         ).apply {
-            // полка у того же края, что корешки
-            gravity = Gravity.TOP or (if (settings.rightSide) Gravity.END else Gravity.START)
-            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            gravity = Gravity.TOP or Gravity.START
+            // окно во весь экран и не ужимается ни под полосы, ни под клавиатуру: их Flutter получает
+            // отступами и поднимает строку сам, кадр в кадр. Иначе система ужимала окно под
+            // клавиатуру (даже с ADJUST_NOTHING), а Flutter вычитал её ещё раз — полка сжималась
+            // до строки наверху (эмулятор 14.11.2026)
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) fitInsetsTypes = 0
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
             title = "Stowa shelf"
         }
         // сперва движок, потом окно: поверхность становится доступной при показе окна и
@@ -61,54 +111,65 @@ class EdgePanel(
         windows.addView(flutterView, layout)
         engine.lifecycleChannel.appIsResumed()
         view = flutterView
-        params = layout
+        onShown()
         Log.d(EdgeHandle.TAG, "shelf shown")
     }
 
+    /** Убрать окно сразу. Полка к этому времени уже уехала за край (или её выключили). */
     fun close() {
         val flutterView = view ?: return
-        setFocusable(false)
         engine?.lifecycleChannel?.appIsInactive()
         flutterView.detachFromFlutterEngine()
         windows.removeView(flutterView)
         view = null
-        params = null
+        onClosing()
         Log.d(EdgeHandle.TAG, "shelf closed")
-    }
-
-    /** Фокус для набора: окно берёт клавиатуру, пока поле полки в фокусе. */
-    fun setFocusable(on: Boolean) {
-        val flutterView = view ?: return
-        val layout = params ?: return
-        val flags = if (on) {
-            layout.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
-        } else {
-            layout.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        }
-        if (flags == layout.flags) return
-        layout.flags = flags
-        windows.updateViewLayout(flutterView, layout)
-        Log.d(EdgeHandle.TAG, "shelf focusable=$on")
     }
 
     fun destroy() {
         close()
+        channel?.setMethodCallHandler(null)
+        channel = null
         engine?.destroy()
         engine = null
+    }
+
+    /** Открыть Stowa тем же адресом, что уведомление по месту и окно виджета. */
+    private fun openApp(noteId: String?) {
+        val intent = Intent(context, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        if (noteId != null) {
+            intent.setAction(Intent.ACTION_VIEW).setData(Uri.parse("stowa://open?payload=${Uri.encode("note:$noteId")}"))
+        }
+        close()
+        context.startActivity(intent)
     }
 
     private fun createEngine(): FlutterEngine {
         val engine = FlutterEngine(context)
         // буфер, вибрация и звук нажатия: в окне без Activity их некому обслужить
-        engine.platformChannel.setPlatformMessageHandler(EdgePlatform(context, { view }, ::close))
-        MethodChannel(engine.dartExecutor.binaryMessenger, "stowa/edge").setMethodCallHandler { call, result ->
+        engine.platformChannel.setPlatformMessageHandler(EdgePlatform(context, { view }, ::dismiss))
+        val channel = MethodChannel(engine.dartExecutor.binaryMessenger, "stowa/edge")
+        this.channel = channel
+        channel.setMethodCallHandler { call, result ->
             when (call.method) {
-                "setFocusable" -> {
-                    setFocusable(call.arguments as Boolean)
+                // полка поехала за край: корешки возвращаются в такт, окно уберёт "close"
+                "closing" -> {
+                    onClosing()
                     result.success(null)
                 }
                 "close" -> {
                     close()
+                    result.success(null)
+                }
+                // id заметки или null — главная; полка уходит, человек оказывается в Stowa
+                "openApp" -> {
+                    openApp(call.arguments as String?)
+                    result.success(null)
+                }
+                // окна стикеров появятся следующей задачей плана, пока только след в журнале
+                "pinSticker" -> {
+                    Log.d(EdgeHandle.TAG, "pin sticker")
                     result.success(null)
                 }
                 // [{color: ARGB, weight: доля}, …] сверху вниз

@@ -3282,4 +3282,16 @@ class LPl extends L {
 
   @override
   String get edgeOff => 'Wyłączone';
+
+  @override
+  String get edgeRecent => 'Ostatnie';
+
+  @override
+  String get edgeOpenApp => 'Otwórz Stowa';
+
+  @override
+  String get edgeStick => 'Przypnij jako naklejkę';
+
+  @override
+  String get edgeSpinesSetup => 'Ustaw grzbiety';
 }

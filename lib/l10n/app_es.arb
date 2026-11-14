@@ -631,5 +631,9 @@
   "edgeAlpha": "Visibilidad",
   "edgeHideVideo": "Ocultar en vídeo a pantalla completa",
   "edgeHideVideoHint": "Mientras un vídeo o juego está a pantalla completa, los lomos no estorban.",
-  "edgeOff": "Desactivado"
+  "edgeOff": "Desactivado",
+  "edgeRecent": "Recientes",
+  "edgeOpenApp": "Abrir Stowa",
+  "edgeStick": "Fijar como pegatina",
+  "edgeSpinesSetup": "Ajustar los lomos"
 }

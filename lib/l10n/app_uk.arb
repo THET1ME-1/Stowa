@@ -631,5 +631,9 @@
   "edgeAlpha": "Помітність",
   "edgeHideVideo": "Ховати в повноекранному відео",
   "edgeHideVideoHint": "Поки відео чи гра на весь екран, корінці не заважають.",
-  "edgeOff": "Вимкнено"
+  "edgeOff": "Вимкнено",
+  "edgeRecent": "Нещодавні",
+  "edgeOpenApp": "Відкрити Stowa",
+  "edgeStick": "Повісити стікером",
+  "edgeSpinesSetup": "Налаштувати корінці"
 }

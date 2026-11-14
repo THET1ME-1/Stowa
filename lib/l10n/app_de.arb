@@ -631,5 +631,9 @@
   "edgeAlpha": "Sichtbarkeit",
   "edgeHideVideo": "Bei Vollbildvideo ausblenden",
   "edgeHideVideoHint": "Solange ein Video oder Spiel im Vollbild läuft, stören die Rücken nicht.",
-  "edgeOff": "Aus"
+  "edgeOff": "Aus",
+  "edgeRecent": "Zuletzt",
+  "edgeOpenApp": "Stowa öffnen",
+  "edgeStick": "Als Sticker anheften",
+  "edgeSpinesSetup": "Rücken einrichten"
 }

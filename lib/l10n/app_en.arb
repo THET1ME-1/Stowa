@@ -4117,5 +4117,21 @@
   "edgeOff": "Off",
   "@edgeOff": {
     "description": "Значение строки «Под рукой» в настройках, когда корешки выключены"
+  },
+  "edgeRecent": "Recent",
+  "@edgeRecent": {
+    "description": "Раздел полки «Под рукой»: последние заметки"
+  },
+  "edgeOpenApp": "Open Stowa",
+  "@edgeOpenApp": {
+    "description": "Кнопка в шапке полки: открыть приложение"
+  },
+  "edgeStick": "Pin as a sticker",
+  "@edgeStick": {
+    "description": "Кнопка на карточке полки: заметка окошком поверх приложений"
+  },
+  "edgeSpinesSetup": "Set up the spines",
+  "@edgeSpinesSetup": {
+    "description": "Кнопка-шестерёнка в шапке полки"
   }
 }

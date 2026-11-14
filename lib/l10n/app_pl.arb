@@ -631,5 +631,9 @@
   "edgeAlpha": "Widoczność",
   "edgeHideVideo": "Ukrywaj przy filmie na pełnym ekranie",
   "edgeHideVideoHint": "Gdy film lub gra są na pełnym ekranie, grzbiety nie przeszkadzają.",
-  "edgeOff": "Wyłączone"
+  "edgeOff": "Wyłączone",
+  "edgeRecent": "Ostatnie",
+  "edgeOpenApp": "Otwórz Stowa",
+  "edgeStick": "Przypnij jako naklejkę",
+  "edgeSpinesSetup": "Ustaw grzbiety"
 }

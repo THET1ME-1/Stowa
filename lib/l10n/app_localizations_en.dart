@@ -3223,4 +3223,16 @@ class LEn extends L {
 
   @override
   String get edgeOff => 'Off';
+
+  @override
+  String get edgeRecent => 'Recent';
+
+  @override
+  String get edgeOpenApp => 'Open Stowa';
+
+  @override
+  String get edgeStick => 'Pin as a sticker';
+
+  @override
+  String get edgeSpinesSetup => 'Set up the spines';
 }

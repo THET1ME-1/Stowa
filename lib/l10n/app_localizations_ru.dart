@@ -3286,4 +3286,16 @@ class LRu extends L {
 
   @override
   String get edgeOff => 'Выключено';
+
+  @override
+  String get edgeRecent => 'Недавние';
+
+  @override
+  String get edgeOpenApp => 'Открыть Stowa';
+
+  @override
+  String get edgeStick => 'Повесить стикером';
+
+  @override
+  String get edgeSpinesSetup => 'Настроить корешки';
 }

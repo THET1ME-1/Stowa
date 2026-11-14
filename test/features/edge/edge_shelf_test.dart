@@ -1,0 +1,232 @@
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/app.dart';
+import 'package:stowa/core/theme/folder_palette.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/providers.dart';
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/spine_colors.dart';
+import 'package:stowa/features/edge/edge_host.dart';
+import 'package:stowa/features/item/item_screen.dart';
+import 'package:stowa/features/settings/edge_screen.dart';
+import 'package:stowa/services/edge_channel.dart';
+import 'package:stowa/services/privacy/privacy_service.dart';
+import 'package:stowa/services/privacy/seal_crypto.dart';
+
+import '../../helpers/test_app.dart';
+
+void main() {
+  late TestWorld world;
+  setUp(() => world = TestWorld());
+  tearDown(() => world.dispose());
+
+  Future<void> note(String id, String title, {String? folder, bool pinned = false, int minutes = 1}) async {
+    final at = world.now.subtract(Duration(minutes: minutes));
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(
+        id: id,
+        kind: ItemKind.note,
+        title: title,
+        body: Value(title),
+        folderId: Value(folder),
+        sortState: const Value(SortState.sorted),
+        pinnedAt: Value(pinned ? at : null),
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+  }
+
+  // код на вход включён: ключи замка полке не нужны, только сам флажок
+  const locked = PrivacyLock(
+    keys: LockFile(salt: [], kdf: KdfSettings(memoryKib: 256, passes: 1), publicKey: [], wrapped: []),
+    appLock: true,
+  );
+
+  /// Окно полки стоит, полка за краем — как сразу после запуска службы.
+  Future<void> start(WidgetTester tester, {PrivacyLock? lock}) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [...world.overrides, if (lock != null) startLockProvider.overrideWithValue(lock)],
+        child: const StowaApp(locale: Locale('ru'), lockable: false, home: EdgeHost()),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  /// Коснулись корешков: полка выехала.
+  Future<void> open(WidgetTester tester, {PrivacyLock? lock}) async {
+    await start(tester, lock: lock);
+    world.edge.send(const EdgeOpen());
+    await tester.pumpAndSettle();
+  }
+
+  Finder inShelf(String text) => find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.text(text, findRichText: true));
+
+  // экран 1080×2400 при 2,75: корешки справа, полка 312 с отступом 8 от края
+  const screenWidth = 1080 / 2.75;
+  const openLeft = screenWidth - 8 - 312;
+  Rect shelf(WidgetTester tester) => tester.getRect(find.byKey(const ValueKey('edge-shelf')));
+
+  testWidgets('полка: шапка, папки, «Закреплено» и «Недавние», заметка один раз', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'dacha', name: 'Дача', icon: 'cottage', shape: 'pill', color: const Value('amber')));
+    await note('wifi', 'Wi‑Fi на даче', folder: 'dacha', pinned: true);
+    await note('milk', 'Купить молоко', minutes: 5);
+    await open(tester);
+    expect(inShelf('Stowa'), findsOneWidget);
+    expect(inShelf('Дача'), findsWidgets);
+    expect(inShelf('Закреплено'), findsOneWidget);
+    expect(inShelf('Недавние'), findsOneWidget);
+    expect(inShelf('Wi‑Fi на даче'), findsOneWidget);
+    expect(inShelf('Купить молоко'), findsOneWidget);
+    // строка ввода — та же, что в приложении
+    expect(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byKey(const ValueKey('composer'))), findsOneWidget);
+  });
+
+  testWidgets('кнопка в углу карточки вешает стикер, «Открыть Stowa» ведёт в приложение', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await open(tester);
+    await tester.tap(find.byTooltip('Повесить стикером'));
+    await tester.pumpAndSettle();
+    expect(world.edge.calls, contains('pinSticker:wifi'));
+    await tester.tap(find.byTooltip('Открыть Stowa'));
+    await tester.pumpAndSettle();
+    expect(world.edge.calls, contains('openApp:null'));
+  });
+
+  testWidgets('касание карточки открывает заметку в самой полке, «назад» возвращает к полке', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await open(tester);
+    await tester.tap(inShelf('Wi‑Fi на даче'));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(ItemScreen)), findsOneWidget);
+    expect(world.edge.calls.where((call) => call.startsWith('openApp')), isEmpty);
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ItemScreen), findsNothing);
+    expect(inShelf('Закреплено'), findsOneWidget);
+  });
+
+  testWidgets('шестерёнка открывает настройку корешков в самой полке', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Настроить корешки'));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(EdgeScreen)), findsOneWidget);
+  });
+
+  testWidgets('касание корешков: полка выезжает из-за края, «Свернуть» уводит её и только потом убирает окно', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await start(tester);
+    expect(shelf(tester).left, greaterThanOrEqualTo(screenWidth));
+    world.edge.send(const EdgeOpen());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    // на полпути: уже видна, но ещё не на месте
+    expect(shelf(tester).left, lessThan(screenWidth));
+    expect(shelf(tester).left, greaterThan(openLeft + 1));
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+
+    await tester.tap(find.byTooltip('Свернуть'));
+    await tester.pump();
+    expect(world.edge.calls, contains('closing'));
+    expect(world.edge.calls, isNot(contains('close')));
+    await tester.pumpAndSettle();
+    expect(world.edge.calls.last, 'close');
+    expect(shelf(tester).left, greaterThanOrEqualTo(screenWidth));
+  });
+
+  testWidgets('свайп: полка идёт за пальцем, отпустил дальше трети — доезжает', (tester) async {
+    await start(tester);
+    world.edge.send(const EdgeDragStart());
+    world.edge.send(const EdgeDrag(312 * 0.4));
+    await tester.pump();
+    // ровно за пальцем, без догоняния: из-за края вышло столько, сколько прошёл палец
+    expect(shelf(tester).left, moreOrLessEquals(openLeft + 320 - 312 * 0.4, epsilon: 0.5));
+    world.edge.send(const EdgeDragEnd(0));
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+    expect(world.edge.calls, isNot(contains('close')));
+  });
+
+  testWidgets('свайп: отпустил ближе трети — полка возвращается за край и окно убирается', (tester) async {
+    await start(tester);
+    world.edge.send(const EdgeDragStart());
+    world.edge.send(const EdgeDrag(312 * 0.2));
+    await tester.pump();
+    world.edge.send(const EdgeDragEnd(0));
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, greaterThanOrEqualTo(screenWidth));
+    expect(world.edge.calls.last, 'close');
+  });
+
+  testWidgets('свайп: быстрый короткий бросок внутрь открывает полку', (tester) async {
+    await start(tester);
+    world.edge.send(const EdgeDragStart());
+    world.edge.send(const EdgeDrag(312 * 0.15));
+    world.edge.send(const EdgeDragEnd(900));
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+  });
+
+  testWidgets('полку тянут к краю — уходит за пальцем и закрывается', (tester) async {
+    await open(tester);
+    final gesture = await tester.startGesture(shelf(tester).center);
+    // первый сдвиг уходит на порог жеста, дальше полка идёт ровно за пальцем
+    await gesture.moveBy(const Offset(40, 0));
+    await gesture.moveBy(const Offset(140, 0));
+    await tester.pump();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft + 140, epsilon: 0.5));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(shelf(tester).left, greaterThanOrEqualTo(screenWidth));
+    expect(world.edge.calls.last, 'close');
+  });
+
+  testWidgets('касание мимо полки и «назад» от службы её сворачивают', (tester) async {
+    await open(tester);
+    await tester.tapAt(const Offset(20, 400));
+    await tester.pumpAndSettle();
+    expect(world.edge.calls.last, 'close');
+
+    world.edge.send(const EdgeOpen());
+    await tester.pumpAndSettle();
+    world.edge.calls.clear();
+    world.edge.send(const EdgeDismiss());
+    await tester.pumpAndSettle();
+    expect(world.edge.calls.last, 'close');
+  });
+
+  testWidgets('«Убрать анимацию» в системе: полка сразу на месте', (tester) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await start(tester);
+    world.edge.send(const EdgeOpen());
+    await tester.pump();
+    await tester.pump();
+    expect(shelf(tester).left, moreOrLessEquals(openLeft, epsilon: 0.5));
+  });
+
+  testWidgets('корешки получают цвета папок закреплённых заметок', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'dacha', name: 'Дача', icon: 'cottage', shape: 'pill', color: const Value('amber')));
+    await note('wifi', 'Wi‑Fi на даче', folder: 'dacha', pinned: true);
+    await open(tester);
+    expect(world.edge.calls, contains('spines'));
+    expect(world.edge.lastSpines.single.color, FolderPalette.of('amber', 0));
+  });
+
+  testWidgets('замок: заметок на полке нет, корешок один — цвета папок не выдают закреплённое', (tester) async {
+    await note('wifi', 'Wi‑Fi на даче', pinned: true);
+    await open(tester, lock: locked);
+    expect(inShelf('Wi‑Fi на даче'), findsNothing);
+    expect(inShelf('Закреплено'), findsNothing);
+    expect(world.edge.lastSpines, hasLength(1));
+    expect(world.edge.lastSpines.single, isA<Spine>());
+  });
+}

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -7,10 +8,50 @@ import '../data/settings_repository.dart';
 import '../domain/edge_settings.dart';
 import '../domain/spine_colors.dart';
 
+/// Что служба сообщает полке: корешки коснулись или тянут, человек хочет её убрать.
+sealed class EdgeEvent {
+  const EdgeEvent();
+}
+
+/// Касание корешков: окно полки уже стоит, полке выехать.
+class EdgeOpen extends EdgeEvent {
+  const EdgeOpen();
+}
+
+/// Палец потянул корешки внутрь экрана: окно полки стоит, дальше полка идёт за пальцем.
+class EdgeDragStart extends EdgeEvent {
+  const EdgeDragStart();
+}
+
+/// Палец ушёл от края на [distance] точек с начала свайпа.
+class EdgeDrag extends EdgeEvent {
+  const EdgeDrag(this.distance);
+
+  final double distance;
+}
+
+/// Палец отпустили; [velocity] — точек в секунду, плюс — внутрь экрана.
+class EdgeDragEnd extends EdgeEvent {
+  const EdgeDragEnd(this.velocity);
+
+  final double velocity;
+}
+
+/// «Назад» или касание мимо окна: полке уехать.
+class EdgeDismiss extends EdgeEvent {
+  const EdgeDismiss();
+}
+
 /// Канал `stowa/edge`: «Под рукой» со стороны Dart. В главном окне — право и служба,
 /// в окне полки — фокус, закрытие и цвета корешков. На iPhone рисовать поверх других
 /// приложений нельзя: там [NoEdgeChannel].
 abstract class EdgeChannel {
+  /// В окне полки: касания и свайпы корешков от службы.
+  Stream<EdgeEvent> get events;
+
+  /// Из окна полки: полка начала уезжать, корешкам пора возвращаться.
+  Future<void> closing();
+
   Future<bool> canDraw();
 
   /// Системный экран права «Поверх других приложений» для Stowa.
@@ -24,17 +65,41 @@ abstract class EdgeChannel {
   /// Из окна полки: цвета корешков сверху вниз.
   Future<void> spines(List<Spine> spines);
 
-  /// Из окна полки: взять клавиатуру на время набора или отдать.
-  Future<void> setFocusable(bool on);
-
   /// Из окна полки: убрать полку.
   Future<void> close();
+
+  /// Из окна полки: открыть Stowa, с заметкой [noteId] или на главной, полку убрать.
+  Future<void> openApp(String? noteId);
+
+  /// Из окна полки: повесить заметку стикером поверх приложений.
+  Future<void> pinSticker(String noteId);
 }
 
 class MethodEdgeChannel implements EdgeChannel {
   const MethodEdgeChannel();
 
   static const _channel = MethodChannel('stowa/edge');
+
+  // служба зовёт тот же канал в обратную сторону; слушатель ставится при первой подписке
+  static final StreamController<EdgeEvent> _events = StreamController<EdgeEvent>.broadcast(
+    onListen: () => _channel.setMethodCallHandler((call) async {
+      final event = switch (call.method) {
+        'open' => const EdgeOpen(),
+        'dragStart' => const EdgeDragStart(),
+        'drag' => EdgeDrag((call.arguments as num).toDouble()),
+        'dragEnd' => EdgeDragEnd((call.arguments as num).toDouble()),
+        'dismiss' => const EdgeDismiss(),
+        _ => null,
+      };
+      if (event != null) _events.add(event);
+    }),
+  );
+
+  @override
+  Stream<EdgeEvent> get events => _events.stream;
+
+  @override
+  Future<void> closing() => _channel.invokeMethod('closing');
 
   @override
   Future<bool> canDraw() async => await _channel.invokeMethod<bool>('canDraw') ?? false;
@@ -57,15 +122,25 @@ class MethodEdgeChannel implements EdgeChannel {
   ]);
 
   @override
-  Future<void> setFocusable(bool on) => _channel.invokeMethod('setFocusable', on);
-
   @override
   Future<void> close() => _channel.invokeMethod('close');
+
+  @override
+  Future<void> openApp(String? noteId) => _channel.invokeMethod('openApp', noteId);
+
+  @override
+  Future<void> pinSticker(String noteId) => _channel.invokeMethod('pinSticker', noteId);
 }
 
 /// iPhone и всё, где окон поверх нет: ничего не делает, права нет.
 class NoEdgeChannel implements EdgeChannel {
   const NoEdgeChannel();
+
+  @override
+  Stream<EdgeEvent> get events => const Stream.empty();
+
+  @override
+  Future<void> closing() async {}
 
   @override
   Future<bool> canDraw() async => false;
@@ -86,10 +161,14 @@ class NoEdgeChannel implements EdgeChannel {
   Future<void> spines(List<Spine> spines) async {}
 
   @override
-  Future<void> setFocusable(bool on) async {}
-
   @override
   Future<void> close() async {}
+
+  @override
+  Future<void> openApp(String? noteId) async {}
+
+  @override
+  Future<void> pinSticker(String noteId) async {}
 }
 
 /// Для тестов: пишет вызовы по именам, право — [canDrawAnswer].
@@ -98,6 +177,16 @@ class FakeEdgeChannel implements EdgeChannel {
   final calls = <String>[];
   var canDrawAnswer = true;
   List<Spine> lastSpines = const [];
+  final _events = StreamController<EdgeEvent>.broadcast(sync: true);
+
+  /// Как будто служба прислала [event].
+  void send(EdgeEvent event) => _events.add(event);
+
+  @override
+  Stream<EdgeEvent> get events => _events.stream;
+
+  @override
+  Future<void> closing() async => calls.add('closing');
 
   @override
   Future<bool> canDraw() async {
@@ -124,10 +213,14 @@ class FakeEdgeChannel implements EdgeChannel {
   }
 
   @override
-  Future<void> setFocusable(bool on) async => calls.add('setFocusable:$on');
-
   @override
   Future<void> close() async => calls.add('close');
+
+  @override
+  Future<void> openApp(String? noteId) async => calls.add('openApp:$noteId');
+
+  @override
+  Future<void> pinSticker(String noteId) async => calls.add('pinSticker:$noteId');
 }
 
 /// Канал по платформе: окна поверх есть только на Android.

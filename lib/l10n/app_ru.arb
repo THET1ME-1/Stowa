@@ -880,5 +880,9 @@
   "edgeAlpha": "Заметность",
   "edgeHideVideo": "Прятать в полноэкранном видео",
   "edgeHideVideoHint": "Пока видео или игра на весь экран, корешки не мешают.",
-  "edgeOff": "Выключено"
+  "edgeOff": "Выключено",
+  "edgeRecent": "Недавние",
+  "edgeOpenApp": "Открыть Stowa",
+  "edgeStick": "Повесить стикером",
+  "edgeSpinesSetup": "Настроить корешки"
 }

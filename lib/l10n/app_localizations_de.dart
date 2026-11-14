@@ -3232,4 +3232,16 @@ class LDe extends L {
 
   @override
   String get edgeOff => 'Aus';
+
+  @override
+  String get edgeRecent => 'Zuletzt';
+
+  @override
+  String get edgeOpenApp => 'Stowa öffnen';
+
+  @override
+  String get edgeStick => 'Als Sticker anheften';
+
+  @override
+  String get edgeSpinesSetup => 'Rücken einrichten';
 }
