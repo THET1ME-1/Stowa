@@ -138,6 +138,27 @@ void main() {
       expect(saved.coverPath, isNotNull);
     });
 
+    test('заметка со ссылкой в тексте: превью есть, а заголовок у заметки свой, даже если это сам адрес', () async {
+      const url = 'https://vt.tiktok.com/ZSp4W9Xpg/';
+      await addLink(url, kind: ItemKind.note);
+      await service({
+        oembedEndpoint(Uri.parse(url)).toString(): FetchReply(400, utf8.encode('{}'), 'application/json'),
+        url: page(tiktokPage({
+          'desc': 'Торт без выпечки из печенья',
+          'author': {'nickname': 'Кухня'},
+          'video': {'duration': 30, 'cover': 'https://p16.tiktokcdn.com/cake.jpg'},
+        })),
+        'https://p16.tiktokcdn.com/cake.jpg': png,
+      }).fetchFor('a');
+      final saved = await item();
+      expect(saved.kind, ItemKind.note);
+      expect(saved.title, url);
+      expect(saved.previewSite, 'TikTok');
+      expect(saved.previewText, 'Торт без выпечки из печенья');
+      expect(saved.coverPath, isNotNull);
+      expect(saved.previewAt, isNotNull);
+    });
+
     test('страница без данных ролика: заглушка «TikTok - Make Your Day» заголовком не становится', () async {
       const url = 'https://vm.tiktok.com/ZMh3Qe4Bk/';
       await addLink(url, kind: ItemKind.video);

@@ -261,8 +261,10 @@ class LinkPreviewService {
     return true;
   }
 
-  /// Заголовок сам собой: пустой или сам адрес.
+  /// Заголовок сам собой: пустой или сам адрес. У заметки он всегда свой: ссылка в ней —
+  /// одна из строк, страница называет ролик, а не заметку.
   bool _autoTitle(Item item) {
+    if (item.kind == ItemKind.note) return false;
     final title = item.title.trim();
     return title.isEmpty || title == item.url || title.startsWith('http://') || title.startsWith('https://');
   }

@@ -112,6 +112,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   // «Отменить» и «Вернуть» в правке: и набранное, и кнопки разметки
   final _undo = UndoHistoryController();
   bool _editing = false;
+
+  /// Для какой ссылки заметки превью уже просили: не просить на каждой перестройке экрана.
+  String? _previewAsked;
   Timer? _autosave;
   String? _savedTitle;
   String? _savedBody;
@@ -733,6 +736,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     // ссылка и ролик по адресу живут превью; свой ролик — файлом с обложкой и «Смотреть»
     final linkLike = url != null && (item.kind == ItemKind.link || item.kind == ItemKind.video);
     final videoLink = linkLike && item.kind == ItemKind.video;
+    // у заметки превью ссылки грузится, когда её открыли: заметок со ссылками тысячи, и
+    // качать превью всем разом после обновления — лишний трафик
+    if (item.kind == ItemKind.note && url != null && item.previewAt == null && _previewAsked != url) {
+      _previewAsked = url;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(linkPreviewServiceProvider).retry([_id]).ignore();
+      });
+    }
     final videoFile = !linkLike && item.kind == ItemKind.video ? full.attachments.where((file) => file.mime.startsWith('video/')).firstOrNull : null;
     final voices = full.attachments.where((file) => file.mime.startsWith('audio/')).toList();
     final files = full.attachments.where((file) => !file.mime.startsWith('image/') && !file.mime.startsWith('audio/') && file != videoFile).toList();
@@ -971,6 +982,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   )
                                 : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink, image: inlineImage),
                           ),
+                        ],
+                        // ссылка среди строк заметки: карточка под текстом, как в мессенджерах
+                        if (!_editing && item.kind == ItemKind.note && url != null && item.previewAt != null) ...[
+                          const SizedBox(height: 12),
+                          LinkPreviewCard(item: item, filesRoot: filesRoot, onOpen: () => _openLink(url)),
                         ],
                         if (!_editing && highlights.isNotEmpty) ...[
                           const SizedBox(height: 12),

@@ -58,6 +58,31 @@ void main() {
     expect((item.kind, item.url), (ItemKind.link, 'https://coffee.ru/turka'));
   });
 
+  test('в тексте поменяли ссылку — старое превью сбрасывается, новое загрузится; та же ссылка — превью остаётся', () async {
+    await db.into(db.items).insert(ItemsCompanion.insert(
+      id: 'x',
+      kind: ItemKind.note,
+      title: 'Торт',
+      body: const Value('Торт\nhttps://old.example/cake\nсметана\nпеченье'),
+      url: const Value('https://old.example/cake'),
+      previewAt: Value(at),
+      previewText: const Value('Старое описание'),
+      previewSite: const Value('Old'),
+      coverPath: const Value('.stowa/covers/x.jpg'),
+      createdAt: at,
+      updatedAt: at,
+    ));
+    // правка без смены ссылки
+    await items.setTitleBody('x', title: 'Торт', body: 'Торт\nhttps://old.example/cake\nсметана\nпеченье\nбанан', at: at);
+    var item = (await items.get('x'))!.item;
+    expect((item.previewAt, item.previewText), (at, 'Старое описание'));
+
+    await items.setTitleBody('x', title: 'Торт', body: 'Торт\nhttps://vt.tiktok.com/ZSp4W9Xpg/\nсметана\nпеченье', at: at);
+    item = (await items.get('x'))!.item;
+    expect(item.url, 'https://vt.tiktok.com/ZSp4W9Xpg/');
+    expect((item.previewAt, item.previewText, item.previewSite, item.coverPath), (null, null, null, null));
+  });
+
   test('длинный заголовок от сайта не делает ссылку заметкой, когда к ней дописали пару слов', () async {
     const url = 'https://rt.pornhub.com/view_video.php?viewkey=644065a6a9a54';
     const title = 'Школьница в очках и с красной помадой проглотила всё. от первого лица, лучший ролик недели';

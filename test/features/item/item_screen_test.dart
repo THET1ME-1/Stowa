@@ -732,6 +732,31 @@ void main() {
       expect(find.byKey(const ValueKey('item-body-card')), findsNothing);
     });
 
+    testWidgets('заметка со ссылкой среди строк: текст как был, под ним карточка ссылки', (tester) async {
+      const url = 'https://vt.tiktok.com/ZSp4W9Xpg/';
+      await show(
+        tester,
+        ItemsCompanion.insert(
+          id: 'a',
+          kind: ItemKind.note,
+          title: 'Торт у Феди',
+          body: const Value('Приготовить в гостях у Феди торт – $url\n\nРецепт:\n600г сметаны\n500г печенья\n1 банан'),
+          url: const Value(url),
+          previewSite: const Value('TikTok'),
+          previewText: const Value('Торт без выпечки из печенья'),
+          previewAt: Value(world.now),
+          createdAt: world.now,
+          updatedAt: world.now,
+        ),
+      );
+      final body = find.byKey(const ValueKey('item-body-card'));
+      expect(body, findsOneWidget);
+      expect(find.byType(LinkPreviewCard), findsOneWidget);
+      expect(find.text('Торт без выпечки из печенья'), findsOneWidget);
+      // карточка — под текстом заметки, а не вместо него
+      expect(tester.getTopLeft(find.byType(LinkPreviewCard)).dy, greaterThan(tester.getBottomLeft(body).dy));
+    });
+
     ItemsCompanion adultLink() => ItemsCompanion.insert(
           id: 'a',
           kind: ItemKind.link,

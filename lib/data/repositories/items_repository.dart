@@ -723,14 +723,22 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get();
     // вид решает текст: заголовок от сайта длинный и сделал бы ссылку заметкой, а свой — не часть текста
     final text = body.trim().isEmpty ? title : body;
-    final url = firstUrl(text);
+    final url = firstUrl(text)?.toString();
+    final before = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
+    // другая ссылка — превью прежней ни к чему: сбросить, новое загрузится при открытии
+    final relinked = files.isEmpty && before != null && before.url != url;
     await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
       ItemsCompanion(
         title: Value(title),
         body: Value(body),
         updatedAt: Value(at),
         kind: files.isEmpty ? Value(detectKind(text: text)) : const Value.absent(),
-        url: files.isEmpty ? Value(url?.toString()) : const Value.absent(),
+        url: files.isEmpty ? Value(url) : const Value.absent(),
+        previewAt: relinked ? const Value(null) : const Value.absent(),
+        previewText: relinked ? const Value(null) : const Value.absent(),
+        previewSite: relinked ? const Value(null) : const Value.absent(),
+        previewAuthor: relinked ? const Value(null) : const Value.absent(),
+        coverPath: relinked ? const Value(null) : const Value.absent(),
       ),
     );
     onEdited?.call(id);
