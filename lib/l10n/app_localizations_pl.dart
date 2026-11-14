@@ -3333,4 +3333,51 @@ class LPl extends L {
 
   @override
   String get edgeVoiceNow => 'Trwa nagrywanie głosówki';
+
+  @override
+  String get importSummary =>
+      'Telegram, Google Keep, zakładki, Obsidian, mymind';
+
+  @override
+  String get importKeep => 'Z Google Keep';
+
+  @override
+  String get importBookmarks => 'Zakładki przeglądarki';
+
+  @override
+  String get importObsidian => 'Z Obsidiana';
+
+  @override
+  String get importMymind => 'Z mymind';
+
+  @override
+  String get importScreenHint =>
+      'Rozpakuj eksport na telefonie i wybierz jego folder, a dla zakładek plik .html.';
+
+  @override
+  String get importNotKeep =>
+      'W tym folderze nie ma notatek Google Keep: wybierz folder Keep z Google Takeout';
+
+  @override
+  String get importNotBookmarks =>
+      'To nie plik zakładek: wyeksportuj zakładki z przeglądarki do .html';
+
+  @override
+  String get importNotObsidian => 'W tym folderze nie ma notatek .md';
+
+  @override
+  String get importNotMymind => 'W tym folderze nie ma cards.csv z mymind';
+
+  @override
+  String importFilesNotFound(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pliku nie znaleziono',
+      many: '$count plików nie znaleziono',
+      few: '$count plików nie znaleziono',
+      one: '$count pliku nie znaleziono',
+    );
+    return '$_temp0';
+  }
 }

@@ -3303,4 +3303,50 @@ class LRo extends L {
 
   @override
   String get edgeVoiceNow => 'Se înregistrează o notă vocală';
+
+  @override
+  String get importSummary =>
+      'Telegram, Google Keep, marcaje, Obsidian, mymind';
+
+  @override
+  String get importKeep => 'Din Google Keep';
+
+  @override
+  String get importBookmarks => 'Marcajele browserului';
+
+  @override
+  String get importObsidian => 'Din Obsidian';
+
+  @override
+  String get importMymind => 'Din mymind';
+
+  @override
+  String get importScreenHint =>
+      'Dezarhivează exportul pe telefon și alege dosarul lui, iar pentru marcaje — fișierul .html.';
+
+  @override
+  String get importNotKeep =>
+      'În acest dosar nu sunt notițe Google Keep: alege dosarul Keep din Google Takeout';
+
+  @override
+  String get importNotBookmarks =>
+      'Nu e un fișier de marcaje: exportă marcajele din browser ca .html';
+
+  @override
+  String get importNotObsidian => 'În acest dosar nu sunt notițe .md';
+
+  @override
+  String get importNotMymind => 'În acest dosar nu există cards.csv din mymind';
+
+  @override
+  String importFilesNotFound(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de fișiere nu au fost găsite',
+      few: '$count fișiere nu au fost găsite',
+      one: '$count fișier nu a fost găsit',
+    );
+    return '$_temp0';
+  }
 }

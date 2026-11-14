@@ -3333,4 +3333,51 @@ class LUk extends L {
 
   @override
   String get edgeVoiceNow => 'Іде запис голосового';
+
+  @override
+  String get importSummary =>
+      'Telegram, Google Keep, закладки, Obsidian, mymind';
+
+  @override
+  String get importKeep => 'З Google Keep';
+
+  @override
+  String get importBookmarks => 'Закладки браузера';
+
+  @override
+  String get importObsidian => 'З Obsidian';
+
+  @override
+  String get importMymind => 'З mymind';
+
+  @override
+  String get importScreenHint =>
+      'Розпакуй вивантаження на телефон і вибери його папку, а для закладок — файл .html.';
+
+  @override
+  String get importNotKeep =>
+      'У цій папці немає нотаток Google Keep: потрібна папка Keep з Google Takeout';
+
+  @override
+  String get importNotBookmarks =>
+      'Це не файл закладок: вивантаж закладки з браузера в .html';
+
+  @override
+  String get importNotObsidian => 'У цій папці немає нотаток .md';
+
+  @override
+  String get importNotMymind => 'У цій папці немає cards.csv з mymind';
+
+  @override
+  String importFilesNotFound(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файлу не знайшлося',
+      many: '$count файлів не знайшлося',
+      few: '$count файли не знайшлися',
+      one: '$count файл не знайшовся',
+    );
+    return '$_temp0';
+  }
 }

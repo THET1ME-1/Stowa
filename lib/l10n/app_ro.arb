@@ -647,5 +647,16 @@
   "edgeGestureDouble": "Atinge de două ori pentru ultima notiță",
   "edgeGestureDoubleHint": "O singură atingere reacționează atunci puțin mai târziu.",
   "edgeVoiceChannel": "Înregistrare vocală",
-  "edgeVoiceNow": "Se înregistrează o notă vocală"
+  "edgeVoiceNow": "Se înregistrează o notă vocală",
+  "importSummary": "Telegram, Google Keep, marcaje, Obsidian, mymind",
+  "importKeep": "Din Google Keep",
+  "importBookmarks": "Marcajele browserului",
+  "importObsidian": "Din Obsidian",
+  "importMymind": "Din mymind",
+  "importScreenHint": "Dezarhivează exportul pe telefon și alege dosarul lui, iar pentru marcaje — fișierul .html.",
+  "importNotKeep": "În acest dosar nu sunt notițe Google Keep: alege dosarul Keep din Google Takeout",
+  "importNotBookmarks": "Nu e un fișier de marcaje: exportă marcajele din browser ca .html",
+  "importNotObsidian": "În acest dosar nu sunt notițe .md",
+  "importNotMymind": "În acest dosar nu există cards.csv din mymind",
+  "importFilesNotFound": "{count, plural, one{{count} fișier nu a fost găsit} few{{count} fișiere nu au fost găsite} other{{count} de fișiere nu au fost găsite}}"
 }

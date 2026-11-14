@@ -647,5 +647,16 @@
   "edgeGestureDouble": "Doppeltippen für die letzte Notiz",
   "edgeGestureDoubleHint": "Einmal tippen reagiert dann etwas später.",
   "edgeVoiceChannel": "Sprachaufnahme",
-  "edgeVoiceNow": "Sprachnotiz wird aufgenommen"
+  "edgeVoiceNow": "Sprachnotiz wird aufgenommen",
+  "importSummary": "Telegram, Google Keep, Lesezeichen, Obsidian, mymind",
+  "importKeep": "Aus Google Keep",
+  "importBookmarks": "Browser-Lesezeichen",
+  "importObsidian": "Aus Obsidian",
+  "importMymind": "Aus mymind",
+  "importScreenHint": "Entpacke den Export auf dem Handy und wähle seinen Ordner, für Lesezeichen die .html-Datei.",
+  "importNotKeep": "In diesem Ordner sind keine Google-Keep-Notizen: wähle den Keep-Ordner aus Google Takeout",
+  "importNotBookmarks": "Das ist keine Lesezeichendatei: exportiere die Lesezeichen aus dem Browser als .html",
+  "importNotObsidian": "In diesem Ordner sind keine .md-Notizen",
+  "importNotMymind": "In diesem Ordner ist keine cards.csv aus mymind",
+  "importFilesNotFound": "{count, plural, one{{count} Datei nicht gefunden} other{{count} Dateien nicht gefunden}}"
 }

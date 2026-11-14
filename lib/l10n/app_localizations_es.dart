@@ -3277,4 +3277,49 @@ class LEs extends L {
 
   @override
   String get edgeVoiceNow => 'Grabando una nota de voz';
+
+  @override
+  String get importSummary =>
+      'Telegram, Google Keep, marcadores, Obsidian, mymind';
+
+  @override
+  String get importKeep => 'Desde Google Keep';
+
+  @override
+  String get importBookmarks => 'Marcadores del navegador';
+
+  @override
+  String get importObsidian => 'Desde Obsidian';
+
+  @override
+  String get importMymind => 'Desde mymind';
+
+  @override
+  String get importScreenHint =>
+      'Descomprime la exportación en el teléfono y elige su carpeta; para marcadores, el archivo .html.';
+
+  @override
+  String get importNotKeep =>
+      'No hay notas de Google Keep en esta carpeta: elige la carpeta Keep de Google Takeout';
+
+  @override
+  String get importNotBookmarks =>
+      'No es un archivo de marcadores: exporta los marcadores del navegador como .html';
+
+  @override
+  String get importNotObsidian => 'No hay notas .md en esta carpeta';
+
+  @override
+  String get importNotMymind => 'No hay cards.csv de mymind en esta carpeta';
+
+  @override
+  String importFilesNotFound(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos no encontrados',
+      one: '$count archivo no encontrado',
+    );
+    return '$_temp0';
+  }
 }

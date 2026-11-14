@@ -3336,4 +3336,51 @@ class LRu extends L {
 
   @override
   String get edgeVoiceNow => 'Идёт запись голосового';
+
+  @override
+  String get importSummary =>
+      'Telegram, Google Keep, закладки, Obsidian, mymind';
+
+  @override
+  String get importKeep => 'Из Google Keep';
+
+  @override
+  String get importBookmarks => 'Закладки браузера';
+
+  @override
+  String get importObsidian => 'Из Obsidian';
+
+  @override
+  String get importMymind => 'Из mymind';
+
+  @override
+  String get importScreenHint =>
+      'Распакуй выгрузку на телефон и выбери её папку, а для закладок — файл .html.';
+
+  @override
+  String get importNotKeep =>
+      'В этой папке нет заметок Google Keep: нужна папка Keep из Google Takeout';
+
+  @override
+  String get importNotBookmarks =>
+      'Это не файл закладок: выгрузи закладки из браузера в .html';
+
+  @override
+  String get importNotObsidian => 'В этой папке нет заметок .md';
+
+  @override
+  String get importNotMymind => 'В этой папке нет cards.csv из mymind';
+
+  @override
+  String importFilesNotFound(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла не нашлись',
+      many: '$count файлов не нашлось',
+      few: '$count файла не нашлись',
+      one: '$count файл не нашёлся',
+    );
+    return '$_temp0';
+  }
 }

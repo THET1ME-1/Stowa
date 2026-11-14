@@ -4181,5 +4181,49 @@
   "edgeVoiceNow": "Recording a voice note",
   "@edgeVoiceNow": {
     "description": "Уведомление на время записи голоса из «Под рукой»"
+  },
+  "importSummary": "Telegram, Google Keep, bookmarks, Obsidian, mymind",
+  "@importSummary": {
+    "description": "Подпись строки «Перенос» в настройках: откуда можно перенести заметки"
+  },
+  "importKeep": "From Google Keep",
+  "@importKeep": {
+    "description": "importKeep"
+  },
+  "importBookmarks": "Browser bookmarks",
+  "@importBookmarks": {
+    "description": "importBookmarks"
+  },
+  "importObsidian": "From Obsidian",
+  "@importObsidian": {
+    "description": "importObsidian"
+  },
+  "importMymind": "From mymind",
+  "@importMymind": {
+    "description": "importMymind"
+  },
+  "importScreenHint": "Unzip the export on your phone and pick its folder; for bookmarks, pick the .html file.",
+  "@importScreenHint": {
+    "description": "importScreenHint"
+  },
+  "importNotKeep": "No Google Keep notes in this folder: pick the Keep folder from Google Takeout",
+  "@importNotKeep": {
+    "description": "importNotKeep"
+  },
+  "importNotBookmarks": "This isn't a bookmarks file: export bookmarks from your browser as .html",
+  "@importNotBookmarks": {
+    "description": "importNotBookmarks"
+  },
+  "importNotObsidian": "No .md notes in this folder",
+  "@importNotObsidian": {
+    "description": "importNotObsidian"
+  },
+  "importNotMymind": "No cards.csv from mymind in this folder",
+  "@importNotMymind": {
+    "description": "importNotMymind"
+  },
+  "importFilesNotFound": "{count, plural, one{{count} file not found} other{{count} files not found}}",
+  "@importFilesNotFound": {
+    "description": "Итог переноса: вложения, на которые ссылается выгрузка, но которых нет в папке"
   }
 }

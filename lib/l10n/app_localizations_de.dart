@@ -3283,4 +3283,50 @@ class LDe extends L {
 
   @override
   String get edgeVoiceNow => 'Sprachnotiz wird aufgenommen';
+
+  @override
+  String get importSummary =>
+      'Telegram, Google Keep, Lesezeichen, Obsidian, mymind';
+
+  @override
+  String get importKeep => 'Aus Google Keep';
+
+  @override
+  String get importBookmarks => 'Browser-Lesezeichen';
+
+  @override
+  String get importObsidian => 'Aus Obsidian';
+
+  @override
+  String get importMymind => 'Aus mymind';
+
+  @override
+  String get importScreenHint =>
+      'Entpacke den Export auf dem Handy und wähle seinen Ordner, für Lesezeichen die .html-Datei.';
+
+  @override
+  String get importNotKeep =>
+      'In diesem Ordner sind keine Google-Keep-Notizen: wähle den Keep-Ordner aus Google Takeout';
+
+  @override
+  String get importNotBookmarks =>
+      'Das ist keine Lesezeichendatei: exportiere die Lesezeichen aus dem Browser als .html';
+
+  @override
+  String get importNotObsidian => 'In diesem Ordner sind keine .md-Notizen';
+
+  @override
+  String get importNotMymind =>
+      'In diesem Ordner ist keine cards.csv aus mymind';
+
+  @override
+  String importFilesNotFound(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien nicht gefunden',
+      one: '$count Datei nicht gefunden',
+    );
+    return '$_temp0';
+  }
 }

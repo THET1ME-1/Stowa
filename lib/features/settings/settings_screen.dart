@@ -29,7 +29,7 @@ import 'edge_screen.dart';
 import 'returns_screen.dart';
 import 'settings_blocks.dart';
 import 'storage_screen.dart';
-import 'telegram_import_action.dart';
+import 'import_screen.dart';
 import 'trash_screen.dart';
 
 Route<void> settingsRoute() => settingsPageRoute(const SettingsScreen());
@@ -217,9 +217,16 @@ class SettingsScreen extends ConsumerWidget {
             SettingsSection(l.settingsImport),
             SettingsGroup(
               tint: settingsTint('sky'),
-              children: [SettingsRow(icon: 'send', title: l.importTelegram, onTap: () => importTelegram(context, ref))],
+              children: [
+                SettingsRow(
+                  key: const ValueKey('settings-import'),
+                  icon: 'move_down',
+                  title: l.settingsImport,
+                  value: l.importSummary,
+                  onTap: () => Navigator.of(context).push(importRoute()),
+                ),
+              ],
             ),
-            SettingsHint(l.importTelegramHint),
             SettingsSection(l.settingsStart),
             SettingsGroup(
               tint: settingsTint('lime'),

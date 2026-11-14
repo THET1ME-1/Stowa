@@ -647,5 +647,16 @@
   "edgeGestureDouble": "Toca dos veces para la última nota",
   "edgeGestureDoubleHint": "Un solo toque reacciona entonces un poco más tarde.",
   "edgeVoiceChannel": "Grabación de voz",
-  "edgeVoiceNow": "Grabando una nota de voz"
+  "edgeVoiceNow": "Grabando una nota de voz",
+  "importSummary": "Telegram, Google Keep, marcadores, Obsidian, mymind",
+  "importKeep": "Desde Google Keep",
+  "importBookmarks": "Marcadores del navegador",
+  "importObsidian": "Desde Obsidian",
+  "importMymind": "Desde mymind",
+  "importScreenHint": "Descomprime la exportación en el teléfono y elige su carpeta; para marcadores, el archivo .html.",
+  "importNotKeep": "No hay notas de Google Keep en esta carpeta: elige la carpeta Keep de Google Takeout",
+  "importNotBookmarks": "No es un archivo de marcadores: exporta los marcadores del navegador como .html",
+  "importNotObsidian": "No hay notas .md en esta carpeta",
+  "importNotMymind": "No hay cards.csv de mymind en esta carpeta",
+  "importFilesNotFound": "{count, plural, one{{count} archivo no encontrado} other{{count} archivos no encontrados}}"
 }

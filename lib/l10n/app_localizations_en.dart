@@ -3273,4 +3273,49 @@ class LEn extends L {
 
   @override
   String get edgeVoiceNow => 'Recording a voice note';
+
+  @override
+  String get importSummary =>
+      'Telegram, Google Keep, bookmarks, Obsidian, mymind';
+
+  @override
+  String get importKeep => 'From Google Keep';
+
+  @override
+  String get importBookmarks => 'Browser bookmarks';
+
+  @override
+  String get importObsidian => 'From Obsidian';
+
+  @override
+  String get importMymind => 'From mymind';
+
+  @override
+  String get importScreenHint =>
+      'Unzip the export on your phone and pick its folder; for bookmarks, pick the .html file.';
+
+  @override
+  String get importNotKeep =>
+      'No Google Keep notes in this folder: pick the Keep folder from Google Takeout';
+
+  @override
+  String get importNotBookmarks =>
+      'This isn\'t a bookmarks file: export bookmarks from your browser as .html';
+
+  @override
+  String get importNotObsidian => 'No .md notes in this folder';
+
+  @override
+  String get importNotMymind => 'No cards.csv from mymind in this folder';
+
+  @override
+  String importFilesNotFound(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files not found',
+      one: '$count file not found',
+    );
+    return '$_temp0';
+  }
 }

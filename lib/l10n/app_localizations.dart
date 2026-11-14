@@ -5488,6 +5488,72 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Recording a voice note'**
   String get edgeVoiceNow;
+
+  /// Подпись строки «Перенос» в настройках: откуда можно перенести заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram, Google Keep, bookmarks, Obsidian, mymind'**
+  String get importSummary;
+
+  /// importKeep
+  ///
+  /// In en, this message translates to:
+  /// **'From Google Keep'**
+  String get importKeep;
+
+  /// importBookmarks
+  ///
+  /// In en, this message translates to:
+  /// **'Browser bookmarks'**
+  String get importBookmarks;
+
+  /// importObsidian
+  ///
+  /// In en, this message translates to:
+  /// **'From Obsidian'**
+  String get importObsidian;
+
+  /// importMymind
+  ///
+  /// In en, this message translates to:
+  /// **'From mymind'**
+  String get importMymind;
+
+  /// importScreenHint
+  ///
+  /// In en, this message translates to:
+  /// **'Unzip the export on your phone and pick its folder; for bookmarks, pick the .html file.'**
+  String get importScreenHint;
+
+  /// importNotKeep
+  ///
+  /// In en, this message translates to:
+  /// **'No Google Keep notes in this folder: pick the Keep folder from Google Takeout'**
+  String get importNotKeep;
+
+  /// importNotBookmarks
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a bookmarks file: export bookmarks from your browser as .html'**
+  String get importNotBookmarks;
+
+  /// importNotObsidian
+  ///
+  /// In en, this message translates to:
+  /// **'No .md notes in this folder'**
+  String get importNotObsidian;
+
+  /// importNotMymind
+  ///
+  /// In en, this message translates to:
+  /// **'No cards.csv from mymind in this folder'**
+  String get importNotMymind;
+
+  /// Итог переноса: вложения, на которые ссылается выгрузка, но которых нет в папке
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file not found} other{{count} files not found}}'**
+  String importFilesNotFound(num count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

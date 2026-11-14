@@ -647,5 +647,16 @@
   "edgeGestureDouble": "Подвійний дотик — остання нотатка",
   "edgeGestureDoubleHint": "Один дотик тоді спрацьовує трохи пізніше.",
   "edgeVoiceChannel": "Запис голосу",
-  "edgeVoiceNow": "Іде запис голосового"
+  "edgeVoiceNow": "Іде запис голосового",
+  "importSummary": "Telegram, Google Keep, закладки, Obsidian, mymind",
+  "importKeep": "З Google Keep",
+  "importBookmarks": "Закладки браузера",
+  "importObsidian": "З Obsidian",
+  "importMymind": "З mymind",
+  "importScreenHint": "Розпакуй вивантаження на телефон і вибери його папку, а для закладок — файл .html.",
+  "importNotKeep": "У цій папці немає нотаток Google Keep: потрібна папка Keep з Google Takeout",
+  "importNotBookmarks": "Це не файл закладок: вивантаж закладки з браузера в .html",
+  "importNotObsidian": "У цій папці немає нотаток .md",
+  "importNotMymind": "У цій папці немає cards.csv з mymind",
+  "importFilesNotFound": "{count, plural, one{{count} файл не знайшовся} few{{count} файли не знайшлися} many{{count} файлів не знайшлося} other{{count} файлу не знайшлося}}"
 }

@@ -68,6 +68,9 @@ class TestWorld {
   /// Что вернёт окно выбора папки.
   String? pickedFolder;
 
+  /// Что вернёт окно выбора файла закладок.
+  String? pickedFile;
+
   /// Единственное место хранилища, как на iPhone; null — как на Android.
   Directory? vaultHome;
 
@@ -130,6 +133,7 @@ class TestWorld {
         vaultAskedProvider.overrideWithValue(vaultAsked),
         vaultMissingProvider.overrideWithValue(vaultMissing),
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
+        bookmarksPickerProvider.overrideWithValue(() async => pickedFile),
         vaultHomeProvider.overrideWithValue(vaultHome),
         vaultChannelProvider.overrideWithValue(_TestChannel(this)),
         vaultDatabaseProvider.overrideWithValue((name) => vaultDatabases[name] ??= AppDatabase.memory()),

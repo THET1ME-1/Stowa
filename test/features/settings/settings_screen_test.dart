@@ -268,6 +268,15 @@ void main() {
     expect(find.text('Посмотреть потом · Сводка недели · Покупки у магазина'), findsOneWidget);
   });
 
+  // перенос — своим экраном: строка «Перенос» в настройках с итогом, откуда можно
+  Future<void> openImport(WidgetTester tester) async {
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('settings-import')), 200);
+    await tester.pumpAndSettle();
+    expect(find.text('Telegram, Google Keep, закладки, Obsidian, mymind'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('settings-import')));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('«Из Telegram»: папка выгрузки становится заметками, итог плашкой', (tester) async {
     final export = Directory.systemTemp.createTempSync('stowa_tg');
     addTearDown(() => export.deleteSync(recursive: true));
@@ -276,8 +285,7 @@ void main() {
     world.pickedFolder = export.path;
 
     await open(tester, keyStatus: 200);
-    await tester.scrollUntilVisible(find.text('Из Telegram'), 200);
-    await tester.pumpAndSettle();
+    await openImport(tester);
     await tester.tap(find.text('Из Telegram'));
     // файл читается по-настоящему: время теста и время диска идут по очереди
     for (var step = 0; step < 20 && find.textContaining('Перенёс').evaluate().isEmpty; step++) {
@@ -295,8 +303,7 @@ void main() {
     world.pickedFolder = empty.path;
 
     await open(tester, keyStatus: 200);
-    await tester.scrollUntilVisible(find.text('Из Telegram'), 200);
-    await tester.pumpAndSettle();
+    await openImport(tester);
     await tester.tap(find.text('Из Telegram'));
     for (var step = 0; step < 20 && find.textContaining('result.json').evaluate().isEmpty; step++) {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));

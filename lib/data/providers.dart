@@ -6,6 +6,7 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType, OrderingTerm;
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart' show Brightness, ColorScheme;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -92,6 +93,14 @@ final vaultChannelProvider = Provider<VaultChannel>((ref) => const VaultChannel(
 
 /// Выбор папки системным окном; в тестах — готовая папка.
 final vaultPickerProvider = Provider<Future<String?> Function()>((ref) => pickVaultFolder);
+
+/// Выбор файла закладок `.html` системным окном; в тестах — готовый файл.
+final bookmarksPickerProvider = Provider<Future<String?> Function()>(
+  (ref) => () async {
+    final picked = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['html', 'htm']).catchError((_) => <PlatformFile>[]);
+    return picked.firstOrNull?.path;
+  },
+);
 
 /// Единственное место хранилища на iPhone; null — место выбирает человек (Android).
 final vaultHomeProvider = Provider<Directory?>((ref) => null);
