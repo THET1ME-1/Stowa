@@ -3209,4 +3209,12 @@ class LRu extends L {
   @override
   String get catalogReorderHint =>
       'Зажми папку и перетащи: в этом порядке папки стоят и на главной.';
+
+  @override
+  String linkCreate(Object title) {
+    return 'Создать заметку «$title»';
+  }
+
+  @override
+  String get linkCreateAction => 'Создать';
 }

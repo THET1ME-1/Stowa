@@ -4033,5 +4033,13 @@
   "catalogReorderHint": "Hold a folder and drag it: Home shows folders in the same order.",
   "@catalogReorderHint": {
     "description": "Подсказка внизу каталога: как менять порядок папок"
+  },
+  "linkCreate": "Create note “{title}”",
+  "@linkCreate": {
+    "description": "Строка в подсказке [[…]], когда заметки с набранным названием нет"
+  },
+  "linkCreateAction": "Create",
+  "@linkCreateAction": {
+    "description": "Кнопка в плашке «Такой заметки нет»: завести заметку по ссылке"
   }
 }

@@ -610,5 +610,7 @@
   "homePinned": "Przypięte",
   "homePinnedMore": "Jeszcze {count}",
   "homePinnedLess": "Zwiń",
-  "catalogReorderHint": "Przytrzymaj folder i przeciągnij: w tej kolejności foldery stoją też na ekranie głównym."
+  "catalogReorderHint": "Przytrzymaj folder i przeciągnij: w tej kolejności foldery stoją też na ekranie głównym.",
+  "linkCreate": "Utwórz notatkę „{title}”",
+  "linkCreateAction": "Utwórz"
 }

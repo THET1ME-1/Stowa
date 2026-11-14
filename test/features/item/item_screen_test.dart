@@ -845,6 +845,24 @@ void main() {
       expect(find.textContaining('каскад и цитра', findRichText: true), findsWidgets);
     });
 
+    testWidgets('ссылка на заметку, которой нет: касание — «Создать» в плашке заводит её и открывает', (tester) async {
+      await open(tester, body: 'Пиво\nварить с [[Хмель]]', title: 'Пиво');
+      final paragraph = tester.renderObject<RenderParagraph>(find.textContaining('варить с', findRichText: true).first);
+      final shown = paragraph.text.toPlainText();
+      final start = shown.indexOf('Хмель');
+      final box = paragraph.getBoxesForSelection(TextSelection(baseOffset: start, extentOffset: start + 5)).first;
+      await tester.tapAt(paragraph.localToGlobal(box.toRect().center));
+      await tester.pumpAndSettle();
+      expect(find.text('Создать'), findsOneWidget);
+      await tester.tap(find.text('Создать'));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pumpAndSettle();
+      final created = await (world.db.select(world.db.items)..where((t) => t.title.equals('Хмель'))).get();
+      expect(created, hasLength(1));
+      // открылась новая заметка
+      expect(find.byWidgetPredicate((widget) => widget is ItemScreen && widget.id == created.single.id), findsOneWidget);
+    });
+
     testWidgets('«+ Связь»: поиск по словам из текста, касание связывает вручную', (tester) async {
       await other('list', 'Список вещей', body: 'палатка, спальник, горелка');
       await other('car', 'Замена масла');
@@ -890,6 +908,50 @@ void main() {
       await tester.enterText(title, 'Итоги --');
       await tester.pumpAndSettle();
       expect(tester.widget<TextField>(title).controller!.text, 'Итоги —');
+    });
+
+    testWidgets('правка: подсказка «[[» встаёт над строкой с курсором и не закрывает её', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.75;
+      addTearDown(tester.view.reset);
+      await other('beer', 'Пиво я очень люблю');
+      // курсор у нижней панели, как на телефоне: текст длиннее экрана
+      final long = [for (var index = 1; index <= 40; index++) 'Строка $index'].join('\n');
+      await open(tester, body: long, title: 'Строка 1');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      final body = find.byType(TextField).last;
+      await tester.enterText(body, '$long\n[');
+      await tester.enterText(body, '$long\n[[');
+      await tester.pumpAndSettle();
+      final panel = find.byKey(const ValueKey('wiki-suggestions'));
+      expect(panel, findsOneWidget);
+      final editable = tester.state<EditableTextState>(find.byType(EditableText).last).renderEditable;
+      final caret = editable.localToGlobal(editable.getLocalRectForCaret(TextPosition(offset: '$long\n[['.length)).topLeft);
+      // подсказка целиком выше строки, которую набирают, и ниже шапки
+      expect(tester.getBottomLeft(panel).dy, lessThanOrEqualTo(caret.dy));
+      expect(tester.getTopLeft(panel).dy, greaterThan(0));
+    });
+
+    testWidgets('правка: заметки с набранным названием нет — «Создать заметку» заводит её и ставит ссылку', (tester) async {
+      await other('beer', 'Пиво я очень люблю');
+      await open(tester, body: 'Пятница', title: 'Пятница');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      final body = find.byType(TextField).last;
+      await tester.enterText(body, 'Пятница: [');
+      await tester.enterText(body, 'Пятница: [[');
+      await tester.pumpAndSettle();
+      final controller = tester.widget<TextField>(body).controller!;
+      controller.value = const TextEditingValue(text: 'Пятница: [[Список покупок]]', selection: TextSelection.collapsed(offset: 25));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Создать заметку «Список покупок»'));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pumpAndSettle();
+      expect(controller.text, 'Пятница: [[Список покупок]]');
+      final created = await (world.db.select(world.db.items)..where((t) => t.title.equals('Список покупок'))).get();
+      expect(created, hasLength(1));
+      expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
     });
 
     testWidgets('правка: «[[» дописывает «]]», над клавиатурой заметки по словам, касание ставит заголовок', (tester) async {

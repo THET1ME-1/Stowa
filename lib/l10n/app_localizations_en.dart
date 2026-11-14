@@ -3148,4 +3148,12 @@ class LEn extends L {
   @override
   String get catalogReorderHint =>
       'Hold a folder and drag it: Home shows folders in the same order.';
+
+  @override
+  String linkCreate(Object title) {
+    return 'Create note “$title”';
+  }
+
+  @override
+  String get linkCreateAction => 'Create';
 }

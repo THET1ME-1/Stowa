@@ -3177,4 +3177,12 @@ class LRo extends L {
   @override
   String get catalogReorderHint =>
       'Ține apăsat pe un dosar și trage-l: pe pagina principală dosarele stau în aceeași ordine.';
+
+  @override
+  String linkCreate(Object title) {
+    return 'Creează notița „$title”';
+  }
+
+  @override
+  String get linkCreateAction => 'Creează';
 }

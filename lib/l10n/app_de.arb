@@ -610,5 +610,7 @@
   "homePinned": "Angeheftet",
   "homePinnedMore": "{count} weitere",
   "homePinnedLess": "Weniger",
-  "catalogReorderHint": "Halte einen Ordner gedrückt und zieh ihn: In dieser Reihenfolge stehen die Ordner auch auf der Startseite."
+  "catalogReorderHint": "Halte einen Ordner gedrückt und zieh ihn: In dieser Reihenfolge stehen die Ordner auch auf der Startseite.",
+  "linkCreate": "Notiz „{title}“ anlegen",
+  "linkCreateAction": "Anlegen"
 }

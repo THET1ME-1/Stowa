@@ -859,5 +859,7 @@
   "homePinned": "Закреплено",
   "homePinnedMore": "Ещё {count}",
   "homePinnedLess": "Свернуть",
-  "catalogReorderHint": "Зажми папку и перетащи: в этом порядке папки стоят и на главной."
+  "catalogReorderHint": "Зажми папку и перетащи: в этом порядке папки стоят и на главной.",
+  "linkCreate": "Создать заметку «{title}»",
+  "linkCreateAction": "Создать"
 }

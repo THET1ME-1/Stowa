@@ -224,6 +224,15 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _focus.requestFocus();
   }
 
+  /// «Создать заметку «…»»: заметка с этим заголовком заводится сразу, ссылка в строке закрывается.
+  Future<void> _createWiki(String title) async {
+    final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: title, detectReminder: false, detectPlace: false, here: false));
+    if (!mounted) return;
+    _linkTargets = [...?_linkTargets, (id: id, title: title, text: title, at: ref.read(clockProvider)(), kind: ItemKind.note)];
+    _line.value = completeWikiLink(_line.value, title);
+    _focus.requestFocus();
+  }
+
   // поиск идёт по словам без команды, тегов и папок; чипы — фильтр
   void _scheduleSearch() {
     if (!mounted || widget.writeOnly) return;
@@ -987,7 +996,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
               if (_wikiQuery case final query?)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 2, 4, 8),
-                  child: WikiSuggestions(query: query, targets: _linkTargets ?? const [], onPick: _pickWiki),
+                  child: WikiSuggestions(query: query, targets: _linkTargets ?? const [], onPick: _pickWiki, onCreate: _createWiki, maxHeight: 232),
                 ),
               if (chips.isNotEmpty)
                 Stack(

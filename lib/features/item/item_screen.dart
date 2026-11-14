@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -82,6 +83,8 @@ const _dockGap = 16.0;
 const _markdownStrip = 52.0;
 // панель правки: полоса разметки, щель и пилюля «фото, отменить, вернуть» с «Готово»
 const _editDockHeight = _markdownStrip + 8 + 64.0;
+// подсказка «[[» не выше четырёх строк: текст вокруг курсора остаётся виден
+const _wikiMax = 232.0;
 
 /// Пробелы и переносы в конце текста: «Дописать» ставит курсор с новой строки,
 /// а пустая строка в конце сохраняться не должна.
@@ -136,6 +139,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _title.addListener(_changed);
     _body.addListener(_changed);
     _body.addListener(_watchWiki);
+    _body.addListener(_measureCaret);
+    _scroll.addListener(_measureCaret);
+    _bodyFocus.addListener(_measureCaret);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
     _items.markOpened(widget.id, _clock()).ignore();
   }
@@ -149,6 +155,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _body.dispose();
     _bodyFocus.dispose();
     _undo.dispose();
+    _scroll.dispose();
+    _caret.dispose();
     super.dispose();
   }
 
@@ -265,6 +273,47 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   void _pickWiki(LinkTarget target) {
     _body.value = completeWikiLink(_body.value, target.title);
     _bodyFocus.requestFocus();
+  }
+
+  /// «Создать заметку «…»» из подсказки: заметка заводится в той же папке, ссылка закрывается.
+  Future<void> _createWiki(String title) async {
+    final id = await _createNote(title);
+    if (!mounted) return;
+    _linkTargets = [...?_linkTargets, (id: id, title: title, text: title, at: _clock(), kind: ItemKind.note)];
+    _body.value = completeWikiLink(_body.value, title);
+    _bodyFocus.requestFocus();
+  }
+
+  /// Новая заметка по ссылке: только заголовок, рядом с этой, без поиска времени и места в нём.
+  Future<String> _createNote(String title) async {
+    final folderId = (await _items.watchItem(_id).first)?.item.folderId;
+    return ref.read(captureServiceProvider).capture(CaptureInput(text: title, forcedFolderId: folderId, detectReminder: false, detectPlace: false, here: false));
+  }
+
+  // где строка с курсором — в координатах [_stackKey]: подсказка «[[» встаёт над ней
+  final _stackKey = GlobalKey();
+  final _scroll = ScrollController();
+  final _caret = ValueNotifier<Rect?>(null);
+
+  void _measureCaret() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // меряем, только пока подсказка нужна: после правки поля уже нет
+      if (!_editing || !_bodyFocus.hasFocus || wikiQueryOf(_body.value) == null) {
+        _caret.value = null;
+        return;
+      }
+      final stack = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+      final editable = _bodyFocus.context?.findAncestorStateOfType<EditableTextState>()?.renderEditable;
+      final selection = _body.selection;
+      if (stack == null || editable == null || !editable.attached || !selection.isValid) {
+        _caret.value = null;
+        return;
+      }
+      final local = editable.getLocalRectForCaret(selection.extent);
+      final topLeft = stack.globalToLocal(editable.localToGlobal(local.topLeft));
+      _caret.value = topLeft & local.size;
+    });
   }
 
   /// «купить молоко, хлеб и яйца» — «Купить:» и пункты галочками; «Отменить» возвращает как было.
@@ -544,8 +593,21 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
           .id;
       final target = known ?? await _items.findByTitle(title);
       if (!mounted) return;
-      if (target == null || target == _id) {
-        showNote(messenger, L.of(context).linkMissing(title), overDock: true);
+      if (target == _id) return;
+      if (target == null) {
+        // как в Obsidian: ссылка на то, чего ещё нет, заводит заметку
+        final l = L.of(context);
+        final navigator = Navigator.of(context);
+        showUndo(
+          messenger,
+          message: l.linkMissing(title),
+          label: l.linkCreateAction,
+          overDock: true,
+          onUndo: () async {
+            final id = await _createNote(title);
+            if (mounted) await navigator.push(itemRoute(id));
+          },
+        );
         return;
       }
       await Navigator.of(context).push(itemRoute(target));
@@ -722,8 +784,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
               ),
               Expanded(
                 child: Stack(
+                  key: _stackKey,
                   children: [
                     ListView(
+                      controller: _scroll,
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
                       // в правке панель выше: конец текста должен прокручиваться над полосой разметки
                       padding: EdgeInsets.fromLTRB(12, 6, 12, (_editing ? _editDockHeight : _dockHeight) + _dockGap * 2 + bottom),
@@ -939,17 +1003,6 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                 key: const ValueKey('edit-dock'),
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // курсор в [[…: заметки по словам набранного, касание ставит заголовок
-                                  ValueListenableBuilder(
-                                    valueListenable: _body,
-                                    builder: (context, value, _) => switch (wikiQueryOf(value)) {
-                                      final query? when _bodyFocus.hasFocus => Padding(
-                                        padding: const EdgeInsets.only(bottom: 8),
-                                        child: WikiSuggestions(query: query, targets: _linkTargets ?? const [], exceptId: _id, onPick: _pickWiki),
-                                      ),
-                                      _ => const SizedBox.shrink(),
-                                    },
-                                  ),
                                   // та же полоса разметки, что в строке на весь экран
                                   Container(
                                     height: _markdownStrip,
@@ -1003,6 +1056,18 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                               ),
                       ),
                     ),
+                    // курсор в [[…: заметки по словам набранного прямо над строкой с курсором,
+                    // у верха экрана — под ней; набранное и курсор не закрываются
+                    if (_editing)
+                      ListenableBuilder(
+                        listenable: Listenable.merge([_body, _caret]),
+                        builder: (context, _) => switch ((wikiQueryOf(_body.value), _caret.value)) {
+                          (final query?, final caret?) when _bodyFocus.hasFocus => Positioned.fill(
+                            child: LayoutBuilder(builder: (context, box) => _wikiPanel(query, caret, box.maxHeight, bottom)),
+                          ),
+                          _ => const SizedBox.shrink(),
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -1010,6 +1075,28 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Подсказка «[[» у строки с курсором: над ней, если сверху хватает места, иначе под ней,
+  /// но не ниже панели правки. Выше [_wikiMax] не растёт, остальное листается внутри.
+  Widget _wikiPanel(String query, Rect caret, double height, double bottom) {
+    // вплотную к строке: в щель торчали бы хвосты букв строки выше
+    const gap = 2.0;
+    const edge = 8.0;
+    final dockTop = height - (_dockGap + bottom + _editDockHeight);
+    final above = caret.top - gap - edge;
+    final below = dockTop - caret.bottom - gap - edge;
+    final up = above >= math.min(_wikiMax, 150) || above >= below;
+    final room = math.max(0.0, math.min(_wikiMax, up ? above : below));
+    final panel = WikiSuggestions(query: query, targets: _linkTargets ?? const [], exceptId: _id, onPick: _pickWiki, onCreate: _createWiki, maxHeight: room);
+    return Stack(
+      children: [
+        if (up)
+          Positioned(left: 12, right: 12, bottom: height - caret.top + gap, child: panel)
+        else
+          Positioned(left: 12, right: 12, top: caret.bottom + gap, child: panel),
+      ],
     );
   }
 

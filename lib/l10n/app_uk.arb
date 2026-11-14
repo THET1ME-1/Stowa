@@ -610,5 +610,7 @@
   "homePinned": "Закріплено",
   "homePinnedMore": "Ще {count}",
   "homePinnedLess": "Згорнути",
-  "catalogReorderHint": "Затисни папку й перетягни: у цьому порядку папки стоять і на головній."
+  "catalogReorderHint": "Затисни папку й перетягни: у цьому порядку папки стоять і на головній.",
+  "linkCreate": "Створити нотатку «{title}»",
+  "linkCreateAction": "Створити"
 }

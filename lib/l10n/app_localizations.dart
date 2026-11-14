@@ -5266,6 +5266,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Hold a folder and drag it: Home shows folders in the same order.'**
   String get catalogReorderHint;
+
+  /// Строка в подсказке [[…]], когда заметки с набранным названием нет
+  ///
+  /// In en, this message translates to:
+  /// **'Create note “{title}”'**
+  String linkCreate(Object title);
+
+  /// Кнопка в плашке «Такой заметки нет»: завести заметку по ссылке
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get linkCreateAction;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

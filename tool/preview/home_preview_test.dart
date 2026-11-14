@@ -489,6 +489,28 @@ void main() {
     await _shot(tester, '18-рецепт');
   });
 
+  testWidgets('подсказка [[ у строки с курсором', (tester) async {
+    final long = [for (var index = 1; index <= 14; index++) 'Мысль номер $index про пиво и хмель'].join('\n');
+    await tester.runAsync(() async {
+      await _seed(world);
+      final db = world.db;
+      await db.into(db.items).insert(ItemsCompanion.insert(id: 'beer', kind: ItemKind.note, title: 'Пиво', body: Value(long), createdAt: world.now, updatedAt: world.now));
+      await db.into(db.items).insert(ItemsCompanion.insert(id: 'hops', kind: ItemKind.note, title: 'Хмель каскад', body: const Value('Хмель каскад\nцитрус и грейпфрут'), createdAt: world.now, updatedAt: world.now));
+    });
+    await open(tester);
+    await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: world.wrap(const ItemScreen(id: 'beer'))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    final body = find.byType(TextField).last;
+    await tester.enterText(body, '$long\nВарить с [');
+    await tester.enterText(body, '$long\nВарить с [[');
+    await tester.pumpAndSettle();
+    tester.widget<TextField>(body).controller!.value = TextEditingValue(text: '$long\nВарить с [[хме]]', selection: TextSelection.collapsed(offset: '$long\nВарить с [[хме'.length));
+    await tester.pumpAndSettle();
+    await _shot(tester, '19-подсказка-ссылки');
+  });
+
   testWidgets('крупный шрифт на узком', (tester) async {
     await tester.runAsync(() => _seed(world));
     tester.view.physicalSize = const Size(320, 700);

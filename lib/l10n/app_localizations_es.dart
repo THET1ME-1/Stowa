@@ -3152,4 +3152,12 @@ class LEs extends L {
   @override
   String get catalogReorderHint =>
       'Mantén pulsada una carpeta y arrástrala: en este orden aparecen también en el inicio.';
+
+  @override
+  String linkCreate(Object title) {
+    return 'Crear nota «$title»';
+  }
+
+  @override
+  String get linkCreateAction => 'Crear';
 }

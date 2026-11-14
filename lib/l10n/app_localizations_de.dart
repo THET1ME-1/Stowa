@@ -3157,4 +3157,12 @@ class LDe extends L {
   @override
   String get catalogReorderHint =>
       'Halte einen Ordner gedrückt und zieh ihn: In dieser Reihenfolge stehen die Ordner auch auf der Startseite.';
+
+  @override
+  String linkCreate(Object title) {
+    return 'Notiz „$title“ anlegen';
+  }
+
+  @override
+  String get linkCreateAction => 'Anlegen';
 }

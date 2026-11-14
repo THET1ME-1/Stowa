@@ -3205,4 +3205,12 @@ class LPl extends L {
   @override
   String get catalogReorderHint =>
       'Przytrzymaj folder i przeciągnij: w tej kolejności foldery stoją też na ekranie głównym.';
+
+  @override
+  String linkCreate(Object title) {
+    return 'Utwórz notatkę „$title”';
+  }
+
+  @override
+  String get linkCreateAction => 'Utwórz';
 }

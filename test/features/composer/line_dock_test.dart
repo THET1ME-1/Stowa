@@ -62,6 +62,22 @@ void main() {
     expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
   });
 
+  testWidgets('«[[» в строке: заметки с набранным названием нет — «Создать заметку» заводит её', (tester) async {
+    await note('beer', 'Пиво я очень люблю');
+    await open(tester);
+    await type(tester, 'Купить [');
+    await type(tester, 'Купить [[');
+    final line = tester.widget<TextField>(find.byType(TextField)).controller!;
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    line.value = const TextEditingValue(text: 'Купить [[Дача]]', selection: TextSelection.collapsed(offset: 13));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Создать заметку «Дача»'));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pumpAndSettle();
+    expect(line.text, 'Купить [[Дача]]');
+    expect(await (world.db.select(world.db.items)..where((t) => t.title.equals('Дача'))).get(), hasLength(1));
+  });
+
   testWidgets('в строке << >> -- становятся « » —', (tester) async {
     await open(tester);
     await type(tester, 'Фильм <');
