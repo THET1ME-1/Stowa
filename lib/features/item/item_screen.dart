@@ -80,6 +80,8 @@ const _dockHeight = 72.0;
 const _dockGap = 16.0;
 // полоса разметки над панелью в правке
 const _markdownStrip = 52.0;
+// панель правки: полоса разметки, щель и пилюля «фото, отменить, вернуть» с «Готово»
+const _editDockHeight = _markdownStrip + 8 + 64.0;
 
 /// Пробелы и переносы в конце текста: «Дописать» ставит курсор с новой строки,
 /// а пустая строка в конце сохраняться не должна.
@@ -723,7 +725,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                   children: [
                     ListView(
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-                      padding: EdgeInsets.fromLTRB(12, 6, 12, _dockHeight + _dockGap * 2 + bottom),
+                      // в правке панель выше: конец текста должен прокручиваться над полосой разметки
+                      padding: EdgeInsets.fromLTRB(12, 6, 12, (_editing ? _editDockHeight : _dockHeight) + _dockGap * 2 + bottom),
                       children: [
                         // файл ещё ложится: вещь уже правится, а показать его пока нечем
                         if (full.copying > 0) ...[
@@ -880,8 +883,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     controller: _body,
                                     focusNode: _bodyFocus,
                                     undoController: _undo,
+                                    // поле растёт с текстом: одна строка — одна строка, без пустоты под ней
                                     maxLines: null,
-                                    minLines: 5,
                                     keyboardType: TextInputType.multiline,
                                     inputFormatters: [
                                       TextInputFormatter.withFunction(continueLists),
@@ -890,7 +893,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     ],
                                     textCapitalization: TextCapitalization.sentences,
                                     // строка с курсором не прячется под плавающую панель и полосу разметки над ней
-                                    scrollPadding: const EdgeInsets.only(bottom: _dockHeight + _dockGap * 2 + _markdownStrip + 24),
+                                    scrollPadding: const EdgeInsets.only(bottom: _editDockHeight + _dockGap * 2 + 24),
                                     style: bodyStyle,
                                     decoration: _bare(l.itemBodyHint),
                                   )

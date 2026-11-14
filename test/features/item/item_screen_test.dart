@@ -506,6 +506,31 @@ void main() {
     expect((await saved()).deletedAt, isNotNull);
   });
 
+  testWidgets('правка: поле по высоте текста — одна строка не растягивает его на пять', (tester) async {
+    await open(tester, body: 'Послезавтра сдать кровь', title: 'Послезавтра сдать кровь');
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    final field = find.byType(TextField).last;
+    final style = tester.widget<TextField>(field).style!;
+    final line = style.fontSize! * (style.height ?? 1.2);
+    expect(tester.getSize(field).height, lessThan(line * 2.5));
+  });
+
+  testWidgets('правка: конец длинного текста прокручивается выше полосы разметки и панели', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    final long = [for (var index = 1; index <= 40; index++) 'Строка номер $index'].join('\n');
+    await open(tester, body: long, title: 'Строка номер 1');
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -6000));
+    await tester.pumpAndSettle();
+    final field = find.byType(TextField).last;
+    final bar = find.byKey(const ValueKey('edit-dock'));
+    expect(tester.getBottomLeft(field).dy, lessThanOrEqualTo(tester.getTopLeft(bar).dy));
+  });
+
   testWidgets('«⋮» → «Закрепить», потом там же «Открепить»', (tester) async {
     await open(tester, body: 'мысль', title: 'Мысль');
     await tester.tap(find.byTooltip('Ещё'));
