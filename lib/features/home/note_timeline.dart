@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
@@ -25,9 +28,13 @@ import '../../domain/note_blocks.dart';
 import '../../l10n/app_localizations.dart';
 import '../item/adult_veil.dart';
 import '../item/copying_bar.dart';
+import 'timeline_scrub.dart';
 
 /// Ось ленты: по ней идёт пунктир, на ней точка в цвет папки.
 const _rail = Space.screen + 6;
+
+/// Полоса быстрой прокрутки у самого края, левее заголовков дней.
+const _track = 10.0;
 
 /// Отступ карточки заметки от края экрана: ось с точкой занимает узкую полосу слева.
 const _indent = Space.screen + 22;
@@ -98,10 +105,20 @@ class _NoteTimelineState extends State<NoteTimeline> {
   late final Set<String> _seen = {for (final item in [...widget.pinned, ...widget.items]) item.id};
   var _allPinned = false;
 
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    // заметки идут от новых к старым: день начинается, когда меняется дата
+  // места точек и дней: по ним полоса быстрой прокрутки снимает карту ленты
+  final _dotKeys = <String, GlobalKey>{};
+  final _dayKeys = <DateTime, GlobalKey>{};
+  final _pinnedKey = GlobalKey();
+
+  /// Видимость настоящей оси: гаснет, пока её место занимает полоса.
+  final _railFade = ValueNotifier<double>(1);
+
+  // ось, ставшая полосой: слой поверх экрана и палец, который её ведёт
+  OverlayEntry? _scrub;
+  ScrubSession? _session;
+
+  /// Заметки идут от новых к старым: день начинается, когда меняется дата.
+  List<(DateTime, List<ItemCard>)> _days() {
     final days = <(DateTime, List<ItemCard>)>[];
     for (final item in widget.items) {
       final at = item.createdAt;
@@ -109,13 +126,133 @@ class _NoteTimelineState extends State<NoteTimeline> {
       if (days.isEmpty || days.last.$1 != day) days.add((day, []));
       days.last.$2.add(item);
     }
+    return days;
+  }
+
+  /// Закреплённые с отметкой в ключе: заметка может быть и среди закреплённых, и в своём дне.
+  GlobalKey _dotKey(ItemCard item, bool dated) => _dotKeys.putIfAbsent('${dated ? 'pin' : 'day'}-${item.id}', GlobalKey.new);
+
+  @override
+  void dispose() {
+    if (_scrub case final entry?) _drop(entry);
+    _railFade.dispose();
+    super.dispose();
+  }
+
+  void _drop(OverlayEntry entry) {
+    if (_scrub == entry) {
+      _scrub = null;
+      _session = null;
+      _railFade.value = 1;
+    }
+    entry
+      ..remove()
+      ..dispose();
+  }
+
+  /// Снимок ленты на миг удержания: где каждая точка и каждый день во всей прокрутке.
+  ScrubMap? _map(RenderBox overlay) {
+    final scrollable = Scrollable.maybeOf(context);
+    final view = scrollable?.context.findRenderObject();
+    final self = context.findRenderObject();
+    if (scrollable == null || view is! RenderBox || self is! RenderBox) return null;
+    final position = scrollable.position;
+    final viewTop = view.localToGlobal(Offset.zero, ancestor: overlay).dy;
+    double content(RenderBox box) => box.localToGlobal(Offset.zero, ancestor: overlay).dy - viewTop + position.pixels;
+    final l = L.of(context);
+    final marks = <ScrubMark>[];
+    void mark(ItemCard item, bool dated) {
+      final box = _dotKeys['${dated ? 'pin' : 'day'}-${item.id}']?.currentContext?.findRenderObject();
+      if (box is! RenderBox || !box.hasSize) return;
+      marks.add((top: content(box), height: box.size.height, color: _dotColor(item)));
+    }
+
+    final sections = <ScrubSection>[];
+    void section(GlobalKey key, String name, String date, List<ItemCard> items) {
+      final box = key.currentContext?.findRenderObject();
+      if (box is! RenderBox || !box.hasSize) return;
+      sections.add((y: content(box), name: name, date: date, colors: [for (final item in items) _dotColor(item)]));
+    }
+
+    if (widget.pinned.isNotEmpty) section(_pinnedKey, l.homePinned, '', widget.pinned);
+    for (final item in widget.pinned) {
+      mark(item, true);
+    }
+    for (final (day, items) in _days()) {
+      final (name, date) = _dayLabel(l, day, widget.now);
+      section(_dayKeys[day] ?? GlobalKey(), name, date, items);
+      for (final item in items) {
+        mark(item, false);
+      }
+    }
+    final padding = MediaQuery.paddingOf(context);
+    final viewBottom = viewTop + view.size.height;
+    final trackTop = math.max(viewTop, padding.top) + 16;
+    final trackBottom = viewBottom - widget.bottomInset - 16;
+    if (trackBottom - trackTop < 120) return null;
+    return ScrubMap(
+      marks: marks,
+      sections: sections,
+      railX: self.localToGlobal(const Offset(_rail, 0), ancestor: overlay).dx,
+      trackX: self.localToGlobal(const Offset(_track, 0), ancestor: overlay).dx,
+      viewTop: viewTop,
+      viewHeight: view.size.height,
+      trackTop: trackTop,
+      trackBottom: trackBottom,
+      dotTop: _dotTop,
+      dotBottom: _dotBottom,
+      dotEdge: viewBottom - widget.bottomInset - _dotBottom,
+    );
+  }
+
+  /// Палец задержался на оси: ось становится полосой, лента идёт за пальцем.
+  void _scrubStart(LongPressStartDetails details) {
+    final overlay = Overlay.maybeOf(context);
+    final box = overlay?.context.findRenderObject();
+    final position = Scrollable.maybeOf(context)?.position;
+    if (overlay == null || box is! RenderBox || position == null) return;
+    final map = _map(box);
+    if (map == null) return;
+    if (_scrub case final old?) _drop(old);
+    HapticFeedback.mediumImpact();
+    final session = ScrubSession(box.globalToLocal(details.globalPosition).dy);
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => TimelineScrubber(
+        map: map,
+        position: position,
+        session: session,
+        rail: _railFade,
+        onGone: () {
+          if (_scrub == entry) _drop(entry);
+        },
+      ),
+    );
+    _scrub = entry;
+    _session = session;
+    overlay.insert(entry);
+  }
+
+  void _scrubMove(LongPressMoveUpdateDetails details) {
+    final box = Overlay.maybeOf(context)?.context.findRenderObject();
+    if (box is RenderBox) _session?.move(box.globalToLocal(details.globalPosition).dy);
+  }
+
+  void _scrubEnd() {
+    if (_session case final session? when !session.released) session.release();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final days = _days();
     final pinned = widget.pinned;
     final hidden = pinned.length - pinnedShown;
-    return Column(
+    final column = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (pinned.isNotEmpty) ...[
-          const _PinnedHeader(),
+          KeyedSubtree(key: _pinnedKey, child: const _PinnedHeader()),
           _group(_allPinned || hidden <= 0 ? pinned : pinned.take(pinnedShown).toList(), dated: true),
           if (hidden > 0)
             Padding(
@@ -132,9 +269,35 @@ class _NoteTimelineState extends State<NoteTimeline> {
             ),
         ],
         for (final (day, items) in days) ...[
-          _DayHeader(day: day, now: widget.now),
+          _DayHeader(key: _dayKeys.putIfAbsent(day, GlobalKey.new), day: day, now: widget.now),
           _group(items),
         ],
+      ],
+    );
+    // полоса у края, где ось: удержание превращает её в быструю прокрутку,
+    // короткое касание и обычная прокрутка проходят сквозь неё к ленте
+    return Stack(
+      children: [
+        _RailFade(fade: _railFade, child: column),
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: _indent,
+          child: RawGestureDetector(
+            behavior: HitTestBehavior.translucent,
+            gestures: {
+              LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+                () => LongPressGestureRecognizer(duration: const Duration(milliseconds: 300), debugOwner: this),
+                (recognizer) => recognizer
+                  ..onLongPressStart = _scrubStart
+                  ..onLongPressMoveUpdate = _scrubMove
+                  ..onLongPressEnd = ((_) => _scrubEnd())
+                  ..onLongPressCancel = _scrubEnd,
+              ),
+            },
+          ),
+        ),
       ],
     );
   }
@@ -153,6 +316,7 @@ class _NoteTimelineState extends State<NoteTimeline> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: _Entry(
+                  dotKey: _dotKey(item, dated),
                   item: item,
                   dated: dated,
                   filesRoot: widget.filesRoot,
@@ -195,6 +359,21 @@ class _PinnedHeader extends StatelessWidget {
 
 String _capitalized(String text) => text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
 
+/// Цвет точки заметки: папки, у неразложенной серый.
+Color _dotColor(ItemCard item) => item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!);
+
+/// «Сегодня» и «7 ноября», «Вчера», «Среда»; другой год — с годом.
+(String, String) _dayLabel(L l, DateTime day, DateTime now) {
+  final today = DateTime(now.year, now.month, now.day);
+  final name = switch (today.difference(day).inDays) {
+    0 => l.dateToday,
+    1 => l.dateYesterday,
+    _ => DateFormat.EEEE(l.localeName).format(day),
+  };
+  final date = day.year == now.year ? DateFormat.MMMMd(l.localeName).format(day) : DateFormat.yMMMMd(l.localeName).format(day);
+  return (_capitalized(name), date);
+}
+
 /// Точка заметки на оси, как аватарка в чате Telegram: у низа своей карточки; низ ушёл под
 /// строку ввода — держится над строкой и едет с лентой, пока не упрётся в верх карточки.
 class _TimelineDot extends LeafRenderObjectWidget {
@@ -205,8 +384,13 @@ class _TimelineDot extends LeafRenderObjectWidget {
   final double bottomInset;
 
   @override
-  RenderTimelineDot createRenderObject(BuildContext context) =>
-      RenderTimelineDot(color: color, ring: ring, bottomInset: bottomInset, scroll: Scrollable.maybeOf(context)?.position);
+  RenderTimelineDot createRenderObject(BuildContext context) => RenderTimelineDot(
+    color: color,
+    ring: ring,
+    bottomInset: bottomInset,
+    scroll: Scrollable.maybeOf(context)?.position,
+    fade: _RailFade.of(context),
+  );
 
   @override
   void updateRenderObject(BuildContext context, RenderTimelineDot renderObject) {
@@ -214,18 +398,41 @@ class _TimelineDot extends LeafRenderObjectWidget {
       ..color = color
       ..ring = ring
       ..bottomInset = bottomInset
-      ..scroll = Scrollable.maybeOf(context)?.position;
+      ..scroll = Scrollable.maybeOf(context)?.position
+      ..fade = _RailFade.of(context);
   }
+}
+
+/// Видимость оси ленты для пунктира и точек: полоса быстрой прокрутки гасит её на время.
+class _RailFade extends InheritedWidget {
+  const _RailFade({required this.fade, required super.child});
+
+  final ValueListenable<double> fade;
+
+  static ValueListenable<double>? of(BuildContext context) => context.getInheritedWidgetOfExactType<_RailFade>()?.fade;
+
+  @override
+  bool updateShouldNotify(_RailFade old) => fade != old.fade;
 }
 
 /// Точка ленты сама решает, где стоять, по месту карточки на экране. Прокрутка её только
 /// перерисовывает: ни сборки, ни раскладки ленты на каждый кадр.
 class RenderTimelineDot extends RenderBox {
-  RenderTimelineDot({required Color color, required Color ring, required double bottomInset, ScrollPosition? scroll})
+  RenderTimelineDot({required Color color, required Color ring, required double bottomInset, ScrollPosition? scroll, ValueListenable<double>? fade})
     : _color = color, // ignore: prefer_initializing_formals
       _ring = ring, // ignore: prefer_initializing_formals
       _bottomInset = bottomInset, // ignore: prefer_initializing_formals
-      _scroll = scroll; // ignore: prefer_initializing_formals
+      _scroll = scroll, // ignore: prefer_initializing_formals
+      _fade = fade; // ignore: prefer_initializing_formals
+
+  ValueListenable<double>? _fade;
+  set fade(ValueListenable<double>? value) {
+    if (value == _fade) return;
+    if (attached) _fade?.removeListener(markNeedsPaint);
+    _fade = value;
+    if (attached) _fade?.addListener(markNeedsPaint);
+    markNeedsPaint();
+  }
 
   Color _color;
   set color(Color value) {
@@ -261,11 +468,13 @@ class RenderTimelineDot extends RenderBox {
   void attach(PipelineOwner owner) {
     super.attach(owner);
     _scroll?.addListener(markNeedsPaint);
+    _fade?.addListener(markNeedsPaint);
   }
 
   @override
   void detach() {
     _scroll?.removeListener(markNeedsPaint);
+    _fade?.removeListener(markNeedsPaint);
     super.detach();
   }
 
@@ -289,38 +498,32 @@ class RenderTimelineDot extends RenderBox {
   @override
   void paint(PaintingContext context, Offset offset) {
     final center = offset + Offset(size.width / 2, dotCenter);
+    final seen = _fade?.value ?? 1;
+    if (seen <= 0) return;
     context.canvas
-      ..drawCircle(center, 6, Paint()..color = _ring)
-      ..drawCircle(center, 3.5, Paint()..color = _color);
+      ..drawCircle(center, 6, Paint()..color = _ring.withValues(alpha: _ring.a * seen))
+      ..drawCircle(center, 3.5, Paint()..color = _color.withValues(alpha: _color.a * seen));
   }
 }
 
 /// «Сегодня 7 ноября», «Вчера 6 ноября», «Среда 4 ноября».
 class _DayHeader extends StatelessWidget {
-  const _DayHeader({required this.day, required this.now});
+  const _DayHeader({super.key, required this.day, required this.now});
 
   final DateTime day;
   final DateTime now;
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    final today = DateTime(now.year, now.month, now.day);
-    final ago = today.difference(day).inDays;
-    final name = switch (ago) {
-      0 => l.dateToday,
-      1 => l.dateYesterday,
-      _ => DateFormat.EEEE(l.localeName).format(day),
-    };
-    final date = day.year == now.year ? DateFormat.MMMMd(l.localeName).format(day) : DateFormat.yMMMMd(l.localeName).format(day);
+    final (name, date) = _dayLabel(L.of(context), day, now);
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 22, Space.screen, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          Text(_capitalized(name), style: text.headlineSmall),
+          Text(name, style: text.headlineSmall),
           const SizedBox(width: 10),
           Flexible(
             child: Text(date, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
@@ -335,16 +538,20 @@ class _DottedRail extends StatelessWidget {
   const _DottedRail();
 
   @override
-  Widget build(BuildContext context) => const CustomPaint(size: Size(1.5, double.infinity), painter: _DotsPainter());
+  Widget build(BuildContext context) => CustomPaint(size: const Size(1.5, double.infinity), painter: _DotsPainter(_RailFade.of(context)));
 }
 
 class _DotsPainter extends CustomPainter {
-  const _DotsPainter();
+  _DotsPainter(this.fade) : super(repaint: fade);
+
+  final ValueListenable<double>? fade;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final seen = fade?.value ?? 1;
+    if (seen <= 0) return;
     final paint = Paint()
-      ..color = Tokens.outline
+      ..color = Tokens.outline.withValues(alpha: Tokens.outline.a * seen)
       ..strokeWidth = size.width
       ..strokeCap = StrokeCap.round;
     for (var y = 0.0; y < size.height; y += 7) {
@@ -353,12 +560,13 @@ class _DotsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DotsPainter oldDelegate) => false;
+  bool shouldRepaint(_DotsPainter oldDelegate) => oldDelegate.fade != fade;
 }
 
 /// Одна заметка: точка на оси и карточка, внизу карточки метки и время.
 class _Entry extends StatelessWidget {
   const _Entry({
+    required this.dotKey,
     required this.item,
     this.dated = false,
     required this.filesRoot,
@@ -371,6 +579,8 @@ class _Entry extends StatelessWidget {
     required this.onToggle,
   });
 
+  /// По нему полоса прокрутки находит точку.
+  final GlobalKey dotKey;
   final ItemCard item;
 
   /// В углу день записи вместо часа.
@@ -395,11 +605,9 @@ class _Entry extends StatelessWidget {
           top: 0,
           bottom: 0,
           width: 12,
-          child: _TimelineDot(
-            key: ValueKey('dot-${item.id}'),
-            color: item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!),
-            ring: Tokens.background,
-            bottomInset: bottomInset,
+          child: KeyedSubtree(
+            key: dotKey,
+            child: _TimelineDot(key: ValueKey('dot-${item.id}'), color: _dotColor(item), ring: Tokens.background, bottomInset: bottomInset),
           ),
         ),
         Padding(
