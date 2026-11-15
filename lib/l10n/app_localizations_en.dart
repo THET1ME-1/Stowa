@@ -3188,6 +3188,12 @@ class LEn extends L {
   String get edgePlace => 'Where';
 
   @override
+  String get edgeLook => 'Look and place';
+
+  @override
+  String get edgeDragHint => 'Drag the spines on the phone up or down.';
+
+  @override
   String get edgeLeft => 'Left';
 
   @override

@@ -5321,6 +5321,18 @@ abstract class L {
   /// **'Where'**
   String get edgePlace;
 
+  /// Заголовок блока с предпросмотром корешков: край, высота, размер, заметность
+  ///
+  /// In en, this message translates to:
+  /// **'Look and place'**
+  String get edgeLook;
+
+  /// Подсказка под предпросмотром: высоту корешков меняют, ведя их пальцем на картинке телефона
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the spines on the phone up or down.'**
+  String get edgeDragHint;
+
   /// Корешки у левого края
   ///
   /// In en, this message translates to:

@@ -4070,6 +4070,14 @@
   "@edgePlace": {
     "description": "Заголовок блока: край и место корешков"
   },
+  "edgeLook": "Look and place",
+  "@edgeLook": {
+    "description": "Заголовок блока с предпросмотром корешков: край, высота, размер, заметность"
+  },
+  "edgeDragHint": "Drag the spines on the phone up or down.",
+  "@edgeDragHint": {
+    "description": "Подсказка под предпросмотром: высоту корешков меняют, ведя их пальцем на картинке телефона"
+  },
   "edgeLeft": "Left",
   "@edgeLeft": {
     "description": "Корешки у левого края"

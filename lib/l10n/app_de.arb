@@ -620,6 +620,8 @@
   "edgeSwitch": "Rücken am Rand",
   "edgeSwitchHint": "Angeheftete Notizen warten am Bildschirmrand, ein Tippen öffnet sie über jeder App.",
   "edgePlace": "Wo",
+  "edgeLook": "Aussehen und Ort",
+  "edgeDragHint": "Zieh die Rücken auf dem Handy nach oben oder unten.",
   "edgeLeft": "Links",
   "edgeRight": "Rechts",
   "edgeHeight": "Höhe am Bildschirm",

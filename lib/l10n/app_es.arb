@@ -620,6 +620,8 @@
   "edgeSwitch": "Lomos en el borde",
   "edgeSwitchHint": "Las notas fijadas esperan en el borde de la pantalla y un toque las abre sobre cualquier app.",
   "edgePlace": "Dónde",
+  "edgeLook": "Aspecto y lugar",
+  "edgeDragHint": "Arrastra los lomos en el teléfono hacia arriba o abajo.",
   "edgeLeft": "Izquierda",
   "edgeRight": "Derecha",
   "edgeHeight": "Altura en la pantalla",

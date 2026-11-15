@@ -3247,6 +3247,13 @@ class LPl extends L {
   String get edgePlace => 'Gdzie';
 
   @override
+  String get edgeLook => 'Wygląd i miejsce';
+
+  @override
+  String get edgeDragHint =>
+      'Przeciągnij grzbiety na telefonie w górę lub w dół.';
+
+  @override
   String get edgeLeft => 'Z lewej';
 
   @override

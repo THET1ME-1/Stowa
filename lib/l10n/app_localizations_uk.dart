@@ -3247,6 +3247,12 @@ class LUk extends L {
   String get edgePlace => 'Де';
 
   @override
+  String get edgeLook => 'Вигляд і місце';
+
+  @override
+  String get edgeDragHint => 'Потягни корінці на телефоні вгору чи вниз.';
+
+  @override
   String get edgeLeft => 'Ліворуч';
 
   @override

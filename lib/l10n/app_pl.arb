@@ -620,6 +620,8 @@
   "edgeSwitch": "Grzbiety przy krawędzi",
   "edgeSwitchHint": "Przypięte notatki czekają przy krawędzi ekranu, dotknięcie otwiera je nad każdą aplikacją.",
   "edgePlace": "Gdzie",
+  "edgeLook": "Wygląd i miejsce",
+  "edgeDragHint": "Przeciągnij grzbiety na telefonie w górę lub w dół.",
   "edgeLeft": "Z lewej",
   "edgeRight": "Z prawej",
   "edgeHeight": "Wysokość na ekranie",

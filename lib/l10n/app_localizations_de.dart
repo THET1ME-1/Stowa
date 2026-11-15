@@ -3197,6 +3197,13 @@ class LDe extends L {
   String get edgePlace => 'Wo';
 
   @override
+  String get edgeLook => 'Aussehen und Ort';
+
+  @override
+  String get edgeDragHint =>
+      'Zieh die Rücken auf dem Handy nach oben oder unten.';
+
+  @override
   String get edgeLeft => 'Links';
 
   @override

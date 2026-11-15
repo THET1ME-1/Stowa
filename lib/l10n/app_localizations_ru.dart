@@ -3251,6 +3251,12 @@ class LRu extends L {
   String get edgePlace => 'Где';
 
   @override
+  String get edgeLook => 'Вид и место';
+
+  @override
+  String get edgeDragHint => 'Потяни корешки на телефоне вверх или вниз.';
+
+  @override
   String get edgeLeft => 'Слева';
 
   @override

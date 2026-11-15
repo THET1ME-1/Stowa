@@ -3218,6 +3218,12 @@ class LRo extends L {
   String get edgePlace => 'Unde';
 
   @override
+  String get edgeLook => 'Aspect și loc';
+
+  @override
+  String get edgeDragHint => 'Trage cotoarele pe telefon în sus sau în jos.';
+
+  @override
   String get edgeLeft => 'Stânga';
 
   @override

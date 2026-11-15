@@ -620,6 +620,8 @@
   "edgeSwitch": "Cotoare la margine",
   "edgeSwitchHint": "Notițele fixate așteaptă la marginea ecranului, o atingere le deschide peste orice aplicație.",
   "edgePlace": "Unde",
+  "edgeLook": "Aspect și loc",
+  "edgeDragHint": "Trage cotoarele pe telefon în sus sau în jos.",
   "edgeLeft": "Stânga",
   "edgeRight": "Dreapta",
   "edgeHeight": "Înălțimea pe ecran",

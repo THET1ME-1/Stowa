@@ -3192,6 +3192,13 @@ class LEs extends L {
   String get edgePlace => 'Dónde';
 
   @override
+  String get edgeLook => 'Aspecto y lugar';
+
+  @override
+  String get edgeDragHint =>
+      'Arrastra los lomos en el teléfono hacia arriba o abajo.';
+
+  @override
   String get edgeLeft => 'Izquierda';
 
   @override

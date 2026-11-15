@@ -1,6 +1,10 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/edge_settings.dart';
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/settings/edge_preview.dart';
 import 'package:stowa/features/settings/edge_screen.dart';
 
 import '../../helpers/test_app.dart';
@@ -63,21 +67,68 @@ void main() {
     expect(world.edge.calls, ['apply']);
   });
 
-  testWidgets('ползунки высоты, размера и заметности пишут настройки и подписывают значение', (tester) async {
+  testWidgets('корешки на картинке тянут пальцем вниз — они ниже, подпись это говорит', (tester) async {
+    world.edgeSettings = const EdgeSettings(enabled: true, height: 50);
     await open(tester);
     expect(find.text('посередине'), findsOneWidget);
-    await tester.drag(find.byKey(const ValueKey('edge-height')), const Offset(300, 0));
+    await tester.drag(find.byKey(const ValueKey('edge-preview')), const Offset(0, 120));
     await tester.pumpAndSettle();
     expect(world.edgeSettings.height, greaterThan(66));
     expect(find.text('ниже'), findsOneWidget);
-    await tester.drag(find.byKey(const ValueKey('edge-size')), const Offset(400, 0));
+    // правка одна, по отпусканию пальца: корешки не дёргаются на каждый пиксель
+    expect(world.edge.calls.where((call) => call == 'apply'), hasLength(1));
+  });
+
+  testWidgets('размер — три кнопки с корешками, выбранный подписан', (tester) async {
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('edge-size-large')));
     await tester.pumpAndSettle();
     expect(world.edgeSettings.size, SpineSize.large);
-    expect(find.text('крупные'), findsOneWidget);
-    await tester.drag(find.byKey(const ValueKey('edge-alpha')), const Offset(-600, 0));
+    expect(find.text('Крупные'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('edge-size-thin')));
+    await tester.pumpAndSettle();
+    expect(world.edgeSettings.size, SpineSize.thin);
+  });
+
+  testWidgets('узкий телефон 320 точек и крупный шрифт — экран ничем не переполнен', (tester) async {
+    world.edgeSettings = const EdgeSettings(enabled: true, size: SpineSize.large);
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const EdgeScreen()));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('edge-alpha')), 200, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('заметность — ползунок с процентами', (tester) async {
+    await open(tester);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('edge-alpha')), 200, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.drag(find.descendant(of: find.byKey(const ValueKey('edge-alpha')), matching: find.byType(Slider)), const Offset(-600, 0));
     await tester.pumpAndSettle();
     expect(world.edgeSettings.alpha, 40);
     expect(find.text('40 %'), findsOneWidget);
+  });
+
+  testWidgets('на картинке столько корешков, сколько закреплённых заметок', (tester) async {
+    for (final (index, title) in ['Пароль', 'Купить', 'Дела'].indexed) {
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(
+            id: 'n$index',
+            kind: ItemKind.note,
+            title: title,
+            pinnedAt: Value(world.now),
+            createdAt: world.now,
+            updatedAt: world.now,
+          ));
+    }
+    await open(tester);
+    final preview = tester.widget<EdgePreview>(find.byType(EdgePreview));
+    expect(preview.spines, hasLength(3));
   });
 
   testWidgets('в настройках строка «Под рукой» с итогом ведёт на экран', (tester) async {
