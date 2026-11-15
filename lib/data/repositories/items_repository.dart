@@ -60,6 +60,7 @@ class ItemCard {
     this.longitude,
     this.placeName,
     this.copying = 0,
+    this.fileCount = 0,
     this.gone = false,
     this.hasCopy = false,
     this.mainColor,
@@ -74,6 +75,9 @@ class ItemCard {
 
   /// Сколько файлов вещи ещё ложится во вложения.
   final int copying;
+
+  /// Сколько файлов у заметки: больше одного — на плитке «+N», остальные не теряются из виду.
+  final int fileCount;
 
   /// Ссылка больше не открывается; [hasCopy] — текст статьи сохранён в Stowa.
   final bool gone;
@@ -107,6 +111,7 @@ class ItemCard {
     longitude: longitude,
     placeName: name,
     copying: copying,
+    fileCount: fileCount,
     gone: gone,
     hasCopy: hasCopy,
     mainColor: mainColor,
@@ -223,6 +228,7 @@ SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folder
   (SELECT attachments.path || char(31) || attachments.mime || char(31) || attachments.size FROM attachments
     WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS first_file,
   (SELECT count(*) FROM file_jobs WHERE file_jobs.item_id = items.id) AS copying,
+  (SELECT count(*) FROM attachments WHERE attachments.item_id = items.id) AS file_count,
   -- у мёртвой ссылки — сохранён ли текст статьи; у живой не важно, лишнего запроса нет
   CASE WHEN items.gone_at IS NULL THEN 0
     ELSE EXISTS (SELECT 1 FROM facts WHERE facts.item_id = items.id AND facts.kind = 'articleText') END AS has_copy,
@@ -1155,6 +1161,7 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       longitude: item.longitude,
       placeName: item.placeName,
       copying: row.readNullable<int>('copying') ?? 0,
+      fileCount: row.readNullable<int>('file_count') ?? 0,
       gone: item.goneAt != null,
       hasCopy: (row.readNullable<int>('has_copy') ?? 0) == 1,
       mainColor: row.data.containsKey('main_color') ? row.readNullable<String>('main_color') : null,

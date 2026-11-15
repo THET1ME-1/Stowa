@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/widgets/file_count_badge.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
@@ -291,14 +292,20 @@ class _CanvasItem extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final thumb = card.thumbPath;
     final Widget face = thumb != null
-        ? AdultVeil(
-            itemId: card.id,
-            child: Image.file(
-              File(p.join(filesRoot.path, thumb)),
-              fit: BoxFit.cover,
-              cacheWidth: 900,
-              errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),
-            ),
+        ? Stack(
+            fit: StackFit.expand,
+            children: [
+              AdultVeil(
+                itemId: card.id,
+                child: Image.file(
+                  File(p.join(filesRoot.path, thumb)),
+                  fit: BoxFit.cover,
+                  cacheWidth: 900,
+                  errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh),
+                ),
+              ),
+              FileCountBadge(count: card.fileCount),
+            ],
           )
         : Container(
             padding: const EdgeInsets.all(14),

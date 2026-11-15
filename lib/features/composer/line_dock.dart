@@ -587,18 +587,21 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       if (newFolder != null) _line.chooseFolder(await ref.read(foldersRepositoryProvider).create(newFolder));
       final files = await Future.wait(_files.map((file) => file.future));
       final capture = ref.read(captureServiceProvider);
-      final id = await capture.capture(
-        CaptureInput(
-          text: body,
-          files: files,
-          forcedFolderId: _line.folder?.id,
-          forcedTagNames: _line.tags,
-          detectReminder: !_line.reminderDismissed,
-          detectPlace: !_line.placeDismissed,
-          asIs: command == LineCommand.inbox,
-          untitled: files.isEmpty ? null : (at) => untitledFor(l, mime: files.first.mime, fileName: p.basename(files.first.path), at: at),
-        ),
+      // в папке несколько файлов без текста — каждый своей плиткой, как на доске картинок:
+      // одной заметкой из трёх фото плитка показывала бы только первое (жалоба 15.11)
+      final apart = widget.homeFolder != null && body.trim().isEmpty && files.length > 1;
+      CaptureInput inputFor(List<PickedFile> some) => CaptureInput(
+        text: body,
+        files: some,
+        forcedFolderId: _line.folder?.id,
+        forcedTagNames: _line.tags,
+        detectReminder: !_line.reminderDismissed,
+        detectPlace: !_line.placeDismissed,
+        asIs: command == LineCommand.inbox,
+        untitled: some.isEmpty ? null : (at) => untitledFor(l, mime: some.first.mime, fileName: p.basename(some.first.path), at: at),
       );
+      final ids = apart ? await capture.captureAll([for (final file in files) inputFor([file])]) : [await capture.capture(inputFor(files))];
+      final id = ids.first;
       if (_clip != null && snapshot.text.contains(_clip!)) _usedSuggestions.add(_clip!);
       final saved = await ref.read(itemsRepositoryProvider).get(id);
       // «только закинуть» кладёт по правилам, но куда легло — не говорит
@@ -624,7 +627,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           _activate();
           _focus.requestFocus();
           _hideToast();
-          await ref.read(itemsRepositoryProvider).softDelete(id, _now);
+          for (final one in ids) {
+            await ref.read(itemsRepositoryProvider).softDelete(one, _now);
+          }
         },
       );
       // поставил напоминание — тут и спросить уведомления; про место «всегда» скажет карточка на главной

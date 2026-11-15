@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/widgets/file_count_badge.dart';
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
@@ -908,11 +909,15 @@ class _Photo extends StatelessWidget {
             child: WithCopyingBar(
               itemId: item.id,
               copying: item.copying > 0,
-              child: SizedBox.expand(
-                child: AdultVeil(
-                  itemId: item.id,
-                  child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
-                ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  AdultVeil(
+                    itemId: item.id,
+                    child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
+                  ),
+                  FileCountBadge(count: item.fileCount),
+                ],
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/widgets/file_count_badge.dart';
 import '../../core/format/duration_format.dart';
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
@@ -241,7 +242,12 @@ class _PhotoCard extends StatelessWidget {
             if (card.thumbPath != null)
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 340),
-                child: _photo(filesRoot, card.thumbPath!, id: card.id, cacheWidth: width),
+                child: Stack(
+                  children: [
+                    _photo(filesRoot, card.thumbPath!, id: card.id, cacheWidth: width),
+                    FileCountBadge(count: card.fileCount),
+                  ],
+                ),
               ),
             if (captioned || card.tags.isNotEmpty || card.reminderAt != null)
               Padding(
@@ -459,6 +465,7 @@ class BoardTile extends StatelessWidget {
                         ),
                       ),
                     ),
+                  FileCountBadge(count: card.fileCount),
                 ],
               ),
       ),

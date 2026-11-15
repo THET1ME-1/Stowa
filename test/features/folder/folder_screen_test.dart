@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/core/icons/icon_registry.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/repositories/items_repository.dart' show ItemCard;
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/composer/line_dock.dart';
+import 'package:stowa/services/capture_service.dart' show PickedFile;
 import 'package:stowa/features/folder/folder_cards.dart';
 import 'package:stowa/features/home/folder_shelf.dart';
 
@@ -212,6 +217,48 @@ void main() {
     expect((canvas.title, canvas.folderId), ('Меню на неделю', 'food'));
     expect(find.text('Меню на неделю'), findsOneWidget);
     expect(find.byKey(const ValueKey('canvas-add')), findsOneWidget);
+  });
+
+  // жалоба 15.11: «в папке не кидается более одной фотки, хотя выбрал больше трёх» — три фото
+  // ложились одной заметкой, а плитка показывает только первое
+  testWidgets('в папке три фото без текста — три плитки, каждая со своим фото', (tester) async {
+    await seed();
+    await openFolder(tester);
+    final dir = Directory.systemTemp.createTempSync('stowa_pick');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final picked = [
+      for (final name in ['a.jpg', 'b.jpg', 'c.jpg'])
+        PickedFile(path: (File('${dir.path}/$name')..writeAsBytesSync(List.filled(64, 1))).path, mime: 'image/jpeg', size: 64),
+    ];
+    final before = (await world.db.select(world.db.items).get()).length;
+    tester.state<LineDockState>(find.byType(LineDock)).attach(picked);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Закинуть').last);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pumpAndSettle();
+    final added = (await world.db.select(world.db.items).get()).skip(before).toList();
+    expect(added, hasLength(3));
+    expect(added.every((item) => item.folderId == 'food'), isTrue);
+  });
+
+  testWidgets('заметка с тремя фото: на плитке ленты и доски «+2», у одного фото метки нет', (tester) async {
+    final dir = Directory.systemTemp.createTempSync('stowa_tiles');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    ItemCard card(int files) => ItemCard(
+      id: 'album$files', title: 'Поездка', kind: ItemKind.image, folderId: 'food', sortState: SortState.sorted,
+      createdAt: world.now, thumbPath: 'missing.jpg', thumbRatio: 0.75, fileCount: files,
+    );
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(ListView(children: [
+      FolderItemCard(card: card(3), filesRoot: dir, now: world.now, onTap: () {}),
+      BoardTile(card: card(3), filesRoot: dir, width: 160, darkPill: false, onTap: () {}, onLongPress: () {}),
+      FolderItemCard(card: card(1), filesRoot: dir, now: world.now, onTap: () {}),
+    ])));
+    await tester.pumpAndSettle();
+    // картинка в поддельном времени не декодируется и стоит нулевой высоты: метка над ней
+    // считается невидимой, поэтому ищется и в скрытом
+    expect(find.descendant(of: find.byType(BoardTile), matching: find.text('+2')), findsOneWidget);
+    expect(find.descendant(of: find.byType(FolderItemCard, skipOffstage: false), matching: find.text('+2', skipOffstage: false), skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('удалить папку: вещи без папки, «Вернуть» возвращает', (tester) async {
