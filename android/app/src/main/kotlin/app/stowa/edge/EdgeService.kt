@@ -15,7 +15,9 @@ import android.graphics.PixelFormat
 import android.graphics.PointF
 import android.graphics.RectF
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
@@ -456,6 +458,23 @@ class EdgeService : Service() {
         fun apply(context: Context) {
             context.startService(Intent(context, EdgeService::class.java).setAction(ACTION_APPLY))
         }
+
+        /**
+         * Процесс поднялся, а службы в нём через три секунды так и нет — поднять корешки самим.
+         * HyperOS, смахнув Stowa из недавних, убивает процесс (`SwipeUpClean`), а с автозапуском
+         * поднимает его снова ради службы — но саму службу не создаёт: процесс жил 17 минут без
+         * корешков, пока Stowa не открыли (телефон, HyperOS 3, 15.11.2026). Из фона система может
+         * не дать запустить службу — тогда корешки встанут при открытии Stowa.
+         */
+        fun reviveLater(context: Context) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (running != null || !EdgePrefs.read(context).enabled) return@postDelayed
+                Log.d(EdgeHandle.TAG, "revive: process up, service lost")
+                startIfEnabled(context)
+            }, REVIVE_MS)
+        }
+
+        private const val REVIVE_MS = 3000L
 
         /** После загрузки и обновления: поднять корешки, если человек их включал и право есть. */
         fun startIfEnabled(context: Context) {

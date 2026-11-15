@@ -55,6 +55,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // корешки «Под рукой» включены — служба на месте и при первом открытии, а не только при
+    // возврате: HyperOS убивает их вместе с процессом, и открывать Stowa приходилось дважды
+    ref.read(edgeControlProvider).resumed().ignore();
     // любая правка напоминаний в базе переставляет будильники системы
     ref.listenManual(remindersProvider, (previous, next) {
       final reminders = next.value;
