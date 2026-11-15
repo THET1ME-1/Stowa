@@ -457,7 +457,7 @@ class _SourceOrigin implements _UnfoldOrigin {
 /// Состояние одного перехода. Живёт рядом с маршрутом: у [UnfoldRoute] своё,
 /// у обычного маршрута Material его держит [UnfoldPageTransitionsBuilder].
 class _UnfoldSession {
-  _UnfoldSession(this.route, {_UnfoldOrigin? origin}) : _origin = origin;
+  _UnfoldSession(this.route, {_UnfoldOrigin? origin}) : _origin = origin; // ignore: prefer_initializing_formals
 
   final PageRoute<dynamic> route;
   _UnfoldOrigin? _origin;
