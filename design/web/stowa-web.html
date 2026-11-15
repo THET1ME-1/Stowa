@@ -1,0 +1,759 @@
+<title>Stowa Web</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..40,400..600,0..1,0&display=block">
+<style>
+/* Слой: рабочий стол заметок. Слева дерево хранилища (как Obsidian), в центре страница-документ
+   со свойствами (как Notion), справа связи; внизу та же строка, что в приложении: и ищет, и записывает.
+   Цвета — графит Stowa (palette.dart), цвета папок — FolderPalette, подложка карточки — 16% цвета папки. */
+:root {
+  --page: #0C0D0E;
+  --bg: #141517;
+  --c-lowest: #101113;
+  --c-low: #1A1B1E;
+  --c: #1F2023;
+  --c-high: #26272B;
+  --c-highest: #2E2F33;
+  --line: #3A3B40;
+  --on: #F2F2F0;
+  --on-var: #B0B1B6;
+  --muted: #96979D;
+  --accent: #F4F4F2;
+  --on-accent: #141517;
+  --error: #FFB4AB;
+  --tint: 16%;
+  --ink: 100%;
+  --scrim: rgba(12, 13, 14, .72);
+  --display: "Unbounded", "Onest", system-ui, sans-serif;
+  --body: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-card: 28px; --r-tile: 20px; --r-photo: 16px; --r-ctl: 14px;
+  --sb: 272px; --rp: 320px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --page: #ECECE9; --bg: #F6F6F4; --c-lowest: #FFFFFF; --c-low: #F0F0EE; --c: #EAEAE7; --c-high: #E4E4E1; --c-highest: #DCDCD9;
+    --line: #C6C6C2; --on: #1B1C1E; --on-var: #46474C; --muted: #5F6066; --accent: #1B1C1E; --on-accent: #F6F6F4; --error: #BA1A1A;
+    --tint: 26%; --ink: 58%; --scrim: rgba(27, 28, 30, .42); color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --page: #ECECE9; --bg: #F6F6F4; --c-lowest: #FFFFFF; --c-low: #F0F0EE; --c: #EAEAE7; --c-high: #E4E4E1; --c-highest: #DCDCD9;
+  --line: #C6C6C2; --on: #1B1C1E; --on-var: #46474C; --muted: #5F6066; --accent: #1B1C1E; --on-accent: #F6F6F4; --error: #BA1A1A;
+  --tint: 26%; --ink: 58%; --scrim: rgba(27, 28, 30, .42); color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--page); color: var(--on); font: 400 15px/1.5 var(--body); overflow: hidden; -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+.sym { font-family: "Material Symbols Rounded"; font-weight: 450; font-style: normal; font-size: 20px; line-height: 1; letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr; font-variation-settings: "FILL" 0, "opsz" 24; -webkit-font-smoothing: antialiased; user-select: none; }
+.sym.f { font-variation-settings: "FILL" 1, "opsz" 24; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* цвет папки: точка — --f «чернилами», подложка — смесь с поверхностью */
+[data-f] { --f: #96979D; }
+[data-f="dom"] { --f: #FEC766; } [data-f="remont"] { --f: #F7A974; } [data-f="work"] { --f: #5FCDF5; }
+[data-f="buy"] { --f: #76D5A4; } [data-f="recipes"] { --f: #FFA098; } [data-f="books"] { --f: #BCB1FF; }
+[data-f="ideas"] { --f: #B5E285; } [data-f="personal"] { --f: #F89EC1; } [data-f="none"] { --f: #96979D; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: color-mix(in oklab, var(--f) var(--ink), #000); flex: none; }
+
+/* ── каркас ─────────────────────────────────────────── */
+.app { height: 100%; display: grid; grid-template-columns: var(--sb) minmax(0, 1fr) auto; background: var(--bg); }
+.side { background: var(--c-lowest); border-right: 1px solid color-mix(in oklab, var(--line) 50%, transparent); display: flex; flex-direction: column; min-height: 0; padding-left: env(safe-area-inset-left, 0px); }
+.main { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.right { width: var(--rp); background: var(--c-lowest); border-left: 1px solid color-mix(in oklab, var(--line) 50%, transparent); min-height: 0; overflow: auto; padding-right: env(safe-area-inset-right, 0px); }
+.right[hidden] { display: none; }
+
+/* ── боковая панель ── */
+.vault { display: flex; align-items: center; gap: 10px; padding: 14px 14px 10px 16px; }
+.vault-mark { width: 34px; height: 34px; border-radius: 11px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font: 700 15px var(--display); flex: none; }
+.vault-name { font: 600 15px/1.2 var(--body); }
+.vault-sync { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.vault-sync i { width: 7px; height: 7px; border-radius: 50%; background: #76D5A4; }
+.vault .icon-btn { margin-left: auto; }
+.icon-btn { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: var(--on-var); flex: none; }
+.icon-btn:hover { background: var(--c-high); color: var(--on); }
+.finder { margin: 4px 12px 10px; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: var(--r-ctl); background: var(--c); color: var(--muted); font-size: 14px; text-align: left; }
+.finder:hover { background: var(--c-high); }
+.finder kbd { margin-left: auto; font: 500 11px var(--body); padding: 2px 6px; border-radius: 6px; background: var(--c-highest); color: var(--on-var); }
+.side-scroll { flex: 1; overflow: auto; padding: 0 8px 12px; min-height: 0; }
+.nav-item { display: flex; align-items: center; gap: 11px; width: 100%; height: 36px; padding: 0 10px; border-radius: 12px; color: var(--on-var); font-size: 14px; text-align: left; }
+.nav-item:hover { background: var(--c); color: var(--on); }
+.nav-item[aria-current="page"] { background: var(--c-high); color: var(--on); font-weight: 600; }
+.nav-item .count { margin-left: auto; font-size: 12px; color: var(--muted); }
+.nav-item .sym { color: var(--muted); }
+.nav-item[aria-current="page"] .sym { color: var(--on); }
+.group { margin-top: 18px; }
+.group-head { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 6px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+.group-head button { color: var(--muted); }
+.tree-row { display: flex; align-items: center; gap: 9px; width: 100%; height: 34px; padding: 0 10px 0 calc(10px + var(--lvl, 0) * 18px); border-radius: 12px; font-size: 14px; color: var(--on); text-align: left; }
+.tree-row:hover { background: var(--c); }
+.tree-row[aria-current="page"] { background: color-mix(in oklab, var(--f) var(--tint), var(--c)); font-weight: 600; }
+.tree-row .chev { width: 16px; color: var(--muted); font-size: 18px; transition: transform .18s; }
+.tree-row .chev.open { transform: rotate(90deg); }
+.tree-row .count { margin-left: auto; font-size: 12px; color: var(--muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px; }
+.tag { height: 28px; padding: 0 10px; border-radius: 100px; background: var(--c); color: var(--on-var); font-size: 13px; display: inline-flex; align-items: center; }
+.tag:hover { background: var(--c-high); color: var(--on); }
+.side-foot { display: flex; align-items: center; gap: 4px; padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid color-mix(in oklab, var(--line) 50%, transparent); }
+.me { display: flex; align-items: center; gap: 8px; margin-right: auto; font-size: 13px; color: var(--on-var); }
+.me b { width: 28px; height: 28px; border-radius: 50%; background: color-mix(in oklab, #F89EC1 70%, var(--c)); color: #1B1C1E; display: grid; place-items: center; font: 600 12px var(--body); }
+
+/* ── верхняя полоса ── */
+.top { display: flex; align-items: center; gap: 6px; height: 56px; padding: 0 12px; padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; border-bottom: 1px solid color-mix(in oklab, var(--line) 50%, transparent); background: var(--bg); }
+.menu-btn { display: none; }
+.tabs { display: flex; gap: 4px; min-width: 0; overflow: hidden; flex: 1; }
+.tab { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 12px; border-radius: 12px; background: transparent; color: var(--on-var); font-size: 13px; max-width: 220px; min-width: 0; }
+.tab span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab:hover { background: var(--c); color: var(--on); }
+.tab.on { background: var(--c-high); color: var(--on); font-weight: 600; }
+.tab .x { font-size: 16px; color: var(--muted); border-radius: 6px; padding: 2px; }
+.tab .x:hover { background: var(--c-highest); }
+.top-actions { display: flex; gap: 2px; margin-left: auto; }
+
+/* ── прокручиваемая область ── */
+.scroll { flex: 1; overflow: auto; min-height: 0; scroll-behavior: smooth; }
+.view { padding: 28px max(24px, env(safe-area-inset-right, 0px)) 140px max(24px, env(safe-area-inset-left, 0px)); }
+.view-head { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.h1 { font: 700 30px/1.15 var(--display); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+/* полка папок одной строкой, как на главной приложения */
+.shelf { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 26px; scrollbar-width: none; }
+.shelf::-webkit-scrollbar { display: none; }
+.pill { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 12px; border-radius: 100px; background: color-mix(in oklab, var(--f) var(--tint), var(--c)); font-size: 14px; font-weight: 500; white-space: nowrap; flex: none; }
+.pill:hover { background: color-mix(in oklab, var(--f) calc(var(--tint) + 10%), var(--c)); }
+.pill .n { color: var(--on-var); font-size: 13px; }
+
+/* главная: лента по дням и колонка «вернуть» */
+.home { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 36px; max-width: 1180px; margin: 0 auto; }
+.day { margin-bottom: 30px; }
+.day-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px 76px; }
+.day-head h2 { font: 600 17px var(--display); letter-spacing: -.01em; margin: 0; }
+.day-head span { color: var(--muted); font-size: 13px; }
+.entry { display: grid; grid-template-columns: 56px 20px minmax(0, 1fr); gap: 0; position: relative; }
+.entry .time { font-size: 13px; color: var(--muted); text-align: right; padding: 18px 10px 0 0; }
+.axis { position: relative; display: flex; justify-content: center; }
+.axis::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 2px dashed color-mix(in oklab, var(--line) 80%, transparent); transform: translateX(-1px); }
+.entry:first-child .axis::before { top: 22px; }
+.entry:last-child .axis::before { bottom: calc(100% - 26px); }
+.axis .dot { position: relative; margin-top: 22px; box-shadow: 0 0 0 4px var(--bg); }
+.card { display: block; width: 100%; text-align: left; margin: 0 0 10px 10px; padding: 16px 18px; border-radius: var(--r-tile); background: color-mix(in oklab, var(--f) var(--tint), var(--c)); transition: transform .16s cubic-bezier(.2, 0, 0, 1), background .16s; }
+.card:hover { background: color-mix(in oklab, var(--f) calc(var(--tint) + 7%), var(--c)); }
+.card:active { transform: scale(.99); }
+.card h3 { font: 600 16px/1.3 var(--body); margin: 0 0 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card p { margin: 0; color: var(--on-var); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card .meta { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--on-var); }
+.card .meta .folder { display: inline-flex; align-items: center; gap: 6px; }
+.card .meta .rem { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 6px; border-radius: 100px; background: color-mix(in oklab, var(--on) 9%, transparent); }
+.card .meta .rem .sym { font-size: 14px; }
+.checks { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 5px; font-size: 14px; }
+.checks li { display: flex; gap: 8px; align-items: center; color: var(--on); }
+.checks li.done { color: var(--muted); text-decoration: line-through; }
+.checks .sym { font-size: 18px; color: var(--on-var); }
+.checks .more { color: var(--muted); padding-left: 26px; }
+.photo { position: relative; border-radius: var(--r-photo); margin: -4px -6px 10px; overflow: hidden; aspect-ratio: 16 / 9; max-height: 220px; width: calc(100% + 12px); background:
+  radial-gradient(120% 90% at 20% 15%, color-mix(in oklab, var(--f) 55%, var(--c-high)), transparent 60%),
+  radial-gradient(90% 80% at 85% 90%, color-mix(in oklab, var(--f) 30%, var(--c-lowest)), transparent 70%),
+  var(--c-high); }
+.photo figcaption { position: absolute; left: 10px; bottom: 10px; display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px 4px 8px; border-radius: 100px; background: var(--scrim); color: #F2F2F0; font-size: 12px; }
+.photo figcaption .sym { font-size: 16px; }
+.link-prev { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; margin-top: 10px; padding: 8px; border-radius: 16px; background: color-mix(in oklab, var(--c-lowest) 55%, transparent); }
+.link-prev .thumb { position: relative; aspect-ratio: 16 / 10; border-radius: 10px; background: linear-gradient(135deg, color-mix(in oklab, var(--f) 45%, #222), #1A1B1E); display: grid; place-items: center; color: #F2F2F0; }
+.link-prev .thumb .len { position: absolute; right: 6px; bottom: 6px; font-size: 11px; padding: 1px 5px; border-radius: 6px; background: rgba(0,0,0,.6); }
+.link-prev b { display: block; font-size: 14px; line-height: 1.3; }
+.link-prev span { font-size: 12px; color: var(--muted); }
+.wave { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.wave .play { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; }
+.wave svg { flex: 1; height: 28px; min-width: 0; }
+.wave svg rect { fill: color-mix(in oklab, var(--on) 55%, transparent); }
+
+.aside { display: grid; gap: 14px; align-content: start; position: sticky; top: 0; }
+.panel { padding: 18px; border-radius: var(--r-card); background: var(--c); }
+.panel h4 { margin: 0 0 12px; font: 600 14px var(--display); letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.panel h4 .sym { font-size: 18px; color: var(--on-var); }
+.later { display: grid; gap: 2px; }
+.later button { display: flex; align-items: center; gap: 10px; padding: 8px; margin: 0 -8px; border-radius: 12px; text-align: left; font-size: 14px; }
+.later button:hover { background: var(--c-high); }
+.later .k { width: 40px; height: 40px; border-radius: 12px; background: color-mix(in oklab, var(--f) var(--tint), var(--c-high)); display: grid; place-items: center; flex: none; }
+.later small { display: block; color: var(--muted); font-size: 12px; }
+.ago { display: block; width: 100%; text-align: left; padding: 14px; border-radius: var(--r-tile); background: color-mix(in oklab, var(--f) var(--tint), var(--c-high)); }
+.ago small { color: var(--on-var); font-size: 12px; }
+.ago b { display: block; font-size: 15px; margin-top: 2px; }
+.sync-panel { display: flex; gap: 12px; align-items: flex-start; }
+.sync-panel .badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 100px; background: var(--accent); color: var(--on-accent); }
+.devices { display: grid; gap: 8px; margin-top: 4px; font-size: 13px; color: var(--on-var); }
+.devices div { display: flex; align-items: center; gap: 8px; }
+.devices .sym { font-size: 18px; }
+.devices em { margin-left: auto; font-style: normal; color: var(--muted); font-size: 12px; }
+
+/* страница заметки: документ со свойствами */
+.doc { max-width: 760px; margin: 0 auto; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+.crumbs button:hover { color: var(--on); }
+.doc-title { font: 700 clamp(26px, 3.4vw, 36px)/1.15 var(--display); letter-spacing: -.02em; margin: 0 0 20px; text-wrap: balance; outline: none; }
+.props { display: grid; grid-template-columns: 160px minmax(0, 1fr); row-gap: 2px; margin-bottom: 26px; font-size: 14px; }
+.props dt { display: flex; align-items: center; gap: 8px; color: var(--muted); height: 36px; }
+.props dt .sym { font-size: 18px; }
+.props dd { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 36px; padding: 4px 8px; border-radius: 10px; }
+.props dd:hover { background: var(--c); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 100px; background: var(--c-high); font-size: 13px; }
+.chip.f { background: color-mix(in oklab, var(--f) var(--tint), var(--c-high)); }
+.chip.rem { background: color-mix(in oklab, var(--accent) 10%, var(--c-high)); }
+.prop-add { color: var(--muted); font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px; border-radius: 10px; }
+.prop-add:hover { background: var(--c); color: var(--on); }
+.rule { height: 1px; background: color-mix(in oklab, var(--line) 60%, transparent); margin: 6px 0 24px; }
+.prose { font-size: 16px; line-height: 1.65; }
+.prose p { margin: 0 0 14px; max-width: 68ch; }
+.prose h2 { font: 600 19px/1.3 var(--display); letter-spacing: -.01em; margin: 30px 0 10px; }
+.prose .wikilink { color: var(--on); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--on) 40%, transparent); text-underline-offset: 3px; font-weight: 500; cursor: pointer; }
+.prose .money { font-variant-numeric: tabular-nums; background: color-mix(in oklab, #76D5A4 22%, transparent); padding: 1px 6px; border-radius: 6px; }
+.todo { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 4px; }
+.todo li { display: flex; align-items: center; gap: 10px; padding: 4px 6px; margin-left: -6px; border-radius: 10px; }
+.todo li:hover { background: var(--c); }
+.todo .box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line); display: grid; place-items: center; flex: none; cursor: pointer; }
+.todo li.done .box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.todo li.done .label { color: var(--muted); text-decoration: line-through; }
+.todo .box .sym { font-size: 16px; font-variation-settings: "FILL" 1, "wght" 600; }
+.price-table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 4px 0 8px; }
+.price-table td { padding: 9px 0; border-bottom: 1px solid color-mix(in oklab, var(--line) 50%, transparent); }
+.price-table td:last-child { text-align: right; }
+.total { display: inline-flex; align-items: center; gap: 8px; margin: 6px 0 18px; padding: 6px 12px 6px 10px; border-radius: 100px; background: color-mix(in oklab, #76D5A4 18%, var(--c)); font-size: 14px; font-weight: 600; }
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 6px 0 18px; }
+.gallery .photo { margin: 0; width: 100%; aspect-ratio: 4 / 3; max-height: none; }
+.product { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px; border-radius: var(--r-tile); background: var(--c); margin: 4px 0 18px; }
+.product .thumb { aspect-ratio: 1; border-radius: 14px; background: repeating-conic-gradient(color-mix(in oklab, #F7A974 40%, var(--c-high)) 0 25%, var(--c-high) 0 50%) 0 0 / 24px 24px; }
+.product b { display: block; font-size: 15px; }
+.product small { color: var(--muted); font-size: 13px; }
+.product .price { font: 600 16px var(--body); font-variant-numeric: tabular-nums; padding-right: 8px; }
+
+/* правая панель */
+.rp-sec { padding: 18px 18px 6px; }
+.rp-sec + .rp-sec { border-top: 1px solid color-mix(in oklab, var(--line) 45%, transparent); }
+.rp-sec h5 { margin: 0 0 10px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; display: flex; justify-content: space-between; }
+.rel { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; padding: 9px 10px; margin: 0 -10px 4px; border-radius: 14px; }
+.rel:hover { background: var(--c); }
+.rel .dot { margin-top: 6px; }
+.rel b { display: block; font-size: 14px; font-weight: 600; }
+.rel small { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.outline { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 2px; font-size: 14px; }
+.outline button { width: 100%; text-align: left; padding: 6px 10px; margin: 0 -10px; border-radius: 10px; color: var(--on-var); }
+.outline button:hover { background: var(--c); color: var(--on); }
+.mini-graph { width: 100%; height: 170px; border-radius: var(--r-tile); background: var(--c); display: block; margin-bottom: 14px; }
+.hist { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--on-var); margin-bottom: 16px; }
+
+/* папка: доска */
+.board-tools { display: flex; gap: 6px; margin-left: auto; padding: 4px; border-radius: 100px; background: var(--c); }
+.seg { height: 34px; padding: 0 14px; border-radius: 100px; font-size: 13px; color: var(--on-var); display: inline-flex; align-items: center; gap: 6px; }
+.seg.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.board { columns: 4 220px; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
+.tile { break-inside: avoid; display: block; width: 100%; margin: 0 0 12px; text-align: left; border-radius: var(--r-tile); background: color-mix(in oklab, var(--f) var(--tint), var(--c)); overflow: hidden; transition: transform .16s cubic-bezier(.2, 0, 0, 1); }
+.tile:hover { transform: translateY(-2px); }
+.tile .photo { margin: 0; width: 100%; max-height: none; border-radius: 0; }
+.tile .in { padding: 12px 14px 14px; }
+.tile b { display: block; font-size: 15px; line-height: 1.3; }
+.tile small { display: flex; gap: 10px; color: var(--on-var); font-size: 12px; margin-top: 6px; }
+
+/* ── строка: ищет и записывает ── */
+.dock { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); pointer-events: none; display: flex; justify-content: center; }
+.dock-in { width: min(760px, 100%); pointer-events: auto; }
+.results { margin-bottom: 8px; border-radius: var(--r-card); background: var(--c-high); padding: 8px; box-shadow: 0 1px 0 color-mix(in oklab, var(--line) 60%, transparent) inset; max-height: min(52vh, 420px); overflow: auto; }
+.results[hidden] { display: none; }
+.res { display: flex; gap: 12px; align-items: center; width: 100%; padding: 10px 12px; border-radius: 18px; text-align: left; }
+.res:hover, .res.sel { background: var(--c-highest); }
+.res.main-act { background: var(--accent); color: var(--on-accent); }
+.res.main-act small { color: color-mix(in oklab, var(--on-accent) 65%, transparent); }
+.res .k { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; flex: none; background: color-mix(in oklab, var(--f) var(--tint), var(--c)); }
+.res.main-act .k { background: color-mix(in oklab, var(--on-accent) 12%, transparent); }
+.res b { display: block; font-size: 14px; font-weight: 600; }
+.res small { display: block; font-size: 12px; color: var(--muted); }
+.res mark { background: color-mix(in oklab, #FEC766 45%, transparent); color: inherit; border-radius: 4px; padding: 0 2px; }
+.res-label { font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 12px 4px; }
+.chips-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 4px 8px 6px; }
+.line { display: flex; align-items: center; gap: 4px; min-height: 60px; padding: 8px 8px 8px 18px; border-radius: 100px; background: var(--c-high); box-shadow: 0 0 0 1px color-mix(in oklab, var(--line) 55%, transparent); }
+.line:focus-within { box-shadow: 0 0 0 2px color-mix(in oklab, var(--on) 35%, transparent); }
+.line input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; height: 44px; }
+.line input::placeholder { color: var(--muted); }
+.line .kbd { font-size: 11px; color: var(--muted); padding: 2px 6px; border-radius: 6px; background: var(--c-highest); margin-right: 6px; }
+.send { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; transition: transform .15s; }
+.send:active { transform: scale(.92); }
+
+.toast { position: absolute; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 12px); opacity: 0; pointer-events: none; display: flex; gap: 14px; align-items: center; padding: 10px 10px 10px 16px; border-radius: 16px; background: var(--accent); color: var(--on-accent); font-size: 14px; transition: opacity .2s, transform .2s; white-space: nowrap; max-width: calc(100% - 32px); }
+.toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.toast button { font-weight: 600; padding: 6px 10px; border-radius: 10px; background: color-mix(in oklab, var(--on-accent) 10%, transparent); }
+.fresh { animation: drop .45s cubic-bezier(.16, 1, .3, 1); }
+@keyframes drop { from { opacity: 0; transform: translateY(-10px) scale(.98); } }
+
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 30; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+
+/* ── ширина: три панели → две → полоса-рельс → телефон ── */
+@media (max-width: 1279px) {
+  .app { grid-template-columns: var(--sb) minmax(0, 1fr); }
+  .right { position: fixed; top: 0; bottom: 0; right: 0; z-index: 40; transform: translateX(100%); transition: transform .25s cubic-bezier(.2, 0, 0, 1); box-shadow: -1px 0 0 var(--line); }
+  .right.open { transform: none; }
+  .home { grid-template-columns: minmax(0, 1fr); }
+  .aside { position: static; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); order: -1; }
+}
+@media (max-width: 959px) {
+  :root { --sb: 0px; }
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { position: fixed; top: 0; bottom: 0; left: 0; width: 288px; z-index: 40; transform: translateX(-100%); transition: transform .25s cubic-bezier(.2, 0, 0, 1); }
+  .side.open { transform: none; }
+  .menu-btn { display: grid; }
+}
+@media (max-width: 719px) {
+  .tabs .tab:not(.on) { display: none; }
+  .tab { max-width: none; }
+  .view { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 140px max(16px, env(safe-area-inset-left, 0px)); }
+  .h1 { font-size: 24px; }
+  .entry { grid-template-columns: 40px 16px minmax(0, 1fr); }
+  .entry .time { font-size: 12px; padding-right: 6px; }
+  .day-head { margin-left: 56px; }
+  .card { margin-left: 6px; padding: 14px 16px; }
+  .props { grid-template-columns: 112px minmax(0, 1fr); }
+  .link-prev { grid-template-columns: 88px minmax(0, 1fr); }
+  .product { grid-template-columns: 64px minmax(0, 1fr); }
+  .product .price { grid-column: 2; padding: 0; font-size: 14px; }
+  .line { min-height: 54px; }
+  .line .kbd { display: none; }
+  .aside { grid-template-columns: minmax(0, 1fr); order: 1; }
+  .aside .panel:nth-child(n+3) { display: none; }
+  .top-actions .hide-s { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+</style>
+
+<div class="app" id="app">
+  <aside class="side" id="side" aria-label="Хранилище">
+    <div class="vault">
+      <div class="vault-mark">S</div>
+      <div>
+        <div class="vault-name">Мои заметки</div>
+        <div class="vault-sync"><i></i>Синхронизировано</div>
+      </div>
+      <button class="icon-btn" title="Сменить хранилище"><span class="sym">unfold_more</span></button>
+    </div>
+    <button class="finder" id="finder"><span class="sym">search</span>Найти или записать<kbd>Ctrl K</kbd></button>
+    <div class="side-scroll">
+      <nav>
+        <button class="nav-item" data-go="home"><span class="sym">home</span>Главная</button>
+        <button class="nav-item" data-go="folder-none"><span class="sym">inbox</span>Без папки<span class="count num">5</span></button>
+        <button class="nav-item" data-go="home"><span class="sym">notifications</span>Напоминания<span class="count num">3</span></button>
+        <button class="nav-item" data-go="home"><span class="sym">schedule</span>Посмотреть потом<span class="count num">4</span></button>
+        <button class="nav-item" data-go="home"><span class="sym">map</span>Карта</button>
+        <button class="nav-item" data-go="home"><span class="sym">hub</span>Граф</button>
+      </nav>
+      <div class="group">
+        <div class="group-head">Закреплено</div>
+        <div id="pinned"></div>
+      </div>
+      <div class="group">
+        <div class="group-head">Папки <button title="Новая папка"><span class="sym">add</span></button></div>
+        <div id="tree"></div>
+      </div>
+      <div class="group">
+        <div class="group-head">Теги</div>
+        <div class="tags">
+          <button class="tag">#купить</button><button class="tag">#ремонт</button><button class="tag">#кухня</button><button class="tag">#читать</button><button class="tag">#идея</button><button class="tag">#важно</button>
+        </div>
+      </div>
+      <div class="group">
+        <div class="group-head">Умные папки</div>
+        <button class="tree-row"><span class="sym" style="font-size:18px;color:var(--muted)">auto_awesome</span>Чеки за ноябрь<span class="count num">7</span></button>
+        <button class="tree-row"><span class="sym" style="font-size:18px;color:var(--muted)">auto_awesome</span>Ролики до 10 минут<span class="count num">12</span></button>
+      </div>
+    </div>
+    <div class="side-foot">
+      <div class="me"><b>А</b>Алекс</div>
+      <button class="icon-btn" id="theme" title="Светлая или тёмная"><span class="sym">dark_mode</span></button>
+      <button class="icon-btn" title="Настройки"><span class="sym">settings</span></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <button class="icon-btn menu-btn" id="menu" title="Папки"><span class="sym">menu</span></button>
+      <div class="tabs" id="tabs"></div>
+      <div class="top-actions">
+        <button class="icon-btn hide-s" title="Назад" onclick="history.back()"><span class="sym">arrow_back</span></button>
+        <button class="icon-btn" id="rp-toggle" title="Связи и свойства"><span class="sym">right_panel_open</span></button>
+      </div>
+    </header>
+    <div class="scroll" id="scroll"><div class="view" id="view"></div></div>
+    <div class="toast" id="toast"><span id="toast-text"></span><button id="toast-undo">Отменить</button></div>
+    <div class="dock">
+      <div class="dock-in">
+        <div class="results" id="results" hidden></div>
+        <form class="line" id="line" autocomplete="off">
+          <input id="q" placeholder="Записать или найти…" aria-label="Записать или найти">
+          <span class="kbd">Ctrl K</span>
+          <button type="button" class="icon-btn" title="Прикрепить файл"><span class="sym">attach_file</span></button>
+          <button type="button" class="icon-btn" title="Голосовое"><span class="sym">mic</span></button>
+          <button class="send" title="Закинуть"><span class="sym f">arrow_upward</span></button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right" id="right" aria-label="Связи заметки" hidden></aside>
+</div>
+<div class="scrim" id="scrim"></div>
+
+<script>
+const FOLDERS = [
+  { id: "dom", name: "Дом", count: 34, kids: [{ id: "remont", name: "Ремонт", count: 9 }] },
+  { id: "work", name: "Работа", count: 58 },
+  { id: "buy", name: "Покупки", count: 21 },
+  { id: "recipes", name: "Рецепты", count: 17 },
+  { id: "books", name: "Книги и фильмы", count: 46 },
+  { id: "ideas", name: "Идеи", count: 29 },
+  { id: "personal", name: "Личное", count: 12 },
+];
+const FNAME = { none: "Без папки" };
+FOLDERS.forEach(f => { FNAME[f.id] = f.name; (f.kids || []).forEach(k => FNAME[k.id] = k.name); });
+
+const NOTES = [
+  { id: "kitchen", f: "remont", day: 0, time: "18:20", kind: "check", title: "Ремонт кухни: что заказать",
+    checks: [["Плитка 20×20, 6 м²", 1], ["Затирка, серая", 0], ["Смеситель с длинным изливом", 0]], more: 2, rem: "Сб, 10:00" },
+  { id: "milk", f: "buy", day: 0, time: "17:05", kind: "check", title: "Купить",
+    checks: [["Молоко", 0], ["Свёкла и морковь", 0], ["Хлеб ржаной", 1]], more: 3, rem: "у Linella" },
+  { id: "lecture", f: "books", day: 0, time: "14:32", kind: "link", title: "Лекция: как память выбирает, что сохранить",
+    site: "youtube.com · 42:18", text: "Сохранила, чтобы досмотреть: с 12-й минуты про повторение по интервалам." },
+  { id: "voice", f: "ideas", day: 0, time: "11:10", kind: "voice", title: "Голосовое · 0:47",
+    text: "Сделать утренний виджет: одна случайная заметка из «Идей» и кнопка «ещё»." },
+  { id: "walk", f: "personal", day: 0, time: "09:40", kind: "photo", title: "Утро у озера", file: "IMG-20261115-0940.jpg",
+    text: "Туман над Валя Морилор, ещё никого нет." },
+  { id: "borsch", f: "recipes", day: 1, time: "20:15", kind: "note", title: "Борщ бабушкин",
+    text: "Свёклу запекать отдельно, тогда цвет держится. Чеснок и укроп в самом конце, огонь выключить." },
+  { id: "call", f: "work", day: 1, time: "16:00", kind: "note", title: "Созвон с Саней: план на неделю",
+    text: "Сайт S&T: макет к среде. Stowa: веб-версия, синхронизация, первые цены.", rem: "Пн, 10:00" },
+  { id: "wifi", f: "dom", day: 1, time: "12:30", kind: "note", title: "Пароль от Wi‑Fi",
+    text: "Сеть Kitchen_5G, пароль в QR на роутере. Гостевая сеть — без пароля." },
+  { id: "quotes", f: "books", day: 1, time: "09:05", kind: "note", title: "«Сто лет одиночества» — цитаты",
+    text: "«Секрет хорошей старости — это честный союз с одиночеством»." },
+];
+const PINNED = ["wifi", "kitchen", "borsch"];
+const DAYS = [["Сегодня", "15 ноября, суббота"], ["Вчера", "14 ноября, пятница"]];
+const RECIPES = [
+  ["Борщ бабушкин", "2 ч", "8 порций", 4 / 5], ["Сырники на рисовой муке", "25 мин", "4 порции", 4 / 3], ["Плов на казане", "1 ч 40 мин", "6 порций", 1],
+  ["Тыквенный суп с имбирём", "45 мин", "4 порции", 3 / 4], ["Фокачча с розмарином", "3 ч", "1 противень", 16 / 10], ["Шарлотка", "1 ч", "8 кусков", 1],
+  ["Плацинды с брынзой", "1 ч 20 мин", "10 штук", 5 / 4], ["Мамалыга", "40 мин", "4 порции", 4 / 3],
+];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sym = (n, f) => `<span class="sym${f ? " f" : ""}">${n}</span>`;
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+/* ── тема ── */
+function applyTheme(t) { if (t) document.documentElement.dataset.theme = t; }
+applyTheme(store.get("stowa-web-theme"));
+$("#theme").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const next = cur === "dark" ? "light" : "dark";
+  applyTheme(next); store.set("stowa-web-theme", next); drawGraph();
+};
+
+/* ── боковая панель ── */
+const open = new Set(["dom"]);
+function renderSide(route) {
+  $("#pinned").innerHTML = PINNED.map(id => {
+    const n = NOTES.find(x => x.id === id);
+    return `<button class="tree-row" data-f="${n.f}" data-go="note-${n.id}" ${route === "note-" + n.id ? 'aria-current="page"' : ""}><span class="sym f" style="font-size:16px;color:var(--muted)">push_pin</span>${esc(n.title)}</button>`;
+  }).join("");
+  const row = (f, lvl, hasKids) => `<button class="tree-row" data-f="${f.id}" style="--lvl:${lvl}" data-go="folder-${f.id}" ${route === "folder-" + f.id ? 'aria-current="page"' : ""}>
+      <span class="sym chev ${open.has(f.id) ? "open" : ""}" ${hasKids ? `data-toggle="${f.id}"` : 'style="visibility:hidden"'}>chevron_right</span>
+      <span class="dot"></span>${esc(f.name)}<span class="count num">${f.count}</span></button>`;
+  $("#tree").innerHTML = FOLDERS.map(f => row(f, 0, !!f.kids) + (f.kids && open.has(f.id) ? f.kids.map(k => row(k, 1, false)).join("") : "")).join("");
+  document.querySelectorAll(".nav-item").forEach(b => b.toggleAttribute("aria-current", false));
+  if (route === "home") document.querySelector('.nav-item[data-go="home"]').setAttribute("aria-current", "page");
+  if (route === "folder-none") document.querySelector('.nav-item[data-go="folder-none"]').setAttribute("aria-current", "page");
+}
+
+/* ── вкладки, как в Obsidian ── */
+let tabs = ["home", "note-kitchen", "folder-recipes"];
+function tabTitle(r) {
+  if (r === "home") return [sym("home"), "Главная", "none"];
+  if (r.startsWith("note-")) { const n = NOTES.find(x => "note-" + x.id === r); return [`<span class="dot" data-f="${n.f}"></span>`, n.title, n.f]; }
+  const id = r.slice(7); return [`<span class="dot" data-f="${id}"></span>`, FNAME[id], id];
+}
+function renderTabs(route) {
+  if (!tabs.includes(route)) tabs.push(route);
+  $("#tabs").innerHTML = tabs.map(r => { const [ic, t] = tabTitle(r);
+    return `<button class="tab ${r === route ? "on" : ""}" data-go="${r}">${ic}<span class="t">${esc(t)}</span>${tabs.length > 1 ? `<span class="sym x" data-close="${r}" title="Закрыть">close</span>` : ""}</button>`; }).join("");
+}
+
+/* ── карточка ленты ── */
+function cardBody(n) {
+  let body = "";
+  if (n.kind === "photo") body += `<figure class="photo"><figcaption>${sym("image")}${esc(n.file)}</figcaption></figure>`;
+  body += `<h3>${esc(n.title)}</h3>`;
+  if (n.kind === "check") body += `<ul class="checks">${n.checks.map(([t, d]) => `<li class="${d ? "done" : ""}">${sym(d ? "check_box" : "check_box_outline_blank", d)}${esc(t)}</li>`).join("")}${n.more ? `<li class="more">ещё ${n.more}</li>` : ""}</ul>`;
+  else if (n.kind === "voice") body += `<div class="wave"><span class="play">${sym("play_arrow", 1)}</span>${waveSvg()}</div><p style="margin-top:8px">${esc(n.text)}</p>`;
+  else if (n.text) body += `<p>${esc(n.text)}</p>`;
+  if (n.kind === "link") body += `<div class="link-prev"><div class="thumb">${sym("play_circle", 1)}<span class="len num">42:18</span></div><div><b>Как память выбирает, что сохранить</b><span>${esc(n.site)}</span></div></div>`;
+  body += `<div class="meta"><span class="folder"><span class="dot"></span>${esc(FNAME[n.f])}</span>${n.rem ? `<span class="rem">${sym("notifications")}${esc(n.rem)}</span>` : ""}</div>`;
+  return body;
+}
+function waveSvg() {
+  let bars = "", seed = 7;
+  for (let i = 0; i < 46; i++) { seed = (seed * 9301 + 49297) % 233280; const h = 6 + (seed / 233280) * 20; bars += `<rect x="${i * 6}" y="${(28 - h) / 2}" width="3" height="${h.toFixed(1)}" rx="1.5"/>`; }
+  return `<svg viewBox="0 0 276 28" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>`;
+}
+
+/* ── главная ── */
+function viewHome() {
+  const pills = FOLDERS.map(f => `<button class="pill" data-f="${f.id}" data-go="folder-${f.id}"><span class="dot"></span>${esc(f.name)}<span class="n num">${f.count}</span></button>`).join("");
+  const days = DAYS.map(([d, date], i) => {
+    const list = NOTES.filter(n => n.day === i);
+    return `<section class="day"><div class="day-head"><h2>${d}</h2><span>${date}</span></div>
+      <div class="entries" ${i === 0 ? 'id="today"' : ""}>${list.map(entry).join("")}</div></section>`;
+  }).join("");
+  return `<div class="view-head"><div><h1 class="h1">Главная</h1><div class="sub">218 заметок · 7 папок · последняя правка 18:20</div></div></div>
+  <div class="shelf">${pills}<button class="pill" data-f="none" data-go="folder-none"><span class="dot"></span>Без папки<span class="n num">5</span></button></div>
+  <div class="home">
+    <div>${days}</div>
+    <div class="aside">
+      <section class="panel"><h4>${sym("schedule")}Посмотреть потом</h4>
+        <div class="later">
+          <button data-f="books" data-go="note-lecture"><span class="k">${sym("smart_display")}</span><span>Лекция про память<small>42 мин · сохранено сегодня</small></span></button>
+          <button data-f="books"><span class="k">${sym("article")}</span><span>Как устроен поиск по смыслу<small>статья · 11 мин</small></span></button>
+          <button data-f="ideas"><span class="k">${sym("smart_display")}</span><span>Обзор русской клавиатуры<small>8 мин</small></span></button>
+        </div></section>
+      <section class="panel"><h4>${sym("history")}Год назад</h4>
+        <button class="ago" data-f="recipes" data-go="note-borsch"><small>15 ноября 2025</small><b>Борщ бабушкин</b></button></section>
+      <section class="panel"><div class="sync-panel"><h4 style="margin:0">${sym("cloud_done")}Stowa Sync</h4><span class="badge">Stowa+</span></div>
+        <div class="devices">
+          <div>${sym("smartphone")}Xiaomi 15T<em>2 мин назад</em></div>
+          <div>${sym("phone_iphone")}iPhone 16<em>вчера</em></div>
+          <div>${sym("laptop")}Этот браузер<em>сейчас</em></div>
+        </div></section>
+    </div>
+  </div>`;
+}
+function entry(n) {
+  return `<div class="entry" data-f="${n.f}" data-id="${n.id}"><div class="time num">${n.time}</div><div class="axis"><span class="dot"></span></div>
+    <button class="card" data-go="note-${n.id}">${cardBody(n)}</button></div>`;
+}
+
+/* ── заметка ── */
+function viewNote(id) {
+  if (id !== "kitchen") return viewSimpleNote(NOTES.find(n => n.id === id));
+  return `<article class="doc" data-f="remont">
+    <div class="crumbs"><button data-go="folder-dom">Дом</button>${sym("chevron_right")}<button data-go="folder-remont">Ремонт</button>${sym("chevron_right")}<span>Ремонт кухни: что заказать</span></div>
+    <h1 class="doc-title" contenteditable="true" spellcheck="false">Ремонт кухни: что заказать</h1>
+    <dl class="props">
+      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="remont"><span class="dot"></span>Дом / Ремонт</span></dd>
+      <dt>${sym("sell")}Теги</dt><dd><span class="chip">#ремонт</span><span class="chip">#кухня</span><span class="chip">#купить</span></dd>
+      <dt>${sym("notifications")}Напомнить</dt><dd><span class="chip rem">${sym("event")}Сб, 22 ноября · 10:00</span></dd>
+      <dt>${sym("location_on")}Место</dt><dd>Строительный рынок, Кишинёв</dd>
+      <dt>${sym("calendar_today")}Создана</dt><dd class="num">12 ноября 2026, 21:14</dd>
+      <dt>${sym("edit")}Правка</dt><dd>сегодня в 18:20 · с Xiaomi 15T</dd>
+    </dl>
+    <button class="prop-add">${sym("add")}Добавить свойство</button>
+    <div class="rule"></div>
+    <div class="prose">
+      <p>Замер: 3,2 × 2,6 м, высота 2,7. Фартук только над рабочей зоной, до вытяжки. Варианты, которые смотрели, — в <span class="wikilink" data-go="note-borsch">Идеи для кухни</span>.</p>
+      <h2 id="h-order">Заказать</h2>
+      <ul class="todo">
+        <li class="done"><span class="box">${sym("check")}</span><span class="label">Плитка 20×20, 6 м² с запасом</span></li>
+        <li><span class="box"></span><span class="label">Затирка, серая, 2 кг</span></li>
+        <li><span class="box"></span><span class="label">Смеситель с длинным изливом</span></li>
+        <li><span class="box"></span><span class="label">Профиль для торца столешницы</span></li>
+        <li><span class="box"></span><span class="label">Позвонить электрику про розетки над столом</span></li>
+      </ul>
+      <h2 id="h-price">Цены</h2>
+      <table class="price-table num">
+        <tr><td>Плитка, 6 м² × <span class="money">640 лей</span></td><td>3 840 лей</td></tr>
+        <tr><td>Смеситель</td><td><span class="money">2 900 лей</span></td></tr>
+        <tr><td>Затирка и клей</td><td><span class="money">1 100 лей</span></td></tr>
+        <tr><td>Работа плиточника</td><td><span class="money">2 000 лей</span></td></tr>
+      </table>
+      <span class="total num">${sym("payments")}Всего по заметке: 9 840 лей</span>
+      <div class="product" data-f="remont"><div class="thumb"></div><div><b>Плитка керамическая 20×20, белая матовая</b><small>магазин плитки · есть в наличии</small></div><div class="price num">640 лей/м²</div></div>
+      <h2 id="h-photo">Как сейчас</h2>
+      <div class="gallery">
+        <figure class="photo" data-f="remont"><figcaption>${sym("image")}kitchen-before-1.jpg</figcaption></figure>
+        <figure class="photo" data-f="dom"><figcaption>${sym("image")}kitchen-before-2.jpg</figcaption></figure>
+      </div>
+      <p>Начать с демонтажа старого фартука в субботу. Мусор вывозить вместе с соседями с третьего этажа.</p>
+    </div>
+  </article>`;
+}
+function viewSimpleNote(n) {
+  return `<article class="doc" data-f="${n.f}">
+    <div class="crumbs"><button data-go="folder-${n.f}">${esc(FNAME[n.f])}</button>${sym("chevron_right")}<span>${esc(n.title)}</span></div>
+    <h1 class="doc-title" contenteditable="true" spellcheck="false">${esc(n.title)}</h1>
+    <dl class="props">
+      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="${n.f}"><span class="dot"></span>${esc(FNAME[n.f])}</span></dd>
+      <dt>${sym("calendar_today")}Создана</dt><dd class="num">${n.day ? "14" : "15"} ноября 2026, ${n.time}</dd>
+      ${n.rem ? `<dt>${sym("notifications")}Напомнить</dt><dd><span class="chip rem">${sym("event")}${esc(n.rem)}</span></dd>` : ""}
+    </dl>
+    <div class="rule"></div>
+    <div class="prose">${n.kind === "photo" ? `<figure class="photo" data-f="${n.f}" style="margin:0 0 16px;width:100%;max-height:none;aspect-ratio:3/2"><figcaption>${sym("image")}${esc(n.file)}</figcaption></figure>` : ""}
+      ${n.kind === "check" ? `<ul class="todo">${n.checks.map(([t, d]) => `<li class="${d ? "done" : ""}"><span class="box">${d ? sym("check") : ""}</span><span class="label">${esc(t)}</span></li>`).join("")}</ul>` : `<p>${esc(n.text || "")}</p>`}</div>
+  </article>`;
+}
+function rightPanel(id) {
+  const links = id === "kitchen"
+    ? [["ideas", "Идеи для кухни", "ссылка из текста", "note-borsch"], ["buy", "Купить", "похоже: «затирка», «смеситель»", "note-milk"], ["work", "Созвон с Саней", "упоминает ремонт", "note-call"]]
+    : [["remont", "Ремонт кухни: что заказать", "похожие слова", "note-kitchen"], ["dom", "Пароль от Wi‑Fi", "та же папка", "note-wifi"]];
+  return `<section class="rp-sec"><h5>Связано <span class="num">${links.length}</span></h5>
+    ${links.map(([f, t, why, go]) => `<button class="rel" data-f="${f}" data-go="${go}"><span class="dot"></span><span><b>${esc(t)}</b><small>${esc(why)}</small></span></button>`).join("")}</section>
+  ${id === "kitchen" ? `<section class="rp-sec"><h5>Оглавление</h5><ul class="outline">
+    <li><button data-jump="h-order">Заказать</button></li><li><button data-jump="h-price">Цены</button></li><li><button data-jump="h-photo">Как сейчас</button></li></ul></section>` : ""}
+  <section class="rp-sec"><h5>Соседи по графу</h5><canvas class="mini-graph" id="graph" aria-label="Граф связей заметки"></canvas></section>
+  <section class="rp-sec"><h5>История</h5><div class="hist">${sym("history")}4 версии · последняя сегодня в 18:20</div></section>`;
+}
+function drawGraph() {
+  const c = $("#graph"); if (!c) return;
+  const r = c.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  c.width = r.width * dpr; c.height = r.height * dpr; const g = c.getContext("2d"); g.scale(dpr, dpr);
+  const css = getComputedStyle(document.documentElement), line = css.getPropertyValue("--line").trim(), on = css.getPropertyValue("--on").trim();
+  const cx = r.width / 2, cy = r.height / 2;
+  const nodes = [["#F7A974", 0, 0, 9], ["#B5E285", -0.95, -0.55, 6], ["#76D5A4", 0.9, -0.5, 6], ["#5FCDF5", 0.75, 0.7, 6], ["#FEC766", -0.7, 0.72, 5], ["#BCB1FF", -0.15, -0.9, 4], ["#FFA098", 0.15, 0.95, 4]];
+  const pos = nodes.map(([c2, x, y, s]) => [c2, cx + x * r.width * 0.36, cy + y * r.height * 0.38, s]);
+  g.strokeStyle = line; g.lineWidth = 1.2;
+  pos.slice(1).forEach(p => { g.beginPath(); g.moveTo(pos[0][1], pos[0][2]); g.lineTo(p[1], p[2]); g.stroke(); });
+  g.beginPath(); g.moveTo(pos[1][1], pos[1][2]); g.lineTo(pos[5][1], pos[5][2]); g.stroke();
+  pos.forEach(([col, x, y, s], i) => { g.beginPath(); g.arc(x, y, s, 0, 7); g.fillStyle = col; g.fill(); if (!i) { g.lineWidth = 2; g.strokeStyle = on; g.stroke(); g.strokeStyle = line; g.lineWidth = 1.2; } });
+}
+
+/* ── папка: доска ── */
+function viewFolder(id) {
+  const list = id === "recipes" ? RECIPES : NOTES.filter(n => n.f === id || (id === "dom" && n.f === "remont")).map(n => [n.title, n.time, FNAME[n.f], n.kind === "photo" ? 3 / 2 : 0, n]);
+  const fid = id === "none" ? "none" : id;
+  return `<div class="view-head" data-f="${fid}"><div><h1 class="h1" style="display:flex;align-items:center;gap:12px"><span class="dot" style="width:14px;height:14px"></span>${esc(FNAME[id])}</h1>
+    <div class="sub">${id === "recipes" ? "17 заметок · 12 с фото · доска по высоте картинок" : "заметки папки, свежие сверху"}</div></div>
+    <div class="board-tools"><button class="seg">${sym("view_agenda")}Лента</button><button class="seg on">${sym("dashboard")}Доска</button><button class="seg">${sym("gesture")}Холст</button></div></div>
+  <div class="board">${list.length ? list.map(([t, a, b, ratio, n]) => `<button class="tile" data-f="${n ? n.f : fid}" ${n ? `data-go="note-${n.id}"` : t === "Борщ бабушкин" ? 'data-go="note-borsch"' : ""}>
+      ${ratio ? `<figure class="photo" style="aspect-ratio:${ratio}"><figcaption>${sym("image")}фото</figcaption></figure>` : ""}
+      <div class="in"><b>${esc(t)}</b><small><span>${sym("schedule").replace('class="sym"', 'class="sym" style="font-size:14px"')} ${esc(a)}</span><span>${esc(b)}</span></small></div></button>`).join("")
+    : `<div class="panel" style="max-width:520px">Здесь будут заметки без папки. Stowa разложит их сама или спросит вас.</div>`}</div>`;
+}
+
+/* ── маршрут ── */
+let route = "home";
+function go(r, push = true) {
+  if (!/^(home|note-[a-z]+|folder-[a-z]+)$/.test(r)) r = "home";
+  route = r;
+  const v = $("#view");
+  if (r === "home") v.innerHTML = viewHome();
+  else if (r.startsWith("note-")) v.innerHTML = viewNote(r.slice(5));
+  else v.innerHTML = viewFolder(r.slice(7));
+  const isNote = r.startsWith("note-");
+  const rp = $("#right");
+  rp.hidden = !isNote;
+  if (isNote) { rp.innerHTML = rightPanel(r.slice(5)); requestAnimationFrame(drawGraph); }
+  $("#rp-toggle").hidden = !isNote;
+  renderSide(r); renderTabs(r); closeDrawers();
+  $("#scroll").scrollTop = 0;
+  if (push && location.hash !== "#" + r) history.pushState(null, "", "#" + r);
+}
+window.addEventListener("hashchange", () => go(location.hash.slice(1) || "home", false));
+window.addEventListener("popstate", () => go(location.hash.slice(1) || "home", false));
+window.addEventListener("resize", () => { if (route.startsWith("note-")) drawGraph(); });
+
+document.addEventListener("click", e => {
+  const close = e.target.closest("[data-close]");
+  if (close) { e.stopPropagation(); const r = close.dataset.close; tabs = tabs.filter(t => t !== r); if (route === r) go(tabs[tabs.length - 1] || "home"); else renderTabs(route); return; }
+  const tog = e.target.closest("[data-toggle]");
+  if (tog) { e.stopPropagation(); const id = tog.dataset.toggle; open.has(id) ? open.delete(id) : open.add(id); renderSide(route); return; }
+  const jump = e.target.closest("[data-jump]");
+  if (jump) { document.getElementById(jump.dataset.jump)?.scrollIntoView({ block: "start" }); closeDrawers(); return; }
+  const box = e.target.closest(".todo .box");
+  if (box) { const li = box.parentElement; li.classList.toggle("done"); box.innerHTML = li.classList.contains("done") ? sym("check") : ""; return; }
+  const t = e.target.closest("[data-go]");
+  if (t) go(t.dataset.go);
+});
+
+/* выдвижные панели на узком экране */
+function closeDrawers() { $("#side").classList.remove("open"); $("#right").classList.remove("open"); $("#scrim").classList.remove("on"); }
+$("#menu").onclick = () => { $("#side").classList.add("open"); $("#scrim").classList.add("on"); };
+$("#rp-toggle").onclick = () => {
+  if (innerWidth >= 1280) { $("#right").hidden = !$("#right").hidden; if (!$("#right").hidden) requestAnimationFrame(drawGraph); return; }
+  $("#right").classList.add("open"); $("#scrim").classList.add("on"); requestAnimationFrame(drawGraph);
+};
+$("#scrim").onclick = closeDrawers;
+
+/* ── строка: пока пишешь, видно, что она сделает ── */
+const q = $("#q"), results = $("#results");
+let undoId = null, toastTimer;
+function guessFolder(text) {
+  const t = text.toLowerCase();
+  const tag = (t.match(/#([\wа-яё]+)/i) || [])[1];
+  const at = (t.match(/@([\wа-яё]+)/i) || [])[1];
+  if (at) { const f = Object.entries(FNAME).find(([, n]) => n.toLowerCase().startsWith(at)); if (f) return [f[0], `вы написали @${at}`]; }
+  // \b в JS не видит кириллицу, поэтому слова ищутся по началу
+  if (tag === "купить" || /(^|\s)(купит|купи|молок|хлеб|сыр|яйц)/.test(t)) return ["buy", tag ? "правило тега #купить" : "похоже на «Покупки»"];
+  if (/(плитк|ремонт|смесител|розетк|обои)/.test(t)) return ["remont", "похоже на «Ремонт»"];
+  if (/(созвон|встреч|отчёт|задач|клиент)/.test(t)) return ["work", "похоже на «Работу»"];
+  if (/(рецепт|варить|запекать|суп|тесто)/.test(t)) return ["recipes", "похоже на «Рецепты»"];
+  if (/(книг|фильм|сериал|посмотреть|youtube|http)/.test(t)) return ["books", "похоже на «Книги и фильмы»"];
+  return ["ideas", "по словам ближе всего «Идеи»"];
+}
+function remOf(text) {
+  const m = text.match(/(завтра|сегодня|в понедельник|в пятницу|в субботу)(\s+в\s+\d{1,2}(:\d\d)?)?/i);
+  if (!m) return "";
+  const w = m[1][0].toUpperCase() + m[1].slice(1);
+  return m[2] ? `${w}${m[2]}` : `${w} в 9:00`;
+}
+function highlight(s, words) {
+  let out = esc(s);
+  words.forEach(w => { if (w.length > 1) out = out.replace(new RegExp(`(${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig"), "<mark>$1</mark>"); });
+  return out;
+}
+function showResults() {
+  const text = q.value.trim();
+  if (!text) { results.hidden = true; return; }
+  const [fid, why] = guessFolder(text);
+  const rem = remOf(text);
+  const words = text.toLowerCase().replace(/[#@]/g, "").split(/\s+/).filter(w => w.length > 2);
+  const found = NOTES.filter(n => words.some(w => (n.title + " " + (n.text || "") + " " + (n.checks || []).map(c => c[0]).join(" ")).toLowerCase().includes(w.slice(0, Math.max(3, w.length - 2))))).slice(0, 4);
+  results.innerHTML = `<button class="res main-act" data-f="${fid}" id="save-act"><span class="k">${sym("south_east")}</span><span><b>Закинуть в «${esc(FNAME[fid])}»</b><small>${esc(why)}${rem ? " · напомню " + esc(rem.toLowerCase()) : ""}</small></span><span class="sym" style="margin-left:auto">keyboard_return</span></button>
+    ${found.length ? `<div class="res-label">Нашлось ${found.length}</div>` + found.map(n => `<button class="res" data-f="${n.f}" data-go="note-${n.id}"><span class="k"><span class="dot"></span></span><span style="min-width:0"><b>${highlight(n.title, words)}</b><small>${esc(FNAME[n.f])} · ${n.day ? "вчера" : "сегодня"} ${n.time}</small></span></button>`).join("")
+      : `<div class="res-label">Похожего нет, запишу как новую</div>`}`;
+  results.hidden = false;
+}
+q.addEventListener("input", showResults);
+q.addEventListener("focus", showResults);
+document.addEventListener("click", e => { if (!e.target.closest(".dock-in")) results.hidden = true; });
+results.addEventListener("click", e => { if (e.target.closest("#save-act")) { e.preventDefault(); save(); } else if (e.target.closest("[data-go]")) { q.value = ""; results.hidden = true; } });
+$("#line").addEventListener("submit", e => { e.preventDefault(); save(); });
+function save() {
+  const text = q.value.trim(); if (!text) return;
+  const [fid] = guessFolder(text); const rem = remOf(text);
+  const id = "new" + Date.now().toString(36).replace(/[0-9]/g, c => "abcdefghij"[c]);
+  const now = new Date(); const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const title = text.replace(/[#@][\wа-яё]+/gi, "").trim() || text;
+  NOTES.unshift({ id, f: fid, day: 0, time, kind: "note", title: title.length > 60 ? title.slice(0, 60) + "…" : title, text: title.length > 60 ? title : "", rem });
+  q.value = ""; results.hidden = true; undoId = id;
+  if (route !== "home") go("home");
+  else { const box = $("#today"); if (box) { box.insertAdjacentHTML("afterbegin", entry(NOTES[0])); box.firstElementChild.classList.add("fresh"); } }
+  toast(`Закинуто в «${FNAME[fid]}»${rem ? " · напомню " + rem.toLowerCase() : ""}`);
+}
+function toast(msg) {
+  $("#toast-text").textContent = msg; $("#toast").classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("on"), 4200);
+}
+$("#toast-undo").onclick = () => {
+  const i = NOTES.findIndex(n => n.id === undoId); if (i < 0) return;
+  const n = NOTES.splice(i, 1)[0]; document.querySelector(`.entry[data-id="${n.id}"]`)?.remove();
+  q.value = n.text || n.title; $("#toast").classList.remove("on"); q.focus();
+};
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); q.focus(); q.select(); }
+  if (e.key === "Escape") { if (document.activeElement === q) { q.value = ""; results.hidden = true; q.blur(); } closeDrawers(); }
+});
+$("#finder").onclick = () => { closeDrawers(); q.focus(); };
+
+go(location.hash.slice(1) || "home", false);
+</script>
