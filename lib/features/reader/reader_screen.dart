@@ -14,6 +14,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -483,7 +484,7 @@ class _ArticleImage extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(Radii.photo),
-          child: Image.file(
+          child: FilePicture(
             file,
             fit: BoxFit.fitWidth,
             cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),

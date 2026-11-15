@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/widgets/file_count_badge.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/format/duration_format.dart';
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
@@ -114,7 +115,7 @@ class _Meta extends StatelessWidget {
 Widget _photo(Directory root, String path, {required String id, double? height, int? cacheWidth, bool compact = false}) => AdultVeil(
   itemId: id,
   compact: compact,
-  child: Image.file(
+  child: FilePicture(
     File(p.join(root.path, path)),
     fit: BoxFit.cover,
     width: double.infinity,
@@ -436,7 +437,7 @@ class BoardTile extends StatelessWidget {
                 children: [
                   AdultVeil(
                     itemId: card.id,
-                    child: Image.file(
+                    child: FilePicture(
                       File(p.join(filesRoot.path, thumb)),
                       width: width,
                       // размер известен заранее: место под картинку не меняется, когда она прочиталась

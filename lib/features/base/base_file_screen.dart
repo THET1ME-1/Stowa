@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/marked_text.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -383,7 +384,7 @@ class _Cards extends StatelessWidget {
               children: [
                 Expanded(
                   child: image is String && image.isNotEmpty && !image.startsWith('http')
-                      ? Image.file(
+                      ? FilePicture(
                           File(vaultAbsolute(filesRoot.path, image.replaceAll(RegExp(r'^\[\[|\]\]$'), ''))),
                           fit: BoxFit.cover,
                           cacheWidth: 500,

@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -257,7 +258,7 @@ class _Strip extends StatelessWidget {
                   opacity: current ? 1 : 0.5,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(current ? 12 : 14),
-                    child: Image.file(File(paths[index]), fit: BoxFit.cover, cacheWidth: cache),
+                    child: FilePicture(File(paths[index]), fit: BoxFit.cover, cacheWidth: cache),
                   ),
                 ),
               ),
@@ -326,7 +327,7 @@ class _ZoomablePhotoState extends State<_ZoomablePhoto> with SingleTickerProvide
         child: Center(
           child: Hero(
             tag: photoHeroTag(widget.path),
-            child: Image.file(File(widget.path), fit: BoxFit.contain, width: double.infinity, height: double.infinity),
+            child: FilePicture(File(widget.path), fit: BoxFit.contain, width: double.infinity, height: double.infinity),
           ),
         ),
       ),

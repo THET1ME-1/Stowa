@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -209,7 +210,7 @@ class _VersionScreenState extends ConsumerState<VersionScreen> {
       if (path == null) return MissingImage(name: name);
       return ClipRRect(
         borderRadius: BorderRadius.circular(Radii.tile),
-        child: Image.file(
+        child: FilePicture(
           File(p.join(filesRoot.path, path)),
           fit: BoxFit.cover,
           cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),

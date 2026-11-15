@@ -9,6 +9,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -371,7 +372,7 @@ class _RowView extends StatelessWidget {
                 child: AdultVeil(
                   itemId: card.id,
                   compact: true,
-                  child: Image.file(
+                  child: FilePicture(
                     File(p.join(filesRoot.path, card.thumbPath!)),
                     width: 44,
                     height: 44,

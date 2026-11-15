@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/items_repository.dart';
@@ -136,7 +137,7 @@ class _RelatedRow extends StatelessWidget {
                       ? AdultVeil(
                           itemId: card.id,
                           compact: true,
-                          child: Image.file(
+                          child: FilePicture(
                             File(p.join(filesRoot.path, thumb)),
                             fit: BoxFit.cover,
                             cacheWidth: (44 * MediaQuery.devicePixelRatioOf(context)).round(),

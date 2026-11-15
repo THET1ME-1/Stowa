@@ -7,6 +7,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -88,7 +89,7 @@ class _PhotoFace extends StatelessWidget {
       children: [
         AdultVeil(
           itemId: item.id,
-          child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
+          child: FilePicture(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
         ),
         // белый заголовок читается на любой картинке: снизу затемнение цветом фона
         DecoratedBox(

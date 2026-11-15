@@ -7,10 +7,34 @@
     if (_starts(bytes, [0x47, 0x49, 0x46, 0x38])) return (width: _le16(bytes, 6), height: _le16(bytes, 8));
     if (_starts(bytes, [0x52, 0x49, 0x46, 0x46]) && String.fromCharCodes(bytes.sublist(8, 12)) == 'WEBP') return _webp(bytes);
     if (_starts(bytes, [0xFF, 0xD8])) return _jpeg(bytes);
+    return _svg(bytes);
   } on RangeError {
     // файл оборвался посреди заголовка
   }
   return null;
+}
+
+/// SVG — текст: размер из `width` и `height` корня, а без них (или в процентах) — из `viewBox`.
+({int width, int height})? _svg(List<int> bytes) {
+  final text = String.fromCharCodes(bytes.take(4096));
+  final root = RegExp(r'<svg\b[^>]*>', caseSensitive: false).firstMatch(text)?.group(0);
+  if (root == null) return null;
+  double? attribute(String name) {
+    final value = RegExp('\\s$name\\s*=\\s*["\']\\s*([0-9.]+)\\s*(px)?\\s*["\']').firstMatch(root)?.group(1);
+    return value == null ? null : double.tryParse(value);
+  }
+
+  var width = attribute('width');
+  var height = attribute('height');
+  if (width == null || height == null) {
+    final box = RegExp(r'''viewBox\s*=\s*["']([^"']+)["']''').firstMatch(root)?.group(1)?.trim().split(RegExp(r'[\s,]+'));
+    if (box != null && box.length == 4) {
+      width = double.tryParse(box[2]);
+      height = double.tryParse(box[3]);
+    }
+  }
+  if (width == null || height == null || width <= 0 || height <= 0) return null;
+  return (width: width.round(), height: height.round());
 }
 
 bool _starts(List<int> bytes, List<int> magic) {

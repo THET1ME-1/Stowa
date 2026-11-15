@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/widgets/file_count_badge.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
@@ -297,7 +298,7 @@ class _CanvasItem extends StatelessWidget {
             children: [
               AdultVeil(
                 itemId: card.id,
-                child: Image.file(
+                child: FilePicture(
                   File(p.join(filesRoot.path, thumb)),
                   fit: BoxFit.cover,
                   cacheWidth: 900,

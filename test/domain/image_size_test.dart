@@ -16,6 +16,15 @@ void main() {
     expect(sizeOf('rotated.jpg'), (width: 20, height: 30));
   });
 
+  test('SVG: размер из width и height, без них или в процентах — из viewBox', () {
+    ({int width, int height})? svg(String text) => imageSizeOf(text.codeUnits);
+    expect(svg('<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80px">'), (width: 120, height: 80));
+    expect(svg("<svg viewBox='0 0 300 150' xmlns='http://www.w3.org/2000/svg'><rect/></svg>"), (width: 300, height: 150));
+    expect(svg('<svg width="100%" height="100%" viewBox="0,0,64,32">'), (width: 64, height: 32));
+    expect(svg('<svg xmlns="http://www.w3.org/2000/svg">'), isNull);
+    expect(svg('<html><body>не картинка</body></html>'), isNull);
+  });
+
   test('не картинка — null, а не падение', () {
     expect(imageSizeOf([1, 2, 3, 4]), isNull);
     expect(imageSizeOf(const []), isNull);

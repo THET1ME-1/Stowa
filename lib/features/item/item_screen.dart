@@ -17,6 +17,7 @@ import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
@@ -1548,7 +1549,7 @@ class _PhotoCover extends StatelessWidget {
           aspectRatio: 1 / ratio.clamp(0.5625, 1.25),
           child: Hero(
             tag: photoHeroTag(path),
-            child: Image.file(
+            child: FilePicture(
               File(path),
               fit: BoxFit.cover,
               cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
@@ -1585,7 +1586,7 @@ class _Thumbs extends StatelessWidget {
             opacity: index == selected ? 1 : 0.5,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(Radii.photo),
-              child: Image.file(
+              child: FilePicture(
                 File(p.join(filesRoot.path, images[index].path)),
                 width: 56,
                 height: 56,

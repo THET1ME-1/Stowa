@@ -12,6 +12,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -1620,7 +1621,7 @@ class _AttachmentTile extends StatelessWidget {
     if (attached.thumb != null) {
       preview = Image.memory(attached.thumb!, fit: BoxFit.cover, gaplessPlayback: true);
     } else if (file != null && file.mime.startsWith('image/')) {
-      preview = Image.file(
+      preview = FilePicture(
         File(file.path),
         fit: BoxFit.cover,
         cacheWidth: (60 * MediaQuery.devicePixelRatioOf(context)).round(),

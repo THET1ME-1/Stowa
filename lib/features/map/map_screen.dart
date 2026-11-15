@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/items_repository.dart';
@@ -248,7 +249,7 @@ class _PlaceMark extends StatelessWidget {
                     ? AdultVeil(
                         itemId: pictured!.id,
                         compact: true,
-                        child: Image.file(File(p.join(filesRoot.path, photo)), fit: BoxFit.cover, cacheWidth: 160, errorBuilder: (_, _, _) => const SizedBox()),
+                        child: FilePicture(File(p.join(filesRoot.path, photo)), fit: BoxFit.cover, cacheWidth: 160, errorBuilder: (_, _, _) => const SizedBox()),
                       )
                     : Icon(symbolIcon(kindIcon(cards.first.kind)), size: 20, color: Tokens.onSurface),
               ),

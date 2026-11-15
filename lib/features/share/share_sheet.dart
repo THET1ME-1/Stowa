@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
@@ -137,7 +138,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
                   child: SizedBox.square(
                     dimension: 64,
                     child: image != null
-                        ? Image.file(File(p.join(filesRoot.path, image.path)), fit: BoxFit.cover, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh))
+                        ? FilePicture(File(p.join(filesRoot.path, image.path)), fit: BoxFit.cover, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh))
                         : ColoredBox(
                             color: Tokens.containerHigh,
                             child: Icon(symbolIcon(item == null ? 'check' : kindIcon(item.item.kind), filled: true), size: 28, color: Tokens.onSurface),

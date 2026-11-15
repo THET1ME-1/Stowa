@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../../core/format/duration_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
@@ -78,7 +79,7 @@ class LinkPreviewCard extends ConsumerWidget {
                 height: 190,
                 child: AdultVeil(
                   itemId: item.id,
-                  child: Image.file(
+                  child: FilePicture(
                     File(p.join(filesRoot.path, cover)),
                     fit: BoxFit.cover,
                     width: double.infinity,
@@ -174,7 +175,7 @@ class VideoCover extends StatelessWidget {
             children: [
               if (cover != null)
                 _veiled(
-                  Image.file(
+                  FilePicture(
                     File(p.join(filesRoot.path, cover)),
                     fit: BoxFit.cover,
                     cacheWidth: (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round(),
@@ -248,7 +249,7 @@ class VideoFrames extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     child: AspectRatio(
                       aspectRatio: 3 / 4,
-                      child: Image.file(
+                      child: FilePicture(
                         File(vaultAbsolute(filesRoot.path, frame.value)),
                         fit: BoxFit.cover,
                         cacheWidth: 240,

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../../domain/models.dart';
 import '../icons/icon_registry.dart';
 import '../theme/tokens.dart';
+import 'file_picture.dart';
 
 /// Белая плитка тега: иконка из набора, эмодзи или своя картинка.
 class TagTile extends StatelessWidget {
@@ -35,7 +36,7 @@ class TagTile extends StatelessWidget {
           color: inverted ? Tokens.onSurface : Tokens.onAccent,
         ),
         TagIconKind.emoji => Text(value, style: TextStyle(fontSize: size * 0.58)),
-        TagIconKind.image => Image.file(File(p.join(filesRoot.path, value)), fit: BoxFit.cover, width: size, height: size),
+        TagIconKind.image => FilePicture(File(p.join(filesRoot.path, value)), fit: BoxFit.cover, width: size, height: size),
       },
     );
   }

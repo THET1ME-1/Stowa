@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
@@ -165,7 +166,7 @@ class _TrashRow extends StatelessWidget {
                   ? AdultVeil(
                       itemId: entry.id,
                       compact: true,
-                      child: Image.file(File(p.join(filesRoot.path, thumb)), fit: BoxFit.cover, cacheWidth: 156, errorBuilder: (_, _, _) => _KindMark(entry: entry)),
+                      child: FilePicture(File(p.join(filesRoot.path, thumb)), fit: BoxFit.cover, cacheWidth: 156, errorBuilder: (_, _, _) => _KindMark(entry: entry)),
                     )
                   : _KindMark(entry: entry),
             ),

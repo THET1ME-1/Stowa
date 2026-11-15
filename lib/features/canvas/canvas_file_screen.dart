@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -791,7 +792,7 @@ class _FileFace extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final extension = path.contains('.') ? path.substring(path.lastIndexOf('.') + 1).toLowerCase() : '';
     if (_imageExtensions.contains(extension)) {
-      return Image.file(
+      return FilePicture(
         File(vaultAbsolute(filesRoot.path, path)),
         fit: BoxFit.cover,
         cacheWidth: 900,

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/widgets/file_count_badge.dart';
+import '../../core/widgets/file_picture.dart';
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
@@ -914,7 +915,7 @@ class _Photo extends StatelessWidget {
                 children: [
                   AdultVeil(
                     itemId: item.id,
-                    child: Image.file(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
+                    child: FilePicture(File(path), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
                   ),
                   FileCountBadge(count: item.fileCount),
                 ],
@@ -962,7 +963,7 @@ class _Attachment extends StatelessWidget {
               AdultVeil(
                 itemId: item.id,
                 compact: true,
-                child: Image.file(File(thumb!), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
+                child: FilePicture(File(thumb!), fit: BoxFit.cover, cacheWidth: width, errorBuilder: (_, _, _) => ColoredBox(color: Tokens.containerHigh)),
               ),
               if (item.kind == ItemKind.video)
                 Center(
