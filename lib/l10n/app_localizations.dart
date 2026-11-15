@@ -5750,7 +5750,7 @@ abstract class L {
   /// Холсты и базы Obsidian
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{empty} one{{count} card} other{{count} cards}}'**
+  /// **'{count, plural, =0{no cards} one{{count} card} other{{count} cards}}'**
   String canvasCards(int count);
 
   /// Холсты и базы Obsidian
@@ -5968,6 +5968,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'No value'**
   String get baseNoGroup;
+
+  /// Пункт меню папки: завести холст или базу Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Canvas or base'**
+  String get documentNew;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

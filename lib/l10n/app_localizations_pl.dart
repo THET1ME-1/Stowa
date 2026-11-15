@@ -3491,7 +3491,7 @@ class LPl extends L {
       locale: localeName,
       other: '$count cards',
       one: '$count card',
-      zero: 'empty',
+      zero: 'no cards',
     );
     return '$_temp0';
   }
@@ -3623,4 +3623,7 @@ class LPl extends L {
 
   @override
   String get baseNoGroup => 'No value';
+
+  @override
+  String get documentNew => 'Kanwa lub baza';
 }

@@ -4359,7 +4359,7 @@
   "@baseDefaultName": {
     "description": "Холсты и базы Obsidian"
   },
-  "canvasCards": "{count, plural, =0{empty} one{{count} card} other{{count} cards}}",
+  "canvasCards": "{count, plural, =0{no cards} one{{count} card} other{{count} cards}}",
   "@canvasCards": {
     "description": "Холсты и базы Obsidian",
     "placeholders": {
@@ -4526,5 +4526,9 @@
   "baseNoGroup": "No value",
   "@baseNoGroup": {
     "description": "Холсты и базы Obsidian"
+  },
+  "documentNew": "Canvas or base",
+  "@documentNew": {
+    "description": "Пункт меню папки: завести холст или базу Obsidian"
   }
 }

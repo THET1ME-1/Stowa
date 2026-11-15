@@ -682,5 +682,6 @@
   "feedbackAgain": "Napisz kolejne",
   "feedbackFailed": "Nie wysłano. Sprawdź internet i naciśnij ponownie.",
   "feedbackTooMany": "Za dużo zgłoszeń z tego telefonu na dziś. Spróbuj jutro lub napisz na e-mail z Ustawień.",
-  "feedbackBadEmail": "Adres e-mail wygląda na błędny, sprawdź go."
+  "feedbackBadEmail": "Adres e-mail wygląda na błędny, sprawdź go.",
+  "documentNew": "Kanwa lub baza"
 }

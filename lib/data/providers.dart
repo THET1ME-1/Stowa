@@ -50,6 +50,7 @@ import '../services/vault/vault_writer.dart';
 import '../services/widget_snapshot.dart';
 import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
+import 'repositories/documents_repository.dart';
 import 'repositories/folder_suggestions.dart';
 import 'repositories/folders_repository.dart';
 import 'repositories/highlights_repository.dart';
@@ -807,6 +808,9 @@ final remindersProvider = StreamProvider((ref) {
 });
 
 final canvasRepositoryProvider = Provider((ref) => CanvasRepository(ref.watch(databaseProvider)));
+
+/// Холсты и базы Obsidian файлами (v19).
+final documentsRepositoryProvider = Provider((ref) => DocumentsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));
 
 /// Раскладка холста папки.
 final canvasSpotsProvider = StreamProvider.family<Map<String, CanvasSpot>, String>((ref, folderId) => ref.watch(canvasRepositoryProvider).watch(folderId));

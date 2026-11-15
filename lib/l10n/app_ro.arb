@@ -682,5 +682,6 @@
   "feedbackAgain": "Scrie încă unul",
   "feedbackFailed": "Nu s-a trimis. Verifică internetul și apasă din nou.",
   "feedbackTooMany": "Prea multe mesaje de pe acest telefon azi. Încearcă mâine sau scrie la e-mailul din Setări.",
-  "feedbackBadEmail": "E-mailul pare greșit, verifică adresa."
+  "feedbackBadEmail": "E-mailul pare greșit, verifică adresa.",
+  "documentNew": "Canvas sau bază"
 }

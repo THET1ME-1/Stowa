@@ -976,5 +976,6 @@
   "baseColPath": "Путь",
   "baseColLinks": "Ссылки",
   "baseCount": "{count, plural, one{{count} заметка} few{{count} заметки} many{{count} заметок} other{{count} заметки}}",
-  "baseNoGroup": "Без значения"
+  "baseNoGroup": "Без значения",
+  "documentNew": "Холст или база"
 }

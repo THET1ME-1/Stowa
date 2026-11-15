@@ -239,7 +239,8 @@ class ObsidianBase {
 
 /// Новая база папки: заметки из неё и вложенных, таблица «Название» и «Изменена».
 String newBaseFor(String folderPath) {
-  final escaped = folderPath.replaceAll(r'\', r'\\').replaceAll('"', r'\"');
+  // кавычка — для строки выражения, апостроф удваивается — для строки YAML в одинарных кавычках
+  final escaped = folderPath.replaceAll(r'\', r'\\').replaceAll('"', r'\"').replaceAll("'", "''");
   return 'filters:\n'
       '  and:\n'
       "    - 'file.inFolder(\"$escaped\")'\n"

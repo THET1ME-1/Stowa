@@ -219,6 +219,8 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         await unhideFolderFlow(context, ref, folder);
       case FolderAction.graph:
         await Navigator.of(context).push(graphRoute(folderId: folder.id, title: folder.name));
+      case FolderAction.newDocument:
+        await pickNewDocument(context, ref, folderId: folder.id);
       case FolderAction.nest:
         await askNewFolder(context, ref, parentId: folder.id);
       case FolderAction.move:

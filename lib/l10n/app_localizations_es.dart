@@ -3434,7 +3434,7 @@ class LEs extends L {
       locale: localeName,
       other: '$count cards',
       one: '$count card',
-      zero: 'empty',
+      zero: 'no cards',
     );
     return '$_temp0';
   }
@@ -3566,4 +3566,7 @@ class LEs extends L {
 
   @override
   String get baseNoGroup => 'No value';
+
+  @override
+  String get documentNew => 'Lienzo o base';
 }

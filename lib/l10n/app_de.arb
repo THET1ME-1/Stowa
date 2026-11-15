@@ -682,5 +682,6 @@
   "feedbackAgain": "Noch eine schreiben",
   "feedbackFailed": "Nicht gesendet. Prüfe die Verbindung und tippe noch einmal.",
   "feedbackTooMany": "Heute schon zu viele Nachrichten von diesem Handy. Versuch es morgen oder per E-Mail aus den Einstellungen.",
-  "feedbackBadEmail": "Die E-Mail sieht falsch aus, prüf die Adresse."
+  "feedbackBadEmail": "Die E-Mail sieht falsch aus, prüf die Adresse.",
+  "documentNew": "Canvas oder Base"
 }

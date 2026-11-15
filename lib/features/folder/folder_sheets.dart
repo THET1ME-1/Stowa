@@ -5,9 +5,11 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
+import '../../domain/models.dart' show ItemKind;
 import '../../l10n/app_localizations.dart';
+import '../item/item_screen.dart' show itemRoute;
 
-enum FolderAction { graph, nest, move, rename, look, hide, unhide, delete }
+enum FolderAction { graph, newDocument, nest, move, rename, look, hide, unhide, delete }
 
 /// Спросить имя и завести папку, с [parentId] — внутри той. Отказался — null.
 Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref, {String? parentId}) async {
@@ -37,6 +39,7 @@ Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true,
     context,
     options: [
       SheetChoice(value: FolderAction.graph, title: l.graphTitle, icon: 'hub'),
+      SheetChoice(value: FolderAction.newDocument, title: l.documentNew, icon: 'dashboard'),
       if (canNest) SheetChoice(value: FolderAction.nest, title: l.folderNewInside, icon: 'create_new_folder'),
       SheetChoice(value: FolderAction.move, title: l.folderMoveTo, icon: 'drive_file_move'),
       SheetChoice(value: FolderAction.rename, title: l.folderRename, icon: 'edit'),
@@ -47,6 +50,28 @@ Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true,
       SheetChoice(value: FolderAction.delete, title: l.folderDelete, icon: 'delete', danger: true),
     ],
   );
+}
+
+/// Холст или база: лист из двух, потом имя. Передумал — ничего.
+Future<void> pickNewDocument(BuildContext context, WidgetRef ref, {String? folderId}) async {
+  final l = L.of(context);
+  final kind = await showOptionsSheet<ItemKind>(
+    context,
+    options: [
+      SheetChoice(value: ItemKind.canvas, title: l.canvasNew, icon: 'dashboard'),
+      SheetChoice(value: ItemKind.base, title: l.baseNew, icon: 'table_view'),
+    ],
+  );
+  if (kind != null && context.mounted) await askNewDocument(context, ref, kind, folderId: folderId);
+}
+
+/// Спросить имя и завести холст или базу в папке; сразу открыть. Передумал — ничего.
+Future<void> askNewDocument(BuildContext context, WidgetRef ref, ItemKind kind, {String? folderId}) async {
+  final l = L.of(context);
+  final name = await showRenameSheet(context, kind == ItemKind.base ? l.baseDefaultName : l.canvasDefaultName);
+  if (name == null || name.trim().isEmpty || !context.mounted) return;
+  final id = await ref.read(documentsRepositoryProvider).create(kind, title: name.trim(), folderId: folderId);
+  if (context.mounted) await Navigator.of(context).push(itemRoute(id));
 }
 
 /// Новое имя папки или null, если передумал.

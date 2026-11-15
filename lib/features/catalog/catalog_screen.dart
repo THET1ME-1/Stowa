@@ -13,6 +13,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/models.dart';
+import '../folder/folder_sheets.dart' show pickNewDocument;
 import '../../domain/note_links.dart' show shownTitle;
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_screen.dart';
@@ -131,6 +132,14 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 children: [
                   _HeaderButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
                   const Spacer(),
+                  // холст и база вне папок — в корне хранилища, как в Obsidian
+                  _HeaderButton(
+                    key: const ValueKey('catalog-new-document'),
+                    icon: 'add',
+                    tooltip: l.canvasAdd,
+                    onTap: () => pickNewDocument(context, ref),
+                  ),
+                  const SizedBox(width: 6),
                   _HeaderButton(
                     icon: _all ? 'unfold_less' : 'unfold_more',
                     tooltip: _all ? l.catalogCollapse : l.catalogExpand,
@@ -170,7 +179,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 }
 
 class _HeaderButton extends StatelessWidget {
-  const _HeaderButton({required this.icon, required this.tooltip, required this.onTap});
+  const _HeaderButton({super.key, required this.icon, required this.tooltip, required this.onTap});
 
   final String icon;
   final String tooltip;

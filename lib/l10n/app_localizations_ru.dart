@@ -3632,4 +3632,7 @@ class LRu extends L {
 
   @override
   String get baseNoGroup => 'Без значения';
+
+  @override
+  String get documentNew => 'Холст или база';
 }

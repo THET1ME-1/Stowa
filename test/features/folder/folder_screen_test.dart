@@ -196,10 +196,31 @@ void main() {
     expect(find.byKey(const ValueKey('look-wide')), findsOneWidget);
   });
 
+  testWidgets('меню папки → «Холст или база» → «Новый холст»: холст в этой папке, сразу открыт', (tester) async {
+    await seed();
+    await openFolder(tester);
+    await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Холст или база'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Новый холст'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Меню на неделю');
+    await tester.tap(find.widgetWithText(FilledButton, 'Сохранить'));
+    await tester.pumpAndSettle();
+    final canvas = (await world.db.select(world.db.items).get()).singleWhere((item) => item.kind == ItemKind.canvas);
+    expect((canvas.title, canvas.folderId), ('Меню на неделю', 'food'));
+    expect(find.text('Меню на неделю'), findsOneWidget);
+    expect(find.byKey(const ValueKey('canvas-add')), findsOneWidget);
+  });
+
   testWidgets('удалить папку: вещи без папки, «Вернуть» возвращает', (tester) async {
     await seed();
     await openFolder(tester);
     await tester.tap(find.byTooltip('Ещё'));
+    await tester.pumpAndSettle();
+    // меню длинное: «Удалить папку» внизу листа, лист листается
+    await tester.ensureVisible(find.text('Удалить папку'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Удалить папку'));
     await tester.pumpAndSettle();

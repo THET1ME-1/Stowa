@@ -3442,7 +3442,7 @@ class LDe extends L {
       locale: localeName,
       other: '$count cards',
       one: '$count card',
-      zero: 'empty',
+      zero: 'no cards',
     );
     return '$_temp0';
   }
@@ -3574,4 +3574,7 @@ class LDe extends L {
 
   @override
   String get baseNoGroup => 'No value';
+
+  @override
+  String get documentNew => 'Canvas oder Base';
 }

@@ -682,5 +682,6 @@
   "feedbackAgain": "Escribir otro",
   "feedbackFailed": "No se envió. Revisa tu conexión y toca otra vez.",
   "feedbackTooMany": "Demasiados mensajes desde este teléfono hoy. Prueba mañana o escribe al correo de Ajustes.",
-  "feedbackBadEmail": "El correo parece incorrecto, revisa la dirección."
+  "feedbackBadEmail": "El correo parece incorrecto, revisa la dirección.",
+  "documentNew": "Lienzo o base"
 }
