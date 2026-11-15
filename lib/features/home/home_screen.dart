@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
@@ -11,6 +12,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/capture_service.dart' show PickedFile;
 import '../../services/launch_actions.dart';
 import '../../services/place_alarms.dart';
 import '../../services/share_intake.dart';
@@ -18,6 +20,7 @@ import '../../services/vault/vault_watch.dart';
 import '../catalog/catalog_screen.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
+import '../composer/picked_files.dart' show pickCameraPhoto;
 import '../folder/folder_screen.dart';
 import '../smart/smart_folder_screen.dart';
 import 'folder_suggest_card.dart';
@@ -185,12 +188,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     _watch = VaultWatch(ref.read(databaseProvider), root: ref.read(vaultRootProvider), onChange: () => ref.read(vaultSyncProvider).run())..start();
   }
 
-  /// Запуск снаружи: уведомление по месту или заметка из окна виджета открывают заметку или экран возврата.
+  /// Запуск снаружи: уведомление по месту или заметка из окна виджета открывают заметку или экран
+  /// возврата. Кнопки виджета iPhone (строка, микрофон, камера) выполняет строка главной: на
+  /// Android у них своё окно, сюда они не приходят.
   void _onRawLaunch(String? raw) {
     if (!mounted) return;
+    if (launchActionOf(raw) case final action?) {
+      _dockAction(action).ignore();
+      return;
+    }
     final payload = openPayloadOf(raw);
     if (payload == null) return;
     if (notificationRoute(payload) case final route?) Navigator.of(context).push(route);
+  }
+
+  Future<void> _dockAction(LaunchAction action) async {
+    // приложение открылось на заметке или листе: кнопка виджета — про строку главной
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    final dock = _dock.currentState;
+    if (dock == null) return;
+    switch (action) {
+      case LaunchAction.compose:
+        dock.focusLine();
+      case LaunchAction.voice:
+        await dock.startVoice();
+      case LaunchAction.attach:
+        dock.openTray();
+      case LaunchAction.camera:
+        var photos = const <PickedFile>[];
+        try {
+          photos = await pickCameraPhoto();
+        } on PlatformException {
+          // камеры нет или её не дали: снимка нет
+        }
+        if (!mounted || photos.isEmpty) return;
+        _dock.currentState?.attach(photos);
+        _dock.currentState?.focusLine();
+    }
   }
 
   Future<void> _sweepFacts() async {
