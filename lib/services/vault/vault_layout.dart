@@ -41,6 +41,9 @@ String uniqueNotePath(String wanted, bool Function(String path) taken) {
 /// Холст Obsidian или база — файл, который Stowa показывает своим экраном.
 bool isDocumentPath(String relative) => relative.endsWith('.canvas') || relative.endsWith('.base');
 
+/// Файл сам по себе (картинка, PDF, запись): не заметка, не холст и не база.
+bool isLoosePath(String relative) => !relative.endsWith('.md') && !isDocumentPath(relative);
+
 /// Служебное и чужое служебное (`.stowa`, `.trash`, `.obsidian`, любая папка с точкой) — не заметки.
 bool isServicePath(String relative) => relative.split('/').any((part) => part.startsWith('.'));
 

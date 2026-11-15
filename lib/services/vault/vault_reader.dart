@@ -193,9 +193,10 @@ class VaultReader {
       await (_db.delete(_db.vaultQueue)..where((t) => t.target.equals('item:${one.id}'))).go();
     }
     progress?.call(total, total);
+    final loose = await _looseFiles(byPath, seen, scan);
 
     // файла нет ни среди заметок, ни на своём месте (корзина, служебное): удалили снаружи
-    final gone = <String>[];
+    final gone = [...loose];
     for (final row in known) {
       if (seen.contains(row.path) || await File(_absolute(row.path)).exists()) continue;
       gone.add(row.itemId);
@@ -300,12 +301,7 @@ class VaultReader {
   /// теги берутся из памяти, новые заводятся по ходу, и их файлы просятся отдельно.
   Future<void> _store(List<_Incoming> incoming, {void Function(int done)? progress}) async {
     if (incoming.isEmpty) return;
-    // ключ — путь каталога папки в нижнем регистре: «дом/ремонт» и «дача/ремонт» — разные папки
-    final rows = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
-    final tree = FolderTree([for (final row in rows) FolderNode(id: row.id, name: row.name, parentId: row.parentId)]);
-    final folders = {
-      for (final row in rows) [for (final name in tree.path(row.id)) vaultFileName(name)].join('/').toLowerCase(): row.id,
-    };
+    final folders = await _folderKeys();
     final tags = {for (final tag in await _db.select(_db.tags).get()) tag.name: tag.id};
     final created = <String>{};
     for (var start = 0; start < incoming.length; start += _batch) {
@@ -321,6 +317,123 @@ class VaultReader {
     for (final target in created) {
       await _db.customStatement("INSERT INTO vault_queue (target) VALUES ('$target') ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL");
     }
+  }
+
+  // ключ — путь каталога папки в нижнем регистре: «дом/ремонт» и «дача/ремонт» — разные папки
+  Future<Map<String, String>> _folderKeys() async {
+    final rows = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
+    final tree = FolderTree([for (final row in rows) FolderNode(id: row.id, name: row.name, parentId: row.parentId)]);
+    return {
+      for (final row in rows) [for (final name in tree.path(row.id)) vaultFileName(name)].join('/').toLowerCase(): row.id,
+    };
+  }
+
+  /// Файлы сами по себе: картинка, PDF, запись в папке хранилища без заметки. Каждый —
+  /// заметка без текста с этим файлом вложением; файл остаётся, где лежит. Не берутся
+  /// вложения заметок (по пути и по имени: Obsidian ссылается коротким именем на файл в
+  /// любой папке), папки вложений и служебное. Отдаёт заметки, чей файл стал вложением
+  /// другой заметки: они уходят в корзину, файл не трогается.
+  Future<List<String>> _looseFiles(Map<String, VaultFile> byPath, Set<String> notes, VaultScan scan) async {
+    final attached = <String>{};
+    final names = <String>{};
+    final owners = <String, String>{};
+    for (final row in await _db.select(_db.attachments).get()) {
+      attached.add(row.path);
+      // имя своего файла заметки-файла не в счёт: другой «фото.jpg» в другой папке — тоже заметка
+      if (!byPath.containsKey(row.path)) names.add(p.posix.basename(row.path).toLowerCase());
+      owners[row.path] = row.itemId;
+    }
+    // каталоги вложений: «Дом/Плитка/» рядом с «Дом/Плитка.md»
+    final noteDirs = {for (final note in notes) if (note.endsWith('.md')) attachmentsDir(note).toLowerCase()};
+    final found = <String>[];
+    await for (final entity in _root!.list(recursive: true, followLinks: false)) {
+      if (entity is! File) continue;
+      final relative = p.relative(entity.path, from: _root.path).split(p.separator).join('/');
+      if (!isLoosePath(relative) || isServicePath(relative) || relative.endsWith('.part')) continue;
+      if (const {'thumbs.db', 'desktop.ini'}.contains(p.posix.basename(relative).toLowerCase())) continue;
+      found.add(relative);
+    }
+    found.sort();
+
+    final trashed = <String>[];
+    final fresh = <String>[];
+    for (final relative in found) {
+      final before = byPath[relative];
+      if (before != null) {
+        // файл стал вложением другой заметки: отдельная заметка больше не нужна
+        final owner = owners[relative];
+        if (owner != null && owner != before.itemId) {
+          trashed.add(before.itemId);
+          continue;
+        }
+        final stat = await File(_absolute(relative)).stat();
+        if (before.modified == stat.modified.millisecondsSinceEpoch && before.size == stat.size) continue;
+        await _quietly(() async {
+          await (_db.update(_db.vaultFiles)..where((t) => t.itemId.equals(before.itemId))).write(
+            VaultFilesCompanion(modified: Value(stat.modified.millisecondsSinceEpoch), size: Value(stat.size)),
+          );
+          await (_db.update(_db.attachments)..where((t) => t.itemId.equals(before.itemId) & t.path.equals(relative))).write(AttachmentsCompanion(size: Value(stat.size)));
+        });
+        continue;
+      }
+      if (attached.contains(relative)) continue;
+      final name = p.posix.basename(relative);
+      if (names.contains(name.toLowerCase()) || noteDirs.contains(p.posix.dirname(relative).toLowerCase())) continue;
+      // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл рядом
+      final mentioned = await _db.customSelect('SELECT 1 FROM items WHERE instr(body, ?) > 0 LIMIT 1', variables: [Variable.withString(name)]).getSingleOrNull();
+      if (mentioned != null) continue;
+      fresh.add(relative);
+    }
+    if (fresh.isEmpty) return trashed;
+
+    final folders = await _folderKeys();
+    final created = <String>{};
+    for (var start = 0; start < fresh.length; start += _batch) {
+      final chunk = fresh.sublist(start, min(start + _batch, fresh.length));
+      await _keepLease();
+      final mapped = <VaultFilesCompanion>[];
+      await _quietly(() async {
+        for (final relative in chunk) {
+          final full = _absolute(relative);
+          final stat = await File(full).stat();
+          final mime = lookupMimeType(full) ?? 'application/octet-stream';
+          final size = mime.startsWith('image/') ? await imageSizeOfFile(full).catchError((_) => null) : null;
+          final id = const Uuid().v4();
+          final folderId = await _folderFor(relative, folders, created);
+          await _db.into(_db.items).insert(
+            ItemsCompanion.insert(
+              id: id,
+              kind: _looseKind(mime),
+              title: p.posix.basenameWithoutExtension(relative),
+              folderId: Value(folderId),
+              // где лежит файл, решил человек: раскладка его не перекладывает
+              sortedBy: const Value(SortedBy.user),
+              sortState: const Value(SortState.sorted),
+              createdAt: stat.modified,
+              updatedAt: stat.modified,
+            ),
+          );
+          await _db.into(_db.attachments).insert(
+            AttachmentsCompanion.insert(
+              id: const Uuid().v4(),
+              itemId: id,
+              path: relative,
+              mime: mime,
+              size: stat.size,
+              width: Value(size?.width),
+              height: Value(size?.height),
+            ),
+          );
+          mapped.add(VaultFilesCompanion.insert(itemId: id, path: relative, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+        }
+        await _db.batch((batch) => batch.insertAllOnConflictUpdate(_db.vaultFiles, mapped));
+      });
+      scan.added += chunk.length;
+    }
+    for (final target in created) {
+      await _db.customStatement("INSERT INTO vault_queue (target) VALUES ('$target') ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL");
+    }
+    return trashed;
   }
 
   Future<void> _storeOne(_Incoming one, Map<String, String> folders, Map<String, String> tags, Set<String> created) async {
@@ -609,6 +722,14 @@ class VaultReader {
 }
 
 /// Прочитанная заметка, которая ждёт записи в базу.
+// вид заметки-файла по типу файла
+ItemKind _looseKind(String mime) => switch (mime.split('/').first) {
+  'image' => ItemKind.image,
+  'video' => ItemKind.video,
+  'audio' => ItemKind.voice,
+  _ => ItemKind.file,
+};
+
 class _Incoming {
   const _Incoming({
     required this.id,

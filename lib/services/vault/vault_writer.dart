@@ -118,7 +118,17 @@ class VaultWriter {
 
   Future<void> _writeItem(String id) async {
     final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
-    final known = await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(id))).getSingleOrNull();
+    var known = await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(id))).getSingleOrNull();
+    if (item != null && known != null && isLoosePath(known.path)) {
+      // заметка-файл без текста — сам файл: переименовать и переложить, ничего не дописывая
+      if (item.body.trim().isEmpty && !(SealedSpace.root != null && await _hiddenFolder(item.folderId))) {
+        await _writeLoose(item, known);
+        return;
+      }
+      // дописали текст или убрали в скрытое: обычная заметка, файл уходит к ней вложением
+      await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(id))).go();
+      known = null;
+    }
     if (item == null) {
       // вещь стёрта насовсем: файл, вложения и добытое уходят следом
       if (known != null) {
@@ -187,6 +197,29 @@ class VaultWriter {
     final stat = await file.stat();
     await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
     if (SealedSpace.root case final open?) await _dropIfEmpty('${open.path}/files/$id');
+  }
+
+  /// Заметка-файл: имя файла — заголовок с прежним расширением, каталог — папка заметки,
+  /// удалённая — в корзину. Путь вложения и карта файлов идут следом.
+  Future<void> _writeLoose(Item item, VaultFile known) async {
+    final id = item.id;
+    final current = File(_absolute(known.path));
+    if (!await current.exists()) return;
+    final stat = await current.stat();
+    if (stat.modified.millisecondsSinceEpoch != known.modified || stat.size != known.size) throw const _ExternalEdit();
+    final title = item.title.trim().isEmpty ? p.posix.basenameWithoutExtension(known.path) : item.title;
+    var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(title)}${p.posix.extension(known.path)}');
+    if (item.deletedAt != null) wanted = trashPath(wanted);
+    if (_sameName(known.path, wanted)) return;
+    final path = await _free(wanted, id);
+    await Directory(p.dirname(_absolute(path))).create(recursive: true);
+    await current.rename(_absolute(path));
+    await _prune(p.posix.dirname(known.path));
+    final after = await File(_absolute(path)).stat();
+    await _quietly(() async {
+      await (_db.update(_db.attachments)..where((t) => t.itemId.equals(id) & t.path.equals(known.path))).write(AttachmentsCompanion(path: Value(path)));
+      await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: after.modified.millisecondsSinceEpoch, size: after.size));
+    });
   }
 
   Future<bool> _hiddenFolder(String? folderId) async {
