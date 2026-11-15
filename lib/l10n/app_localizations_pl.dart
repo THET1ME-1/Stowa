@@ -3396,4 +3396,43 @@ class LPl extends L {
 
   @override
   String get settingsPrivacyPolicy => 'Polityka prywatności';
+
+  @override
+  String get settingsHelp => 'Pomoc';
+
+  @override
+  String get feedbackRow => 'Zgłoś problem';
+
+  @override
+  String get feedbackRowHint => 'Błąd, pomysł lub pytanie e-mailem';
+
+  @override
+  String get supportRow => 'Napisz do wsparcia';
+
+  @override
+  String get feedbackKindBug => 'Błąd';
+
+  @override
+  String get feedbackKindIdea => 'Pomysł';
+
+  @override
+  String get feedbackKindQuestion => 'Pytanie';
+
+  @override
+  String get feedbackField => 'Co się stało i co robiłeś tuż przedtem';
+
+  @override
+  String get feedbackAttach => 'Dołącz wersję i model telefonu';
+
+  @override
+  String get feedbackSend => 'Napisz e-mail';
+
+  @override
+  String get feedbackHint =>
+      'E-mail otworzy się w twojej poczcie, a wyślesz go ty.';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'Brak aplikacji poczty. Tekst skopiowany, wyślij go na $email';
+  }
 }

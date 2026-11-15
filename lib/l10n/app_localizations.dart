@@ -5584,6 +5584,78 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Privacy policy'**
   String get settingsPrivacyPolicy;
+
+  /// Раздел настроек с поддержкой
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get settingsHelp;
+
+  /// Строка настроек и заголовок экрана обращения
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get feedbackRow;
+
+  /// Подпись под строкой «Сообщить о проблеме»
+  ///
+  /// In en, this message translates to:
+  /// **'A bug, an idea or a question by email'**
+  String get feedbackRowHint;
+
+  /// Строка настроек: открыть почту с адресом поддержки
+  ///
+  /// In en, this message translates to:
+  /// **'Email support'**
+  String get supportRow;
+
+  /// Вид обращения
+  ///
+  /// In en, this message translates to:
+  /// **'Bug'**
+  String get feedbackKindBug;
+
+  /// Вид обращения
+  ///
+  /// In en, this message translates to:
+  /// **'Idea'**
+  String get feedbackKindIdea;
+
+  /// Вид обращения
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get feedbackKindQuestion;
+
+  /// Подсказка в поле текста обращения
+  ///
+  /// In en, this message translates to:
+  /// **'What happened and what you did just before'**
+  String get feedbackField;
+
+  /// Переключатель на экране обращения
+  ///
+  /// In en, this message translates to:
+  /// **'Attach app version and phone model'**
+  String get feedbackAttach;
+
+  /// Кнопка: открыть почту с готовым письмом
+  ///
+  /// In en, this message translates to:
+  /// **'Write the email'**
+  String get feedbackSend;
+
+  /// Пояснение под кнопкой письма
+  ///
+  /// In en, this message translates to:
+  /// **'The email opens in your mail app, and you send it.'**
+  String get feedbackHint;
+
+  /// Плашка, когда почтовой программы нет
+  ///
+  /// In en, this message translates to:
+  /// **'No mail app found. The text is copied, send it to {email}'**
+  String feedbackNoMail(String email);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -663,5 +663,17 @@
   "importNotObsidian": "W tym folderze nie ma notatek .md",
   "importNotMymind": "W tym folderze nie ma cards.csv z mymind",
   "importFilesNotFound": "{count, plural, one{{count} pliku nie znaleziono} few{{count} plików nie znaleziono} many{{count} plików nie znaleziono} other{{count} pliku nie znaleziono}}",
-  "settingsPrivacyPolicy": "Polityka prywatności"
+  "settingsPrivacyPolicy": "Polityka prywatności",
+  "settingsHelp": "Pomoc",
+  "feedbackRow": "Zgłoś problem",
+  "feedbackRowHint": "Błąd, pomysł lub pytanie e-mailem",
+  "supportRow": "Napisz do wsparcia",
+  "feedbackKindBug": "Błąd",
+  "feedbackKindIdea": "Pomysł",
+  "feedbackKindQuestion": "Pytanie",
+  "feedbackField": "Co się stało i co robiłeś tuż przedtem",
+  "feedbackAttach": "Dołącz wersję i model telefonu",
+  "feedbackSend": "Napisz e-mail",
+  "feedbackHint": "E-mail otworzy się w twojej poczcie, a wyślesz go ty.",
+  "feedbackNoMail": "Brak aplikacji poczty. Tekst skopiowany, wyślij go na {email}"
 }

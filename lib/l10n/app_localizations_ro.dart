@@ -3364,4 +3364,43 @@ class LRo extends L {
 
   @override
   String get settingsPrivacyPolicy => 'Politica de confidențialitate';
+
+  @override
+  String get settingsHelp => 'Ajutor';
+
+  @override
+  String get feedbackRow => 'Raportează o problemă';
+
+  @override
+  String get feedbackRowHint => 'O eroare, o idee sau o întrebare prin e-mail';
+
+  @override
+  String get supportRow => 'Scrie asistenței';
+
+  @override
+  String get feedbackKindBug => 'Eroare';
+
+  @override
+  String get feedbackKindIdea => 'Idee';
+
+  @override
+  String get feedbackKindQuestion => 'Întrebare';
+
+  @override
+  String get feedbackField => 'Ce s-a întâmplat și ce făceai chiar înainte';
+
+  @override
+  String get feedbackAttach => 'Atașează versiunea și modelul telefonului';
+
+  @override
+  String get feedbackSend => 'Scrie e-mailul';
+
+  @override
+  String get feedbackHint =>
+      'E-mailul se deschide în aplicația ta de e-mail și îl trimiți tu.';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'Nu există aplicație de e-mail. Textul e copiat, trimite-l la $email';
+  }
 }

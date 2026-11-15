@@ -3333,4 +3333,43 @@ class LEn extends L {
 
   @override
   String get settingsPrivacyPolicy => 'Privacy policy';
+
+  @override
+  String get settingsHelp => 'Help';
+
+  @override
+  String get feedbackRow => 'Report a problem';
+
+  @override
+  String get feedbackRowHint => 'A bug, an idea or a question by email';
+
+  @override
+  String get supportRow => 'Email support';
+
+  @override
+  String get feedbackKindBug => 'Bug';
+
+  @override
+  String get feedbackKindIdea => 'Idea';
+
+  @override
+  String get feedbackKindQuestion => 'Question';
+
+  @override
+  String get feedbackField => 'What happened and what you did just before';
+
+  @override
+  String get feedbackAttach => 'Attach app version and phone model';
+
+  @override
+  String get feedbackSend => 'Write the email';
+
+  @override
+  String get feedbackHint =>
+      'The email opens in your mail app, and you send it.';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'No mail app found. The text is copied, send it to $email';
+  }
 }

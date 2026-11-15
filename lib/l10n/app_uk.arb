@@ -663,5 +663,17 @@
   "importNotObsidian": "У цій папці немає нотаток .md",
   "importNotMymind": "У цій папці немає cards.csv з mymind",
   "importFilesNotFound": "{count, plural, one{{count} файл не знайшовся} few{{count} файли не знайшлися} many{{count} файлів не знайшлося} other{{count} файлу не знайшлося}}",
-  "settingsPrivacyPolicy": "Політика конфіденційності"
+  "settingsPrivacyPolicy": "Політика конфіденційності",
+  "settingsHelp": "Допомога",
+  "feedbackRow": "Повідомити про проблему",
+  "feedbackRowHint": "Помилка, ідея чи питання листом",
+  "supportRow": "Написати в підтримку",
+  "feedbackKindBug": "Помилка",
+  "feedbackKindIdea": "Ідея",
+  "feedbackKindQuestion": "Питання",
+  "feedbackField": "Що сталося і що ви робили перед цим",
+  "feedbackAttach": "Додати версію і модель телефона",
+  "feedbackSend": "Написати листа",
+  "feedbackHint": "Лист відкриється у вашій пошті, надсилаєте його ви.",
+  "feedbackNoMail": "Пошти на телефоні немає. Текст скопійовано, надішліть його на {email}"
 }

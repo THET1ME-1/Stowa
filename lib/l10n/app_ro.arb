@@ -663,5 +663,17 @@
   "importNotObsidian": "În acest dosar nu sunt notițe .md",
   "importNotMymind": "În acest dosar nu există cards.csv din mymind",
   "importFilesNotFound": "{count, plural, one{{count} fișier nu a fost găsit} few{{count} fișiere nu au fost găsite} other{{count} de fișiere nu au fost găsite}}",
-  "settingsPrivacyPolicy": "Politica de confidențialitate"
+  "settingsPrivacyPolicy": "Politica de confidențialitate",
+  "settingsHelp": "Ajutor",
+  "feedbackRow": "Raportează o problemă",
+  "feedbackRowHint": "O eroare, o idee sau o întrebare prin e-mail",
+  "supportRow": "Scrie asistenței",
+  "feedbackKindBug": "Eroare",
+  "feedbackKindIdea": "Idee",
+  "feedbackKindQuestion": "Întrebare",
+  "feedbackField": "Ce s-a întâmplat și ce făceai chiar înainte",
+  "feedbackAttach": "Atașează versiunea și modelul telefonului",
+  "feedbackSend": "Scrie e-mailul",
+  "feedbackHint": "E-mailul se deschide în aplicația ta de e-mail și îl trimiți tu.",
+  "feedbackNoMail": "Nu există aplicație de e-mail. Textul e copiat, trimite-l la {email}"
 }

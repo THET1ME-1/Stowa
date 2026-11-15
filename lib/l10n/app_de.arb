@@ -663,5 +663,17 @@
   "importNotObsidian": "In diesem Ordner sind keine .md-Notizen",
   "importNotMymind": "In diesem Ordner ist keine cards.csv aus mymind",
   "importFilesNotFound": "{count, plural, one{{count} Datei nicht gefunden} other{{count} Dateien nicht gefunden}}",
-  "settingsPrivacyPolicy": "Datenschutzerklärung"
+  "settingsPrivacyPolicy": "Datenschutzerklärung",
+  "settingsHelp": "Hilfe",
+  "feedbackRow": "Problem melden",
+  "feedbackRowHint": "Fehler, Idee oder Frage per E-Mail",
+  "supportRow": "Support anschreiben",
+  "feedbackKindBug": "Fehler",
+  "feedbackKindIdea": "Idee",
+  "feedbackKindQuestion": "Frage",
+  "feedbackField": "Was passiert ist und was du kurz davor gemacht hast",
+  "feedbackAttach": "App-Version und Handymodell anhängen",
+  "feedbackSend": "E-Mail schreiben",
+  "feedbackHint": "Die E-Mail öffnet sich in deiner Mail-App, und du schickst sie ab.",
+  "feedbackNoMail": "Keine Mail-App gefunden. Der Text ist kopiert, schick ihn an {email}"
 }

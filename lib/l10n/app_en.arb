@@ -4245,5 +4245,58 @@
   "settingsPrivacyPolicy": "Privacy policy",
   "@settingsPrivacyPolicy": {
     "description": "Ссылка внизу настроек на страницу политики конфиденциальности"
+  },
+  "settingsHelp": "Help",
+  "@settingsHelp": {
+    "description": "Раздел настроек с поддержкой"
+  },
+  "feedbackRow": "Report a problem",
+  "@feedbackRow": {
+    "description": "Строка настроек и заголовок экрана обращения"
+  },
+  "feedbackRowHint": "A bug, an idea or a question by email",
+  "@feedbackRowHint": {
+    "description": "Подпись под строкой «Сообщить о проблеме»"
+  },
+  "supportRow": "Email support",
+  "@supportRow": {
+    "description": "Строка настроек: открыть почту с адресом поддержки"
+  },
+  "feedbackKindBug": "Bug",
+  "@feedbackKindBug": {
+    "description": "Вид обращения"
+  },
+  "feedbackKindIdea": "Idea",
+  "@feedbackKindIdea": {
+    "description": "Вид обращения"
+  },
+  "feedbackKindQuestion": "Question",
+  "@feedbackKindQuestion": {
+    "description": "Вид обращения"
+  },
+  "feedbackField": "What happened and what you did just before",
+  "@feedbackField": {
+    "description": "Подсказка в поле текста обращения"
+  },
+  "feedbackAttach": "Attach app version and phone model",
+  "@feedbackAttach": {
+    "description": "Переключатель на экране обращения"
+  },
+  "feedbackSend": "Write the email",
+  "@feedbackSend": {
+    "description": "Кнопка: открыть почту с готовым письмом"
+  },
+  "feedbackHint": "The email opens in your mail app, and you send it.",
+  "@feedbackHint": {
+    "description": "Пояснение под кнопкой письма"
+  },
+  "feedbackNoMail": "No mail app found. The text is copied, send it to {email}",
+  "@feedbackNoMail": {
+    "description": "Плашка, когда почтовой программы нет",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
   }
 }

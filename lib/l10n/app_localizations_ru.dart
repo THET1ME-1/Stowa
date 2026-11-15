@@ -3398,4 +3398,43 @@ class LRu extends L {
 
   @override
   String get settingsPrivacyPolicy => 'Политика конфиденциальности';
+
+  @override
+  String get settingsHelp => 'Помощь';
+
+  @override
+  String get feedbackRow => 'Сообщить о проблеме';
+
+  @override
+  String get feedbackRowHint => 'Ошибка, идея или вопрос письмом';
+
+  @override
+  String get supportRow => 'Написать в поддержку';
+
+  @override
+  String get feedbackKindBug => 'Ошибка';
+
+  @override
+  String get feedbackKindIdea => 'Идея';
+
+  @override
+  String get feedbackKindQuestion => 'Вопрос';
+
+  @override
+  String get feedbackField => 'Что случилось и что вы делали перед этим';
+
+  @override
+  String get feedbackAttach => 'Приложить версию и модель телефона';
+
+  @override
+  String get feedbackSend => 'Написать письмо';
+
+  @override
+  String get feedbackHint =>
+      'Письмо откроется в вашей почте, отправляете его вы.';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'Почты на телефоне нет. Текст скопирован, пришлите его на $email';
+  }
 }

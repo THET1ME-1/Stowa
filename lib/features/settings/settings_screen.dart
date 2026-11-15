@@ -26,6 +26,7 @@ import '../tags/tags_screen.dart';
 import 'ai_log_screen.dart';
 import 'appearance_screen.dart';
 import 'edge_screen.dart';
+import 'feedback_screen.dart';
 import 'returns_screen.dart';
 import 'settings_blocks.dart';
 import 'storage_screen.dart';
@@ -245,6 +246,32 @@ class SettingsScreen extends ConsumerWidget {
               tint: settingsTint('orchid'),
               children: [SettingsRow(icon: 'translate', title: l.settingsLanguage, value: language?.label ?? l.languageSystem, onTap: () => _showLanguageSheet(context, language))],
             ),
+            SettingsSection(l.settingsHelp),
+            SettingsGroup(
+              tint: settingsTint('coral'),
+              children: [
+                SettingsRow(
+                  key: const ValueKey('settings-feedback'),
+                  icon: 'flag',
+                  title: l.feedbackRow,
+                  value: l.feedbackRowHint,
+                  onTap: () => Navigator.of(context).push(feedbackRoute()),
+                ),
+                SettingsRow(
+                  key: const ValueKey('settings-support'),
+                  icon: 'mail',
+                  title: l.supportRow,
+                  value: supportEmail,
+                  onTap: () => launchUrl(Uri.parse('mailto:$supportEmail?subject=Stowa'), mode: LaunchMode.externalApplication).catchError((_) => false),
+                ),
+                SettingsRow(
+                  key: const ValueKey('settings-privacy'),
+                  icon: 'policy',
+                  title: l.settingsPrivacyPolicy,
+                  onTap: () => launchUrl(privacyPolicyUrl(Localizations.localeOf(context)), mode: LaunchMode.externalApplication).catchError((_) => false),
+                ),
+              ],
+            ),
             const SizedBox(height: 28),
             FutureBuilder(
               future: PackageInfo.fromPlatform().then((info) => info.version, onError: (_) => ''),
@@ -252,13 +279,6 @@ class SettingsScreen extends ConsumerWidget {
                 version.data?.isNotEmpty == true ? l.settingsVersion(version.data!) : l.appName,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted),
-              ),
-            ),
-            Center(
-              child: TextButton(
-                key: const ValueKey('settings-privacy'),
-                onPressed: () => launchUrl(privacyPolicyUrl(Localizations.localeOf(context)), mode: LaunchMode.externalApplication).catchError((_) => false),
-                child: Text(l.settingsPrivacyPolicy, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted, decoration: TextDecoration.underline)),
               ),
             ),
           ],

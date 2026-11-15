@@ -3338,4 +3338,43 @@ class LEs extends L {
 
   @override
   String get settingsPrivacyPolicy => 'Política de privacidad';
+
+  @override
+  String get settingsHelp => 'Ayuda';
+
+  @override
+  String get feedbackRow => 'Informar de un problema';
+
+  @override
+  String get feedbackRowHint => 'Un error, una idea o una pregunta por correo';
+
+  @override
+  String get supportRow => 'Escribir a soporte';
+
+  @override
+  String get feedbackKindBug => 'Error';
+
+  @override
+  String get feedbackKindIdea => 'Idea';
+
+  @override
+  String get feedbackKindQuestion => 'Pregunta';
+
+  @override
+  String get feedbackField => 'Qué pasó y qué hacías justo antes';
+
+  @override
+  String get feedbackAttach => 'Adjuntar versión y modelo del teléfono';
+
+  @override
+  String get feedbackSend => 'Escribir el correo';
+
+  @override
+  String get feedbackHint =>
+      'El correo se abre en tu app de correo y lo envías tú.';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'No hay app de correo. El texto está copiado, envíalo a $email';
+  }
 }

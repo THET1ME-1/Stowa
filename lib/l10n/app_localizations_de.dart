@@ -3345,4 +3345,44 @@ class LDe extends L {
 
   @override
   String get settingsPrivacyPolicy => 'Datenschutzerklärung';
+
+  @override
+  String get settingsHelp => 'Hilfe';
+
+  @override
+  String get feedbackRow => 'Problem melden';
+
+  @override
+  String get feedbackRowHint => 'Fehler, Idee oder Frage per E-Mail';
+
+  @override
+  String get supportRow => 'Support anschreiben';
+
+  @override
+  String get feedbackKindBug => 'Fehler';
+
+  @override
+  String get feedbackKindIdea => 'Idee';
+
+  @override
+  String get feedbackKindQuestion => 'Frage';
+
+  @override
+  String get feedbackField =>
+      'Was passiert ist und was du kurz davor gemacht hast';
+
+  @override
+  String get feedbackAttach => 'App-Version und Handymodell anhängen';
+
+  @override
+  String get feedbackSend => 'E-Mail schreiben';
+
+  @override
+  String get feedbackHint =>
+      'Die E-Mail öffnet sich in deiner Mail-App, und du schickst sie ab.';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'Keine Mail-App gefunden. Der Text ist kopiert, schick ihn an $email';
+  }
 }

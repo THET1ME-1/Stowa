@@ -3395,4 +3395,43 @@ class LUk extends L {
 
   @override
   String get settingsPrivacyPolicy => 'Політика конфіденційності';
+
+  @override
+  String get settingsHelp => 'Допомога';
+
+  @override
+  String get feedbackRow => 'Повідомити про проблему';
+
+  @override
+  String get feedbackRowHint => 'Помилка, ідея чи питання листом';
+
+  @override
+  String get supportRow => 'Написати в підтримку';
+
+  @override
+  String get feedbackKindBug => 'Помилка';
+
+  @override
+  String get feedbackKindIdea => 'Ідея';
+
+  @override
+  String get feedbackKindQuestion => 'Питання';
+
+  @override
+  String get feedbackField => 'Що сталося і що ви робили перед цим';
+
+  @override
+  String get feedbackAttach => 'Додати версію і модель телефона';
+
+  @override
+  String get feedbackSend => 'Написати листа';
+
+  @override
+  String get feedbackHint =>
+      'Лист відкриється у вашій пошті, надсилаєте його ви.';
+
+  @override
+  String feedbackNoMail(String email) {
+    return 'Пошти на телефоні немає. Текст скопійовано, надішліть його на $email';
+  }
 }
