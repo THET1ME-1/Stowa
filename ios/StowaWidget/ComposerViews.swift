@@ -6,9 +6,12 @@ import SwiftUI
 struct ComposerPill: View {
   let palette: StowaPalette
 
+  /// Стенд раскладки рисует без ссылок: `Link` в картинку не рисуется.
+  var interactive = true
+
   var body: some View {
     HStack(spacing: 4) {
-      Link(destination: StowaLink.compose) {
+      linked(StowaLink.compose) {
         Text(Texts.hint)
           .font(.system(size: 16))
           .foregroundStyle(Color(argb: palette.muted))
@@ -17,7 +20,7 @@ struct ComposerPill: View {
           .padding(.leading, 22)
           .contentShape(Rectangle())
       }
-      Link(destination: StowaLink.camera) {
+      linked(StowaLink.camera) {
         Image(systemName: "camera.fill")
           .font(.system(size: 19, weight: .medium))
           .foregroundStyle(Color(argb: palette.onSurface))
@@ -25,7 +28,7 @@ struct ComposerPill: View {
           .contentShape(Circle())
       }
       .accessibilityLabel(Text(Texts.photo))
-      Link(destination: StowaLink.voice) {
+      linked(StowaLink.voice) {
         Image(systemName: "mic.fill")
           .font(.system(size: 19, weight: .semibold))
           .foregroundStyle(Color(argb: palette.onAccent))
@@ -38,11 +41,21 @@ struct ComposerPill: View {
     .frame(height: 64)
     .background(Capsule().fill(Color(argb: palette.containerHigh)))
   }
+
+  @ViewBuilder
+  private func linked<Content: View>(_ url: URL, @ViewBuilder _ content: () -> Content) -> some View {
+    if interactive {
+      Link(destination: url, label: content)
+    } else {
+      content()
+    }
+  }
 }
 
 /// Средний виджет на главном экране: имя приложения сверху, строка снизу.
 struct ComposerMedium: View {
   let palette: StowaPalette
+  var interactive = true
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -51,7 +64,7 @@ struct ComposerMedium: View {
         .foregroundStyle(Color(argb: palette.onSurface))
         .padding(.leading, 6)
       Spacer(minLength: 8)
-      ComposerPill(palette: palette)
+      ComposerPill(palette: palette, interactive: interactive)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
   }

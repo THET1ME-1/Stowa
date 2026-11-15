@@ -84,7 +84,7 @@ MainActor.assumeIsolated {
     let tag = scheme == .dark ? "dark" : "light"
     let home = scheme == .dark ? Color(white: 0.08) : Color(white: 0.82)
 
-    render("composer_medium_\(tag)", homeWidget(ComposerMedium(palette: palette), background: Color(argb: palette.background)), Frame.medium, scheme: scheme, wallpaper: home)
+    render("composer_medium_\(tag)", homeWidget(ComposerMedium(palette: palette, interactive: false), background: Color(argb: palette.background)), Frame.medium, scheme: scheme, wallpaper: home)
 
     let notes: [(String, NoteState, Bool)] = [
       ("list", .note(shopping), false), ("long", .note(long), true), ("plain", .note(plain), false),

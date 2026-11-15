@@ -12,6 +12,10 @@ enum NoteSize {
     case .large: return 8
     }
   }
+
+  /// Большой виджет крупнее: короткая заметка не теряется на пустой карточке.
+  var titleFont: CGFloat { self == .large ? 20 : (self == .small ? 15 : 16) }
+  var lineFont: CGFloat { self == .large ? 15 : 13 }
 }
 
 /// Заметка на главном экране: заголовок, под ним строки, пункты списка — с кружками.
@@ -33,12 +37,15 @@ struct NoteCard: View {
   private func filled(_ note: WidgetNote) -> some View {
     let shown = Array(note.lines.prefix(size.lines))
     let rest = note.lines.count - shown.count
-    return VStack(alignment: .leading, spacing: size == .large ? 7 : 5) {
+    // одна строка-заголовок («позвонить маме») — крупно, на всю карточку
+    let titleOnly = note.lines.isEmpty
+    return VStack(alignment: .leading, spacing: size == .large ? 9 : 5) {
       HStack(alignment: .top, spacing: 6) {
         Text(note.title.isEmpty ? Texts.untitled : note.title)
-          .font(.system(size: size == .small ? 15 : 16, weight: .semibold))
+          .font(.system(size: titleOnly ? size.titleFont + 5 : size.titleFont, weight: .semibold))
           .foregroundStyle(Color(argb: palette.onSurface))
-          .lineLimit(size == .small && note.lines.isEmpty ? 5 : 2)
+          .lineLimit(titleOnly ? (size == .medium ? 3 : 5) : 2)
+          .minimumScaleFactor(titleOnly ? 0.8 : 1)
           .frame(maxWidth: .infinity, alignment: .leading)
         if random {
           Image(systemName: "shuffle")
@@ -49,7 +56,7 @@ struct NoteCard: View {
         }
       }
       ForEach(Array(shown.enumerated()), id: \.offset) { _, line in
-        NoteLineRow(line: line, compact: size != .large, palette: palette)
+        NoteLineRow(line: line, compact: size != .large, font: size.lineFont, palette: palette)
       }
       Spacer(minLength: 0)
       if rest > 0 {
@@ -80,6 +87,7 @@ struct NoteCard: View {
 struct NoteLineRow: View {
   let line: WidgetNote.Line
   let compact: Bool
+  var font: CGFloat = 13
   let palette: StowaPalette
 
   var body: some View {
@@ -87,11 +95,11 @@ struct NoteLineRow: View {
     HStack(alignment: .firstTextBaseline, spacing: 6) {
       if let checked = line.done {
         Image(systemName: checked ? "checkmark.circle.fill" : "circle")
-          .font(.system(size: 13, weight: .medium))
+          .font(.system(size: font, weight: .medium))
           .foregroundStyle(Color(argb: checked ? palette.muted : palette.onSurfaceVariant))
       }
       Text(line.text)
-        .font(.system(size: 13))
+        .font(.system(size: font))
         .strikethrough(done)
         .foregroundStyle(Color(argb: done ? palette.muted : palette.onSurfaceVariant))
         .lineLimit(compact ? 1 : 2)
