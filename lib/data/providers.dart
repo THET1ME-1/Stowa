@@ -47,6 +47,7 @@ import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
 import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
+import '../services/widget_snapshot.dart';
 import 'db/database.dart';
 import 'repositories/canvas_repository.dart';
 import 'repositories/folder_suggestions.dart';
@@ -725,6 +726,16 @@ final privacyLockProvider = StreamProvider<PrivacyLock?>((ref) async* {
   final privacy = ref.watch(privacyServiceProvider);
   yield await privacy.loadLock();
   yield* privacy.changes.map((_) => privacy.lock);
+});
+
+/// Файл для виджетов iPhone: заметки без скрытых и 18+, под «Кодом на вход» — пусто.
+final widgetSyncProvider = Provider((ref) {
+  final sync = WidgetSync(
+    ref.watch(databaseProvider),
+    locked: () => (ref.read(privacyLockProvider).value ?? ref.read(startLockProvider))?.appLock ?? false,
+  );
+  ref.onDispose(sync.dispose);
+  return sync;
 });
 
 /// Забирает в базу правки, сделанные в файлах снаружи.

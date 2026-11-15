@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,6 +63,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // корешки «Под рукой» включены — служба на месте и при первом открытии, а не только при
     // возврате: HyperOS убивает их вместе с процессом, и открывать Stowa приходилось дважды
     ref.read(edgeControlProvider).resumed().ignore();
+    // виджеты iPhone читают заметки из файла в папке группы: держать его свежим, замок — сразу
+    if (Platform.isIOS) {
+      ref.read(widgetSyncProvider).start();
+      ref.listenManual(privacyLockProvider, (previous, next) => ref.read(widgetSyncProvider).refresh());
+    }
     // любая правка напоминаний в базе переставляет будильники системы
     ref.listenManual(remindersProvider, (previous, next) {
       final reminders = next.value;
@@ -194,7 +201,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void _onRawLaunch(String? raw) {
     if (!mounted) return;
     if (launchActionOf(raw) case final action?) {
-      _dockAction(action).ignore();
+      if (defaultTargetPlatform == TargetPlatform.iOS) _dockAction(action).ignore();
       return;
     }
     final payload = openPayloadOf(raw);

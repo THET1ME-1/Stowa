@@ -63,12 +63,15 @@ void main() {
     await open(tester);
     final fields = tester.widgetList<EditableText>(find.byType(EditableText));
     expect(fields.any((field) => field.focusNode.hasFocus), isTrue);
-  });
+  }, variant: iPhone);
 
   testWidgets('микрофон в виджете — запись начинается сразу', (tester) async {
     final recorder = fakeRecorder(tester);
     launchedWith(tester, 'voice');
     await open(tester);
     expect(recorder, contains('start'));
-  });
+  }, variant: iPhone);
 }
+
+/// Кнопки виджета приходят главному окну только на iPhone: на Android у них своё окно.
+final iPhone = TargetPlatformVariant.only(TargetPlatform.iOS);
