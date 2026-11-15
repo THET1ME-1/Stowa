@@ -41,6 +41,11 @@ abstract class StickerChannel {
   /// Само движение рисует Dart внутри окна — окно меняет размер одним шагом.
   Future<void> frame(Rect window);
 
+  /// Кадр в новом размере окна нарисован: натив убирает снимок, которым держал прежнюю
+  /// картинку на месте, пока окно меняло размер. Ответ приходит, когда снимка уже нет:
+  /// раньше двигать картинку нельзя, снимок висел бы поверх.
+  Future<void> shown();
+
   /// Снять стикер: окно и движок уходят.
   Future<void> remove();
 
@@ -85,6 +90,8 @@ class MethodStickerChannel implements StickerChannel {
   @override
   Future<void> frame(Rect window) => _channel.invokeMethod('frame', _rect(window));
 
+  @override
+  Future<void> shown() => _channel.invokeMethod('shown');
 
   @override
   Future<void> remove() => _channel.invokeMethod('remove');
@@ -104,6 +111,9 @@ class FakeStickerChannel implements StickerChannel {
   final calls = <String>[];
   final _events = StreamController<StickerEvent>.broadcast(sync: true);
 
+  /// Задан — ответ на `shown` ждёт его, как натив ждёт, пока уберёт снимок.
+  Completer<void>? shownReply;
+
   void send(StickerEvent event) => _events.add(event);
 
   @override
@@ -118,6 +128,11 @@ class FakeStickerChannel implements StickerChannel {
     window = next;
   }
 
+  @override
+  Future<void> shown() async {
+    calls.add('shown');
+    await shownReply?.future;
+  }
 
   @override
   Future<void> remove() async => calls.add('remove');

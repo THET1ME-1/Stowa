@@ -72,6 +72,12 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
 
   StreamSubscription<StickerEvent>? _events;
 
+  /// Окно меняет размер на [_resizeTo]: кадр в нём натив ждёт, держа снимок прежней
+  /// картинки (иначе на кадр смены она растягивалась бы по новому окну).
+  Size? _resizeTo;
+  Completer<void>? _resized;
+  Timer? _resizeGuard;
+
   @override
   void initState() {
     super.initState();
@@ -115,6 +121,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
   @override
   void dispose() {
     _events?.cancel().ignore();
+    _resizeGuard?.cancel();
     _appear.dispose();
     _leave.dispose();
     _shape.dispose();
@@ -134,6 +141,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
       final at = clampTo(window.topLeft, Size(stickerWidth, height), _screen);
       _window = Rect.fromLTWH(at.dx, at.dy, stickerWidth, height);
       _channel.frame(_window!).ignore();
+      _settleAt(_window!.size).ignore();
     }
     if (_appear.value == 0 && !_appear.isAnimating) {
       _still ? _appear.value = 1 : _appear.forward().ignore();
@@ -142,6 +150,28 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
 
   /// Угол [big], ближний к [small]: туда стягивается стикер и оттуда раскрывается.
   Alignment _anchorOf(Rect big, Rect small) => Alignment(small.center.dx > big.center.dx ? 1 : -1, small.center.dy > big.center.dy ? 1 : -1);
+
+  /// Ждёт кадр, нарисованный в окне размера [size], говорит нативу «готово» и ждёт, пока
+  /// он уберёт снимок. Окно так и не стало новым (натив промолчал) — через 600 мс всё
+  /// равно: снимок не должен висеть.
+  Future<void> _settleAt(Size size) async {
+    final done = Completer<void>();
+    if (_resized case final previous? when !previous.isCompleted) previous.complete();
+    _resizeTo = size;
+    _resized = done;
+    _resizeGuard?.cancel();
+    _resizeGuard = Timer(const Duration(milliseconds: 600), () {
+      if (!done.isCompleted) done.complete();
+    });
+    if (mounted) setState(() {});
+    await done.future;
+    if (_resized == done) {
+      _resizeGuard?.cancel();
+      _resizeTo = null;
+      _resized = null;
+    }
+    if (mounted) await _channel.shown();
+  }
 
   /// Форма к [value] за `long`; «Убрать анимацию» — сразу.
   Future<void> _reshape(double value) async {
@@ -168,6 +198,7 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
     if (!mounted) return;
     _window = target;
     await _channel.frame(target);
+    await _settleAt(target.size);
   }
 
   /// Касание круга: стикер раскрывается туда, где есть место. Окно сразу встаёт по
@@ -182,6 +213,9 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
     setState(() => _anchor = _anchorOf(target, window));
     _window = target;
     await _channel.frame(target);
+    // рост начинается, когда окно уже большое и снимок круга снят: иначе первые кадры
+    // роста прошли бы под снимком
+    await _settleAt(target.size);
     await _reshape(0);
     if (mounted) setState(() => _folded = false);
   }
@@ -221,6 +255,13 @@ class _StickerHostState extends ConsumerState<StickerHost> with TickerProviderSt
 
     final window = MediaQuery.sizeOf(context);
     if (!_folded && !_shape.isAnimating) WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    // этот кадр уже в новом размере окна: после него натив может снять снимок
+    if (_resizeTo case final want? when (window.width - want.width).abs() < 1 && (window.height - want.height).abs() < 1) {
+      final done = _resized;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (done != null && !done.isCompleted) done.complete();
+      });
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,10 +102,13 @@ void main() {
     expect(channel.window, before);
     expect(channel.calls, isEmpty);
     await tester.pumpAndSettle();
-    // окно встаёт по кругу один раз, в конце
+    // окно встаёт по кругу один раз, в конце; «готово» натив слышит, только когда кадр
+    // нарисован в новом размере, — до того он держит снимок прежней картинки
     expect(channel.calls, ['frame']);
     expect(channel.window, Rect.fromLTWH(right.left + stickerWidth - circleSize, right.top, circleSize, circleSize));
     await follow(tester, channel);
+    await tester.pumpAndSettle();
+    expect(channel.calls, ['frame', 'shown']);
     // в круге — сколько пунктов осталось
     expect(find.text('2'), findsOneWidget);
     expect(find.text('молоко'), findsNothing);
@@ -122,11 +127,38 @@ void main() {
     // окно раскрывается сразу, один раз, а картинка растёт в нём от круга
     expect(channel.calls, ['frame']);
     expect(channel.window, Rect.fromLTWH(right.left, right.top, stickerWidth, height));
+    // пока окно не стало новым, картинка стоит кругом: натив держит снимок
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(channel.calls, ['frame']);
     tester.view.physicalSize = channel.window.size;
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const ValueKey('sticker-circle')), findsOneWidget);
     await tester.pumpAndSettle();
-    expect(channel.calls, ['frame']);
+    expect(channel.calls, ['frame', 'shown']);
+    expect(find.text('молоко'), findsOneWidget);
+  });
+
+  testWidgets('рост начинается, когда натив убрал снимок круга', (tester) async {
+    await note('list', 'Купить', 'Купить\n- [ ] молоко');
+    final channel = await open(tester);
+    await tester.tap(find.byTooltip('Свернуть'));
+    await tester.pumpAndSettle();
+    await follow(tester, channel);
+    final reply = channel.shownReply = Completer<void>();
+    await tester.tap(find.byKey(const ValueKey('sticker-circle')));
+    await tester.pump();
+    tester.view.physicalSize = channel.window.size;
+    await tester.pump();
+    // дольше всего роста
+    for (var step = 0; step < 4; step++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    expect(channel.calls.last, 'shown');
+    // снимок ещё висит — картинка стоит кругом, иначе рост шёл бы под ним
+    expect(find.byKey(const ValueKey('sticker-circle')), findsOneWidget);
+    expect(find.text('молоко'), findsNothing);
+    reply.complete();
+    await tester.pumpAndSettle();
     expect(find.text('молоко'), findsOneWidget);
   });
 
