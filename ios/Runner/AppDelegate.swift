@@ -15,8 +15,11 @@ import UserNotifications
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    // ссылки виджетов — раньше плагинов: см. LaunchChannel
+    LaunchChannel.register(engineBridge.pluginRegistry)
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     setupMediaChannel(engineBridge.pluginRegistry)
+    WidgetChannel.register(engineBridge.pluginRegistry)
   }
 
   /// Канал `stowa/media`: длина, размер и кадры своего ролика. Пара к MediaChannel.kt.

@@ -58,6 +58,25 @@ jobs:
             same "$(value "$SHARE" "$key")" "$(value "$APP" "$key")" "$key расширения"
           done
 
+      # без расширения виджетов Stowa нет в галерее виджетов
+      - name: Расширение виджетов в сборке
+        run: |
+          set -euo pipefail
+          APP=build/ios/iphonesimulator/Runner.app
+          WIDGET="$APP/PlugIns/StowaWidget.appex"
+          [ -d "$WIDGET" ] || { echo "Расширения виджетов в сборке нет"; ls -R "$APP/PlugIns" || true; exit 1; }
+          value() { /usr/libexec/PlistBuddy -c "Print :$2" "$1/Info.plist"; }
+          same() { [ "$1" = "$2" ] || { echo "$3: «$1», а нужно «$2»"; exit 1; }; }
+          same "$(value "$WIDGET" CFBundleIdentifier)" app.stowa.Widget "Идентификатор расширения виджетов"
+          same "$(value "$WIDGET" NSExtension:NSExtensionPointIdentifier)" com.apple.widgetkit-extension "Точка расширения"
+          same "$(value "$WIDGET" AppGroupId)" group.app.stowa "Группа расширения виджетов"
+          same "$(value "$APP" CFBundleURLTypes:1:CFBundleURLSchemes:0)" stowa "Схема ссылок виджетов"
+          for key in CFBundleVersion CFBundleShortVersionString; do
+            same "$(value "$WIDGET" "$key")" "$(value "$APP" "$key")" "$key расширения виджетов"
+          done
+          # подписи настройки виджета: таблица строк скомпилирована хотя бы по-русски
+          [ -f "$WIDGET/ru.lproj/Localizable.strings" ] || { echo "Нет ru.lproj/Localizable.strings"; ls -R "$WIDGET"; exit 1; }
+
       - name: Запуск в симуляторе
         run: |
           set -euo pipefail

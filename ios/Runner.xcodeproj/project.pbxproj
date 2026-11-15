@@ -19,6 +19,18 @@
 		8072EBCE2B6191600035633A /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8072EBCC2B6191600035633A /* MainInterface.storyboard */; };
 		8072EBD22B6191600035633A /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8072EBC82B6191600035633A /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		5701A0012EF0000000000120 /* LaunchChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000020 /* LaunchChannel.swift */; };
+		5701A0012EF0000000000121 /* WidgetChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000021 /* WidgetChannel.swift */; };
+		5701A0012EF0000000000101 /* StowaWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000001 /* StowaWidgetBundle.swift */; };
+		5701A0012EF0000000000102 /* Snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000002 /* Snapshot.swift */; };
+		5701A0012EF0000000000103 /* Texts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000003 /* Texts.swift */; };
+		5701A0012EF0000000000104 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000004 /* Palette.swift */; };
+		5701A0012EF0000000000105 /* ComposerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000005 /* ComposerViews.swift */; };
+		5701A0012EF0000000000106 /* NoteViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000006 /* NoteViews.swift */; };
+		5701A0012EF0000000000107 /* ComposerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000007 /* ComposerWidget.swift */; };
+		5701A0012EF0000000000108 /* NoteWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000008 /* NoteWidget.swift */; };
+		5701A0012EF000000000010B /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF000000000000B /* Localizable.xcstrings */; };
+		5701A0012EF000000000010C /* StowaWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 5701A0012EF000000000000C /* StowaWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +48,13 @@
 			remoteGlobalIDString = 8072EBC72B6191600035633A;
 			remoteInfo = ShareExtension;
 		};
+		5701A0012EF0000000000016 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5701A0012EF000000000000E;
+			remoteInfo = StowaWidget;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -46,6 +65,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				8072EBD22B6191600035633A /* ShareExtension.appex in Embed App Extensions */,
+				5701A0012EF000000000010C /* StowaWidget.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -86,10 +106,31 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5701A0012EF0000000000020 /* LaunchChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchChannel.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000021 /* WidgetChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetChannel.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000001 /* StowaWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StowaWidgetBundle.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000002 /* Snapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Snapshot.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000003 /* Texts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Texts.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000004 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000005 /* ComposerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerViews.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000006 /* NoteViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteViews.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000007 /* ComposerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerWidget.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000008 /* NoteWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteWidget.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5701A0012EF000000000000A /* StowaWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = StowaWidget.entitlements; sourceTree = "<group>"; };
+		5701A0012EF000000000000B /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		5701A0012EF000000000000C /* StowaWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StowaWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		8072EBC52B6191600035633A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5701A0012EF0000000000010 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -126,6 +167,24 @@
 			path = ShareExtension;
 			sourceTree = "<group>";
 		};
+		5701A0012EF000000000000D /* StowaWidget */ = {
+			isa = PBXGroup;
+			children = (
+				5701A0012EF000000000000A /* StowaWidget.entitlements */,
+				5701A0012EF0000000000001 /* StowaWidgetBundle.swift */,
+				5701A0012EF0000000000002 /* Snapshot.swift */,
+				5701A0012EF0000000000003 /* Texts.swift */,
+				5701A0012EF0000000000004 /* Palette.swift */,
+				5701A0012EF0000000000005 /* ComposerViews.swift */,
+				5701A0012EF0000000000006 /* NoteViews.swift */,
+				5701A0012EF0000000000007 /* ComposerWidget.swift */,
+				5701A0012EF0000000000008 /* NoteWidget.swift */,
+				5701A0012EF000000000000B /* Localizable.xcstrings */,
+				5701A0012EF0000000000009 /* Info.plist */,
+			);
+			path = StowaWidget;
+			sourceTree = "<group>";
+		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
@@ -144,6 +203,7 @@
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				8072EBC92B6191600035633A /* ShareExtension */,
+				5701A0012EF000000000000D /* StowaWidget */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 			);
@@ -155,6 +215,7 @@
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
 				8072EBC82B6191600035633A /* ShareExtension.appex */,
+				5701A0012EF000000000000C /* StowaWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -170,6 +231,8 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
+				5701A0012EF0000000000020 /* LaunchChannel.swift */,
+				5701A0012EF0000000000021 /* WidgetChannel.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				8072EBD82B61937D0035633A /* Runner.entitlements */,
 			);
@@ -213,6 +276,23 @@
 			productReference = 8072EBC82B6191600035633A /* ShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		5701A0012EF000000000000E /* StowaWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5701A0012EF0000000000012 /* Build configuration list for PBXNativeTarget "StowaWidget" */;
+			buildPhases = (
+				5701A0012EF000000000000F /* Sources */,
+				5701A0012EF0000000000010 /* Frameworks */,
+				5701A0012EF0000000000011 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = StowaWidget;
+			productName = StowaWidget;
+			productReference = 5701A0012EF000000000000C /* StowaWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
@@ -229,6 +309,7 @@
 			);
 			dependencies = (
 				8072EBD12B6191600035633A /* PBXTargetDependency */,
+				5701A0012EF0000000000017 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -255,6 +336,9 @@
 					8072EBC72B6191600035633A = {
 						CreatedOnToolsVersion = 15.2;
 					};
+					5701A0012EF000000000000E = {
+						CreatedOnToolsVersion = 16.0;
+					};
 					97C146ED1CF9000F007C117D = {
 						CreatedOnToolsVersion = 7.3.1;
 						LastSwiftMigration = 1100;
@@ -280,6 +364,7 @@
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
 				8072EBC72B6191600035633A /* ShareExtension */,
+				5701A0012EF000000000000E /* StowaWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -297,6 +382,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				8072EBCE2B6191600035633A /* MainInterface.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5701A0012EF0000000000011 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5701A0012EF000000000010B /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -364,6 +457,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5701A0012EF000000000000F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5701A0012EF0000000000101 /* StowaWidgetBundle.swift in Sources */,
+				5701A0012EF0000000000102 /* Snapshot.swift in Sources */,
+				5701A0012EF0000000000103 /* Texts.swift in Sources */,
+				5701A0012EF0000000000104 /* Palette.swift in Sources */,
+				5701A0012EF0000000000105 /* ComposerViews.swift in Sources */,
+				5701A0012EF0000000000106 /* NoteViews.swift in Sources */,
+				5701A0012EF0000000000107 /* ComposerWidget.swift in Sources */,
+				5701A0012EF0000000000108 /* NoteWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EA1CF9000F007C117D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -371,6 +479,8 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
+				5701A0012EF0000000000120 /* LaunchChannel.swift in Sources */,
+				5701A0012EF0000000000121 /* WidgetChannel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,6 +496,11 @@
 			isa = PBXTargetDependency;
 			target = 8072EBC72B6191600035633A /* ShareExtension */;
 			targetProxy = 8072EBD02B6191600035633A /* PBXContainerItemProxy */;
+		};
+		5701A0012EF0000000000017 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5701A0012EF000000000000E /* StowaWidget */;
+			targetProxy = 5701A0012EF0000000000016 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -782,6 +897,91 @@
 			};
 			name = Profile;
 		};
+		5701A0012EF0000000000013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = StowaWidget/StowaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				CUSTOM_GROUP_ID = group.app.stowa;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StowaWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Stowa;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = app.stowa.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5701A0012EF0000000000014 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = StowaWidget/StowaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				CUSTOM_GROUP_ID = group.app.stowa;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StowaWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Stowa;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = app.stowa.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5701A0012EF0000000000015 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = StowaWidget/StowaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				CUSTOM_GROUP_ID = group.app.stowa;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StowaWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Stowa;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = app.stowa.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -821,6 +1021,16 @@
 				8072EBD42B6191610035633A /* Debug */,
 				8072EBD52B6191610035633A /* Release */,
 				8072EBD62B6191610035633A /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5701A0012EF0000000000012 /* Build configuration list for PBXNativeTarget "StowaWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5701A0012EF0000000000013 /* Debug */,
+				5701A0012EF0000000000014 /* Release */,
+				5701A0012EF0000000000015 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

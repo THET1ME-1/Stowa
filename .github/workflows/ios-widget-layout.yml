@@ -1,0 +1,31 @@
+name: iPhone → раскладка виджетов
+
+# Зачем: собрать iPhone на ноутбуке нечем, а виджет на телефон не поставить без подписи.
+# Стенд собирает настоящие виды виджетов (ios/StowaWidget/) под macOS, рисует каждый размер
+# в тёмной и светлой теме и проверяет выбор случайной заметки. Симулятор не нужен, круг —
+# пара минут. Картинки — в артефакте widget-layout.
+on:
+  push:
+    paths:
+      - 'ios/StowaWidget/**'
+      - 'tool/widget_layout/**'
+      - '.github/workflows/ios-widget-layout.yml'
+  workflow_dispatch:
+
+jobs:
+  layout:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Собрать и отрисовать
+        run: bash tool/widget_layout/run.sh
+
+      - name: Картинки
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widget-layout
+          path: build/widget_layout/*.png
+          if-no-files-found: ignore
