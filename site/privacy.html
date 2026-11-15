@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stowa Privacy Policy</title>
+<meta name="description" content="What Stowa keeps on your phone and what leaves it.">
+<link rel="stylesheet" href="style.css">
+<link rel="alternate" hreflang="ru" href="ru/privacy.html">
+</head>
+<body>
+<main class="page">
+  <div class="bar">
+    <a class="mark" href="./">Stowa</a>
+    <nav class="pills">
+      <a class="pill" href="./">Support</a>
+      <a class="pill" href="privacy.html" aria-current="page">Privacy</a>
+      <a class="pill" href="ru/privacy.html" hreflang="ru" lang="ru">RU</a>
+    </nav>
+  </div>
+
+  <h1>Privacy Policy</h1>
+  <p class="lead">Stowa is a notes app for Android and iPhone. This page lists what the app keeps on your phone and what it sends, where, and when.</p>
+  <p class="date">Effective November 15, 2026.</p>
+
+  <div class="short">
+    <p>Your notes, photos, and files stay on your phone. Stowa has no account, no ads, and no analytics.</p>
+    <p>We receive only crash reports, without note text or file names. You can turn them off in Settings → Data → Error reports.</p>
+    <p>Anything else leaves the phone only when your own action needs it: loading a link preview, finding an address on the map, or sorting a note with your AI key.</p>
+  </div>
+
+  <h2 style="--dot:#fec766">Who is responsible</h2>
+  <p>Stowa is made by S&amp;T Company, Republic of Moldova. We follow Moldovan Law No. 133/2011 on personal data protection and the EU General Data Protection Regulation (GDPR). Contact: <a href="mailto:stgroup.dev@gmail.com">stgroup.dev@gmail.com</a>.</p>
+
+  <h2 style="--dot:#76d5a4">What stays on your phone</h2>
+  <p>Notes are Markdown files in the folder you picked on first launch: inside the app, or in shared storage where Obsidian and file managers can see it. Attachments sit next to them: photos, videos, voice notes, documents. The app database holds the search index, your settings, and what Stowa worked out from your notes on its own: dates, prices, places, photo colors, text from documents.</p>
+  <p>Hidden folders are encrypted with your passcode while closed. Their text is then absent from the database and from search. We cannot open them without the passcode, and we never have it.</p>
+  <p>Stowa writes backups as an archive to the place you choose. If system backup is on (Google on Android, iCloud on iPhone), the system may copy app data to your account under Google's or Apple's terms. You can switch it off in your phone settings.</p>
+  <p>Your AI key, Telegram bot token, and app passcode are stored only on the phone.</p>
+
+  <h2 style="--dot:#5fcdf5">What leaves your phone</h2>
+  <div class="table">
+    <table>
+      <thead><tr><th>Where</th><th>What and when</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Our crash server</td>
+          <td>When the app crashes or catches an error, it sends a report: the error type, the place in the code, a short error message with quotes, paths, addresses, and numbers stripped out, plus the Stowa version, phone model and maker, system version, and the app window where it happened. Reports contain no note text, file names, phone number, or advertising IDs. The server does not store your IP address. Details below.</td>
+        </tr>
+        <tr>
+          <td>Your AI service</td>
+          <td>Only if you entered an API key yourself. Stowa sends a note for sorting: its text, photo, or voice recording, the names of your folders and tags, and a few note titles as sorting examples. The request goes from your phone straight to the service you chose (OpenRouter by default), never through us, and that service's terms apply. AI never sees hidden folders, even when they are open.</td>
+        </tr>
+        <tr>
+          <td>Telegram</td>
+          <td>Only if you connected your own bot. Stowa fetches the messages you sent to it from api.telegram.org using your token.</td>
+        </tr>
+        <tr>
+          <td>Websites you save</td>
+          <td>When you save a link, Stowa downloads the page to show a preview, the article, or video subtitles. For YouTube, TikTok, and Lib sites it uses their public APIs. Once a week on Wi-Fi, Stowa checks whether saved links still open. The site sees the same kind of request a browser makes, including your IP address.</td>
+        </tr>
+        <tr>
+          <td>Maps</td>
+          <td>Map tiles come from OpenStreetMap (tile.openstreetmap.org), which sees the area you are viewing. Address search goes to Photon (photon.komoot.io) with the text you typed and the map center. Place names for coordinates come from your phone's geocoder, or from OpenStreetMap's Nominatim if the phone has none.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Stowa contacts nothing else. We do not sell data or pass it to ad networks or data brokers.</p>
+
+  <h2 style="--dot:#ffa098">Crash reports</h2>
+  <p>Reports let us fix failures nobody told us about. The legal basis is our legitimate interest in an app that works. The Settings → Data → Error reports switch is on after install. Turning it off stops Stowa from recording errors and deletes reports that have not been sent yet.</p>
+  <p>The server is located in Moscow, Russia. It keeps the latest 10,000 Stowa reports and deletes older ones automatically. Nothing in a report identifies you, so we cannot find or hand over your particular reports.</p>
+
+  <h2 style="--dot:#bcb1ff">Permissions</h2>
+  <p>Stowa asks for a permission when you do something that needs it, not on first launch. Everything obtained through a permission stays on the phone, except for the cases in the table above.</p>
+  <ul>
+    <li><b>Microphone</b>: voice notes.</li>
+    <li><b>Camera, photos and videos, files</b>: note attachments. Stowa reads where a photo was taken to show it on the map.</li>
+    <li><b>Location</b>: to remember where a note was saved and to remind you at the right place. Reminders that fire while Stowa is closed need background location. On Android it also provides the Wi-Fi network name Stowa uses to recognize home and work.</li>
+    <li><b>Notifications and exact alarms</b>: reminders at the time you set.</li>
+    <li><b>Display over other apps</b> (Android): the edge spines and note stickers.</li>
+    <li><b>All files access</b> (Android): only when your notes folder is in shared storage.</li>
+  </ul>
+  <p>The input line looks at the clipboard to offer a link you copied. Clipboard contents stay on the phone.</p>
+
+  <h2 style="--dot:#51d5ce">Your rights</h2>
+  <p>Your notes are yours: open, copy, export to Markdown, or delete them along with the notes folder. Uninstalling the app erases its database and settings. A notes folder in shared storage stays until you delete it.</p>
+  <p>You have the right to learn what data we hold about you, to correct or delete it, and to object to processing. We hold only anonymous crash reports and cannot link them to you. Write to us with any question. You can file a complaint with the National Center for Personal Data Protection of the Republic of Moldova or with the supervisory authority in your country.</p>
+
+  <h2 style="--dot:#f89ec1">Children</h2>
+  <p>Stowa is not intended for children under 13, and we do not knowingly collect their data.</p>
+
+  <h2 style="--dot:#92bfff">Changes</h2>
+  <p>If we change this policy, the date on this page changes. We will mention important changes in the release notes.</p>
+
+  <div class="contact">
+    <p>Questions about data or the app:</p>
+    <a href="mailto:stgroup.dev@gmail.com">stgroup.dev@gmail.com</a>
+  </div>
+
+  <footer>© 2026 S&amp;T Company</footer>
+</main>
+</body>
+</html>

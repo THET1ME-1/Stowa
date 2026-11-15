@@ -662,5 +662,6 @@
   "importNotBookmarks": "No es un archivo de marcadores: exporta los marcadores del navegador como .html",
   "importNotObsidian": "No hay notas .md en esta carpeta",
   "importNotMymind": "No hay cards.csv de mymind en esta carpeta",
-  "importFilesNotFound": "{count, plural, one{{count} archivo no encontrado} other{{count} archivos no encontrados}}"
+  "importFilesNotFound": "{count, plural, one{{count} archivo no encontrado} other{{count} archivos no encontrados}}",
+  "settingsPrivacyPolicy": "Política de privacidad"
 }

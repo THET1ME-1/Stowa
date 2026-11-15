@@ -662,5 +662,6 @@
   "importNotBookmarks": "Nu e un fișier de marcaje: exportă marcajele din browser ca .html",
   "importNotObsidian": "În acest dosar nu sunt notițe .md",
   "importNotMymind": "În acest dosar nu există cards.csv din mymind",
-  "importFilesNotFound": "{count, plural, one{{count} fișier nu a fost găsit} few{{count} fișiere nu au fost găsite} other{{count} de fișiere nu au fost găsite}}"
+  "importFilesNotFound": "{count, plural, one{{count} fișier nu a fost găsit} few{{count} fișiere nu au fost găsite} other{{count} de fișiere nu au fost găsite}}",
+  "settingsPrivacyPolicy": "Politica de confidențialitate"
 }

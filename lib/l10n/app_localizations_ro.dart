@@ -3361,4 +3361,7 @@ class LRo extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsPrivacyPolicy => 'Politica de confidențialitate';
 }

@@ -13,6 +13,7 @@ import 'package:stowa/domain/models.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/l10n/app_language.dart';
+import 'package:stowa/features/settings/settings_screen.dart' show privacyPolicyUrl;
 
 import '../../helpers/test_app.dart';
 
@@ -353,5 +354,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Разбор ИИ'), findsOneWidget);
     expect(find.text('Ключ'), findsOneWidget);
+  });
+
+  test('политика конфиденциальности: русская для русского языка, английская для остальных', () {
+    expect(privacyPolicyUrl(const Locale('ru')).toString(), 'https://thet1me-1.github.io/Stowa/ru/privacy.html');
+    expect(privacyPolicyUrl(const Locale('uk')).toString(), 'https://thet1me-1.github.io/Stowa/privacy.html');
+    expect(privacyPolicyUrl(const Locale('en')).toString(), 'https://thet1me-1.github.io/Stowa/privacy.html');
   });
 }

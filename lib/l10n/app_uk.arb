@@ -662,5 +662,6 @@
   "importNotBookmarks": "Це не файл закладок: вивантаж закладки з браузера в .html",
   "importNotObsidian": "У цій папці немає нотаток .md",
   "importNotMymind": "У цій папці немає cards.csv з mymind",
-  "importFilesNotFound": "{count, plural, one{{count} файл не знайшовся} few{{count} файли не знайшлися} many{{count} файлів не знайшлося} other{{count} файлу не знайшлося}}"
+  "importFilesNotFound": "{count, plural, one{{count} файл не знайшовся} few{{count} файли не знайшлися} many{{count} файлів не знайшлося} other{{count} файлу не знайшлося}}",
+  "settingsPrivacyPolicy": "Політика конфіденційності"
 }

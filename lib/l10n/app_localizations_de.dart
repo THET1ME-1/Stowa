@@ -3342,4 +3342,7 @@ class LDe extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsPrivacyPolicy => 'Datenschutzerklärung';
 }

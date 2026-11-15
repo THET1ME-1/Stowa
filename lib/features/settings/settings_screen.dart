@@ -254,12 +254,23 @@ class SettingsScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted),
               ),
             ),
+            Center(
+              child: TextButton(
+                key: const ValueKey('settings-privacy'),
+                onPressed: () => launchUrl(privacyPolicyUrl(Localizations.localeOf(context)), mode: LaunchMode.externalApplication).catchError((_) => false),
+                child: Text(l.settingsPrivacyPolicy, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Tokens.muted, decoration: TextDecoration.underline)),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+
+/// Страница политики на GitHub Pages (`site/`): русская для русского языка, иначе английская.
+Uri privacyPolicyUrl(Locale locale) =>
+    Uri.parse('https://thet1me-1.github.io/Stowa/${locale.languageCode == 'ru' ? 'ru/' : ''}privacy.html');
 
 /// «nvidia/nemotron-3.5-super-vl:free» → «nemotron-3.5-super-vl»: поставщик и пометка цены и так видны в списке.
 String _modelLabel(String id) => id.split('/').last.replaceFirst(RegExp(r':free$'), '');

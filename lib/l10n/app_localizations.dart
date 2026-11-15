@@ -5578,6 +5578,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} file not found} other{{count} files not found}}'**
   String importFilesNotFound(num count);
+
+  /// Ссылка внизу настроек на страницу политики конфиденциальности
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get settingsPrivacyPolicy;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

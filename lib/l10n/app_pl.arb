@@ -662,5 +662,6 @@
   "importNotBookmarks": "To nie plik zakładek: wyeksportuj zakładki z przeglądarki do .html",
   "importNotObsidian": "W tym folderze nie ma notatek .md",
   "importNotMymind": "W tym folderze nie ma cards.csv z mymind",
-  "importFilesNotFound": "{count, plural, one{{count} pliku nie znaleziono} few{{count} plików nie znaleziono} many{{count} plików nie znaleziono} other{{count} pliku nie znaleziono}}"
+  "importFilesNotFound": "{count, plural, one{{count} pliku nie znaleziono} few{{count} plików nie znaleziono} many{{count} plików nie znaleziono} other{{count} pliku nie znaleziono}}",
+  "settingsPrivacyPolicy": "Polityka prywatności"
 }

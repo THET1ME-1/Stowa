@@ -3392,4 +3392,7 @@ class LUk extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsPrivacyPolicy => 'Політика конфіденційності';
 }

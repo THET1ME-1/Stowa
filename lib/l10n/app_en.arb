@@ -4241,5 +4241,9 @@
   "importFilesNotFound": "{count, plural, one{{count} file not found} other{{count} files not found}}",
   "@importFilesNotFound": {
     "description": "Итог переноса: вложения, на которые ссылается выгрузка, но которых нет в папке"
+  },
+  "settingsPrivacyPolicy": "Privacy policy",
+  "@settingsPrivacyPolicy": {
+    "description": "Ссылка внизу настроек на страницу политики конфиденциальности"
   }
 }

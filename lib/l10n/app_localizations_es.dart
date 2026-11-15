@@ -3335,4 +3335,7 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsPrivacyPolicy => 'Política de privacidad';
 }

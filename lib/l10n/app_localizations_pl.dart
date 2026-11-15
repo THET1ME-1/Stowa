@@ -3393,4 +3393,7 @@ class LPl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsPrivacyPolicy => 'Polityka prywatności';
 }

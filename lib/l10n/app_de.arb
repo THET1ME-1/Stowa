@@ -662,5 +662,6 @@
   "importNotBookmarks": "Das ist keine Lesezeichendatei: exportiere die Lesezeichen aus dem Browser als .html",
   "importNotObsidian": "In diesem Ordner sind keine .md-Notizen",
   "importNotMymind": "In diesem Ordner ist keine cards.csv aus mymind",
-  "importFilesNotFound": "{count, plural, one{{count} Datei nicht gefunden} other{{count} Dateien nicht gefunden}}"
+  "importFilesNotFound": "{count, plural, one{{count} Datei nicht gefunden} other{{count} Dateien nicht gefunden}}",
+  "settingsPrivacyPolicy": "Datenschutzerklärung"
 }
