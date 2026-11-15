@@ -65,6 +65,18 @@ class EdgeService : Service() {
         )
         stickerEngines = FlutterEngineGroup(this)
         stickerPrefs().registerOnSharedPreferenceChangeListener(vaultWatch)
+        Log.d(EdgeHandle.TAG, "service created")
+        // HyperOS перезапускает убитую службу, вызывает onCreate, а onStartCommand — нет: процесс
+        // с живой службой и без корешков (телефон, 15.11.2026). Не пришёл — показать самим
+        guard.postDelayed(::ensureShown, SHOW_WITHOUT_START_MS)
+    }
+
+    /** Корешки включены и право есть, а их нет — поставить. Уже стоят — ничего. */
+    fun ensureShown() {
+        if (handle != null || leaving || !EdgePrefs.read(this).enabled || !Settings.canDrawOverlays(this)) return
+        Log.d(EdgeHandle.TAG, "spines missing, showing")
+        showHandle()
+        panel.warmUp()
     }
 
     /**
@@ -326,6 +338,17 @@ class EdgeService : Service() {
         prefs = settings
         Log.d(EdgeHandle.TAG, "handle shown")
         if (stickers.isEmpty()) restoreStickers()
+        guard.removeCallbacks(guardTick)
+        guardTick.run()
+    }
+
+    /** Сторож: пока служба жива, будильник всё время впереди и не срабатывает. */
+    private val guard = Handler(Looper.getMainLooper())
+    private val guardTick = object : Runnable {
+        override fun run() {
+            EdgeWatchdog.arm(this@EdgeService)
+            guard.postDelayed(this, GUARD_MS)
+        }
     }
 
     /** Сдвиг, при котором корешки целиком за своим краем. */
@@ -404,6 +427,9 @@ class EdgeService : Service() {
 
     override fun onDestroy() {
         running = null
+        // корешки убирают нарочно (выключили, отозвали право) — сторож больше не нужен
+        guard.removeCallbacks(guardTick)
+        EdgeWatchdog.disarm(this)
         stickerPrefs().unregisterOnSharedPreferenceChangeListener(vaultWatch)
         handle?.pulse(false)
         move?.cancel()
@@ -468,13 +494,21 @@ class EdgeService : Service() {
          */
         fun reviveLater(context: Context) {
             Handler(Looper.getMainLooper()).postDelayed({
-                if (running != null || !EdgePrefs.read(context).enabled) return@postDelayed
+                if (!EdgePrefs.read(context).enabled) return@postDelayed
+                val service = running
+                if (service != null) return@postDelayed service.ensureShown()
                 Log.d(EdgeHandle.TAG, "revive: process up, service lost")
                 startIfEnabled(context)
             }, REVIVE_MS)
         }
 
         private const val REVIVE_MS = 3000L
+
+        /** Сколько служба ждёт onStartCommand, прежде чем поставить корешки сама. */
+        private const val SHOW_WITHOUT_START_MS = 1000L
+
+        /** Как часто живая служба переставляет будильник-сторож (он ставится на 10 с). */
+        private const val GUARD_MS = 5_000L
 
         /** После загрузки и обновления: поднять корешки, если человек их включал и право есть. */
         fun startIfEnabled(context: Context) {
@@ -483,7 +517,7 @@ class EdgeService : Service() {
                 start(context)
             } catch (error: IllegalStateException) {
                 // система не дала запустить службу из фона — корешки поднимутся при открытии Stowa
-                Log.w(EdgeHandle.TAG, "start after boot refused", error)
+                Log.w(EdgeHandle.TAG, "start from background refused", error)
             }
         }
     }

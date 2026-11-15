@@ -115,6 +115,8 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/composer_widget_info" />
         </receiver>
         <!-- напоминания по месту: точка, сеть дома и работы; после загрузки тревоги ставятся заново -->
+        <!-- будильник-сторож корешков: поднимает их, если HyperOS убила процесс при смахивании -->
+        <receiver android:exported="false" android:name=".edge.EdgeWatchdog$Receiver" />
         <receiver android:exported="false" android:name=".PlaceReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
