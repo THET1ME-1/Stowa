@@ -309,6 +309,29 @@ void main() {
     expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:old']);
   });
 
+  test('v18 → v19: заметки на месте без файла-холста, правка холста ставит заметку в очередь', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 15);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'План', createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    _dropDocument(raw);
+    raw.execute('PRAGMA user_version = 18');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final item = await upgraded.select(upgraded.items).getSingle();
+    expect((item.title, item.document), ('План', null));
+    await upgraded.delete(upgraded.vaultQueue).go();
+    await (upgraded.update(upgraded.items)..where((t) => t.id.equals('old'))).write(const ItemsCompanion(kind: Value(ItemKind.canvas), document: Value('{"nodes":[],"edges":[]}')));
+    expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:old']);
+  });
+
   test('v16 → v17: места на месте без своего вида, свой вид пишется', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -419,10 +442,19 @@ void main() {
 // на поле: он снимается и встаёт обратно без него, как стоял в версии 14
 // версия 17: заметки ещё не закрепляются. Триггер правки заметки ссылается на поле
 void _dropPinned(Database raw) {
+  _dropDocument(raw);
   final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
   raw.execute('DROP TRIGGER vault_items_update');
   raw.execute('ALTER TABLE items DROP COLUMN pinned_at');
   raw.execute(trigger.replaceFirst(' pinned_at,', ''));
+}
+
+// версия 18: холстов и баз файлами ещё нет. Триггер правки заметки ссылается на поле
+void _dropDocument(Database raw) {
+  final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
+  raw.execute('DROP TRIGGER vault_items_update');
+  raw.execute('ALTER TABLE items DROP COLUMN document');
+  raw.execute(trigger.replaceFirst(' document,', ''));
 }
 
 // версия 16: у места ещё нет своего вида

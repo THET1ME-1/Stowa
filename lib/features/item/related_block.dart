@@ -23,6 +23,8 @@ String kindIcon(ItemKind kind) => switch (kind) {
   ItemKind.image => 'image',
   ItemKind.file => 'description',
   ItemKind.voice => 'graphic_eq',
+  ItemKind.canvas => 'dashboard',
+  ItemKind.base => 'table_view',
 };
 
 /// «Связано» внизу страницы вещи: из текста (`[[…]]`), обратные, ручные, от ИИ и похожие

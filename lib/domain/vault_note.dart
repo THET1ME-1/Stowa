@@ -7,7 +7,9 @@ import 'dart:convert';
 import 'package:yaml/yaml.dart';
 
 import 'inline_tags.dart';
+import 'json_canvas.dart';
 import 'models.dart';
+import 'obsidian_base.dart';
 import 'tag_name.dart';
 
 /// Цитата статьи в файле: выделенный текст, пометка, когда выделена, где в статье.
@@ -271,6 +273,26 @@ final _embed = RegExp(r'^!\[\[(.+)\]\]$');
 
 /// Вещь из текста файла. Нет свойств (заметка Obsidian) — заголовок из имени,
 /// время из [fileModified], `id` пустой.
+/// Холст `.canvas` или база `.base`: заголовок — имя файла, текст — то, что ищется
+/// (карточки и подписи холста, названия видов базы), даты — время файла. Где лежит,
+/// решил человек: раскладка такие файлы не перекладывает.
+VaultNote readVaultDocument(String text, {required String fileName, required DateTime fileModified}) {
+  final base = fileName.endsWith('.base');
+  final title = fileName.substring(0, fileName.lastIndexOf('.'));
+  final body = base
+      ? ObsidianBase.parse(text).views.map((view) => view.name).where((name) => name.isNotEmpty).join('\n')
+      : CanvasDoc.parse(text).plainText();
+  return VaultNote(
+    id: '',
+    kind: base ? ItemKind.base : ItemKind.canvas,
+    title: title,
+    body: body,
+    created: fileModified,
+    updated: fileModified,
+    sortedBy: SortedBy.user,
+  );
+}
+
 VaultNote readVaultNote(String text, {required String fileName, required DateTime fileModified}) {
   var properties = const <String, Object?>{};
   var content = text.replaceAll('\r\n', '\n');

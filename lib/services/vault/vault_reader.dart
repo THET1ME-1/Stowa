@@ -140,8 +140,12 @@ class VaultReader {
       final before = byPath[relative];
 
       final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
-      final note = readVaultNote(text, fileName: p.posix.basename(relative), fileModified: stat.modified);
-      var id = note.id;
+      final document = isDocumentPath(relative);
+      final note = document
+          ? readVaultDocument(text, fileName: p.posix.basename(relative), fileModified: stat.modified)
+          : readVaultNote(text, fileName: p.posix.basename(relative), fileModified: stat.modified);
+      // у холста и базы id в файле нет: своя заметка — та, чей это путь в карте файлов
+      var id = document ? before?.itemId ?? '' : note.id;
       var newId = id.isEmpty;
       // копия файла с тем же id (Syncthing-конфликт, копия руками) — отдельная вещь
       final twin = id.isEmpty ? null : byId[id];
@@ -162,7 +166,7 @@ class VaultReader {
           // файл правили снаружи, а в приложении есть незаписанная правка: обе версии остаются
           clash: !newId && before != null && exists && pending.contains('item:$id'),
           conflict: newId && relative.contains('.sync-conflict-'),
-          attachments: await _attachments(relative, note),
+          attachments: document ? const [] : await _attachments(relative, note),
         ),
       );
     }
@@ -179,7 +183,7 @@ class VaultReader {
     final mapped = <VaultFilesCompanion>[];
     for (final one in incoming) {
       final file = File(_absolute(one.relative));
-      if (one.newId) await _writeId(file, one.text, one.id);
+      if (one.newId && !isDocumentPath(one.relative)) await _writeId(file, one.text, one.id);
       final after = await file.stat();
       mapped.add(VaultFilesCompanion.insert(itemId: one.id, path: one.relative, modified: after.modified.millisecondsSinceEpoch, size: after.size));
       one.exists ? scan.changed++ : scan.added++;
@@ -284,7 +288,7 @@ class VaultReader {
     if (!await start.exists()) return const [];
     final found = <String>[];
     await for (final entity in start.list(recursive: true, followLinks: false)) {
-      if (entity is! File || !entity.path.endsWith('.md')) continue;
+      if (entity is! File || !(entity.path.endsWith('.md') || isDocumentPath(entity.path))) continue;
       final relative = p.relative(entity.path, from: _root!.path).split(p.separator).join('/');
       if (trash ? relative.split('/').skip(1).any((part) => part.startsWith('.')) : isServicePath(relative)) continue;
       found.add(relative);
@@ -369,6 +373,7 @@ class VaultReader {
         remindPlaceDay: Value(note.remindPlace?.day),
         properties: Value(packVaultProperties(note.extra)),
         pinnedAt: Value(note.pinned),
+        document: Value(isDocumentKind(note.kind) ? one.text : null),
         createdAt: Value(note.created),
         updatedAt: Value(updated),
         deletedAt: Value(deleted ? now : null),

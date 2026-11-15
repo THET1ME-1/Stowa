@@ -359,6 +359,8 @@ class _NoteRow extends ConsumerWidget {
       ItemKind.file => 'attach_file',
       ItemKind.note when card.body.contains('- [') => 'checklist',
       ItemKind.note => 'notes',
+      ItemKind.canvas => 'dashboard',
+      ItemKind.base => 'table_view',
     };
     final now = ref.read(clockProvider)();
     final date = card.createdAt.year == now.year ? DateFormat.MMMd(l.localeName).format(card.createdAt) : DateFormat.yMMMd(l.localeName).format(card.createdAt);

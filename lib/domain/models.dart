@@ -2,7 +2,14 @@
 /// переименовывать значения нельзя, только дописывать.
 library;
 
-enum ItemKind { note, link, video, image, file, voice }
+/// canvas и base (v19) — холст `.canvas` и база `.base` Obsidian: файл целиком в `items.document`.
+enum ItemKind { note, link, video, image, file, voice, canvas, base }
+
+/// Холст и база — не заметки с текстом: свой экран, свой файл, ИИ и раскладка их не трогают.
+bool isDocumentKind(ItemKind kind) => kind == ItemKind.canvas || kind == ItemKind.base;
+
+/// Расширение файла холста или базы.
+String documentExtension(ItemKind kind) => kind == ItemKind.base ? 'base' : 'canvas';
 
 /// Где вещь в разборе.
 enum SortState { pending, queued, sorted, failed }

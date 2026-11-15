@@ -5698,6 +5698,276 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The email looks wrong, check the address.'**
   String get feedbackBadEmail;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Canvases'**
+  String get kindsCanvas;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Bases'**
+  String get kindsBase;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Canvas'**
+  String get kindCanvas;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get kindBase;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'New canvas'**
+  String get canvasNew;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'New base'**
+  String get baseNew;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Canvas'**
+  String get canvasDefaultName;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get baseDefaultName;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{empty} one{{count} card} other{{count} cards}}'**
+  String canvasCards(int count);
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} view} other{{count} views}}'**
+  String baseViews(int count);
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get canvasAdd;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get canvasAddText;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get canvasAddNote;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get canvasAddLink;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get canvasAddGroup;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get canvasEdit;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get canvasConnect;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get canvasColor;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get canvasDelete;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Card deleted'**
+  String get canvasDeleted;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Arrow deleted'**
+  String get canvasEdgeDeleted;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get canvasEdgeLabel;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the card to draw an arrow to'**
+  String get canvasConnectHint;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Empty canvas. Double-tap to add a card.'**
+  String get canvasEmpty;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'The canvas file is damaged, so Stowa leaves it alone. Open it in Obsidian.'**
+  String get canvasBroken;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Card text'**
+  String get canvasTextHint;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Link address'**
+  String get canvasLinkHint;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Group label'**
+  String get canvasGroupHint;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'File not found: {name}'**
+  String canvasMissingFile(String name);
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'No color'**
+  String get canvasNoColor;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get canvasDone;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Which note to put on the canvas'**
+  String get canvasPickNote;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Stowa didn\'t understand some conditions and skipped them.'**
+  String get baseUnsupported;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'The base file is damaged. Open it in Obsidian.'**
+  String get baseBroken;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'No notes match.'**
+  String get baseEmpty;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'The map view is shown as a list.'**
+  String get baseMapAsList;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get baseColName;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get baseColCreated;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Modified'**
+  String get baseColModified;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get baseColFolder;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get baseColTags;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Path'**
+  String get baseColPath;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'Links'**
+  String get baseColLinks;
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} note} other{{count} notes}}'**
+  String baseCount(int count);
+
+  /// Холсты и базы Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'No value'**
+  String get baseNoGroup;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

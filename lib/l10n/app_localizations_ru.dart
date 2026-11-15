@@ -3461,4 +3461,175 @@ class LRu extends L {
 
   @override
   String get feedbackBadEmail => 'В почте ошибка, проверьте адрес.';
+
+  @override
+  String get kindsCanvas => 'Холсты';
+
+  @override
+  String get kindsBase => 'Базы';
+
+  @override
+  String get kindCanvas => 'Холст';
+
+  @override
+  String get kindBase => 'База';
+
+  @override
+  String get canvasNew => 'Новый холст';
+
+  @override
+  String get baseNew => 'Новая база';
+
+  @override
+  String get canvasDefaultName => 'Холст';
+
+  @override
+  String get baseDefaultName => 'База';
+
+  @override
+  String canvasCards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count карточки',
+      many: '$count карточек',
+      few: '$count карточки',
+      one: '$count карточка',
+      zero: 'пустой',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String baseViews(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вида',
+      many: '$count видов',
+      few: '$count вида',
+      one: '$count вид',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get canvasAdd => 'Добавить';
+
+  @override
+  String get canvasAddText => 'Текст';
+
+  @override
+  String get canvasAddNote => 'Заметка';
+
+  @override
+  String get canvasAddLink => 'Ссылка';
+
+  @override
+  String get canvasAddGroup => 'Группа';
+
+  @override
+  String get canvasEdit => 'Править';
+
+  @override
+  String get canvasConnect => 'Связать';
+
+  @override
+  String get canvasColor => 'Цвет';
+
+  @override
+  String get canvasDelete => 'Удалить';
+
+  @override
+  String get canvasDeleted => 'Карточка удалена';
+
+  @override
+  String get canvasEdgeDeleted => 'Стрелка удалена';
+
+  @override
+  String get canvasEdgeLabel => 'Подпись';
+
+  @override
+  String get canvasConnectHint =>
+      'Коснитесь карточки, к которой провести стрелку';
+
+  @override
+  String get canvasEmpty =>
+      'Пустой холст. Коснитесь дважды, чтобы добавить карточку.';
+
+  @override
+  String get canvasBroken =>
+      'Файл холста повреждён, Stowa его не меняет. Откройте его в Obsidian.';
+
+  @override
+  String get canvasTextHint => 'Текст карточки';
+
+  @override
+  String get canvasLinkHint => 'Адрес ссылки';
+
+  @override
+  String get canvasGroupHint => 'Подпись группы';
+
+  @override
+  String canvasMissingFile(String name) {
+    return 'Файла нет: $name';
+  }
+
+  @override
+  String get canvasNoColor => 'Без цвета';
+
+  @override
+  String get canvasDone => 'Готово';
+
+  @override
+  String get canvasPickNote => 'Какую заметку положить на холст';
+
+  @override
+  String get baseUnsupported => 'Часть условий Stowa не поняла и пропустила.';
+
+  @override
+  String get baseBroken => 'Файл базы повреждён. Откройте его в Obsidian.';
+
+  @override
+  String get baseEmpty => 'Ни одна заметка не подходит.';
+
+  @override
+  String get baseMapAsList => 'Карта показана списком.';
+
+  @override
+  String get baseColName => 'Название';
+
+  @override
+  String get baseColCreated => 'Создана';
+
+  @override
+  String get baseColModified => 'Изменена';
+
+  @override
+  String get baseColFolder => 'Папка';
+
+  @override
+  String get baseColTags => 'Теги';
+
+  @override
+  String get baseColPath => 'Путь';
+
+  @override
+  String get baseColLinks => 'Ссылки';
+
+  @override
+  String baseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count заметки',
+      many: '$count заметок',
+      few: '$count заметки',
+      one: '$count заметка',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baseNoGroup => 'Без значения';
 }

@@ -44,6 +44,8 @@ String kindsLabel(L l, ItemKind kind) => switch (kind) {
   ItemKind.image => l.kindsImage,
   ItemKind.file => l.kindsFile,
   ItemKind.voice => l.kindsVoice,
+  ItemKind.canvas => l.kindsCanvas,
+  ItemKind.base => l.kindsBase,
 };
 
 String kindLabel(L l, ItemKind kind) => switch (kind) {
@@ -53,6 +55,8 @@ String kindLabel(L l, ItemKind kind) => switch (kind) {
   ItemKind.image => l.kindImage,
   ItemKind.file => l.kindFile,
   ItemKind.voice => l.kindVoice,
+  ItemKind.canvas => l.kindCanvas,
+  ItemKind.base => l.kindBase,
 };
 
 /// Подпись напоминания по месту: «Напомнить дома», «Напомнить: Саша», «Напомнить у магазина · завтра».
@@ -101,6 +105,8 @@ String kindIcon(ItemKind kind) => switch (kind) {
   ItemKind.image => 'image',
   ItemKind.file => 'draft',
   ItemKind.voice => 'graphic_eq',
+  ItemKind.canvas => 'dashboard',
+  ItemKind.base => 'table_view',
 };
 
 /// «сегодня», «вчера» или «12 окт.»

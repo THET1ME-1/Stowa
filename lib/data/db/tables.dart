@@ -52,6 +52,10 @@ class Items extends Table {
   /// Когда закреплена наверху главной (v18); null — не закреплена. В файле — свойство `pinned`.
   DateTimeColumn get pinnedAt => dateTime().nullable()();
 
+  /// Исходный текст файла холста (`.canvas`, JSON) или базы (`.base`, YAML) — v19.
+  /// У таких заметок `body` — только текст для поиска и ленты, файл пишется из этого поля.
+  TextColumn get document => text().nullable()();
+
   /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   DateTimeColumn get openedAt => dateTime().nullable()();

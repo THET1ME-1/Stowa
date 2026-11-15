@@ -4326,5 +4326,205 @@
   "feedbackBadEmail": "The email looks wrong, check the address.",
   "@feedbackBadEmail": {
     "description": "Сервер отбил почту для ответа"
+  },
+  "kindsCanvas": "Canvases",
+  "@kindsCanvas": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "kindsBase": "Bases",
+  "@kindsBase": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "kindCanvas": "Canvas",
+  "@kindCanvas": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "kindBase": "Base",
+  "@kindBase": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasNew": "New canvas",
+  "@canvasNew": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseNew": "New base",
+  "@baseNew": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasDefaultName": "Canvas",
+  "@canvasDefaultName": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseDefaultName": "Base",
+  "@baseDefaultName": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasCards": "{count, plural, =0{empty} one{{count} card} other{{count} cards}}",
+  "@canvasCards": {
+    "description": "Холсты и базы Obsidian",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baseViews": "{count, plural, one{{count} view} other{{count} views}}",
+  "@baseViews": {
+    "description": "Холсты и базы Obsidian",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "canvasAdd": "Add",
+  "@canvasAdd": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasAddText": "Text",
+  "@canvasAddText": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasAddNote": "Note",
+  "@canvasAddNote": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasAddLink": "Link",
+  "@canvasAddLink": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasAddGroup": "Group",
+  "@canvasAddGroup": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasEdit": "Edit",
+  "@canvasEdit": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasConnect": "Connect",
+  "@canvasConnect": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasColor": "Color",
+  "@canvasColor": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasDelete": "Delete",
+  "@canvasDelete": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasDeleted": "Card deleted",
+  "@canvasDeleted": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasEdgeDeleted": "Arrow deleted",
+  "@canvasEdgeDeleted": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasEdgeLabel": "Label",
+  "@canvasEdgeLabel": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasConnectHint": "Tap the card to draw an arrow to",
+  "@canvasConnectHint": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasEmpty": "Empty canvas. Double-tap to add a card.",
+  "@canvasEmpty": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasBroken": "The canvas file is damaged, so Stowa leaves it alone. Open it in Obsidian.",
+  "@canvasBroken": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasTextHint": "Card text",
+  "@canvasTextHint": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasLinkHint": "Link address",
+  "@canvasLinkHint": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasGroupHint": "Group label",
+  "@canvasGroupHint": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasMissingFile": "File not found: {name}",
+  "@canvasMissingFile": {
+    "description": "Холсты и базы Obsidian",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "canvasNoColor": "No color",
+  "@canvasNoColor": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasDone": "Done",
+  "@canvasDone": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "canvasPickNote": "Which note to put on the canvas",
+  "@canvasPickNote": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseUnsupported": "Stowa didn't understand some conditions and skipped them.",
+  "@baseUnsupported": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseBroken": "The base file is damaged. Open it in Obsidian.",
+  "@baseBroken": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseEmpty": "No notes match.",
+  "@baseEmpty": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseMapAsList": "The map view is shown as a list.",
+  "@baseMapAsList": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseColName": "Name",
+  "@baseColName": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseColCreated": "Created",
+  "@baseColCreated": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseColModified": "Modified",
+  "@baseColModified": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseColFolder": "Folder",
+  "@baseColFolder": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseColTags": "Tags",
+  "@baseColTags": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseColPath": "Path",
+  "@baseColPath": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseColLinks": "Links",
+  "@baseColLinks": {
+    "description": "Холсты и базы Obsidian"
+  },
+  "baseCount": "{count, plural, one{{count} note} other{{count} notes}}",
+  "@baseCount": {
+    "description": "Холсты и базы Obsidian",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "baseNoGroup": "No value",
+  "@baseNoGroup": {
+    "description": "Холсты и базы Obsidian"
   }
 }

@@ -10,6 +10,7 @@ import '../../domain/folder_tree.dart';
 import '../../domain/note_blocks.dart' show embedNames, embedPath;
 import '../../domain/vault_note.dart';
 import '../privacy/sealed_space.dart';
+import '../../domain/models.dart' show documentExtension, isDocumentKind;
 import 'vault_layout.dart';
 import 'vault_meta.dart';
 
@@ -152,12 +153,23 @@ class VaultWriter {
       }
     }
 
-    var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(item.title)}.md');
+    // холст и база — свой файл .canvas/.base: исходный текст как есть, без шапки и вложений
+    final document = isDocumentKind(item.kind);
+    var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(item.title)}.${document ? documentExtension(item.kind) : 'md'}');
     if (item.deletedAt != null) wanted = trashPath(wanted);
-    // «Купить молоко 2.md» остаётся «2», пока заголовок тот же: файл не прыгает между именами
-    final path = known != null && _sameName(known.path, wanted) ? known.path : (known == null ? await _ownFile(wanted, id) : null) ?? await _free(wanted, id);
+    // «Купить молоко 2.md» остаётся «2», пока заголовок тот же: файл не прыгает между именами.
+    // Свой холст по id не узнать: id в JSON не пишется, его файл знает только карта файлов
+    final path = known != null && _sameName(known.path, wanted)
+        ? known.path
+        : (known == null && !document ? await _ownFile(wanted, id) : null) ?? await _free(wanted, id);
 
     if (known != null && known.path != path) await _move(id, known.path, path);
+    if (document) {
+      final file = await _write(path, item.document ?? '');
+      final stat = await file.stat();
+      await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+      return;
+    }
     final renamed = await _gather(id, attachmentsDir(path));
     // картинка в тексте ссылается на имя файла: занятое имя получило номер — текст следом
     var body = item.body;
@@ -310,8 +322,9 @@ class VaultWriter {
 
   bool _sameName(String current, String wanted) {
     if (p.posix.dirname(current).toLowerCase() != p.posix.dirname(wanted).toLowerCase()) return false;
-    final stem = attachmentsDir(p.posix.basename(current)).toLowerCase();
-    final want = attachmentsDir(p.posix.basename(wanted)).toLowerCase();
+    if (p.posix.extension(current).toLowerCase() != p.posix.extension(wanted).toLowerCase()) return false;
+    final stem = p.posix.basenameWithoutExtension(current).toLowerCase();
+    final want = p.posix.basenameWithoutExtension(wanted).toLowerCase();
     return stem == want || RegExp('^${RegExp.escape(want)} \\d+\$').hasMatch(stem);
   }
 

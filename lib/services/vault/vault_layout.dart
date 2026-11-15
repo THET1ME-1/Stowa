@@ -27,12 +27,19 @@ String attachmentsDir(String notePath) => notePath.endsWith('.md') ? notePath.su
 /// [taken] сравнивает без учёта регистра: Android и Windows через Syncthing его не различают.
 String uniqueNotePath(String wanted, bool Function(String path) taken) {
   if (!taken(wanted)) return wanted;
-  final stem = attachmentsDir(wanted);
+  // расширение своё: у холста «План 2.canvas», у заметки «План 2.md»
+  final dot = wanted.lastIndexOf('.');
+  final hasExtension = dot > wanted.lastIndexOf('/');
+  final stem = hasExtension ? wanted.substring(0, dot) : wanted;
+  final extension = hasExtension ? wanted.substring(dot) : '';
   for (var number = 2;; number++) {
-    final candidate = '$stem $number.md';
+    final candidate = '$stem $number$extension';
     if (!taken(candidate)) return candidate;
   }
 }
+
+/// Холст Obsidian или база — файл, который Stowa показывает своим экраном.
+bool isDocumentPath(String relative) => relative.endsWith('.canvas') || relative.endsWith('.base');
 
 /// Служебное и чужое служебное (`.stowa`, `.trash`, `.obsidian`, любая папка с точкой) — не заметки.
 bool isServicePath(String relative) => relative.split('/').any((part) => part.startsWith('.'));

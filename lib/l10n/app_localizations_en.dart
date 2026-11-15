@@ -3396,4 +3396,168 @@ class LEn extends L {
 
   @override
   String get feedbackBadEmail => 'The email looks wrong, check the address.';
+
+  @override
+  String get kindsCanvas => 'Canvases';
+
+  @override
+  String get kindsBase => 'Bases';
+
+  @override
+  String get kindCanvas => 'Canvas';
+
+  @override
+  String get kindBase => 'Base';
+
+  @override
+  String get canvasNew => 'New canvas';
+
+  @override
+  String get baseNew => 'New base';
+
+  @override
+  String get canvasDefaultName => 'Canvas';
+
+  @override
+  String get baseDefaultName => 'Base';
+
+  @override
+  String canvasCards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cards',
+      one: '$count card',
+      zero: 'empty',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String baseViews(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count views',
+      one: '$count view',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get canvasAdd => 'Add';
+
+  @override
+  String get canvasAddText => 'Text';
+
+  @override
+  String get canvasAddNote => 'Note';
+
+  @override
+  String get canvasAddLink => 'Link';
+
+  @override
+  String get canvasAddGroup => 'Group';
+
+  @override
+  String get canvasEdit => 'Edit';
+
+  @override
+  String get canvasConnect => 'Connect';
+
+  @override
+  String get canvasColor => 'Color';
+
+  @override
+  String get canvasDelete => 'Delete';
+
+  @override
+  String get canvasDeleted => 'Card deleted';
+
+  @override
+  String get canvasEdgeDeleted => 'Arrow deleted';
+
+  @override
+  String get canvasEdgeLabel => 'Label';
+
+  @override
+  String get canvasConnectHint => 'Tap the card to draw an arrow to';
+
+  @override
+  String get canvasEmpty => 'Empty canvas. Double-tap to add a card.';
+
+  @override
+  String get canvasBroken =>
+      'The canvas file is damaged, so Stowa leaves it alone. Open it in Obsidian.';
+
+  @override
+  String get canvasTextHint => 'Card text';
+
+  @override
+  String get canvasLinkHint => 'Link address';
+
+  @override
+  String get canvasGroupHint => 'Group label';
+
+  @override
+  String canvasMissingFile(String name) {
+    return 'File not found: $name';
+  }
+
+  @override
+  String get canvasNoColor => 'No color';
+
+  @override
+  String get canvasDone => 'Done';
+
+  @override
+  String get canvasPickNote => 'Which note to put on the canvas';
+
+  @override
+  String get baseUnsupported =>
+      'Stowa didn\'t understand some conditions and skipped them.';
+
+  @override
+  String get baseBroken => 'The base file is damaged. Open it in Obsidian.';
+
+  @override
+  String get baseEmpty => 'No notes match.';
+
+  @override
+  String get baseMapAsList => 'The map view is shown as a list.';
+
+  @override
+  String get baseColName => 'Name';
+
+  @override
+  String get baseColCreated => 'Created';
+
+  @override
+  String get baseColModified => 'Modified';
+
+  @override
+  String get baseColFolder => 'Folder';
+
+  @override
+  String get baseColTags => 'Tags';
+
+  @override
+  String get baseColPath => 'Path';
+
+  @override
+  String get baseColLinks => 'Links';
+
+  @override
+  String baseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '$count note',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get baseNoGroup => 'No value';
 }

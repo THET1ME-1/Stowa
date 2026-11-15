@@ -34,7 +34,7 @@ String normalizeSearchText(String text) => _ftsSwaps.fold(text, (value, swap) =>
 const _vaultItemColumns =
     'kind, title, body, url, folder_id, sorted_by, cover_path, preview_text, preview_site, preview_author, '
     'duration_seconds, latitude, longitude, place_name, reminder_at, remind_place, remind_latitude, remind_longitude, remind_place_name, remind_place_ref, remind_place_day, properties, '
-    'pinned_at, deleted_at, created_at, updated_at';
+    'pinned_at, document, deleted_at, created_at, updated_at';
 
 // всё, что пишется в .stowa/*.json: таблица → цель очереди
 const _vaultMetaTables = {
@@ -107,7 +107,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -175,6 +175,7 @@ class AppDatabase extends _$AppDatabase {
       }
       // 18: закреплённые заметки. До очереди хранилища: её триггер смотрит на поле
       if (from < 18) await migrator.addColumn(items, items.pinnedAt);
+      if (from < 19) await migrator.addColumn(items, items.document);
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
         // до очереди: файлы хранилища сразу пишутся с целым текстом
@@ -188,8 +189,8 @@ class AppDatabase extends _$AppDatabase {
         await _createVaultTriggers();
         await enqueueWholeVault();
       }
-      // 8, 15 и 16 у базы с очередью: триггер правки заметки знает новые поля
-      if (from >= 7 && from < 18) {
+      // 8, 15, 16, 18 и 19 у базы с очередью: триггер правки заметки знает новые поля
+      if (from >= 7 && from < 19) {
         await customStatement('DROP TRIGGER IF EXISTS vault_items_update');
         await customStatement("CREATE TRIGGER vault_items_update AFTER UPDATE OF $_vaultItemColumns ON items WHEN $_notImporting BEGIN ${_vaultEnqueue("'item:' || new.id")} END");
       }
