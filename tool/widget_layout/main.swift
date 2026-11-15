@@ -110,7 +110,8 @@ MainActor.assumeIsolated {
 
 // случайная заметка дня: весь день одна, «другая» и следующий день — другая
 let notes = [shopping, long, plain, titleOnly]
-let day = Date(timeIntervalSince1970: 1_794_700_000)
+// середина дня: час вперёд не должен перейти через полночь
+let day = Calendar.current.startOfDay(for: Date(timeIntervalSince1970: 1_794_700_000)).addingTimeInterval(10 * 3600)
 let first = DailyPick.pick(notes, day: day, shift: 0)
 let sameDay = DailyPick.pick(notes, day: day.addingTimeInterval(3600), shift: 0)
 let shifted = DailyPick.pick(notes, day: day, shift: 1)
