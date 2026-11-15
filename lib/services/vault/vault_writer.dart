@@ -10,7 +10,7 @@ import '../../domain/folder_tree.dart';
 import '../../domain/note_blocks.dart' show embedNames, embedPath;
 import '../../domain/vault_note.dart';
 import '../privacy/sealed_space.dart';
-import '../../domain/models.dart' show documentExtension, isDocumentKind;
+import '../../domain/models.dart' show ItemKind, documentExtension, isDocumentKind;
 import 'vault_layout.dart';
 import 'vault_meta.dart';
 
@@ -165,7 +165,10 @@ class VaultWriter {
 
     // холст и база — свой файл .canvas/.base: исходный текст как есть, без шапки и вложений
     final document = isDocumentKind(item.kind);
-    var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(item.title)}.${document ? documentExtension(item.kind) : 'md'}');
+    // рисунок, названный просто «Схема.md», так и остаётся «.md»: имя файла выбирал человек
+    final plainDrawing = item.kind == ItemKind.drawing && known != null && !known.path.toLowerCase().endsWith('.excalidraw.md');
+    final extension = !document || plainDrawing ? 'md' : documentExtension(item.kind);
+    var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(item.title)}.$extension');
     if (item.deletedAt != null) wanted = trashPath(wanted);
     // «Купить молоко 2.md» остаётся «2», пока заголовок тот же: файл не прыгает между именами.
     // Свой холст по id не узнать: id в JSON не пишется, его файл знает только карта файлов

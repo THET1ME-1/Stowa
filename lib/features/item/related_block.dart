@@ -26,6 +26,7 @@ String kindIcon(ItemKind kind) => switch (kind) {
   ItemKind.voice => 'graphic_eq',
   ItemKind.canvas => 'dashboard',
   ItemKind.base => 'table_view',
+  ItemKind.drawing => 'draw',
 };
 
 /// «Связано» внизу страницы вещи: из текста (`[[…]]`), обратные, ручные, от ИИ и похожие

@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:yaml/yaml.dart';
 
+import 'excalidraw.dart';
 import 'inline_tags.dart';
 import 'json_canvas.dart';
 import 'models.dart';
@@ -277,6 +278,18 @@ final _embed = RegExp(r'^!\[\[(.+)\]\]$');
 /// (карточки и подписи холста, названия видов базы), даты — время файла. Где лежит,
 /// решил человек: раскладка такие файлы не перекладывает.
 VaultNote readVaultDocument(String text, {required String fileName, required DateTime fileModified}) {
+  // рисунок Excalidraw: текст для поиска — его подписи; id мог остаться в шапке от прежней Stowa
+  if (fileName.endsWith('.md')) {
+    return VaultNote(
+      id: excalidrawId(text),
+      kind: ItemKind.drawing,
+      title: excalidrawTitle(fileName),
+      body: excalidrawTexts(text).join('\n'),
+      created: fileModified,
+      updated: fileModified,
+      sortedBy: SortedBy.user,
+    );
+  }
   final base = fileName.endsWith('.base');
   final title = fileName.substring(0, fileName.lastIndexOf('.'));
   final body = base

@@ -3626,4 +3626,35 @@ class LPl extends L {
 
   @override
   String get documentNew => 'Kanwa lub baza';
+
+  @override
+  String get kindDrawing => 'Rysunek';
+
+  @override
+  String get kindsDrawing => 'Rysunki';
+
+  @override
+  String get drawingTexts => 'Tekst rysunku';
+
+  @override
+  String get drawingTextCopied => 'Skopiowano tekst';
+
+  @override
+  String get drawingEditInObsidian => 'Rysunek można edytować w Obsidian';
+
+  @override
+  String get drawingUnreadable =>
+      'Nie udało się odczytać rysunku, otwórz go w Obsidian';
+
+  @override
+  String drawingTextCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count napisów',
+      few: '$count napisy',
+      one: '$count napis',
+    );
+    return '$_temp0';
+  }
 }

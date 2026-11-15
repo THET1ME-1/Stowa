@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../base/base_file_screen.dart';
 import '../canvas/canvas_file_screen.dart';
+import '../drawing/drawing_screen.dart';
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
@@ -722,9 +723,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final now = _clock();
     if (full == null) return const Scaffold();
     final item = full.item;
-    // холст и база Obsidian — свои экраны; все пути открытия заметки ведут сюда же
+    // холст, база и рисунок Obsidian — свои экраны; все пути открытия заметки ведут сюда же
     if (item.kind == ItemKind.canvas) return CanvasFileScreen(item: item);
     if (item.kind == ItemKind.base) return BaseFileScreen(item: item);
+    if (item.kind == ItemKind.drawing) return DrawingScreen(item: item);
     final folder = folders.where((one) => one.id == item.folderId).firstOrNull;
     final images = full.attachments.where((file) => file.mime.startsWith('image/')).toList();
     // фото, вставленные в текст, стоят на своём месте в тексте, а не крупно над заголовком

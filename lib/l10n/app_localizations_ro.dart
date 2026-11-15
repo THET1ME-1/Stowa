@@ -3595,4 +3595,35 @@ class LRo extends L {
 
   @override
   String get documentNew => 'Canvas sau bază';
+
+  @override
+  String get kindDrawing => 'Desen';
+
+  @override
+  String get kindsDrawing => 'Desene';
+
+  @override
+  String get drawingTexts => 'Textul desenului';
+
+  @override
+  String get drawingTextCopied => 'Text copiat';
+
+  @override
+  String get drawingEditInObsidian => 'Desenul se poate edita în Obsidian';
+
+  @override
+  String get drawingUnreadable =>
+      'Desenul nu s-a putut citi, deschide-l în Obsidian';
+
+  @override
+  String drawingTextCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de texte',
+      few: '$count texte',
+      one: '$count text',
+    );
+    return '$_temp0';
+  }
 }

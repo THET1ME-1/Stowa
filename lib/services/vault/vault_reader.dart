@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/database.dart';
+import '../../domain/excalidraw.dart' show isExcalidrawText;
 import '../../domain/folder_tree.dart';
 import '../../domain/inline_tags.dart';
 import '../../domain/note_blocks.dart' show embedNames;
@@ -124,10 +125,17 @@ class VaultReader {
 
     // сперва быстрый проход по времени и размеру: счётчик — только изменённые заметки, «340 из 1000»
     final changed = <(String, FileStat)>[];
+    // рисунки Excalidraw, прочитанные прежней Stowa обычной заметкой: перечитать рисунком
+    final stale = {
+      for (final row in await _db
+          .customSelect("SELECT vault_files.path FROM vault_files JOIN items ON items.id = vault_files.item_id WHERE vault_files.path LIKE '%.excalidraw.md' AND items.kind <> 'drawing'")
+          .get())
+        row.read<String>('path'),
+    };
     for (final relative in notes) {
       final stat = await File(_absolute(relative)).stat();
       final before = byPath[relative];
-      if (before != null && before.modified == stat.modified.millisecondsSinceEpoch && before.size == stat.size) continue;
+      if (before != null && before.modified == stat.modified.millisecondsSinceEpoch && before.size == stat.size && !stale.contains(relative)) continue;
       changed.add((relative, stat));
     }
     // первая половина хода — чтение файлов, вторая — запись в базу
@@ -140,12 +148,13 @@ class VaultReader {
       final before = byPath[relative];
 
       final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
-      final document = isDocumentPath(relative);
+      // холст, база и рисунок Excalidraw — файлом целиком, без шапки Stowa
+      final document = isDocumentPath(relative) || isExcalidrawText(text);
       final note = document
           ? readVaultDocument(text, fileName: p.posix.basename(relative), fileModified: stat.modified)
           : readVaultNote(text, fileName: p.posix.basename(relative), fileModified: stat.modified);
       // у холста и базы id в файле нет: своя заметка — та, чей это путь в карте файлов
-      var id = document ? before?.itemId ?? '' : note.id;
+      var id = document ? before?.itemId ?? note.id : note.id;
       var newId = id.isEmpty;
       // копия файла с тем же id (Syncthing-конфликт, копия руками) — отдельная вещь
       final twin = id.isEmpty ? null : byId[id];
@@ -183,7 +192,7 @@ class VaultReader {
     final mapped = <VaultFilesCompanion>[];
     for (final one in incoming) {
       final file = File(_absolute(one.relative));
-      if (one.newId && !isDocumentPath(one.relative)) await _writeId(file, one.text, one.id);
+      if (one.newId && !isDocumentKind(one.note.kind)) await _writeId(file, one.text, one.id);
       final after = await file.stat();
       mapped.add(VaultFilesCompanion.insert(itemId: one.id, path: one.relative, modified: after.modified.millisecondsSinceEpoch, size: after.size));
       one.exists ? scan.changed++ : scan.added++;
@@ -230,7 +239,9 @@ class VaultReader {
       final file = File(_absolute(relative));
       final stat = await file.stat();
       final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
-      final note = readVaultNote(text, fileName: p.posix.basename(relative), fileModified: stat.modified);
+      final note = isExcalidrawText(text)
+          ? readVaultDocument(text, fileName: p.posix.basename(relative), fileModified: stat.modified)
+          : readVaultNote(text, fileName: p.posix.basename(relative), fileModified: stat.modified);
       if (note.id.isEmpty) continue;
       trashed.add(
         _Incoming(
@@ -350,7 +361,10 @@ class VaultReader {
       if (entity is! File) continue;
       final relative = p.relative(entity.path, from: _root.path).split(p.separator).join('/');
       if (!isLoosePath(relative) || isServicePath(relative) || relative.endsWith('.part')) continue;
-      if (const {'thumbs.db', 'desktop.ini'}.contains(p.posix.basename(relative).toLowerCase())) continue;
+      final lower = p.posix.basename(relative).toLowerCase();
+      if (const {'thumbs.db', 'desktop.ini'}.contains(lower)) continue;
+      // готовая картинка рисунка Excalidraw («Схема.excalidraw.svg») — часть рисунка
+      if (lower.contains('.excalidraw.')) continue;
       found.add(relative);
     }
     found.sort();
@@ -379,8 +393,11 @@ class VaultReader {
       if (attached.contains(relative)) continue;
       final name = p.posix.basename(relative);
       if (names.contains(name.toLowerCase()) || noteDirs.contains(p.posix.dirname(relative).toLowerCase())) continue;
-      // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл рядом
-      final mentioned = await _db.customSelect('SELECT 1 FROM items WHERE instr(body, ?) > 0 LIMIT 1', variables: [Variable.withString(name)]).getSingleOrNull();
+      // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл
+      // рядом, карточка холста или картинка рисунка Excalidraw
+      final mentioned = await _db
+          .customSelect('SELECT 1 FROM items WHERE instr(body, ?1) > 0 OR instr(coalesce(document, \'\'), ?1) > 0 LIMIT 1', variables: [Variable.withString(name)])
+          .getSingleOrNull();
       if (mentioned != null) continue;
       fresh.add(relative);
     }

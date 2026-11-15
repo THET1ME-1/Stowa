@@ -683,5 +683,12 @@
   "feedbackFailed": "Не надіслалося. Перевірте інтернет і натисніть ще раз.",
   "feedbackTooMany": "На сьогодні звернень із цього телефона вже багато. Напишіть завтра або на пошту в налаштуваннях.",
   "feedbackBadEmail": "У пошті помилка, перевірте адресу.",
-  "documentNew": "Полотно або база"
+  "documentNew": "Полотно або база",
+  "kindDrawing": "Малюнок",
+  "kindsDrawing": "Малюнки",
+  "drawingTexts": "Текст малюнка",
+  "drawingTextCopied": "Підпис скопійовано",
+  "drawingEditInObsidian": "Змінити малюнок можна в Obsidian",
+  "drawingUnreadable": "Малюнок не прочитався, відкрий його в Obsidian",
+  "drawingTextCount": "{count, plural, one{{count} підпис} few{{count} підписи} other{{count} підписів}}"
 }

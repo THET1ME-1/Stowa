@@ -4530,5 +4530,38 @@
   "documentNew": "Canvas or base",
   "@documentNew": {
     "description": "Пункт меню папки: завести холст или базу Obsidian"
+  },
+  "kindDrawing": "Drawing",
+  "@kindDrawing": {
+    "description": "Рисунок Excalidraw из Obsidian: вид заметки"
+  },
+  "kindsDrawing": "Drawings",
+  "@kindsDrawing": {
+    "description": "Рисунки Excalidraw: вид заметок во множественном числе"
+  },
+  "drawingTexts": "Text in drawing",
+  "@drawingTexts": {
+    "description": "Кнопка и заголовок листа с подписями рисунка Excalidraw"
+  },
+  "drawingTextCopied": "Text copied",
+  "@drawingTextCopied": {
+    "description": "Плашка после касания подписи рисунка"
+  },
+  "drawingEditInObsidian": "You can edit this drawing in Obsidian",
+  "@drawingEditInObsidian": {
+    "description": "Подсказка над рисунком Excalidraw: в Stowa он только для просмотра"
+  },
+  "drawingUnreadable": "Couldn't read this drawing, open it in Obsidian",
+  "@drawingUnreadable": {
+    "description": "Подсказка, когда свой разбор рисунка Excalidraw не вышел"
+  },
+  "drawingTextCount": "{count, plural, one{{count} label} other{{count} labels}}",
+  "@drawingTextCount": {
+    "description": "Сколько подписей в рисунке Excalidraw",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

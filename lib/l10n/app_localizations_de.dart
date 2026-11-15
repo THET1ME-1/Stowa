@@ -3577,4 +3577,35 @@ class LDe extends L {
 
   @override
   String get documentNew => 'Canvas oder Base';
+
+  @override
+  String get kindDrawing => 'Zeichnung';
+
+  @override
+  String get kindsDrawing => 'Zeichnungen';
+
+  @override
+  String get drawingTexts => 'Text der Zeichnung';
+
+  @override
+  String get drawingTextCopied => 'Text kopiert';
+
+  @override
+  String get drawingEditInObsidian =>
+      'Bearbeiten lässt sich die Zeichnung in Obsidian';
+
+  @override
+  String get drawingUnreadable =>
+      'Die Zeichnung ließ sich nicht lesen, öffne sie in Obsidian';
+
+  @override
+  String drawingTextCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Beschriftungen',
+      one: '$count Beschriftung',
+    );
+    return '$_temp0';
+  }
 }

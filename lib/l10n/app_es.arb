@@ -683,5 +683,12 @@
   "feedbackFailed": "No se envió. Revisa tu conexión y toca otra vez.",
   "feedbackTooMany": "Demasiados mensajes desde este teléfono hoy. Prueba mañana o escribe al correo de Ajustes.",
   "feedbackBadEmail": "El correo parece incorrecto, revisa la dirección.",
-  "documentNew": "Lienzo o base"
+  "documentNew": "Lienzo o base",
+  "kindDrawing": "Dibujo",
+  "kindsDrawing": "Dibujos",
+  "drawingTexts": "Texto del dibujo",
+  "drawingTextCopied": "Texto copiado",
+  "drawingEditInObsidian": "El dibujo se edita en Obsidian",
+  "drawingUnreadable": "No se pudo leer el dibujo, ábrelo en Obsidian",
+  "drawingTextCount": "{count, plural, one{{count} texto} other{{count} textos}}"
 }

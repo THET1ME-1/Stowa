@@ -3569,4 +3569,34 @@ class LEs extends L {
 
   @override
   String get documentNew => 'Lienzo o base';
+
+  @override
+  String get kindDrawing => 'Dibujo';
+
+  @override
+  String get kindsDrawing => 'Dibujos';
+
+  @override
+  String get drawingTexts => 'Texto del dibujo';
+
+  @override
+  String get drawingTextCopied => 'Texto copiado';
+
+  @override
+  String get drawingEditInObsidian => 'El dibujo se edita en Obsidian';
+
+  @override
+  String get drawingUnreadable =>
+      'No se pudo leer el dibujo, ábrelo en Obsidian';
+
+  @override
+  String drawingTextCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count textos',
+      one: '$count texto',
+    );
+    return '$_temp0';
+  }
 }

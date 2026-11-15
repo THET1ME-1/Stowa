@@ -683,5 +683,12 @@
   "feedbackFailed": "Nicht gesendet. Prüfe die Verbindung und tippe noch einmal.",
   "feedbackTooMany": "Heute schon zu viele Nachrichten von diesem Handy. Versuch es morgen oder per E-Mail aus den Einstellungen.",
   "feedbackBadEmail": "Die E-Mail sieht falsch aus, prüf die Adresse.",
-  "documentNew": "Canvas oder Base"
+  "documentNew": "Canvas oder Base",
+  "kindDrawing": "Zeichnung",
+  "kindsDrawing": "Zeichnungen",
+  "drawingTexts": "Text der Zeichnung",
+  "drawingTextCopied": "Text kopiert",
+  "drawingEditInObsidian": "Bearbeiten lässt sich die Zeichnung in Obsidian",
+  "drawingUnreadable": "Die Zeichnung ließ sich nicht lesen, öffne sie in Obsidian",
+  "drawingTextCount": "{count, plural, one{{count} Beschriftung} other{{count} Beschriftungen}}"
 }

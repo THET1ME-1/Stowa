@@ -47,7 +47,7 @@ class FolderItemCard extends StatelessWidget {
           ItemKind.video when card.thumbPath == null => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
           ItemKind.video => _VideoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
           ItemKind.voice => _VoiceCard(card: card, filesRoot: filesRoot, onTap: onTap),
-          ItemKind.link || ItemKind.file || ItemKind.canvas || ItemKind.base => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
+          ItemKind.link || ItemKind.file || ItemKind.canvas || ItemKind.base || ItemKind.drawing => _RowCard(card: card, filesRoot: filesRoot, onTap: onTap),
           ItemKind.image => _PhotoCard(card: card, filesRoot: filesRoot, now: now, onTap: onTap),
           ItemKind.note => _NoteCard(card: card, now: now, onTap: onTap),
         },

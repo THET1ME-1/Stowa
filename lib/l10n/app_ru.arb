@@ -977,5 +977,12 @@
   "baseColLinks": "Ссылки",
   "baseCount": "{count, plural, one{{count} заметка} few{{count} заметки} many{{count} заметок} other{{count} заметки}}",
   "baseNoGroup": "Без значения",
-  "documentNew": "Холст или база"
+  "documentNew": "Холст или база",
+  "kindDrawing": "Рисунок",
+  "kindsDrawing": "Рисунки",
+  "drawingTexts": "Текст рисунка",
+  "drawingTextCopied": "Подпись скопирована",
+  "drawingEditInObsidian": "Изменить рисунок можно в Obsidian",
+  "drawingUnreadable": "Рисунок не прочитался, открой его в Obsidian",
+  "drawingTextCount": "{count, plural, one{{count} подпись} few{{count} подписи} other{{count} подписей}}"
 }

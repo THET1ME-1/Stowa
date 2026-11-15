@@ -683,5 +683,12 @@
   "feedbackFailed": "Nie wysłano. Sprawdź internet i naciśnij ponownie.",
   "feedbackTooMany": "Za dużo zgłoszeń z tego telefonu na dziś. Spróbuj jutro lub napisz na e-mail z Ustawień.",
   "feedbackBadEmail": "Adres e-mail wygląda na błędny, sprawdź go.",
-  "documentNew": "Kanwa lub baza"
+  "documentNew": "Kanwa lub baza",
+  "kindDrawing": "Rysunek",
+  "kindsDrawing": "Rysunki",
+  "drawingTexts": "Tekst rysunku",
+  "drawingTextCopied": "Skopiowano tekst",
+  "drawingEditInObsidian": "Rysunek można edytować w Obsidian",
+  "drawingUnreadable": "Nie udało się odczytać rysunku, otwórz go w Obsidian",
+  "drawingTextCount": "{count, plural, one{{count} napis} few{{count} napisy} other{{count} napisów}}"
 }

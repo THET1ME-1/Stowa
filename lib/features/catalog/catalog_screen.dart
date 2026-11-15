@@ -370,6 +370,7 @@ class _NoteRow extends ConsumerWidget {
       ItemKind.note => 'notes',
       ItemKind.canvas => 'dashboard',
       ItemKind.base => 'table_view',
+      ItemKind.drawing => 'draw',
     };
     final now = ref.read(clockProvider)();
     final date = card.createdAt.year == now.year ? DateFormat.MMMd(l.localeName).format(card.createdAt) : DateFormat.yMMMd(l.localeName).format(card.createdAt);

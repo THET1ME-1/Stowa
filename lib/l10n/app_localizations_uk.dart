@@ -3625,4 +3625,35 @@ class LUk extends L {
 
   @override
   String get documentNew => 'Полотно або база';
+
+  @override
+  String get kindDrawing => 'Малюнок';
+
+  @override
+  String get kindsDrawing => 'Малюнки';
+
+  @override
+  String get drawingTexts => 'Текст малюнка';
+
+  @override
+  String get drawingTextCopied => 'Підпис скопійовано';
+
+  @override
+  String get drawingEditInObsidian => 'Змінити малюнок можна в Obsidian';
+
+  @override
+  String get drawingUnreadable =>
+      'Малюнок не прочитався, відкрий його в Obsidian';
+
+  @override
+  String drawingTextCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count підписів',
+      few: '$count підписи',
+      one: '$count підпис',
+    );
+    return '$_temp0';
+  }
 }

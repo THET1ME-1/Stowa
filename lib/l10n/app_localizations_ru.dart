@@ -3635,4 +3635,35 @@ class LRu extends L {
 
   @override
   String get documentNew => 'Холст или база';
+
+  @override
+  String get kindDrawing => 'Рисунок';
+
+  @override
+  String get kindsDrawing => 'Рисунки';
+
+  @override
+  String get drawingTexts => 'Текст рисунка';
+
+  @override
+  String get drawingTextCopied => 'Подпись скопирована';
+
+  @override
+  String get drawingEditInObsidian => 'Изменить рисунок можно в Obsidian';
+
+  @override
+  String get drawingUnreadable =>
+      'Рисунок не прочитался, открой его в Obsidian';
+
+  @override
+  String drawingTextCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count подписей',
+      few: '$count подписи',
+      one: '$count подпись',
+    );
+    return '$_temp0';
+  }
 }

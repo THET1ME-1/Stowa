@@ -5974,6 +5974,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Canvas or base'**
   String get documentNew;
+
+  /// Рисунок Excalidraw из Obsidian: вид заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing'**
+  String get kindDrawing;
+
+  /// Рисунки Excalidraw: вид заметок во множественном числе
+  ///
+  /// In en, this message translates to:
+  /// **'Drawings'**
+  String get kindsDrawing;
+
+  /// Кнопка и заголовок листа с подписями рисунка Excalidraw
+  ///
+  /// In en, this message translates to:
+  /// **'Text in drawing'**
+  String get drawingTexts;
+
+  /// Плашка после касания подписи рисунка
+  ///
+  /// In en, this message translates to:
+  /// **'Text copied'**
+  String get drawingTextCopied;
+
+  /// Подсказка над рисунком Excalidraw: в Stowa он только для просмотра
+  ///
+  /// In en, this message translates to:
+  /// **'You can edit this drawing in Obsidian'**
+  String get drawingEditInObsidian;
+
+  /// Подсказка, когда свой разбор рисунка Excalidraw не вышел
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read this drawing, open it in Obsidian'**
+  String get drawingUnreadable;
+
+  /// Сколько подписей в рисунке Excalidraw
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} label} other{{count} labels}}'**
+  String drawingTextCount(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

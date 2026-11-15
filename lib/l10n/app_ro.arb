@@ -683,5 +683,12 @@
   "feedbackFailed": "Nu s-a trimis. Verifică internetul și apasă din nou.",
   "feedbackTooMany": "Prea multe mesaje de pe acest telefon azi. Încearcă mâine sau scrie la e-mailul din Setări.",
   "feedbackBadEmail": "E-mailul pare greșit, verifică adresa.",
-  "documentNew": "Canvas sau bază"
+  "documentNew": "Canvas sau bază",
+  "kindDrawing": "Desen",
+  "kindsDrawing": "Desene",
+  "drawingTexts": "Textul desenului",
+  "drawingTextCopied": "Text copiat",
+  "drawingEditInObsidian": "Desenul se poate edita în Obsidian",
+  "drawingUnreadable": "Desenul nu s-a putut citi, deschide-l în Obsidian",
+  "drawingTextCount": "{count, plural, one{{count} text} few{{count} texte} other{{count} de texte}}"
 }

@@ -3,13 +3,18 @@
 library;
 
 /// canvas и base (v19) — холст `.canvas` и база `.base` Obsidian: файл целиком в `items.document`.
-enum ItemKind { note, link, video, image, file, voice, canvas, base }
+/// drawing — рисунок Excalidraw (`Имя.excalidraw.md`), тоже файлом целиком, только просмотр.
+enum ItemKind { note, link, video, image, file, voice, canvas, base, drawing }
 
-/// Холст и база — не заметки с текстом: свой экран, свой файл, ИИ и раскладка их не трогают.
-bool isDocumentKind(ItemKind kind) => kind == ItemKind.canvas || kind == ItemKind.base;
+/// Холст, база и рисунок — не заметки с текстом: свой экран, свой файл, ИИ и раскладка их не трогают.
+bool isDocumentKind(ItemKind kind) => kind == ItemKind.canvas || kind == ItemKind.base || kind == ItemKind.drawing;
 
-/// Расширение файла холста или базы.
-String documentExtension(ItemKind kind) => kind == ItemKind.base ? 'base' : 'canvas';
+/// Расширение файла холста, базы или рисунка.
+String documentExtension(ItemKind kind) => switch (kind) {
+  ItemKind.base => 'base',
+  ItemKind.drawing => 'excalidraw.md',
+  _ => 'canvas',
+};
 
 /// Где вещь в разборе.
 enum SortState { pending, queued, sorted, failed }

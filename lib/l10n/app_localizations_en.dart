@@ -3563,4 +3563,34 @@ class LEn extends L {
 
   @override
   String get documentNew => 'Canvas or base';
+
+  @override
+  String get kindDrawing => 'Drawing';
+
+  @override
+  String get kindsDrawing => 'Drawings';
+
+  @override
+  String get drawingTexts => 'Text in drawing';
+
+  @override
+  String get drawingTextCopied => 'Text copied';
+
+  @override
+  String get drawingEditInObsidian => 'You can edit this drawing in Obsidian';
+
+  @override
+  String get drawingUnreadable =>
+      'Couldn\'t read this drawing, open it in Obsidian';
+
+  @override
+  String drawingTextCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count labels',
+      one: '$count label',
+    );
+    return '$_temp0';
+  }
 }

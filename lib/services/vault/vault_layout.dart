@@ -27,8 +27,9 @@ String attachmentsDir(String notePath) => notePath.endsWith('.md') ? notePath.su
 /// [taken] сравнивает без учёта регистра: Android и Windows через Syncthing его не различают.
 String uniqueNotePath(String wanted, bool Function(String path) taken) {
   if (!taken(wanted)) return wanted;
-  // расширение своё: у холста «План 2.canvas», у заметки «План 2.md»
-  final dot = wanted.lastIndexOf('.');
+  // расширение своё: у холста «План 2.canvas», у заметки «План 2.md», у рисунка «План 2.excalidraw.md»
+  final drawing = wanted.toLowerCase().endsWith('.excalidraw.md');
+  final dot = drawing ? wanted.length - '.excalidraw.md'.length : wanted.lastIndexOf('.');
   final hasExtension = dot > wanted.lastIndexOf('/');
   final stem = hasExtension ? wanted.substring(0, dot) : wanted;
   final extension = hasExtension ? wanted.substring(dot) : '';
