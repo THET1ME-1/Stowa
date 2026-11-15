@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/data/repositories/tags_repository.dart';
-import 'package:stowa/features/composer/picked_files.dart';
 import 'package:stowa/services/capture_service.dart';
 import 'package:stowa/services/vault/vault_writer.dart';
 
