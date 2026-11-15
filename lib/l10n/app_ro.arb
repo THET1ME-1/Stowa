@@ -19,6 +19,8 @@
   "reasonNone": "fără dosar, îl sortez când apare ceva similar",
   "savePhotosHint": "poți adăuga descrierea și etichetele mai târziu",
   "voiceSaved": "Mesajul vocal a fost salvat",
+  "voiceFold": "Minimizează înregistrarea",
+  "voiceUnfold": "Deschide înregistrarea",
   "voiceNoTranscript": "Fără transcriere",
   "autoSorted": "{count, plural, one{{count} notiță similară sortată} few{{count} notițe similare sortate} other{{count} de notițe similare sortate}}",
   "relatedTitle": "Legate",

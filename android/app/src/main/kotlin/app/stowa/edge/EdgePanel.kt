@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.graphics.PointF
+import android.graphics.Rect
+import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -13,6 +15,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.ViewGroup
 import android.view.WindowManager
 import app.stowa.MainActivity
 import app.stowa.QuickActivity
@@ -22,6 +25,9 @@ import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodChannel
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Окно полки поверх других приложений. Внутри — FlutterView своего движка с точкой входа
@@ -50,8 +56,19 @@ class EdgePanel(
     private var engine: FlutterEngine? = null
     private var channel: MethodChannel? = null
     private var view: FlutterView? = null
+    private var frame: StickerFrame? = null
+    private var layout: WindowManager.LayoutParams? = null
+    private var swap: WindowSwap? = null
+    private val density = context.resources.displayMetrics.density
 
-    val isShown: Boolean get() = view != null
+    /**
+     * Запись с удержания корешков свёрнута в круг: окно полки стоит по кругу, касания мимо
+     * него идут приложению, корешки на месте. Любой их жест раскрывает запись.
+     */
+    private var folded = false
+
+    /** Окно закрывает экран: полка или плашка записи. Свёрнутый в круг — не закрывает. */
+    val isShown: Boolean get() = view != null && !folded
 
     /** Завести движок заранее, без окна: следующее открытие полки — без холодного старта. */
     fun warmUp() {
@@ -60,14 +77,23 @@ class EdgePanel(
 
     /** Касание корешков: окно встаёт, полка выезжает (движение — в Dart). */
     fun open() {
+        if (unfoldInstead()) return
         show()
         channel?.invokeMethod("open", null)
     }
 
     /** Свайп корешков внутрь: окно встаёт, дальше полка идёт за пальцем. */
     fun dragStart() {
+        if (unfoldInstead()) return
         show()
         channel?.invokeMethod("dragStart", null)
+    }
+
+    /** Запись свёрнута: жест корешков не открывает полку, а раскрывает запись — её решает Dart. */
+    private fun unfoldInstead(): Boolean {
+        if (!folded) return false
+        channel?.invokeMethod("voiceUnfold", null)
+        return true
     }
 
     /** Полка подтвердила, что выезжает: страж окно не тронет. */
@@ -84,21 +110,87 @@ class EdgePanel(
 
     /** Жесты корешков: свайп вниз, двойное касание, удержание и отпускание. */
     fun gesture(method: String) {
+        // палец отпустил корешки после удержания: свёрнутой записи до этого дела нет
+        if (folded && method == "voiceStop") return
+        if (unfoldInstead()) return
         if (method != "voiceStop") show()
         if (view != null) channel?.invokeMethod(method, null)
     }
 
     fun drag(distanceDp: Float) {
-        if (view != null) channel?.invokeMethod("drag", distanceDp.toDouble())
+        if (view != null && !folded) channel?.invokeMethod("drag", distanceDp.toDouble())
     }
 
     fun dragEnd(velocityDp: Float) {
-        if (view != null) channel?.invokeMethod("dragEnd", velocityDp.toDouble())
+        if (view != null && !folded) channel?.invokeMethod("dragEnd", velocityDp.toDouble())
     }
 
     /** «Назад» с пустым навигатором полки: пусть уедет плавно, окно Dart уберёт сам. */
     fun dismiss() {
-        if (view != null) channel?.invokeMethod("dismiss", null)
+        if (view != null && !folded) channel?.invokeMethod("dismiss", null)
+    }
+
+    /** Запись свернули: окно встаёт по кругу [rect] (точки от верха экрана) и отдаёт касания мимо. */
+    private fun fold(rect: RectF) {
+        val frame = frame ?: return
+        val layout = layout ?: return
+        if (folded) return
+        folded = true
+        frame.draggable = true
+        swap?.resize {
+            layout.x = px(rect.left)
+            layout.y = px(rect.top)
+            layout.width = px(rect.width())
+            layout.height = px(rect.height())
+            layout.flags = FOLDED_FLAGS
+            windows.updateViewLayout(frame, layout)
+        }
+        // экран снова открыт: корешки выезжают, их жест раскроет запись
+        onClosing()
+    }
+
+    /** Круг раскрывается: окно снова во весь экран. */
+    private fun unfold() {
+        val frame = frame ?: return
+        val layout = layout ?: return
+        if (!folded) return
+        folded = false
+        frame.draggable = false
+        swap?.resize {
+            layout.x = 0
+            layout.y = 0
+            layout.width = WindowManager.LayoutParams.MATCH_PARENT
+            layout.height = WindowManager.LayoutParams.MATCH_PARENT
+            layout.flags = OPEN_FLAGS
+            windows.updateViewLayout(frame, layout)
+        }
+        onShown()
+    }
+
+    private fun px(dp: Float) = (dp * density).roundToInt()
+
+    /** Круг за пальцем, зажатый в свободную часть экрана; отпустил — Dart узнаёт новое место. */
+    private inner class CircleDragger : StickerFrame.Mover {
+        private var area = Rect()
+
+        override fun start() {
+            area = EdgeSticker.usableArea(context, windows)
+        }
+
+        override fun move(dx: Float, dy: Float) {
+            val frame = frame ?: return
+            val layout = layout ?: return
+            if (!folded) return
+            val margin = px(8f)
+            layout.x = max(area.left + margin, min(layout.x + dx.roundToInt(), area.right - margin - layout.width))
+            layout.y = max(area.top + margin, min(layout.y + dy.roundToInt(), area.bottom - margin - layout.height))
+            windows.updateViewLayout(frame, layout)
+        }
+
+        override fun end() {
+            val layout = layout ?: return
+            channel?.invokeMethod("voiceMoved", mapOf("x" to (layout.x / density).toDouble(), "y" to (layout.y / density).toDouble()))
+        }
     }
 
     private fun show() {
@@ -107,22 +199,29 @@ class EdgePanel(
         // TextureView, не SurfaceView: отдельная поверхность SurfaceView в окне поверх так и не
         // показала кадр (SurfaceSyncGroup ждал её и сдавался, эмулятор 14.11.2026). Прозрачна сама:
         // за полкой — затемнение, его рисует Dart вместе с выездом полки
-        val flutterView = object : FlutterView(context, FlutterTextureView(context)) {
-            // «назад» в окно без Activity приходит голой клавишей, Flutter о ней не знает. Отдаём его
-            // как системное: строка снимается, заметка в полке закрывается, потом уезжает сама полка
-            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-                if (event.keyCode != KeyEvent.KEYCODE_BACK) return super.dispatchKeyEvent(event)
+        val texture = FlutterTextureView(context)
+        val flutterView = FlutterView(context, texture)
+        // рамка — корень окна: свёрнутую в круг запись она тащит за пальцем, как стикер
+        val frame = StickerFrame(context, CircleDragger())
+        frame.draggable = false
+        // «назад» в окно без Activity приходит голой клавишей, Flutter о ней не знает. Отдаём его
+        // как системное: строка снимается, заметка в полке закрывается, потом уезжает сама полка
+        frame.onKey = { event ->
+            if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                 if (event.action == KeyEvent.ACTION_UP && !event.isCanceled) engine.navigationChannel.popRoute()
-                return true
+                true
+            } else {
+                false
             }
         }
+        frame.addView(flutterView, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         // окно во весь экран, пока полка открыта: касание мимо полки — по затемнению, оно её убирает.
         // Фокус у окна всё время: «назад» и клавиатура — полке, приложение под ней всё равно закрыто
         val layout = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            OPEN_FLAGS,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -136,13 +235,17 @@ class EdgePanel(
                 layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             }
             title = "Stowa shelf"
+            EdgeSticker.noMoveAnimation(this)
         }
         // сперва движок, потом окно: поверхность становится доступной при показе окна и
         // должна уже знать свой движок
         flutterView.attachToFlutterEngine(engine)
-        windows.addView(flutterView, layout)
+        windows.addView(frame, layout)
         engine.lifecycleChannel.appIsResumed()
         view = flutterView
+        this.frame = frame
+        this.layout = layout
+        swap = WindowSwap(context, windows, frame, texture)
         acknowledged = false
         watchdog.removeCallbacks(unanswered)
         watchdog.postDelayed(unanswered, ANSWER_MS)
@@ -155,8 +258,13 @@ class EdgePanel(
         watchdog.removeCallbacks(unanswered)
         val flutterView = view ?: return
         engine?.lifecycleChannel?.appIsInactive()
+        swap?.dispose()
+        swap = null
         flutterView.detachFromFlutterEngine()
-        windows.removeView(flutterView)
+        frame?.let { windows.removeView(it) }
+        frame = null
+        layout = null
+        folded = false
         view = null
         // убрали и не по просьбе Dart («Открыть Stowa», окно виджета): полка сбрасывается
         channel?.invokeMethod("closed", null)
@@ -248,6 +356,19 @@ class EdgePanel(
                     result.success(onRecording(args["on"] == true, args["channel"] as String? ?: "", args["text"] as String? ?: ""))
                 }
                 // плагин записи без Activity право не видит: проверяем сами, писать он может
+                // {x, y, w, h} в точках от верха экрана: запись свернули в круг
+                "voiceFold" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val args = (call.arguments as Map<String, Number>).mapValues { it.value.toFloat() }
+                    fold(RectF(args["x"]!!, args["y"]!!, args["x"]!! + args["w"]!!, args["y"]!! + args["h"]!!))
+                    result.success(null)
+                }
+                "voiceUnfold" -> {
+                    unfold()
+                    result.success(null)
+                }
+                // кадр в новом размере окна нарисован; ответ — когда призрак убран
+                "voiceShown" -> swap?.shown { result.success(null) } ?: result.success(null)
                 "micGranted" -> result.success(
                     context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,
                 )
@@ -278,5 +399,14 @@ class EdgePanel(
     companion object {
         /** Сколько окно полки ждёт, что Dart начнёт её выдвигать. */
         private const val ANSWER_MS = 3000L
+
+        /** Окно во весь экран: касания и фокус его. */
+        private const val OPEN_FLAGS = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+
+        /** Окно-круг свёрнутой записи: касания мимо — приложению, фокус — ему же. */
+        private const val FOLDED_FLAGS = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
     }
 }

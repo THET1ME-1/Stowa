@@ -395,6 +395,12 @@ class LRo extends L {
   String get voiceCancel => 'Cancel recording';
 
   @override
+  String get voiceFold => 'Minimizează înregistrarea';
+
+  @override
+  String get voiceUnfold => 'Deschide înregistrarea';
+
+  @override
   String get voiceDenied => 'No microphone access';
 
   @override

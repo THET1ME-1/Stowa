@@ -19,6 +19,8 @@
   "reasonNone": "noch ohne Ordner, ich sortiere, sobald Ähnliches auftaucht",
   "savePhotosHint": "Beschriftung und Tags kannst du später ergänzen",
   "voiceSaved": "Sprachnotiz gespeichert",
+  "voiceFold": "Aufnahme minimieren",
+  "voiceUnfold": "Aufnahme öffnen",
   "voiceNoTranscript": "Ohne Transkript",
   "autoSorted": "{count, plural, one{{count} ähnliche Notiz einsortiert} other{{count} ähnliche Notizen einsortiert}}",
   "relatedTitle": "Verwandt",

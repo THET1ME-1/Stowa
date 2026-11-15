@@ -19,6 +19,8 @@
   "reasonNone": "bez folderu, posortuję, gdy pojawi się coś podobnego",
   "savePhotosHint": "podpis i tagi możesz dodać później",
   "voiceSaved": "Notatka głosowa zapisana",
+  "voiceFold": "Zwiń nagrywanie",
+  "voiceUnfold": "Rozwiń nagrywanie",
   "voiceNoTranscript": "Bez transkrypcji",
   "autoSorted": "{count, plural, one{{count} podobna notatka posortowana} few{{count} podobne notatki posortowane} many{{count} podobnych notatek posortowanych} other{{count} podobnej notatki posortowanej}}",
   "relatedTitle": "Powiązane",

@@ -37,6 +37,19 @@ class EdgeVoiceStop extends EdgeEvent {
   const EdgeVoiceStop();
 }
 
+/// Запись свёрнута в круг, а корешки тронули (любым жестом) — плашке раскрыться.
+class EdgeVoiceUnfold extends EdgeEvent {
+  const EdgeVoiceUnfold();
+}
+
+/// Круг свёрнутой записи утащили: левый верхний угол окна теперь здесь, в точках от
+/// верха экрана.
+class EdgeVoiceMoved extends EdgeEvent {
+  const EdgeVoiceMoved(this.at);
+
+  final Offset at;
+}
+
 /// Палец потянул корешки внутрь экрана: окно полки стоит, дальше полка идёт за пальцем.
 class EdgeDragStart extends EdgeEvent {
   const EdgeDragStart();
@@ -116,6 +129,17 @@ abstract class EdgeChannel {
   /// false — служба не смогла.
   Future<bool> recording(bool on, {String channel = '', String text = ''});
 
+  /// Запись свернули: окно полки встаёт по кругу [circle] (точки от верха экрана) и
+  /// перестаёт забирать касания мимо него. Смена окна — под снимком прежней картинки.
+  Future<void> voiceFold(Rect circle);
+
+  /// Круг раскрывается: окно полки снова во весь экран.
+  Future<void> voiceUnfold();
+
+  /// Кадр в новом размере окна нарисован. Ответ — когда натив убрал снимок: раньше
+  /// двигать картинку нельзя, снимок висел бы поверх.
+  Future<void> voiceShown();
+
   /// Из окна полки: заметки, чьё напоминание по месту сработало за последние полчаса,
   /// свежие первыми. Пишет их приёмник мест, хранит служба.
   Future<List<String>> nearby();
@@ -135,6 +159,8 @@ class MethodEdgeChannel implements EdgeChannel {
         'openLast' => const EdgeOpenLast(),
         'voiceStart' => const EdgeVoiceStart(),
         'voiceStop' => const EdgeVoiceStop(),
+        'voiceUnfold' => const EdgeVoiceUnfold(),
+        'voiceMoved' => EdgeVoiceMoved(_offsetOf(call.arguments as Map)),
         'dragStart' => const EdgeDragStart(),
         'drag' => EdgeDrag((call.arguments as num).toDouble()),
         'dragEnd' => EdgeDragEnd((call.arguments as num).toDouble()),
@@ -146,8 +172,23 @@ class MethodEdgeChannel implements EdgeChannel {
     }),
   );
 
+  static Offset _offsetOf(Map raw) {
+    final value = raw.cast<String, num>();
+    return Offset(value['x']!.toDouble(), value['y']!.toDouble());
+  }
+
   @override
   Stream<EdgeEvent> get events => _events.stream;
+
+  @override
+  Future<void> voiceFold(Rect circle) =>
+      _channel.invokeMethod('voiceFold', {'x': circle.left, 'y': circle.top, 'w': circle.width, 'h': circle.height});
+
+  @override
+  Future<void> voiceUnfold() => _channel.invokeMethod('voiceUnfold');
+
+  @override
+  Future<void> voiceShown() => _channel.invokeMethod('voiceShown');
 
   @override
   Future<void> closing() => _channel.invokeMethod('closing');
@@ -251,6 +292,15 @@ class NoEdgeChannel implements EdgeChannel {
 
   @override
   Future<bool> recording(bool on, {String channel = '', String text = ''}) async => false;
+
+  @override
+  Future<void> voiceFold(Rect circle) async {}
+
+  @override
+  Future<void> voiceUnfold() async {}
+
+  @override
+  Future<void> voiceShown() async {}
 }
 
 /// Для тестов: пишет вызовы по именам, право — [canDrawAnswer].
@@ -330,6 +380,16 @@ class FakeEdgeChannel implements EdgeChannel {
     calls.add('recording:$on');
     return true;
   }
+
+  @override
+  Future<void> voiceFold(Rect circle) async =>
+      calls.add('voiceFold:${circle.left.round()},${circle.top.round()},${circle.width.round()},${circle.height.round()}');
+
+  @override
+  Future<void> voiceUnfold() async => calls.add('voiceUnfold');
+
+  @override
+  Future<void> voiceShown() async => calls.add('voiceShown');
 }
 
 /// Канал по платформе: окна поверх есть только на Android.

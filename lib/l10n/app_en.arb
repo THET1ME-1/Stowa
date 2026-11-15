@@ -506,6 +506,14 @@
   "@voiceCancel": {
     "description": "Tooltip"
   },
+  "voiceFold": "Minimize recording",
+  "@voiceFold": {
+    "description": "Tooltip on the recording pill over other apps: folds it into a small circle, recording goes on"
+  },
+  "voiceUnfold": "Expand recording",
+  "@voiceUnfold": {
+    "description": "Accessibility label of the circle a folded recording pill becomes"
+  },
   "voiceDenied": "No microphone access",
   "@voiceDenied": {
     "description": "Toast"

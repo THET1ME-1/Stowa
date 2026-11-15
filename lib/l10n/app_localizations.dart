@@ -737,6 +737,18 @@ abstract class L {
   /// **'Cancel recording'**
   String get voiceCancel;
 
+  /// Tooltip on the recording pill over other apps: folds it into a small circle, recording goes on
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize recording'**
+  String get voiceFold;
+
+  /// Accessibility label of the circle a folded recording pill becomes
+  ///
+  /// In en, this message translates to:
+  /// **'Expand recording'**
+  String get voiceUnfold;
+
   /// Toast
   ///
   /// In en, this message translates to:

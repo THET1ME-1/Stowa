@@ -395,6 +395,12 @@ class LEs extends L {
   String get voiceCancel => 'Cancel recording';
 
   @override
+  String get voiceFold => 'Minimizar grabación';
+
+  @override
+  String get voiceUnfold => 'Abrir grabación';
+
+  @override
   String get voiceDenied => 'No microphone access';
 
   @override

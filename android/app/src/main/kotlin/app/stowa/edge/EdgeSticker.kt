@@ -7,15 +7,11 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.view.Choreographer
 import android.view.Gravity
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.ImageView
 import app.stowa.MainActivity
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterTextureView
@@ -58,20 +54,8 @@ class EdgeSticker(
     private val params: WindowManager.LayoutParams
     private var removed = false
 
-    /**
-     * Окно-призрак со снимком прежней картинки на время смены окна: стоит на старом месте,
-     * пока вид Flutter спрятан, и уходит, когда Dart нарисовал кадр в новом размере (`shown`).
-     * Снимок внутри самого окна не спасал: окно, которое растёт и сдвигается разом, система
-     * на кадр показывает на новом месте без картинки, и круг мигал (эмулятор, 3 раскрытия из
-     * 8 у правого края, 0 из 8 у левого, где окно не сдвигается; 15.11.2026). Удержание через
-     * `setTransform` тоже ломалось: опоздавший кадр старого размера мелькал сплющенным кругом.
-     */
-    private var ghost: ImageView? = null
-
-    /** Смена окна ждёт, пока призрак встанет на экран. */
-    private var pending: (() -> Unit)? = null
-    private val main = Handler(Looper.getMainLooper())
-    private val uncoverLate = Runnable { uncover() }
+    /** Смена размера окна — под призраком со снимком прежней картинки. */
+    private val swap: WindowSwap
 
     init {
         val bundle = FlutterInjector.instance().flutterLoader().findAppBundlePath()
@@ -94,7 +78,7 @@ class EdgeSticker(
                 }
                 // кадр в новом размере ушёл на отрисовку: через два такта он на экране и
                 // призрак можно убирать; Dart слышит ответ, когда призрака уже нет
-                "shown" -> afterFrames(2) { uncover { result.success(null) } }
+                "shown" -> swap.shown { result.success(null) }
                 "remove" -> {
                     remove()
                     result.success(null)
@@ -112,6 +96,7 @@ class EdgeSticker(
         }
         frame = StickerFrame(context, Dragger())
         frame.addView(view, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        swap = WindowSwap(context, windows, frame, texture)
         val area = usableArea(context, windows)
         params = WindowManager.LayoutParams(
             px(start.width()),
@@ -182,7 +167,7 @@ class EdgeSticker(
 
     /**
      * Окно — в [rect] одним шагом. Само сворачивание Dart рисует внутри окна, поэтому размер
-     * меняется только на краю движения. Смена размера идёт под призраком: см. [ghost].
+     * меняется только на краю движения. Смена размера идёт под призраком: см. [WindowSwap].
      */
     private fun place(rect: RectF) {
         if (removed) return
@@ -199,93 +184,7 @@ class EdgeSticker(
             params.height = height
             windows.updateViewLayout(frame, params)
         }
-        if (resized) underGhost(apply) else apply()
-    }
-
-    /**
-     * Поставить призрака со снимком нынешней картинки на место окна и, когда он нарисован,
-     * спрятать вид Flutter и сделать [apply]. Dart промолчал — через 700 мс открываем сами,
-     * снимок не должен висеть.
-     */
-    private fun underGhost(apply: () -> Unit) {
-        // прежняя смена ещё ждёт своего призрака — доделать её сразу
-        swapNow()
-        val shot = texture.bitmap
-        if (shot == null) {
-            apply()
-            return
-        }
-        dropGhost()
-        val image = ImageView(context)
-        image.setImageBitmap(shot)
-        val ghostParams = WindowManager.LayoutParams(
-            params.width,
-            params.height,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = params.x
-            y = params.y
-        }
-        noMoveAnimation(ghostParams)
-        pending = apply
-        // первый кадр призрака нарисован — ещё два такта, и он на экране
-        var drawn = false
-        image.viewTreeObserver.addOnDrawListener {
-            if (!drawn) {
-                drawn = true
-                afterFrames(2) { swapNow() }
-            }
-        }
-        windows.addView(image, ghostParams)
-        ghost = image
-        // призрак так и не нарисовался — окно не ждёт дольше
-        main.postDelayed({ swapNow() }, 120)
-    }
-
-    /** Призрак на экране: вид Flutter прячется, окно меняется под ним. */
-    private fun swapNow() {
-        val apply = pending ?: return
-        pending = null
-        if (removed) return
-        texture.alpha = 0f
-        apply()
-        main.removeCallbacks(uncoverLate)
-        main.postDelayed(uncoverLate, 700)
-    }
-
-    /** Показать вид Flutter и через два такта, когда он нарисован, убрать призрака; потом [done]. */
-    private fun uncover(done: () -> Unit = {}) {
-        main.removeCallbacks(uncoverLate)
-        if (removed || pending != null) {
-            done()
-            return
-        }
-        texture.alpha = 1f
-        val old = ghost
-        if (old == null) {
-            done()
-            return
-        }
-        afterFrames(2) {
-            if (ghost === old) dropGhost()
-            done()
-        }
-    }
-
-    private fun dropGhost() {
-        ghost?.let { windows.removeView(it) }
-        ghost = null
-    }
-
-    private fun afterFrames(count: Int, block: () -> Unit) {
-        if (count == 0) return block()
-        Choreographer.getInstance().postFrameCallback { afterFrames(count - 1, block) }
+        if (resized) swap.resize(apply) else apply()
     }
 
     /** Нижний край окна в точках свободной части экрана: под ним встанет следующий стикер. */
@@ -314,9 +213,7 @@ class EdgeSticker(
     fun dispose() {
         if (removed) return
         removed = true
-        main.removeCallbacks(uncoverLate)
-        pending = null
-        dropGhost()
+        swap.dispose()
         view.detachFromFlutterEngine()
         windows.removeView(frame)
         engine.destroy()

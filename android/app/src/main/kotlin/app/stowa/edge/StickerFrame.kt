@@ -3,6 +3,7 @@ package app.stowa.edge
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.FrameLayout
 import kotlin.math.hypot
@@ -23,6 +24,17 @@ class StickerFrame(context: Context, private val mover: Mover) : FrameLayout(con
         fun end()
     }
 
+    /** Выключено — касания идут во Flutter как есть: окно полки во весь экран не тащат. */
+    var draggable = true
+
+    /** Клавиша пришла в окно: true — забрана. Рамка — корень окна, вид Flutter без фокуса её не получит. */
+    var onKey: ((KeyEvent) -> Boolean)? = null
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (onKey?.invoke(event) == true) return true
+        return super.dispatchKeyEvent(event)
+    }
+
     private val slop = 8 * resources.displayMetrics.density
     private var downX = 0f
     private var downY = 0f
@@ -39,6 +51,7 @@ class StickerFrame(context: Context, private val mover: Mover) : FrameLayout(con
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+        if (!draggable && !dragging) return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = event.rawX

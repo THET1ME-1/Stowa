@@ -394,6 +394,12 @@ class LUk extends L {
   String get voiceCancel => 'Cancel recording';
 
   @override
+  String get voiceFold => 'Згорнути запис';
+
+  @override
+  String get voiceUnfold => 'Розгорнути запис';
+
+  @override
   String get voiceDenied => 'No microphone access';
 
   @override

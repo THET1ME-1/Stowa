@@ -374,6 +374,90 @@ void main() {
     expect(world.edge.calls.last, 'close');
   });
 
+  Finder circle() => find.byKey(const ValueKey('edge-voice-circle'));
+
+  /// Запись с удержания корешков свёрнута в круг: окно встало по нему.
+  Future<Rect> folded(WidgetTester tester) async {
+    world.edge.send(const EdgeVoiceStart());
+    await realTime(tester);
+    final pill = tester.getRect(voice());
+    await tester.tap(find.descendant(of: voice(), matching: find.byTooltip('Свернуть запись')));
+    await realTime(tester, 14);
+    // окно встаёт по кругу — как сделал бы Kotlin
+    tester.view.physicalSize = const Size(52 * 2.75, 52 * 2.75);
+    await realTime(tester, 4);
+    return pill;
+  }
+
+  testWidgets('«Свернуть запись»: плашка уходит в круг у края, окно встаёт по кругу, запись идёт', (tester) async {
+    final recorder = fakeRecorder(tester);
+    await start(tester);
+    final pill = await folded(tester);
+    // круг у правого края плашки, по середине её высоты
+    expect(world.edge.calls, contains('voiceFold:${(pill.right - 52).round()},${(pill.center.dy - 26).round()},52,52'));
+    expect(world.edge.calls.last, 'voiceShown');
+    expect(circle(), findsOneWidget);
+    expect(voice(), findsNothing);
+    expect(tester.takeException(), isNull);
+    expect(recorder, isNot(contains('stop')));
+    expect(recorder, isNot(contains('cancel')));
+  });
+
+  testWidgets('касание круга раскрывает ту же запись на прежнем месте, «Сохранить» её кладёт', (tester) async {
+    final file = File(p.join(world.files.path, 'voice.m4a'));
+    await tester.runAsync(() => file.writeAsBytes(List.filled(64, 1)));
+    final recorder = fakeRecorder(tester, recorded: file.path);
+    await start(tester);
+    final pill = await folded(tester);
+    world.edge.calls.clear();
+    await tester.tap(circle());
+    await realTime(tester, 2);
+    expect(world.edge.calls, ['voiceUnfold']);
+    tester.view.physicalSize = const Size(1080, 2400);
+    await realTime(tester, 14);
+    expect(world.edge.calls, ['voiceUnfold', 'voiceShown']);
+    expect(tester.getRect(voice()), rectMoreOrLessEquals(pill, epsilon: 0.5));
+    expect(recorder.where((call) => call == 'start'), hasLength(1));
+    await tester.tap(find.descendant(of: voice(), matching: find.byTooltip('Сохранить')));
+    await realTime(tester, 8);
+    final saved = await tester.runAsync(() => world.db.select(world.db.items).get());
+    expect(saved!.map((item) => item.title), contains('Голосовое'));
+    await realTime(tester, 30);
+    expect(voice(), findsNothing);
+  });
+
+  testWidgets('круг утащили влево и тронули корешки — плашка раскрывается от круга вправо', (tester) async {
+    fakeRecorder(tester);
+    await start(tester);
+    await folded(tester);
+    world.edge.send(const EdgeVoiceMoved(Offset(8, 500)));
+    world.edge.send(const EdgeVoiceUnfold());
+    await realTime(tester, 2);
+    expect(world.edge.calls.last, 'voiceUnfold');
+    tester.view.physicalSize = const Size(1080, 2400);
+    await realTime(tester, 14);
+    final pill = tester.getRect(voice());
+    expect(pill.left, 8);
+    expect(pill.center.dy, moreOrLessEquals(500 + 26, epsilon: 0.5));
+  });
+
+  testWidgets('плашку записи можно утащить по экрану', (tester) async {
+    fakeRecorder(tester);
+    await start(tester);
+    world.edge.send(const EdgeVoiceStart());
+    await realTime(tester);
+    final before = tester.getRect(voice());
+    await tester.timedDrag(find.descendant(of: voice(), matching: find.text('0:00')), const Offset(-30, 240), const Duration(milliseconds: 300));
+    await realTime(tester, 2);
+    expect(tester.getRect(voice()).topLeft - before.topLeft, offsetMoreOrLessEquals(const Offset(-30, 240)));
+    // за край экрана не уходит: слева остаётся отступ
+    await tester.timedDrag(find.descendant(of: voice(), matching: find.text('0:00')), const Offset(-300, 0), const Duration(milliseconds: 300));
+    await realTime(tester, 2);
+    expect(tester.getRect(voice()).left, 8);
+    await tester.tap(find.descendant(of: voice(), matching: find.byTooltip('Отменить запись')));
+    await realTime(tester, 6);
+  });
+
   testWidgets('запись кнопкой микрофона в полке: строка записи помещается в узкую полку', (tester) async {
     fakeRecorder(tester);
     await open(tester);

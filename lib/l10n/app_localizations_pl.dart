@@ -395,6 +395,12 @@ class LPl extends L {
   String get voiceCancel => 'Cancel recording';
 
   @override
+  String get voiceFold => 'Zwiń nagrywanie';
+
+  @override
+  String get voiceUnfold => 'Rozwiń nagrywanie';
+
+  @override
   String get voiceDenied => 'No microphone access';
 
   @override

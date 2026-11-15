@@ -16,6 +16,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/edge_settings.dart';
 import '../../domain/note_blocks.dart' show toggleCheckLine;
 import '../../domain/spine_colors.dart';
+import '../../domain/sticker_geometry.dart' show circleSize;
 import '../../l10n/app_localizations.dart';
 import '../../services/edge_channel.dart';
 import '../../services/launch_actions.dart' show LaunchAction;
@@ -173,6 +174,11 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
       // палец поднят — запись идёт дальше: руки свободны, остановит кнопка на плашке
       case EdgeVoiceStop():
         break;
+      // запись свёрнута в круг, корешки тронули: служба шлёт это вместо их жеста
+      case EdgeVoiceUnfold():
+        _voiceKey.currentState?.unfold().ignore();
+      case EdgeVoiceMoved(:final at):
+        _voiceKey.currentState?.moved(at);
       case EdgeDragStart():
         _swipeStart(opens: true);
       case EdgeDrag(:final distance):
@@ -210,6 +216,9 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
 
   /// Идёт запись с удержания корешков: на экране плашка записи, а не полка.
   bool _voice = false;
+
+  /// Плашка переезжает между раскладками (окно во весь экран и окно-круг), не теряя записи.
+  final _voiceKey = GlobalKey<EdgeVoiceState>();
 
   /// Плашка ушла (сохранили или отменили): корешки возвращаются, окно убирается.
   void _voiceDone() {
@@ -389,6 +398,20 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
     final guarded = (lock?.appLock ?? false) || _hiddenOpen;
     final settings = ref.watch(edgeSettingsProvider).value ?? const EdgeSettings();
     final right = settings.side == EdgeSide.right;
+    final voice = _voice
+        ? EdgeVoice(
+            key: _voiceKey,
+            // окно корешков система ставит под строкой состояния, а это окно — от верха экрана
+            spines: spineBox(MediaQuery.sizeOf(context), settings).shift(Offset(0, MediaQuery.paddingOf(context).top)),
+            right: right,
+            onDone: _voiceDone,
+            onElsewhere: _voiceElsewhere,
+          )
+        : null;
+    // запись свёрнута и окно встало по кругу: в нём только круг, полку не раскладываем
+    if (voice != null && MediaQuery.sizeOf(context).shortestSide < 2 * circleSize) {
+      return Scaffold(backgroundColor: Colors.transparent, body: voice);
+    }
     final width = math.min(_shelfWidth, MediaQuery.sizeOf(context).width - _edgeGap * 2);
     _travel = width + _edgeGap;
     final shelf = Container(
@@ -446,16 +469,7 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
                   child: Transform.translate(offset: Offset((right ? 1 : -1) * (1 - shown) * _travel, 0), child: shelf),
                 ),
               ),
-              if (_voice)
-                Positioned.fill(
-                  child: EdgeVoice(
-                    // окно корешков система ставит под строкой состояния, а это окно — от верха экрана
-                    spines: spineBox(MediaQuery.sizeOf(context), settings).shift(Offset(0, MediaQuery.paddingOf(context).top)),
-                    right: right,
-                    onDone: _voiceDone,
-                    onElsewhere: _voiceElsewhere,
-                  ),
-                ),
+              if (voice != null) Positioned.fill(child: voice),
             ],
           );
         },

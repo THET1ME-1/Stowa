@@ -395,6 +395,12 @@ class LEn extends L {
   String get voiceCancel => 'Cancel recording';
 
   @override
+  String get voiceFold => 'Minimize recording';
+
+  @override
+  String get voiceUnfold => 'Expand recording';
+
+  @override
   String get voiceDenied => 'No microphone access';
 
   @override

@@ -105,6 +105,8 @@
   "voiceSaved": "Голосовое легло",
   "voiceTitle": "Голосовое",
   "voiceCancel": "Отменить запись",
+  "voiceFold": "Свернуть запись",
+  "voiceUnfold": "Развернуть запись",
   "voiceDenied": "Нет доступа к микрофону",
   "voiceRecord": "Записать голосовое",
   "suggestClip": "Ссылка из буфера",

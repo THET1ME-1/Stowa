@@ -393,6 +393,12 @@ class LRu extends L {
   String get voiceCancel => 'Отменить запись';
 
   @override
+  String get voiceFold => 'Свернуть запись';
+
+  @override
+  String get voiceUnfold => 'Развернуть запись';
+
+  @override
   String get voiceDenied => 'Нет доступа к микрофону';
 
   @override

@@ -396,6 +396,12 @@ class LDe extends L {
   String get voiceCancel => 'Cancel recording';
 
   @override
+  String get voiceFold => 'Aufnahme minimieren';
+
+  @override
+  String get voiceUnfold => 'Aufnahme öffnen';
+
+  @override
   String get voiceDenied => 'No microphone access';
 
   @override

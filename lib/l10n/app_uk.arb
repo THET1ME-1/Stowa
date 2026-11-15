@@ -19,6 +19,8 @@
   "reasonNone": "без теки, розкладу, коли з'явиться схоже",
   "savePhotosHint": "підпис і теги можна дописати потім",
   "voiceSaved": "Голосове збережено",
+  "voiceFold": "Згорнути запис",
+  "voiceUnfold": "Розгорнути запис",
   "voiceNoTranscript": "Без розшифровки",
   "autoSorted": "{count, plural, one{Розклав {count} схожу нотатку} few{Розклав {count} схожі нотатки} many{Розклав {count} схожих нотаток} other{Розклав {count} схожої нотатки}}",
   "relatedTitle": "Пов'язане",

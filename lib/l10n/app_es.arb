@@ -19,6 +19,8 @@
   "reasonNone": "sin carpeta, la ordeno cuando aparezca algo parecido",
   "savePhotosHint": "puedes añadir descripción y etiquetas luego",
   "voiceSaved": "Nota de voz guardada",
+  "voiceFold": "Minimizar grabación",
+  "voiceUnfold": "Abrir grabación",
   "voiceNoTranscript": "Sin transcripción",
   "autoSorted": "{count, plural, one{{count} nota parecida ordenada} other{{count} notas parecidas ordenadas}}",
   "relatedTitle": "Relacionado",
