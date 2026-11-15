@@ -309,7 +309,10 @@ jobs:
             exit 1
           fi
           cp "$RESULT" out/walk/result.txt
+          # полные отчёты Flutter: в них виджет-виновник с файлом и строкой
+          cp "$(dirname "$RESULT")/errors.txt" out/walk/errors.txt 2>/dev/null || true
           cat out/walk/result.txt
+          [ -s out/walk/errors.txt ] && head -c 6000 out/walk/errors.txt || true
           ! grep -q '^FAIL' out/walk/result.txt || { echo "В маршруте есть упавшие шаги"; exit 1; }
 
       - uses: actions/upload-artifact@v4

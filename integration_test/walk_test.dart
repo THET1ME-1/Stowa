@@ -41,6 +41,15 @@ void main() {
       missed.add(name);
     }
 
+    // отчёт Flutter целиком: в итог шага идёт первая строка, а виджет-виновник
+    // с файлом и строкой есть только в подробностях
+    final errors = File('${folder.path}/errors.txt')..writeAsStringSync('');
+    final report = FlutterError.onError;
+    FlutterError.onError = (details) {
+      errors.writeAsStringSync('${details.toString()}\n\n', mode: FileMode.append);
+      report?.call(details);
+    };
+
     try {
       await app.main();
       // главная готова, когда на ней встала строка ввода
@@ -59,6 +68,7 @@ void main() {
       lines.add('FAIL запуск: ${'$error'.split('\n').first}');
       await shot('00-запуск-не-удался');
     } finally {
+      FlutterError.onError = report;
       finish();
     }
   });
