@@ -3372,7 +3372,8 @@ class LRo extends L {
   String get feedbackRow => 'Raportează o problemă';
 
   @override
-  String get feedbackRowHint => 'O eroare, o idee sau o întrebare prin e-mail';
+  String get feedbackRowHint =>
+      'O eroare, o idee sau o întrebare, direct de aici';
 
   @override
   String get supportRow => 'Scrie asistenței';
@@ -3393,14 +3394,38 @@ class LRo extends L {
   String get feedbackAttach => 'Atașează versiunea și modelul telefonului';
 
   @override
-  String get feedbackSend => 'Scrie e-mailul';
+  String get feedbackSend => 'Trimite';
 
   @override
   String get feedbackHint =>
-      'E-mailul se deschide în aplicația ta de e-mail și îl trimiți tu.';
+      'Mesajul ajunge la noi. Lasă un e-mail dacă vrei răspuns.';
 
   @override
-  String feedbackNoMail(String email) {
-    return 'Nu există aplicație de e-mail. Textul e copiat, trimite-l la $email';
+  String get feedbackEmail => 'E-mail pentru răspuns, dacă vrei unul';
+
+  @override
+  String get feedbackSentTitle => 'Trimis, mulțumim';
+
+  @override
+  String feedbackSentReply(String email) {
+    return 'Îți răspundem la $email.';
   }
+
+  @override
+  String get feedbackSentQuiet =>
+      'Nu ai lăsat un e-mail, așa că nu putem răspunde, dar îl citim.';
+
+  @override
+  String get feedbackAgain => 'Scrie încă unul';
+
+  @override
+  String get feedbackFailed =>
+      'Nu s-a trimis. Verifică internetul și apasă din nou.';
+
+  @override
+  String get feedbackTooMany =>
+      'Prea multe mesaje de pe acest telefon azi. Încearcă mâine sau scrie la e-mailul din Setări.';
+
+  @override
+  String get feedbackBadEmail => 'E-mailul pare greșit, verifică adresa.';
 }

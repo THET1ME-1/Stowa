@@ -5600,7 +5600,7 @@ abstract class L {
   /// Подпись под строкой «Сообщить о проблеме»
   ///
   /// In en, this message translates to:
-  /// **'A bug, an idea or a question by email'**
+  /// **'A bug, an idea or a question, right from here'**
   String get feedbackRowHint;
 
   /// Строка настроек: открыть почту с адресом поддержки
@@ -5639,23 +5639,65 @@ abstract class L {
   /// **'Attach app version and phone model'**
   String get feedbackAttach;
 
-  /// Кнопка: открыть почту с готовым письмом
+  /// Кнопка отправки обращения
   ///
   /// In en, this message translates to:
-  /// **'Write the email'**
+  /// **'Send'**
   String get feedbackSend;
 
-  /// Пояснение под кнопкой письма
+  /// Пояснение под кнопкой отправки
   ///
   /// In en, this message translates to:
-  /// **'The email opens in your mail app, and you send it.'**
+  /// **'Your message comes to us. Leave an email if you want a reply.'**
   String get feedbackHint;
 
-  /// Плашка, когда почтовой программы нет
+  /// Подсказка в необязательном поле почты на экране обращения
   ///
   /// In en, this message translates to:
-  /// **'No mail app found. The text is copied, send it to {email}'**
-  String feedbackNoMail(String email);
+  /// **'Email for a reply, if you want one'**
+  String get feedbackEmail;
+
+  /// Заголовок после отправки обращения
+  ///
+  /// In en, this message translates to:
+  /// **'Sent, thank you'**
+  String get feedbackSentTitle;
+
+  /// Под заголовком, когда почту оставили
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll reply to {email}.'**
+  String feedbackSentReply(String email);
+
+  /// Под заголовком, когда почту не оставили
+  ///
+  /// In en, this message translates to:
+  /// **'You didn\'t leave an email, so we can\'t reply, but we\'ll read it.'**
+  String get feedbackSentQuiet;
+
+  /// Кнопка после отправки: новое обращение
+  ///
+  /// In en, this message translates to:
+  /// **'Write another'**
+  String get feedbackAgain;
+
+  /// Ошибка отправки обращения
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t send. Check your connection and tap again.'**
+  String get feedbackFailed;
+
+  /// Сервер отбил по дневному пределу
+  ///
+  /// In en, this message translates to:
+  /// **'Too many messages from this phone today. Try tomorrow or use the email in Settings.'**
+  String get feedbackTooMany;
+
+  /// Сервер отбил почту для ответа
+  ///
+  /// In en, this message translates to:
+  /// **'The email looks wrong, check the address.'**
+  String get feedbackBadEmail;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

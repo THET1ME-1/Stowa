@@ -46,22 +46,30 @@ void main() {
             locale: const Locale('ru'),
             localizationsDelegates: L.localizationsDelegates,
             supportedLocales: L.supportedLocales,
-            home: const FeedbackScreen(),
+            home: FeedbackScreen(send: (_) async => FeedbackResult.sent),
           ),
         ),
       ));
       await tester.pumpAndSettle();
+      Future<void> shot(String file) async {
+        final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(const ValueKey('shot')));
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          Directory('build/previews').createSync(recursive: true);
+          File('build/previews/$file.png').writeAsBytesSync(png!.buffer.asUint8List());
+        });
+      }
+
       await tester.enterText(find.byKey(const ValueKey('feedback-text')), 'После обновления виджет на рабочем столе показывает пустую строку, хотя заметки есть.');
+      await tester.enterText(find.byKey(const ValueKey('feedback-email')), 'anna@example.com');
       await tester.pumpAndSettle();
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(const ValueKey('shot')));
-      await tester.runAsync(() async {
-        final image = await boundary.toImage(pixelRatio: 2);
-        final png = await image.toByteData(format: ui.ImageByteFormat.png);
-        Directory('build/previews').createSync(recursive: true);
-        File('build/previews/$name.png').writeAsBytesSync(png!.buffer.asUint8List());
-      });
+      await shot(name);
+      await tester.tap(find.byKey(const ValueKey('feedback-send')));
+      await tester.pumpAndSettle();
+      await shot('${name}_sent');
       expect(tester.takeException(), isNull);
     });
   }

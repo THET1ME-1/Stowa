@@ -3404,7 +3404,7 @@ class LPl extends L {
   String get feedbackRow => 'Zgłoś problem';
 
   @override
-  String get feedbackRowHint => 'Błąd, pomysł lub pytanie e-mailem';
+  String get feedbackRowHint => 'Błąd, pomysł lub pytanie prosto stąd';
 
   @override
   String get supportRow => 'Napisz do wsparcia';
@@ -3425,14 +3425,38 @@ class LPl extends L {
   String get feedbackAttach => 'Dołącz wersję i model telefonu';
 
   @override
-  String get feedbackSend => 'Napisz e-mail';
+  String get feedbackSend => 'Wyślij';
 
   @override
   String get feedbackHint =>
-      'E-mail otworzy się w twojej poczcie, a wyślesz go ty.';
+      'Zgłoszenie trafi do nas. Zostaw e-mail, jeśli czekasz na odpowiedź.';
 
   @override
-  String feedbackNoMail(String email) {
-    return 'Brak aplikacji poczty. Tekst skopiowany, wyślij go na $email';
+  String get feedbackEmail => 'E-mail do odpowiedzi, jeśli jej chcesz';
+
+  @override
+  String get feedbackSentTitle => 'Wysłane, dziękujemy';
+
+  @override
+  String feedbackSentReply(String email) {
+    return 'Odpowiemy na $email.';
   }
+
+  @override
+  String get feedbackSentQuiet =>
+      'Nie zostawiłeś e-maila, więc nie odpowiemy, ale przeczytamy.';
+
+  @override
+  String get feedbackAgain => 'Napisz kolejne';
+
+  @override
+  String get feedbackFailed =>
+      'Nie wysłano. Sprawdź internet i naciśnij ponownie.';
+
+  @override
+  String get feedbackTooMany =>
+      'Za dużo zgłoszeń z tego telefonu na dziś. Spróbuj jutro lub napisz na e-mail z Ustawień.';
+
+  @override
+  String get feedbackBadEmail => 'Adres e-mail wygląda na błędny, sprawdź go.';
 }

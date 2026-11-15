@@ -3346,7 +3346,7 @@ class LEs extends L {
   String get feedbackRow => 'Informar de un problema';
 
   @override
-  String get feedbackRowHint => 'Un error, una idea o una pregunta por correo';
+  String get feedbackRowHint => 'Un error, una idea o una pregunta, desde aquí';
 
   @override
   String get supportRow => 'Escribir a soporte';
@@ -3367,14 +3367,39 @@ class LEs extends L {
   String get feedbackAttach => 'Adjuntar versión y modelo del teléfono';
 
   @override
-  String get feedbackSend => 'Escribir el correo';
+  String get feedbackSend => 'Enviar';
 
   @override
   String get feedbackHint =>
-      'El correo se abre en tu app de correo y lo envías tú.';
+      'El mensaje nos llega a nosotros. Deja tu correo si esperas respuesta.';
 
   @override
-  String feedbackNoMail(String email) {
-    return 'No hay app de correo. El texto está copiado, envíalo a $email';
+  String get feedbackEmail => 'Correo para responderte, si lo quieres';
+
+  @override
+  String get feedbackSentTitle => 'Enviado, gracias';
+
+  @override
+  String feedbackSentReply(String email) {
+    return 'Te responderemos a $email.';
   }
+
+  @override
+  String get feedbackSentQuiet =>
+      'No dejaste correo, así que no podremos responder, pero lo leeremos.';
+
+  @override
+  String get feedbackAgain => 'Escribir otro';
+
+  @override
+  String get feedbackFailed =>
+      'No se envió. Revisa tu conexión y toca otra vez.';
+
+  @override
+  String get feedbackTooMany =>
+      'Demasiados mensajes desde este teléfono hoy. Prueba mañana o escribe al correo de Ajustes.';
+
+  @override
+  String get feedbackBadEmail =>
+      'El correo parece incorrecto, revisa la dirección.';
 }

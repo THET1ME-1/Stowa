@@ -3353,7 +3353,7 @@ class LDe extends L {
   String get feedbackRow => 'Problem melden';
 
   @override
-  String get feedbackRowHint => 'Fehler, Idee oder Frage per E-Mail';
+  String get feedbackRowHint => 'Fehler, Idee oder Frage direkt von hier';
 
   @override
   String get supportRow => 'Support anschreiben';
@@ -3375,14 +3375,39 @@ class LDe extends L {
   String get feedbackAttach => 'App-Version und Handymodell anhängen';
 
   @override
-  String get feedbackSend => 'E-Mail schreiben';
+  String get feedbackSend => 'Senden';
 
   @override
   String get feedbackHint =>
-      'Die E-Mail öffnet sich in deiner Mail-App, und du schickst sie ab.';
+      'Die Nachricht kommt bei uns an. Hinterlass eine E-Mail, wenn du eine Antwort willst.';
 
   @override
-  String feedbackNoMail(String email) {
-    return 'Keine Mail-App gefunden. Der Text ist kopiert, schick ihn an $email';
+  String get feedbackEmail => 'E-Mail für eine Antwort, falls gewünscht';
+
+  @override
+  String get feedbackSentTitle => 'Gesendet, danke';
+
+  @override
+  String feedbackSentReply(String email) {
+    return 'Wir antworten an $email.';
   }
+
+  @override
+  String get feedbackSentQuiet =>
+      'Du hast keine E-Mail hinterlassen, also können wir nicht antworten, aber wir lesen es.';
+
+  @override
+  String get feedbackAgain => 'Noch eine schreiben';
+
+  @override
+  String get feedbackFailed =>
+      'Nicht gesendet. Prüfe die Verbindung und tippe noch einmal.';
+
+  @override
+  String get feedbackTooMany =>
+      'Heute schon zu viele Nachrichten von diesem Handy. Versuch es morgen oder per E-Mail aus den Einstellungen.';
+
+  @override
+  String get feedbackBadEmail =>
+      'Die E-Mail sieht falsch aus, prüf die Adresse.';
 }

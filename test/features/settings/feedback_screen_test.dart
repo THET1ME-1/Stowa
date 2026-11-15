@@ -1,28 +1,37 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:stowa/features/settings/feedback_screen.dart';
 
 import '../../helpers/test_app.dart';
 
 void main() {
-  test('письмо: адрес, тема с видом обращения, текст и сведения о телефоне', () {
-    final mail = feedbackMail(subject: 'Stowa — ошибка', text: 'Не открывается заметка', device: 'Stowa 0.1.3 · Xiaomi 2510ERA8BG · Android 16');
-    expect(mail.scheme, 'mailto');
-    expect(mail.path, supportEmail);
-    expect(mail.queryParameters['subject'], 'Stowa — ошибка');
-    expect(mail.queryParameters['body'], 'Не открывается заметка\n\n—\nStowa 0.1.3 · Xiaomi 2510ERA8BG · Android 16');
-    // пробелы — %20, а не «+»: почтовые программы плюс показывают плюсом
-    expect(mail.toString(), isNot(contains('+')));
-  });
-
-  test('без сведений о телефоне в письме только текст', () {
-    final mail = feedbackMail(subject: 'Stowa — идея', text: 'Тёмная тема для виджета', device: null);
-    expect(mail.queryParameters['body'], 'Тёмная тема для виджета');
-  });
-
   test('строка телефона из сведений, которые пишет Android', () {
     expect(deviceLine('0.1.3', {'maker': 'Xiaomi', 'model': '2510ERA8BG', 'os': 'Android 16'}), 'Stowa 0.1.3 · Xiaomi 2510ERA8BG · Android 16');
     expect(deviceLine('0.1.3', {}), 'Stowa 0.1.3');
+  });
+
+  group('отправка на сервер', () {
+    test('тело запроса: вид, текст, почта и телефон, адрес — приём Stowa', () async {
+      late http.Request sent;
+      final client = MockClient((request) async {
+        sent = request;
+        return http.Response('{"ok":true,"id":"r1"}', 200);
+      });
+      final result = await sendFeedback(client, FeedbackDraft(kind: FeedbackKind.idea, text: 'Виджет поменьше бы', email: 'me@x.io', device: 'Stowa 0.1.3', app: '0.1.3', platform: 'android', lang: 'ru'));
+      expect(result, FeedbackResult.sent);
+      expect(sent.url.toString(), 'https://togetherly.day/api/stowa/feedback');
+      expect(jsonDecode(sent.body), {'kind': 'idea', 'text': 'Виджет поменьше бы', 'email': 'me@x.io', 'device': 'Stowa 0.1.3', 'app': '0.1.3', 'platform': 'android', 'lang': 'ru'});
+    });
+
+    test('429 — «на сегодня много», обрыв сети — «не отправилось»', () async {
+      expect(await sendFeedback(MockClient((_) async => http.Response('{"ok":false,"error":"too_many"}', 429)), _draft), FeedbackResult.tooMany);
+      expect(await sendFeedback(MockClient((_) async => throw http.ClientException('нет сети')), _draft), FeedbackResult.failed);
+      expect(await sendFeedback(MockClient((_) async => http.Response('', 502)), _draft), FeedbackResult.failed);
+    });
   });
 
   group('экран', () {
@@ -30,30 +39,53 @@ void main() {
     setUp(() => world = TestWorld());
     tearDown(() => world.dispose());
 
-    Future<List<Uri>> open(WidgetTester tester, {bool mailApp = true}) async {
-      final opened = <Uri>[];
+    Future<List<FeedbackDraft>> open(WidgetTester tester, {FeedbackResult answer = FeedbackResult.sent}) async {
+      final sent = <FeedbackDraft>[];
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.75;
       addTearDown(tester.view.reset);
       addTearDown(() => tester.pumpWidget(const SizedBox()));
-      await tester.pumpWidget(world.wrap(FeedbackScreen(open: (uri) async {
-        opened.add(uri);
-        return mailApp;
+      await tester.pumpWidget(world.wrap(FeedbackScreen(send: (draft) async {
+        sent.add(draft);
+        return answer;
       })));
       await tester.pumpAndSettle();
-      return opened;
+      return sent;
     }
 
-    testWidgets('выбрал «Идея», написал — письмо уходит в почту с этой темой', (tester) async {
-      final opened = await open(tester);
+    testWidgets('выбрал «Идея», написал, оставил почту — уходит на сервер, экран говорит «отправлено»', (tester) async {
+      final sent = await open(tester);
       await tester.tap(find.byKey(const ValueKey('feedback-kind-idea')));
-      await tester.enterText(find.byKey(const ValueKey('feedback-text')), 'Виджет поменьше');
+      await tester.enterText(find.byKey(const ValueKey('feedback-text')), 'Виджет поменьше бы');
+      await tester.enterText(find.byKey(const ValueKey('feedback-email')), ' me@x.io ');
       await tester.pump();
       await tester.tap(find.byKey(const ValueKey('feedback-send')));
       await tester.pumpAndSettle();
-      expect(opened, hasLength(1));
-      expect(opened.single.queryParameters['subject'], 'Stowa — идея');
-      expect(opened.single.queryParameters['body'], startsWith('Виджет поменьше'));
+      expect(sent.single.kind, FeedbackKind.idea);
+      expect(sent.single.text, 'Виджет поменьше бы');
+      expect(sent.single.email, 'me@x.io');
+      expect(find.byKey(const ValueKey('feedback-sent')), findsOneWidget);
+      expect(find.textContaining('me@x.io'), findsOneWidget);
+    });
+
+    testWidgets('меньше десяти знаков не отправляется', (tester) async {
+      final sent = await open(tester);
+      await tester.enterText(find.byKey(const ValueKey('feedback-text')), 'Сломалось');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('feedback-send')));
+      await tester.pumpAndSettle();
+      expect(sent, isEmpty);
+    });
+
+    testWidgets('не отправилось — текст остаётся, под кнопкой причина', (tester) async {
+      await open(tester, answer: FeedbackResult.failed);
+      await tester.enterText(find.byKey(const ValueKey('feedback-text')), 'Не сохраняется фото');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('feedback-send')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('feedback-sent')), findsNothing);
+      expect(find.byKey(const ValueKey('feedback-error')), findsOneWidget);
+      expect(find.text('Не сохраняется фото'), findsOneWidget);
     });
 
     testWidgets('в настройках раздел «Помощь»: строка «Сообщить о проблеме» ведёт на экран', (tester) async {
@@ -69,21 +101,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(FeedbackScreen), findsOneWidget);
     });
-
-    testWidgets('пустое письмо не отправляется', (tester) async {
-      final opened = await open(tester);
-      await tester.tap(find.byKey(const ValueKey('feedback-send')));
-      await tester.pumpAndSettle();
-      expect(opened, isEmpty);
-    });
-
-    testWidgets('нет почтовой программы — говорим об этом и даём адрес', (tester) async {
-      await open(tester, mailApp: false);
-      await tester.enterText(find.byKey(const ValueKey('feedback-text')), 'Не сохраняется фото');
-      await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('feedback-send')));
-      await tester.pumpAndSettle();
-      expect(find.textContaining(supportEmail), findsWidgets);
-    });
   });
 }
+
+const _draft = FeedbackDraft(kind: FeedbackKind.bug, text: 'Не открывается заметка', email: '', device: null, app: '0.1.3', platform: 'android', lang: 'ru');

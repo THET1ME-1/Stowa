@@ -4254,7 +4254,7 @@
   "@feedbackRow": {
     "description": "Строка настроек и заголовок экрана обращения"
   },
-  "feedbackRowHint": "A bug, an idea or a question by email",
+  "feedbackRowHint": "A bug, an idea or a question, right from here",
   "@feedbackRowHint": {
     "description": "Подпись под строкой «Сообщить о проблеме»"
   },
@@ -4282,21 +4282,49 @@
   "@feedbackAttach": {
     "description": "Переключатель на экране обращения"
   },
-  "feedbackSend": "Write the email",
+  "feedbackSend": "Send",
   "@feedbackSend": {
-    "description": "Кнопка: открыть почту с готовым письмом"
+    "description": "Кнопка отправки обращения"
   },
-  "feedbackHint": "The email opens in your mail app, and you send it.",
+  "feedbackHint": "Your message comes to us. Leave an email if you want a reply.",
   "@feedbackHint": {
-    "description": "Пояснение под кнопкой письма"
+    "description": "Пояснение под кнопкой отправки"
   },
-  "feedbackNoMail": "No mail app found. The text is copied, send it to {email}",
-  "@feedbackNoMail": {
-    "description": "Плашка, когда почтовой программы нет",
+  "feedbackEmail": "Email for a reply, if you want one",
+  "@feedbackEmail": {
+    "description": "Подсказка в необязательном поле почты на экране обращения"
+  },
+  "feedbackSentTitle": "Sent, thank you",
+  "@feedbackSentTitle": {
+    "description": "Заголовок после отправки обращения"
+  },
+  "feedbackSentReply": "We'll reply to {email}.",
+  "@feedbackSentReply": {
+    "description": "Под заголовком, когда почту оставили",
     "placeholders": {
       "email": {
         "type": "String"
       }
     }
+  },
+  "feedbackSentQuiet": "You didn't leave an email, so we can't reply, but we'll read it.",
+  "@feedbackSentQuiet": {
+    "description": "Под заголовком, когда почту не оставили"
+  },
+  "feedbackAgain": "Write another",
+  "@feedbackAgain": {
+    "description": "Кнопка после отправки: новое обращение"
+  },
+  "feedbackFailed": "Didn't send. Check your connection and tap again.",
+  "@feedbackFailed": {
+    "description": "Ошибка отправки обращения"
+  },
+  "feedbackTooMany": "Too many messages from this phone today. Try tomorrow or use the email in Settings.",
+  "@feedbackTooMany": {
+    "description": "Сервер отбил по дневному пределу"
+  },
+  "feedbackBadEmail": "The email looks wrong, check the address.",
+  "@feedbackBadEmail": {
+    "description": "Сервер отбил почту для ответа"
   }
 }

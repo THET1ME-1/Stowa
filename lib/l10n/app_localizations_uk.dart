@@ -3403,7 +3403,7 @@ class LUk extends L {
   String get feedbackRow => 'Повідомити про проблему';
 
   @override
-  String get feedbackRowHint => 'Помилка, ідея чи питання листом';
+  String get feedbackRowHint => 'Помилка, ідея чи питання просто звідси';
 
   @override
   String get supportRow => 'Написати в підтримку';
@@ -3424,14 +3424,38 @@ class LUk extends L {
   String get feedbackAttach => 'Додати версію і модель телефона';
 
   @override
-  String get feedbackSend => 'Написати листа';
+  String get feedbackSend => 'Надіслати';
 
   @override
   String get feedbackHint =>
-      'Лист відкриється у вашій пошті, надсилаєте його ви.';
+      'Звернення прийде нам. Залиште пошту, якщо чекаєте відповіді.';
 
   @override
-  String feedbackNoMail(String email) {
-    return 'Пошти на телефоні немає. Текст скопійовано, надішліть його на $email';
+  String get feedbackEmail => 'Пошта для відповіді, якщо вона потрібна';
+
+  @override
+  String get feedbackSentTitle => 'Надіслано, дякуємо';
+
+  @override
+  String feedbackSentReply(String email) {
+    return 'Відповімо на $email.';
   }
+
+  @override
+  String get feedbackSentQuiet =>
+      'Пошту ви не залишили, тож відповісти не зможемо, але прочитаємо все.';
+
+  @override
+  String get feedbackAgain => 'Написати ще';
+
+  @override
+  String get feedbackFailed =>
+      'Не надіслалося. Перевірте інтернет і натисніть ще раз.';
+
+  @override
+  String get feedbackTooMany =>
+      'На сьогодні звернень із цього телефона вже багато. Напишіть завтра або на пошту в налаштуваннях.';
+
+  @override
+  String get feedbackBadEmail => 'У пошті помилка, перевірте адресу.';
 }

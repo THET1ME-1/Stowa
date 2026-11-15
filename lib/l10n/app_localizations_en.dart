@@ -3341,7 +3341,7 @@ class LEn extends L {
   String get feedbackRow => 'Report a problem';
 
   @override
-  String get feedbackRowHint => 'A bug, an idea or a question by email';
+  String get feedbackRowHint => 'A bug, an idea or a question, right from here';
 
   @override
   String get supportRow => 'Email support';
@@ -3362,14 +3362,38 @@ class LEn extends L {
   String get feedbackAttach => 'Attach app version and phone model';
 
   @override
-  String get feedbackSend => 'Write the email';
+  String get feedbackSend => 'Send';
 
   @override
   String get feedbackHint =>
-      'The email opens in your mail app, and you send it.';
+      'Your message comes to us. Leave an email if you want a reply.';
 
   @override
-  String feedbackNoMail(String email) {
-    return 'No mail app found. The text is copied, send it to $email';
+  String get feedbackEmail => 'Email for a reply, if you want one';
+
+  @override
+  String get feedbackSentTitle => 'Sent, thank you';
+
+  @override
+  String feedbackSentReply(String email) {
+    return 'We\'ll reply to $email.';
   }
+
+  @override
+  String get feedbackSentQuiet =>
+      'You didn\'t leave an email, so we can\'t reply, but we\'ll read it.';
+
+  @override
+  String get feedbackAgain => 'Write another';
+
+  @override
+  String get feedbackFailed =>
+      'Didn\'t send. Check your connection and tap again.';
+
+  @override
+  String get feedbackTooMany =>
+      'Too many messages from this phone today. Try tomorrow or use the email in Settings.';
+
+  @override
+  String get feedbackBadEmail => 'The email looks wrong, check the address.';
 }

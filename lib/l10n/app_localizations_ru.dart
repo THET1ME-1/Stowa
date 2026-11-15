@@ -3406,7 +3406,7 @@ class LRu extends L {
   String get feedbackRow => 'Сообщить о проблеме';
 
   @override
-  String get feedbackRowHint => 'Ошибка, идея или вопрос письмом';
+  String get feedbackRowHint => 'Ошибка, идея или вопрос прямо отсюда';
 
   @override
   String get supportRow => 'Написать в поддержку';
@@ -3427,14 +3427,38 @@ class LRu extends L {
   String get feedbackAttach => 'Приложить версию и модель телефона';
 
   @override
-  String get feedbackSend => 'Написать письмо';
+  String get feedbackSend => 'Отправить';
 
   @override
   String get feedbackHint =>
-      'Письмо откроется в вашей почте, отправляете его вы.';
+      'Обращение придёт нам. Оставьте почту, если ждёте ответа.';
 
   @override
-  String feedbackNoMail(String email) {
-    return 'Почты на телефоне нет. Текст скопирован, пришлите его на $email';
+  String get feedbackEmail => 'Почта для ответа, если он нужен';
+
+  @override
+  String get feedbackSentTitle => 'Отправлено, спасибо';
+
+  @override
+  String feedbackSentReply(String email) {
+    return 'Ответим на $email.';
   }
+
+  @override
+  String get feedbackSentQuiet =>
+      'Почту вы не оставили, поэтому ответить не сможем, но прочитаем всё.';
+
+  @override
+  String get feedbackAgain => 'Написать ещё';
+
+  @override
+  String get feedbackFailed =>
+      'Не отправилось. Проверьте интернет и нажмите ещё раз.';
+
+  @override
+  String get feedbackTooMany =>
+      'На сегодня обращений с этого телефона уже много. Напишите завтра или на почту в настройках.';
+
+  @override
+  String get feedbackBadEmail => 'В почте ошибка, проверьте адрес.';
 }
