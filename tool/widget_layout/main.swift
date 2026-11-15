@@ -37,7 +37,7 @@ let plain = WidgetNote(
 let titleOnly = WidgetNote(id: "title", title: "Позвонить маме в воскресенье вечером", lines: [], color: 0xFFBC_B1FF, pinned: false)
 
 /// Виджет главного экрана: подложка со скруглением и поля системы.
-func homeWidget<V: View>(_ content: V, background: Color) -> some View {
+func homeWidget<V: View, B: View>(_ content: V, background: B) -> some View {
   content
     .padding(16)
     .background(background)
