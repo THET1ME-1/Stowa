@@ -322,14 +322,19 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
     }
   }
 
-  // хвост из строк ![[путь/…]] — вложения, остальное — текст. Хвост Stowa пишет путями
-  // от корня, а картинку в тексте — коротким именем: та остаётся в тексте на своём месте
+  // хвост из строк ![[путь/…]] — вложения, остальное — текст. До 16.11.2026 Stowa писала хвост
+  // путями в свой каталог «Заметка/…»; только такие строки и считаются хвостом. Вставка с путём
+  // в другое место («![[Изображения/закат.jpg]]») — картинка в тексте и остаётся на своём месте
+  final stem = fileName.endsWith('.md') ? fileName.substring(0, fileName.length - 3) : fileName;
   final lines = content.trimRight().split('\n');
   final attachments = <String>[];
   while (lines.isNotEmpty) {
     final match = _embed.firstMatch(lines.last.trim());
-    if (match == null || !match.group(1)!.contains('/')) break;
-    attachments.insert(0, match.group(1)!);
+    final path = match?.group(1);
+    if (path == null || !path.contains('/')) break;
+    final dir = path.substring(0, path.lastIndexOf('/'));
+    if (dir.split('/').last.toLowerCase() != stem.toLowerCase()) break;
+    attachments.insert(0, path);
     lines.removeLast();
   }
   final body = lines.join('\n').trimRight();

@@ -114,6 +114,9 @@ class VaultReader {
   Future<VaultScan> _reconcile({void Function(int done, int total)? progress}) async {
     final scan = VaultScan();
     if (_root == null || !await _root.exists()) return scan;
+    // настройка вложений Obsidian и указатель имён — свежие на каждый проход
+    _attachmentSetting = readAttachmentSetting(_root);
+    _byName = null;
     final known = await _db.select(_db.vaultFiles).get();
     final byPath = {for (final row in known) row.path: row};
     final byId = {for (final row in known) row.itemId: row.path};
@@ -597,20 +600,50 @@ class VaultReader {
     }
   }
 
+  ({bool obsidian, String? setting}) _attachmentSetting = (obsidian: false, setting: null);
+
+  /// Файлы хранилища по имени в нижнем регистре, без служебного и корзины: короткое имя
+  /// `![[закат.jpg]]` Obsidian ищет по всему хранилищу. Строится один раз за проход, по нужде.
+  Map<String, List<String>>? _byName;
+
+  Future<String?> _anywhere(String name) async {
+    final index = _byName ??= await () async {
+      final found = <String, List<String>>{};
+      await for (final entity in _root!.list(recursive: true, followLinks: false)) {
+        if (entity is! File) continue;
+        final relative = p.relative(entity.path, from: _root.path).split(p.separator).join('/');
+        if (isServicePath(relative) || relative.split('/').any((part) => part.startsWith('.'))) continue;
+        found.putIfAbsent(p.posix.basename(relative).toLowerCase(), () => []).add(relative);
+      }
+      return found;
+    }();
+    final hits = index[p.posix.basename(name).toLowerCase()];
+    if (hits == null || hits.isEmpty) return null;
+    // имя с частью пути («Где-то/d.jpg») — тот, чей путь им кончается; иначе самый короткий путь, как у Obsidian
+    final suffix = name.toLowerCase();
+    final fitting = hits.where((path) => path.toLowerCase().endsWith(suffix)).toList()..sort((a, b) => a.length.compareTo(b.length));
+    return fitting.firstOrNull;
+  }
+
   /// Вложения: строки `![[…]]` из хвоста (путь от корня, как пишет Stowa, или короткое
-  /// имя, как пишет Obsidian) и файлы из папки вещи, которых в строках нет.
+  /// имя, как пишет Obsidian) и файлы из папки вещи, которых в строках нет. Короткое имя
+  /// ищется рядом, в своём каталоге, в папке вложений по настройке Obsidian и по всему хранилищу.
   Future<List<String>> _attachments(String relative, VaultNote note) async {
     final dir = attachmentsDir(relative);
     final near = p.posix.dirname(relative);
+    final shared = attachmentFolderFor(relative, obsidian: _attachmentSetting.obsidian, setting: _attachmentSetting.setting);
     final found = <String>[];
     // хвост и картинки из текста: и те, и другие — вложения заметки
     for (final link in [...note.attachments, ...embedNames(note.body)]) {
-      for (final candidate in [link, '$dir/$link', if (near != '.') '$near/$link']) {
+      String? hit;
+      for (final candidate in [link, '$dir/$link', if (near != '.') '$near/$link', if (shared.isNotEmpty) '$shared/$link']) {
         if (await File(_absolute(candidate)).exists()) {
-          if (!found.contains(candidate)) found.add(candidate);
+          hit = candidate;
           break;
         }
       }
+      hit ??= await _anywhere(link);
+      if (hit != null && !found.contains(hit)) found.add(hit);
     }
     final folder = Directory(_absolute(dir));
     if (await folder.exists()) {
