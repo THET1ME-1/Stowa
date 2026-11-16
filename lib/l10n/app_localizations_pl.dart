@@ -4108,4 +4108,10 @@ class LPl extends L {
 
   @override
   String get codeCollapse => 'Zwiń';
+
+  @override
+  String get mdMath => 'Wzór';
+
+  @override
+  String get mdMathNext => 'Następne pole wzoru';
 }

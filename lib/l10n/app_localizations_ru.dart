@@ -4115,4 +4115,10 @@ class LRu extends L {
 
   @override
   String get codeCollapse => 'Свернуть';
+
+  @override
+  String get mdMath => 'Формула';
+
+  @override
+  String get mdMathNext => 'Следующее поле формулы';
 }

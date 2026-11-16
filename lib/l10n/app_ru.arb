@@ -1124,5 +1124,7 @@
   "codeCopy": "Скопировать код",
   "codeCopied": "Скопировано",
   "codeShowAll": "{count, plural, one{Показать всё · {count} строка} few{Показать всё · {count} строки} many{Показать всё · {count} строк} other{Показать всё · {count} строки}}",
-  "codeCollapse": "Свернуть"
+  "codeCollapse": "Свернуть",
+  "mdMath": "Формула",
+  "mdMathNext": "Следующее поле формулы"
 }

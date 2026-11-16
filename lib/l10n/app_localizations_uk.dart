@@ -4103,4 +4103,10 @@ class LUk extends L {
 
   @override
   String get codeCollapse => 'Згорнути';
+
+  @override
+  String get mdMath => 'Формула';
+
+  @override
+  String get mdMathNext => 'Наступне поле формули';
 }

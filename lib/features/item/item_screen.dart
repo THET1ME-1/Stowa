@@ -42,6 +42,7 @@ import '../../services/capture_service.dart' show CaptureInput, PickedFile;
 import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
+import '../composer/math_edit.dart';
 import '../composer/panel_text.dart';
 import '../composer/smart_punctuation.dart';
 import '../composer/wiki_link_edit.dart';
@@ -58,6 +59,7 @@ import '../reader/reader_screen.dart';
 import 'copying_bar.dart';
 import 'facts_block.dart';
 import 'history_screen.dart';
+import 'math_view.dart';
 import 'item_actions.dart' show togglePinned;
 import 'page_card.dart';
 import 'item_media.dart';
@@ -297,11 +299,19 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   final _scroll = ScrollController();
   final _caret = ValueNotifier<Rect?>(null);
 
+  /// Формула под курсором правки, если в ней уже что-то набрано.
+  MathAround? _mathAtCaret() {
+    final value = _body.value;
+    if (!value.selection.isValid || !value.selection.isCollapsed) return null;
+    final formula = mathAround(value.text, value.selection.baseOffset);
+    return formula == null || formula.tex.trim().isEmpty ? null : formula;
+  }
+
   void _measureCaret() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // меряем, только пока подсказка нужна: после правки поля уже нет
-      if (!_editing || !_bodyFocus.hasFocus || wikiQueryOf(_body.value) == null) {
+      // меряем, только пока подсказка или просмотр формулы нужны: после правки поля уже нет
+      if (!_editing || !_bodyFocus.hasFocus || (wikiQueryOf(_body.value) == null && _mathAtCaret() == null)) {
         _caret.value = null;
         return;
       }
@@ -969,23 +979,30 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
                             decoration: BoxDecoration(color: _editing ? Tokens.containerHigh : Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
                             child: _editing
-                                ? TextField(
-                                    controller: _body,
-                                    focusNode: _bodyFocus,
-                                    undoController: _undo,
-                                    // поле растёт с текстом: одна строка — одна строка, без пустоты под ней
-                                    maxLines: null,
-                                    keyboardType: TextInputType.multiline,
-                                    inputFormatters: [
-                                      TextInputFormatter.withFunction(continueLists),
-                                      TextInputFormatter.withFunction(closeWikiBrackets),
-                                      TextInputFormatter.withFunction(smartPunctuation),
-                                    ],
-                                    textCapitalization: TextCapitalization.sentences,
-                                    // строка с курсором не прячется под плавающую панель и полосу разметки над ней
-                                    scrollPadding: const EdgeInsets.only(bottom: _editDockHeight + _dockGap * 2 + 24),
-                                    style: bodyStyle,
-                                    decoration: _bare(l.itemBodyHint),
+                                ? Focus(
+                                    // Tab в формуле — к следующему полю, как в Latex Suite; вне формулы — как обычно
+                                    canRequestFocus: false,
+                                    skipTraversal: true,
+                                    onKeyEvent: (node, event) => mathTabKey(_body, event),
+                                    child: TextField(
+                                      controller: _body,
+                                      focusNode: _bodyFocus,
+                                      undoController: _undo,
+                                      // поле растёт с текстом: одна строка — одна строка, без пустоты под ней
+                                      maxLines: null,
+                                      keyboardType: TextInputType.multiline,
+                                      inputFormatters: [
+                                        TextInputFormatter.withFunction(continueLists),
+                                        TextInputFormatter.withFunction(closeWikiBrackets),
+                                        TextInputFormatter.withFunction(mathInput),
+                                        TextInputFormatter.withFunction(smartPunctuation),
+                                      ],
+                                      textCapitalization: TextCapitalization.sentences,
+                                      // строка с курсором не прячется под плавающую панель и полосу разметки над ней
+                                      scrollPadding: const EdgeInsets.only(bottom: _editDockHeight + _dockGap * 2 + 24),
+                                      style: bodyStyle,
+                                      decoration: _bare(l.itemBodyHint),
+                                    ),
                                   )
                                 : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink, image: inlineImage),
                           ),
@@ -1053,7 +1070,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(_markdownStrip / 2)),
                                     padding: const EdgeInsets.symmetric(horizontal: 8),
                                     alignment: Alignment.center,
-                                    child: MarkdownBar(onAction: _markdown),
+                                    child: MarkdownBar(onAction: _markdown, field: _body),
                                   ),
                                   const SizedBox(height: 8),
                                   ValueListenableBuilder(
@@ -1113,9 +1130,13 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                     if (_editing)
                       ListenableBuilder(
                         listenable: Listenable.merge([_body, _caret]),
-                        builder: (context, _) => switch ((wikiQueryOf(_body.value), _caret.value)) {
-                          (final query?, final caret?) when _bodyFocus.hasFocus => Positioned.fill(
+                        builder: (context, _) => switch ((wikiQueryOf(_body.value), _mathAtCaret(), _caret.value)) {
+                          (final query?, _, final caret?) when _bodyFocus.hasFocus => Positioned.fill(
                             child: LayoutBuilder(builder: (context, box) => _wikiPanel(query, caret, box.maxHeight, bottom)),
+                          ),
+                          // курсор в формуле: она же готовой над строкой, меняется с каждой буквой
+                          (null, final formula?, final caret?) when _bodyFocus.hasFocus => Positioned.fill(
+                            child: IgnorePointer(child: LayoutBuilder(builder: (context, box) => _mathPanel(formula, caret, box.maxHeight, bottom))),
                           ),
                           _ => const SizedBox.shrink(),
                         },
@@ -1148,6 +1169,34 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
           Positioned(left: 12, right: 12, bottom: height - caret.top + gap, child: panel)
         else
           Positioned(left: 12, right: 12, top: caret.bottom + gap, child: panel),
+      ],
+    );
+  }
+
+  /// Просмотр формулы у строки с курсором: над ней, у верха экрана — под ней. Касаний не
+  /// ловит: только показывает.
+  Widget _mathPanel(MathAround formula, Rect caret, double height, double bottom) {
+    const gap = 6.0;
+    const edge = 8.0;
+    const most = 140.0;
+    final dockTop = height - (_dockGap + bottom + _editDockHeight);
+    final above = caret.top - gap - edge;
+    final below = dockTop - caret.bottom - gap - edge;
+    final up = above >= 90 || above >= below;
+    final room = formula.display ? most : 96.0;
+    final panel = MathPreview(
+      // своя формула — своё состояние: последняя разобравшаяся не переходит к соседней
+      key: ValueKey(formula.start),
+      tex: formula.tex,
+      display: formula.display,
+      maxHeight: room.clamp(0.0, up ? above : below).toDouble(),
+    );
+    return Stack(
+      children: [
+        if (up)
+          Positioned(left: 12, right: 12, bottom: height - caret.top + gap, child: Align(alignment: Alignment.bottomCenter, child: panel))
+        else
+          Positioned(left: 12, right: 12, top: caret.bottom + gap, child: Align(alignment: Alignment.topCenter, child: panel)),
       ],
     );
   }

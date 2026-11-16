@@ -841,5 +841,7 @@
   "codeCopy": "Code kopieren",
   "codeCopied": "Kopiert",
   "codeShowAll": "{count, plural, one{Alles zeigen · {count} Zeile} other{Alles zeigen · {count} Zeilen}}",
-  "codeCollapse": "Einklappen"
+  "codeCollapse": "Einklappen",
+  "mdMath": "Formel",
+  "mdMathNext": "Nächstes Formelfeld"
 }

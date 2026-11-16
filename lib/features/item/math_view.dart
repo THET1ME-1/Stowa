@@ -38,6 +38,53 @@ class MathBlockView extends StatelessWidget {
   }
 }
 
+/// Готовая формула над строкой с курсором, пока её набирают. Недописанная (`\frac{a}{`) не
+/// разбирается — тогда видна последняя, что разобралась, и формула не мигает на каждую букву.
+class MathPreview extends StatefulWidget {
+  const MathPreview({super.key, required this.tex, required this.display, this.maxHeight = 140});
+
+  final String tex;
+  final bool display;
+  final double maxHeight;
+
+  @override
+  State<MathPreview> createState() => _MathPreviewState();
+}
+
+class _MathPreviewState extends State<MathPreview> {
+  String? _good;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_broken(widget.tex)) _good = widget.tex;
+  }
+
+  @override
+  void didUpdateWidget(MathPreview old) {
+    super.didUpdateWidget(old);
+    if (widget.tex != old.tex && !_broken(widget.tex)) _good = widget.tex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final good = _good;
+    if (good == null || good.trim().isEmpty) return const SizedBox.shrink();
+    return Container(
+      key: const ValueKey('math-preview'),
+      constraints: BoxConstraints(maxHeight: widget.maxHeight),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(Radii.tile)),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SingleChildScrollView(
+          child: Math.tex(good, mathStyle: widget.display ? MathStyle.display : MathStyle.text, textStyle: TextStyle(fontSize: 18, color: Tokens.onSurface)),
+        ),
+      ),
+    );
+  }
+}
+
 /// Формула внутри строки текста, по базовой линии. Не поняли — исходник моноширинным.
 Widget inlineMath(String tex, TextStyle style) => Math.tex(
   tex,

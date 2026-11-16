@@ -47,6 +47,7 @@ import 'wiki_link_edit.dart';
 import 'wiki_suggestions.dart';
 import 'markdown_bar.dart';
 import 'markdown_edit.dart';
+import 'math_edit.dart' show mathInput;
 import 'panel_model.dart';
 import 'panel_text.dart';
 import 'start_card.dart';
@@ -1131,7 +1132,12 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         cursorColor: Tokens.accent,
         style: fieldStyle,
         // второй «[» дописывает «]]»; под замком подсказки нет, но скобки закрываются; << >> -- — в « » —
-        inputFormatters: [TextInputFormatter.withFunction(closeWikiBrackets), TextInputFormatter.withFunction(smartPunctuation)],
+        inputFormatters: [
+          TextInputFormatter.withFunction(closeWikiBrackets),
+          // формулы набираются так же, как в заметке: пары, сокращения, дробь
+          TextInputFormatter.withFunction(mathInput),
+          TextInputFormatter.withFunction(smartPunctuation),
+        ],
         decoration: InputDecoration.collapsed(
           hintText: _full ? l.fullHint : (widget.homeFolder != null ? l.dropHere : (widget.writeOnly ? l.composerHintNoSearch : l.composerHint)),
           hintMaxLines: _full ? null : 1,
@@ -1169,7 +1175,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                 child: AnimatedOpacity(
                   opacity: _full && !_morph.isAnimating ? 1 : 0,
                   duration: const Duration(milliseconds: 250),
-                  child: _full && !_morph.isAnimating ? MarkdownBar(onAction: _markdown, undo: _undo) : const SizedBox(width: double.infinity),
+                  child: _full && !_morph.isAnimating ? MarkdownBar(onAction: _markdown, undo: _undo, field: _line) : const SizedBox(width: double.infinity),
                 ),
               ),
               // рост под чипы ведёт рамка всей строки; край не маской (она перерисовывает слой

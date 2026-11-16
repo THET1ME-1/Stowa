@@ -841,5 +841,7 @@
   "codeCopy": "Скопіювати код",
   "codeCopied": "Скопійовано",
   "codeShowAll": "{count, plural, one{Показати все · {count} рядок} few{Показати все · {count} рядки} many{Показати все · {count} рядків} other{Показати все · {count} рядка}}",
-  "codeCollapse": "Згорнути"
+  "codeCollapse": "Згорнути",
+  "mdMath": "Формула",
+  "mdMathNext": "Наступне поле формули"
 }

@@ -4075,4 +4075,10 @@ class LRo extends L {
 
   @override
   String get codeCollapse => 'Restrânge';
+
+  @override
+  String get mdMath => 'Formulă';
+
+  @override
+  String get mdMathNext => 'Câmpul următor al formulei';
 }

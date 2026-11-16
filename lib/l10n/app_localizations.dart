@@ -6856,6 +6856,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Collapse'**
   String get codeCollapse;
+
+  /// Кнопка полосы разметки: обернуть выделенное в $…$
+  ///
+  /// In en, this message translates to:
+  /// **'Formula'**
+  String get mdMath;
+
+  /// Кнопка полосы разметки, когда курсор в формуле: перейти, например, из числителя в знаменатель
+  ///
+  /// In en, this message translates to:
+  /// **'Next formula field'**
+  String get mdMathNext;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

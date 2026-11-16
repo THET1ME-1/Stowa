@@ -4061,4 +4061,10 @@ class LDe extends L {
 
   @override
   String get codeCollapse => 'Einklappen';
+
+  @override
+  String get mdMath => 'Formel';
+
+  @override
+  String get mdMathNext => 'Nächstes Formelfeld';
 }

@@ -1,15 +1,19 @@
 import 'package:flutter/widgets.dart';
 
-enum MarkdownAction { heading, bold, italic, strike, bullets, checklist, quote, code, link }
+import 'math_edit.dart' show mathTabOut;
+
+/// [math] — обернуть в `$…$`, [mathNext] — к следующему полю формулы.
+enum MarkdownAction { heading, bold, italic, strike, bullets, checklist, quote, code, link, math, mathNext }
 
 const _prefixes = {MarkdownAction.heading: '# ', MarkdownAction.bullets: '- ', MarkdownAction.checklist: '- [ ] ', MarkdownAction.quote: '> '};
 
-const _wraps = {MarkdownAction.bold: '**', MarkdownAction.italic: '_', MarkdownAction.strike: '~~', MarkdownAction.code: '`'};
+const _wraps = {MarkdownAction.bold: '**', MarkdownAction.italic: '_', MarkdownAction.strike: '~~', MarkdownAction.code: '`', MarkdownAction.math: r'$'};
 
 /// Кнопка панели разметки: знак строки встаёт в её начало, знак слова оборачивает выделение.
 TextEditingValue applyMarkdown(TextEditingValue value, MarkdownAction action) {
   final text = value.text;
   final selection = value.selection.isValid ? value.selection : TextSelection.collapsed(offset: text.length);
+  if (action == MarkdownAction.mathNext) return mathTabOut(value);
   // «Связь»: [[выделенное]], курсор перед «]]» — выделенное слово сразу ищется в подсказке
   if (action == MarkdownAction.link) {
     final selected = text.substring(selection.start, selection.end);

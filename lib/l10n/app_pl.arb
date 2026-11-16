@@ -841,5 +841,7 @@
   "codeCopy": "Kopiuj kod",
   "codeCopied": "Skopiowano",
   "codeShowAll": "{count, plural, one{Pokaż wszystko · {count} wiersz} few{Pokaż wszystko · {count} wiersze} many{Pokaż wszystko · {count} wierszy} other{Pokaż wszystko · {count} wiersza}}",
-  "codeCollapse": "Zwiń"
+  "codeCollapse": "Zwiń",
+  "mdMath": "Wzór",
+  "mdMathNext": "Następne pole wzoru"
 }

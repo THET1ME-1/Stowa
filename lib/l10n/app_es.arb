@@ -841,5 +841,7 @@
   "codeCopy": "Copiar código",
   "codeCopied": "Copiado",
   "codeShowAll": "{count, plural, one{Mostrar todo · {count} línea} other{Mostrar todo · {count} líneas}}",
-  "codeCollapse": "Contraer"
+  "codeCollapse": "Contraer",
+  "mdMath": "Fórmula",
+  "mdMathNext": "Siguiente campo de la fórmula"
 }

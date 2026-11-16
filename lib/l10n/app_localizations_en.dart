@@ -4037,4 +4037,10 @@ class LEn extends L {
 
   @override
   String get codeCollapse => 'Collapse';
+
+  @override
+  String get mdMath => 'Formula';
+
+  @override
+  String get mdMathNext => 'Next formula field';
 }

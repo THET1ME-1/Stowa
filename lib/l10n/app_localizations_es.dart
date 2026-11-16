@@ -4048,4 +4048,10 @@ class LEs extends L {
 
   @override
   String get codeCollapse => 'Contraer';
+
+  @override
+  String get mdMath => 'Fórmula';
+
+  @override
+  String get mdMathNext => 'Siguiente campo de la fórmula';
 }

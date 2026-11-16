@@ -73,6 +73,43 @@ $$''';
 
 void main() {
   setUpAll(_loadFonts);
+  testWidgets('math_editing', (tester) async {
+    final world = TestWorld();
+    addTearDown(world.dispose);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(392, 850);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.reset);
+    Tokens.use(StowaPalette.graphiteDark);
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Погрешности', body: const Value('Погрешности'), createdAt: world.now, updatedAt: world.now));
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(RepaintBoundary(
+      key: const ValueKey('shot'),
+      child: ProviderScope(
+        overrides: world.overrides,
+        child: MaterialApp(
+          theme: buildAppTheme(StowaPalette.graphiteDark),
+          locale: const Locale('ru'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: const ItemScreen(id: 'a'),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    const text = 'Погрешности\nОтносительная погрешность\n\$\$\n\\delta = \\frac{\\Delta x}{|x|} \\cdot 100\\%\n\$\$\nгде';
+    tester.testTextInput.updateEditingValue(const TextEditingValue(text: text, selection: TextSelection.collapsed(offset: 64)));
+    await tester.pumpAndSettle();
+    final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(const ValueKey('shot')));
+    await tester.runAsync(() async {
+      final image = await boundary.toImage(pixelRatio: 2);
+      final png = await image.toByteData(format: ui.ImageByteFormat.png);
+      File('build/previews/math_editing.png').writeAsBytesSync(png!.buffer.asUint8List());
+    });
+    expect(tester.takeException(), isNull);
+  });
   for (final (name, choice) in [('math_dark', ThemeChoice.dark), ('math_light', ThemeChoice.light)]) {
     testWidgets(name, (tester) async {
       final world = TestWorld();

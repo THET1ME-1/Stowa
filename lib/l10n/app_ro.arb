@@ -841,5 +841,7 @@
   "codeCopy": "Copiază codul",
   "codeCopied": "Copiat",
   "codeShowAll": "{count, plural, one{Arată tot · {count} rând} few{Arată tot · {count} rânduri} other{Arată tot · {count} de rânduri}}",
-  "codeCollapse": "Restrânge"
+  "codeCollapse": "Restrânge",
+  "mdMath": "Formulă",
+  "mdMathNext": "Câmpul următor al formulei"
 }

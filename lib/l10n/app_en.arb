@@ -4887,5 +4887,13 @@
   "codeCollapse": "Collapse",
   "@codeCollapse": {
     "description": "Под раскрытым длинным блоком кода"
+  },
+  "mdMath": "Formula",
+  "@mdMath": {
+    "description": "Кнопка полосы разметки: обернуть выделенное в $…$"
+  },
+  "mdMathNext": "Next formula field",
+  "@mdMathNext": {
+    "description": "Кнопка полосы разметки, когда курсор в формуле: перейти, например, из числителя в знаменатель"
   }
 }

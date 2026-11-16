@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+import 'math_edit.dart' show mathAround;
+
 const _pairs = {'<<': '«', '>>': '»', '--': '—'};
 
 /// Набранные `<<`, `>>`, `--` становятся «, » и —, как в типографике. Черта Markdown
@@ -13,6 +15,8 @@ TextEditingValue smartPunctuation(TextEditingValue old, TextEditingValue next) {
   final lineStart = text.lastIndexOf('\n', caret - 1) + 1;
   final line = text.substring(lineStart, caret);
   if (_inCode(text, lineStart, line)) return next;
+  // в формуле «<<» и «--» — знаки LaTeX, их ждут сокращения формул
+  if (mathAround(text, caret) != null) return next;
 
   // «—» в начале строки и третий дефис — это черта «---», а не тире с дефисом
   if (line == '—-') return _replace(next, lineStart, caret, '---');
