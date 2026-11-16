@@ -1,7 +1,14 @@
+import 'dart:math' as math;
+
+import 'package:intl/intl.dart';
 import 'package:yaml/yaml.dart';
 
+import 'word_forms.dart' show foldText;
+
+part 'base_eval.dart';
+
 /// База Obsidian: файл `.base` (YAML) — вид на заметки хранилища по условиям.
-/// Stowa понимает частый набор выражений (описание —
+/// Stowa понимает выражения Bases (описание —
 /// docs/specs/2026-11-15-canvas-base-files-design.md); непонятное условие не прячет
 /// заметки молча: оно пропускается, а результат помечается [BaseResult.unsupported].
 
@@ -17,6 +24,7 @@ class BaseNote {
     required this.modified,
     this.title,
     this.image,
+    this.size,
   });
 
   final String id;
@@ -41,13 +49,19 @@ class BaseNote {
   /// Картинка для вида «Карточки»: путь от корня хранилища.
   final String? image;
 
+  /// Размер файла в байтах, если известен.
+  final int? size;
+
   String get name => path.split('/').last;
   String get basename => name.contains('.') ? name.substring(0, name.lastIndexOf('.')) : name;
   String get ext => name.contains('.') ? name.substring(name.lastIndexOf('.') + 1) : '';
   String get folder => path.contains('/') ? path.substring(0, path.lastIndexOf('/')) : '';
 }
 
-enum BaseViewType { table, cards, list, map, other }
+enum BaseViewType { table, cards, list, kanban, map, other }
+
+/// Как картинка ложится в карточку: обрезкой по рамке или целиком.
+enum BaseImageFit { cover, contain }
 
 sealed class BaseFilter {
   const BaseFilter();
@@ -87,8 +101,24 @@ class BaseExpr extends BaseFilter {
   final String source;
 }
 
+typedef BaseSortKey = ({String property, bool descending});
+
 class BaseView {
-  const BaseView({required this.type, required this.name, this.filters, this.order = const [], this.sort = const [], this.limit, this.groupBy});
+  const BaseView({
+    required this.type,
+    required this.name,
+    this.filters,
+    this.order = const [],
+    this.sort = const [],
+    this.limit,
+    this.groupBy,
+    this.image,
+    this.cardSize,
+    this.imageAspectRatio,
+    this.imageFit = BaseImageFit.cover,
+    this.columnSize = const {},
+    this.summaries = const {},
+  });
 
   final BaseViewType type;
   final String name;
@@ -96,9 +126,30 @@ class BaseView {
 
   /// Колонки по порядку: `file.name`, `note.author`, `author`, `formula.x`.
   final List<String> order;
-  final List<({String property, bool descending})> sort;
+  final List<BaseSortKey> sort;
   final int? limit;
-  final ({String property, bool descending})? groupBy;
+  final BaseSortKey? groupBy;
+
+  /// Свойство с картинкой карточки: `note.Обложка`.
+  final String? image;
+
+  /// Ширина карточки и колонки канбана в точках Obsidian.
+  final double? cardSize;
+
+  /// Высота картинки к ширине карточки.
+  final double? imageAspectRatio;
+  final BaseImageFit imageFit;
+
+  /// Ширина колонок таблицы: ключ как в `order`.
+  final Map<String, double> columnSize;
+
+  /// Итог под колонкой: «Average», «Sum», «Filled» или своё имя из `summaries` файла.
+  final Map<String, String> summaries;
+
+  /// Ширина колонки, где бы её ни записали: `note.x` и `x` — одно свойство.
+  double? widthOf(String property) => columnSize[property] ?? columnSize[_noted(property)] ?? columnSize[_bare(property)];
+
+  String? summaryOf(String property) => summaries[property] ?? summaries[_noted(property)] ?? summaries[_bare(property)];
 }
 
 class BaseGroup {
@@ -108,7 +159,7 @@ class BaseGroup {
 }
 
 class BaseResult {
-  const BaseResult({required this.rows, this.groups, this.unsupported = false});
+  const BaseResult({required this.rows, this.groups, this.unsupported = false, int? total}) : total = total ?? rows.length;
 
   /// Заметки по порядку показа (с группами — подряд по группам).
   final List<BaseNote> rows;
@@ -116,10 +167,13 @@ class BaseResult {
 
   /// Встретилось условие или формула, которых Stowa не понимает.
   final bool unsupported;
+
+  /// Сколько заметок прошло условия до предела вида.
+  final int total;
 }
 
 class ObsidianBase {
-  const ObsidianBase({this.filters, this.formulas = const {}, this.displayNames = const {}, this.views = const [], this.broken = false});
+  const ObsidianBase({this.filters, this.formulas = const {}, this.displayNames = const {}, this.summaries = const {}, this.views = const [], this.broken = false});
 
   /// Разбор файла. Битый YAML — база без видов с [broken]. Без видов — одна таблица.
   factory ObsidianBase.parse(String text) {
@@ -138,22 +192,31 @@ class ObsidianBase {
     ];
     return ObsidianBase(
       filters: BaseFilter.from(map['filters']),
-      formulas: {for (final MapEntry(:key, :value) in ((map['formulas'] as Map?) ?? const {}).entries) '$key': '$value'},
+      formulas: _strings(map['formulas']),
       displayNames: {
         if (properties is Map)
           for (final MapEntry(:key, :value) in properties.entries)
             if (value is Map && value['displayName'] != null) _bare('$key'): '${value['displayName']}',
       },
+      summaries: _strings(map['summaries']),
       views: views.isEmpty ? const [BaseView(type: BaseViewType.table, name: '')] : views,
     );
   }
 
+  static Map<String, String> _strings(Object? yaml) => {
+    if (yaml is Map)
+      for (final MapEntry(:key, :value) in yaml.entries)
+        if (value != null) '$key': '$value',
+  };
+
   static BaseView _view(Map view) {
-    ({String property, bool descending})? key(Object? raw) => raw is Map && raw['property'] != null
+    BaseSortKey? key(Object? raw) => raw is Map && raw['property'] != null
         ? (property: '${raw['property']}', descending: '${raw['direction'] ?? 'ASC'}'.toUpperCase() == 'DESC')
         : raw is String
         ? (property: raw, descending: false)
         : null;
+    double? number(Object? raw) => raw is num ? raw.toDouble() : double.tryParse('${raw ?? ''}');
+    final sizes = view['columnSize'];
     return BaseView(
       type: BaseViewType.values.asNameMap()[view['type']] ?? BaseViewType.other,
       name: '${view['name'] ?? ''}',
@@ -162,6 +225,16 @@ class ObsidianBase {
       sort: [for (final one in (view['sort'] as List?) ?? const []) ?key(one)],
       limit: view['limit'] is int ? view['limit'] as int : null,
       groupBy: key(view['groupBy']),
+      image: view['image'] == null ? null : '${view['image']}',
+      cardSize: number(view['cardSize']),
+      imageAspectRatio: number(view['imageAspectRatio']),
+      imageFit: '${view['imageFit']}' == 'contain' ? BaseImageFit.contain : BaseImageFit.cover,
+      columnSize: {
+        if (sizes is Map)
+          for (final MapEntry(:key, :value) in sizes.entries)
+            if (number(value) case final width?) '$key': width,
+      },
+      summaries: _strings(view['summaries']),
     );
   }
 
@@ -170,13 +243,17 @@ class ObsidianBase {
 
   /// Подписи колонок из `properties`, ключ без `note.`.
   final Map<String, String> displayNames;
+
+  /// Свои итоги файла: имя — выражение над `values`.
+  final Map<String, String> summaries;
   final List<BaseView> views;
   final bool broken;
 
   String? displayName(String property) => displayNames[_bare(property)];
 
-  /// Заметки вида [viewIndex]: общие условия и условия вида, сортировка, предел, группы.
-  BaseResult run(int viewIndex, List<BaseNote> notes, {required DateTime now}) {
+  /// Заметки вида [viewIndex]: общие условия и условия вида, поиск, сортировка, предел, группы.
+  /// [search] ищет в показанных свойствах [columns] без регистра и надстрочных знаков.
+  BaseResult run(int viewIndex, List<BaseNote> notes, {required DateTime now, String search = '', List<String>? columns}) {
     final view = views[viewIndex.clamp(0, views.length - 1)];
     var unsupported = false;
     bool passes(BaseFilter? filter, BaseNote note) {
@@ -199,7 +276,6 @@ class ObsidianBase {
       }
     }
 
-    var rows = [for (final note in notes) if (passes(filters, note) && passes(view.filters, note)) note];
     Object? read(BaseNote note, String property) {
       try {
         return value(note, property, now: now);
@@ -209,9 +285,19 @@ class ObsidianBase {
       }
     }
 
+    var rows = [for (final note in notes) if (passes(filters, note) && passes(view.filters, note)) note];
+    final query = foldText(search.trim());
+    if (query.isNotEmpty) {
+      final shown = {'file.name', ...?columns, ...view.order};
+      rows = [
+        for (final note in rows)
+          if (shown.any((property) => foldText(_text(read(note, property))).contains(query))) note,
+      ];
+    }
     for (final key in view.sort.reversed) {
       rows = _stableSort(rows, (a, b) => _compare(read(a, key.property), read(b, key.property)) * (key.descending ? -1 : 1));
     }
+    final total = rows.length;
     if (view.limit case final limit? when rows.length > limit) rows = rows.sublist(0, limit);
     List<BaseGroup>? groups;
     if (view.groupBy case final group?) {
@@ -223,7 +309,7 @@ class ObsidianBase {
       groups = [for (final key in keys) BaseGroup(key, byKey[key]!)];
       rows = [for (final group in groups) ...group.rows];
     }
-    return BaseResult(rows: rows, groups: groups, unsupported: unsupported);
+    return BaseResult(rows: rows, groups: groups, unsupported: unsupported, total: total);
   }
 
   /// Значение колонки у заметки: `file.*`, свойство (`note.x` или `x`), `formula.x`.
@@ -233,9 +319,89 @@ class ObsidianBase {
       if (formula == null) return null;
       return _Eval(note, this, now).run(formula);
     }
-    return _Eval(note, this, now).run(property);
+    // в order и sort — имя свойства, а не выражение: «Курс обучения» с пробелом тоже свойство
+    if (property.startsWith('file.')) return _Eval(note, this, now)._field(_File(note), property.substring(5));
+    return _plain(note.properties[_bare(property)]);
+  }
+
+  /// Итог колонки: готовый («Average», «Filled»…) или свой из `summaries` файла.
+  Object? summary(String name, List<Object?> values, {required DateTime now}) {
+    if (summaries[name] case final formula?) {
+      try {
+        return _Eval(null, this, now).run(formula, vars: {'values': values});
+      } on BaseUnsupported {
+        return null;
+      }
+    }
+    return summarizeBase(name, values);
+  }
+
+  /// Проверка выражения без заметок: null — понятно, иначе что не так.
+  static String? check(String source) {
+    try {
+      _parse(source);
+      return null;
+    } on BaseUnsupported catch (error) {
+      return error.what;
+    }
   }
 }
+
+/// Готовые итоги Bases по значениям колонки.
+const baseSummaryNames = ['Average', 'Median', 'Min', 'Max', 'Sum', 'Range', 'Stddev', 'Earliest', 'Latest', 'Checked', 'Unchecked', 'Empty', 'Filled', 'Unique'];
+
+Object? summarizeBase(String name, List<Object?> values) {
+  bool empty(Object? value) => value == null || (value is String && value.isEmpty) || (value is List && value.isEmpty);
+  final numbers = [for (final value in values) if (value is num) value];
+  final dates = [for (final value in values) ?_date(value is String && value.length >= 8 ? value : value is DateTime ? value : null)];
+  num? mean() => numbers.isEmpty ? null : _whole(numbers.reduce((a, b) => a + b) / numbers.length);
+  switch (name) {
+    case 'Average':
+      return mean();
+    case 'Median':
+      if (numbers.isEmpty) return null;
+      final sorted = [...numbers]..sort();
+      final middle = sorted.length ~/ 2;
+      return sorted.length.isOdd ? sorted[middle] : _whole((sorted[middle - 1] + sorted[middle]) / 2);
+    case 'Min':
+      return numbers.isEmpty ? null : numbers.reduce(math.min);
+    case 'Max':
+      return numbers.isEmpty ? null : numbers.reduce(math.max);
+    case 'Sum':
+      return numbers.isEmpty ? null : numbers.reduce((a, b) => a + b);
+    case 'Range':
+      if (numbers.isNotEmpty) return numbers.reduce(math.max) - numbers.reduce(math.min);
+      if (dates.isEmpty) return null;
+      dates.sort();
+      return dates.last.difference(dates.first);
+    case 'Stddev':
+      if (numbers.isEmpty) return null;
+      final average = numbers.reduce((a, b) => a + b) / numbers.length;
+      return math.sqrt(numbers.map((one) => (one - average) * (one - average)).reduce((a, b) => a + b) / numbers.length);
+    case 'Earliest' || 'Latest':
+      if (dates.isEmpty) return null;
+      dates.sort();
+      return name == 'Earliest' ? dates.first : dates.last;
+    case 'Checked':
+      return values.where((value) => value == true).length;
+    case 'Unchecked':
+      return values.where((value) => value != true).length;
+    case 'Empty':
+      return values.where(empty).length;
+    case 'Filled':
+      return values.where((value) => !empty(value)).length;
+    case 'Unique':
+      final seen = <Object?>[];
+      for (final value in values.where((value) => !empty(value))) {
+        if (!seen.any((other) => _equals(other, value))) seen.add(value);
+      }
+      return seen.length;
+  }
+  return null;
+}
+
+/// Значение строкой, как его показывает база: список через запятую, число без «.0».
+String baseText(Object? value) => _text(value);
 
 /// Новая база папки: заметки из неё и вложенных, таблица «Название» и «Изменена».
 String newBaseFor(String folderPath) {
@@ -257,8 +423,9 @@ String newBaseFor(String folderPath) {
 }
 
 String _bare(String property) => property.startsWith('note.') ? property.substring(5) : property;
+String _noted(String property) => property.contains('.') ? property : 'note.$property';
 
-Object? _groupKey(Object? value) => value is List ? value.join(', ') : value;
+Object? _groupKey(Object? value) => value is List ? value.map(_text).join(', ') : value;
 
 List<T> _stableSort<T>(List<T> list, int Function(T, T) compare) {
   final indexed = [for (final (index, item) in list.indexed) (index, item)];
@@ -271,12 +438,15 @@ List<T> _stableSort<T>(List<T> list, int Function(T, T) compare) {
 
 /// Порядок: пустое в конце, числа и даты по значению, строки без регистра.
 int _compare(Object? a, Object? b) {
-  if (a == null || (a is String && a.isEmpty)) return (b == null || (b is String && b.isEmpty)) ? 0 : 1;
-  if (b == null || (b is String && b.isEmpty)) return -1;
-  if (a is num && b is num) return a.compareTo(b);
-  if (a is DateTime && b is DateTime) return a.compareTo(b);
-  if (a is bool && b is bool) return a == b ? 0 : (a ? -1 : 1);
-  return '$a'.toLowerCase().compareTo('$b'.toLowerCase());
+  bool empty(Object? value) => value == null || (value is String && value.isEmpty) || (value is List && value.isEmpty);
+  if (empty(a)) return empty(b) ? 0 : 1;
+  if (empty(b)) return -1;
+  final (x, y) = _align(a, b);
+  if (x is num && y is num) return x.compareTo(y);
+  if (x is DateTime && y is DateTime) return x.compareTo(y);
+  if (x is Duration && y is Duration) return x.compareTo(y);
+  if (x is bool && y is bool) return x == y ? 0 : (x ? -1 : 1);
+  return _text(x).toLowerCase().compareTo(_text(y).toLowerCase());
 }
 
 bool _truthy(Object? value) => switch (value) {
@@ -285,6 +455,7 @@ bool _truthy(Object? value) => switch (value) {
   num() => value != 0,
   String() => value.isNotEmpty,
   List() => value.isNotEmpty,
+  Map() => value.isNotEmpty,
   _ => true,
 };
 
@@ -294,409 +465,4 @@ class BaseUnsupported implements Exception {
   final String what;
   @override
   String toString() => 'BaseUnsupported($what)';
-}
-
-// ── вычислитель ─────────────────────────────────────────────────────────────
-
-enum _T { number, string, ident, op, lparen, rparen, comma, dot, end }
-
-class _Token {
-  const _Token(this.type, this.text, [this.value]);
-  final _T type;
-  final String text;
-  final Object? value;
-}
-
-List<_Token> _lex(String source) {
-  final tokens = <_Token>[];
-  var i = 0;
-  const twoChar = {'==', '!=', '>=', '<=', '&&', '||'};
-  while (i < source.length) {
-    final c = source[i];
-    if (c.trim().isEmpty) {
-      i++;
-      continue;
-    }
-    if (c == '"' || c == "'") {
-      final buffer = StringBuffer();
-      i++;
-      while (i < source.length && source[i] != c) {
-        if (source[i] == r'\' && i + 1 < source.length) i++;
-        buffer.write(source[i]);
-        i++;
-      }
-      if (i >= source.length) throw const BaseUnsupported('строка без конца');
-      i++;
-      tokens.add(_Token(_T.string, buffer.toString(), buffer.toString()));
-      continue;
-    }
-    if (RegExp(r'[0-9]').hasMatch(c)) {
-      final match = RegExp(r'[0-9]+(\.[0-9]+)?').matchAsPrefix(source, i)!;
-      tokens.add(_Token(_T.number, match[0]!, num.parse(match[0]!)));
-      i = match.end;
-      continue;
-    }
-    final ident = RegExp(r'[A-Za-z_Ѐ-ӿ][A-Za-z0-9_Ѐ-ӿ-]*').matchAsPrefix(source, i);
-    if (ident != null) {
-      tokens.add(_Token(_T.ident, ident[0]!));
-      i = ident.end;
-      continue;
-    }
-    if (i + 1 < source.length && twoChar.contains(source.substring(i, i + 2))) {
-      tokens.add(_Token(_T.op, source.substring(i, i + 2)));
-      i += 2;
-      continue;
-    }
-    switch (c) {
-      case '(':
-        tokens.add(const _Token(_T.lparen, '('));
-      case ')':
-        tokens.add(const _Token(_T.rparen, ')'));
-      case ',':
-        tokens.add(const _Token(_T.comma, ','));
-      case '.':
-        tokens.add(const _Token(_T.dot, '.'));
-      case '>' || '<' || '!' || '+' || '-' || '*' || '/':
-        tokens.add(_Token(_T.op, c));
-      default:
-        throw BaseUnsupported('знак «$c»');
-    }
-    i++;
-  }
-  tokens.add(const _Token(_T.end, ''));
-  return tokens;
-}
-
-/// Объект `file` в выражении.
-class _File {
-  const _File(this.note);
-  final BaseNote note;
-}
-
-class _Eval {
-  _Eval(this.note, this.base, this.now);
-
-  final BaseNote note;
-  final ObsidianBase base;
-  final DateTime now;
-  late List<_Token> _tokens;
-  var _at = 0;
-  final _formulaDepth = <String>{};
-
-  Object? run(String source) {
-    _tokens = _lex(source);
-    _at = 0;
-    final value = _or();
-    if (_peek.type != _T.end) throw BaseUnsupported('лишнее «${_peek.text}»');
-    return value;
-  }
-
-  _Token get _peek => _tokens[_at];
-  _Token _next() => _tokens[_at++];
-  bool _op(String text) {
-    if (_peek.type == _T.op && _peek.text == text) {
-      _at++;
-      return true;
-    }
-    return false;
-  }
-
-  Object? _or() {
-    var left = _and();
-    while (_op('||')) {
-      final right = _and();
-      left = _truthy(left) || _truthy(right);
-    }
-    return left;
-  }
-
-  Object? _and() {
-    var left = _equality();
-    while (_op('&&')) {
-      final right = _equality();
-      left = _truthy(left) && _truthy(right);
-    }
-    return left;
-  }
-
-  Object? _equality() {
-    var left = _compareExpr();
-    while (true) {
-      if (_op('==')) {
-        left = _equals(left, _compareExpr());
-      } else if (_op('!=')) {
-        left = !_equals(left, _compareExpr());
-      } else {
-        return left;
-      }
-    }
-  }
-
-  Object? _compareExpr() {
-    var left = _additive();
-    for (final op in ['>=', '<=', '>', '<']) {
-      if (_op(op)) {
-        final right = _additive();
-        final (a, b) = _align(left, right);
-        if (a == null || b == null) return false;
-        final order = _compare(a, b);
-        left = switch (op) { '>=' => order >= 0, '<=' => order <= 0, '>' => order > 0, _ => order < 0 };
-        return left;
-      }
-    }
-    return left;
-  }
-
-  Object? _additive() {
-    var left = _multiplicative();
-    while (true) {
-      if (_op('+')) {
-        final right = _multiplicative();
-        left = switch ((left, right)) {
-          (num a, num b) => a + b,
-          (DateTime a, _) => a.add(_duration(right)),
-          (String a, _) => '$a${right ?? ''}',
-          _ => null,
-        };
-      } else if (_op('-')) {
-        final right = _multiplicative();
-        left = switch ((left, right)) {
-          (num a, num b) => a - b,
-          (DateTime a, DateTime b) => a.difference(b).inMilliseconds,
-          (DateTime a, _) => a.subtract(_duration(right)),
-          _ => null,
-        };
-      } else {
-        return left;
-      }
-    }
-  }
-
-  Object? _multiplicative() {
-    var left = _unary();
-    while (true) {
-      if (_op('*')) {
-        final right = _unary();
-        left = left is num && right is num ? left * right : null;
-      } else if (_op('/')) {
-        final right = _unary();
-        left = left is num && right is num && right != 0 ? left / right : null;
-      } else {
-        return left;
-      }
-    }
-  }
-
-  Object? _unary() {
-    if (_op('!')) return !_truthy(_unary());
-    if (_op('-')) {
-      final value = _unary();
-      return value is num ? -value : null;
-    }
-    return _postfix(_primary());
-  }
-
-  Object? _primary() {
-    final token = _next();
-    switch (token.type) {
-      case _T.number || _T.string:
-        return token.value;
-      case _T.lparen:
-        final value = _or();
-        if (_next().type != _T.rparen) throw const BaseUnsupported('нет «)»');
-        return value;
-      case _T.ident:
-        final name = token.text;
-        if (_peek.type == _T.lparen) return _call(name, _args());
-        return switch (name) {
-          'true' => true,
-          'false' => false,
-          'null' => null,
-          'file' => _File(note),
-          'note' => note.properties,
-          'formula' => const _FormulaRoot(),
-          _ => _property(name),
-        };
-      default:
-        throw BaseUnsupported('«${token.text}»');
-    }
-  }
-
-  List<Object?> _args() {
-    _next();
-    final args = <Object?>[];
-    if (_peek.type == _T.rparen) {
-      _next();
-      return args;
-    }
-    while (true) {
-      args.add(_or());
-      final token = _next();
-      if (token.type == _T.rparen) return args;
-      if (token.type != _T.comma) throw const BaseUnsupported('список без «,»');
-    }
-  }
-
-  Object? _postfix(Object? value) {
-    while (_peek.type == _T.dot) {
-      _next();
-      final name = _next();
-      if (name.type != _T.ident) throw const BaseUnsupported('точка без имени');
-      value = _peek.type == _T.lparen ? _method(value, name.text, _args()) : _field(value, name.text);
-    }
-    return value;
-  }
-
-  Object? _property(String name) => _plain(note.properties[name]);
-
-  Object? _field(Object? target, String name) {
-    if (target is _File) {
-      final file = target.note;
-      return switch (name) {
-        'name' => file.basename,
-        'basename' => file.basename,
-        'fullname' => file.name,
-        'path' => file.path,
-        'folder' => file.folder,
-        'ext' => file.ext,
-        'ctime' => file.created,
-        'mtime' => file.modified,
-        'tags' => file.tags,
-        'links' => file.links,
-        _ => throw BaseUnsupported('file.$name'),
-      };
-    }
-    if (target is _FormulaRoot) {
-      final formula = base.formulas[name];
-      // формула, ссылающаяся на себя по кругу, даёт пусто, а не зависание
-      if (formula == null || _formulaDepth.contains(name)) return null;
-      final inner = _Eval(note, base, now).._formulaDepth.addAll({..._formulaDepth, name});
-      return inner.run(formula);
-    }
-    if (target is Map) return _plain(target[name]);
-    if (name == 'length') {
-      if (target is String) return target.length;
-      if (target is List) return target.length;
-    }
-    if (target == null) return null;
-    throw BaseUnsupported('поле $name');
-  }
-
-  Object? _method(Object? target, String name, List<Object?> args) {
-    if (target is _File) {
-      final file = target.note;
-      switch (name) {
-        case 'inFolder':
-          final folder = '${args.firstOrNull ?? ''}'.replaceAll(RegExp(r'^/+|/+$'), '');
-          return folder.isEmpty || file.folder == folder || file.folder.startsWith('$folder/');
-        case 'hasTag':
-          return args.any((tag) {
-            final want = '$tag'.replaceFirst('#', '').toLowerCase();
-            return file.tags.any((one) => one.toLowerCase() == want || one.toLowerCase().startsWith('$want/'));
-          });
-        case 'hasLink':
-          final want = '${args.firstOrNull ?? ''}'.replaceAll(RegExp(r'\.md$'), '').split('/').last.toLowerCase();
-          return file.links.any((link) => link.toLowerCase() == want);
-        case 'hasProperty':
-          return file.properties.containsKey('${args.firstOrNull}');
-      }
-      throw BaseUnsupported('file.$name()');
-    }
-    switch ((target, name)) {
-      case (String text, 'contains'):
-        return text.contains('${args.firstOrNull ?? ''}');
-      case (String text, 'containsAll'):
-        return args.every((one) => text.contains('$one'));
-      case (String text, 'containsAny'):
-        return args.any((one) => text.contains('$one'));
-      case (String text, 'startsWith'):
-        return text.startsWith('${args.firstOrNull ?? ''}');
-      case (String text, 'endsWith'):
-        return text.endsWith('${args.firstOrNull ?? ''}');
-      case (String text, 'lower'):
-        return text.toLowerCase();
-      case (String text, 'upper'):
-        return text.toUpperCase();
-      case (String text, 'trim'):
-        return text.trim();
-      case (String text, 'isEmpty'):
-        return text.isEmpty;
-      case (List list, 'contains'):
-        return list.any((one) => _equals(one, args.firstOrNull));
-      case (List list, 'containsAny'):
-        return args.any((want) => list.any((one) => _equals(one, want)));
-      case (List list, 'containsAll'):
-        return args.every((want) => list.any((one) => _equals(one, want)));
-      case (List list, 'isEmpty'):
-        return list.isEmpty;
-      case (List list, 'join'):
-        return list.join('${args.firstOrNull ?? ', '}');
-      case (null, 'isEmpty'):
-        return true;
-      case (null, _):
-        return null;
-    }
-    throw BaseUnsupported('$name()');
-  }
-
-  Object? _call(String name, List<Object?> args) => switch (name) {
-    'now' => now,
-    'today' => DateTime(now.year, now.month, now.day),
-    'date' => _date(args.firstOrNull),
-    'if' => _truthy(args.elementAtOrNull(0)) ? args.elementAtOrNull(1) : args.elementAtOrNull(2),
-    'number' => args.firstOrNull is num ? args.first : num.tryParse('${args.firstOrNull}'),
-    'list' => args.firstOrNull is List ? args.first : [args.firstOrNull],
-    _ => throw BaseUnsupported('$name()'),
-  };
-}
-
-class _FormulaRoot {
-  const _FormulaRoot();
-}
-
-/// YAML-списки и словари — обычными, дата строкой «2026-11-01» — датой.
-Object? _plain(Object? value) {
-  if (value is YamlList) return [for (final one in value) _plain(one)];
-  if (value is YamlMap) return {for (final MapEntry(:key, :value) in value.entries) '$key': _plain(value)};
-  return value;
-}
-
-DateTime? _date(Object? value) {
-  if (value is DateTime) return value;
-  if (value is String) return DateTime.tryParse(value.trim());
-  return null;
-}
-
-/// Для сравнения: дата строкой рядом с датой становится датой.
-(Object?, Object?) _align(Object? a, Object? b) {
-  if (a is DateTime && b is String) return (a, _date(b));
-  if (b is DateTime && a is String) return (_date(a), b);
-  return (a, b);
-}
-
-bool _equals(Object? a, Object? b) {
-  final (x, y) = _align(a, b);
-  if (x is num && y is num) return x == y;
-  if (x is String && y is String) return x == y;
-  if (x is List && y is! List) return x.any((one) => _equals(one, y));
-  return x == y;
-}
-
-/// «7 days», «1 week», «2d», «3 months» — длительность.
-Duration _duration(Object? value) {
-  if (value is num) return Duration(milliseconds: value.round());
-  final match = RegExp(r'^\s*(\d+)\s*([a-zA-Z]+)\s*$').firstMatch('$value');
-  if (match == null) throw BaseUnsupported('длительность «$value»');
-  final count = int.parse(match[1]!);
-  final unit = match[2]!.toLowerCase();
-  return switch (unit) {
-    's' || 'sec' || 'second' || 'seconds' => Duration(seconds: count),
-    'm' || 'min' || 'minute' || 'minutes' => Duration(minutes: count),
-    'h' || 'hour' || 'hours' => Duration(hours: count),
-    'd' || 'day' || 'days' => Duration(days: count),
-    'w' || 'week' || 'weeks' => Duration(days: 7 * count),
-    'month' || 'months' => Duration(days: 30 * count),
-    'y' || 'year' || 'years' => Duration(days: 365 * count),
-    _ => throw BaseUnsupported('единица «$unit»'),
-  };
 }
