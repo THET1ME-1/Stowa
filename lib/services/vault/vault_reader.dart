@@ -224,8 +224,9 @@ class VaultReader {
   }
 
   /// Папки-призраки от прежней гонки с писателем: каталог вложений «Фото от 20 августа/» рядом
-  /// с «Фото от 20 августа.md» сверка однажды приняла за папку. Пустая, без вложенных и стоящая
-  /// ровно на месте каталога вложений живой заметки — не папка человека, её строка уходит.
+  /// с «Фото от 20 августа.md» сверка однажды приняла за папку. Без вложенных и стоящая ровно
+  /// на месте каталога вложений живой заметки — не папка человека: то, что угадыватель успел
+  /// в неё разложить, переезжает в родительскую папку (писатель перенесёт файлы), строка уходит.
   Future<void> _dropGhostFolders() async {
     final keys = await _folderKeys();
     if (keys.isEmpty) return;
@@ -238,10 +239,11 @@ class VaultReader {
         if (noteDirs.contains(path)) id,
     ];
     for (final id in ghosts) {
-      final busy = await _db
-          .customSelect('SELECT 1 FROM items WHERE folder_id = ?1 AND deleted_at IS NULL UNION ALL SELECT 1 FROM folders WHERE parent_id = ?1 AND deleted_at IS NULL LIMIT 1', variables: [Variable.withString(id)])
-          .getSingleOrNull();
-      if (busy != null) continue;
+      final nested = await (_db.select(_db.folders)..where((t) => t.parentId.equals(id) & t.deletedAt.isNull())).get();
+      if (nested.isNotEmpty) continue;
+      final folder = await (_db.select(_db.folders)..where((t) => t.id.equals(id))).getSingle();
+      // не под флагом: файлы разложенных заметок писатель уносит из каталога вложений в папку
+      await (_db.update(_db.items)..where((t) => t.folderId.equals(id))).write(ItemsCompanion(folderId: Value(folder.parentId)));
       // под флагом: каталог на диске — вложения заметки, писатель его не трогает
       await _quietly(() => (_db.delete(_db.folders)..where((t) => t.id.equals(id))).go());
     }

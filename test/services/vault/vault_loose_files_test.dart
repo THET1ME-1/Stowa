@@ -146,6 +146,27 @@ void main() {
     expect(file('Фото от 20 августа/IMG.jpg').existsSync(), isTrue);
   });
 
+  // эмулятор 16.11: угадыватель успел разложить в папку-призрак две фотозаметки — пустой она
+  // уже не была и оставалась висеть внутри каталога вложений чужой заметки
+  test('папка-призрак с разложенными в неё заметками: заметки — в родительскую, папка уходит', () async {
+    final at = now;
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'stowa', name: 'Stowa', icon: 'folder', shape: 'squircle'));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'n', kind: ItemKind.image, title: 'Фото от 20 августа', folderId: const Value('stowa'), createdAt: at, updatedAt: at));
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a', itemId: 'n', path: 'Stowa/Фото от 20 августа/IMG.jpg', mime: 'image/jpeg', size: 3));
+    put('Stowa/Фото от 20 августа/IMG.jpg', [1, 2, 3]);
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'ghost', name: 'Фото от 20 августа', icon: 'folder', shape: 'squircle', parentId: const Value('stowa')));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'sorted', kind: ItemKind.note, title: 'Закат', body: const Value('Закат'), folderId: const Value('ghost'), createdAt: at, updatedAt: at));
+    await writer().drain();
+    expect(file('Stowa/Фото от 20 августа/Закат.md').existsSync(), isTrue);
+    await reader().reconcile();
+    expect((await (db.select(db.folders)..where((t) => t.deletedAt.isNull())).get()).map((folder) => folder.id), ['stowa']);
+    expect((await (db.select(db.items)..where((t) => t.id.equals('sorted'))).getSingle()).folderId, 'stowa');
+    // файл заметки уезжает из каталога вложений в саму папку, картинка чужой заметки на месте
+    await writer().drain();
+    expect(file('Stowa/Закат.md').existsSync(), isTrue);
+    expect(file('Stowa/Фото от 20 августа/IMG.jpg').existsSync(), isTrue);
+  });
+
   test('удалили файл снаружи — заметка в корзине', () async {
     put('Фото/закат.png', [1, 2]);
     await reader().reconcile();
