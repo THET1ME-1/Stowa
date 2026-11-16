@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import '../../data/db/database.dart';
 import '../../data/repositories/items_repository.dart' show placeReminderOf;
 import '../../domain/folder_tree.dart';
-import '../../domain/note_blocks.dart' show embedNames, embedPath;
+import '../../domain/note_blocks.dart' show embedLine, embedNames, embedPath;
 import '../../domain/vault_note.dart';
 import '../privacy/sealed_space.dart';
 import '../../domain/models.dart' show ItemKind, documentExtension, isDocumentKind;
@@ -18,10 +18,28 @@ import 'vault_meta.dart';
 /// триггеры базы; писатель забирает задачу арендой, как хранитель файлов, поэтому
 /// главное окно, «Поделиться» и фон не пишут один файл вдвоём.
 class VaultWriter {
-  VaultWriter(this._db, {required Directory? root, required DateTime Function() clock, Future<void> Function(File temp, File target)? commit})
+  VaultWriter(this._db, {required Directory? root, required DateTime Function() clock, Future<void> Function(File temp, File target)? commit, this.attachmentsDefault})
     : _root = root, // ignore: prefer_initializing_formals
       _clock = clock, // ignore: prefer_initializing_formals
       _commit = commit ?? _rename;
+
+  /// Имя общей папки вложений, если в хранилище нет ни Obsidian, ни выбора: «Вложения» на
+  /// языке приложения. Записывается при первом проходе — хранилище, созданное только что,
+  /// сразу кладёт фото туда, а не россыпью рядом с заметками. null — не ставить (тесты).
+  final String Function()? attachmentsDefault;
+  bool _choiceChecked = false;
+
+  void _ensureAttachmentChoice() {
+    final make = attachmentsDefault;
+    if (_choiceChecked || make == null) return;
+    _choiceChecked = true;
+    try {
+      final setting = readAttachmentSetting(_root!);
+      if (!setting.obsidian && setting.setting == null) writeAttachmentSetting(_root, make());
+    } on Object {
+      // не записалось — вложения лягут рядом с заметкой, выбрать можно в настройках
+    }
+  }
 
   final AppDatabase _db;
 
@@ -51,6 +69,7 @@ class VaultWriter {
       return 0;
     }
     _running = true;
+    _ensureAttachmentChoice();
     sawExternalEdit = false;
     var done = 0;
     try {
@@ -120,15 +139,19 @@ class VaultWriter {
     final item = await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull();
     var known = await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(id))).getSingleOrNull();
     if (item != null && known != null && isLoosePath(known.path)) {
-      // заметка-файл без текста — сам файл: переименовать и переложить, ничего не дописывая
-      if (item.body.trim().isEmpty && !(SealedSpace.root != null && await _hiddenFolder(item.folderId))) {
+      // заметка-файл без своего — сам файл: переименовать и переложить, ничего не дописывая
+      if (await _bare(item) && !(SealedSpace.root != null && await _hiddenFolder(item.folderId))) {
         await _writeLoose(item, known);
         return;
       }
-      // дописали текст или убрали в скрытое: обычная заметка, файл уходит к ней вложением
+      // у файла появилось своё (текст, метка, напоминание…) или его убрали в скрытое: рядом
+      // пишется заметка со вставкой, а сам файл остаётся на месте
       await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(id))).go();
       known = null;
     }
+    // заметка без текста, чей файл ещё копируется: пишется вместе с файлом, иначе на миг
+    // появилась бы пустая «Фото от ….md» рядом с будущим голым файлом
+    if (item != null && known == null && _textOf(item.body).isEmpty && await _copying(id)) return;
     if (item == null) {
       // вещь стёрта насовсем: файл, вложения и добытое уходят следом
       if (known != null) {
@@ -168,7 +191,19 @@ class VaultWriter {
     // рисунок, названный просто «Схема.md», так и остаётся «.md»: имя файла выбирал человек
     final plainDrawing = item.kind == ItemKind.drawing && known != null && !known.path.toLowerCase().endsWith('.excalidraw.md');
     final extension = !document || plainDrawing ? 'md' : documentExtension(item.kind);
-    var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(item.title)}.$extension');
+    final folders = await _folderPath(item.folderId);
+    // одно фото или файл без своего в настоящей папке — сам файл, без заметки рядом. Только
+    // с подписью от приложения («Фото от …»): название, данное человеком, или старая заметка
+    // до 16.11 голым файлом не становятся — их имя и вид остаются, как были
+    if (known == null && !document && item.titleAuto && item.deletedAt == null && folders.isNotEmpty && await _bare(item)) {
+      final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))).get();
+      if (files.length == 1 && _outside(files.single.path)) {
+        await _placeLoose(item, files.single, folders);
+        return;
+      }
+    }
+    final live = notePath(folders: folders, fileName: '${vaultFileName(item.title)}.$extension');
+    var wanted = live;
     if (item.deletedAt != null) wanted = trashPath(wanted);
     // «Купить молоко 2.md» остаётся «2», пока заголовок тот же: файл не прыгает между именами.
     // Свой холст по id не узнать: id в JSON не пишется, его файл знает только карта файлов
@@ -183,18 +218,32 @@ class VaultWriter {
       await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
       return;
     }
-    final renamed = await _gather(id, attachmentsDir(path));
+    // новые файлы — из входящих в папку вложений по настройке (как в Obsidian); то, что уже
+    // лежит в хранилище, не двигается: картинки Obsidian из «Изображений» и старые «Заметка/»
+    final setting = readAttachmentSetting(_root!);
+    final renamed = await _gather(id, attachmentFolderFor(live, obsidian: setting.obsidian, setting: setting.setting));
+    final legacy = attachmentsDir(path);
+    await _trashAttachments(item, legacy: legacy);
     // картинка в тексте ссылается на имя файла: занятое имя получило номер — текст следом
     var body = item.body;
     for (final MapEntry(key: before, value: after) in renamed.entries) {
       body = body.replaceAll('![[$before]]', '![[$after]]');
     }
+    final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
+    // вложение без вставки в тексте (кроме старого хвоста в «Заметка/») встаёт вставкой в конец
+    // текста: место картинки задаёт текст, а не галерея сверху
+    final paths = [for (final attachment in attachments) attachment.path];
+    final inline = {for (final name in embedNames(body)) ?embedPath(name, paths)};
+    final missing = [
+      for (final path in paths)
+        if (!inline.contains(path) && !path.startsWith('$legacy/') && !p.isAbsolute(path)) '![[${await _embedName(path)}]]',
+    ];
+    if (missing.isNotEmpty) body = [if (body.trim().isNotEmpty) body.trimRight(), missing.join('\n')].join('\n\n');
     if (body != item.body) {
       final fixed = body;
       await _quietly(() => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(body: Value(fixed))));
     }
 
-    final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
     final note = await vaultNoteOf(_db, item.copyWith(body: body), attachments: [for (final attachment in attachments) attachment.path]);
     final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path)));
     final stat = await file.stat();
@@ -259,7 +308,8 @@ class VaultWriter {
       await _remove(known.path);
       await (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(id))).go();
     }
-    final renamed = await _gather(id, '$open/files/$id');
+    // в скрытое уходит всё: и лежавшее в хранилище, текст скрытого не должен оставаться открытым
+    final renamed = await _gather(id, '$open/files/$id', all: true);
     var body = item.body;
     for (final MapEntry(key: before, value: after) in renamed.entries) {
       body = body.replaceAll('![[$before]]', '![[$after]]');
@@ -443,12 +493,19 @@ class VaultWriter {
     await _prune(p.posix.dirname(from));
   }
 
-  /// Вложения, которые лежат не у заметки (входящие, старое место `attachments/`), переезжают
-  /// в её папку под своим именем без номера порядка; одинаковые имена — «фото 2.jpg».
-  /// Отдаёт имена, которые пришлось сменить: старое → новое.
-  Future<Map<String, String>> _gather(String id, String dir) async {
+  /// Вложения, которые лежат вне хранилища (входящие, старое место `attachments/`, открытая папка
+  /// скрытого), переезжают в [dir] ('' — корень) под своим именем без номера порядка. Имя свободно
+  /// по всему хранилищу: короткая вставка `![[фото.jpg]]` должна вести ровно к одному файлу —
+  /// занятое получает «фото 2.jpg». Лежащее в хранилище не двигается; [all] — двигается и оно
+  /// (уход в скрытое). Отдаёт имена, которые пришлось сменить: старое → новое.
+  Future<Map<String, String>> _gather(String id, String dir, {bool all = false}) async {
     final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
-    final used = {for (final attachment in attachments) if (attachment.path.startsWith('$dir/')) p.posix.basename(attachment.path).toLowerCase()};
+    String inDir(String name) => dir.isEmpty ? name : '$dir/$name';
+    final used = {
+      for (final row in await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id).not())).get()) p.posix.basename(row.path).toLowerCase(),
+      for (final row in await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(id).not())).get()) p.posix.basename(row.path).toLowerCase(),
+      for (final attachment in attachments) if (!all && !_outside(attachment.path)) p.posix.basename(attachment.path).toLowerCase(),
+    };
     // файл, который числится и за другой живой заметкой (дубль от прежней гонки сверки), — её:
     // забрать его к себе значило бы оставить ей серую плитку
     final shared = {
@@ -461,12 +518,13 @@ class VaultWriter {
     final renamed = <String, String>{};
     for (final attachment in attachments) {
       if (attachment.path.startsWith('$dir/') || shared.contains(attachment.path)) continue;
+      if (!all && !_outside(attachment.path)) continue;
       final source = File(_absolute(attachment.path));
       if (!await source.exists()) continue;
       final name = p.posix.basename(attachment.path).replaceFirst(RegExp(r'^\d+_'), '');
-      var target = '$dir/$name';
+      var target = inDir(name);
       for (var number = 2; used.contains(p.posix.basename(target).toLowerCase()) || File(_absolute(target)).existsSync(); number++) {
-        target = '$dir/${p.posix.basenameWithoutExtension(name)} $number${p.posix.extension(name)}';
+        target = inDir('${p.posix.basenameWithoutExtension(name)} $number${p.posix.extension(name)}');
       }
       used.add(p.posix.basename(target).toLowerCase());
       await _relocate(source.path, _absolute(target));
@@ -481,6 +539,95 @@ class VaultWriter {
       }
     });
     return renamed;
+  }
+
+  /// Файл ещё вне хранилища: входящие, старое место `attachments/`, открытая папка скрытого.
+  static bool _outside(String path) => p.isAbsolute(path) || path.startsWith('$serviceFolder/incoming/') || path.startsWith('attachments/');
+
+  /// Текст без строк-вставок `![[…]]`: то, что написал человек.
+  static String _textOf(String body) => body.split('\n').where((line) => !embedLine.hasMatch(line)).join('\n').trim();
+
+  Future<bool> _copying(String id) async => (await (_db.select(_db.fileJobs)..where((t) => t.itemId.equals(id))..limit(1)).get()).isNotEmpty;
+
+  /// У вещи нет ничего, кроме файла: ни текста, ни меток, ни напоминаний, ни закрепления, ни
+  /// своих свойств, ни ссылки, ни ручных связей, ни цитат. Такую вещь хранит сам файл; как
+  /// только что-то появится — рядом пишется заметка (в jpg свойств не запишешь, а тайник в
+  /// `.stowa` осиротел бы при первом переименовании снаружи).
+  Future<bool> _bare(Item item) async {
+    if (_textOf(item.body).isNotEmpty || item.url != null || isDocumentKind(item.kind)) return false;
+    if (item.reminderAt != null || item.remindPlace != null || item.pinnedAt != null) return false;
+    if (unpackVaultProperties(item.properties).isNotEmpty) return false;
+    final id = Variable.withString(item.id);
+    final own = await _db
+        .customSelect(
+          'SELECT 1 FROM item_tags WHERE item_id = ?1 '
+          "UNION ALL SELECT 1 FROM links WHERE (from_id = ?1 OR to_id = ?1) AND source = 'manual' AND rejected = 0 "
+          'UNION ALL SELECT 1 FROM highlights WHERE item_id = ?1 LIMIT 1',
+          variables: [id],
+        )
+        .getSingleOrNull();
+    return own == null;
+  }
+
+  /// Голый файл: из входящих прямо в каталог папки под своим именем (камеры или человека),
+  /// строка карты файлов — на сам файл. Заметки `.md` рядом нет.
+  Future<void> _placeLoose(Item item, Attachment file, List<String> folders) async {
+    final name = p.posix.basename(file.path).replaceFirst(RegExp(r'^\d+_'), '');
+    final path = await _free(notePath(folders: folders, fileName: name), item.id);
+    final source = File(_absolute(file.path));
+    if (!await source.exists()) return;
+    await _relocate(source.path, _absolute(path));
+    await _prune(p.posix.dirname(file.path));
+    final stat = await File(_absolute(path)).stat();
+    await _quietly(() async {
+      await (_db.update(_db.attachments)..where((t) => t.id.equals(file.id))).write(AttachmentsCompanion(path: Value(path)));
+      await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: item.id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+    });
+  }
+
+  /// Как вставить файл в текст: коротким именем, если оно одно на хранилище (как пишет
+  /// Obsidian), иначе путём от корня.
+  Future<String> _embedName(String path) async {
+    final name = p.posix.basename(path);
+    final lower = name.toLowerCase();
+    final others = [
+      for (final row in await _db.select(_db.attachments).get()) if (row.path != path) row.path,
+      for (final row in await _db.select(_db.vaultFiles).get()) if (row.path != path) row.path,
+    ];
+    return others.any((other) => p.posix.basename(other).toLowerCase() == lower) ? path : name;
+  }
+
+  /// Удалённая заметка уносит в корзину свои вложения, на которые больше никто не ссылается,
+  /// и возвращает их при восстановлении. Общие остаются на месте; старые «Заметка/» переезжают
+  /// вместе с файлом заметки в [_move].
+  Future<void> _trashAttachments(Item item, {required String legacy}) async {
+    final deleted = item.deletedAt != null;
+    final rows = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(item.id))).get();
+    final moved = <String, String>{};
+    for (final row in rows) {
+      final path = row.path;
+      if (_outside(path) || path.startsWith('$legacy/')) continue;
+      final inTrash = path.startsWith('$trashFolder/');
+      if (deleted == inTrash) continue;
+      if (deleted) {
+        final shared = await (_db.select(_db.attachments).join([innerJoin(_db.items, _db.items.id.equalsExp(_db.attachments.itemId))])
+              ..where(_db.attachments.path.equals(path) & _db.attachments.itemId.equals(item.id).not() & _db.items.deletedAt.isNull())
+              ..limit(1))
+            .getSingleOrNull();
+        if (shared != null) continue;
+      }
+      var target = deleted ? trashPath(path) : path.substring(trashFolder.length + 1);
+      if (!deleted && File(_absolute(target)).existsSync()) target = uniqueNotePath(target, (candidate) => File(_absolute(candidate)).existsSync());
+      if (!await _relocate(_absolute(path), _absolute(target))) continue;
+      await _prune(p.posix.dirname(path));
+      moved[row.id] = target;
+    }
+    if (moved.isEmpty) return;
+    await _quietly(() async {
+      for (final MapEntry(key: attachmentId, value: path) in moved.entries) {
+        await (_db.update(_db.attachments)..where((t) => t.id.equals(attachmentId))).write(AttachmentsCompanion(path: Value(path)));
+      }
+    });
   }
 
   /// Своя правка базы, которую не надо писать обратно в файлы: флаг глушит триггеры.

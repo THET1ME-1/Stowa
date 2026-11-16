@@ -109,7 +109,7 @@ class VaultMove {
     if (written.isNotEmpty) {
       await (_db.delete(_db.vaultQueue)..where((t) => t.target.isIn([for (final id in written) ...['item:$id', 'facts:$id']]))).go();
     }
-    final writer = VaultWriter(_db, root: target, clock: _clock);
+    final writer = VaultWriter(_db, root: target, clock: _clock, attachmentsDefault: attachmentsDefaultFor(settings.language?.code));
     await writer.drain();
     await writer.drain();
     progress?.call(total, total);

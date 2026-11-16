@@ -32,6 +32,7 @@ import 'privacy/privacy_service.dart';
 import 'reminder_actions.dart';
 import 'return_service.dart';
 import 'telegram_service.dart';
+import 'vault/vault_layout.dart' show attachmentsDefaultFor;
 import 'vault/vault_location.dart';
 import 'vault/vault_reader.dart';
 import 'vault/vault_sync.dart';
@@ -148,13 +149,13 @@ void backgroundDispatcher() {
         db: db,
         vault: place.vault,
         appData: scratch,
-        flush: VaultWriter(db, root: place.vault, clock: DateTime.now).drain,
+        flush: VaultWriter(db, root: place.vault, clock: DateTime.now, attachmentsDefault: attachmentsDefaultFor(settings.language?.code)).drain,
         fingerprintKey: const SecureKeyStore('sealed_key'),
       ).settle().catchError((_) {});
       // файлы — прежде всего: без сети и без ключа, просто положить на место
       final filesDone = await keepFilesInBackground(db, filesRoot, scratch);
       // и сразу в файлы хранилища: приложение могли закрыть, не дописав очередь
-      final vault = VaultSync(reader: VaultReader(db, root: place.vault, clock: DateTime.now), writer: VaultWriter(db, root: place.vault, clock: DateTime.now));
+      final vault = VaultSync(reader: VaultReader(db, root: place.vault, clock: DateTime.now), writer: VaultWriter(db, root: place.vault, clock: DateTime.now, attachmentsDefault: attachmentsDefaultFor(settings.language?.code)));
       await vault.run().catchError((_) {});
       // легли файлы или вышла новая версия извлекателей: разобрать, пока приложение закрыто.
       // Правила по фактам — после разбора и по очереди: фоновая задача не ждёт брошенных

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/vault/vault_layout.dart' show readAttachmentSetting;
 import 'package:stowa/services/vault/vault_move.dart';
 import 'package:stowa/services/vault/vault_reader.dart';
 
@@ -52,13 +53,17 @@ void main() {
     expect(report.ok, isTrue, reason: report.missing.join(', '));
     expect(steps, greaterThan(0));
     expect(at('Рецепты/Борщ.md').existsSync(), isTrue);
-    expect(at('Рецепты/Борщ/борщ.jpg').readAsStringSync(), 'борщ');
+    // новое хранилище без Obsidian получает общую папку вложений на языке приложения
+    final shared = readAttachmentSetting(target).setting!;
+    expect(shared, isNot(contains('/')));
+    expect(at('$shared/борщ.jpg').readAsStringSync(), 'борщ');
+    expect(at('Рецепты/Борщ.md').readAsStringSync(), contains('![[борщ.jpg]]'));
     expect(at('Карбонара.md').existsSync(), isTrue);
     expect(at('.trash/Старое.md').existsSync(), isTrue);
     expect(at('.stowa/covers/l.jpg').readAsStringSync(), 'обл');
     expect(at('.stowa/tag-icons/t.png').readAsStringSync(), 'тег');
     expect(at('.stowa/pages/l.html.gz').readAsStringSync(), 'стр');
-    expect((await db.select(db.attachments).getSingle()).path, 'Рецепты/Борщ/борщ.jpg');
+    expect((await db.select(db.attachments).getSingle()).path, '$shared/борщ.jpg');
     expect((await (db.select(db.items)..where((t) => t.id.equals('l'))).getSingle()).coverPath, '.stowa/covers/l.jpg');
     expect((await db.select(db.tags).getSingle()).iconValue, '.stowa/tag-icons/t.png');
     expect(settings.vaultPath, target.path);
@@ -91,7 +96,7 @@ void main() {
     final second = Directory(p.join(target.parent.path, 'Другая'));
     final report = await move(from: target, insideApp: false).moveTo(second, VaultMode.device);
     expect(report.ok, isTrue, reason: report.missing.join(', '));
-    expect(File(p.join(second.path, 'Рецепты/Борщ/борщ.jpg')).readAsStringSync(), 'борщ');
+    expect(File(p.join(second.path, readAttachmentSetting(target).setting!, 'борщ.jpg')).readAsStringSync(), 'борщ');
     expect(settings.vaultPath, second.path);
     expect(at('Рецепты/Борщ.md').existsSync(), isTrue, reason: 'чужая для приложения папка остаётся как была');
   });

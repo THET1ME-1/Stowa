@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart' show OrderingTerm;
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/vault/vault_layout.dart' show readAttachmentSetting, writeAttachmentSetting;
 import 'package:stowa/services/vault/vault_reader.dart';
+import 'package:stowa/services/vault/vault_writer.dart';
 
 // Вложения как в Obsidian (16.11.2026): файл лежит сам по себе, место в тексте задаёт
 // `![[имя]]`. Старые заметки Stowa с хвостом и каталогом «Заметка/» читаются как раньше.
@@ -69,6 +72,156 @@ void main() {
     put('Где-то/далеко/d.jpg');
     await reader().reconcile();
     expect(await paths((await only()).id), ['Где-то/далеко/d.jpg']);
+  });
+
+  // ── запись ──
+
+  VaultWriter writer() => VaultWriter(db, root: root, clock: () => now);
+  Future<void> folder(String id, String name) => db.into(db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'folder', shape: 'squircle'));
+  Future<void> item(String id, {String title = 'Заметка', String body = '', String? folderId, bool auto = false, ItemKind kind = ItemKind.note}) => db
+      .into(db.items)
+      .insert(ItemsCompanion.insert(id: id, kind: kind, title: title, body: Value(body), folderId: Value(folderId), titleAuto: Value(auto), createdAt: now, updatedAt: now));
+  Future<void> attach(String itemId, String path, {String id = 'a', int position = 0}) async {
+    put(path);
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: id, itemId: itemId, path: path, mime: 'image/jpeg', size: 3, position: Value(position)));
+  }
+
+  Future<String?> mapped(String id) async => (await (db.select(db.vaultFiles)..where((t) => t.itemId.equals(id))).getSingleOrNull())?.path;
+
+  test('новая заметка с фото: файл в общей папке, вставка в тексте, хвоста и каталога нет', () async {
+    writeAttachmentSetting(root, 'Вложения');
+    await folder('f', 'Stowa');
+    await item('n', title: 'Купить молоко', body: 'Купить молоко\n\n![[IMG_1.jpg]]', folderId: 'f');
+    await attach('n', '.stowa/incoming/n/0_IMG_1.jpg');
+    await writer().drain();
+    expect(file('Вложения/IMG_1.jpg').existsSync(), isTrue);
+    expect(await paths('n'), ['Вложения/IMG_1.jpg']);
+    final text = file('Stowa/Купить молоко.md').readAsStringSync();
+    expect('![[IMG_1.jpg]]'.allMatches(text), hasLength(1));
+    expect(text.trimRight().endsWith('![[IMG_1.jpg]]'), isTrue);
+    expect(Directory(p.join(root.path, 'Stowa', 'Купить молоко')).existsSync(), isFalse);
+  });
+
+  test('одно фото без текста в папке — голый файл с именем камеры, без .md', () async {
+    writeAttachmentSetting(root, 'Вложения');
+    await folder('f', 'Stowa');
+    await item('n', title: 'Фото от 20 августа', folderId: 'f', auto: true, kind: ItemKind.image);
+    await attach('n', '.stowa/incoming/n/0_IMG_2.jpg');
+    await writer().drain();
+    expect(file('Stowa/IMG_2.jpg').existsSync(), isTrue);
+    expect(file('Stowa/Фото от 20 августа.md').existsSync(), isFalse);
+    expect(await mapped('n'), 'Stowa/IMG_2.jpg');
+    expect(await paths('n'), ['Stowa/IMG_2.jpg']);
+    // сверка не плодит из него вторую заметку
+    await reader().reconcile();
+    expect(await db.select(db.items).get(), hasLength(1));
+  });
+
+  test('фото без текста без папки — заметка-вставка в корне, сам файл во «Вложениях»', () async {
+    writeAttachmentSetting(root, 'Вложения');
+    await item('n', title: 'Фото от 20 августа', auto: true, kind: ItemKind.image);
+    await attach('n', '.stowa/incoming/n/0_IMG_3.jpg');
+    await writer().drain();
+    expect(file('Вложения/IMG_3.jpg').existsSync(), isTrue);
+    expect(file('IMG_3.jpg').existsSync(), isFalse);
+    expect(file('Фото от 20 августа.md').readAsStringSync(), contains('![[IMG_3.jpg]]'));
+  });
+
+  test('метка у голого файла — рядом .md со вставкой, файл на месте', () async {
+    await folder('f', 'Stowa');
+    await item('n', title: 'Фото от 20 августа', folderId: 'f', auto: true, kind: ItemKind.image);
+    await attach('n', '.stowa/incoming/n/0_IMG_4.jpg');
+    await writer().drain();
+    expect(await mapped('n'), 'Stowa/IMG_4.jpg');
+    await db.into(db.tags).insert(TagsCompanion.insert(id: 't', name: 'закат', createdAt: now));
+    await db.into(db.itemTags).insert(ItemTagsCompanion.insert(itemId: 'n', tagId: 't', source: TagSource.user));
+    await writer().drain();
+    expect(file('Stowa/IMG_4.jpg').existsSync(), isTrue);
+    final text = file('Stowa/Фото от 20 августа.md').readAsStringSync();
+    expect(text, contains('![[IMG_4.jpg]]'));
+    expect(text, contains('закат'));
+    expect(await mapped('n'), 'Stowa/Фото от 20 августа.md');
+  });
+
+  test('имя уже занято в хранилище — «IMG_1 2.jpg», вставка следом', () async {
+    writeAttachmentSetting(root, 'Вложения');
+    await item('other', title: 'Другая', body: 'Другая');
+    await attach('other', 'Где-то/IMG_1.jpg', id: 'o');
+    await item('n', title: 'Купить', body: 'Купить\n\n![[IMG_1.jpg]]');
+    await attach('n', '.stowa/incoming/n/0_IMG_1.jpg');
+    await writer().drain();
+    expect(await paths('n'), ['Вложения/IMG_1 2.jpg']);
+    expect(file('Купить.md').readAsStringSync(), contains('![[IMG_1 2.jpg]]'));
+    expect(file('Где-то/IMG_1.jpg').existsSync(), isTrue);
+  });
+
+  test('корзина: своё вложение уходит с заметкой и возвращается, общее остаётся', () async {
+    writeAttachmentSetting(root, 'Вложения');
+    await item('n', title: 'Своя', body: 'Своя\n\n![[a.jpg]]\n![[b.jpg]]');
+    await attach('n', 'Вложения/a.jpg');
+    await attach('n', 'Вложения/b.jpg', id: 'b', position: 1);
+    await item('m', title: 'Чужая', body: 'Чужая\n\n![[b.jpg]]');
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'mb', itemId: 'm', path: 'Вложения/b.jpg', mime: 'image/jpeg', size: 3));
+    await writer().drain();
+    await (db.update(db.items)..where((t) => t.id.equals('n'))).write(ItemsCompanion(deletedAt: Value(now)));
+    await writer().drain();
+    expect(file('.trash/Вложения/a.jpg').existsSync(), isTrue);
+    expect(file('Вложения/a.jpg').existsSync(), isFalse);
+    expect(file('Вложения/b.jpg').existsSync(), isTrue);
+    await (db.update(db.items)..where((t) => t.id.equals('n'))).write(const ItemsCompanion(deletedAt: Value(null)));
+    await writer().drain();
+    expect(file('Вложения/a.jpg').existsSync(), isTrue);
+    expect(await paths('n'), ['Вложения/a.jpg', 'Вложения/b.jpg']);
+  });
+
+  test('старая заметка с каталогом «Заметка/»: правка ничего не переносит', () async {
+    note('Дом/Плитка.md', 'Плитка\n\n![[Дом/Плитка/a.jpg]]\n');
+    put('Дом/Плитка/a.jpg');
+    await reader().reconcile();
+    final id = (await only()).id;
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(body: Value('Плитка белая')));
+    await writer().drain();
+    expect(file('Дом/Плитка/a.jpg').existsSync(), isTrue);
+    expect(file('Дом/Плитка.md').readAsStringSync(), contains('![[Дом/Плитка/a.jpg]]'));
+  });
+
+  test('заметка Obsidian со ссылкой в «Изображения»: правка не уносит картинку', () async {
+    put('.obsidian/app.json', utf8.encode(jsonEncode({'attachmentFolderPath': 'Изображения'})));
+    note('Дом/План.md', 'План\n![[c.jpg]]\n');
+    put('Изображения/c.jpg');
+    await reader().reconcile();
+    final id = (await only()).id;
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(body: Value('План новый\n![[c.jpg]]')));
+    await writer().drain();
+    expect(file('Изображения/c.jpg').existsSync(), isTrue);
+    expect(Directory(p.join(root.path, 'Дом', 'План')).existsSync(), isFalse);
+    expect(file('Дом/План.md').readAsStringSync(), contains('![[c.jpg]]'));
+  });
+
+  test('хранилище без Obsidian и без выбора: запись сама ставит «Вложения» на языке приложения', () async {
+    await item('n', title: 'Купить', body: 'Купить\n\n![[IMG_5.jpg]]');
+    await attach('n', '.stowa/incoming/n/0_IMG_5.jpg');
+    await VaultWriter(db, root: root, clock: () => now, attachmentsDefault: () => 'Вложения').drain();
+    expect(readAttachmentSetting(root), (obsidian: false, setting: 'Вложения'));
+    expect(await paths('n'), ['Вложения/IMG_5.jpg']);
+  });
+
+  test('с Obsidian без ключа запись умолчание не ставит: решает Obsidian', () async {
+    put('.obsidian/app.json', utf8.encode(jsonEncode({'promptDelete': false})));
+    await item('n', title: 'Купить', body: 'Купить\n\n![[IMG_6.jpg]]');
+    await attach('n', '.stowa/incoming/n/0_IMG_6.jpg');
+    await VaultWriter(db, root: root, clock: () => now, attachmentsDefault: () => 'Вложения').drain();
+    expect(readAttachmentSetting(root), (obsidian: true, setting: null));
+    expect(await paths('n'), ['IMG_6.jpg']);
+    expect(jsonDecode(file('.obsidian/app.json').readAsStringSync()), {'promptDelete': false});
+  });
+
+  test('файл ещё копируется — голую заметку не пишут раньше файла', () async {
+    await folder('f', 'Stowa');
+    await item('n', title: 'Фото от 20 августа', folderId: 'f', auto: true, kind: ItemKind.image);
+    await db.into(db.fileJobs).insert(FileJobsCompanion.insert(id: 'j', itemId: 'n', position: 0, source: '/tmp/IMG.jpg', target: '.stowa/incoming/n/0_IMG.jpg', mime: 'image/jpeg', size: 3, createdAt: now));
+    await writer().drain();
+    expect(file('Stowa/Фото от 20 августа.md').existsSync(), isFalse);
   });
 
   test('файл в общей папке, на который ссылается заметка, — не заметка-файл', () async {

@@ -44,6 +44,7 @@ import '../services/place_service.dart';
 import '../services/privacy/privacy_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
+import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
 import '../services/vault/vault_sync.dart';
@@ -703,7 +704,23 @@ class VaultRootNotifier extends Notifier<Directory?> {
 }
 
 /// Переносит правки из базы в файлы хранилища.
-final vaultWriterProvider = Provider((ref) => VaultWriter(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));
+final vaultWriterProvider = Provider(
+  (ref) => VaultWriter(
+    ref.watch(databaseProvider),
+    root: ref.watch(vaultRootProvider),
+    clock: ref.watch(clockProvider),
+    // «Вложения» на языке приложения, пока в хранилище нет ни Obsidian, ни выбора
+    attachmentsDefault: () {
+      String? language;
+      try {
+        language = ref.read(settingsRepositoryProvider).language?.code;
+      } on Object {
+        // настроек нет (тесты, окно без них) — язык телефона
+      }
+      return attachmentsDefaultFor(language)();
+    },
+  ),
+);
 
 /// Замок и скрытые папки. Ключ для отпечатка — в Keystore телефона, код и копия — в хранилище.
 final privacyServiceProvider = Provider(

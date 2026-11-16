@@ -169,7 +169,10 @@ void main() {
     await privacy.openWithCode('123456');
     await privacy.unhideFolder('secret');
     expect(File(p.join(vault.path, 'Секрет/План.md')).readAsStringSync(), contains('побега'));
-    expect(File(p.join(vault.path, 'Секрет/План/карта.jpg')).existsSync(), isTrue);
+    // файл возвращается по нынешнему правилу вложений (без настройки — рядом с заметкой) и
+    // встаёт в текст вставкой, а не в старый каталог «План/»
+    expect(File(p.join(vault.path, 'Секрет/карта.jpg')).existsSync(), isTrue);
+    expect(File(p.join(vault.path, 'Секрет/План.md')).readAsStringSync(), contains('![[карта.jpg]]'));
     await privacy.close();
     expect(await found('побега'), ['b']);
     expect(await found('ковриком'), ['c']);

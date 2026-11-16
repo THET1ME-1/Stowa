@@ -93,6 +93,9 @@ String? attachmentFolderNameError(String name) {
   return null;
 }
 
+/// Умолчание для записи хранилища: язык приложения, если выбран, иначе телефона.
+String Function() attachmentsDefaultFor(String? appLanguage) => () => defaultAttachmentFolder(appLanguage ?? Platform.localeName);
+
 /// Имя общей папки вложений по умолчанию — на языке телефона.
 String defaultAttachmentFolder(String locale) => switch (locale.split(RegExp('[_-]')).first.toLowerCase()) {
   'ru' => 'Вложения',

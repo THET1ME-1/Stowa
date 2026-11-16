@@ -104,17 +104,17 @@ void main() {
     expect(file('Фото/Фото от 20 августа.jpg').existsSync(), isFalse);
   });
 
-  test('дописал к файлу текст — стала обычная заметка с этим файлом во вложениях', () async {
+  test('дописал к файлу текст — рядом заметка со вставкой, сам файл на месте', () async {
     put('Книги/report.pdf', List.filled(10, 1));
     await reader().reconcile();
     final id = (await items()).single.id;
     await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(body: Value('Прочитать до пятницы')));
     await writer().drain();
-    expect(file('Книги/report.md').existsSync(), isTrue);
+    expect(file('Книги/report.md').readAsStringSync(), contains('Прочитать до пятницы\n\n![[report.pdf]]'));
     final saved = (await ItemsRepository(db).get(id))!;
-    expect(saved.attachments, hasLength(1));
-    expect(file(saved.attachments.single.path).existsSync(), isTrue);
-    expect(file('Книги/report.pdf').existsSync(), isFalse);
+    expect(saved.attachments.single.path, 'Книги/report.pdf');
+    // файл человека не двигается: в Obsidian на него могут ссылаться другие заметки
+    expect(file('Книги/report.pdf').existsSync(), isTrue);
   });
 
   // эмулятор 16.11 и жалоба тестировщика «не видно фоток»: писатель перенёс фото из входящих

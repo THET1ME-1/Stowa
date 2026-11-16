@@ -86,9 +86,11 @@ void main() {
     }
     await writer().drain();
     final paths = [for (final row in await (db.select(db.attachments)..orderBy([(t) => OrderingTerm.asc(t.position)])).get()) row.path];
-    expect(paths, ['Рецепты/Карбонара/фото.jpg', 'Рецепты/Карбонара/фото 2.jpg']);
-    expect(file('Рецепты/Карбонара/фото.jpg').readAsStringSync(), 'p1');
-    expect(file('Рецепты/Карбонара/фото 2.jpg').readAsStringSync(), 'p2');
+    // без выбора места и без Obsidian — рядом с заметкой, вставками в конце текста
+    expect(paths, ['Рецепты/фото.jpg', 'Рецепты/фото 2.jpg']);
+    expect(file('Рецепты/фото.jpg').readAsStringSync(), 'p1');
+    expect(file('Рецепты/фото 2.jpg').readAsStringSync(), 'p2');
+    expect(file('Рецепты/Карбонара.md').readAsStringSync(), contains('![[фото.jpg]]\n![[фото 2.jpg]]'));
     expect(Directory(p.join(root.path, '.stowa', 'incoming', 'a')).existsSync(), isFalse);
     expect(await queue(), isEmpty);
   });
@@ -199,10 +201,10 @@ void main() {
     expect((json['runs'] as List).single, containsPair('version', 2));
   });
 
-  test('фото в тексте: файл у заметки, в хвост не повторяется; занятое имя меняется и в тексте', () async {
+  test('фото в тексте: файл рядом с заметкой, в хвост не повторяется; занятое имя меняется и в тексте', () async {
     await note('a', 'Плитка', body: 'Плитка\nвот так\n![[IMG-1.jpg]]\nи так\n![[IMG-2.jpg]]');
     // на месте второго уже лежит чужой файл с тем же именем
-    file('Плитка/IMG-2.jpg')
+    file('IMG-2.jpg')
       ..createSync(recursive: true)
       ..writeAsStringSync('чужой');
     for (final (id, name, position) in [('p1', 'IMG-1.jpg', 0), ('p2', 'IMG-2.jpg', 1)]) {
@@ -215,8 +217,9 @@ void main() {
     await writer().drain();
     final text = file('Плитка.md').readAsStringSync();
     expect(text, endsWith('Плитка\nвот так\n![[IMG-1.jpg]]\nи так\n![[IMG-2 2.jpg]]\n'));
-    expect(file('Плитка/IMG-1.jpg').readAsStringSync(), 'p1');
-    expect(file('Плитка/IMG-2 2.jpg').readAsStringSync(), 'p2');
+    expect(file('IMG-1.jpg').readAsStringSync(), 'p1');
+    expect(file('IMG-2 2.jpg').readAsStringSync(), 'p2');
+    expect(file('IMG-2.jpg').readAsStringSync(), 'чужой');
     expect((await (db.select(db.items)..where((t) => t.id.equals('a'))).getSingle()).body, contains('![[IMG-2 2.jpg]]'));
     expect(await queue(), isEmpty);
   });

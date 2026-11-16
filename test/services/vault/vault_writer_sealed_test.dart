@@ -83,8 +83,10 @@ void main() {
 
     expect(File(p.join(vault.path, 'Дом/План.md')).readAsStringSync(), contains('План побега через окно'));
     expect(files(open), isEmpty);
-    expect((await db.select(db.attachments).getSingle()).path, 'Дом/План/карта.jpg');
-    expect(File(p.join(vault.path, 'Дом/План/карта.jpg')).existsSync(), isTrue);
+    // вернулся по нынешнему правилу вложений (без настройки — рядом с заметкой) и встал вставкой
+    expect((await db.select(db.attachments).getSingle()).path, 'Дом/карта.jpg');
+    expect(File(p.join(vault.path, 'Дом/карта.jpg')).existsSync(), isTrue);
+    expect(File(p.join(vault.path, 'Дом/План.md')).readAsStringSync(), contains('![[карта.jpg]]'));
     expect((await load()).coverPath, '.stowa/covers/a.jpg');
     expect((await db.select(db.facts).getSingle()).value, '.stowa/frames/a/0.jpg');
     for (final relative in ['.stowa/covers/a.jpg', '.stowa/frames/a/0.jpg', '.stowa/pages/a.html.gz', '.stowa/articles/a/0.img']) {
