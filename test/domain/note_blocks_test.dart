@@ -35,6 +35,36 @@ void main() {
     });
   });
 
+  // хозяин 16.11: «есть поддержка LaTeX формул?» — в College 210 блочных формул в 53 заметках
+  group('формулы', () {
+    test('блочная формула на своих строках, в одну строку и с текстом на строках знаков', () {
+      final blocks = parseNoteBlocks('Закон\n\$\$\n\\frac{a}{b} = c\n\\sum x\n\$\$\nДальше\n\$\$E = mc^2\$\$\n\$\$x +\ny\$\$');
+      expect((blocks[1] as MathBlock).tex, '\\frac{a}{b} = c\n\\sum x');
+      expect((blocks[2] as ParagraphBlock).text, 'Дальше');
+      expect((blocks[3] as MathBlock).tex, 'E = mc^2');
+      expect((blocks[4] as MathBlock).tex, 'x +\ny');
+    });
+
+    test('незакрытая формула — обычный текст; формула внутри кода — код', () {
+      expect(parseNoteBlocks('\$\$\nx\nтекст').first, isA<ParagraphBlock>());
+      expect(parseNoteBlocks('```\n\$\$\nx\n\$\$\n```').single, isA<CodeBlock>());
+    });
+
+    test('строчная формула — кусок с формулой, цены и знаки доллара — текст', () {
+      final pieces = parseInline(r'Скорость $v = \frac{s}{t}$, а не $5 и $10, и не \$x\$');
+      final math = [for (final piece in pieces) if (piece.math) piece.text];
+      expect(math, [r'v = \frac{s}{t}']);
+      expect(pieces.map((piece) => piece.text).join(), contains(r'а не $5 и $10'));
+    });
+
+    test('формула в строке рядом с кодом и жирным; внутри `кода` не формула', () {
+      final pieces = parseInline(r'**жирно** $x^2$ и `$y$`');
+      expect([for (final piece in pieces) if (piece.math) piece.text], ['x^2']);
+      expect([for (final piece in pieces) if (piece.code) piece.text], [r'$y$']);
+      expect([for (final piece in parseInline(r'итог $$a+b$$ тут')) if (piece.math) piece.text], ['a+b']);
+    });
+  });
+
   group('подпись языка', () {
     test('известные — красиво, псевдонимы — тем же языком, неизвестные — как написаны', () {
       expect(codeLanguage('python').label, 'Python');

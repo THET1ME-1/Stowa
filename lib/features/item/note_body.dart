@@ -6,6 +6,7 @@ import '../../core/theme/tokens.dart';
 import '../../domain/note_blocks.dart';
 import '../../domain/note_links.dart' show noteLinkScheme;
 import 'code_block_view.dart';
+import 'math_view.dart';
 
 const _markWidth = 32.0;
 // узкий пробел: поля подложки строчного кода
@@ -114,6 +115,7 @@ class NoteBody extends StatelessWidget {
       ),
       ImageBlock(:final name) => image?.call(name) ?? MissingImage(name: name),
       CodeBlock(:final code, :final language) => CodeBlockView(code: code, language: language, onTap: onEdit),
+      MathBlock(:final tex) => MathBlockView(tex: tex, onTap: onEdit),
       QuoteBlock(text: final value) => GestureDetector(
         onTap: onEdit,
         child: Container(
@@ -183,6 +185,11 @@ class _RichLineState extends State<RichLine> {
     _taps.clear();
     final spans = <InlineSpan>[];
     for (final piece in parseInline(widget.text)) {
+      // формула $…$ — в строке по базовой линии текста
+      if (piece.math) {
+        spans.add(WidgetSpan(alignment: PlaceholderAlignment.baseline, baseline: TextBaseline.alphabetic, child: inlineMath(piece.text, widget.style)));
+        continue;
+      }
       final url = piece.url;
       TapGestureRecognizer? tap;
       if (url != null) {

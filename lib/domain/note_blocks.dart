@@ -60,6 +60,35 @@ class CodeBlock extends NoteBlock {
   final String? language;
 }
 
+/// Формула LaTeX между `$$`: своей строкой по центру. [tex] — без знаков `$$`.
+class MathBlock extends NoteBlock {
+  const MathBlock(this.tex);
+  final String tex;
+}
+
+/// Блочная формула, начатая со строки [index] знаками `$$`: её текст и последняя строка.
+/// Незакрытая (второго `$$` нет до конца) — не формула, а обычный текст.
+({String tex, int end})? _mathAt(List<String> lines, int index) {
+  final first = lines[index].trim();
+  if (!first.startsWith(r'$$')) return null;
+  final head = first.substring(2);
+  // в одну строку: $$E = mc^2$$
+  if (head.trimRight().endsWith(r'$$') && head.trim().length > 2) {
+    return (tex: head.trimRight().substring(0, head.trimRight().length - 2).trim(), end: index);
+  }
+  final body = <String>[if (head.trim().isNotEmpty) head.trim()];
+  for (var end = index + 1; end < lines.length; end++) {
+    final line = lines[end].trimRight();
+    if (line.endsWith(r'$$')) {
+      final tail = line.substring(0, line.length - 2).trim();
+      if (tail.isNotEmpty) body.add(tail);
+      return (tex: body.join('\n').trim(), end: end);
+    }
+    body.add(line);
+  }
+  return null;
+}
+
 final _fenceOpen = RegExp(r'^\s{0,3}(`{3,}|~{3,})\s*([^`\s]*)');
 
 /// Блок кода в строках текста: [start] — строка открывающих кавычек, [end] — последняя
@@ -154,6 +183,12 @@ List<NoteBlock> parseNoteBlocks(String body) {
       final last = range.closed ? range.end - 1 : range.end;
       blocks.add(CodeBlock(code: lines.sublist(index + 1, last + 1).join('\n'), language: range.language));
       skipTo = range.end;
+      continue;
+    }
+    if (_mathAt(lines, index) case final math?) {
+      flush();
+      blocks.add(MathBlock(math.tex));
+      skipTo = math.end;
       continue;
     }
     final line = raw.trimRight();
@@ -348,11 +383,20 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
 }
 
 /// Кусок строки с его выделением.
-typedef InlinePiece = ({String text, bool bold, bool italic, bool strike, bool code, String? url});
+/// [math] — формула LaTeX, [text] у неё — исходник без знаков `$`.
+typedef InlinePiece = ({String text, bool bold, bool italic, bool strike, bool code, String? url, bool math});
 
-// выделение только по краям слова: «snake_case» и «2*3» остаются как есть
-/// Строчная разметка: 1 — жирный, 2 и 3 — курсив, 4 — зачёркнутый, 5 — код.
-final inlineMarks = RegExp(r'\*\*(.+?)\*\*|(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])|(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)|~~(.+?)~~|`(.+?)`');
+// выделение только по краям слова: «snake_case» и «2*3» остаются как есть. Формула — как
+// в Obsidian: после открывающего `$` и перед закрывающим нет пробела, за закрывающим нет
+// цифры, `\$` — просто знак. Поэтому «$5 и $10» — текст. `$$…$$` внутри строки — тоже формула
+/// Строчная разметка: 1 — жирный, 2 и 3 — курсив, 4 — зачёркнутый, 5 — код, 6 и 7 — формула.
+final inlineMarks = RegExp(
+  r'\*\*(.+?)\*\*|(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])|(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)|~~(.+?)~~|`(.+?)`'
+  r'|(?<![\\$])\$\$(?!\s)(.+?)(?<![\s\\])\$\$|(?<![\\$\w])\$(?![\s$])([^$\n]*?[^\s\\$])\$(?![\d$])',
+);
+
+InlinePiece _piece(String text, {bool bold = false, bool italic = false, bool strike = false, bool code = false, String? url, bool math = false}) =>
+    (text: text, bold: bold, italic: italic, strike: strike, code: code, url: url, math: math);
 
 /// Строка в куски: жирный, курсив, зачёркнутый, код, ссылки и `[[заметки]]` — ссылкой
 /// `stowa-note:Заголовок`, видна подписью или заголовком без скобок.
@@ -363,7 +407,7 @@ List<InlinePiece> parseInline(String text) {
     if (match.start > last) pieces.addAll(_parseMarks(text.substring(last, match.start)));
     final title = match.group(1)!.trim();
     final label = match.group(2)?.trim();
-    pieces.add((text: label == null || label.isEmpty ? title : label, bold: false, italic: false, strike: false, code: false, url: '$noteLinkScheme$title'));
+    pieces.add(_piece(label == null || label.isEmpty ? title : label, url: '$noteLinkScheme$title'));
     last = match.end;
   }
   if (last < text.length) pieces.addAll(_parseMarks(text.substring(last)));
@@ -375,12 +419,12 @@ List<InlinePiece> _parseMarks(String text) {
   void plain(String part) {
     var last = 0;
     for (final match in urlMatches(part)) {
-      if (match.start > last) pieces.add((text: part.substring(last, match.start), bold: false, italic: false, strike: false, code: false, url: null));
+      if (match.start > last) pieces.add(_piece(part.substring(last, match.start)));
       final raw = match.group(0)!;
-      pieces.add((text: raw, bold: false, italic: false, strike: false, code: false, url: raw.contains('://') ? raw : 'https://$raw'));
+      pieces.add(_piece(raw, url: raw.contains('://') ? raw : 'https://$raw'));
       last = match.end;
     }
-    if (last < part.length) pieces.add((text: part.substring(last), bold: false, italic: false, strike: false, code: false, url: null));
+    if (last < part.length) pieces.add(_piece(part.substring(last)));
   }
 
   var last = 0;
@@ -390,7 +434,8 @@ List<InlinePiece> _parseMarks(String text) {
     final italic = match.group(2) ?? match.group(3);
     final strike = match.group(4);
     final code = match.group(5);
-    pieces.add((text: bold ?? italic ?? strike ?? code!, bold: bold != null, italic: italic != null, strike: strike != null, code: code != null, url: null));
+    final math = match.group(6) ?? match.group(7);
+    pieces.add(_piece(bold ?? italic ?? strike ?? code ?? math!, bold: bold != null, italic: italic != null, strike: strike != null, code: code != null, math: math != null));
     last = match.end;
   }
   if (last < text.length) plain(text.substring(last));

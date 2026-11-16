@@ -1,6 +1,6 @@
 # Чужие данные в Stowa
 
-Таблицы в `lib/domain/cldr_time_words.dart` и `lib/domain/stop_words.dart` собраны `tool/cldr_words.py` из данных ниже. Формы слов на 29 языках считает пакет [snowball_stemmer](https://pub.dev/packages/snowball_stemmer) (MIT), его лицензия приезжает с пакетом. Подсветку блоков кода делает пакет [re_highlight](https://pub.dev/packages/re_highlight) (MIT) — перенос правил [highlight.js](https://github.com/highlightjs/highlight.js) (BSD-3-Clause); обе лицензии приезжают с пакетом.
+Таблицы в `lib/domain/cldr_time_words.dart` и `lib/domain/stop_words.dart` собраны `tool/cldr_words.py` из данных ниже. Формы слов на 29 языках считает пакет [snowball_stemmer](https://pub.dev/packages/snowball_stemmer) (MIT), его лицензия приезжает с пакетом. Подсветку блоков кода делает пакет [re_highlight](https://pub.dev/packages/re_highlight) (MIT) — перенос правил [highlight.js](https://github.com/highlightjs/highlight.js) (BSD-3-Clause); обе лицензии приезжают с пакетом. Формулы LaTeX рисует пакет [flutter_math_fork](https://pub.dev/packages/flutter_math_fork) (Apache-2.0) — перенос [KaTeX](https://katex.org) на Dart; шрифты KaTeX внутри него — MIT, © Khan Academy. Тексты лицензий приезжают с пакетом и видны в окне «Лицензии».
 
 ## Unicode CLDR 49 (cldr-dates-full, cldr-core)
 
