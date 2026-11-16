@@ -162,6 +162,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Создать новое'), findsOneWidget);
     await tester.tap(find.text('Открыть папку'));
+    // база из папки собирается по-настоящему: на загруженной машине CI дольше 0,6 с — ждём итога, до 10 с
+    for (var round = 0; round < 200 && world.reopened.isEmpty; round++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+    }
     await settle(tester);
     expect(settings.vaultPath, picked.path);
     expect(settings.vaultDb, isNot('stowa'));
