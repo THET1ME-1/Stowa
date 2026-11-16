@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
+import 'package:stowa/data/repositories/trash_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/services/vault/vault_reader.dart';
 import 'package:stowa/services/vault/vault_writer.dart';
@@ -101,6 +102,48 @@ void main() {
     expect(saved.attachments, hasLength(1));
     expect(file(saved.attachments.single.path).existsSync(), isTrue);
     expect(file('Книги/report.pdf').existsSync(), isFalse);
+  });
+
+  // эмулятор 16.11 и жалоба тестировщика «не видно фоток»: писатель перенёс фото из входящих
+  // («0_IMG.jpg») в каталог заметки («IMG.jpg»), а путь в базе и «.md» пишутся следом. Сверка,
+  // попавшая в этот миг, заводила папку «Фото от 20 августа» и заметку-файл на чужую картинку;
+  // удаление такого дубля уносило в корзину фото настоящей заметки — плитки серели
+  test('фото на полпути из входящих к заметке — не заметка-файл и не папка', () async {
+    final at = now;
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'f', name: 'Stowa', icon: 'folder', shape: 'squircle'));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'n', kind: ItemKind.image, title: 'Фото от 20 августа', folderId: const Value('f'), createdAt: at, updatedAt: at));
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a', itemId: 'n', path: '.stowa/incoming/n/0_IMG_20260820.jpg', mime: 'image/jpeg', size: 3));
+    // файл уже у заметки, «.md» ещё нет
+    put('Stowa/Фото от 20 августа/IMG_20260820.jpg', [1, 2, 3]);
+    await reader().reconcile();
+    expect((await items()).map((item) => item.id), ['n']);
+    expect((await db.select(db.folders).get()).map((folder) => folder.name), ['Stowa']);
+  });
+
+  test('дубль уже есть: заметка-файл на картинку живой заметки уходит в корзину, файл на месте', () async {
+    final at = now;
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'n', kind: ItemKind.image, title: 'Фото от 20 августа', createdAt: at, updatedAt: at));
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'a', itemId: 'n', path: 'Фото от 20 августа/IMG.jpg', mime: 'image/jpeg', size: 3));
+    put('Фото от 20 августа/IMG.jpg', [1, 2, 3]);
+    final noteText = await writer().drain().then((_) => file('Фото от 20 августа.md').readAsStringSync());
+    expect(noteText, contains('IMG.jpg'));
+    // дубль, заведённый прежней гонкой: своя папка с именем заметки и своя строка карты файлов на ту же картинку
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'ghost', name: 'Фото от 20 августа', icon: 'folder', shape: 'squircle'));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'dup', kind: ItemKind.image, title: 'IMG', folderId: const Value('ghost'), createdAt: at, updatedAt: at));
+    await db.into(db.attachments).insert(AttachmentsCompanion.insert(id: 'b', itemId: 'dup', path: 'Фото от 20 августа/IMG.jpg', mime: 'image/jpeg', size: 3));
+    final stat = file('Фото от 20 августа/IMG.jpg').statSync();
+    await db.into(db.vaultFiles).insert(VaultFilesCompanion.insert(itemId: 'dup', path: 'Фото от 20 августа/IMG.jpg', modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
+    await reader().reconcile();
+    final all = {for (final item in await items()) item.id: item};
+    expect(all['dup']!.deletedAt, isNotNull);
+    expect(all['n']!.deletedAt, isNull);
+    // пустая папка-призрак с именем заметки рядом с её «.md» уходит
+    expect((await (db.select(db.folders)..where((t) => t.deletedAt.isNull())).get()).map((folder) => folder.id), isNot(contains('ghost')));
+    // корзина дубля картинку живой заметки не уносит, и стирание навсегда тоже
+    await writer().drain();
+    expect(file('Фото от 20 августа/IMG.jpg').existsSync(), isTrue);
+    await TrashRepository(db, filesRoot: root).purge('dup');
+    expect(file('Фото от 20 августа/IMG.jpg').existsSync(), isTrue);
   });
 
   test('удалили файл снаружи — заметка в корзине', () async {

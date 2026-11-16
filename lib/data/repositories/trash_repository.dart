@@ -91,8 +91,12 @@ ORDER BY items.deleted_at DESC''',
       await (_db.delete(_db.noteVersions)..where((t) => t.itemId.equals(id))).go();
       await (_db.delete(_db.items)..where((t) => t.id.equals(id))).go();
     });
-    // файлы — после базы: упадёт удаление файла, вещь всё равно стёрта
-    final paths = [for (final file in files) file.path, if (item?.coverPath != null) item!.coverPath!];
+    // файлы — после базы: упадёт удаление файла, вещь всё равно стёрта. Файл, который ещё числится
+    // вложением другой заметки (дубль от прежней гонки сверки), не стирается: он её
+    final shared = {
+      for (final row in await (_db.select(_db.attachments)..where((t) => t.path.isIn([for (final file in files) file.path]))).get()) row.path,
+    };
+    final paths = [for (final file in files) if (!shared.contains(file.path)) file.path, if (item?.coverPath != null) item!.coverPath!];
     for (final path in paths) {
       await _remove(File(p.join(_filesRoot.path, path)));
     }

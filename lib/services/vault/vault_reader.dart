@@ -217,9 +217,34 @@ class VaultReader {
       });
       scan.removed += gone.length;
     }
+    await _dropGhostFolders();
 
     // [[Заметка]] в тексте связью в таблицу не пишется: связь считается из текста (watchLinked)
     return scan;
+  }
+
+  /// Папки-призраки от прежней гонки с писателем: каталог вложений «Фото от 20 августа/» рядом
+  /// с «Фото от 20 августа.md» сверка однажды приняла за папку. Пустая, без вложенных и стоящая
+  /// ровно на месте каталога вложений живой заметки — не папка человека, её строка уходит.
+  Future<void> _dropGhostFolders() async {
+    final keys = await _folderKeys();
+    if (keys.isEmpty) return;
+    final noteDirs = {
+      for (final row in await _db.customSelect("SELECT vault_files.path FROM vault_files JOIN items ON items.id = vault_files.item_id WHERE items.deleted_at IS NULL AND vault_files.path LIKE '%.md'").get())
+        attachmentsDir(row.read<String>('path')).toLowerCase(),
+    };
+    final ghosts = [
+      for (final MapEntry(key: path, value: id) in keys.entries)
+        if (noteDirs.contains(path)) id,
+    ];
+    for (final id in ghosts) {
+      final busy = await _db
+          .customSelect('SELECT 1 FROM items WHERE folder_id = ?1 AND deleted_at IS NULL UNION ALL SELECT 1 FROM folders WHERE parent_id = ?1 AND deleted_at IS NULL LIMIT 1', variables: [Variable.withString(id)])
+          .getSingleOrNull();
+      if (busy != null) continue;
+      // под флагом: каталог на диске — вложения заметки, писатель его не трогает
+      await _quietly(() => (_db.delete(_db.folders)..where((t) => t.id.equals(id))).go());
+    }
   }
 
   /// Собрать базу из папки: служебное из `.stowa/`, заметки, корзину, добытое о вещах.
@@ -350,9 +375,12 @@ class VaultReader {
     final owners = <String, String>{};
     for (final row in await _db.select(_db.attachments).get()) {
       attached.add(row.path);
-      // имя своего файла заметки-файла не в счёт: другой «фото.jpg» в другой папке — тоже заметка
-      if (!byPath.containsKey(row.path)) names.add(p.posix.basename(row.path).toLowerCase());
-      owners[row.path] = row.itemId;
+      // имя своего файла заметки-файла не в счёт: другой «фото.jpg» в другой папке — тоже заметка.
+      // Во входящих файл лежит с номером порядка («0_IMG.jpg»), к заметке писатель кладёт его без
+      // номера, а путь в базе меняет следом: сверка в этот миг видит «IMG.jpg» и сверяет без номера
+      if (!byPath.containsKey(row.path)) names.add(p.posix.basename(row.path).replaceFirst(RegExp(r'^\d+_'), '').toLowerCase());
+      // хозяин файла — живая заметка, у которой он вложение, а не заметка-файл на нём же
+      if (byPath[row.path]?.itemId != row.itemId) owners[row.path] = row.itemId;
     }
     // каталоги вложений: «Дом/Плитка/» рядом с «Дом/Плитка.md»
     final noteDirs = {for (final note in notes) if (note.endsWith('.md')) attachmentsDir(note).toLowerCase()};

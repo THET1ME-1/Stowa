@@ -208,6 +208,16 @@ class VaultWriter {
     final id = item.id;
     final current = File(_absolute(known.path));
     if (!await current.exists()) return;
+    // тот же файл — вложение живой заметки (дубль от прежней гонки сверки): заметка-файл уходит,
+    // а файл остаётся у хозяина; иначе её корзина уносила чужую картинку и плитка серела
+    final shared = await (_db.select(_db.attachments).join([innerJoin(_db.items, _db.items.id.equalsExp(_db.attachments.itemId))])
+          ..where(_db.attachments.path.equals(known.path) & _db.attachments.itemId.equals(id).not() & _db.items.deletedAt.isNull())
+          ..limit(1))
+        .getSingleOrNull();
+    if (shared != null) {
+      if (item.deletedAt != null) await _quietly(() => (_db.delete(_db.vaultFiles)..where((t) => t.itemId.equals(id))).go());
+      return;
+    }
     final stat = await current.stat();
     if (stat.modified.millisecondsSinceEpoch != known.modified || stat.size != known.size) throw const _ExternalEdit();
     final title = item.title.trim().isEmpty ? p.posix.basenameWithoutExtension(known.path) : item.title;
@@ -438,10 +448,18 @@ class VaultWriter {
   Future<Map<String, String>> _gather(String id, String dir) async {
     final attachments = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(id))..orderBy([(t) => OrderingTerm.asc(t.position)])).get();
     final used = {for (final attachment in attachments) if (attachment.path.startsWith('$dir/')) p.posix.basename(attachment.path).toLowerCase()};
+    // файл, который числится и за другой живой заметкой (дубль от прежней гонки сверки), — её:
+    // забрать его к себе значило бы оставить ей серую плитку
+    final shared = {
+      for (final row in await (_db.select(_db.attachments).join([innerJoin(_db.items, _db.items.id.equalsExp(_db.attachments.itemId))])
+            ..where(_db.attachments.path.isIn([for (final attachment in attachments) attachment.path]) & _db.attachments.itemId.equals(id).not() & _db.items.deletedAt.isNull()))
+          .get())
+        row.readTable(_db.attachments).path,
+    };
     final moved = <String, String>{};
     final renamed = <String, String>{};
     for (final attachment in attachments) {
-      if (attachment.path.startsWith('$dir/')) continue;
+      if (attachment.path.startsWith('$dir/') || shared.contains(attachment.path)) continue;
       final source = File(_absolute(attachment.path));
       if (!await source.exists()) continue;
       final name = p.posix.basename(attachment.path).replaceFirst(RegExp(r'^\d+_'), '');
