@@ -219,18 +219,19 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         await unhideFolderFlow(context, ref, folder);
       case FolderAction.graph:
         await Navigator.of(context).push(graphRoute(folderId: folder.id, title: folder.name));
-      case FolderAction.newDocument:
-        await pickNewDocument(context, ref, folderId: folder.id);
+      case FolderAction.newCanvas:
+        await askNewDocument(context, ref, ItemKind.canvas, folderId: folder.id);
+      case FolderAction.newBase:
+        await askNewDocument(context, ref, ItemKind.base, folderId: folder.id);
       case FolderAction.nest:
         await askNewFolder(context, ref, parentId: folder.id);
       case FolderAction.move:
         await _moveFolder(folder);
-      case FolderAction.rename:
-        final name = await showRenameSheet(context, folder.name);
-        if (name != null) await repository.rename(folder.id, name);
-      case FolderAction.look:
+      case FolderAction.edit:
         final look = await Navigator.of(context).push(folderLookRoute(folder));
-        if (look != null) await repository.setLook(folder.id, icon: look.icon, shape: look.shape, color: look.color);
+        if (look == null) return;
+        if (look.name.trim().isNotEmpty && look.name.trim() != folder.name) await repository.rename(folder.id, look.name.trim());
+        await repository.setLook(folder.id, icon: look.icon, shape: look.shape, color: look.color);
       case FolderAction.delete:
         final l = L.of(context);
         final messenger = ScaffoldMessenger.of(context);

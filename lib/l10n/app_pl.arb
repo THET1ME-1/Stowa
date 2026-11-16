@@ -792,5 +792,12 @@
   "baseImageFitContain": "W całości",
   "baseKanbanNeedsGroup": "Wybierz w „Grupie” właściwość dla kolumn.",
   "baseUntitled": "Bez tytułu",
-  "baseColExt": "Typ pliku"
+  "baseColExt": "Typ pliku",
+  "baseSectionNotes": "Właściwości notatek",
+  "baseSectionFile": "Plik",
+  "folderCreateInside": "Utwórz w środku",
+  "folderTileFolder": "Folder",
+  "folderTileCanvas": "Płótno",
+  "folderTileBase": "Bazę",
+  "folderEdit": "Nazwa i wygląd"
 }

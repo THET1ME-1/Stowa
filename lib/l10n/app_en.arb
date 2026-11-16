@@ -4690,5 +4690,33 @@
   "baseColExt": "File type",
   "@baseColExt": {
     "description": "Колонка и условие базы: расширение файла (file.ext)"
+  },
+  "baseSectionNotes": "Note properties",
+  "@baseSectionNotes": {
+    "description": "Раздел выбора свойства в базе: свойства из шапки заметок и формулы"
+  },
+  "baseSectionFile": "File",
+  "@baseSectionFile": {
+    "description": "Раздел выбора свойства в базе: имя, папка, даты файла"
+  },
+  "folderCreateInside": "Create inside",
+  "@folderCreateInside": {
+    "description": "Заголовок плиток в меню папки: папка, холст, база"
+  },
+  "folderTileFolder": "Folder",
+  "@folderTileFolder": {
+    "description": "Плитка «Создать внутри»: папку"
+  },
+  "folderTileCanvas": "Canvas",
+  "@folderTileCanvas": {
+    "description": "Плитка «Создать внутри»: холст"
+  },
+  "folderTileBase": "Base",
+  "@folderTileBase": {
+    "description": "Плитка «Создать внутри»: базу"
+  },
+  "folderEdit": "Name and look",
+  "@folderEdit": {
+    "description": "Пункт меню папки: имя, цвет, форма и значок на одном экране"
   }
 }

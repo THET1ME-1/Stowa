@@ -3882,4 +3882,25 @@ class LEs extends L {
 
   @override
   String get baseColExt => 'Tipo de archivo';
+
+  @override
+  String get baseSectionNotes => 'Propiedades de las notas';
+
+  @override
+  String get baseSectionFile => 'Archivo';
+
+  @override
+  String get folderCreateInside => 'Crear dentro';
+
+  @override
+  String get folderTileFolder => 'Carpeta';
+
+  @override
+  String get folderTileCanvas => 'Lienzo';
+
+  @override
+  String get folderTileBase => 'Base';
+
+  @override
+  String get folderEdit => 'Nombre y aspecto';
 }

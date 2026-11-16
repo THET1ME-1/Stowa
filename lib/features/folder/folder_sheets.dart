@@ -9,7 +9,7 @@ import '../../domain/models.dart' show ItemKind;
 import '../../l10n/app_localizations.dart';
 import '../item/item_screen.dart' show itemRoute;
 
-enum FolderAction { graph, newDocument, nest, move, rename, look, hide, unhide, delete }
+enum FolderAction { graph, newCanvas, newBase, nest, move, edit, hide, unhide, delete }
 
 /// Спросить имя и завести папку, с [parentId] — внутри той. Отказался — null.
 Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref, {String? parentId}) async {
@@ -30,25 +30,41 @@ Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet
   ),
 );
 
-/// Меню папки снизу: связи, папка внутри, переложить, переименовать, иконка и форма, удалить.
+/// Меню папки снизу. Сверху одной строкой плитки «Создать внутри»: папку, холст, базу;
+/// ниже строки: название и вид (имя, цвет, значок на одном экране), переложить, связи,
+/// скрыть, удалить. Восемь строк столбиком листались и путали похожими пунктами.
 /// [canNest] — папка не на третьем уровне, внутрь неё можно завести ещё одну.
 /// [hidden] — папка скрыта: вместо «Скрыть» — «Не скрывать».
 Future<FolderAction?> showFolderMenu(BuildContext context, {bool canNest = true, bool hidden = false}) {
   final l = L.of(context);
-  return showOptionsSheet<FolderAction>(
+  return showOptionsSheetWith<FolderAction>(
     context,
-    options: [
-      SheetChoice(value: FolderAction.graph, title: l.graphTitle, icon: 'hub'),
-      SheetChoice(value: FolderAction.newDocument, title: l.documentNew, icon: 'dashboard'),
-      if (canNest) SheetChoice(value: FolderAction.nest, title: l.folderNewInside, icon: 'create_new_folder'),
-      SheetChoice(value: FolderAction.move, title: l.folderMoveTo, icon: 'drive_file_move'),
-      SheetChoice(value: FolderAction.rename, title: l.folderRename, icon: 'edit'),
-      SheetChoice(value: FolderAction.look, title: l.folderLook, icon: 'palette'),
-      hidden
-          ? SheetChoice(value: FolderAction.unhide, title: l.folderUnhide, icon: 'visibility')
-          : SheetChoice(value: FolderAction.hide, title: l.folderHide, icon: 'visibility_off'),
-      SheetChoice(value: FolderAction.delete, title: l.folderDelete, icon: 'delete', danger: true),
-    ],
+    // имя папки уже крупно на экране под листом: второй бледный заголовок над «Создать внутри» лишний
+    (sheet) => SheetOptionsBody(
+      top: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(padding: const EdgeInsets.fromLTRB(8, 0, 8, 8), child: SheetTitle(l.folderCreateInside)),
+          SheetTiles(
+            children: [
+              if (canNest) SheetTile(key: const ValueKey('folder-new-folder'), title: l.folderTileFolder, icon: 'create_new_folder', onTap: () => Navigator.pop(sheet, FolderAction.nest)),
+              SheetTile(key: const ValueKey('folder-new-canvas'), title: l.folderTileCanvas, icon: 'dashboard', onTap: () => Navigator.pop(sheet, FolderAction.newCanvas)),
+              SheetTile(key: const ValueKey('folder-new-base'), title: l.folderTileBase, icon: 'table_view', onTap: () => Navigator.pop(sheet, FolderAction.newBase)),
+            ],
+          ),
+        ],
+      ),
+      children: [
+        for (final (action, title, icon) in [
+          (FolderAction.edit, l.folderEdit, 'edit'),
+          (FolderAction.move, l.folderMoveTo, 'drive_file_move'),
+          (FolderAction.graph, l.graphTitle, 'hub'),
+          hidden ? (FolderAction.unhide, l.folderUnhide, 'visibility') : (FolderAction.hide, l.folderHide, 'visibility_off'),
+        ])
+          SheetOption(title: title, icon: icon, onTap: () => Navigator.pop(sheet, action)),
+        SheetOption(title: l.folderDelete, icon: 'delete', danger: true, onTap: () => Navigator.pop(sheet, FolderAction.delete)),
+      ],
+    ),
   );
 }
 

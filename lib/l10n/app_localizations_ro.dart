@@ -3908,4 +3908,25 @@ class LRo extends L {
 
   @override
   String get baseColExt => 'Tip fișier';
+
+  @override
+  String get baseSectionNotes => 'Proprietățile notițelor';
+
+  @override
+  String get baseSectionFile => 'Fișier';
+
+  @override
+  String get folderCreateInside => 'Creează în interior';
+
+  @override
+  String get folderTileFolder => 'Dosar';
+
+  @override
+  String get folderTileCanvas => 'Pânză';
+
+  @override
+  String get folderTileBase => 'Bază';
+
+  @override
+  String get folderEdit => 'Nume și aspect';
 }

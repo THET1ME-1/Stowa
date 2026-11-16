@@ -99,36 +99,158 @@ class _PropertyPickerState extends State<_PropertyPicker> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final query = foldText(_query.trim());
-    final shown = [
-      for (final property in widget.properties)
-        if (query.isEmpty || foldText(widget.label(property)).contains(query) || foldText(property).contains(query)) property,
-    ];
-    return SheetOptionsBody(
+    return _PropertyChoice(
       title: widget.title,
-      top: widget.properties.length > 8
-          ? Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 8),
-              child: TextField(
-                autofocus: false,
-                decoration: InputDecoration(hintText: l.baseSearch, prefixIcon: Icon(symbolIcon('search'))),
-                onChanged: (value) => setState(() => _query = value),
-              ),
-            )
-          : null,
+      properties: widget.properties,
+      label: widget.label,
+      selected: widget.selected,
+      query: _query,
+      onQuery: (value) => setState(() => _query = value),
+      keyPrefix: 'base-pick-',
+      trailing: widget.none == null
+          ? null
+          : TextButton(onPressed: () => Navigator.pop(context, ''), child: Text(widget.none!)),
+      onPick: (property) => Navigator.pop(context, property),
+      searchHint: l.baseSearch,
+    );
+  }
+}
+
+/// Свойства на выбор разделами: сперва свои свойства заметок и формулы — по ним и группируют,
+/// и фильтруют, — потом свойства файла. Пилюли переносом, а не строка на свойство:
+/// двенадцать строк столбиком листались, а свои свойства оказывались в самом низу.
+class _PropertyChoice extends StatelessWidget {
+  const _PropertyChoice({
+    required this.properties,
+    required this.label,
+    required this.onPick,
+    required this.keyPrefix,
+    required this.query,
+    required this.onQuery,
+    required this.searchHint,
+    this.title,
+    this.selected,
+    this.trailing,
+    this.top,
+  });
+
+  final List<String> properties;
+  final String Function(String property) label;
+  final ValueChanged<String> onPick;
+  final String keyPrefix;
+  final String query;
+  final ValueChanged<String> onQuery;
+  final String searchHint;
+  final String? title;
+  final String? selected;
+
+  /// Справа от заголовка: «Убрать», направление группы.
+  final Widget? trailing;
+
+  /// Под заголовком, над разделами.
+  final Widget? top;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final want = foldText(query.trim());
+    bool shown(String property) => want.isEmpty || foldText(label(property)).contains(want) || foldText(property).contains(want);
+    final notes = [for (final property in properties) if (!property.startsWith('file.') && shown(property)) property];
+    final file = [for (final property in properties) if (property.startsWith('file.') && shown(property)) property];
+
+    Widget section(String name, List<String> list) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (widget.none != null && query.isEmpty)
-          SheetOption(title: widget.none!, icon: 'block', selected: widget.selected == '', onTap: () => Navigator.pop(context, '')),
-        for (final property in shown)
-          SheetOption(
-            key: ValueKey('base-pick-$property'),
-            title: widget.label(property),
-            subtitle: widget.label(property) == property ? null : property,
-            icon: basePropertyIcon(property),
-            selected: property == widget.selected,
-            onTap: () => Navigator.pop(context, property),
-          ),
+        Padding(padding: const EdgeInsets.fromLTRB(8, 4, 8, 10), child: SheetTitle(name)),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final property in list)
+              _PropertyPill(key: ValueKey('$keyPrefix$property'), label: label(property), icon: basePropertyIcon(property), selected: property == selected, onTap: () => onPick(property)),
+          ],
+        ),
+        const SizedBox(height: 18),
       ],
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (title != null || trailing != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 12, 8),
+            child: Row(
+              children: [
+                Expanded(child: Text(title ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleLarge)),
+                ?trailing,
+              ],
+            ),
+          ),
+        ?top,
+        // пилюлями десяток свойств виден разом: поиск нужен, только когда их правда много
+        if (properties.length > 16)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: TextField(
+              decoration: InputDecoration(hintText: searchHint, prefixIcon: Icon(symbolIcon('search'))),
+              onChanged: onQuery,
+            ),
+          ),
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (notes.isNotEmpty) section(l.baseSectionNotes, notes),
+                if (file.isNotEmpty) section(l.baseSectionFile, file),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Пилюля свойства: значок и подпись; выбранная — белая, как выбранное в листах.
+class _PropertyPill extends StatelessWidget {
+  const _PropertyPill({super.key, required this.label, required this.icon, required this.selected, required this.onTap});
+  final String label;
+  final String icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = selected ? Tokens.onAccent : Tokens.onSurface;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected ? Tokens.accent : Tokens.containerHigh,
+        borderRadius: BorderRadius.circular(24),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 18, 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(symbolIcon(icon, filled: selected), size: 20, color: ink),
+                  const SizedBox(width: 8),
+                  Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: ink))),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -273,36 +395,38 @@ class _GroupSheetState extends State<_GroupSheet> {
     widget.onChanged(next);
   }
 
+  var _query = '';
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    return SheetOptionsBody(
+    final group = _group;
+    return _PropertyChoice(
       title: l.baseGroup,
-      top: _group == null
+      properties: widget.properties,
+      label: widget.label,
+      selected: group?.property,
+      query: _query,
+      onQuery: (value) => setState(() => _query = value),
+      searchHint: l.baseSearch,
+      keyPrefix: 'base-group-',
+      // без группы — кнопкой в шапке, а не первой строкой списка
+      trailing: group == null ? null : TextButton(key: const ValueKey('base-group-none'), onPressed: () => _set(null), child: Text(l.baseGroupNone)),
+      top: group == null
           ? null
           : Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 10),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: SegmentedButton<bool>(
                 showSelectedIcon: false,
                 segments: [
-                  ButtonSegment(value: false, label: Text(l.baseAscending), icon: Icon(symbolIcon('arrow_upward'), size: 18)),
-                  ButtonSegment(value: true, label: Text(l.baseDescending), icon: Icon(symbolIcon('arrow_downward'), size: 18)),
+                  ButtonSegment(value: false, label: Text(l.baseAscending, maxLines: 1, overflow: TextOverflow.ellipsis), icon: Icon(symbolIcon('arrow_upward'), size: 18)),
+                  ButtonSegment(value: true, label: Text(l.baseDescending, maxLines: 1, overflow: TextOverflow.ellipsis), icon: Icon(symbolIcon('arrow_downward'), size: 18)),
                 ],
-                selected: {_group!.descending},
-                onSelectionChanged: (value) => _set((property: _group!.property, descending: value.single)),
+                selected: {group.descending},
+                onSelectionChanged: (value) => _set((property: group.property, descending: value.single)),
               ),
             ),
-      children: [
-        SheetOption(title: l.baseGroupNone, icon: 'block', selected: _group == null, onTap: () => _set(null)),
-        for (final property in widget.properties)
-          SheetOption(
-            key: ValueKey('base-group-$property'),
-            title: widget.label(property),
-            icon: basePropertyIcon(property),
-            selected: _group?.property == property,
-            onTap: () => _set((property: property, descending: _group?.descending ?? false)),
-          ),
-      ],
+      onPick: (property) => _set((property: property, descending: group?.descending ?? false)),
     );
   }
 }

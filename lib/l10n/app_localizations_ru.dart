@@ -3947,4 +3947,25 @@ class LRu extends L {
 
   @override
   String get baseColExt => 'Тип файла';
+
+  @override
+  String get baseSectionNotes => 'Свойства заметок';
+
+  @override
+  String get baseSectionFile => 'Файл';
+
+  @override
+  String get folderCreateInside => 'Создать внутри';
+
+  @override
+  String get folderTileFolder => 'Папку';
+
+  @override
+  String get folderTileCanvas => 'Холст';
+
+  @override
+  String get folderTileBase => 'Базу';
+
+  @override
+  String get folderEdit => 'Название и вид';
 }

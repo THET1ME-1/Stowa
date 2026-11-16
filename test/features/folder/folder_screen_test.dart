@@ -117,25 +117,23 @@ void main() {
     expect(find.text('4'), findsOneWidget);
   });
 
-  testWidgets('переименовать через меню', (tester) async {
-    await seed();
-    await openFolder(tester);
+  Future<void> openLook(WidgetTester tester) async {
     await tester.tap(find.byTooltip('Ещё'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Переименовать'));
+    await tester.tap(find.text('Название и вид'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextField, 'Рецепты'), 'еда дома');
+  }
+
+  testWidgets('переименовать через меню: имя на том же экране, что цвет и значок', (tester) async {
+    await seed();
+    await openFolder(tester);
+    await openLook(tester);
+    await tester.enterText(find.byKey(const ValueKey('folder-name-field')), 'еда дома');
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     expect(find.text('Еда дома'), findsOneWidget);
   });
-
-  Future<void> openLook(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Ещё'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Цвет и значок'));
-    await tester.pumpAndSettle();
-  }
 
   testWidgets('«Цвет и значок» — свой экран: цвет, иконка, «Сохранить» меняет папку', (tester) async {
     await seed();
@@ -147,7 +145,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('color-mint')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'кофе');
+    await tester.enterText(find.byType(TextField).last, 'кофе');
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('icon-local_cafe')));
     await tester.pumpAndSettle();
@@ -201,14 +199,12 @@ void main() {
     expect(find.byKey(const ValueKey('look-wide')), findsOneWidget);
   });
 
-  testWidgets('меню папки → «Холст или база» → «Новый холст»: холст в этой папке, сразу открыт', (tester) async {
+  testWidgets('меню папки → плитка «Создать внутри: Холст»: холст в этой папке, сразу открыт', (tester) async {
     await seed();
     await openFolder(tester);
     await tester.tap(find.byTooltip('Ещё'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Холст или база'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Новый холст'));
+    await tester.tap(find.byKey(const ValueKey('folder-new-canvas')));
     await tester.pumpAndSettle();
     // поле названия, а не «Имя папки», и кнопка «Создать»
     expect(find.text('Название'), findsOneWidget);
@@ -406,7 +402,7 @@ void main() {
     await openFolder(tester);
     await tester.tap(find.byTooltip('Ещё'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Новая папка внутри'));
+    await tester.tap(find.byKey(const ValueKey('folder-new-folder')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'выпечка');
     await tester.tap(find.text('Сохранить'));
@@ -421,7 +417,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Ещё'));
     await tester.pumpAndSettle();
-    expect(find.text('Новая папка внутри'), findsNothing);
+    expect(find.byKey(const ValueKey('folder-new-folder')), findsNothing);
+    expect(find.byKey(const ValueKey('folder-new-canvas')), findsOneWidget);
   });
 
   testWidgets('«Переложить в…»: без себя и своих вложенных, «Наверх» делает верхней', (tester) async {

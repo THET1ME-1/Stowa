@@ -3892,4 +3892,25 @@ class LDe extends L {
 
   @override
   String get baseColExt => 'Dateityp';
+
+  @override
+  String get baseSectionNotes => 'Eigenschaften der Notizen';
+
+  @override
+  String get baseSectionFile => 'Datei';
+
+  @override
+  String get folderCreateInside => 'Darin erstellen';
+
+  @override
+  String get folderTileFolder => 'Ordner';
+
+  @override
+  String get folderTileCanvas => 'Canvas';
+
+  @override
+  String get folderTileBase => 'Base';
+
+  @override
+  String get folderEdit => 'Name und Aussehen';
 }

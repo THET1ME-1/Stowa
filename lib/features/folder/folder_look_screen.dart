@@ -13,7 +13,7 @@ import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../settings/settings_blocks.dart';
 
-typedef FolderLook = ({String icon, String shape, String? color});
+typedef FolderLook = ({String name, String icon, String shape, String? color});
 
 /// Экран «Цвет и значок» вырастает из нажатой кнопки и отдаёт выбранное или null.
 Route<FolderLook> folderLookRoute(FolderCard folder) => MaterialPageRoute(builder: (_) => FolderLookScreen(folder: folder));
@@ -43,7 +43,14 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
   late String _icon = widget.folder.icon;
   late String _shape = widget.folder.shape;
   late String? _color = widget.folder.colorKey;
+  late final _name = TextEditingController(text: widget.folder.name);
   String _query = '';
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
 
   late final List<String> _forName = searchIcons(widget.folder.name, limit: 18);
 
@@ -73,7 +80,7 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      l.folderLook,
+                      l.folderEdit,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleLarge!.copyWith(fontSize: 22),
@@ -118,7 +125,7 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
               child: SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: FilledButton(onPressed: () => Navigator.pop<FolderLook>(context, (icon: _icon, shape: _shape, color: _color)), child: Text(l.save)),
+                child: FilledButton(onPressed: () => Navigator.pop<FolderLook>(context, (name: _name.text, icon: _icon, shape: _shape, color: _color)), child: Text(l.save)),
               ),
             ),
           ],
@@ -127,9 +134,18 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
     );
   }
 
-  /// Образец, цвет и форма.
+  /// Образец, название, цвет и форма. Название здесь же: «Переименовать» и «Цвет и значок»
+  /// были двумя пунктами меню об одном.
   List<Widget> _setup(L l) => [
-    _Preview(name: widget.folder.name, icon: _icon, shape: _badgeShape, fill: _fill),
+    _Preview(name: _name.text.trim().isEmpty ? widget.folder.name : _name.text.trim(), icon: _icon, shape: _badgeShape, fill: _fill),
+    const SizedBox(height: 20),
+    TextField(
+      key: const ValueKey('folder-name-field'),
+      controller: _name,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: InputDecoration(labelText: l.folderNameLabel),
+      onChanged: (_) => setState(() {}),
+    ),
     SettingsSection(l.lookColor),
     // двенадцать кружков ровными рядами: по шесть на телефоне, все в ряд, если влезают
     LayoutBuilder(

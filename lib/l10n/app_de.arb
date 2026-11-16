@@ -792,5 +792,12 @@
   "baseImageFitContain": "Ganz zeigen",
   "baseKanbanNeedsGroup": "Wähle unter „Gruppieren“ eine Eigenschaft für die Spalten.",
   "baseUntitled": "Ohne Titel",
-  "baseColExt": "Dateityp"
+  "baseColExt": "Dateityp",
+  "baseSectionNotes": "Eigenschaften der Notizen",
+  "baseSectionFile": "Datei",
+  "folderCreateInside": "Darin erstellen",
+  "folderTileFolder": "Ordner",
+  "folderTileCanvas": "Canvas",
+  "folderTileBase": "Base",
+  "folderEdit": "Name und Aussehen"
 }

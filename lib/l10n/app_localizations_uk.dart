@@ -3937,4 +3937,25 @@ class LUk extends L {
 
   @override
   String get baseColExt => 'Тип файлу';
+
+  @override
+  String get baseSectionNotes => 'Властивості нотаток';
+
+  @override
+  String get baseSectionFile => 'Файл';
+
+  @override
+  String get folderCreateInside => 'Створити всередині';
+
+  @override
+  String get folderTileFolder => 'Теку';
+
+  @override
+  String get folderTileCanvas => 'Полотно';
+
+  @override
+  String get folderTileBase => 'Базу';
+
+  @override
+  String get folderEdit => 'Назва і вигляд';
 }

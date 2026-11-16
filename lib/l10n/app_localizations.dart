@@ -6568,6 +6568,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'File type'**
   String get baseColExt;
+
+  /// Раздел выбора свойства в базе: свойства из шапки заметок и формулы
+  ///
+  /// In en, this message translates to:
+  /// **'Note properties'**
+  String get baseSectionNotes;
+
+  /// Раздел выбора свойства в базе: имя, папка, даты файла
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get baseSectionFile;
+
+  /// Заголовок плиток в меню папки: папка, холст, база
+  ///
+  /// In en, this message translates to:
+  /// **'Create inside'**
+  String get folderCreateInside;
+
+  /// Плитка «Создать внутри»: папку
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get folderTileFolder;
+
+  /// Плитка «Создать внутри»: холст
+  ///
+  /// In en, this message translates to:
+  /// **'Canvas'**
+  String get folderTileCanvas;
+
+  /// Плитка «Создать внутри»: базу
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get folderTileBase;
+
+  /// Пункт меню папки: имя, цвет, форма и значок на одном экране
+  ///
+  /// In en, this message translates to:
+  /// **'Name and look'**
+  String get folderEdit;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -792,5 +792,12 @@
   "baseImageFitContain": "Повністю",
   "baseKanbanNeedsGroup": "Виберіть у «Групі» властивість для колонок.",
   "baseUntitled": "Без назви",
-  "baseColExt": "Тип файлу"
+  "baseColExt": "Тип файлу",
+  "baseSectionNotes": "Властивості нотаток",
+  "baseSectionFile": "Файл",
+  "folderCreateInside": "Створити всередині",
+  "folderTileFolder": "Теку",
+  "folderTileCanvas": "Полотно",
+  "folderTileBase": "Базу",
+  "folderEdit": "Назва і вигляд"
 }

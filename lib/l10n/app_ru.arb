@@ -1076,5 +1076,12 @@
   "baseImageFitContain": "Целиком",
   "baseKanbanNeedsGroup": "Выберите в «Группе» свойство для колонок.",
   "baseUntitled": "Без названия",
-  "baseColExt": "Тип файла"
+  "baseColExt": "Тип файла",
+  "baseSectionNotes": "Свойства заметок",
+  "baseSectionFile": "Файл",
+  "folderCreateInside": "Создать внутри",
+  "folderTileFolder": "Папку",
+  "folderTileCanvas": "Холст",
+  "folderTileBase": "Базу",
+  "folderEdit": "Название и вид"
 }

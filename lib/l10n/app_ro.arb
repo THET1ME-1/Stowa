@@ -792,5 +792,12 @@
   "baseImageFitContain": "Întreagă",
   "baseKanbanNeedsGroup": "Alege la „Grupare” proprietatea pentru coloane.",
   "baseUntitled": "Fără titlu",
-  "baseColExt": "Tip fișier"
+  "baseColExt": "Tip fișier",
+  "baseSectionNotes": "Proprietățile notițelor",
+  "baseSectionFile": "Fișier",
+  "folderCreateInside": "Creează în interior",
+  "folderTileFolder": "Dosar",
+  "folderTileCanvas": "Pânză",
+  "folderTileBase": "Bază",
+  "folderEdit": "Nume și aspect"
 }

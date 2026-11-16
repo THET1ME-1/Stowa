@@ -3939,4 +3939,25 @@ class LPl extends L {
 
   @override
   String get baseColExt => 'Typ pliku';
+
+  @override
+  String get baseSectionNotes => 'Właściwości notatek';
+
+  @override
+  String get baseSectionFile => 'Plik';
+
+  @override
+  String get folderCreateInside => 'Utwórz w środku';
+
+  @override
+  String get folderTileFolder => 'Folder';
+
+  @override
+  String get folderTileCanvas => 'Płótno';
+
+  @override
+  String get folderTileBase => 'Bazę';
+
+  @override
+  String get folderEdit => 'Nazwa i wygląd';
 }

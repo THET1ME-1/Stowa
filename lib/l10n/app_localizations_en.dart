@@ -3875,4 +3875,25 @@ class LEn extends L {
 
   @override
   String get baseColExt => 'File type';
+
+  @override
+  String get baseSectionNotes => 'Note properties';
+
+  @override
+  String get baseSectionFile => 'File';
+
+  @override
+  String get folderCreateInside => 'Create inside';
+
+  @override
+  String get folderTileFolder => 'Folder';
+
+  @override
+  String get folderTileCanvas => 'Canvas';
+
+  @override
+  String get folderTileBase => 'Base';
+
+  @override
+  String get folderEdit => 'Name and look';
 }

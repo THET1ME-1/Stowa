@@ -792,5 +792,12 @@
   "baseImageFitContain": "Entera",
   "baseKanbanNeedsGroup": "Elige en «Agrupar» la propiedad para las columnas.",
   "baseUntitled": "Sin título",
-  "baseColExt": "Tipo de archivo"
+  "baseColExt": "Tipo de archivo",
+  "baseSectionNotes": "Propiedades de las notas",
+  "baseSectionFile": "Archivo",
+  "folderCreateInside": "Crear dentro",
+  "folderTileFolder": "Carpeta",
+  "folderTileCanvas": "Lienzo",
+  "folderTileBase": "Base",
+  "folderEdit": "Nombre y aspecto"
 }

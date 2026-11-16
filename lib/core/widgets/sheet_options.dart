@@ -235,6 +235,74 @@ class SheetOption extends StatelessWidget {
   }
 }
 
+/// Плитки одной строкой — для пунктов-соседей одного смысла («Создать внутри: папку, холст, базу»).
+/// Тот же язык блоков, что у строк, только вбок: щель 4, наружные углы скруглены сильнее.
+class SheetTiles extends StatelessWidget {
+  const SheetTiles({super.key, required this.children});
+
+  final List<SheetTile> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (index, child) in children.indexed) ...[
+            if (index > 0) const SizedBox(width: 4),
+            Expanded(
+              child: child.withRadius(
+                BorderRadius.horizontal(left: index == 0 ? _outer : _inner, right: index == children.length - 1 ? _outer : _inner),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Плитка: круглый значок сверху, подпись под ним.
+class SheetTile extends StatelessWidget {
+  const SheetTile({super.key, required this.title, required this.icon, required this.onTap, this.radius = const BorderRadius.all(_inner)});
+
+  final String title;
+  final String icon;
+  final VoidCallback onTap;
+  final BorderRadius radius;
+
+  SheetTile withRadius(BorderRadius radius) => SheetTile(key: key, title: title, icon: icon, onTap: onTap, radius: radius);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Tokens.containerHigh,
+      borderRadius: radius,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 14, 8, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: Tokens.graphite, shape: BoxShape.circle),
+                child: Icon(symbolIcon(icon), size: 22, color: Tokens.onSurface),
+              ),
+              const SizedBox(height: 8),
+              Text(title, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Скругление строки [index] из [count] для длинных списков, которые строятся по мере прокрутки.
 BorderRadius sheetRowRadius(int index, int count) => BorderRadius.vertical(top: index == 0 ? _outer : _inner, bottom: index == count - 1 ? _outer : _inner);
 
