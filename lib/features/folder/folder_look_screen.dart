@@ -52,7 +52,6 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
   late String _shape = widget.folder.shape;
   late String? _color = widget.folder.colorKey;
   late final _name = TextEditingController(text: widget.folder.name);
-  String _query = '';
 
   /// Пять последних цветов, которые ставили папкам; пока их нет — пять разных из палитры.
   List<String> _recent = _starterColors;
@@ -143,34 +142,21 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  if (constraints.maxWidth < _wideFrom) {
-                    return CustomScrollView(
-                      key: const ValueKey('look-scroll'),
-                      slivers: [
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 0),
-                          sliver: SliverList.list(children: _setup(l)),
-                        ),
-                        ..._icons(l),
-                      ],
-                    );
-                  }
-                  // планшет и телефон боком: образец с цветом и формой слева, иконки справа
-                  return Row(
+                  final list = ListView(
+                    key: const ValueKey('look-scroll'),
+                    padding: const EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 16),
+                    children: _setup(l),
+                  );
+                  if (constraints.maxWidth < _wideFrom) return list;
+                  // планшет и телефон боком: строки цвета, формы и иконок не тянутся во всю ширину
+                  return Center(
                     key: const ValueKey('look-wide'),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 360,
-                        child: ListView(padding: const EdgeInsets.fromLTRB(Space.screen, 8, 8, 32), children: _setup(l)),
-                      ),
-                      Expanded(child: CustomScrollView(slivers: _icons(l))),
-                    ],
+                    child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 520), child: list),
                   );
                 },
               ),
             ),
-            // под большим пальцем и на любой ширине, иконки листаются над ней
+            // под большим пальцем и на любой ширине
             Padding(
               padding: EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 12 + MediaQuery.paddingOf(context).bottom),
               child: SizedBox(
@@ -241,76 +227,179 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
         ],
       ],
     ),
-  ];
-
-  /// Заголовок «Иконка», поиск под шапкой и сетки иконок.
-  List<Widget> _icons(L l) {
-    final query = _query.trim();
-    final found = query.isEmpty ? const <String>[] : searchIcons(query, limit: 120);
-    return [
-      SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: Space.screen),
-        sliver: SliverToBoxAdapter(child: SettingsSection(l.lookIcon)),
-      ),
-      // поиск остаётся под шапкой, пока листаешь иконки
-      SliverPersistentHeader(
-        pinned: true,
-        delegate: _SearchBar(hint: l.iconSearch, onChanged: (value) => setState(() => _query = value)),
-      ),
-      if (query.isNotEmpty) ...[
-        if (found.isEmpty)
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(Space.screen + 4, 12, Space.screen, 0),
-            sliver: SliverToBoxAdapter(
-              child: Text(l.iconsNone, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
-            ),
-          )
-        else
-          _grid(found),
-      ] else ...[
-        if (_forName.isNotEmpty) ...[_label(l.lookSuggested), _grid(_forName)],
-        _label(l.lookPopular),
-        _grid(pickableSymbols),
-        _label(l.lookAll),
-        _grid(_allIcons),
-      ],
-      const SliverToBoxAdapter(child: SizedBox(height: 16)),
-    ];
-  }
-
-  Widget _label(String text) => SliverPadding(
-    padding: const EdgeInsets.fromLTRB(Space.screen + 4, 14, Space.screen, 8),
-    sliver: SliverToBoxAdapter(
-      child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: Tokens.onSurfaceVariant)),
-    ),
-  );
-
-  Widget _grid(List<String> names) => SliverPadding(
-    padding: const EdgeInsets.symmetric(horizontal: Space.screen),
-    sliver: SliverGrid.builder(
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 60, mainAxisSpacing: 8, crossAxisSpacing: 8),
-      itemCount: names.length,
-      itemBuilder: (context, index) {
-        final name = names[index];
-        final chosen = name == _icon;
-        return Semantics(
-          button: true,
-          selected: chosen,
-          label: name.replaceAll('_', ' '),
-          child: GestureDetector(
-            key: ValueKey('icon-$name'),
-            onTap: () => _pick(() => _icon = name),
-            child: AnimatedContainer(
-              duration: Motion.short,
-              curve: Motion.emphasized,
-              decoration: BoxDecoration(color: chosen ? _fill : Tokens.container, borderRadius: BorderRadius.circular(chosen ? 30 : 18)),
-              child: Icon(symbolIcon(name, filled: chosen), size: 26, color: chosen ? inkOn(_fill) : Tokens.onSurface),
+    SettingsSection(l.lookIcon),
+    // одна строка, как у цвета: поиск по всему набору и пять иконок под рукой
+    Row(
+      children: [
+        Expanded(
+          child: AspectRatio(aspectRatio: 1, child: _IconSearchButton(key: const ValueKey('icon-search'), tooltip: l.iconSearch, onTap: _searchIcons)),
+        ),
+        for (final name in _iconRow) ...[
+          const SizedBox(width: 10),
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: _IconTile(key: ValueKey('icon-$name'), name: name, chosen: name == _icon, fill: _fill, onTap: () => _pick(() => _icon = name)),
             ),
           ),
-        );
-      },
+        ],
+      ],
     ),
-  );
+  ];
+
+  /// Иконки строки: нынешняя первой, дальше подходящие к имени, потом частые — всего пять.
+  List<String> get _iconRow => {_icon, ..._forName, ...pickableSymbols}.take(5).toList();
+
+  Future<void> _searchIcons() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: Tokens.container,
+      builder: (sheet) => SizedBox(
+        height: MediaQuery.sizeOf(sheet).height * 0.85,
+        child: _IconSheet(current: _icon, fill: _fill, forName: _forName),
+      ),
+    );
+    if (picked != null && mounted) _pick(() => _icon = picked);
+  }
+}
+
+/// Иконка в строке и в сетке: выбранная — на цвете папки и кругом.
+class _IconTile extends StatelessWidget {
+  const _IconTile({super.key, required this.name, required this.chosen, required this.fill, required this.onTap});
+
+  final String name;
+  final bool chosen;
+  final Color fill;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: chosen,
+      label: name.replaceAll('_', ' '),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Motion.short,
+          curve: Motion.emphasized,
+          decoration: BoxDecoration(color: chosen ? fill : Tokens.containerHigh, borderRadius: BorderRadius.circular(chosen ? 30 : 18)),
+          child: Icon(symbolIcon(name, filled: chosen), size: 26, color: chosen ? inkOn(fill) : Tokens.onSurface),
+        ),
+      ),
+    );
+  }
+}
+
+/// Круглая кнопка поиска иконок: залита цветом акцента, чтобы её не приняли за лупу-иконку папки.
+class _IconSearchButton extends StatelessWidget {
+  const _IconSearchButton({super.key, required this.tooltip, required this.onTap});
+
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        label: tooltip,
+        child: Material(
+          color: Tokens.accent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(onTap: onTap, child: Icon(symbolIcon('search'), size: 24, color: Tokens.onAccent)),
+        ),
+      ),
+    );
+  }
+}
+
+/// Лист всего набора иконок: поиск сверху, ниже подходящие к имени, частые и все.
+/// Касание иконки отдаёт её имя и закрывает лист.
+class _IconSheet extends StatefulWidget {
+  const _IconSheet({required this.current, required this.fill, required this.forName});
+
+  final String current;
+  final Color fill;
+  final List<String> forName;
+
+  @override
+  State<_IconSheet> createState() => _IconSheetState();
+}
+
+class _IconSheetState extends State<_IconSheet> {
+  var _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final query = _query.trim();
+    final found = query.isEmpty ? const <String>[] : searchIcons(query, limit: 120);
+
+    Widget label(String text) => SliverPadding(
+      padding: const EdgeInsets.fromLTRB(Space.screen + 4, 14, Space.screen, 8),
+      sliver: SliverToBoxAdapter(child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: Tokens.onSurfaceVariant))),
+    );
+
+    Widget grid(List<String> names) => SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: Space.screen),
+      sliver: SliverGrid.builder(
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 60, mainAxisSpacing: 8, crossAxisSpacing: 8),
+        itemCount: names.length,
+        itemBuilder: (context, index) => _IconTile(
+          key: ValueKey('icon-${names[index]}'),
+          name: names[index],
+          chosen: names[index] == widget.current,
+          fill: widget.fill,
+          onTap: () => Navigator.pop(context, names[index]),
+        ),
+      ),
+    );
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 4),
+          child: TextField(
+            key: const ValueKey('icon-search-field'),
+            autofocus: true,
+            decoration: InputDecoration(hintText: l.iconSearch, prefixIcon: Icon(symbolIcon('search'))),
+            onChanged: (value) => setState(() => _query = value),
+          ),
+        ),
+        Expanded(
+          child: CustomScrollView(
+            key: const ValueKey('icons-scroll'),
+            slivers: [
+              if (query.isNotEmpty) ...[
+                if (found.isEmpty)
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(Space.screen + 4, 12, Space.screen, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(l.iconsNone, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+                    ),
+                  )
+                else
+                  grid(found),
+              ] else ...[
+                if (widget.forName.isNotEmpty) ...[label(l.lookSuggested), grid(widget.forName)],
+                label(l.lookPopular),
+                grid(pickableSymbols),
+                label(l.lookAll),
+                grid(_allIcons),
+              ],
+              SliverToBoxAdapter(child: SizedBox(height: 16 + MediaQuery.paddingOf(context).bottom)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// Как папка будет выглядеть: крупный значок на её цвете и пилюля с полки главной.
@@ -483,36 +572,3 @@ class _ShapeChoice extends StatelessWidget {
   }
 }
 
-class _SearchBar extends SliverPersistentHeaderDelegate {
-  _SearchBar({required this.hint, required this.onChanged});
-
-  final String hint;
-  final ValueChanged<String> onChanged;
-
-  @override
-  double get minExtent => 68;
-
-  @override
-  double get maxExtent => 68;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // ровно по высоте шапки: иначе закреплённая шапка рисуется на точку ниже своего места
-    return Container(
-      height: maxExtent,
-      color: Tokens.background,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 6),
-        child: TextField(
-          decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: hint),
-          textInputAction: TextInputAction.search,
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  // поле живёт своим состоянием, пересобирать шапку незачем
-  @override
-  bool shouldRebuild(_SearchBar oldDelegate) => hint != oldDelegate.hint;
-}

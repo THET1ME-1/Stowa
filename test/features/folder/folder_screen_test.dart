@@ -124,6 +124,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Строка иконок внизу экрана: на низком экране до неё листают.
+  Future<void> openIconSearch(WidgetTester tester) async {
+    final scroll = find.descendant(of: find.byKey(const ValueKey('look-scroll')), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('icon-search')), 200, scrollable: scroll);
+    await tester.tap(find.byKey(const ValueKey('icon-search')));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('переименовать через меню: имя на том же экране, что цвет и значок', (tester) async {
     await seed();
     await openFolder(tester);
@@ -140,15 +148,20 @@ void main() {
     await openFolder(tester);
     await openLook(tester);
     expect(find.byKey(const ValueKey('folder-look')), findsOneWidget);
-    // иконки под имя «Рецепты» идут первыми
-    expect(find.text('Подходят к имени'), findsOneWidget);
+    // иконки одной строкой: поиск и пять иконок, весь набор — листом по поиску
+    expect(find.text('Подходят к имени'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('color-mint')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'кофе');
+    await openIconSearch(tester);
+    // иконки под имя «Рецепты» идут в листе первыми
+    expect(find.text('Подходят к имени'), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('icon-search-field')), 'кофе');
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('icon-local_cafe')));
     await tester.pumpAndSettle();
+    // выбранная из листа встаёт первой в строке
+    expect(find.byKey(const ValueKey('icon-local_cafe')), findsOneWidget);
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
 
@@ -189,16 +202,17 @@ void main() {
     await seed();
     await openFolder(tester);
     await openLook(tester);
-    final scroll = find.descendant(of: find.byKey(const ValueKey('look-scroll')), matching: find.byType(Scrollable)).first;
-    expect(find.text('Все иконки'), findsNothing);
+    await openIconSearch(tester);
+    final scroll = find.descendant(of: find.byKey(const ValueKey('icons-scroll')), matching: find.byType(Scrollable)).first;
     await tester.scrollUntilVisible(find.text('Все иконки'), 400, scrollable: scroll);
     expect(find.text('Все иконки'), findsOneWidget);
     // последняя иконка набора достаётся прокруткой и выбирается
     final last = find.byKey(ValueKey('icon-${symbolNames.last}'));
-    await tester.scrollUntilVisible(last, 4000, scrollable: scroll, maxScrolls: 40);
+    await tester.scrollUntilVisible(last, 600, scrollable: scroll, maxScrolls: 400);
     await tester.ensureVisible(last);
     await tester.pumpAndSettle();
     await tester.tap(last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     expect((await world.db.select(world.db.folders).getSingle()).icon, symbolNames.last);
