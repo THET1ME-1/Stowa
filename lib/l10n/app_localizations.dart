@@ -6040,6 +6040,528 @@ abstract class L {
   /// In en, this message translates to:
   /// **'A new base with the folder’s notes, opens right away'**
   String get cmdBaseHint;
+
+  /// Панель базы Obsidian: кнопки над видом
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get baseSort;
+
+  /// No description provided for @baseGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get baseGroup;
+
+  /// No description provided for @baseFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get baseFilter;
+
+  /// No description provided for @baseProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Properties'**
+  String get baseProperties;
+
+  /// No description provided for @baseSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get baseSearch;
+
+  /// No description provided for @baseSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search this base'**
+  String get baseSearchHint;
+
+  /// No description provided for @baseCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get baseCreate;
+
+  /// No description provided for @baseShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {shown} of {total}'**
+  String baseShown(int shown, int total);
+
+  /// No description provided for @baseSortAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add sort'**
+  String get baseSortAdd;
+
+  /// No description provided for @baseAscending.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascending'**
+  String get baseAscending;
+
+  /// No description provided for @baseDescending.
+  ///
+  /// In en, this message translates to:
+  /// **'Descending'**
+  String get baseDescending;
+
+  /// No description provided for @baseGroupNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No grouping'**
+  String get baseGroupNone;
+
+  /// No description provided for @baseFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All views'**
+  String get baseFilterAll;
+
+  /// No description provided for @baseFilterThis.
+  ///
+  /// In en, this message translates to:
+  /// **'This view'**
+  String get baseFilterThis;
+
+  /// No description provided for @baseFilterEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No conditions, every note is shown.'**
+  String get baseFilterEmpty;
+
+  /// No description provided for @baseJoinAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All of the following'**
+  String get baseJoinAll;
+
+  /// No description provided for @baseJoinAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any of the following'**
+  String get baseJoinAny;
+
+  /// No description provided for @baseJoinNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None of the following'**
+  String get baseJoinNone;
+
+  /// No description provided for @baseFilterAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add condition'**
+  String get baseFilterAdd;
+
+  /// No description provided for @baseFilterAddGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Add group'**
+  String get baseFilterAddGroup;
+
+  /// No description provided for @baseMoveToAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to all views'**
+  String get baseMoveToAll;
+
+  /// No description provided for @baseMoveToThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to this view'**
+  String get baseMoveToThis;
+
+  /// No description provided for @baseExpression.
+  ///
+  /// In en, this message translates to:
+  /// **'Expression'**
+  String get baseExpression;
+
+  /// No description provided for @baseValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get baseValue;
+
+  /// No description provided for @baseOpIs.
+  ///
+  /// In en, this message translates to:
+  /// **'is'**
+  String get baseOpIs;
+
+  /// No description provided for @baseOpIsNot.
+  ///
+  /// In en, this message translates to:
+  /// **'is not'**
+  String get baseOpIsNot;
+
+  /// No description provided for @baseOpContains.
+  ///
+  /// In en, this message translates to:
+  /// **'contains'**
+  String get baseOpContains;
+
+  /// No description provided for @baseOpNotContains.
+  ///
+  /// In en, this message translates to:
+  /// **'does not contain'**
+  String get baseOpNotContains;
+
+  /// No description provided for @baseOpStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'starts with'**
+  String get baseOpStarts;
+
+  /// No description provided for @baseOpEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'ends with'**
+  String get baseOpEnds;
+
+  /// No description provided for @baseOpEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'is empty'**
+  String get baseOpEmpty;
+
+  /// No description provided for @baseOpNotEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'is not empty'**
+  String get baseOpNotEmpty;
+
+  /// No description provided for @baseOpGreater.
+  ///
+  /// In en, this message translates to:
+  /// **'is greater than'**
+  String get baseOpGreater;
+
+  /// No description provided for @baseOpAtLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'is at least'**
+  String get baseOpAtLeast;
+
+  /// No description provided for @baseOpLess.
+  ///
+  /// In en, this message translates to:
+  /// **'is less than'**
+  String get baseOpLess;
+
+  /// No description provided for @baseOpAtMost.
+  ///
+  /// In en, this message translates to:
+  /// **'is at most'**
+  String get baseOpAtMost;
+
+  /// No description provided for @baseOpHasTag.
+  ///
+  /// In en, this message translates to:
+  /// **'has tag'**
+  String get baseOpHasTag;
+
+  /// No description provided for @baseOpNotHasTag.
+  ///
+  /// In en, this message translates to:
+  /// **'does not have tag'**
+  String get baseOpNotHasTag;
+
+  /// No description provided for @baseOpInFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'is in folder'**
+  String get baseOpInFolder;
+
+  /// No description provided for @baseOpNotInFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'is not in folder'**
+  String get baseOpNotInFolder;
+
+  /// No description provided for @baseOpHasLink.
+  ///
+  /// In en, this message translates to:
+  /// **'links to'**
+  String get baseOpHasLink;
+
+  /// No description provided for @baseFormulaAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add formula'**
+  String get baseFormulaAdd;
+
+  /// No description provided for @baseFormulaName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get baseFormulaName;
+
+  /// No description provided for @baseFormulaError.
+  ///
+  /// In en, this message translates to:
+  /// **'Not understood: {what}'**
+  String baseFormulaError(String what);
+
+  /// No description provided for @baseFormulaEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit formula'**
+  String get baseFormulaEdit;
+
+  /// No description provided for @baseFormulaDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete formula'**
+  String get baseFormulaDelete;
+
+  /// No description provided for @baseRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get baseRename;
+
+  /// No description provided for @baseRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get baseRemove;
+
+  /// No description provided for @baseColumnHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide column'**
+  String get baseColumnHide;
+
+  /// No description provided for @baseShownProps.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown'**
+  String get baseShownProps;
+
+  /// No description provided for @baseOtherProps.
+  ///
+  /// In en, this message translates to:
+  /// **'Other properties'**
+  String get baseOtherProps;
+
+  /// No description provided for @baseSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get baseSummary;
+
+  /// No description provided for @baseSummaryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No summary'**
+  String get baseSummaryNone;
+
+  /// No description provided for @baseSumAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get baseSumAverage;
+
+  /// No description provided for @baseSumMedian.
+  ///
+  /// In en, this message translates to:
+  /// **'Median'**
+  String get baseSumMedian;
+
+  /// No description provided for @baseSumMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get baseSumMin;
+
+  /// No description provided for @baseSumMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get baseSumMax;
+
+  /// No description provided for @baseSumSum.
+  ///
+  /// In en, this message translates to:
+  /// **'Sum'**
+  String get baseSumSum;
+
+  /// No description provided for @baseSumRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range'**
+  String get baseSumRange;
+
+  /// No description provided for @baseSumStddev.
+  ///
+  /// In en, this message translates to:
+  /// **'Std. deviation'**
+  String get baseSumStddev;
+
+  /// No description provided for @baseSumEarliest.
+  ///
+  /// In en, this message translates to:
+  /// **'Earliest'**
+  String get baseSumEarliest;
+
+  /// No description provided for @baseSumLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get baseSumLatest;
+
+  /// No description provided for @baseSumChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get baseSumChecked;
+
+  /// No description provided for @baseSumUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unchecked'**
+  String get baseSumUnchecked;
+
+  /// No description provided for @baseSumEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get baseSumEmpty;
+
+  /// No description provided for @baseSumFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled'**
+  String get baseSumFilled;
+
+  /// No description provided for @baseSumUnique.
+  ///
+  /// In en, this message translates to:
+  /// **'Unique'**
+  String get baseSumUnique;
+
+  /// No description provided for @baseViewAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add view'**
+  String get baseViewAdd;
+
+  /// No description provided for @baseViewLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get baseViewLayout;
+
+  /// No description provided for @baseViewCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get baseViewCopy;
+
+  /// No description provided for @baseViewDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete view'**
+  String get baseViewDelete;
+
+  /// No description provided for @baseViewSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'View settings'**
+  String get baseViewSettings;
+
+  /// No description provided for @baseLayoutTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get baseLayoutTable;
+
+  /// No description provided for @baseLayoutCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get baseLayoutCards;
+
+  /// No description provided for @baseLayoutList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get baseLayoutList;
+
+  /// No description provided for @baseLayoutKanban.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get baseLayoutKanban;
+
+  /// No description provided for @baseLayoutMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get baseLayoutMap;
+
+  /// No description provided for @baseLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Result limit'**
+  String get baseLimit;
+
+  /// No description provided for @baseLimitNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get baseLimitNone;
+
+  /// No description provided for @baseImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Image property'**
+  String get baseImage;
+
+  /// No description provided for @baseImageNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No image'**
+  String get baseImageNone;
+
+  /// No description provided for @baseCardSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Card size'**
+  String get baseCardSize;
+
+  /// No description provided for @baseImageRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'Image aspect ratio'**
+  String get baseImageRatio;
+
+  /// No description provided for @baseImageFitCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop to fill'**
+  String get baseImageFitCover;
+
+  /// No description provided for @baseImageFitContain.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit whole'**
+  String get baseImageFitContain;
+
+  /// No description provided for @baseKanbanNeedsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a property under Group to build the columns.'**
+  String get baseKanbanNeedsGroup;
+
+  /// No description provided for @baseUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get baseUntitled;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

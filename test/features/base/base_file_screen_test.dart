@@ -2,7 +2,9 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/domain/base_edit.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/domain/obsidian_base.dart';
 import 'package:stowa/features/base/base_file_screen.dart';
 import 'package:stowa/features/item/item_screen.dart';
 
@@ -75,6 +77,110 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('base-row-b')));
     await tester.pumpAndSettle();
     expect(find.byWidgetPredicate((widget) => widget is ItemScreen && widget.id == 'b'), findsOneWidget);
+  });
+
+  Future<String> document() async => (await (world.db.select(world.db.items)..where((t) => t.id.equals('base'))).getSingle()).document!;
+
+  Future<void> closeSheet(WidgetTester tester) async {
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('сортировка из панели ложится в файл, таблица пересобирается', (tester) async {
+    await seed();
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('base-sort')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('base-sort-direction-0')));
+    await tester.pumpAndSettle();
+    await closeSheet(tester);
+    expect(ObsidianBase.parse(await document()).views.first.sort, [(property: 'rating', descending: false)]);
+    expect(tester.getTopLeft(find.text('Идиот')).dy, lessThan(tester.getTopLeft(find.text('Мастер и Маргарита')).dy));
+  });
+
+  testWidgets('условие «этого вида» из окна фильтра: свойство, значение, файл', (tester) async {
+    await seed();
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('base-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Этот вид'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('filter-add-')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('base-pick-status')));
+    await tester.tap(find.byKey(const ValueKey('base-pick-status')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('filter-value')), 'прочитано');
+    await tester.pump();
+    await closeSheet(tester);
+    final base = ObsidianBase.parse(await document());
+    expect(describeFilter(base.views.first.filters), 'and(status == "прочитано")');
+    // общее условие осталось где было
+    expect(describeFilter(base.filters), 'file.inFolder("Книги")');
+    expect(find.text('Мастер и Маргарита'), findsNothing);
+    expect(find.text('Идиот'), findsOneWidget);
+  });
+
+  testWidgets('свойства: включённое свойство становится колонкой', (tester) async {
+    await seed();
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('base-properties')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('base-prop-switch-status')), 200, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byKey(const ValueKey('base-prop-switch-status')));
+    await tester.pumpAndSettle();
+    await closeSheet(tester);
+    expect(ObsidianBase.parse(await document()).views.first.order, ['file.name', 'note.author', 'rating', 'status']);
+    expect(find.text('читаю'), findsOneWidget);
+  });
+
+  testWidgets('итог колонки из её меню: «Среднее» под таблицей', (tester) async {
+    await seed();
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('base-head-rating')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Итог'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Среднее'));
+    await tester.pumpAndSettle();
+    expect(ObsidianBase.parse(await document()).views.first.summaryOf('rating'), 'Average');
+    expect(find.text('Среднее 4'), findsOneWidget);
+  });
+
+  testWidgets('«Создать» во втором виде: заметка в папке базы со свойством из условия вида', (tester) async {
+    await seed();
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('base-view-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('base-create')));
+    await tester.pumpAndSettle();
+    final made = await (world.db.select(world.db.items)..where((t) => t.title.equals('Без названия'))).getSingle();
+    expect(made.folderId, 'books');
+    expect(made.properties, contains('"status":"читаю"'));
+    expect(find.byWidgetPredicate((widget) => widget is ItemScreen && widget.id == made.id), findsOneWidget);
+  });
+
+  testWidgets('доска: карточку перетащили в другую колонку — свойство заметки поменялось', (tester) async {
+    await seed();
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('base'))).write(
+      const ItemsCompanion(document: Value('filters: file.inFolder("Книги")\nviews:\n  - type: kanban\n    name: Доска\n    groupBy:\n      property: status\n      direction: ASC\n')),
+    );
+    await open(tester);
+    expect(find.byKey(const ValueKey('base-column-читаю')), findsOneWidget);
+    final gesture = await tester.startGesture(tester.getCenter(find.byKey(const ValueKey('base-row-a'))));
+    await tester.pump(const Duration(milliseconds: 600));
+    // соседняя колонка за краем экрана: карточку держат у края, доска едет сама
+    final edge = Offset(tester.view.physicalSize.width / tester.view.devicePixelRatio - 20, 300);
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveTo(edge + Offset(0, i.isEven ? 1 : 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.moveTo(tester.getTopLeft(find.byKey(const ValueKey('base-column-читаю'))) + const Offset(40, 120));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+    final idiot = await (world.db.select(world.db.items)..where((t) => t.id.equals('a'))).getSingle();
+    expect(idiot.properties, contains('"status":"читаю"'));
   });
 
   testWidgets('новая заметка в папке появляется в открытой базе сама', (tester) async {

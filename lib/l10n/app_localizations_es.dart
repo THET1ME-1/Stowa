@@ -3613,4 +3613,270 @@ class LEs extends L {
   @override
   String get cmdBaseHint =>
       'Una base nueva con las notas de la carpeta, se abre al momento';
+
+  @override
+  String get baseSort => 'Ordenar';
+
+  @override
+  String get baseGroup => 'Agrupar';
+
+  @override
+  String get baseFilter => 'Filtro';
+
+  @override
+  String get baseProperties => 'Propiedades';
+
+  @override
+  String get baseSearch => 'Buscar';
+
+  @override
+  String get baseSearchHint => 'Buscar en la base';
+
+  @override
+  String get baseCreate => 'Nueva';
+
+  @override
+  String baseShown(int shown, int total) {
+    return 'Mostrando $shown de $total';
+  }
+
+  @override
+  String get baseSortAdd => 'Añadir orden';
+
+  @override
+  String get baseAscending => 'Ascendente';
+
+  @override
+  String get baseDescending => 'Descendente';
+
+  @override
+  String get baseGroupNone => 'Sin agrupar';
+
+  @override
+  String get baseFilterAll => 'Todas las vistas';
+
+  @override
+  String get baseFilterThis => 'Esta vista';
+
+  @override
+  String get baseFilterEmpty => 'Sin condiciones, se ven todas las notas.';
+
+  @override
+  String get baseJoinAll => 'Todas las condiciones';
+
+  @override
+  String get baseJoinAny => 'Cualquiera de las condiciones';
+
+  @override
+  String get baseJoinNone => 'Ninguna de las condiciones';
+
+  @override
+  String get baseFilterAdd => 'Añadir condición';
+
+  @override
+  String get baseFilterAddGroup => 'Añadir grupo';
+
+  @override
+  String get baseMoveToAll => 'Pasar a todas las vistas';
+
+  @override
+  String get baseMoveToThis => 'Pasar a esta vista';
+
+  @override
+  String get baseExpression => 'Expresión';
+
+  @override
+  String get baseValue => 'Valor';
+
+  @override
+  String get baseOpIs => 'es';
+
+  @override
+  String get baseOpIsNot => 'no es';
+
+  @override
+  String get baseOpContains => 'contiene';
+
+  @override
+  String get baseOpNotContains => 'no contiene';
+
+  @override
+  String get baseOpStarts => 'empieza por';
+
+  @override
+  String get baseOpEnds => 'termina en';
+
+  @override
+  String get baseOpEmpty => 'está vacío';
+
+  @override
+  String get baseOpNotEmpty => 'no está vacío';
+
+  @override
+  String get baseOpGreater => 'mayor que';
+
+  @override
+  String get baseOpAtLeast => 'al menos';
+
+  @override
+  String get baseOpLess => 'menor que';
+
+  @override
+  String get baseOpAtMost => 'como mucho';
+
+  @override
+  String get baseOpHasTag => 'tiene la etiqueta';
+
+  @override
+  String get baseOpNotHasTag => 'no tiene la etiqueta';
+
+  @override
+  String get baseOpInFolder => 'está en la carpeta';
+
+  @override
+  String get baseOpNotInFolder => 'no está en la carpeta';
+
+  @override
+  String get baseOpHasLink => 'enlaza a';
+
+  @override
+  String get baseFormulaAdd => 'Añadir fórmula';
+
+  @override
+  String get baseFormulaName => 'Nombre';
+
+  @override
+  String baseFormulaError(String what) {
+    return 'No se entiende: $what';
+  }
+
+  @override
+  String get baseFormulaEdit => 'Editar fórmula';
+
+  @override
+  String get baseFormulaDelete => 'Borrar fórmula';
+
+  @override
+  String get baseRename => 'Renombrar';
+
+  @override
+  String get baseRemove => 'Quitar';
+
+  @override
+  String get baseColumnHide => 'Ocultar columna';
+
+  @override
+  String get baseShownProps => 'Mostradas';
+
+  @override
+  String get baseOtherProps => 'Otras propiedades';
+
+  @override
+  String get baseSummary => 'Resumen';
+
+  @override
+  String get baseSummaryNone => 'Sin resumen';
+
+  @override
+  String get baseSumAverage => 'Media';
+
+  @override
+  String get baseSumMedian => 'Mediana';
+
+  @override
+  String get baseSumMin => 'Mínimo';
+
+  @override
+  String get baseSumMax => 'Máximo';
+
+  @override
+  String get baseSumSum => 'Suma';
+
+  @override
+  String get baseSumRange => 'Rango';
+
+  @override
+  String get baseSumStddev => 'Desviación';
+
+  @override
+  String get baseSumEarliest => 'La más antigua';
+
+  @override
+  String get baseSumLatest => 'La más reciente';
+
+  @override
+  String get baseSumChecked => 'Marcadas';
+
+  @override
+  String get baseSumUnchecked => 'Sin marcar';
+
+  @override
+  String get baseSumEmpty => 'Vacías';
+
+  @override
+  String get baseSumFilled => 'Rellenas';
+
+  @override
+  String get baseSumUnique => 'Distintas';
+
+  @override
+  String get baseViewAdd => 'Añadir vista';
+
+  @override
+  String get baseViewLayout => 'Diseño';
+
+  @override
+  String get baseViewCopy => 'Duplicar vista';
+
+  @override
+  String get baseViewDelete => 'Borrar vista';
+
+  @override
+  String get baseViewSettings => 'Ajustes de la vista';
+
+  @override
+  String get baseLayoutTable => 'Tabla';
+
+  @override
+  String get baseLayoutCards => 'Tarjetas';
+
+  @override
+  String get baseLayoutList => 'Lista';
+
+  @override
+  String get baseLayoutKanban => 'Tablero';
+
+  @override
+  String get baseLayoutMap => 'Mapa';
+
+  @override
+  String get baseLimit => 'Cuántas mostrar';
+
+  @override
+  String get baseLimitNone => 'Todas';
+
+  @override
+  String get baseImage => 'Imagen de la propiedad';
+
+  @override
+  String get baseImageNone => 'Sin imagen';
+
+  @override
+  String get baseCardSize => 'Tamaño de tarjeta';
+
+  @override
+  String get baseImageRatio => 'Proporción de imagen';
+
+  @override
+  String get baseImageFitCover => 'Recortar al marco';
+
+  @override
+  String get baseImageFitContain => 'Entera';
+
+  @override
+  String get baseKanbanNeedsGroup =>
+      'Elige en «Agrupar» la propiedad para las columnas.';
+
+  @override
+  String get baseUntitled => 'Sin título';
 }

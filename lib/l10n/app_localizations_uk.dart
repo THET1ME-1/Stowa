@@ -3668,4 +3668,270 @@ class LUk extends L {
 
   @override
   String get cmdBaseHint => 'Нова база з нотатками папки, відкриється одразу';
+
+  @override
+  String get baseSort => 'Сортування';
+
+  @override
+  String get baseGroup => 'Група';
+
+  @override
+  String get baseFilter => 'Фільтр';
+
+  @override
+  String get baseProperties => 'Властивості';
+
+  @override
+  String get baseSearch => 'Пошук';
+
+  @override
+  String get baseSearchHint => 'Шукати в базі';
+
+  @override
+  String get baseCreate => 'Створити';
+
+  @override
+  String baseShown(int shown, int total) {
+    return 'Показано $shown з $total';
+  }
+
+  @override
+  String get baseSortAdd => 'Додати сортування';
+
+  @override
+  String get baseAscending => 'За зростанням';
+
+  @override
+  String get baseDescending => 'За спаданням';
+
+  @override
+  String get baseGroupNone => 'Без групи';
+
+  @override
+  String get baseFilterAll => 'Усі види';
+
+  @override
+  String get baseFilterThis => 'Цей вид';
+
+  @override
+  String get baseFilterEmpty => 'Умов немає, видно всі нотатки.';
+
+  @override
+  String get baseJoinAll => 'Усі умови';
+
+  @override
+  String get baseJoinAny => 'Будь-яка з умов';
+
+  @override
+  String get baseJoinNone => 'Жодна з умов';
+
+  @override
+  String get baseFilterAdd => 'Додати умову';
+
+  @override
+  String get baseFilterAddGroup => 'Додати групу';
+
+  @override
+  String get baseMoveToAll => 'Перенести в усі види';
+
+  @override
+  String get baseMoveToThis => 'Перенести в цей вид';
+
+  @override
+  String get baseExpression => 'Вираз';
+
+  @override
+  String get baseValue => 'Значення';
+
+  @override
+  String get baseOpIs => 'дорівнює';
+
+  @override
+  String get baseOpIsNot => 'не дорівнює';
+
+  @override
+  String get baseOpContains => 'містить';
+
+  @override
+  String get baseOpNotContains => 'не містить';
+
+  @override
+  String get baseOpStarts => 'починається з';
+
+  @override
+  String get baseOpEnds => 'закінчується на';
+
+  @override
+  String get baseOpEmpty => 'порожньо';
+
+  @override
+  String get baseOpNotEmpty => 'не порожньо';
+
+  @override
+  String get baseOpGreater => 'більше';
+
+  @override
+  String get baseOpAtLeast => 'не менше';
+
+  @override
+  String get baseOpLess => 'менше';
+
+  @override
+  String get baseOpAtMost => 'не більше';
+
+  @override
+  String get baseOpHasTag => 'є тег';
+
+  @override
+  String get baseOpNotHasTag => 'немає тегу';
+
+  @override
+  String get baseOpInFolder => 'у папці';
+
+  @override
+  String get baseOpNotInFolder => 'не в папці';
+
+  @override
+  String get baseOpHasLink => 'посилається на';
+
+  @override
+  String get baseFormulaAdd => 'Додати формулу';
+
+  @override
+  String get baseFormulaName => 'Назва';
+
+  @override
+  String baseFormulaError(String what) {
+    return 'Не зрозумів: $what';
+  }
+
+  @override
+  String get baseFormulaEdit => 'Змінити формулу';
+
+  @override
+  String get baseFormulaDelete => 'Видалити формулу';
+
+  @override
+  String get baseRename => 'Перейменувати';
+
+  @override
+  String get baseRemove => 'Прибрати';
+
+  @override
+  String get baseColumnHide => 'Сховати колонку';
+
+  @override
+  String get baseShownProps => 'Показано';
+
+  @override
+  String get baseOtherProps => 'Інші властивості';
+
+  @override
+  String get baseSummary => 'Підсумок';
+
+  @override
+  String get baseSummaryNone => 'Без підсумку';
+
+  @override
+  String get baseSumAverage => 'Середнє';
+
+  @override
+  String get baseSumMedian => 'Медіана';
+
+  @override
+  String get baseSumMin => 'Найменше';
+
+  @override
+  String get baseSumMax => 'Найбільше';
+
+  @override
+  String get baseSumSum => 'Сума';
+
+  @override
+  String get baseSumRange => 'Розкид';
+
+  @override
+  String get baseSumStddev => 'Відхилення';
+
+  @override
+  String get baseSumEarliest => 'Найраніша';
+
+  @override
+  String get baseSumLatest => 'Найпізніша';
+
+  @override
+  String get baseSumChecked => 'Позначено';
+
+  @override
+  String get baseSumUnchecked => 'Не позначено';
+
+  @override
+  String get baseSumEmpty => 'Порожніх';
+
+  @override
+  String get baseSumFilled => 'Заповнено';
+
+  @override
+  String get baseSumUnique => 'Різних';
+
+  @override
+  String get baseViewAdd => 'Додати вид';
+
+  @override
+  String get baseViewLayout => 'Розкладка';
+
+  @override
+  String get baseViewCopy => 'Копія виду';
+
+  @override
+  String get baseViewDelete => 'Видалити вид';
+
+  @override
+  String get baseViewSettings => 'Налаштування виду';
+
+  @override
+  String get baseLayoutTable => 'Таблиця';
+
+  @override
+  String get baseLayoutCards => 'Картки';
+
+  @override
+  String get baseLayoutList => 'Список';
+
+  @override
+  String get baseLayoutKanban => 'Дошка';
+
+  @override
+  String get baseLayoutMap => 'Мапа';
+
+  @override
+  String get baseLimit => 'Скільки показувати';
+
+  @override
+  String get baseLimitNone => 'Усі';
+
+  @override
+  String get baseImage => 'Картинка з властивості';
+
+  @override
+  String get baseImageNone => 'Без картинки';
+
+  @override
+  String get baseCardSize => 'Розмір картки';
+
+  @override
+  String get baseImageRatio => 'Пропорція картинки';
+
+  @override
+  String get baseImageFitCover => 'Обрізати по рамці';
+
+  @override
+  String get baseImageFitContain => 'Повністю';
+
+  @override
+  String get baseKanbanNeedsGroup =>
+      'Виберіть у «Групі» властивість для колонок.';
+
+  @override
+  String get baseUntitled => 'Без назви';
 }

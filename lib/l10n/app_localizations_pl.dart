@@ -3670,4 +3670,270 @@ class LPl extends L {
   @override
   String get cmdBaseHint =>
       'Nowa baza z notatkami folderu, otworzy się od razu';
+
+  @override
+  String get baseSort => 'Sortowanie';
+
+  @override
+  String get baseGroup => 'Grupa';
+
+  @override
+  String get baseFilter => 'Filtr';
+
+  @override
+  String get baseProperties => 'Właściwości';
+
+  @override
+  String get baseSearch => 'Szukaj';
+
+  @override
+  String get baseSearchHint => 'Szukaj w bazie';
+
+  @override
+  String get baseCreate => 'Nowa';
+
+  @override
+  String baseShown(int shown, int total) {
+    return 'Pokazano $shown z $total';
+  }
+
+  @override
+  String get baseSortAdd => 'Dodaj sortowanie';
+
+  @override
+  String get baseAscending => 'Rosnąco';
+
+  @override
+  String get baseDescending => 'Malejąco';
+
+  @override
+  String get baseGroupNone => 'Bez grupowania';
+
+  @override
+  String get baseFilterAll => 'Wszystkie widoki';
+
+  @override
+  String get baseFilterThis => 'Ten widok';
+
+  @override
+  String get baseFilterEmpty => 'Brak warunków, widać wszystkie notatki.';
+
+  @override
+  String get baseJoinAll => 'Wszystkie warunki';
+
+  @override
+  String get baseJoinAny => 'Dowolny z warunków';
+
+  @override
+  String get baseJoinNone => 'Żaden z warunków';
+
+  @override
+  String get baseFilterAdd => 'Dodaj warunek';
+
+  @override
+  String get baseFilterAddGroup => 'Dodaj grupę';
+
+  @override
+  String get baseMoveToAll => 'Przenieś do wszystkich widoków';
+
+  @override
+  String get baseMoveToThis => 'Przenieś do tego widoku';
+
+  @override
+  String get baseExpression => 'Wyrażenie';
+
+  @override
+  String get baseValue => 'Wartość';
+
+  @override
+  String get baseOpIs => 'jest';
+
+  @override
+  String get baseOpIsNot => 'nie jest';
+
+  @override
+  String get baseOpContains => 'zawiera';
+
+  @override
+  String get baseOpNotContains => 'nie zawiera';
+
+  @override
+  String get baseOpStarts => 'zaczyna się od';
+
+  @override
+  String get baseOpEnds => 'kończy się na';
+
+  @override
+  String get baseOpEmpty => 'jest puste';
+
+  @override
+  String get baseOpNotEmpty => 'nie jest puste';
+
+  @override
+  String get baseOpGreater => 'większe niż';
+
+  @override
+  String get baseOpAtLeast => 'co najmniej';
+
+  @override
+  String get baseOpLess => 'mniejsze niż';
+
+  @override
+  String get baseOpAtMost => 'co najwyżej';
+
+  @override
+  String get baseOpHasTag => 'ma tag';
+
+  @override
+  String get baseOpNotHasTag => 'nie ma tagu';
+
+  @override
+  String get baseOpInFolder => 'jest w folderze';
+
+  @override
+  String get baseOpNotInFolder => 'nie jest w folderze';
+
+  @override
+  String get baseOpHasLink => 'linkuje do';
+
+  @override
+  String get baseFormulaAdd => 'Dodaj formułę';
+
+  @override
+  String get baseFormulaName => 'Nazwa';
+
+  @override
+  String baseFormulaError(String what) {
+    return 'Nie rozumiem: $what';
+  }
+
+  @override
+  String get baseFormulaEdit => 'Zmień formułę';
+
+  @override
+  String get baseFormulaDelete => 'Usuń formułę';
+
+  @override
+  String get baseRename => 'Zmień nazwę';
+
+  @override
+  String get baseRemove => 'Usuń';
+
+  @override
+  String get baseColumnHide => 'Ukryj kolumnę';
+
+  @override
+  String get baseShownProps => 'Pokazane';
+
+  @override
+  String get baseOtherProps => 'Inne właściwości';
+
+  @override
+  String get baseSummary => 'Podsumowanie';
+
+  @override
+  String get baseSummaryNone => 'Bez podsumowania';
+
+  @override
+  String get baseSumAverage => 'Średnia';
+
+  @override
+  String get baseSumMedian => 'Mediana';
+
+  @override
+  String get baseSumMin => 'Minimum';
+
+  @override
+  String get baseSumMax => 'Maksimum';
+
+  @override
+  String get baseSumSum => 'Suma';
+
+  @override
+  String get baseSumRange => 'Rozpiętość';
+
+  @override
+  String get baseSumStddev => 'Odchylenie';
+
+  @override
+  String get baseSumEarliest => 'Najwcześniejsza';
+
+  @override
+  String get baseSumLatest => 'Najpóźniejsza';
+
+  @override
+  String get baseSumChecked => 'Zaznaczone';
+
+  @override
+  String get baseSumUnchecked => 'Niezaznaczone';
+
+  @override
+  String get baseSumEmpty => 'Puste';
+
+  @override
+  String get baseSumFilled => 'Wypełnione';
+
+  @override
+  String get baseSumUnique => 'Różne';
+
+  @override
+  String get baseViewAdd => 'Dodaj widok';
+
+  @override
+  String get baseViewLayout => 'Układ';
+
+  @override
+  String get baseViewCopy => 'Kopia widoku';
+
+  @override
+  String get baseViewDelete => 'Usuń widok';
+
+  @override
+  String get baseViewSettings => 'Ustawienia widoku';
+
+  @override
+  String get baseLayoutTable => 'Tabela';
+
+  @override
+  String get baseLayoutCards => 'Karty';
+
+  @override
+  String get baseLayoutList => 'Lista';
+
+  @override
+  String get baseLayoutKanban => 'Tablica';
+
+  @override
+  String get baseLayoutMap => 'Mapa';
+
+  @override
+  String get baseLimit => 'Ile pokazywać';
+
+  @override
+  String get baseLimitNone => 'Wszystkie';
+
+  @override
+  String get baseImage => 'Obraz z właściwości';
+
+  @override
+  String get baseImageNone => 'Bez obrazu';
+
+  @override
+  String get baseCardSize => 'Rozmiar karty';
+
+  @override
+  String get baseImageRatio => 'Proporcje obrazu';
+
+  @override
+  String get baseImageFitCover => 'Przytnij do ramki';
+
+  @override
+  String get baseImageFitContain => 'W całości';
+
+  @override
+  String get baseKanbanNeedsGroup =>
+      'Wybierz w „Grupie” właściwość dla kolumn.';
+
+  @override
+  String get baseUntitled => 'Bez tytułu';
 }

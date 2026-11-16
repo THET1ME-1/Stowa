@@ -4579,5 +4579,112 @@
   "cmdBaseHint": "A new base with the folder’s notes, opens right away",
   "@cmdBaseHint": {
     "description": "Подсказка к команде «база»"
-  }
+  },
+  "baseSort": "Sort",
+  "@baseSort": {
+    "description": "Панель базы Obsidian: кнопки над видом"
+  },
+  "baseGroup": "Group",
+  "baseFilter": "Filter",
+  "baseProperties": "Properties",
+  "baseSearch": "Search",
+  "baseSearchHint": "Search this base",
+  "baseCreate": "New",
+  "baseShown": "Showing {shown} of {total}",
+  "@baseShown": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "baseSortAdd": "Add sort",
+  "baseAscending": "Ascending",
+  "baseDescending": "Descending",
+  "baseGroupNone": "No grouping",
+  "baseFilterAll": "All views",
+  "baseFilterThis": "This view",
+  "baseFilterEmpty": "No conditions, every note is shown.",
+  "baseJoinAll": "All of the following",
+  "baseJoinAny": "Any of the following",
+  "baseJoinNone": "None of the following",
+  "baseFilterAdd": "Add condition",
+  "baseFilterAddGroup": "Add group",
+  "baseMoveToAll": "Move to all views",
+  "baseMoveToThis": "Move to this view",
+  "baseExpression": "Expression",
+  "baseValue": "Value",
+  "baseOpIs": "is",
+  "baseOpIsNot": "is not",
+  "baseOpContains": "contains",
+  "baseOpNotContains": "does not contain",
+  "baseOpStarts": "starts with",
+  "baseOpEnds": "ends with",
+  "baseOpEmpty": "is empty",
+  "baseOpNotEmpty": "is not empty",
+  "baseOpGreater": "is greater than",
+  "baseOpAtLeast": "is at least",
+  "baseOpLess": "is less than",
+  "baseOpAtMost": "is at most",
+  "baseOpHasTag": "has tag",
+  "baseOpNotHasTag": "does not have tag",
+  "baseOpInFolder": "is in folder",
+  "baseOpNotInFolder": "is not in folder",
+  "baseOpHasLink": "links to",
+  "baseFormulaAdd": "Add formula",
+  "baseFormulaName": "Name",
+  "baseFormulaError": "Not understood: {what}",
+  "@baseFormulaError": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "baseFormulaEdit": "Edit formula",
+  "baseFormulaDelete": "Delete formula",
+  "baseRename": "Rename",
+  "baseRemove": "Remove",
+  "baseColumnHide": "Hide column",
+  "baseShownProps": "Shown",
+  "baseOtherProps": "Other properties",
+  "baseSummary": "Summary",
+  "baseSummaryNone": "No summary",
+  "baseSumAverage": "Average",
+  "baseSumMedian": "Median",
+  "baseSumMin": "Min",
+  "baseSumMax": "Max",
+  "baseSumSum": "Sum",
+  "baseSumRange": "Range",
+  "baseSumStddev": "Std. deviation",
+  "baseSumEarliest": "Earliest",
+  "baseSumLatest": "Latest",
+  "baseSumChecked": "Checked",
+  "baseSumUnchecked": "Unchecked",
+  "baseSumEmpty": "Empty",
+  "baseSumFilled": "Filled",
+  "baseSumUnique": "Unique",
+  "baseViewAdd": "Add view",
+  "baseViewLayout": "Layout",
+  "baseViewCopy": "Duplicate",
+  "baseViewDelete": "Delete view",
+  "baseViewSettings": "View settings",
+  "baseLayoutTable": "Table",
+  "baseLayoutCards": "Cards",
+  "baseLayoutList": "List",
+  "baseLayoutKanban": "Board",
+  "baseLayoutMap": "Map",
+  "baseLimit": "Result limit",
+  "baseLimitNone": "No limit",
+  "baseImage": "Image property",
+  "baseImageNone": "No image",
+  "baseCardSize": "Card size",
+  "baseImageRatio": "Image aspect ratio",
+  "baseImageFitCover": "Crop to fill",
+  "baseImageFitContain": "Fit whole",
+  "baseKanbanNeedsGroup": "Pick a property under Group to build the columns.",
+  "baseUntitled": "Untitled"
 }

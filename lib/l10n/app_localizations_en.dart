@@ -3606,4 +3606,270 @@ class LEn extends L {
   @override
   String get cmdBaseHint =>
       'A new base with the folder’s notes, opens right away';
+
+  @override
+  String get baseSort => 'Sort';
+
+  @override
+  String get baseGroup => 'Group';
+
+  @override
+  String get baseFilter => 'Filter';
+
+  @override
+  String get baseProperties => 'Properties';
+
+  @override
+  String get baseSearch => 'Search';
+
+  @override
+  String get baseSearchHint => 'Search this base';
+
+  @override
+  String get baseCreate => 'New';
+
+  @override
+  String baseShown(int shown, int total) {
+    return 'Showing $shown of $total';
+  }
+
+  @override
+  String get baseSortAdd => 'Add sort';
+
+  @override
+  String get baseAscending => 'Ascending';
+
+  @override
+  String get baseDescending => 'Descending';
+
+  @override
+  String get baseGroupNone => 'No grouping';
+
+  @override
+  String get baseFilterAll => 'All views';
+
+  @override
+  String get baseFilterThis => 'This view';
+
+  @override
+  String get baseFilterEmpty => 'No conditions, every note is shown.';
+
+  @override
+  String get baseJoinAll => 'All of the following';
+
+  @override
+  String get baseJoinAny => 'Any of the following';
+
+  @override
+  String get baseJoinNone => 'None of the following';
+
+  @override
+  String get baseFilterAdd => 'Add condition';
+
+  @override
+  String get baseFilterAddGroup => 'Add group';
+
+  @override
+  String get baseMoveToAll => 'Move to all views';
+
+  @override
+  String get baseMoveToThis => 'Move to this view';
+
+  @override
+  String get baseExpression => 'Expression';
+
+  @override
+  String get baseValue => 'Value';
+
+  @override
+  String get baseOpIs => 'is';
+
+  @override
+  String get baseOpIsNot => 'is not';
+
+  @override
+  String get baseOpContains => 'contains';
+
+  @override
+  String get baseOpNotContains => 'does not contain';
+
+  @override
+  String get baseOpStarts => 'starts with';
+
+  @override
+  String get baseOpEnds => 'ends with';
+
+  @override
+  String get baseOpEmpty => 'is empty';
+
+  @override
+  String get baseOpNotEmpty => 'is not empty';
+
+  @override
+  String get baseOpGreater => 'is greater than';
+
+  @override
+  String get baseOpAtLeast => 'is at least';
+
+  @override
+  String get baseOpLess => 'is less than';
+
+  @override
+  String get baseOpAtMost => 'is at most';
+
+  @override
+  String get baseOpHasTag => 'has tag';
+
+  @override
+  String get baseOpNotHasTag => 'does not have tag';
+
+  @override
+  String get baseOpInFolder => 'is in folder';
+
+  @override
+  String get baseOpNotInFolder => 'is not in folder';
+
+  @override
+  String get baseOpHasLink => 'links to';
+
+  @override
+  String get baseFormulaAdd => 'Add formula';
+
+  @override
+  String get baseFormulaName => 'Name';
+
+  @override
+  String baseFormulaError(String what) {
+    return 'Not understood: $what';
+  }
+
+  @override
+  String get baseFormulaEdit => 'Edit formula';
+
+  @override
+  String get baseFormulaDelete => 'Delete formula';
+
+  @override
+  String get baseRename => 'Rename';
+
+  @override
+  String get baseRemove => 'Remove';
+
+  @override
+  String get baseColumnHide => 'Hide column';
+
+  @override
+  String get baseShownProps => 'Shown';
+
+  @override
+  String get baseOtherProps => 'Other properties';
+
+  @override
+  String get baseSummary => 'Summary';
+
+  @override
+  String get baseSummaryNone => 'No summary';
+
+  @override
+  String get baseSumAverage => 'Average';
+
+  @override
+  String get baseSumMedian => 'Median';
+
+  @override
+  String get baseSumMin => 'Min';
+
+  @override
+  String get baseSumMax => 'Max';
+
+  @override
+  String get baseSumSum => 'Sum';
+
+  @override
+  String get baseSumRange => 'Range';
+
+  @override
+  String get baseSumStddev => 'Std. deviation';
+
+  @override
+  String get baseSumEarliest => 'Earliest';
+
+  @override
+  String get baseSumLatest => 'Latest';
+
+  @override
+  String get baseSumChecked => 'Checked';
+
+  @override
+  String get baseSumUnchecked => 'Unchecked';
+
+  @override
+  String get baseSumEmpty => 'Empty';
+
+  @override
+  String get baseSumFilled => 'Filled';
+
+  @override
+  String get baseSumUnique => 'Unique';
+
+  @override
+  String get baseViewAdd => 'Add view';
+
+  @override
+  String get baseViewLayout => 'Layout';
+
+  @override
+  String get baseViewCopy => 'Duplicate';
+
+  @override
+  String get baseViewDelete => 'Delete view';
+
+  @override
+  String get baseViewSettings => 'View settings';
+
+  @override
+  String get baseLayoutTable => 'Table';
+
+  @override
+  String get baseLayoutCards => 'Cards';
+
+  @override
+  String get baseLayoutList => 'List';
+
+  @override
+  String get baseLayoutKanban => 'Board';
+
+  @override
+  String get baseLayoutMap => 'Map';
+
+  @override
+  String get baseLimit => 'Result limit';
+
+  @override
+  String get baseLimitNone => 'No limit';
+
+  @override
+  String get baseImage => 'Image property';
+
+  @override
+  String get baseImageNone => 'No image';
+
+  @override
+  String get baseCardSize => 'Card size';
+
+  @override
+  String get baseImageRatio => 'Image aspect ratio';
+
+  @override
+  String get baseImageFitCover => 'Crop to fill';
+
+  @override
+  String get baseImageFitContain => 'Fit whole';
+
+  @override
+  String get baseKanbanNeedsGroup =>
+      'Pick a property under Group to build the columns.';
+
+  @override
+  String get baseUntitled => 'Untitled';
 }

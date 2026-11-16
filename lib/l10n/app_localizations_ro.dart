@@ -3639,4 +3639,270 @@ class LRo extends L {
   @override
   String get cmdBaseHint =>
       'O bază nouă cu notițele dosarului, se deschide imediat';
+
+  @override
+  String get baseSort => 'Sortare';
+
+  @override
+  String get baseGroup => 'Grupare';
+
+  @override
+  String get baseFilter => 'Filtru';
+
+  @override
+  String get baseProperties => 'Proprietăți';
+
+  @override
+  String get baseSearch => 'Căutare';
+
+  @override
+  String get baseSearchHint => 'Caută în bază';
+
+  @override
+  String get baseCreate => 'Nouă';
+
+  @override
+  String baseShown(int shown, int total) {
+    return 'Se arată $shown din $total';
+  }
+
+  @override
+  String get baseSortAdd => 'Adaugă sortare';
+
+  @override
+  String get baseAscending => 'Crescător';
+
+  @override
+  String get baseDescending => 'Descrescător';
+
+  @override
+  String get baseGroupNone => 'Fără grupare';
+
+  @override
+  String get baseFilterAll => 'Toate vederile';
+
+  @override
+  String get baseFilterThis => 'Această vedere';
+
+  @override
+  String get baseFilterEmpty => 'Nicio condiție, se văd toate notițele.';
+
+  @override
+  String get baseJoinAll => 'Toate condițiile';
+
+  @override
+  String get baseJoinAny => 'Oricare dintre condiții';
+
+  @override
+  String get baseJoinNone => 'Niciuna dintre condiții';
+
+  @override
+  String get baseFilterAdd => 'Adaugă condiție';
+
+  @override
+  String get baseFilterAddGroup => 'Adaugă grup';
+
+  @override
+  String get baseMoveToAll => 'Mută în toate vederile';
+
+  @override
+  String get baseMoveToThis => 'Mută în această vedere';
+
+  @override
+  String get baseExpression => 'Expresie';
+
+  @override
+  String get baseValue => 'Valoare';
+
+  @override
+  String get baseOpIs => 'este';
+
+  @override
+  String get baseOpIsNot => 'nu este';
+
+  @override
+  String get baseOpContains => 'conține';
+
+  @override
+  String get baseOpNotContains => 'nu conține';
+
+  @override
+  String get baseOpStarts => 'începe cu';
+
+  @override
+  String get baseOpEnds => 'se termină cu';
+
+  @override
+  String get baseOpEmpty => 'este gol';
+
+  @override
+  String get baseOpNotEmpty => 'nu este gol';
+
+  @override
+  String get baseOpGreater => 'mai mare decât';
+
+  @override
+  String get baseOpAtLeast => 'cel puțin';
+
+  @override
+  String get baseOpLess => 'mai mic decât';
+
+  @override
+  String get baseOpAtMost => 'cel mult';
+
+  @override
+  String get baseOpHasTag => 'are eticheta';
+
+  @override
+  String get baseOpNotHasTag => 'nu are eticheta';
+
+  @override
+  String get baseOpInFolder => 'e în dosarul';
+
+  @override
+  String get baseOpNotInFolder => 'nu e în dosarul';
+
+  @override
+  String get baseOpHasLink => 'trimite la';
+
+  @override
+  String get baseFormulaAdd => 'Adaugă formulă';
+
+  @override
+  String get baseFormulaName => 'Nume';
+
+  @override
+  String baseFormulaError(String what) {
+    return 'Nu am înțeles: $what';
+  }
+
+  @override
+  String get baseFormulaEdit => 'Modifică formula';
+
+  @override
+  String get baseFormulaDelete => 'Șterge formula';
+
+  @override
+  String get baseRename => 'Redenumește';
+
+  @override
+  String get baseRemove => 'Elimină';
+
+  @override
+  String get baseColumnHide => 'Ascunde coloana';
+
+  @override
+  String get baseShownProps => 'Afișate';
+
+  @override
+  String get baseOtherProps => 'Alte proprietăți';
+
+  @override
+  String get baseSummary => 'Total';
+
+  @override
+  String get baseSummaryNone => 'Fără total';
+
+  @override
+  String get baseSumAverage => 'Medie';
+
+  @override
+  String get baseSumMedian => 'Mediană';
+
+  @override
+  String get baseSumMin => 'Minim';
+
+  @override
+  String get baseSumMax => 'Maxim';
+
+  @override
+  String get baseSumSum => 'Sumă';
+
+  @override
+  String get baseSumRange => 'Interval';
+
+  @override
+  String get baseSumStddev => 'Abatere';
+
+  @override
+  String get baseSumEarliest => 'Cea mai veche';
+
+  @override
+  String get baseSumLatest => 'Cea mai nouă';
+
+  @override
+  String get baseSumChecked => 'Bifate';
+
+  @override
+  String get baseSumUnchecked => 'Nebifate';
+
+  @override
+  String get baseSumEmpty => 'Goale';
+
+  @override
+  String get baseSumFilled => 'Completate';
+
+  @override
+  String get baseSumUnique => 'Distincte';
+
+  @override
+  String get baseViewAdd => 'Adaugă vedere';
+
+  @override
+  String get baseViewLayout => 'Aspect';
+
+  @override
+  String get baseViewCopy => 'Copie a vederii';
+
+  @override
+  String get baseViewDelete => 'Șterge vederea';
+
+  @override
+  String get baseViewSettings => 'Setările vederii';
+
+  @override
+  String get baseLayoutTable => 'Tabel';
+
+  @override
+  String get baseLayoutCards => 'Carduri';
+
+  @override
+  String get baseLayoutList => 'Listă';
+
+  @override
+  String get baseLayoutKanban => 'Panou';
+
+  @override
+  String get baseLayoutMap => 'Hartă';
+
+  @override
+  String get baseLimit => 'Câte se arată';
+
+  @override
+  String get baseLimitNone => 'Toate';
+
+  @override
+  String get baseImage => 'Imagine din proprietate';
+
+  @override
+  String get baseImageNone => 'Fără imagine';
+
+  @override
+  String get baseCardSize => 'Mărimea cardului';
+
+  @override
+  String get baseImageRatio => 'Proporția imaginii';
+
+  @override
+  String get baseImageFitCover => 'Decupează în cadru';
+
+  @override
+  String get baseImageFitContain => 'Întreagă';
+
+  @override
+  String get baseKanbanNeedsGroup =>
+      'Alege la „Grupare” proprietatea pentru coloane.';
+
+  @override
+  String get baseUntitled => 'Fără titlu';
 }

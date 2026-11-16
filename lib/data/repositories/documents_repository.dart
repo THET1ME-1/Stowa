@@ -6,7 +6,7 @@ import '../../domain/json_canvas.dart';
 import '../../domain/models.dart';
 import '../../domain/note_links.dart' show wikiLink;
 import '../../domain/obsidian_base.dart';
-import '../../domain/vault_note.dart' show unpackVaultProperties, vaultFileName;
+import '../../domain/vault_note.dart' show packVaultProperties, unpackVaultProperties, vaultFileName;
 import '../db/database.dart';
 
 /// Холсты и базы Obsidian — заметки видов canvas и base, файл целиком в `items.document`.
@@ -43,6 +43,48 @@ class DocumentsRepository {
   Future<void> save(String id, CanvasDoc doc) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
     ItemsCompanion(document: Value(doc.encode()), body: Value(doc.plainText()), updatedAt: Value(_clock())),
   );
+
+  /// Записать правку базы: текст файла целиком, имена видов — для поиска.
+  Future<void> saveBase(String id, String text) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
+    ItemsCompanion(
+      document: Value(text),
+      body: Value(ObsidianBase.parse(text).views.map((view) => view.name).where((name) => name.isNotEmpty).join('\n')),
+      updatedAt: Value(_clock()),
+    ),
+  );
+
+  /// Пустая заметка из базы, как «Новая» в Obsidian: имя, папка и свойства из условий вида.
+  /// Разложена человеком — правила и ИИ её не трогают.
+  Future<String> createNote({required String title, String? folderId, Map<String, Object?> properties = const {}}) async {
+    final id = const Uuid().v4();
+    final now = _clock();
+    await _db.into(_db.items).insert(
+      ItemsCompanion.insert(
+        id: id,
+        kind: ItemKind.note,
+        title: title,
+        folderId: Value(folderId),
+        properties: Value(packVaultProperties(properties)),
+        sortedBy: const Value(SortedBy.user),
+        sortState: const Value(SortState.sorted),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    return id;
+  }
+
+  /// Папка по пути хранилища «Библиотека/Книги»; нет такой — null.
+  Future<String?> folderAt(String path) async {
+    final want = path.replaceAll(RegExp(r'^/+|/+$'), '').toLowerCase();
+    if (want.isEmpty) return null;
+    final tree = await _tree();
+    final rows = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
+    for (final row in rows) {
+      if (tree.path(row.id).map(vaultFileName).join('/').toLowerCase() == want) return row.id;
+    }
+    return null;
+  }
 
   /// Новое имя: файл переедет под него при записи.
   Future<void> rename(String id, String title) =>

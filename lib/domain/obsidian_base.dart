@@ -205,8 +205,7 @@ class ObsidianBase {
 
   static Map<String, String> _strings(Object? yaml) => {
     if (yaml is Map)
-      for (final MapEntry(:key, :value) in yaml.entries)
-        if (value != null) '$key': '$value',
+      for (final MapEntry(:key, :value) in yaml.entries) '$key': ?value?.toString(),
   };
 
   static BaseView _view(Map view) {
@@ -231,8 +230,7 @@ class ObsidianBase {
       imageFit: '${view['imageFit']}' == 'contain' ? BaseImageFit.contain : BaseImageFit.cover,
       columnSize: {
         if (sizes is Map)
-          for (final MapEntry(:key, :value) in sizes.entries)
-            if (number(value) case final width?) '$key': width,
+          for (final MapEntry(:key, :value) in sizes.entries) '$key': ?number(value),
       },
       summaries: _strings(view['summaries']),
     );
