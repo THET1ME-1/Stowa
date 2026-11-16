@@ -96,11 +96,53 @@ void main() {
       expect(shown(straight), '|');
     });
 
-    test('кавычка поверх выделения оборачивает его', () {
+    test('кавычка поверх выделения оборачивает его, выделение остаётся на слове', () {
       const old = TextEditingValue(text: 'Он сказал привет', selection: TextSelection(baseOffset: 10, extentOffset: 16));
       final value = smartPunctuation(old, at('Он сказал «', 11));
       expect(value.text, 'Он сказал «привет»');
-      expect(value.selection.baseOffset, value.text.length);
+      expect((value.selection.start, value.selection.end), (11, 17));
+    });
+
+    // хозяин 16.11: «написать 1+6=7, выделить и нажать $ — будет формула $1+6=7$? Ещё все
+    // остальные двойные форматирования *тут выделенный текст*, кавычки, код»
+    group('знак поверх выделения оборачивает его, как в Obsidian', () {
+      /// Выделить [from]…[to] в [text] и набрать [char] поверх, как клавиатура.
+      TextEditingValue over(String text, int from, int to, String char) {
+        final old = TextEditingValue(text: text, selection: TextSelection(baseOffset: from, extentOffset: to));
+        final next = TextEditingValue(text: text.replaceRange(from, to, char), selection: TextSelection.collapsed(offset: from + 1));
+        return smartPunctuation(old, next);
+      }
+
+      String marked(TextEditingValue value) => value.text.replaceRange(value.selection.end, value.selection.end, ']').replaceRange(value.selection.start, value.selection.start, '[');
+
+      test('формула, курсив, код, выделение маркером, скобки', () {
+        expect(marked(over('Пример 1+6=7', 7, 12, r'$')), r'Пример $[1+6=7]$');
+        expect(marked(over('тут текст', 4, 9, '*')), 'тут *[текст]*');
+        expect(marked(over('тут текст', 4, 9, '_')), 'тут _[текст]_');
+        expect(marked(over('флаг ls', 5, 7, '`')), 'флаг `[ls]`');
+        expect(marked(over('важно', 0, 5, '=')), '=[важно]=');
+        expect(marked(over('см. стр', 4, 7, '(')), 'см. ([стр])');
+        expect(marked(over('массив', 0, 6, '[')), '[[массив]]');
+      });
+
+      test('второй раз — двойной знак: жирный, зачёркнутый, маркер', () {
+        var value = over('тут текст', 4, 9, '*');
+        final old = value;
+        final next = TextEditingValue(text: old.text.replaceRange(old.selection.start, old.selection.end, '*'), selection: TextSelection.collapsed(offset: old.selection.start + 1));
+        value = smartPunctuation(old, next);
+        expect(marked(value), 'тут **[текст]**');
+        var strike = over('старое', 0, 6, '~');
+        strike = smartPunctuation(strike, TextEditingValue(text: strike.text.replaceRange(strike.selection.start, strike.selection.end, '~'), selection: TextSelection.collapsed(offset: strike.selection.start + 1)));
+        expect(marked(strike), '~~[старое]~~');
+      });
+
+      test('буква поверх выделения заменяет его, как раньше', () {
+        expect(over('тут текст', 4, 9, 'с').text, 'тут с');
+      });
+
+      test('в коде знак заменяет выделение, обёртки нет', () {
+        expect(over('`код тут`', 1, 4, '*').text, '`* тут`');
+      });
     });
 
     test('в коде и в формуле кавычки не парные', () {

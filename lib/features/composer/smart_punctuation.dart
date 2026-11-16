@@ -87,17 +87,23 @@ bool _opens(String text, int at) {
   return before.isEmpty || _opensAfter.hasMatch(before);
 }
 
-/// Кавычка поверх выделения: выделенное — в кавычки, курсор за закрывающей.
+/// Что оборачивает выделение: кавычки, знаки разметки Markdown и Obsidian (`*` курсив,
+/// `_`, `~`, `=` маркер, `` ` `` код, `$` формула) и скобки.
+const _wrappers = {..._quotes, r'$': r'$', '*': '*', '_': '_', '~': '~', '=': '=', '`': '`', '(': ')', '[': ']', '{': '}'};
+
+/// Знак поверх выделения, как в Obsidian: выделенное оборачивается, а выделение остаётся на
+/// нём же — второе нажатие `*` даёт `**жирный**`, второе `~` — `~~зачёркнутый~~`.
 TextEditingValue _wrapSelection(TextEditingValue old, TextEditingValue next) {
   final start = old.selection.start;
   final end = old.selection.end;
   final selected = old.text.substring(start, end);
   final caret = next.selection.baseOffset;
   if (caret != start + 1 || next.text.length != old.text.length - selected.length + 1) return next;
-  final close = _quotes[next.text[start]];
+  final open = next.text[start];
+  final close = _wrappers[open];
   if (close == null || next.text.replaceRange(start, start + 1, selected) != old.text || _blocked(old.text, start)) return next;
-  final text = old.text.replaceRange(start, end, '${next.text[start]}$selected$close');
-  return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: start + selected.length + 2));
+  final text = old.text.replaceRange(start, end, '$open$selected$close');
+  return TextEditingValue(text: text, selection: TextSelection(baseOffset: start + 1, extentOffset: start + 1 + selected.length));
 }
 
 /// В коде и в формуле типографики нет: там «<<», «--» и кавычки — знаки языка.

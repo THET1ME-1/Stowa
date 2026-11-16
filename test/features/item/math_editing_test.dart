@@ -65,6 +65,19 @@ void main() {
     expect(field(tester), 'Физика\n\$\\frac{s}{|}\$');
   });
 
+  // хозяин 16.11: «написать 1+6=7, выделить и нажать $ — будет формула?»
+  testWidgets('выделил 1+6=7 и набрал доллар — формула, выделение на месте', (tester) async {
+    await editing(tester);
+    const text = 'Физика\nПример 1+6=7';
+    tester.testTextInput.updateEditingValue(const TextEditingValue(text: text, selection: TextSelection(baseOffset: 14, extentOffset: 19)));
+    await tester.pump();
+    tester.testTextInput.updateEditingValue(const TextEditingValue(text: 'Физика\nПример \$', selection: TextSelection.collapsed(offset: 15)));
+    await tester.pumpAndSettle();
+    final controller = tester.widget<TextField>(find.byType(TextField).last).controller!;
+    expect(controller.text, 'Физика\nПример \$1+6=7\$');
+    expect(controller.selection.textInside(controller.text), '1+6=7');
+  });
+
   testWidgets('кнопка «Формула» ставит пару с курсором внутри', (tester) async {
     await editing(tester);
     await put(tester, 'Физика\nСкорость |');
