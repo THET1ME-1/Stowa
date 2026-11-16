@@ -7,8 +7,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/sheet_options.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
@@ -313,6 +315,8 @@ class AiScreen extends ConsumerWidget {
             const SizedBox(height: 18),
             _AiCard(settings: ai, queued: queued, busy: ref.watch(aiBusyProvider).value ?? false, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
             const SizedBox(height: 8),
+            // где взять ключ — первый вопрос новичка; с ключом подсказка не нужна
+            HintBanner(tip: Tip.aiKey, when: !ai.hasKey, padding: const EdgeInsets.only(bottom: 8)),
             SettingsGroup(
               tint: settingsTint('violet'),
               children: [

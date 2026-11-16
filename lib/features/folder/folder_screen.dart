@@ -9,6 +9,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -16,6 +17,7 @@ import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../data/repositories/items_repository.dart';
 import '../../data/repositories/tags_repository.dart';
 import '../../domain/folder_tree.dart';
@@ -385,6 +387,8 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(l.folderTotal(formatTotal(total, l.localeName)), style: text.bodyMedium!.copyWith(fontSize: 15, color: Tokens.onSurfaceVariant)),
             ),
+          // что прячется в «⋮», снаружи не видно
+          if (folder != null) const HintBanner(tip: Tip.folderMenu, padding: EdgeInsets.only(top: 12)),
         ],
       ),
     );
@@ -441,7 +445,14 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
-                        child: FilledButton.icon(onPressed: () => Navigator.of(context).push(sortRoute()), icon: Icon(symbolIcon('swipe_down')), label: Text(l.sortMode)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            FilledButton.icon(onPressed: () => Navigator.of(context).push(sortRoute()), icon: Icon(symbolIcon('swipe_down')), label: Text(l.sortMode)),
+                            // слово «Разобрать» не говорит, что будет: сказать, когда разбирать уже есть что
+                            HintBanner(tip: Tip.sort, when: cards.length >= 3, padding: const EdgeInsets.only(top: 10)),
+                          ],
+                        ),
                       ),
                     ),
                   if (viewSwitch != null) SliverToBoxAdapter(child: viewSwitch),

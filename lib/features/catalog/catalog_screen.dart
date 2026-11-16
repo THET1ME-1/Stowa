@@ -8,10 +8,12 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../domain/models.dart';
 import '../folder/folder_sheets.dart' show pickNewDocument;
 import '../../domain/note_links.dart' show shownTitle;
@@ -164,6 +166,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 ],
               ),
             ),
+            // порядок папок меняют перетаскиванием, а этого не видно: сказать, когда папок уже несколько
+            HintBanner(tip: Tip.catalog, when: folders.length >= 2, padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 8)),
             Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.only(bottom: 24 + MediaQuery.paddingOf(context).bottom),

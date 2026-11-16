@@ -204,7 +204,7 @@ void main() {
 
   testWidgets('пояснение под переключателем видно целиком, без многоточия', (tester) async {
     await openSection(tester, 'Разбор ИИ');
-    final hint = find.textContaining('Модель проверяет и то, что приложение разложило само');
+    final hint = find.textContaining('Модель проверяет и то, что разложено без неё');
     await tester.scrollUntilVisible(hint, 100);
     expect(tester.renderObject<RenderParagraph>(hint).didExceedMaxLines, isFalse);
   });

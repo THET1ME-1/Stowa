@@ -19,11 +19,13 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
+import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../domain/place_cue.dart' show KnownPlace, parsePlaceCue;
 import '../../domain/reminder_parser.dart' show parseReminder, reminderPhrase;
 import '../../data/repositories/folders_repository.dart';
@@ -1053,8 +1055,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   ),
                                 ],
                               )
-                            : _Dock(
+                            : Column(
                                 key: const ValueKey('view-dock'),
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // значки панели без подписей: один раз сказать, что они делают
+                                  const HintBanner(tip: Tip.noteBar, padding: EdgeInsets.only(bottom: 8)),
+                                  _Dock(
                                 height: _dockHeight,
                                 buttons: [
                                   _DockButton(
@@ -1078,6 +1086,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                 accentIcon: videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add'),
                                 accentLabel: videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend),
                                 onAccent: linkLike || videoFile != null ? openMain : () => _startEditing(item, append: true),
+                              ),
+                                ],
                               ),
                       ),
                     ),
@@ -1618,7 +1628,7 @@ class _DockButton {
 /// Плавающая панель внизу: пилюля с действиями и светлая кнопка главного шага.
 /// На узком экране главная кнопка остаётся значком, подпись уходит в подсказку.
 class _Dock extends StatelessWidget {
-  const _Dock({super.key, required this.height, required this.buttons, required this.accentIcon, required this.accentLabel, required this.onAccent});
+  const _Dock({required this.height, required this.buttons, required this.accentIcon, required this.accentLabel, required this.onAccent});
 
   final double height;
   final List<_DockButton> buttons;

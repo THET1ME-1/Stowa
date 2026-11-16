@@ -9,9 +9,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show PickedFile;
@@ -442,6 +444,10 @@ class _Feed extends ConsumerWidget {
         const SliverToBoxAdapter(child: ReturnPills()),
         // снаружи пришло много заметок (Syncthing, компьютер): видно, что приложение их забирает
         SliverToBoxAdapter(child: VaultSyncBar(sync: ref.watch(vaultSyncProvider))),
+        // меню долгого нажатия не видно, пока не нажмёшь: сказать, когда заметок уже несколько
+        SliverToBoxAdapter(
+          child: HintBanner(tip: Tip.longPress, when: recent.length + pinnedNotes.length >= 5, padding: const EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, 8)),
+        ),
         if (recent.isNotEmpty || pinnedNotes.isNotEmpty)
           SliverToBoxAdapter(
             child: NoteTimeline(

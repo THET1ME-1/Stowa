@@ -61,15 +61,15 @@ void main() {
 
   double top(Finder finder) => finder.evaluate().isEmpty ? double.infinity : finder.evaluate().first.renderObject is RenderBox ? (finder.evaluate().first.renderObject! as RenderBox).localToGlobal(Offset.zero).dy : double.infinity;
 
-  testWidgets('первым разделом «Каталог»: имя открытого хранилища и число заметок, ниже «Внешний вид»', (tester) async {
+  testWidgets('первым разделом «Хранилище»: имя открытого хранилища и число заметок, ниже «Внешний вид»', (tester) async {
     await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Раз', body: const Value('Раз'), createdAt: world.now, updatedAt: world.now));
     await tester.runAsync(() async {});
     await openSettings(tester);
-    expect(find.text('КАТАЛОГ'), findsOneWidget);
+    expect(find.text('ХРАНИЛИЩЕ'), findsOneWidget);
     final row = find.byKey(const ValueKey('settings-catalog'));
     expect(find.descendant(of: row, matching: find.text('Внутри приложения')), findsOneWidget);
     expect(find.descendant(of: row, matching: find.text('1 заметка')), findsOneWidget);
-    expect(top(find.text('КАТАЛОГ')), lessThan(top(find.text('ВНЕШНИЙ ВИД'))));
+    expect(top(find.text('ХРАНИЛИЩЕ')), lessThan(top(find.text('ВНЕШНИЙ ВИД'))));
     expect(top(find.text('ВНЕШНИЙ ВИД')), lessThan(top(find.text('РАЗБОР И УВЕДОМЛЕНИЯ'))));
     // хранилище больше не повторяется строкой ниже, корзина уехала в «Данные»
     expect(find.text('Хранилище'), findsNothing);

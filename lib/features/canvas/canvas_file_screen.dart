@@ -10,6 +10,8 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
+import '../../core/widgets/hint_banner.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -478,7 +480,10 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
                           ),
                         ),
                       if (_connecting)
-                        Positioned(top: 8, left: Space.screen, right: Space.screen, child: _Banner(text: l.canvasConnectHint, icon: 'arrow_right_alt')),
+                        Positioned(top: 8, left: Space.screen, right: Space.screen, child: _Banner(text: l.canvasConnectHint, icon: 'arrow_right_alt'))
+                      // двойное касание по пустому месту нигде не нарисовано
+                      else if (_editable)
+                        const Positioned(top: 8, left: Space.screen, right: Space.screen, child: HintBanner(tip: Tip.canvas)),
                       Positioned(
                         left: Space.screen,
                         right: Space.screen,

@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../domain/base_edit.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../domain/base_filter_rows.dart';
 import '../../domain/obsidian_base.dart';
 import '../../l10n/app_localizations.dart';
@@ -199,6 +201,8 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
                 }
               },
             ),
+            // значки панели без подписей: один раз назвать их словами
+            if (canEdit) const HintBanner(tip: Tip.base, padding: EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, 4)),
             if (canEdit) _toolbar(l, base, index, view, properties, label, now, notes ?? const []),
             if (_searching)
               Padding(

@@ -7,7 +7,9 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/items_repository.dart' show ItemCard;
+import '../../core/widgets/hint_banner.dart';
 import '../../domain/edge_settings.dart';
+import '../../domain/hints.dart' show Tip;
 import '../../domain/spine_colors.dart';
 import '../../l10n/app_localizations.dart';
 import 'edge_preview.dart';
@@ -81,6 +83,8 @@ class _EdgeScreenState extends ConsumerState<EdgeScreen> with WidgetsBindingObse
           children: [
             SettingsHeader(l.edgeTitle),
             const SizedBox(height: 14),
+            // слово «корешки» новичку ничего не говорит
+            const HintBanner(tip: Tip.edge, padding: EdgeInsets.only(bottom: 14)),
             SettingsGroup(
               tint: settingsTint('sky'),
               children: [
