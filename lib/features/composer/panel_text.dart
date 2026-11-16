@@ -292,4 +292,6 @@ String documentName(L l, LineCommand command, String rest) {
   ResultRow() => (label: l.actionOpen, icon: 'arrow_outward'),
   NewTagRow() || NewFolderRow() => (label: l.actionCreate, icon: 'keyboard_return'),
   TagRow() || FolderRow() || CommandRow() => (label: l.actionInsert, icon: 'keyboard_return'),
+  // одно пояснение и ничего на выбор: кнопка как у пустой строки — голос
+  ExplainRow() => (label: '', icon: 'mic'),
 };

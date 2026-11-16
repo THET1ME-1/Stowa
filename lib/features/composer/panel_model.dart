@@ -120,6 +120,17 @@ class CommandRow extends PanelRow {
   String get key => 'c${command.name}';
 }
 
+/// Голые `#` и `@`: строка-пояснение у самой строки, не нажимается. Без неё панель молчала,
+/// и новичок не узнавал, что знак делает.
+class ExplainRow extends PanelRow {
+  const ExplainRow(this.kind);
+
+  final CaretKind kind;
+
+  @override
+  String get key => 'explain';
+}
+
 enum PanelHeader { none, tags, folders, commands, found, nothingFound, similar, fresh }
 
 class PanelState {
@@ -281,7 +292,8 @@ PanelState buildPanel(PanelInput input) {
 
   final query = queryOf(input.text, input.commandKeys);
   final command = query.command;
-  final hasContent = query.rest.trim().isNotEmpty || input.attachmentMimes.isNotEmpty;
+  // одинокие «#» и «@» — не мысль, а начатая метка: «Закинуть» из них заметку не делает
+  final hasContent = query.rest.replaceAll(RegExp(r'(^|\s)[#@](?=\s|$)'), ' ').trim().isNotEmpty || input.attachmentMimes.isNotEmpty;
   // «/холст» без имени тоже заводит холст: имя будет «Холст»
   final plan = command == LineCommand.find || (!hasContent && !isDocumentCommand(command)) ? null : planSave(input, command: command, rest: query.rest);
 
@@ -337,12 +349,15 @@ PanelState _completions(PanelInput input, CaretToken token) {
   final rows = <PanelRow>[];
   switch (token.kind) {
     case CaretKind.command:
-      // подходит слово любого языка: «/auf» в русском интерфейсе — «aufgabe»; показывается то, что совпало
-      for (final entry in input.commandKeys.entries) {
+      // подходит слово любого языка: «/auf» в русском интерфейсе — «aufgabe»; показывается то, что совпало.
+      // Порядок — от простых: у самой строки «напомнить», холст и база выше всех
+      final entries = input.commandKeys.entries.toList()..sort((a, b) => a.key.index.compareTo(b.key.index));
+      for (final entry in entries) {
         final key = entry.value.where((one) => normalizeQuery(one).startsWith(query)).firstOrNull;
         if (key != null) rows.add(CommandRow(entry.key, key));
       }
     case CaretKind.tag:
+      if (query.isEmpty) rows.add(const ExplainRow(CaretKind.tag));
       var exact = false;
       for (final tag in input.tags.where((tag) => tag.name.startsWith(query) && !input.chosenTags.contains(tag.name)).take(6)) {
         if (tag.name == query) exact = true;
@@ -352,6 +367,7 @@ PanelState _completions(PanelInput input, CaretToken token) {
     case CaretKind.folder:
       // «только закинуть» папок не называет, а «Создать» завёл бы двойника той, что уже есть
       if (input.writeOnly) break;
+      if (query.trim().isEmpty) rows.add(const ExplainRow(CaretKind.folder));
       // по началу всего имени («подарки с» → «Подарки Сане») или любого его слова
       final wanted = query.trimRight();
       bool fits(FolderCard folder) {
@@ -368,6 +384,8 @@ PanelState _completions(PanelInput input, CaretToken token) {
   }
   return PanelState(
     rows: rows,
+    // пояснение не выбирается: белой встаёт первая настоящая строка над ним
+    pick: rows.length > 1 && rows.first is ExplainRow ? 1 : 0,
     header: switch (token.kind) {
       CaretKind.tag => PanelHeader.tags,
       CaretKind.folder => PanelHeader.folders,

@@ -68,6 +68,42 @@ void main() {
     expect((panel.rows.first as FolderRow).folder.id, 'gifts');
   });
 
+  test('голая решётка: пояснение у строки, над ним теги, что уже есть', () {
+    for (final text in ['#', 'лампа #']) {
+      final panel = _panel(text);
+      expect(panel.header, PanelHeader.tags);
+      expect((panel.rows.first as ExplainRow).kind, CaretKind.tag);
+      expect((panel.rows[1] as TagRow).tag.name, 'свет');
+    }
+  });
+
+  test('голая собака: пояснение у строки, над ним папки', () {
+    final panel = _panel('@');
+    expect(panel.header, PanelHeader.folders);
+    expect((panel.rows.first as ExplainRow).kind, CaretKind.folder);
+    expect(panel.rows.skip(1).map((row) => (row as FolderRow).folder.id), ['car', 'refs']);
+    expect(panel.rows.whereType<NewFolderRow>(), isEmpty);
+  });
+
+  test('одинокий знак — не заметка: «Закинуть» нет', () {
+    for (final text in ['# ', '@ ', ' # @ ']) {
+      expect(_panel(text).plan, isNull, reason: text);
+    }
+    expect(_panel('лампа # ').plan, isNotNull);
+  });
+
+  test('команды от простых: у строки «напомнить», выше задача, список, …, холст и база', () {
+    const shuffled = {
+      LineCommand.base: ['база'],
+      LineCommand.canvas: ['холст'],
+      LineCommand.remind: ['напомнить'],
+      LineCommand.list: ['список'],
+      LineCommand.task: ['задача'],
+    };
+    final panel = buildPanel(const PanelInput(text: '/', caret: 1, commandKeys: shuffled));
+    expect([for (final row in panel.rows) (row as CommandRow).command], [LineCommand.remind, LineCommand.task, LineCommand.list, LineCommand.canvas, LineCommand.base]);
+  });
+
   test('/ в начале показывает команды', () {
     final panel = _panel('/за');
     expect((panel.rows.single as CommandRow).command, LineCommand.task);

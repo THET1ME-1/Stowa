@@ -81,8 +81,7 @@ class HintsRepository {
       doneAt: prefs.getInt(_stepStows),
       closed: {for (final name in prefs.getStringList(_closed) ?? const <String>[]) ?Tip.values.asNameMap()[name]},
       shows: {
-        for (final one in prefs.getStringList(_shows) ?? const <String>[])
-          if (Tip.values.asNameMap()[one.split(':').first] case final tip?) tip: int.tryParse(one.split(':').last) ?? 0,
+        for (final one in prefs.getStringList(_shows) ?? const <String>[]) ?Tip.values.asNameMap()[one.split(':').first]: int.tryParse(one.split(':').last) ?? 0,
       },
     );
   }

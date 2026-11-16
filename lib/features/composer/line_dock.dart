@@ -208,7 +208,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   DateTime get _now => ref.read(clockProvider)();
 
-  bool get _hasContent => _line.text.trim().isNotEmpty || _files.isNotEmpty;
+  // одинокие «#» и «@» — начатая метка, а не мысль: закидывать нечего (так же решает панель)
+  bool get _hasContent => _line.text.replaceAll(RegExp(r'(^|\s)[#@](?=\s|$)'), ' ').trim().isNotEmpty || _files.isNotEmpty;
 
   // строка под замком холст и базу не заводит: открыть их она не может
   Map<LineCommand, List<String>> _commandKeys(L l) => commandKeys(l, documents: !widget.writeOnly);
@@ -519,7 +520,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       return;
     }
     final rows = _panel.rows;
-    if (rows.isNotEmpty) return _actRow(rows[_shownSelected.clamp(0, rows.length - 1)]);
+    if (rows.isNotEmpty && rows[_shownSelected.clamp(0, rows.length - 1)] is! ExplainRow) return _actRow(rows[_shownSelected.clamp(0, rows.length - 1)]);
     if (_hasContent) return _save();
     await _startVoice();
   }
@@ -546,6 +547,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         _line.chooseFolder(await ref.read(foldersRepositoryProvider).create(name));
       case CommandRow(key_: final key):
         if (token != null) _line.replaceRange(token.start, token.end, '/$key ');
+      case ExplainRow():
+        // пояснение ничего не делает: строка остаётся с фокусом, набирай дальше
+        _focus.requestFocus();
     }
   }
 
@@ -820,7 +824,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   void _move(int step) {
     if (_panel.rows.isEmpty) return;
     setState(() {
-      _selected = (_shownSelected + step).clamp(0, _panel.rows.length - 1);
+      // стрелки пояснение пропускают: оно не выбирается
+      final first = _panel.rows.length > 1 && _panel.rows.first is ExplainRow ? 1 : 0;
+      _selected = (_shownSelected + step).clamp(first, _panel.rows.length - 1);
       _manual = true;
     });
   }
@@ -1322,7 +1328,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       (label, icon) = (l.actionStow, 'arrow_upward');
     } else if (_tray) {
       (label, icon) = _hasContent ? (l.actionStow, 'arrow_upward') : ('', 'mic');
-    } else if (rows.isNotEmpty) {
+    } else if (rows.isNotEmpty && (rows[_shownSelected.clamp(0, rows.length - 1)] is! ExplainRow || !_hasContent)) {
       final action = actionOf(l, rows[_shownSelected.clamp(0, rows.length - 1)]);
       (label, icon) = (action.label, action.icon);
     } else {

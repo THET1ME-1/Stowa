@@ -16,6 +16,7 @@ import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/item_title.dart';
+import '../../domain/line_query.dart' show CaretKind;
 import '../../domain/note_blocks.dart';
 import '../../domain/models.dart';
 import '../../domain/search_rank.dart';
@@ -331,6 +332,7 @@ class _RowView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
+    if (row case ExplainRow(:final kind)) return _explain(l, text, kind);
     final ink = selected ? Tokens.onAccent : Tokens.onSurface;
     final soft = selected ? Tokens.onAccentVariant : Tokens.onSurfaceVariant;
     final faint = selected ? Tokens.onAccentVariant : Tokens.muted;
@@ -444,6 +446,9 @@ class _RowView extends StatelessWidget {
         thumb = _badge('squircle', 'create_new_folder', selected);
         title = Text(l.folderCreate(name), maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle);
         sub = Text(l.folderCreateHint, style: subStyle);
+      case ExplainRow():
+        // рисуется своим видом выше, сюда не доходит
+        return const SizedBox.shrink();
       case CommandRow(:final command, :final key_):
         thumb = _badge('squircle', commandIcons[command]!, selected);
         title = Text('/$key_', style: titleStyle);
@@ -492,6 +497,30 @@ class _RowView extends StatelessWidget {
       ),
     );
   }
+
+  /// Пояснение голого `#` или `@`: бледное, без выделения и касания — его не выбирают, по нему учатся.
+  Widget _explain(L l, TextTheme text, CaretKind kind) => Padding(
+    key: ValueKey('line-explain-${kind.name}'),
+    padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
+    child: Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: Tokens.accent.withValues(alpha: 0.12), shape: BoxShape.circle),
+          child: Icon(symbolIcon(kind == CaretKind.tag ? 'sell' : 'folder'), size: 22, color: Tokens.accent),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            kind == CaretKind.tag ? l.lineExplainTag : l.lineExplainFolder,
+            style: text.bodyMedium!.copyWith(fontSize: 14, height: 1.35, color: Tokens.onSurfaceVariant),
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _badge(String shape, String icon, bool selected) => ShapeBadge(
     shape: BadgeShape.values.asNameMap()[shape] ?? BadgeShape.squircle,

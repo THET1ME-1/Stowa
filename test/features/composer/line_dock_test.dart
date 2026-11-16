@@ -41,6 +41,18 @@ void main() {
         ));
   }
 
+  testWidgets('голая решётка объясняет себя, «Закинуть» из одного знака заметку не делает', (tester) async {
+    await open(tester);
+    await type(tester, '#');
+    expect(find.byKey(const ValueKey('line-explain-tag')), findsOneWidget);
+    expect(find.text('Набери слово: #идея, #работа'), findsOneWidget);
+    expect(find.text('Закинуть'), findsNothing);
+    await type(tester, '@');
+    expect(find.byKey(const ValueKey('line-explain-folder')), findsOneWidget);
+    await type(tester, '# ');
+    expect(find.text('Закинуть'), findsNothing);
+  });
+
   testWidgets('«[[» в строке: «]]» дописывается, над полем заметки по словам, выбор ставит заголовок', (tester) async {
     await note('beer', 'Пиво я очень люблю', body: 'и обожаю светлое');
     await note('car', 'Замена масла');
@@ -125,7 +137,7 @@ void main() {
     await type(tester, '23 декабря 13:00 зубной');
     expect(find.text('Закинуть, папку подберу'), findsOneWidget);
     expect(find.text('напомню 23 декабря в 13:00'), findsOneWidget);
-    expect(find.text('без папки, разложу, когда появится похожее'), findsOneWidget);
+    expect(find.text('без папки, разложу позже'), findsOneWidget);
 
     await tester.tap(find.text('Закинуть').last);
     await tester.pumpAndSettle();
