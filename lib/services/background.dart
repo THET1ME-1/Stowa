@@ -11,6 +11,7 @@ import 'package:workmanager/workmanager.dart';
 
 import '../core/icons/icon_registry.dart';
 import '../data/db/database.dart';
+import '../data/repositories/items_repository.dart';
 import '../data/repositories/tags_repository.dart';
 import '../data/settings_repository.dart';
 import '../l10n/app_language.dart';
@@ -29,6 +30,7 @@ import 'file_keeper.dart';
 import 'place_alarms.dart';
 import 'place_channel.dart';
 import 'privacy/privacy_service.dart';
+import 'notice_service.dart';
 import 'reminder_actions.dart';
 import 'return_service.dart';
 import 'telegram_service.dart';
@@ -101,6 +103,9 @@ Future<void> returnInBackground(AppDatabase db, SharedPreferences prefs, Setting
   await ReturnService(db, prefs: prefs, port: port, clock: DateTime.now, settings: () => settings.returns, l: () => l).tick();
   // сработавшее по месту, пока приложение закрыто, снимается в базе; тревоги ставятся заново
   await PlaceAlarmService(db, channel: const MethodPlaceChannel(), settings: () => settings.returns, l: () => l).sync().catchError((_) {});
+  // закреплённые в уведомлениях: смахнутые встают обратно раз в 15 минут, после перезагрузки — тоже
+  final notices = await ItemsRepository(db).watchNotices(hiddenTitle: l.noticeHiddenTitle).first;
+  await NoticeService(port).sync(notices, private: prefs.getBool(noticePrivatePref) ?? false, force: true).catchError((_) {});
 }
 
 @pragma('vm:entry-point')

@@ -18,6 +18,7 @@ import '../../domain/search_rank.dart';
 import '../../domain/url_key.dart';
 import '../../domain/vault_note.dart' show packVaultProperties;
 import '../../domain/word_forms.dart';
+import '../../services/notice_service.dart' show Notice, noticeText;
 import '../../services/reminder_service.dart' show Reminder, hiddenReminderPayload, reminderText;
 import '../db/database.dart';
 
@@ -358,6 +359,36 @@ class ItemsRepository {
   /// заметки: время правки не меняется, а в файл уходит свойство `pinned`.
   Future<void> setPinned(String id, DateTime? at) {
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(pinnedAt: Value(at)));
+  }
+
+  /// Закрепить заметку в уведомлениях или убрать оттуда. Не правка: время правки стоит, в
+  /// файл не идёт — у каждого телефона свои закреплённые.
+  Future<void> setNoticed(String id, bool on) {
+    return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(noticeAt: Value(on ? _clock() : null)));
+  }
+
+  Future<bool> isNoticed(String id) async =>
+      (await (_db.select(_db.items)..where((t) => t.id.equals(id) & t.noticeAt.isNotNull())).getSingleOrNull()) != null;
+
+  /// Заметки, закреплённые в уведомлениях, старые первыми. Из скрытой папки — [hiddenTitle]
+  /// без текста и адресом `hidden:…`: уведомление видно на экране блокировки.
+  Stream<List<Notice>> watchNotices({String hiddenTitle = ''}) {
+    return _db
+        .customSelect(
+          'SELECT items.*, coalesce(folders.hidden, 0) AS in_hidden FROM items LEFT JOIN folders ON folders.id = items.folder_id '
+          'WHERE items.notice_at IS NOT NULL AND items.deleted_at IS NULL ORDER BY items.notice_at, items.id',
+          readsFrom: {_db.items, _db.folders},
+        )
+        .watch()
+        .map(
+          (rows) => [
+            for (final row in rows)
+              if (row.read<bool>('in_hidden'))
+                (id: hiddenReminderPayload(row.read<String>('id')), title: hiddenTitle, body: '')
+              else
+                (id: row.read<String>('id'), title: shownTitle(row.read<String>('title')), body: noticeText(row.read<String>('title'), row.read<String>('body'))),
+          ],
+        );
   }
 
   /// Когда заметка закреплена: «Отменить» у открепления возвращает её на прежнее место в блоке.

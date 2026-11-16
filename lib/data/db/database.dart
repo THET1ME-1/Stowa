@@ -107,7 +107,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -178,6 +178,8 @@ class AppDatabase extends _$AppDatabase {
       if (from < 19) await migrator.addColumn(items, items.document);
       // 20: заголовок дало приложение — голый файл им не переименовывается
       if (from < 20) await migrator.addColumn(items, items.titleAuto);
+      // заметка, закреплённая в уведомлениях (16.11.2026)
+      if (from < 21) await migrator.addColumn(items, items.noticeAt);
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
         // до очереди: файлы хранилища сразу пишутся с целым текстом

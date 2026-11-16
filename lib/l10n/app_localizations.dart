@@ -6898,6 +6898,48 @@ abstract class L {
   /// In en, this message translates to:
   /// **'In the full-screen input field, Enter always starts a new line.'**
   String get enterHint;
+
+  /// Пункт меню заметки: тихое уведомление висит, пока не уберут
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to notifications'**
+  String get noticePin;
+
+  /// Пункт меню заметки, уже закреплённой в уведомлениях
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from notifications'**
+  String get noticeUnpin;
+
+  /// Плашка после закрепления, с «Отменить»
+  ///
+  /// In en, this message translates to:
+  /// **'Note pinned to notifications'**
+  String get noticePinned;
+
+  /// Плашка после снятия, с «Отменить»
+  ///
+  /// In en, this message translates to:
+  /// **'Note removed from notifications'**
+  String get noticeUnpinned;
+
+  /// Канал уведомлений Android для заметок, закреплённых в уведомлениях
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned notes'**
+  String get noticeChannel;
+
+  /// Кнопка на закреплённом уведомлении
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get noticeRemove;
+
+  /// Заголовок закреплённого уведомления заметки из скрытой папки, без текста
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned note'**
+  String get noticeHiddenTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

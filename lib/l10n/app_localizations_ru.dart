@@ -4137,4 +4137,25 @@ class LRu extends L {
   @override
   String get enterHint =>
       'В поле ввода на весь экран Enter всегда начинает новую строку.';
+
+  @override
+  String get noticePin => 'Закрепить в уведомлениях';
+
+  @override
+  String get noticeUnpin => 'Убрать из уведомлений';
+
+  @override
+  String get noticePinned => 'Заметка закреплена в уведомлениях';
+
+  @override
+  String get noticeUnpinned => 'Заметка убрана из уведомлений';
+
+  @override
+  String get noticeChannel => 'Закреплённые заметки';
+
+  @override
+  String get noticeRemove => 'Убрать';
+
+  @override
+  String get noticeHiddenTitle => 'Закреплённая заметка';
 }

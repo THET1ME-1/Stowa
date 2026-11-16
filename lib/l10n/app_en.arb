@@ -4915,5 +4915,33 @@
   "enterHint": "In the full-screen input field, Enter always starts a new line.",
   "@enterHint": {
     "description": "Пояснение под настройкой Enter, одно предложение"
+  },
+  "noticePin": "Pin to notifications",
+  "@noticePin": {
+    "description": "Пункт меню заметки: тихое уведомление висит, пока не уберут"
+  },
+  "noticeUnpin": "Remove from notifications",
+  "@noticeUnpin": {
+    "description": "Пункт меню заметки, уже закреплённой в уведомлениях"
+  },
+  "noticePinned": "Note pinned to notifications",
+  "@noticePinned": {
+    "description": "Плашка после закрепления, с «Отменить»"
+  },
+  "noticeUnpinned": "Note removed from notifications",
+  "@noticeUnpinned": {
+    "description": "Плашка после снятия, с «Отменить»"
+  },
+  "noticeChannel": "Pinned notes",
+  "@noticeChannel": {
+    "description": "Канал уведомлений Android для заметок, закреплённых в уведомлениях"
+  },
+  "noticeRemove": "Remove",
+  "@noticeRemove": {
+    "description": "Кнопка на закреплённом уведомлении"
+  },
+  "noticeHiddenTitle": "Pinned note",
+  "@noticeHiddenTitle": {
+    "description": "Заголовок закреплённого уведомления заметки из скрытой папки, без текста"
   }
 }

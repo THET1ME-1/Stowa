@@ -11,7 +11,18 @@ import '../composer/line_dock.dart';
 import '../folder/folder_sheets.dart';
 import 'item_screen.dart';
 
-enum _Action { open, pin, move, delete }
+enum _Action { open, pin, notice, move, delete }
+
+/// Закрепить в уведомлениях или убрать оттуда, с «Отменить». Разрешение на уведомления
+/// спрашивается тут же, по действию человека.
+Future<void> toggleNoticed(BuildContext context, WidgetRef ref, {required String id, required bool noticed, bool overDock = true}) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final items = ref.read(itemsRepositoryProvider);
+  await items.setNoticed(id, !noticed);
+  if (!noticed) await ref.read(notificationPortProvider).ensurePermission();
+  showUndo(messenger, message: noticed ? l.noticeUnpinned : l.noticePinned, label: l.undo, onUndo: () => items.setNoticed(id, noticed), overDock: overDock);
+}
 
 /// Закрепить наверху главной или открепить, с «Отменить». Зовут лист долгого нажатия и «⋮» заметки.
 Future<void> togglePinned(BuildContext context, WidgetRef ref, {required String id, required bool pinned, bool overDock = true}) async {
@@ -56,12 +67,15 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final navigator = Navigator.of(context);
+  final noticed = await ref.read(itemsRepositoryProvider).isNoticed(card.id);
+  if (!context.mounted) return;
   final action = await showOptionsSheet<_Action>(
     context,
     title: card.title,
     options: [
       SheetChoice(value: _Action.open, title: l.actionOpen, icon: 'open_in_new'),
       SheetChoice(value: _Action.pin, title: card.pinned ? l.itemUnpin : l.itemPin, icon: 'keep'),
+      SheetChoice(value: _Action.notice, title: noticed ? l.noticeUnpin : l.noticePin, icon: noticed ? 'notifications_off' : 'notifications_active'),
       SheetChoice(value: _Action.move, title: l.itemMove, icon: 'drive_file_move'),
       SheetChoice(value: _Action.delete, title: l.itemDelete, icon: 'delete', danger: true),
     ],
@@ -74,6 +88,8 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
       await navigator.push(itemRoute(card.id));
     case _Action.pin:
       await togglePinned(context, ref, id: card.id, pinned: card.pinned);
+    case _Action.notice:
+      await toggleNoticed(context, ref, id: card.id, noticed: noticed);
     case _Action.move:
       await moveItem(context, ref, card);
     case _Action.delete:

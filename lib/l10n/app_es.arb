@@ -848,5 +848,12 @@
   "enterKeyTitle": "Tecla Intro",
   "enterNewLine": "Nueva línea",
   "enterStow": "Guardar la nota",
-  "enterHint": "En el campo de escritura a pantalla completa, Intro siempre empieza una línea nueva."
+  "enterHint": "En el campo de escritura a pantalla completa, Intro siempre empieza una línea nueva.",
+  "noticePin": "Fijar en notificaciones",
+  "noticeUnpin": "Quitar de notificaciones",
+  "noticePinned": "Nota fijada en notificaciones",
+  "noticeUnpinned": "Nota quitada de notificaciones",
+  "noticeChannel": "Notas fijadas",
+  "noticeRemove": "Quitar",
+  "noticeHiddenTitle": "Nota fijada"
 }

@@ -10,7 +10,7 @@ import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart';
 import 'reminder_service.dart';
 
-export 'reminder_service.dart' show reminderDone, reminderSnooze;
+export 'reminder_service.dart' show noticeRemoveAction, reminderDone, reminderSnooze;
 
 /// Кнопка на уведомлении. «Готово» снимает напоминание, «Через час» переносит
 /// и возвращает новое, чтобы поставить будильник сразу, даже если приложение закрыто.
@@ -21,6 +21,10 @@ Future<Reminder?> handleReminderAction(ItemsRepository items, {required String a
       return null;
     case reminderSnooze:
       return items.snoozeReminder(itemId, now.add(const Duration(hours: 1)));
+    // «Убрать» на закреплённой: уведомление уже снято системой, признак — здесь
+    case noticeRemoveAction:
+      await items.setNoticed(itemId, false);
+      return null;
   }
   return null;
 }
@@ -33,6 +37,8 @@ LocalNotificationPort reminderPort({void Function(String id)? onOpen}) {
     doneLabel: l.reminderDoneAction,
     snoozeLabel: l.reminderSnoozeAction,
     returnChannelName: l.returnChannel,
+    pinnedChannelName: l.noticeChannel,
+    removeLabel: l.noticeRemove,
     onOpen: onOpen,
     onAction: reminderActionInBackground,
   );

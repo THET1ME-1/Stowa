@@ -18,6 +18,7 @@ import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show PickedFile;
 import '../../services/launch_actions.dart';
+import '../../services/notice_service.dart' show noticePrivatePref;
 import '../../services/place_alarms.dart';
 import '../../services/share_intake.dart';
 import '../../services/vault/vault_watch.dart';
@@ -70,6 +71,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       ref.read(widgetSyncProvider).start();
       ref.listenManual(privacyLockProvider, (previous, next) => ref.read(widgetSyncProvider).refresh());
     }
+    // закрепили, убрали, поправили текст закреплённой — уведомления следом; замок — тоже
+    ref.listenManual(noticesProvider, (previous, next) => _syncNotices().ignore(), fireImmediately: true);
+    ref.listenManual(privacyLockProvider, (previous, next) => _syncNotices(force: true).ignore());
     // любая правка напоминаний в базе переставляет будильники системы
     ref.listenManual(remindersProvider, (previous, next) {
       final reminders = next.value;
@@ -292,6 +296,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // корешки «Под рукой» включены — служба на месте; вернулся с правом — включаются
     ref.read(edgeControlProvider).resumed().ignore();
     ref.read(telegramPullProvider)().ignore();
+    // смахнутые закреплённые (Android 14+ даёт смахнуть) встают обратно
+    _syncNotices(force: true).ignore();
+  }
+
+  /// Уведомления заметок, закреплённых в уведомлениях. Под «Кодом на вход» на экране
+  /// блокировки без текста; выбор записывается и для фонового прохода.
+  Future<void> _syncNotices({bool force = false}) async {
+    final notices = ref.read(noticesProvider).value;
+    if (notices == null) return;
+    final private = (ref.read(privacyLockProvider).value ?? ref.read(startLockProvider))?.appLock ?? false;
+    try {
+      await ref.read(preferencesProvider).setBool(noticePrivatePref, private);
+    } on Object {
+      // окна и тесты без настроек: фон возьмёт прежний выбор
+    }
+    if (!mounted) return;
+    await ref.read(noticeServiceProvider).sync(notices, private: private, force: force);
   }
 
   final _dock = GlobalKey<LineDockState>();

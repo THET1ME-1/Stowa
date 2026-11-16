@@ -4097,4 +4097,25 @@ class LRo extends L {
   @override
   String get enterHint =>
       'În câmpul de scriere pe tot ecranul, Enter începe mereu un rând nou.';
+
+  @override
+  String get noticePin => 'Fixează în notificări';
+
+  @override
+  String get noticeUnpin => 'Scoate din notificări';
+
+  @override
+  String get noticePinned => 'Notița e fixată în notificări';
+
+  @override
+  String get noticeUnpinned => 'Notița a fost scoasă din notificări';
+
+  @override
+  String get noticeChannel => 'Notițe fixate';
+
+  @override
+  String get noticeRemove => 'Scoate';
+
+  @override
+  String get noticeHiddenTitle => 'Notiță fixată';
 }

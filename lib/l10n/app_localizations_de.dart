@@ -4083,4 +4083,25 @@ class LDe extends L {
   @override
   String get enterHint =>
       'Im Eingabefeld im Vollbild beginnt Enter immer eine neue Zeile.';
+
+  @override
+  String get noticePin => 'In Benachrichtigungen anheften';
+
+  @override
+  String get noticeUnpin => 'Aus Benachrichtigungen entfernen';
+
+  @override
+  String get noticePinned => 'Notiz in Benachrichtigungen angeheftet';
+
+  @override
+  String get noticeUnpinned => 'Notiz aus Benachrichtigungen entfernt';
+
+  @override
+  String get noticeChannel => 'Angeheftete Notizen';
+
+  @override
+  String get noticeRemove => 'Entfernen';
+
+  @override
+  String get noticeHiddenTitle => 'Angeheftete Notiz';
 }

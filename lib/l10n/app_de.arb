@@ -848,5 +848,12 @@
   "enterKeyTitle": "Eingabetaste",
   "enterNewLine": "Neue Zeile",
   "enterStow": "Notiz speichern",
-  "enterHint": "Im Eingabefeld im Vollbild beginnt Enter immer eine neue Zeile."
+  "enterHint": "Im Eingabefeld im Vollbild beginnt Enter immer eine neue Zeile.",
+  "noticePin": "In Benachrichtigungen anheften",
+  "noticeUnpin": "Aus Benachrichtigungen entfernen",
+  "noticePinned": "Notiz in Benachrichtigungen angeheftet",
+  "noticeUnpinned": "Notiz aus Benachrichtigungen entfernt",
+  "noticeChannel": "Angeheftete Notizen",
+  "noticeRemove": "Entfernen",
+  "noticeHiddenTitle": "Angeheftete Notiz"
 }

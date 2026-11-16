@@ -4070,4 +4070,25 @@ class LEs extends L {
   @override
   String get enterHint =>
       'En el campo de escritura a pantalla completa, Intro siempre empieza una línea nueva.';
+
+  @override
+  String get noticePin => 'Fijar en notificaciones';
+
+  @override
+  String get noticeUnpin => 'Quitar de notificaciones';
+
+  @override
+  String get noticePinned => 'Nota fijada en notificaciones';
+
+  @override
+  String get noticeUnpinned => 'Nota quitada de notificaciones';
+
+  @override
+  String get noticeChannel => 'Notas fijadas';
+
+  @override
+  String get noticeRemove => 'Quitar';
+
+  @override
+  String get noticeHiddenTitle => 'Nota fijada';
 }

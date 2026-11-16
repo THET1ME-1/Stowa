@@ -14,6 +14,9 @@ const _limit = 50;
 const reminderDone = 'done';
 const reminderSnooze = 'snooze';
 
+/// «Убрать» на заметке, закреплённой в уведомлениях.
+const noticeRemoveAction = 'notice_remove';
+
 // значки разметки в начале строки и выделение внутри
 final _lineMarks = RegExp(r'^(#{1,6}\s+|[-*+]\s+\[[ xX]\]\s+|[-*+]\s+|>\s+|\d+[.)]\s+)');
 final _inlineMarks = RegExp(r'\*\*|__|`|~~');
@@ -58,6 +61,12 @@ class SilentNotificationPort implements NotificationPort {
 
   @override
   Future<void> show({required int id, required String title, required String body, required String payload}) async {}
+
+  @override
+  Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async {}
+
+  @override
+  Future<void> cancel(int id) async {}
 }
 
 /// Система уведомлений за тонкой стенкой: в тестах её подменяют.
@@ -73,6 +82,13 @@ abstract interface class NotificationPort {
 
   /// Показать сейчас, в тихом канале «Возвращение»: то, о чём человек не просил, не звенит.
   Future<void> show({required int id, required String title, required String body, required String payload});
+
+  /// Заметка, закреплённая в уведомлениях: тихо, без смахивания на экране блокировки, с
+  /// кнопкой «Убрать». [private] — на экране блокировки без текста («Код на вход»).
+  Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private});
+
+  /// Снять одно уведомление.
+  Future<void> cancel(int id);
 }
 
 /// Держит будильники системы в согласии с базой. Любая правка напоминаний —
@@ -102,12 +118,25 @@ class ReminderService {
 /// Настоящие уведомления: на Android канал «Напоминания» и точные будильники, если разрешены;
 /// на iPhone — те же напоминания без кнопок.
 class LocalNotificationPort implements NotificationPort {
-  LocalNotificationPort({required this.channelName, required this.doneLabel, required this.snoozeLabel, this.returnChannelName = '', this.onOpen, this.onAction});
+  LocalNotificationPort({
+    required this.channelName,
+    required this.doneLabel,
+    required this.snoozeLabel,
+    this.returnChannelName = '',
+    this.pinnedChannelName = '',
+    this.removeLabel = '',
+    this.onOpen,
+    this.onAction,
+  });
 
   final String channelName;
 
   /// Канал возвращающих уведомлений: «посмотреть потом», «в этот день», сводка.
   final String returnChannelName;
+
+  /// Канал закреплённых заметок и подпись кнопки «Убрать».
+  final String pinnedChannelName;
+  final String removeLabel;
   final String doneLabel;
   final String snoozeLabel;
 
@@ -185,6 +214,43 @@ class LocalNotificationPort implements NotificationPort {
       ),
       payload: payload,
     );
+  }
+
+  @override
+  Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async {
+    await start();
+    await _plugin.show(
+      id: id,
+      title: title,
+      body: body.isEmpty ? null : body,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          'pinned',
+          pinnedChannelName,
+          // обычная важность: бесшумные (low) Android по умолчанию прячет из строки состояния,
+          // а значок там и нужен. Звука и вибрации нет, поверх экрана не выскакивает
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+          playSound: false,
+          enableVibration: false,
+          ongoing: true,
+          autoCancel: false,
+          onlyAlertOnce: true,
+          showWhen: false,
+          visibility: private ? NotificationVisibility.private : NotificationVisibility.public,
+          groupKey: 'stowa.pinned',
+          styleInformation: body.isEmpty ? null : BigTextStyleInformation(body),
+          actions: [AndroidNotificationAction(noticeRemoveAction, removeLabel, cancelNotification: true)],
+        ),
+      ),
+      payload: payload,
+    );
+  }
+
+  @override
+  Future<void> cancel(int id) async {
+    await start();
+    await _plugin.cancel(id: id);
   }
 
   @override

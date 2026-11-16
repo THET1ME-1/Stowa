@@ -272,6 +272,15 @@ class FakeNotificationPort implements NotificationPort {
 
   @override
   Future<void> show({required int id, required String title, required String body, required String payload}) async {}
+
+  /// Заметки, закреплённые в уведомлениях: номер → заголовок.
+  final pinned = <int, String>{};
+
+  @override
+  Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async => pinned[id] = title;
+
+  @override
+  Future<void> cancel(int id) async => pinned.remove(id);
 }
 
 /// Поиск адреса без сети: [found] на любой запрос от трёх букв, точка зовётся [pointName].

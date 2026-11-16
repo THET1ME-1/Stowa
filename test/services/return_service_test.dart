@@ -24,6 +24,12 @@ class _FakePort implements NotificationPort {
 
   @override
   Future<void> show({required int id, required String title, required String body, required String payload}) async => shown.add((id: id, title: title, body: body, payload: payload));
+
+  @override
+  Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async {}
+
+  @override
+  Future<void> cancel(int id) async {}
 }
 
 void main() {

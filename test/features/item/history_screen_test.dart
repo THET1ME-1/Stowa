@@ -32,6 +32,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Ещё').first);
     await tester.pumpAndSettle();
+    // меню прокручивается: на узком экране с крупным шрифтом «История» ниже края
+    await tester.ensureVisible(find.text('История'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('История'));
     await tester.pumpAndSettle();
   }

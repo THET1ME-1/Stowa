@@ -848,5 +848,12 @@
   "enterKeyTitle": "Tasta Enter",
   "enterNewLine": "Rând nou",
   "enterStow": "Salvează notița",
-  "enterHint": "În câmpul de scriere pe tot ecranul, Enter începe mereu un rând nou."
+  "enterHint": "În câmpul de scriere pe tot ecranul, Enter începe mereu un rând nou.",
+  "noticePin": "Fixează în notificări",
+  "noticeUnpin": "Scoate din notificări",
+  "noticePinned": "Notița e fixată în notificări",
+  "noticeUnpinned": "Notița a fost scoasă din notificări",
+  "noticeChannel": "Notițe fixate",
+  "noticeRemove": "Scoate",
+  "noticeHiddenTitle": "Notiță fixată"
 }

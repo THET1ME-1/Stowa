@@ -4125,4 +4125,25 @@ class LUk extends L {
   @override
   String get enterHint =>
       'У полі введення на весь екран Enter завжди починає новий рядок.';
+
+  @override
+  String get noticePin => 'Закріпити в сповіщеннях';
+
+  @override
+  String get noticeUnpin => 'Прибрати зі сповіщень';
+
+  @override
+  String get noticePinned => 'Нотатку закріплено в сповіщеннях';
+
+  @override
+  String get noticeUnpinned => 'Нотатку прибрано зі сповіщень';
+
+  @override
+  String get noticeChannel => 'Закріплені нотатки';
+
+  @override
+  String get noticeRemove => 'Прибрати';
+
+  @override
+  String get noticeHiddenTitle => 'Закріплена нотатка';
 }

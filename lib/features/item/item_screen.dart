@@ -60,7 +60,7 @@ import 'copying_bar.dart';
 import 'facts_block.dart';
 import 'history_screen.dart';
 import 'math_view.dart';
-import 'item_actions.dart' show togglePinned;
+import 'item_actions.dart' show toggleNoticed, togglePinned;
 import 'page_card.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
@@ -91,7 +91,7 @@ const _wikiMax = 232.0;
 /// а пустая строка в конце сохраняться не должна.
 final _trailingSpace = RegExp(r'\s+$');
 
-enum _MenuAction { pin, copy, date, property, history, delete }
+enum _MenuAction { pin, notice, copy, date, property, history, delete }
 
 /// Вещь целиком, по образцу поста Togetherly: шапка с пилюлей папки, заголовок,
 /// теги и напоминание отдельными блоками, текст своей карточкой, внизу плавающая
@@ -675,6 +675,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       title: item.title,
       options: [
         SheetChoice(value: _MenuAction.pin, title: item.pinnedAt == null ? l.itemPin : l.itemUnpin, icon: 'keep'),
+        SheetChoice(
+          value: _MenuAction.notice,
+          title: item.noticeAt == null ? l.noticePin : l.noticeUnpin,
+          icon: item.noticeAt == null ? 'notifications_active' : 'notifications_off',
+        ),
         SheetChoice(value: _MenuAction.copy, title: l.itemCopy, icon: 'content_copy'),
         SheetChoice(value: _MenuAction.date, title: l.itemDateChange, icon: 'calendar_today'),
         SheetChoice(value: _MenuAction.property, title: l.propertyAdd, icon: 'list_alt'),
@@ -686,6 +691,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     switch (action) {
       case _MenuAction.pin:
         await togglePinned(context, ref, id: _id, pinned: item.pinnedAt != null, overDock: false);
+      case _MenuAction.notice:
+        await toggleNoticed(context, ref, id: _id, noticed: item.noticeAt != null, overDock: false);
       case _MenuAction.copy:
         await _copy(item);
       case _MenuAction.date:

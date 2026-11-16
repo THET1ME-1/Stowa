@@ -42,6 +42,7 @@ import '../services/place_channel.dart';
 import '../services/place_search.dart';
 import '../services/place_service.dart';
 import '../services/privacy/privacy_service.dart';
+import '../services/notice_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
 import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
@@ -823,6 +824,13 @@ final repeatProvider = StreamProvider.autoDispose.family<RepeatNote?, String>((r
 /// Система уведомлений: настоящая подставляется в main, в тестах — тишина.
 final notificationPortProvider = Provider<NotificationPort>((ref) => const SilentNotificationPort());
 final reminderServiceProvider = Provider((ref) => ReminderService(ref.watch(notificationPortProvider)));
+
+/// Заметки, закреплённые в уведомлениях, и служба, которая держит их уведомления.
+final noticeServiceProvider = Provider((ref) => NoticeService(ref.watch(notificationPortProvider)));
+final noticesProvider = StreamProvider((ref) {
+  final language = ref.watch(languageProvider).value ?? AppLanguage.resolve(PlatformDispatcher.instance.locales);
+  return ref.watch(itemsRepositoryProvider).watchNotices(hiddenTitle: lookupL(language.locale).noticeHiddenTitle);
+});
 /// Напоминания для будильников. Скрытые — без текста; закрытого скрытого в базе нет,
 /// его время берётся из списка, который служба приватности оставляет при закрытии.
 final remindersProvider = StreamProvider((ref) {

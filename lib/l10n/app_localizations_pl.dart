@@ -4130,4 +4130,25 @@ class LPl extends L {
   @override
   String get enterHint =>
       'W polu wpisywania na cały ekran Enter zawsze zaczyna nowy wiersz.';
+
+  @override
+  String get noticePin => 'Przypnij w powiadomieniach';
+
+  @override
+  String get noticeUnpin => 'Usuń z powiadomień';
+
+  @override
+  String get noticePinned => 'Notatka przypięta w powiadomieniach';
+
+  @override
+  String get noticeUnpinned => 'Notatka usunięta z powiadomień';
+
+  @override
+  String get noticeChannel => 'Przypięte notatki';
+
+  @override
+  String get noticeRemove => 'Usuń';
+
+  @override
+  String get noticeHiddenTitle => 'Przypięta notatka';
 }

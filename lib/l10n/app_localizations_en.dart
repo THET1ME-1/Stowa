@@ -4059,4 +4059,25 @@ class LEn extends L {
   @override
   String get enterHint =>
       'In the full-screen input field, Enter always starts a new line.';
+
+  @override
+  String get noticePin => 'Pin to notifications';
+
+  @override
+  String get noticeUnpin => 'Remove from notifications';
+
+  @override
+  String get noticePinned => 'Note pinned to notifications';
+
+  @override
+  String get noticeUnpinned => 'Note removed from notifications';
+
+  @override
+  String get noticeChannel => 'Pinned notes';
+
+  @override
+  String get noticeRemove => 'Remove';
+
+  @override
+  String get noticeHiddenTitle => 'Pinned note';
 }

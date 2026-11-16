@@ -61,6 +61,10 @@ class Items extends Table {
   /// В файл не идёт.
   BoolColumn get titleAuto => boolean().withDefault(const Constant(false))();
 
+  /// С какого времени заметка закреплена в уведомлениях: тихое уведомление в строке состояния
+  /// и на экране блокировки, пока не уберут. Своё у каждого телефона — в файл не идёт.
+  DateTimeColumn get noticeAt => dateTime().nullable()();
+
   /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   DateTimeColumn get openedAt => dateTime().nullable()();

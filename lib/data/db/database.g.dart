@@ -319,6 +319,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _noticeAtMeta = const VerificationMeta(
+    'noticeAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> noticeAt = GeneratedColumn<DateTime>(
+    'notice_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _openedAtMeta = const VerificationMeta(
     'openedAt',
   );
@@ -464,6 +475,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     pinnedAt,
     document,
     titleAuto,
+    noticeAt,
     openedAt,
     goneAt,
     goneKept,
@@ -666,6 +678,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       context.handle(
         _titleAutoMeta,
         titleAuto.isAcceptableOrUnknown(data['title_auto']!, _titleAutoMeta),
+      );
+    }
+    if (data.containsKey('notice_at')) {
+      context.handle(
+        _noticeAtMeta,
+        noticeAt.isAcceptableOrUnknown(data['notice_at']!, _noticeAtMeta),
       );
     }
     if (data.containsKey('opened_at')) {
@@ -871,6 +889,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.bool,
         data['${effectivePrefix}title_auto'],
       )!,
+      noticeAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}notice_at'],
+      ),
       openedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}opened_at'],
@@ -991,6 +1013,10 @@ class Item extends DataClass implements Insertable<Item> {
   /// В файл не идёт.
   final bool titleAuto;
 
+  /// С какого времени заметка закреплена в уведомлениях: тихое уведомление в строке состояния
+  /// и на экране блокировки, пока не уберут. Своё у каждого телефона — в файл не идёт.
+  final DateTime? noticeAt;
+
   /// Когда заметку последний раз открывали (v8): «ни разу не открыто» в очереди и сводке.
   /// В файл хранилища не идёт — это след чтения, а не заметка.
   final DateTime? openedAt;
@@ -1044,6 +1070,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.pinnedAt,
     this.document,
     required this.titleAuto,
+    this.noticeAt,
     this.openedAt,
     this.goneAt,
     required this.goneKept,
@@ -1143,6 +1170,9 @@ class Item extends DataClass implements Insertable<Item> {
       map['document'] = Variable<String>(document);
     }
     map['title_auto'] = Variable<bool>(titleAuto);
+    if (!nullToAbsent || noticeAt != null) {
+      map['notice_at'] = Variable<DateTime>(noticeAt);
+    }
     if (!nullToAbsent || openedAt != null) {
       map['opened_at'] = Variable<DateTime>(openedAt);
     }
@@ -1241,6 +1271,9 @@ class Item extends DataClass implements Insertable<Item> {
           ? const Value.absent()
           : Value(document),
       titleAuto: Value(titleAuto),
+      noticeAt: noticeAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(noticeAt),
       openedAt: openedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(openedAt),
@@ -1309,6 +1342,7 @@ class Item extends DataClass implements Insertable<Item> {
       pinnedAt: serializer.fromJson<DateTime?>(json['pinnedAt']),
       document: serializer.fromJson<String?>(json['document']),
       titleAuto: serializer.fromJson<bool>(json['titleAuto']),
+      noticeAt: serializer.fromJson<DateTime?>(json['noticeAt']),
       openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
       goneAt: serializer.fromJson<DateTime?>(json['goneAt']),
       goneKept: serializer.fromJson<bool>(json['goneKept']),
@@ -1362,6 +1396,7 @@ class Item extends DataClass implements Insertable<Item> {
       'pinnedAt': serializer.toJson<DateTime?>(pinnedAt),
       'document': serializer.toJson<String?>(document),
       'titleAuto': serializer.toJson<bool>(titleAuto),
+      'noticeAt': serializer.toJson<DateTime?>(noticeAt),
       'openedAt': serializer.toJson<DateTime?>(openedAt),
       'goneAt': serializer.toJson<DateTime?>(goneAt),
       'goneKept': serializer.toJson<bool>(goneKept),
@@ -1405,6 +1440,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<DateTime?> pinnedAt = const Value.absent(),
     Value<String?> document = const Value.absent(),
     bool? titleAuto,
+    Value<DateTime?> noticeAt = const Value.absent(),
     Value<DateTime?> openedAt = const Value.absent(),
     Value<DateTime?> goneAt = const Value.absent(),
     bool? goneKept,
@@ -1461,6 +1497,7 @@ class Item extends DataClass implements Insertable<Item> {
     pinnedAt: pinnedAt.present ? pinnedAt.value : this.pinnedAt,
     document: document.present ? document.value : this.document,
     titleAuto: titleAuto ?? this.titleAuto,
+    noticeAt: noticeAt.present ? noticeAt.value : this.noticeAt,
     openedAt: openedAt.present ? openedAt.value : this.openedAt,
     goneAt: goneAt.present ? goneAt.value : this.goneAt,
     goneKept: goneKept ?? this.goneKept,
@@ -1531,6 +1568,7 @@ class Item extends DataClass implements Insertable<Item> {
       pinnedAt: data.pinnedAt.present ? data.pinnedAt.value : this.pinnedAt,
       document: data.document.present ? data.document.value : this.document,
       titleAuto: data.titleAuto.present ? data.titleAuto.value : this.titleAuto,
+      noticeAt: data.noticeAt.present ? data.noticeAt.value : this.noticeAt,
       openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
       goneAt: data.goneAt.present ? data.goneAt.value : this.goneAt,
       goneKept: data.goneKept.present ? data.goneKept.value : this.goneKept,
@@ -1582,6 +1620,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('pinnedAt: $pinnedAt, ')
           ..write('document: $document, ')
           ..write('titleAuto: $titleAuto, ')
+          ..write('noticeAt: $noticeAt, ')
           ..write('openedAt: $openedAt, ')
           ..write('goneAt: $goneAt, ')
           ..write('goneKept: $goneKept, ')
@@ -1627,6 +1666,7 @@ class Item extends DataClass implements Insertable<Item> {
     pinnedAt,
     document,
     titleAuto,
+    noticeAt,
     openedAt,
     goneAt,
     goneKept,
@@ -1671,6 +1711,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.pinnedAt == this.pinnedAt &&
           other.document == this.document &&
           other.titleAuto == this.titleAuto &&
+          other.noticeAt == this.noticeAt &&
           other.openedAt == this.openedAt &&
           other.goneAt == this.goneAt &&
           other.goneKept == this.goneKept &&
@@ -1713,6 +1754,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<DateTime?> pinnedAt;
   final Value<String?> document;
   final Value<bool> titleAuto;
+  final Value<DateTime?> noticeAt;
   final Value<DateTime?> openedAt;
   final Value<DateTime?> goneAt;
   final Value<bool> goneKept;
@@ -1754,6 +1796,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.pinnedAt = const Value.absent(),
     this.document = const Value.absent(),
     this.titleAuto = const Value.absent(),
+    this.noticeAt = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.goneAt = const Value.absent(),
     this.goneKept = const Value.absent(),
@@ -1796,6 +1839,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.pinnedAt = const Value.absent(),
     this.document = const Value.absent(),
     this.titleAuto = const Value.absent(),
+    this.noticeAt = const Value.absent(),
     this.openedAt = const Value.absent(),
     this.goneAt = const Value.absent(),
     this.goneKept = const Value.absent(),
@@ -1842,6 +1886,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<DateTime>? pinnedAt,
     Expression<String>? document,
     Expression<bool>? titleAuto,
+    Expression<DateTime>? noticeAt,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? goneAt,
     Expression<bool>? goneKept,
@@ -1884,6 +1929,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (pinnedAt != null) 'pinned_at': pinnedAt,
       if (document != null) 'document': document,
       if (titleAuto != null) 'title_auto': titleAuto,
+      if (noticeAt != null) 'notice_at': noticeAt,
       if (openedAt != null) 'opened_at': openedAt,
       if (goneAt != null) 'gone_at': goneAt,
       if (goneKept != null) 'gone_kept': goneKept,
@@ -1928,6 +1974,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<DateTime?>? pinnedAt,
     Value<String?>? document,
     Value<bool>? titleAuto,
+    Value<DateTime?>? noticeAt,
     Value<DateTime?>? openedAt,
     Value<DateTime?>? goneAt,
     Value<bool>? goneKept,
@@ -1970,6 +2017,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       pinnedAt: pinnedAt ?? this.pinnedAt,
       document: document ?? this.document,
       titleAuto: titleAuto ?? this.titleAuto,
+      noticeAt: noticeAt ?? this.noticeAt,
       openedAt: openedAt ?? this.openedAt,
       goneAt: goneAt ?? this.goneAt,
       goneKept: goneKept ?? this.goneKept,
@@ -2082,6 +2130,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (titleAuto.present) {
       map['title_auto'] = Variable<bool>(titleAuto.value);
     }
+    if (noticeAt.present) {
+      map['notice_at'] = Variable<DateTime>(noticeAt.value);
+    }
     if (openedAt.present) {
       map['opened_at'] = Variable<DateTime>(openedAt.value);
     }
@@ -2150,6 +2201,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('pinnedAt: $pinnedAt, ')
           ..write('document: $document, ')
           ..write('titleAuto: $titleAuto, ')
+          ..write('noticeAt: $noticeAt, ')
           ..write('openedAt: $openedAt, ')
           ..write('goneAt: $goneAt, ')
           ..write('goneKept: $goneKept, ')
@@ -11338,6 +11390,7 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<DateTime?> pinnedAt,
   Value<String?> document,
   Value<bool> titleAuto,
+  Value<DateTime?> noticeAt,
   Value<DateTime?> openedAt,
   Value<DateTime?> goneAt,
   Value<bool> goneKept,
@@ -11380,6 +11433,7 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<DateTime?> pinnedAt,
   Value<String?> document,
   Value<bool> titleAuto,
+  Value<DateTime?> noticeAt,
   Value<DateTime?> openedAt,
   Value<DateTime?> goneAt,
   Value<bool> goneKept,
@@ -11547,6 +11601,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<bool> get titleAuto => $composableBuilder(
     column: $table.titleAuto,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get noticeAt => $composableBuilder(
+    column: $table.noticeAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11755,6 +11814,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get noticeAt => $composableBuilder(
+    column: $table.noticeAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get openedAt => $composableBuilder(
     column: $table.openedAt,
     builder: (column) => ColumnOrderings(column),
@@ -11929,6 +11993,9 @@ class $$ItemsTableAnnotationComposer
   GeneratedColumn<bool> get titleAuto =>
       $composableBuilder(column: $table.titleAuto, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get noticeAt =>
+      $composableBuilder(column: $table.noticeAt, builder: (column) => column);
+
   GeneratedColumn<DateTime> get openedAt =>
       $composableBuilder(column: $table.openedAt, builder: (column) => column);
 
@@ -12023,6 +12090,7 @@ class $$ItemsTableTableManager
                 Value<DateTime?> pinnedAt = const Value.absent(),
                 Value<String?> document = const Value.absent(),
                 Value<bool> titleAuto = const Value.absent(),
+                Value<DateTime?> noticeAt = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
                 Value<DateTime?> goneAt = const Value.absent(),
                 Value<bool> goneKept = const Value.absent(),
@@ -12064,6 +12132,7 @@ class $$ItemsTableTableManager
                 pinnedAt: pinnedAt,
                 document: document,
                 titleAuto: titleAuto,
+                noticeAt: noticeAt,
                 openedAt: openedAt,
                 goneAt: goneAt,
                 goneKept: goneKept,
@@ -12107,6 +12176,7 @@ class $$ItemsTableTableManager
                 Value<DateTime?> pinnedAt = const Value.absent(),
                 Value<String?> document = const Value.absent(),
                 Value<bool> titleAuto = const Value.absent(),
+                Value<DateTime?> noticeAt = const Value.absent(),
                 Value<DateTime?> openedAt = const Value.absent(),
                 Value<DateTime?> goneAt = const Value.absent(),
                 Value<bool> goneKept = const Value.absent(),
@@ -12148,6 +12218,7 @@ class $$ItemsTableTableManager
                 pinnedAt: pinnedAt,
                 document: document,
                 titleAuto: titleAuto,
+                noticeAt: noticeAt,
                 openedAt: openedAt,
                 goneAt: goneAt,
                 goneKept: goneKept,

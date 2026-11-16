@@ -309,6 +309,26 @@ void main() {
     expect([for (final row in await upgraded.select(upgraded.vaultQueue).get()) row.target], ['item:old']);
   });
 
+  test('v20 → v21: заметки на месте, в уведомлениях ничего не закреплено', () async {
+    final dir = Directory.systemTemp.createTempSync('stowa_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/stowa.sqlite');
+    final now = DateTime(2026, 11, 16);
+
+    final fresh = AppDatabase(NativeDatabase(file));
+    await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.note, title: 'Сказать маме', createdAt: now, updatedAt: now));
+    await fresh.close();
+    final raw = sqlite3.open(file.path);
+    raw.execute('ALTER TABLE items DROP COLUMN notice_at');
+    raw.execute('PRAGMA user_version = 20');
+    raw.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    final item = await upgraded.select(upgraded.items).getSingle();
+    expect((item.title, item.noticeAt), ('Сказать маме', null));
+  });
+
   test('v19 → v20: заметки на месте, заголовок считается своим, пока приложение не скажет иначе', () async {
     final dir = Directory.systemTemp.createTempSync('stowa_migration');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -319,6 +339,7 @@ void main() {
     await fresh.into(fresh.items).insert(ItemsCompanion.insert(id: 'old', kind: ItemKind.image, title: 'закат', createdAt: now, updatedAt: now));
     await fresh.close();
     final raw = sqlite3.open(file.path);
+    raw.execute('ALTER TABLE items DROP COLUMN notice_at');
     raw.execute('ALTER TABLE items DROP COLUMN title_auto');
     raw.execute('PRAGMA user_version = 19');
     raw.close();
@@ -471,7 +492,8 @@ void _dropPinned(Database raw) {
 
 // версия 18: холстов и баз файлами ещё нет. Триггер правки заметки ссылается на поле
 void _dropDocument(Database raw) {
-  // версия 19: признака «заголовок дало приложение» ещё нет; триггеры на него не смотрят
+  // версии 19–20: признаков «заголовок дало приложение» и «в уведомлениях» ещё нет; триггеры на них не смотрят
+  raw.execute('ALTER TABLE items DROP COLUMN notice_at');
   raw.execute('ALTER TABLE items DROP COLUMN title_auto');
   final trigger = raw.select("SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = 'vault_items_update'").single['sql'] as String;
   raw.execute('DROP TRIGGER vault_items_update');
