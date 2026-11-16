@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ import 'services/crash_reporter.dart';
 import 'services/privacy/privacy_service.dart';
 import 'services/reminder_actions.dart';
 import 'services/reminder_service.dart';
+import 'services/vault/vault_layout.dart' show defaultAttachmentFolder, readAttachmentSetting, writeAttachmentSetting;
 import 'services/vault/vault_location.dart';
 import 'services/vault/vault_writer.dart';
 
@@ -102,6 +104,16 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
     final db = prepared ?? AppDatabase.named(settings.vaultDb);
     // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
     final place = await VaultLocation(settings: settings, appSupport: appSupport, home: home).resolve(hasData: await hasSavedItems(db));
+    // хранилище без Obsidian и без выбора: вложения — в общую папку «Вложения» на языке
+    // приложения, а не россыпью в корень. С Obsidian решает его собственная настройка
+    if (place.vault case final vault? when place.reachable) {
+      try {
+        final setting = readAttachmentSetting(vault);
+        if (!setting.obsidian && setting.setting == null) writeAttachmentSetting(vault, defaultAttachmentFolder(settings.language?.code ?? Platform.localeName));
+      } on Object {
+        // не записалось — вложения лягут рядом с заметкой, выбрать можно в настройках
+      }
+    }
     // скрытое, оставшееся открытым от убитого приложения, запечатывается до первого кадра;
     // там же читается замок, чтобы запереть приложение до того, как что-то покажется
     final privacy = PrivacyService(

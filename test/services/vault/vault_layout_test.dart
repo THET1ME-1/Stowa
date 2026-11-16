@@ -73,4 +73,61 @@ void main() {
     File(p.join(root.path, '.obsidian', 'app.json')).writeAsStringSync('{сломан');
     expect(readAttachmentSetting(root), (obsidian: true, setting: null));
   });
+
+  test('выбор вложений в Stowa: с Obsidian — в его app.json, без — в .stowa', () {
+    final root = Directory.systemTemp.createTempSync('stowa_att');
+    addTearDown(() => root.deleteSync(recursive: true));
+    expect(writeAttachmentSetting(root, 'Вложения'), isTrue);
+    expect(File(p.join(root.path, '.stowa', 'attachments.json')).existsSync(), isTrue);
+    expect(Directory(p.join(root.path, '.obsidian')).existsSync(), isFalse);
+    expect(readAttachmentSetting(root), (obsidian: false, setting: 'Вложения'));
+    expect(attachmentFolderFor('Покупки.md', obsidian: false, setting: 'Вложения'), 'Вложения');
+
+    final app = File(p.join(root.path, '.obsidian', 'app.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({'attachmentFolderPath': 'Изображения', 'promptDelete': false}));
+    expect(readAttachmentSetting(root), (obsidian: true, setting: 'Изображения'));
+    expect(writeAttachmentSetting(root, './'), isTrue);
+    final json = jsonDecode(app.readAsStringSync()) as Map;
+    expect(json['attachmentFolderPath'], './');
+    expect(json['promptDelete'], isFalse);
+    expect(readAttachmentSetting(root), (obsidian: true, setting: './'));
+  });
+
+  test('сломанный app.json Obsidian не переписывается: остаётся байт в байт, выбор не принят', () {
+    final root = Directory.systemTemp.createTempSync('stowa_att');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final app = File(p.join(root.path, '.obsidian', 'app.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync('{"attachmentFolderPath": "Изобр');
+    expect(writeAttachmentSetting(root, 'Вложения'), isFalse);
+    expect(app.readAsStringSync(), '{"attachmentFolderPath": "Изобр');
+    // временных файлов рядом не остаётся
+    expect(Directory(p.join(root.path, '.obsidian')).listSync(), hasLength(1));
+  });
+
+  test('появился Obsidian без своей настройки — выбор Stowa остаётся в силе', () {
+    final root = Directory.systemTemp.createTempSync('stowa_att');
+    addTearDown(() => root.deleteSync(recursive: true));
+    expect(writeAttachmentSetting(root, 'Вложения'), isTrue);
+    File(p.join(root.path, '.obsidian', 'app.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({'promptDelete': false}));
+    expect(readAttachmentSetting(root), (obsidian: true, setting: 'Вложения'));
+  });
+
+  test('имя папки вложений: пустое, «..», с точки и служебное не годится', () {
+    expect(attachmentFolderNameError('Вложения'), isNull);
+    expect(attachmentFolderNameError('Медиа/Фото'), isNull);
+    for (final bad in ['', '  ', '..', 'a/../b', '/Вложения', '.stowa', '.trash', '.obsidian', '.скрытая', 'Медиа/.x']) {
+      expect(attachmentFolderNameError(bad), isNotNull, reason: bad);
+    }
+  });
+
+  test('папка вложений по умолчанию — на языке телефона', () {
+    expect(defaultAttachmentFolder('ru_RU'), 'Вложения');
+    expect(defaultAttachmentFolder('uk'), 'Вкладення');
+    expect(defaultAttachmentFolder('de_DE'), 'Anhänge');
+    expect(defaultAttachmentFolder('fr_FR'), 'Attachments');
+  });
 }

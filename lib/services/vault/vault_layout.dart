@@ -27,19 +27,82 @@ String notePath({List<String> folders = const [], required String fileName}) => 
 /// до 16.11.2026; новые кладутся по [attachmentFolderFor], старые читаются и остаются на месте.
 String attachmentsDir(String notePath) => notePath.endsWith('.md') ? notePath.substring(0, notePath.length - 3) : notePath;
 
-/// Куда Obsidian велит класть вложения: `.obsidian/app.json`, ключ `attachmentFolderPath`.
-/// [obsidian] — в хранилище есть `.obsidian`; сломанный или пустой файл — настройки нет.
-({bool obsidian, String? setting}) readAttachmentSetting(Directory root) {
-  final dir = Directory(p.join(root.path, '.obsidian'));
-  if (!dir.existsSync()) return (obsidian: false, setting: null);
+String _obsidianApp(Directory root) => p.join(root.path, '.obsidian', 'app.json');
+
+String _stowaChoice(Directory root) => p.join(root.path, serviceFolder, 'attachments.json');
+
+/// Значение `attachmentFolderPath` из файла; файла нет, он сломан или ключа нет — null.
+String? _settingIn(String path) {
   try {
-    final json = jsonDecode(File(p.join(dir.path, 'app.json')).readAsStringSync());
+    final json = jsonDecode(File(path).readAsStringSync());
     final value = json is Map ? json['attachmentFolderPath'] : null;
-    return (obsidian: true, setting: value is String && value.trim().isNotEmpty ? value.trim() : null);
+    return value is String && value.trim().isNotEmpty ? value.trim() : null;
   } on Object {
-    return (obsidian: true, setting: null);
+    return null;
   }
 }
+
+/// Куда класть вложения, по старшинству: ключ `attachmentFolderPath` в `.obsidian/app.json`
+/// (одна настройка на Obsidian и Stowa) → выбор Stowa в `.stowa/attachments.json` → умолчание.
+/// Появившийся Obsidian без своего ключа выбор Stowa не сбрасывает.
+/// [obsidian] — в хранилище есть `.obsidian`.
+({bool obsidian, String? setting}) readAttachmentSetting(Directory root) {
+  final obsidian = Directory(p.join(root.path, '.obsidian')).existsSync();
+  return (obsidian: obsidian, setting: (obsidian ? _settingIn(_obsidianApp(root)) : null) ?? _settingIn(_stowaChoice(root)));
+}
+
+/// Выбор места вложений из настроек Stowa. С Obsidian — в его `app.json` слиянием: прочие
+/// его ключи остаются как были; без — в `.stowa/attachments.json`. Пишется через временный
+/// файл и переименование: убитый посреди записи процесс не оставит файл недописанным.
+/// Файл Obsidian есть, но не читается словарём (Syncthing дописывает, сломан) — не трогается
+/// вовсе, иначе пропали бы остальные настройки Obsidian: false.
+bool writeAttachmentSetting(Directory root, String value) {
+  final obsidian = Directory(p.join(root.path, '.obsidian')).existsSync();
+  final file = File(obsidian ? _obsidianApp(root) : _stowaChoice(root));
+  var json = <String, Object?>{};
+  if (file.existsSync()) {
+    try {
+      final old = jsonDecode(file.readAsStringSync());
+      if (old is! Map) throw const FormatException('не словарь');
+      json = {for (final MapEntry(:key, :value) in old.entries) '$key': value};
+    } on Object {
+      if (obsidian) return false;
+      // свой служебный файл сломан: его можно написать заново
+    }
+  }
+  json['attachmentFolderPath'] = value;
+  file.parent.createSync(recursive: true);
+  final temp = File('${file.path}.stowa-tmp');
+  temp.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(json), flush: true);
+  temp.renameSync(file.path);
+  return true;
+}
+
+/// Что не так с именем общей папки вложений из поля; годится — null. Пустое, `..`, с ведущим
+/// `/`, с точки (служебные `.stowa`, `.trash`, `.obsidian` и скрытые) — нельзя: файлы в каталоге
+/// с точкой чтение хранилища не видит и короткое имя `![[фото.jpg]]` там не найдёт.
+String? attachmentFolderNameError(String name) {
+  final value = name.trim();
+  if (value.isEmpty) return 'empty';
+  if (value.startsWith('/')) return 'absolute';
+  for (final part in value.split('/')) {
+    if (part.trim().isEmpty) return 'empty';
+    if (part == '..' || part == '.') return 'dots';
+    if (part.startsWith('.')) return 'hidden';
+  }
+  return null;
+}
+
+/// Имя общей папки вложений по умолчанию — на языке телефона.
+String defaultAttachmentFolder(String locale) => switch (locale.split(RegExp('[_-]')).first.toLowerCase()) {
+  'ru' => 'Вложения',
+  'uk' => 'Вкладення',
+  'ro' => 'Atașamente',
+  'pl' => 'Załączniki',
+  'de' => 'Anhänge',
+  'es' => 'Adjuntos',
+  _ => 'Attachments',
+};
 
 /// Каталог новых вложений заметки [notePath] (от корня, '' — корень), как у Obsidian:
 /// `/` — корень, `./` — рядом с заметкой, `./имя` — подкаталог рядом, `имя` — общая папка.
