@@ -17,6 +17,7 @@ import '../core/icons/icon_registry.dart';
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
+import '../domain/hints.dart';
 import '../domain/known_vaults.dart' show VaultList;
 import '../domain/models.dart' show FactKind;
 import '../domain/place_groups.dart' show guessHomeAndWork;
@@ -62,6 +63,7 @@ import 'repositories/rules_repository.dart';
 import 'repositories/smart_folders_repository.dart';
 import 'repositories/tags_repository.dart';
 import 'repositories/trash_repository.dart';
+import 'hints_repository.dart';
 import 'settings_repository.dart';
 
 /// База и папка файлов открываются в main и подставляются сюда.
@@ -534,6 +536,11 @@ final fileProgressProvider = StreamProvider<Map<String, double>>((ref) async* {
   yield files.current;
   yield* files.progress;
 });
+
+/// Знакомство и подсказки. Главное окно ставит хранилище на prefs (`main`); окна «Поделиться»,
+/// виджета и полки подсказок не показывают — им достаётся выключенное в памяти.
+final hintsRepositoryProvider = Provider<HintsRepository>((ref) => HintsRepository.memory(const HintsState(off: true)));
+final hintsProvider = StreamProvider<HintsState>((ref) => ref.watch(hintsRepositoryProvider).watch());
 
 /// Настройки и ключ ИИ. SharedPreferences открываются в main.
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('настройки открываются в main'));

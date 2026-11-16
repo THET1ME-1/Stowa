@@ -294,7 +294,7 @@ class LRu extends L {
   String get reasonKind => 'по виду заметки, без сети';
 
   @override
-  String get reasonNone => 'без папки, разложу, когда появится похожее';
+  String get reasonNone => 'без папки, разложу позже';
 
   @override
   String get reasonAsIs => 'без разбора, как просил';
@@ -1576,7 +1576,7 @@ class LRu extends L {
 
   @override
   String get vaultSetupHint =>
-      'Заметки, фото и файлы лежат обычными файлами в папке, которую открывает и Obsidian.';
+      'Не знаешь, что выбрать, — жми «Создать»: это обычная папка в телефоне.';
 
   @override
   String get vaultCreate => 'Создать хранилище';
@@ -2787,8 +2787,7 @@ class LRu extends L {
   String get aiFirst => 'ИИ в приоритете';
 
   @override
-  String get aiFirstHint =>
-      'Модель проверяет и то, что приложение разложило само, запросов станет больше';
+  String get aiFirstHint => 'Модель проверяет и то, что разложено без неё.';
 
   @override
   String get composerHintNoSearch => 'Закинь что угодно';
@@ -3088,7 +3087,7 @@ class LRu extends L {
   }
 
   @override
-  String get settingsCatalog => 'Каталог';
+  String get settingsCatalog => 'Хранилище';
 
   @override
   String get settingsLook => 'Внешний вид';
@@ -3968,4 +3967,97 @@ class LRu extends L {
 
   @override
   String get folderEdit => 'Название и вид';
+
+  @override
+  String get startStow => 'Напиши что угодно и нажми «Закинуть».';
+
+  @override
+  String get startSearch =>
+      'Эта же строка ищет: набери слово из своей заметки.';
+
+  @override
+  String get startRemind => 'Время в тексте — уже напоминание.';
+
+  @override
+  String get startFolder => 'Знак @ кладёт заметку в папку, новую или готовую.';
+
+  @override
+  String get startTag => 'Знак # ставит метку, по ней заметку легко найти.';
+
+  @override
+  String get startCommands =>
+      'Знак / открывает команды: список, задача, холст.';
+
+  @override
+  String get startFinish =>
+      'Знакомство закончено, вернуть его можно в настройках.';
+
+  @override
+  String get startTry => 'Попробовать';
+
+  @override
+  String get startSkip => 'Пропустить';
+
+  @override
+  String get startRemindExample => 'Позвонить маме завтра в 10';
+
+  @override
+  String get startFolderExample => '@Покупки ';
+
+  @override
+  String get startTagExample => '#идея ';
+
+  @override
+  String get lineExplainTag => 'Набери слово: #идея, #работа';
+
+  @override
+  String get lineExplainFolder =>
+      'Набери имя: есть такая — выберу, нет — создам';
+
+  @override
+  String get tipNoteBar =>
+      'Внизу: напомнить, метка, другая папка и «поделиться».';
+
+  @override
+  String get tipLongPress =>
+      'Зажми заметку: закрепить, переложить или удалить.';
+
+  @override
+  String get tipCatalog => 'Зажми папку и перетащи, чтобы поменять порядок.';
+
+  @override
+  String get tipFolderMenu =>
+      'В «⋮» — папка внутри, холст, база, название и цвет.';
+
+  @override
+  String get tipSort =>
+      '«Разобрать» показывает заметки по одной, а ты кладёшь каждую в папку.';
+
+  @override
+  String get tipCanvas =>
+      'Коснись пустого места дважды, чтобы добавить карточку.';
+
+  @override
+  String get tipBase =>
+      'Значки сверху: сортировка, группа, фильтр, колонки, поиск.';
+
+  @override
+  String get tipAiKey =>
+      'Ключ берут у поставщика ИИ, на openrouter.ai есть бесплатные модели.';
+
+  @override
+  String get tipEdge =>
+      'Корешки — тонкие ярлыки у края экрана, тяни их внутрь.';
+
+  @override
+  String get tipClose => 'Понятно';
+
+  @override
+  String get hintsToggle => 'Подсказки';
+
+  @override
+  String get hintsRestart => 'Начать знакомство заново';
+
+  @override
+  String get hintsRestarted => 'Знакомство начнётся на главной';
 }

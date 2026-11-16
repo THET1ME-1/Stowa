@@ -298,14 +298,13 @@ class LDe extends L {
   String get reasonKind => 'by note type, offline';
 
   @override
-  String get reasonNone =>
-      'noch ohne Ordner, ich sortiere, sobald Ähnliches auftaucht';
+  String get reasonNone => 'noch ohne Ordner, ich sortiere später';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
 
   @override
-  String get actionStow => 'Stow';
+  String get actionStow => 'Ablegen';
 
   @override
   String get actionRemind => 'Remind';
@@ -1555,7 +1554,7 @@ class LDe extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notizen, Fotos und Dateien liegen als normale Dateien in einem Ordner, den auch Obsidian öffnet.';
+      'Unsicher? Tippe auf „Erstellen“: Das ist ein normaler Ordner auf dem Handy.';
 
   @override
   String get vaultCreate => 'Tresor anlegen';
@@ -2732,7 +2731,7 @@ class LDe extends L {
 
   @override
   String get aiFirstHint =>
-      'Das Modell prüft auch, was die App selbst sortiert hat, und stellt mehr Anfragen';
+      'Das Modell prüft auch, was ohne es sortiert wurde.';
 
   @override
   String get composerHintNoSearch => 'Wirf irgendwas rein';
@@ -3034,7 +3033,7 @@ class LDe extends L {
   }
 
   @override
-  String get settingsCatalog => 'Katalog';
+  String get settingsCatalog => 'Speicher';
 
   @override
   String get settingsLook => 'Aussehen';
@@ -3913,4 +3912,100 @@ class LDe extends L {
 
   @override
   String get folderEdit => 'Name und Aussehen';
+
+  @override
+  String get startStow => 'Schreib irgendwas und tippe auf „Ablegen“.';
+
+  @override
+  String get startSearch =>
+      'Dieselbe Zeile sucht: Tippe ein Wort aus deiner Notiz.';
+
+  @override
+  String get startRemind => 'Eine Uhrzeit im Text ist schon eine Erinnerung.';
+
+  @override
+  String get startFolder =>
+      'Das Zeichen @ legt die Notiz in einen Ordner, neu oder vorhanden.';
+
+  @override
+  String get startTag =>
+      'Das Zeichen # setzt ein Schlagwort, über das man die Notiz leicht findet.';
+
+  @override
+  String get startCommands =>
+      'Das Zeichen / öffnet Befehle: Liste, Aufgabe, Canvas.';
+
+  @override
+  String get startFinish =>
+      'Die Einführung ist vorbei, du kannst sie in den Einstellungen zurückholen.';
+
+  @override
+  String get startTry => 'Ausprobieren';
+
+  @override
+  String get startSkip => 'Überspringen';
+
+  @override
+  String get startRemindExample => 'Mama morgen um 10 anrufen';
+
+  @override
+  String get startFolderExample => '@Einkauf ';
+
+  @override
+  String get startTagExample => '#idee ';
+
+  @override
+  String get lineExplainTag => 'Tippe ein Wort: #idee, #arbeit';
+
+  @override
+  String get lineExplainFolder =>
+      'Tippe einen Namen: gibt es ihn, wähle ich ihn, sonst lege ich ihn an';
+
+  @override
+  String get tipNoteBar =>
+      'Unten: erinnern, Schlagwort, anderer Ordner und teilen.';
+
+  @override
+  String get tipLongPress =>
+      'Halte eine Notiz gedrückt: anheften, verschieben oder löschen.';
+
+  @override
+  String get tipCatalog =>
+      'Halte einen Ordner gedrückt und zieh ihn, um die Reihenfolge zu ändern.';
+
+  @override
+  String get tipFolderMenu =>
+      'Unter „⋮“: Ordner darin, Canvas, Base, Name und Farbe.';
+
+  @override
+  String get tipSort =>
+      '„Sortieren“ zeigt die Notizen einzeln, und du legst jede in einen Ordner.';
+
+  @override
+  String get tipCanvas =>
+      'Tippe zweimal auf eine leere Stelle, um eine Karte hinzuzufügen.';
+
+  @override
+  String get tipBase =>
+      'Symbole oben: Sortierung, Gruppe, Filter, Spalten, Suche.';
+
+  @override
+  String get tipAiKey =>
+      'Den Schlüssel bekommst du bei einem KI-Anbieter, openrouter.ai hat kostenlose Modelle.';
+
+  @override
+  String get tipEdge =>
+      'Rücken sind schmale Laschen am Bildschirmrand, zieh sie nach innen.';
+
+  @override
+  String get tipClose => 'Verstanden';
+
+  @override
+  String get hintsToggle => 'Tipps';
+
+  @override
+  String get hintsRestart => 'Einführung neu starten';
+
+  @override
+  String get hintsRestarted => 'Die Einführung beginnt auf dem Startbildschirm';
 }

@@ -12,6 +12,7 @@ import 'app_session.dart';
 import 'core/motion/unfold/unfold_touch.dart';
 import 'core/theme/tokens.dart';
 import 'data/db/database.dart';
+import 'data/hints_repository.dart';
 import 'data/providers.dart';
 import 'data/settings_repository.dart';
 import 'domain/appearance.dart';
@@ -78,6 +79,9 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
   final cache = await getTemporaryDirectory();
   final prefs = await SharedPreferences.getInstance();
   final settings = SettingsRepository(prefs, const SecureKeyStore());
+  // знакомство: кто выбрал место хранилища до этой версии, шагов и подсказок не увидит
+  final hints = HintsRepository(prefs);
+  await hints.settleOldInstall(vaultAskedBefore: settings.vaultAsked);
   final appSupport = await getApplicationSupportDirectory();
   // ошибки ловятся как можно раньше: база и хранилище ниже тоже могут упасть
   final crashes = crashReporterFor(appSupport, settings, window);
@@ -129,6 +133,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
           cacheRootProvider.overrideWithValue(cache),
           notificationPortProvider.overrideWithValue(notifications),
           settingsRepositoryProvider.overrideWithValue(settings),
+          hintsRepositoryProvider.overrideWithValue(hints),
           preferencesProvider.overrideWithValue(prefs),
           timeZoneProvider.overrideWithValue(timeZone),
         ],

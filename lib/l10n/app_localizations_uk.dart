@@ -297,13 +297,13 @@ class LUk extends L {
   String get reasonKind => 'by note type, offline';
 
   @override
-  String get reasonNone => 'без теки, розкладу, коли з\'явиться схоже';
+  String get reasonNone => 'без теки, розкладу пізніше';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
 
   @override
-  String get actionStow => 'Stow';
+  String get actionStow => 'Закинути';
 
   @override
   String get actionRemind => 'Remind';
@@ -1572,7 +1572,7 @@ class LUk extends L {
 
   @override
   String get vaultSetupHint =>
-      'Нотатки, фото й файли лежать звичайними файлами в папці, яку відкриває і Obsidian.';
+      'Не знаєш, що вибрати, — тисни «Створити»: це звичайна тека в телефоні.';
 
   @override
   String get vaultCreate => 'Створити сховище';
@@ -2783,8 +2783,7 @@ class LUk extends L {
   String get aiFirst => 'ШІ в пріоритеті';
 
   @override
-  String get aiFirstHint =>
-      'Модель перевіряє й те, що застосунок розклав сам, запитів стане більше';
+  String get aiFirstHint => 'Модель перевіряє й те, що розкладено без неї.';
 
   @override
   String get composerHintNoSearch => 'Закинь що завгодно';
@@ -3084,7 +3083,7 @@ class LUk extends L {
   }
 
   @override
-  String get settingsCatalog => 'Каталог';
+  String get settingsCatalog => 'Сховище';
 
   @override
   String get settingsLook => 'Вигляд';
@@ -3958,4 +3957,95 @@ class LUk extends L {
 
   @override
   String get folderEdit => 'Назва і вигляд';
+
+  @override
+  String get startStow => 'Напиши що завгодно й натисни «Закинути».';
+
+  @override
+  String get startSearch =>
+      'Цей самий рядок шукає: набери слово зі своєї нотатки.';
+
+  @override
+  String get startRemind => 'Час у тексті — вже нагадування.';
+
+  @override
+  String get startFolder => 'Знак @ кладе нотатку в теку, нову чи наявну.';
+
+  @override
+  String get startTag => 'Знак # ставить мітку, за нею нотатку легко знайти.';
+
+  @override
+  String get startCommands =>
+      'Знак / відкриває команди: список, завдання, полотно.';
+
+  @override
+  String get startFinish =>
+      'Знайомство завершено, повернути його можна в налаштуваннях.';
+
+  @override
+  String get startTry => 'Спробувати';
+
+  @override
+  String get startSkip => 'Пропустити';
+
+  @override
+  String get startRemindExample => 'Подзвонити мамі завтра о 10';
+
+  @override
+  String get startFolderExample => '@Покупки ';
+
+  @override
+  String get startTagExample => '#ідея ';
+
+  @override
+  String get lineExplainTag => 'Набери слово: #ідея, #робота';
+
+  @override
+  String get lineExplainFolder =>
+      'Набери назву: є така — виберу, немає — створю';
+
+  @override
+  String get tipNoteBar => 'Унизу: нагадати, мітка, інша тека і «поділитися».';
+
+  @override
+  String get tipLongPress =>
+      'Затисни нотатку: закріпити, перекласти чи видалити.';
+
+  @override
+  String get tipCatalog => 'Затисни теку й перетягни, щоб змінити порядок.';
+
+  @override
+  String get tipFolderMenu =>
+      'У «⋮» — тека всередині, полотно, база, назва й колір.';
+
+  @override
+  String get tipSort =>
+      '«Розібрати» показує нотатки по одній, а ти кладеш кожну в теку.';
+
+  @override
+  String get tipCanvas => 'Торкнися порожнього місця двічі, щоб додати картку.';
+
+  @override
+  String get tipBase =>
+      'Значки вгорі: сортування, група, фільтр, колонки, пошук.';
+
+  @override
+  String get tipAiKey =>
+      'Ключ беруть у постачальника ШІ, на openrouter.ai є безплатні моделі.';
+
+  @override
+  String get tipEdge =>
+      'Корінці — тонкі ярлики біля краю екрана, тягни їх усередину.';
+
+  @override
+  String get tipClose => 'Зрозуміло';
+
+  @override
+  String get hintsToggle => 'Підказки';
+
+  @override
+  String get hintsRestart => 'Почати знайомство знову';
+
+  @override
+  String get hintsRestarted => 'Знайомство почнеться на головній';
 }

@@ -297,14 +297,13 @@ class LPl extends L {
   String get reasonKind => 'by note type, offline';
 
   @override
-  String get reasonNone =>
-      'bez folderu, posortuję, gdy pojawi się coś podobnego';
+  String get reasonNone => 'bez folderu, uporządkuję później';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
 
   @override
-  String get actionStow => 'Stow';
+  String get actionStow => 'Wrzuć';
 
   @override
   String get actionRemind => 'Remind';
@@ -1571,7 +1570,7 @@ class LPl extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notatki, zdjęcia i pliki leżą jako zwykłe pliki w folderze, który otwiera też Obsidian.';
+      'Nie wiesz, co wybrać? Stuknij „Utwórz”: to zwykły folder w telefonie.';
 
   @override
   String get vaultCreate => 'Utwórz skarbiec';
@@ -2783,7 +2782,7 @@ class LPl extends L {
 
   @override
   String get aiFirstHint =>
-      'Model sprawdza też to, co aplikacja posortowała sama, więc zapytań jest więcej';
+      'Model sprawdza też to, co uporządkowano bez niego.';
 
   @override
   String get composerHintNoSearch => 'Wrzuć cokolwiek';
@@ -3083,7 +3082,7 @@ class LPl extends L {
   }
 
   @override
-  String get settingsCatalog => 'Katalog';
+  String get settingsCatalog => 'Magazyn';
 
   @override
   String get settingsLook => 'Wygląd';
@@ -3960,4 +3959,98 @@ class LPl extends L {
 
   @override
   String get folderEdit => 'Nazwa i wygląd';
+
+  @override
+  String get startStow => 'Napisz cokolwiek i stuknij „Wrzuć”.';
+
+  @override
+  String get startSearch =>
+      'Ta sama linia szuka: wpisz słowo ze swojej notatki.';
+
+  @override
+  String get startRemind => 'Godzina w tekście to już przypomnienie.';
+
+  @override
+  String get startFolder =>
+      'Znak @ wkłada notatkę do folderu, nowego lub istniejącego.';
+
+  @override
+  String get startTag => 'Znak # dodaje tag, po którym łatwo znaleźć notatkę.';
+
+  @override
+  String get startCommands =>
+      'Znak / otwiera polecenia: lista, zadanie, płótno.';
+
+  @override
+  String get startFinish =>
+      'Wprowadzenie zakończone, wrócisz do niego w ustawieniach.';
+
+  @override
+  String get startTry => 'Spróbuj';
+
+  @override
+  String get startSkip => 'Pomiń';
+
+  @override
+  String get startRemindExample => 'Zadzwonić do mamy jutro o 10';
+
+  @override
+  String get startFolderExample => '@Zakupy ';
+
+  @override
+  String get startTagExample => '#pomysł ';
+
+  @override
+  String get lineExplainTag => 'Wpisz słowo: #pomysł, #praca';
+
+  @override
+  String get lineExplainFolder =>
+      'Wpisz nazwę: jeśli jest, wybiorę, jeśli nie, utworzę';
+
+  @override
+  String get tipNoteBar =>
+      'Na dole: przypomnij, tag, inny folder i udostępnij.';
+
+  @override
+  String get tipLongPress =>
+      'Przytrzymaj notatkę: przypnij, przenieś lub usuń.';
+
+  @override
+  String get tipCatalog =>
+      'Przytrzymaj folder i przeciągnij, aby zmienić kolejność.';
+
+  @override
+  String get tipFolderMenu =>
+      'W „⋮”: folder w środku, płótno, baza, nazwa i kolor.';
+
+  @override
+  String get tipSort =>
+      '„Uporządkuj” pokazuje notatki po jednej, a ty wkładasz każdą do folderu.';
+
+  @override
+  String get tipCanvas => 'Stuknij dwa razy w puste miejsce, aby dodać kartę.';
+
+  @override
+  String get tipBase =>
+      'Ikony u góry: sortowanie, grupa, filtr, kolumny, szukanie.';
+
+  @override
+  String get tipAiKey =>
+      'Klucz bierze się od dostawcy AI, na openrouter.ai są darmowe modele.';
+
+  @override
+  String get tipEdge =>
+      'Grzbiety to cienkie zakładki przy krawędzi ekranu, ciągnij je do środka.';
+
+  @override
+  String get tipClose => 'Rozumiem';
+
+  @override
+  String get hintsToggle => 'Podpowiedzi';
+
+  @override
+  String get hintsRestart => 'Zacznij wprowadzenie od nowa';
+
+  @override
+  String get hintsRestarted => 'Wprowadzenie zacznie się na ekranie głównym';
 }

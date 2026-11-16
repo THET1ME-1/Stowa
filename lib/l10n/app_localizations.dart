@@ -575,10 +575,10 @@ abstract class L {
   /// **'by note type, offline'**
   String get reasonKind;
 
-  /// Почему вещь ляжет без папки: ни правила, ни похожего
+  /// Причина под «Закинуть»: папки нет
   ///
   /// In en, this message translates to:
-  /// **'no folder yet, I\'ll sort it once similar notes appear'**
+  /// **'no folder yet, I\'ll sort it later'**
   String get reasonNone;
 
   /// Why no folder
@@ -587,7 +587,7 @@ abstract class L {
   /// **'unsorted, as asked'**
   String get reasonAsIs;
 
-  /// Send button label
+  /// Главная кнопка строки: сохранить
   ///
   /// In en, this message translates to:
   /// **'Stow'**
@@ -2651,10 +2651,10 @@ abstract class L {
   /// **'Where to keep your notes'**
   String get vaultSetupTitle;
 
-  /// Пояснение под заголовком экрана первого запуска
+  /// Пояснение под заголовком первого экрана «Где хранить заметки»
   ///
   /// In en, this message translates to:
-  /// **'Notes, photos and files live as plain files in a folder that Obsidian can open too.'**
+  /// **'Not sure what to pick? Tap “Create”: it\'s a regular folder on your phone.'**
   String get vaultSetupHint;
 
   /// Первый путь на экране выбора хранилища
@@ -4481,10 +4481,10 @@ abstract class L {
   /// **'AI goes first'**
   String get aiFirst;
 
-  /// Subtitle under the AI-first switch
+  /// Пояснение «ИИ в приоритете»
   ///
   /// In en, this message translates to:
-  /// **'The model also checks what the app sorted on its own, so it makes more requests'**
+  /// **'The model also checks what was sorted without it.'**
   String get aiFirstHint;
 
   /// Hint in the capture line when it only saves and does not search (home screen widget window under app lock)
@@ -5039,10 +5039,10 @@ abstract class L {
   /// **'There\'s no note “{title}”'**
   String linkMissing(String title);
 
-  /// settingsCatalog
+  /// Раздел настроек: где лежат заметки
   ///
   /// In en, this message translates to:
-  /// **'Catalog'**
+  /// **'Storage'**
   String get settingsCatalog;
 
   /// settingsLook
@@ -6610,6 +6610,168 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Name and look'**
   String get folderEdit;
+
+  /// Шаг 1 знакомства над строкой главной
+  ///
+  /// In en, this message translates to:
+  /// **'Type anything and tap “Stow”.'**
+  String get startStow;
+
+  /// Шаг 2 знакомства
+  ///
+  /// In en, this message translates to:
+  /// **'The same line searches: type a word from your note.'**
+  String get startSearch;
+
+  /// Шаг 3 знакомства
+  ///
+  /// In en, this message translates to:
+  /// **'A time in the text is already a reminder.'**
+  String get startRemind;
+
+  /// Шаг 4 знакомства
+  ///
+  /// In en, this message translates to:
+  /// **'The @ sign puts a note into a folder, new or existing.'**
+  String get startFolder;
+
+  /// Шаг 5 знакомства
+  ///
+  /// In en, this message translates to:
+  /// **'The # sign adds a tag that makes the note easy to find.'**
+  String get startTag;
+
+  /// Шаг 6 знакомства
+  ///
+  /// In en, this message translates to:
+  /// **'The / sign opens commands: list, task, canvas.'**
+  String get startCommands;
+
+  /// Последняя карточка знакомства
+  ///
+  /// In en, this message translates to:
+  /// **'The tour is over, you can bring it back in settings.'**
+  String get startFinish;
+
+  /// Кнопка карточки знакомства: вставить пример в строку
+  ///
+  /// In en, this message translates to:
+  /// **'Try it'**
+  String get startTry;
+
+  /// Подсказка кнопки «×» карточки знакомства
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get startSkip;
+
+  /// Пример шага 3: разбор строки должен поставить напоминание
+  ///
+  /// In en, this message translates to:
+  /// **'Call mom tomorrow at 10'**
+  String get startRemindExample;
+
+  /// Пример шага 4, с пробелом в конце
+  ///
+  /// In en, this message translates to:
+  /// **'@Shopping '**
+  String get startFolderExample;
+
+  /// Пример шага 5, с пробелом в конце
+  ///
+  /// In en, this message translates to:
+  /// **'#idea '**
+  String get startTagExample;
+
+  /// Пояснение в панели над строкой после голого #
+  ///
+  /// In en, this message translates to:
+  /// **'Type a word: #idea, #work'**
+  String get lineExplainTag;
+
+  /// Пояснение в панели над строкой после голой @
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name: I\'ll pick it if it exists, or create it'**
+  String get lineExplainFolder;
+
+  /// Подсказка на странице заметки над нижней панелью
+  ///
+  /// In en, this message translates to:
+  /// **'Below: remind, tag, another folder and share.'**
+  String get tipNoteBar;
+
+  /// Подсказка на главной
+  ///
+  /// In en, this message translates to:
+  /// **'Press and hold a note to pin, move or delete it.'**
+  String get tipLongPress;
+
+  /// Подсказка в каталоге
+  ///
+  /// In en, this message translates to:
+  /// **'Press and drag a folder to change the order.'**
+  String get tipCatalog;
+
+  /// Подсказка на экране папки
+  ///
+  /// In en, this message translates to:
+  /// **'In “⋮”: a folder inside, canvas, base, name and color.'**
+  String get tipFolderMenu;
+
+  /// Подсказка в папке «Без папки» под кнопкой «Разобрать»
+  ///
+  /// In en, this message translates to:
+  /// **'“Sort” shows notes one by one, and you put each into a folder.'**
+  String get tipSort;
+
+  /// Подсказка на холсте
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap an empty spot to add a card.'**
+  String get tipCanvas;
+
+  /// Подсказка на экране базы
+  ///
+  /// In en, this message translates to:
+  /// **'Icons on top: sort, group, filter, columns, search.'**
+  String get tipBase;
+
+  /// Подсказка на экране «Разбор ИИ», пока ключа нет
+  ///
+  /// In en, this message translates to:
+  /// **'You get a key from an AI provider, openrouter.ai has free models.'**
+  String get tipAiKey;
+
+  /// Подсказка на экране «Под рукой»
+  ///
+  /// In en, this message translates to:
+  /// **'Spines are thin tabs at the screen edge, pull them inward.'**
+  String get tipEdge;
+
+  /// Подсказка кнопки «×» у подсказки по месту
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get tipClose;
+
+  /// Переключатель подсказок в разделе «Помощь»
+  ///
+  /// In en, this message translates to:
+  /// **'Tips'**
+  String get hintsToggle;
+
+  /// Строка в разделе «Помощь»
+  ///
+  /// In en, this message translates to:
+  /// **'Restart the tour'**
+  String get hintsRestart;
+
+  /// Плашка после «Начать знакомство заново»
+  ///
+  /// In en, this message translates to:
+  /// **'The tour will start on the home screen'**
+  String get hintsRestarted;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -297,8 +297,7 @@ class LEn extends L {
   String get reasonKind => 'by note type, offline';
 
   @override
-  String get reasonNone =>
-      'no folder yet, I\'ll sort it once similar notes appear';
+  String get reasonNone => 'no folder yet, I\'ll sort it later';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
@@ -1550,7 +1549,7 @@ class LEn extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notes, photos and files live as plain files in a folder that Obsidian can open too.';
+      'Not sure what to pick? Tap “Create”: it\'s a regular folder on your phone.';
 
   @override
   String get vaultCreate => 'Create a vault';
@@ -2724,8 +2723,7 @@ class LEn extends L {
   String get aiFirst => 'AI goes first';
 
   @override
-  String get aiFirstHint =>
-      'The model also checks what the app sorted on its own, so it makes more requests';
+  String get aiFirstHint => 'The model also checks what was sorted without it.';
 
   @override
   String get composerHintNoSearch => 'Drop anything';
@@ -3025,7 +3023,7 @@ class LEn extends L {
   }
 
   @override
-  String get settingsCatalog => 'Catalog';
+  String get settingsCatalog => 'Storage';
 
   @override
   String get settingsLook => 'Look';
@@ -3896,4 +3894,94 @@ class LEn extends L {
 
   @override
   String get folderEdit => 'Name and look';
+
+  @override
+  String get startStow => 'Type anything and tap “Stow”.';
+
+  @override
+  String get startSearch =>
+      'The same line searches: type a word from your note.';
+
+  @override
+  String get startRemind => 'A time in the text is already a reminder.';
+
+  @override
+  String get startFolder =>
+      'The @ sign puts a note into a folder, new or existing.';
+
+  @override
+  String get startTag =>
+      'The # sign adds a tag that makes the note easy to find.';
+
+  @override
+  String get startCommands => 'The / sign opens commands: list, task, canvas.';
+
+  @override
+  String get startFinish =>
+      'The tour is over, you can bring it back in settings.';
+
+  @override
+  String get startTry => 'Try it';
+
+  @override
+  String get startSkip => 'Skip';
+
+  @override
+  String get startRemindExample => 'Call mom tomorrow at 10';
+
+  @override
+  String get startFolderExample => '@Shopping ';
+
+  @override
+  String get startTagExample => '#idea ';
+
+  @override
+  String get lineExplainTag => 'Type a word: #idea, #work';
+
+  @override
+  String get lineExplainFolder =>
+      'Type a name: I\'ll pick it if it exists, or create it';
+
+  @override
+  String get tipNoteBar => 'Below: remind, tag, another folder and share.';
+
+  @override
+  String get tipLongPress => 'Press and hold a note to pin, move or delete it.';
+
+  @override
+  String get tipCatalog => 'Press and drag a folder to change the order.';
+
+  @override
+  String get tipFolderMenu =>
+      'In “⋮”: a folder inside, canvas, base, name and color.';
+
+  @override
+  String get tipSort =>
+      '“Sort” shows notes one by one, and you put each into a folder.';
+
+  @override
+  String get tipCanvas => 'Double-tap an empty spot to add a card.';
+
+  @override
+  String get tipBase => 'Icons on top: sort, group, filter, columns, search.';
+
+  @override
+  String get tipAiKey =>
+      'You get a key from an AI provider, openrouter.ai has free models.';
+
+  @override
+  String get tipEdge =>
+      'Spines are thin tabs at the screen edge, pull them inward.';
+
+  @override
+  String get tipClose => 'Got it';
+
+  @override
+  String get hintsToggle => 'Tips';
+
+  @override
+  String get hintsRestart => 'Restart the tour';
+
+  @override
+  String get hintsRestarted => 'The tour will start on the home screen';
 }

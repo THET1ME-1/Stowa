@@ -370,9 +370,9 @@
   "@reasonKind": {
     "description": "Why the folder"
   },
-  "reasonNone": "no folder yet, I'll sort it once similar notes appear",
+  "reasonNone": "no folder yet, I'll sort it later",
   "@reasonNone": {
-    "description": "Почему вещь ляжет без папки: ни правила, ни похожего"
+    "description": "Причина под «Закинуть»: папки нет"
   },
   "reasonAsIs": "unsorted, as asked",
   "@reasonAsIs": {
@@ -380,7 +380,7 @@
   },
   "actionStow": "Stow",
   "@actionStow": {
-    "description": "Send button label"
+    "description": "Главная кнопка строки: сохранить"
   },
   "actionRemind": "Remind",
   "@actionRemind": {
@@ -1956,9 +1956,9 @@
   "@vaultSetupTitle": {
     "description": "Заголовок экрана первого запуска"
   },
-  "vaultSetupHint": "Notes, photos and files live as plain files in a folder that Obsidian can open too.",
+  "vaultSetupHint": "Not sure what to pick? Tap “Create”: it's a regular folder on your phone.",
   "@vaultSetupHint": {
-    "description": "Пояснение под заголовком экрана первого запуска"
+    "description": "Пояснение под заголовком первого экрана «Где хранить заметки»"
   },
   "vaultCreate": "Create a vault",
   "@vaultCreate": {
@@ -3467,9 +3467,9 @@
   "@aiFirst": {
     "description": "Settings switch: the AI model re-checks folders guessed by the offline guesser"
   },
-  "aiFirstHint": "The model also checks what the app sorted on its own, so it makes more requests",
+  "aiFirstHint": "The model also checks what was sorted without it.",
   "@aiFirstHint": {
-    "description": "Subtitle under the AI-first switch"
+    "description": "Пояснение «ИИ в приоритете»"
   },
   "composerHintNoSearch": "Drop anything",
   "@composerHintNoSearch": {
@@ -3872,9 +3872,9 @@
       }
     }
   },
-  "settingsCatalog": "Catalog",
+  "settingsCatalog": "Storage",
   "@settingsCatalog": {
-    "description": "settingsCatalog"
+    "description": "Раздел настроек: где лежат заметки"
   },
   "settingsLook": "Look",
   "@settingsLook": {
@@ -4718,5 +4718,113 @@
   "folderEdit": "Name and look",
   "@folderEdit": {
     "description": "Пункт меню папки: имя, цвет, форма и значок на одном экране"
+  },
+  "startStow": "Type anything and tap “Stow”.",
+  "@startStow": {
+    "description": "Шаг 1 знакомства над строкой главной"
+  },
+  "startSearch": "The same line searches: type a word from your note.",
+  "@startSearch": {
+    "description": "Шаг 2 знакомства"
+  },
+  "startRemind": "A time in the text is already a reminder.",
+  "@startRemind": {
+    "description": "Шаг 3 знакомства"
+  },
+  "startFolder": "The @ sign puts a note into a folder, new or existing.",
+  "@startFolder": {
+    "description": "Шаг 4 знакомства"
+  },
+  "startTag": "The # sign adds a tag that makes the note easy to find.",
+  "@startTag": {
+    "description": "Шаг 5 знакомства"
+  },
+  "startCommands": "The / sign opens commands: list, task, canvas.",
+  "@startCommands": {
+    "description": "Шаг 6 знакомства"
+  },
+  "startFinish": "The tour is over, you can bring it back in settings.",
+  "@startFinish": {
+    "description": "Последняя карточка знакомства"
+  },
+  "startTry": "Try it",
+  "@startTry": {
+    "description": "Кнопка карточки знакомства: вставить пример в строку"
+  },
+  "startSkip": "Skip",
+  "@startSkip": {
+    "description": "Подсказка кнопки «×» карточки знакомства"
+  },
+  "startRemindExample": "Call mom tomorrow at 10",
+  "@startRemindExample": {
+    "description": "Пример шага 3: разбор строки должен поставить напоминание"
+  },
+  "startFolderExample": "@Shopping ",
+  "@startFolderExample": {
+    "description": "Пример шага 4, с пробелом в конце"
+  },
+  "startTagExample": "#idea ",
+  "@startTagExample": {
+    "description": "Пример шага 5, с пробелом в конце"
+  },
+  "lineExplainTag": "Type a word: #idea, #work",
+  "@lineExplainTag": {
+    "description": "Пояснение в панели над строкой после голого #"
+  },
+  "lineExplainFolder": "Type a name: I'll pick it if it exists, or create it",
+  "@lineExplainFolder": {
+    "description": "Пояснение в панели над строкой после голой @"
+  },
+  "tipNoteBar": "Below: remind, tag, another folder and share.",
+  "@tipNoteBar": {
+    "description": "Подсказка на странице заметки над нижней панелью"
+  },
+  "tipLongPress": "Press and hold a note to pin, move or delete it.",
+  "@tipLongPress": {
+    "description": "Подсказка на главной"
+  },
+  "tipCatalog": "Press and drag a folder to change the order.",
+  "@tipCatalog": {
+    "description": "Подсказка в каталоге"
+  },
+  "tipFolderMenu": "In “⋮”: a folder inside, canvas, base, name and color.",
+  "@tipFolderMenu": {
+    "description": "Подсказка на экране папки"
+  },
+  "tipSort": "“Sort” shows notes one by one, and you put each into a folder.",
+  "@tipSort": {
+    "description": "Подсказка в папке «Без папки» под кнопкой «Разобрать»"
+  },
+  "tipCanvas": "Double-tap an empty spot to add a card.",
+  "@tipCanvas": {
+    "description": "Подсказка на холсте"
+  },
+  "tipBase": "Icons on top: sort, group, filter, columns, search.",
+  "@tipBase": {
+    "description": "Подсказка на экране базы"
+  },
+  "tipAiKey": "You get a key from an AI provider, openrouter.ai has free models.",
+  "@tipAiKey": {
+    "description": "Подсказка на экране «Разбор ИИ», пока ключа нет"
+  },
+  "tipEdge": "Spines are thin tabs at the screen edge, pull them inward.",
+  "@tipEdge": {
+    "description": "Подсказка на экране «Под рукой»"
+  },
+  "tipClose": "Got it",
+  "@tipClose": {
+    "description": "Подсказка кнопки «×» у подсказки по месту"
+  },
+  "hintsToggle": "Tips",
+  "@hintsToggle": {
+    "description": "Переключатель подсказок в разделе «Помощь»"
+  },
+  "hintsRestart": "Restart the tour",
+  "@hintsRestart": {
+    "description": "Строка в разделе «Помощь»"
+  },
+  "hintsRestarted": "The tour will start on the home screen",
+  "@hintsRestarted": {
+    "description": "Плашка после «Начать знакомство заново»"
   }
 }

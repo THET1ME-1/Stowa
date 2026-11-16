@@ -297,14 +297,13 @@ class LEs extends L {
   String get reasonKind => 'by note type, offline';
 
   @override
-  String get reasonNone =>
-      'sin carpeta, la ordeno cuando aparezca algo parecido';
+  String get reasonNone => 'sin carpeta, la ordeno más tarde';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
 
   @override
-  String get actionStow => 'Stow';
+  String get actionStow => 'Guardar';
 
   @override
   String get actionRemind => 'Remind';
@@ -1551,7 +1550,7 @@ class LEs extends L {
 
   @override
   String get vaultSetupHint =>
-      'Las notas, fotos y archivos son archivos normales en una carpeta que también abre Obsidian.';
+      '¿No sabes qué elegir? Pulsa «Crear»: es una carpeta normal del teléfono.';
 
   @override
   String get vaultCreate => 'Crear una bóveda';
@@ -2727,8 +2726,7 @@ class LEs extends L {
   String get aiFirst => 'La IA manda';
 
   @override
-  String get aiFirstHint =>
-      'El modelo revisa también lo que la app ordenó sola, así que hace más consultas';
+  String get aiFirstHint => 'El modelo también revisa lo que se ordenó sin él.';
 
   @override
   String get composerHintNoSearch => 'Suelta lo que sea';
@@ -3029,7 +3027,7 @@ class LEs extends L {
   }
 
   @override
-  String get settingsCatalog => 'Catálogo';
+  String get settingsCatalog => 'Almacenamiento';
 
   @override
   String get settingsLook => 'Aspecto';
@@ -3903,4 +3901,98 @@ class LEs extends L {
 
   @override
   String get folderEdit => 'Nombre y aspecto';
+
+  @override
+  String get startStow => 'Escribe lo que quieras y pulsa «Guardar».';
+
+  @override
+  String get startSearch =>
+      'La misma línea busca: escribe una palabra de tu nota.';
+
+  @override
+  String get startRemind => 'Una hora en el texto ya es un recordatorio.';
+
+  @override
+  String get startFolder =>
+      'El signo @ guarda la nota en una carpeta, nueva o existente.';
+
+  @override
+  String get startTag =>
+      'El signo # añade una etiqueta para encontrar la nota fácilmente.';
+
+  @override
+  String get startCommands => 'El signo / abre comandos: lista, tarea, lienzo.';
+
+  @override
+  String get startFinish =>
+      'El recorrido terminó, puedes repetirlo en los ajustes.';
+
+  @override
+  String get startTry => 'Probar';
+
+  @override
+  String get startSkip => 'Omitir';
+
+  @override
+  String get startRemindExample => 'Llamar a mamá mañana a las 10';
+
+  @override
+  String get startFolderExample => '@Compras ';
+
+  @override
+  String get startTagExample => '#idea ';
+
+  @override
+  String get lineExplainTag => 'Escribe una palabra: #idea, #trabajo';
+
+  @override
+  String get lineExplainFolder =>
+      'Escribe un nombre: si existe lo elijo, si no lo creo';
+
+  @override
+  String get tipNoteBar =>
+      'Abajo: recordar, etiqueta, otra carpeta y compartir.';
+
+  @override
+  String get tipLongPress => 'Mantén pulsada una nota: fijar, mover o borrar.';
+
+  @override
+  String get tipCatalog =>
+      'Mantén pulsada una carpeta y arrástrala para cambiar el orden.';
+
+  @override
+  String get tipFolderMenu =>
+      'En «⋮»: carpeta dentro, lienzo, base, nombre y color.';
+
+  @override
+  String get tipSort =>
+      '«Ordenar» muestra las notas de una en una y tú pones cada una en una carpeta.';
+
+  @override
+  String get tipCanvas =>
+      'Toca dos veces un espacio vacío para añadir una tarjeta.';
+
+  @override
+  String get tipBase =>
+      'Iconos de arriba: ordenar, grupo, filtro, columnas, buscar.';
+
+  @override
+  String get tipAiKey =>
+      'La clave se obtiene de un proveedor de IA, openrouter.ai tiene modelos gratuitos.';
+
+  @override
+  String get tipEdge =>
+      'Los lomos son pestañas finas en el borde de la pantalla, tira de ellas hacia dentro.';
+
+  @override
+  String get tipClose => 'Entendido';
+
+  @override
+  String get hintsToggle => 'Consejos';
+
+  @override
+  String get hintsRestart => 'Repetir el recorrido';
+
+  @override
+  String get hintsRestarted => 'El recorrido empezará en la pantalla principal';
 }

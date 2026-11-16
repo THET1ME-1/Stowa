@@ -298,13 +298,13 @@ class LRo extends L {
   String get reasonKind => 'by note type, offline';
 
   @override
-  String get reasonNone => 'fără dosar, îl sortez când apare ceva similar';
+  String get reasonNone => 'fără dosar deocamdată, sortez mai târziu';
 
   @override
   String get reasonAsIs => 'unsorted, as asked';
 
   @override
-  String get actionStow => 'Stow';
+  String get actionStow => 'Pune';
 
   @override
   String get actionRemind => 'Remind';
@@ -1559,7 +1559,7 @@ class LRo extends L {
 
   @override
   String get vaultSetupHint =>
-      'Notițele, pozele și fișierele stau ca fișiere obișnuite într-un dosar pe care îl deschide și Obsidian.';
+      'Nu știi ce să alegi? Apasă „Creează”: e un dosar obișnuit în telefon.';
 
   @override
   String get vaultCreate => 'Creează un seif';
@@ -2751,8 +2751,7 @@ class LRo extends L {
   String get aiFirst => 'AI are prioritate';
 
   @override
-  String get aiFirstHint =>
-      'Modelul verifică și ce a sortat aplicația singură, deci face mai multe cereri';
+  String get aiFirstHint => 'Modelul verifică și ce a fost sortat fără el.';
 
   @override
   String get composerHintNoSearch => 'Aruncă orice';
@@ -3053,7 +3052,7 @@ class LRo extends L {
   }
 
   @override
-  String get settingsCatalog => 'Catalog';
+  String get settingsCatalog => 'Stocare';
 
   @override
   String get settingsLook => 'Aspect';
@@ -3929,4 +3928,97 @@ class LRo extends L {
 
   @override
   String get folderEdit => 'Nume și aspect';
+
+  @override
+  String get startStow => 'Scrie orice și apasă „Pune”.';
+
+  @override
+  String get startSearch =>
+      'Același rând caută: scrie un cuvânt din notița ta.';
+
+  @override
+  String get startRemind => 'O oră în text e deja o amintire.';
+
+  @override
+  String get startFolder =>
+      'Semnul @ pune notița într-un dosar, nou sau existent.';
+
+  @override
+  String get startTag =>
+      'Semnul # pune o etichetă după care notița se găsește ușor.';
+
+  @override
+  String get startCommands =>
+      'Semnul / deschide comenzile: listă, sarcină, pânză.';
+
+  @override
+  String get startFinish => 'Turul s-a încheiat, îl poți relua din setări.';
+
+  @override
+  String get startTry => 'Încearcă';
+
+  @override
+  String get startSkip => 'Sari peste';
+
+  @override
+  String get startRemindExample => 'Sună-o pe mama mâine la 10';
+
+  @override
+  String get startFolderExample => '@Cumpărături ';
+
+  @override
+  String get startTagExample => '#idee ';
+
+  @override
+  String get lineExplainTag => 'Scrie un cuvânt: #idee, #muncă';
+
+  @override
+  String get lineExplainFolder =>
+      'Scrie un nume: dacă există îl aleg, dacă nu îl creez';
+
+  @override
+  String get tipNoteBar => 'Jos: amintește, etichetă, alt dosar și distribuie.';
+
+  @override
+  String get tipLongPress =>
+      'Ține apăsat pe o notiță: fixează, mută sau șterge.';
+
+  @override
+  String get tipCatalog =>
+      'Ține apăsat un dosar și trage-l ca să schimbi ordinea.';
+
+  @override
+  String get tipFolderMenu =>
+      'În „⋮”: dosar în interior, pânză, bază, nume și culoare.';
+
+  @override
+  String get tipSort =>
+      '„Sortează” arată notițele pe rând, iar tu pui fiecare într-un dosar.';
+
+  @override
+  String get tipCanvas => 'Atinge de două ori un loc gol ca să adaugi o carte.';
+
+  @override
+  String get tipBase =>
+      'Pictogramele de sus: sortare, grup, filtru, coloane, căutare.';
+
+  @override
+  String get tipAiKey =>
+      'Cheia se ia de la un furnizor de IA, pe openrouter.ai sunt modele gratuite.';
+
+  @override
+  String get tipEdge =>
+      'Cotoarele sunt etichete subțiri la marginea ecranului, trage-le spre interior.';
+
+  @override
+  String get tipClose => 'Am înțeles';
+
+  @override
+  String get hintsToggle => 'Sfaturi';
+
+  @override
+  String get hintsRestart => 'Reia turul';
+
+  @override
+  String get hintsRestarted => 'Turul va începe pe ecranul principal';
 }

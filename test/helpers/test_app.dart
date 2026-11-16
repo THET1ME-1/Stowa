@@ -8,9 +8,11 @@ import 'package:http/http.dart' as http;
 import 'package:stowa/app.dart';
 import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/hints_repository.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/appearance.dart';
+import 'package:stowa/domain/hints.dart';
 import 'package:stowa/domain/article_text.dart';
 import 'package:stowa/domain/edge_settings.dart';
 import 'package:stowa/domain/return_plan.dart';
@@ -52,6 +54,10 @@ class TestWorld {
 
   /// Место хранилища уже выбрано: по умолчанию сразу главная, без экрана первого запуска.
   var vaultAsked = true;
+
+  /// Знакомство и подсказки. По умолчанию выключены: старые тесты не ждут карточек над строкой.
+  /// Тесты знакомства ставят `HintsRepository.memory()` до `app()`.
+  HintsRepository hints = HintsRepository.memory(const HintsState(off: true));
 
   /// Что открывать при запуске.
   var startScreen = StartScreen.home;
@@ -131,6 +137,7 @@ class TestWorld {
         biometricsProvider.overrideWithValue(biometrics),
         kdfSettingsProvider.overrideWithValue(const KdfSettings(memoryKib: 256, passes: 1)),
         vaultAskedProvider.overrideWithValue(vaultAsked),
+        hintsRepositoryProvider.overrideWithValue(hints),
         vaultMissingProvider.overrideWithValue(vaultMissing),
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
         bookmarksPickerProvider.overrideWithValue(() async => pickedFile),
