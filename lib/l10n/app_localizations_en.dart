@@ -3984,4 +3984,37 @@ class LEn extends L {
 
   @override
   String get hintsRestarted => 'The tour will start on the home screen';
+
+  @override
+  String get attachmentsSection => 'Attachments';
+
+  @override
+  String get attachmentsShared => 'In a shared folder';
+
+  @override
+  String get attachmentsNear => 'Next to the note';
+
+  @override
+  String get attachmentsSub => 'In a subfolder next to the note';
+
+  @override
+  String get attachmentsRoot => 'In the vault root';
+
+  @override
+  String get attachmentsHint =>
+      'Applies to new photos and files, old ones stay where they are.';
+
+  @override
+  String get attachmentsWithObsidian => 'The same setting as in Obsidian';
+
+  @override
+  String get attachmentsNameLabel => 'Folder name';
+
+  @override
+  String get attachmentsNameBad =>
+      'This name won\'t work: no dot at the start and no “..”.';
+
+  @override
+  String get attachmentsObsidianBroken =>
+      'Obsidian settings can\'t be read, the choice wasn\'t saved.';
 }

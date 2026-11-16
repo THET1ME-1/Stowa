@@ -6772,6 +6772,66 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The tour will start on the home screen'**
   String get hintsRestarted;
+
+  /// Раздел экрана «Хранилище»: куда класть фото и файлы
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get attachmentsSection;
+
+  /// Вариант места вложений
+  ///
+  /// In en, this message translates to:
+  /// **'In a shared folder'**
+  String get attachmentsShared;
+
+  /// Вариант места вложений
+  ///
+  /// In en, this message translates to:
+  /// **'Next to the note'**
+  String get attachmentsNear;
+
+  /// Вариант места вложений
+  ///
+  /// In en, this message translates to:
+  /// **'In a subfolder next to the note'**
+  String get attachmentsSub;
+
+  /// Вариант места вложений
+  ///
+  /// In en, this message translates to:
+  /// **'In the vault root'**
+  String get attachmentsRoot;
+
+  /// Пояснение под выбором места вложений
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to new photos and files, old ones stay where they are.'**
+  String get attachmentsHint;
+
+  /// Подпись строки, когда в хранилище есть Obsidian
+  ///
+  /// In en, this message translates to:
+  /// **'The same setting as in Obsidian'**
+  String get attachmentsWithObsidian;
+
+  /// Поле имени папки вложений
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get attachmentsNameLabel;
+
+  /// Плашка: имя папки вложений не годится
+  ///
+  /// In en, this message translates to:
+  /// **'This name won\'t work: no dot at the start and no “..”.'**
+  String get attachmentsNameBad;
+
+  /// Плашка: app.json Obsidian сломан
+  ///
+  /// In en, this message translates to:
+  /// **'Obsidian settings can\'t be read, the choice wasn\'t saved.'**
+  String get attachmentsObsidianBroken;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

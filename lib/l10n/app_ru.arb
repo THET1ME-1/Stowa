@@ -1110,5 +1110,15 @@
   "tipClose": "Понятно",
   "hintsToggle": "Подсказки",
   "hintsRestart": "Начать знакомство заново",
-  "hintsRestarted": "Знакомство начнётся на главной"
+  "hintsRestarted": "Знакомство начнётся на главной",
+  "attachmentsSection": "Вложения",
+  "attachmentsShared": "В общей папке",
+  "attachmentsNear": "Рядом с заметкой",
+  "attachmentsSub": "В подпапке рядом с заметкой",
+  "attachmentsRoot": "В корне хранилища",
+  "attachmentsHint": "Касается новых фото и файлов, старые остаются на месте.",
+  "attachmentsWithObsidian": "Та же настройка, что в Obsidian",
+  "attachmentsNameLabel": "Имя папки",
+  "attachmentsNameBad": "Такое имя не подойдёт: без точки в начале и без «..».",
+  "attachmentsObsidianBroken": "Настройки Obsidian не читаются, выбор не сохранён."
 }

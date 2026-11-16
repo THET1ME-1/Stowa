@@ -827,5 +827,15 @@
   "hintsToggle": "Tipps",
   "hintsRestart": "Einführung neu starten",
   "hintsRestarted": "Die Einführung beginnt auf dem Startbildschirm",
-  "actionStow": "Ablegen"
+  "actionStow": "Ablegen",
+  "attachmentsSection": "Anhänge",
+  "attachmentsShared": "In einem gemeinsamen Ordner",
+  "attachmentsNear": "Neben der Notiz",
+  "attachmentsSub": "In einem Unterordner neben der Notiz",
+  "attachmentsRoot": "Im Hauptordner des Speichers",
+  "attachmentsHint": "Gilt für neue Fotos und Dateien, alte bleiben, wo sie sind.",
+  "attachmentsWithObsidian": "Dieselbe Einstellung wie in Obsidian",
+  "attachmentsNameLabel": "Ordnername",
+  "attachmentsNameBad": "Dieser Name geht nicht: kein Punkt am Anfang und kein „..“.",
+  "attachmentsObsidianBroken": "Die Obsidian-Einstellungen sind nicht lesbar, die Auswahl wurde nicht gespeichert."
 }

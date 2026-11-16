@@ -827,5 +827,15 @@
   "hintsToggle": "Підказки",
   "hintsRestart": "Почати знайомство знову",
   "hintsRestarted": "Знайомство почнеться на головній",
-  "actionStow": "Закинути"
+  "actionStow": "Закинути",
+  "attachmentsSection": "Вкладення",
+  "attachmentsShared": "У спільній теці",
+  "attachmentsNear": "Поруч із нотаткою",
+  "attachmentsSub": "У підтеці поруч із нотаткою",
+  "attachmentsRoot": "У корені сховища",
+  "attachmentsHint": "Стосується нових фото й файлів, старі лишаються на місці.",
+  "attachmentsWithObsidian": "Те саме налаштування, що в Obsidian",
+  "attachmentsNameLabel": "Назва теки",
+  "attachmentsNameBad": "Така назва не підійде: без крапки на початку й без «..».",
+  "attachmentsObsidianBroken": "Налаштування Obsidian не читаються, вибір не збережено."
 }

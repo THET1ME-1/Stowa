@@ -4048,4 +4048,37 @@ class LUk extends L {
 
   @override
   String get hintsRestarted => 'Знайомство почнеться на головній';
+
+  @override
+  String get attachmentsSection => 'Вкладення';
+
+  @override
+  String get attachmentsShared => 'У спільній теці';
+
+  @override
+  String get attachmentsNear => 'Поруч із нотаткою';
+
+  @override
+  String get attachmentsSub => 'У підтеці поруч із нотаткою';
+
+  @override
+  String get attachmentsRoot => 'У корені сховища';
+
+  @override
+  String get attachmentsHint =>
+      'Стосується нових фото й файлів, старі лишаються на місці.';
+
+  @override
+  String get attachmentsWithObsidian => 'Те саме налаштування, що в Obsidian';
+
+  @override
+  String get attachmentsNameLabel => 'Назва теки';
+
+  @override
+  String get attachmentsNameBad =>
+      'Така назва не підійде: без крапки на початку й без «..».';
+
+  @override
+  String get attachmentsObsidianBroken =>
+      'Налаштування Obsidian не читаються, вибір не збережено.';
 }

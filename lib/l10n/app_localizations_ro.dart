@@ -4021,4 +4021,37 @@ class LRo extends L {
 
   @override
   String get hintsRestarted => 'Turul va începe pe ecranul principal';
+
+  @override
+  String get attachmentsSection => 'Atașamente';
+
+  @override
+  String get attachmentsShared => 'Într-un dosar comun';
+
+  @override
+  String get attachmentsNear => 'Lângă notiță';
+
+  @override
+  String get attachmentsSub => 'Într-un subdosar lângă notiță';
+
+  @override
+  String get attachmentsRoot => 'În rădăcina stocării';
+
+  @override
+  String get attachmentsHint =>
+      'Se aplică fotografiilor și fișierelor noi, cele vechi rămân pe loc.';
+
+  @override
+  String get attachmentsWithObsidian => 'Aceeași setare ca în Obsidian';
+
+  @override
+  String get attachmentsNameLabel => 'Numele dosarului';
+
+  @override
+  String get attachmentsNameBad =>
+      'Numele nu merge: fără punct la început și fără „..”.';
+
+  @override
+  String get attachmentsObsidianBroken =>
+      'Setările Obsidian nu pot fi citite, alegerea nu s-a salvat.';
 }

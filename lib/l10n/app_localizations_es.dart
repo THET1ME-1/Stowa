@@ -3995,4 +3995,37 @@ class LEs extends L {
 
   @override
   String get hintsRestarted => 'El recorrido empezará en la pantalla principal';
+
+  @override
+  String get attachmentsSection => 'Adjuntos';
+
+  @override
+  String get attachmentsShared => 'En una carpeta común';
+
+  @override
+  String get attachmentsNear => 'Junto a la nota';
+
+  @override
+  String get attachmentsSub => 'En una subcarpeta junto a la nota';
+
+  @override
+  String get attachmentsRoot => 'En la raíz del almacenamiento';
+
+  @override
+  String get attachmentsHint =>
+      'Se aplica a fotos y archivos nuevos, los antiguos se quedan donde están.';
+
+  @override
+  String get attachmentsWithObsidian => 'El mismo ajuste que en Obsidian';
+
+  @override
+  String get attachmentsNameLabel => 'Nombre de la carpeta';
+
+  @override
+  String get attachmentsNameBad =>
+      'Ese nombre no sirve: sin punto al principio y sin «..».';
+
+  @override
+  String get attachmentsObsidianBroken =>
+      'No se pueden leer los ajustes de Obsidian, la elección no se guardó.';
 }

@@ -827,5 +827,15 @@
   "hintsToggle": "Sfaturi",
   "hintsRestart": "Reia turul",
   "hintsRestarted": "Turul va începe pe ecranul principal",
-  "actionStow": "Pune"
+  "actionStow": "Pune",
+  "attachmentsSection": "Atașamente",
+  "attachmentsShared": "Într-un dosar comun",
+  "attachmentsNear": "Lângă notiță",
+  "attachmentsSub": "Într-un subdosar lângă notiță",
+  "attachmentsRoot": "În rădăcina stocării",
+  "attachmentsHint": "Se aplică fotografiilor și fișierelor noi, cele vechi rămân pe loc.",
+  "attachmentsWithObsidian": "Aceeași setare ca în Obsidian",
+  "attachmentsNameLabel": "Numele dosarului",
+  "attachmentsNameBad": "Numele nu merge: fără punct la început și fără „..”.",
+  "attachmentsObsidianBroken": "Setările Obsidian nu pot fi citite, alegerea nu s-a salvat."
 }

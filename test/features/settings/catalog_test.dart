@@ -9,6 +9,7 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/known_vaults.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/services/vault/vault_layout.dart' show readAttachmentSetting;
 
 import '../../helpers/test_app.dart';
 
@@ -203,5 +204,39 @@ void main() {
     await tester.drag(find.byType(Scrollable).last, const Offset(0, -2000));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('«Вложения»: рядом с заметкой, общая папка со своим именем, плохое имя не проходит', (tester) async {
+    await openCatalog(tester);
+    final row = find.byKey(const ValueKey('storage-attachments'));
+    Future<void> openRow() async {
+      await tester.scrollUntilVisible(row, 200, scrollable: find.byType(Scrollable).last);
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+    }
+
+    await openRow();
+    // подпись есть и в строке, и в листе: касание — в листе, он сверху
+    await tester.tap(find.text('Рядом с заметкой').last);
+    await tester.pumpAndSettle();
+    expect(readAttachmentSetting(world.files).setting, './');
+
+    await openRow();
+    await tester.tap(find.text('В общей папке'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Медиа');
+    await tester.tap(find.text('Сохранить').last);
+    await tester.pumpAndSettle();
+    expect(readAttachmentSetting(world.files).setting, 'Медиа');
+    expect(find.descendant(of: row, matching: find.textContaining('Медиа')), findsOneWidget);
+
+    await openRow();
+    await tester.tap(find.text('В общей папке'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '.скрытая');
+    await tester.tap(find.text('Сохранить').last);
+    await tester.pumpAndSettle();
+    expect(readAttachmentSetting(world.files).setting, 'Медиа');
+    expect(find.text('Такое имя не подойдёт: без точки в начале и без «..».'), findsOneWidget);
   });
 }

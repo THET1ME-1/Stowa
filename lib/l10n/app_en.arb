@@ -4826,5 +4826,45 @@
   "hintsRestarted": "The tour will start on the home screen",
   "@hintsRestarted": {
     "description": "Плашка после «Начать знакомство заново»"
+  },
+  "attachmentsSection": "Attachments",
+  "@attachmentsSection": {
+    "description": "Раздел экрана «Хранилище»: куда класть фото и файлы"
+  },
+  "attachmentsShared": "In a shared folder",
+  "@attachmentsShared": {
+    "description": "Вариант места вложений"
+  },
+  "attachmentsNear": "Next to the note",
+  "@attachmentsNear": {
+    "description": "Вариант места вложений"
+  },
+  "attachmentsSub": "In a subfolder next to the note",
+  "@attachmentsSub": {
+    "description": "Вариант места вложений"
+  },
+  "attachmentsRoot": "In the vault root",
+  "@attachmentsRoot": {
+    "description": "Вариант места вложений"
+  },
+  "attachmentsHint": "Applies to new photos and files, old ones stay where they are.",
+  "@attachmentsHint": {
+    "description": "Пояснение под выбором места вложений"
+  },
+  "attachmentsWithObsidian": "The same setting as in Obsidian",
+  "@attachmentsWithObsidian": {
+    "description": "Подпись строки, когда в хранилище есть Obsidian"
+  },
+  "attachmentsNameLabel": "Folder name",
+  "@attachmentsNameLabel": {
+    "description": "Поле имени папки вложений"
+  },
+  "attachmentsNameBad": "This name won't work: no dot at the start and no “..”.",
+  "@attachmentsNameBad": {
+    "description": "Плашка: имя папки вложений не годится"
+  },
+  "attachmentsObsidianBroken": "Obsidian settings can't be read, the choice wasn't saved.",
+  "@attachmentsObsidianBroken": {
+    "description": "Плашка: app.json Obsidian сломан"
   }
 }

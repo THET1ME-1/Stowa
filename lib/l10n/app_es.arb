@@ -827,5 +827,15 @@
   "hintsToggle": "Consejos",
   "hintsRestart": "Repetir el recorrido",
   "hintsRestarted": "El recorrido empezará en la pantalla principal",
-  "actionStow": "Guardar"
+  "actionStow": "Guardar",
+  "attachmentsSection": "Adjuntos",
+  "attachmentsShared": "En una carpeta común",
+  "attachmentsNear": "Junto a la nota",
+  "attachmentsSub": "En una subcarpeta junto a la nota",
+  "attachmentsRoot": "En la raíz del almacenamiento",
+  "attachmentsHint": "Se aplica a fotos y archivos nuevos, los antiguos se quedan donde están.",
+  "attachmentsWithObsidian": "El mismo ajuste que en Obsidian",
+  "attachmentsNameLabel": "Nombre de la carpeta",
+  "attachmentsNameBad": "Ese nombre no sirve: sin punto al principio y sin «..».",
+  "attachmentsObsidianBroken": "No se pueden leer los ajustes de Obsidian, la elección no se guardó."
 }

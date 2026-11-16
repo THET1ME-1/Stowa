@@ -17,6 +17,8 @@ import '../../data/settings_repository.dart' show VaultMode;
 import '../../domain/known_vaults.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/backup_service.dart';
+import '../../services/vault/vault_layout.dart' show attachmentFolderNameError, defaultAttachmentFolder, readAttachmentSetting, writeAttachmentSetting;
+import '../folder/folder_sheets.dart' show showRenameSheet;
 import '../privacy/markdown_export_action.dart';
 import '../vault/vault_actions.dart';
 import 'settings_blocks.dart';
@@ -91,6 +93,9 @@ class StorageScreen extends ConsumerWidget {
               ],
             ),
             SettingsHint(fixed ? l.vaultFilesHint : l.vaultsHint),
+            SettingsSection(l.attachmentsSection),
+            SettingsGroup(tint: settingsTint('amber'), children: const [_AttachmentsRow(key: ValueKey('storage-attachments'))]),
+            SettingsHint(l.attachmentsHint),
             SettingsSection(l.settingsCopies),
             SettingsGroup(
               tint: settingsTint('blue'),
@@ -130,6 +135,88 @@ String _otherSubtitle(L l, KnownVault vault) => [
 
 /// Прежнее хранилище: касание открывает, «⋮» — открыть или убрать из списка.
 /// Папки нет на месте — подпись «Папка не найдена».
+/// Куда класть новые вложения, как в Obsidian: общая папка, рядом с заметкой, подпапка рядом,
+/// корень. С Obsidian — та же настройка, что у него (`app.json`).
+enum _AttachPlace { shared, near, sub, root }
+
+class _AttachmentsRow extends ConsumerStatefulWidget {
+  const _AttachmentsRow({super.key});
+
+  @override
+  ConsumerState<_AttachmentsRow> createState() => _AttachmentsRowState();
+}
+
+class _AttachmentsRowState extends ConsumerState<_AttachmentsRow> {
+  ({_AttachPlace place, String name, bool obsidian}) _read() {
+    final setting = readAttachmentSetting(ref.read(filesRootProvider));
+    final value = setting.setting;
+    if (value == null) return (place: setting.obsidian ? _AttachPlace.root : _AttachPlace.near, name: '', obsidian: setting.obsidian);
+    if (value == '/') return (place: _AttachPlace.root, name: '', obsidian: setting.obsidian);
+    if (value == '.' || value == './') return (place: _AttachPlace.near, name: '', obsidian: setting.obsidian);
+    if (value.startsWith('./')) return (place: _AttachPlace.sub, name: value.substring(2), obsidian: setting.obsidian);
+    return (place: _AttachPlace.shared, name: value, obsidian: setting.obsidian);
+  }
+
+  String _title(L l, _AttachPlace place) => switch (place) {
+    _AttachPlace.shared => l.attachmentsShared,
+    _AttachPlace.near => l.attachmentsNear,
+    _AttachPlace.sub => l.attachmentsSub,
+    _AttachPlace.root => l.attachmentsRoot,
+  };
+
+  Future<void> _pick() async {
+    final l = L.of(context);
+    final now = _read();
+    final place = await showOptionsSheet<_AttachPlace>(
+      context,
+      title: l.attachmentsSection,
+      selected: now.place,
+      options: [
+        SheetChoice(value: _AttachPlace.shared, title: l.attachmentsShared, icon: 'perm_media', subtitle: now.place == _AttachPlace.shared ? now.name : null),
+        SheetChoice(value: _AttachPlace.near, title: l.attachmentsNear, icon: 'description'),
+        SheetChoice(value: _AttachPlace.sub, title: l.attachmentsSub, icon: 'subdirectory_arrow_right', subtitle: now.place == _AttachPlace.sub ? now.name : null),
+        SheetChoice(value: _AttachPlace.root, title: l.attachmentsRoot, icon: 'home_storage'),
+      ],
+    );
+    if (place == null || !mounted) return;
+    String value;
+    switch (place) {
+      case _AttachPlace.near:
+        value = './';
+      case _AttachPlace.root:
+        value = '/';
+      case _AttachPlace.shared || _AttachPlace.sub:
+        final language = ref.read(settingsRepositoryProvider).language?.code ?? Localizations.localeOf(context).languageCode;
+        final initial = now.place == place && now.name.isNotEmpty ? now.name : defaultAttachmentFolder(language);
+        final name = await showRenameSheet(context, initial, label: l.attachmentsNameLabel);
+        if (name == null || !mounted) return;
+        if (attachmentFolderNameError(name) != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.attachmentsNameBad)));
+          return;
+        }
+        final clean = name.trim().replaceAll(RegExp(r'/+$'), '');
+        value = place == _AttachPlace.sub ? './$clean' : clean;
+    }
+    final saved = writeAttachmentSetting(ref.read(filesRootProvider), value);
+    if (!mounted) return;
+    if (!saved) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.attachmentsObsidianBroken)));
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final now = _read();
+    final where = [_title(l, now.place), if (now.name.isNotEmpty) now.name].join(' · ');
+    return SettingsRow(
+      icon: 'attach_file',
+      title: l.attachmentsSection,
+      value: now.obsidian ? '$where\n${l.attachmentsWithObsidian}' : where,
+      onTap: _pick,
+    );
+  }
+}
+
 class _OtherVault extends ConsumerStatefulWidget {
   const _OtherVault({required this.vault});
 

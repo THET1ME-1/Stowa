@@ -4008,4 +4008,37 @@ class LDe extends L {
 
   @override
   String get hintsRestarted => 'Die Einführung beginnt auf dem Startbildschirm';
+
+  @override
+  String get attachmentsSection => 'Anhänge';
+
+  @override
+  String get attachmentsShared => 'In einem gemeinsamen Ordner';
+
+  @override
+  String get attachmentsNear => 'Neben der Notiz';
+
+  @override
+  String get attachmentsSub => 'In einem Unterordner neben der Notiz';
+
+  @override
+  String get attachmentsRoot => 'Im Hauptordner des Speichers';
+
+  @override
+  String get attachmentsHint =>
+      'Gilt für neue Fotos und Dateien, alte bleiben, wo sie sind.';
+
+  @override
+  String get attachmentsWithObsidian => 'Dieselbe Einstellung wie in Obsidian';
+
+  @override
+  String get attachmentsNameLabel => 'Ordnername';
+
+  @override
+  String get attachmentsNameBad =>
+      'Dieser Name geht nicht: kein Punkt am Anfang und kein „..“.';
+
+  @override
+  String get attachmentsObsidianBroken =>
+      'Die Obsidian-Einstellungen sind nicht lesbar, die Auswahl wurde nicht gespeichert.';
 }

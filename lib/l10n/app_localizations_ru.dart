@@ -4060,4 +4060,37 @@ class LRu extends L {
 
   @override
   String get hintsRestarted => 'Знакомство начнётся на главной';
+
+  @override
+  String get attachmentsSection => 'Вложения';
+
+  @override
+  String get attachmentsShared => 'В общей папке';
+
+  @override
+  String get attachmentsNear => 'Рядом с заметкой';
+
+  @override
+  String get attachmentsSub => 'В подпапке рядом с заметкой';
+
+  @override
+  String get attachmentsRoot => 'В корне хранилища';
+
+  @override
+  String get attachmentsHint =>
+      'Касается новых фото и файлов, старые остаются на месте.';
+
+  @override
+  String get attachmentsWithObsidian => 'Та же настройка, что в Obsidian';
+
+  @override
+  String get attachmentsNameLabel => 'Имя папки';
+
+  @override
+  String get attachmentsNameBad =>
+      'Такое имя не подойдёт: без точки в начале и без «..».';
+
+  @override
+  String get attachmentsObsidianBroken =>
+      'Настройки Obsidian не читаются, выбор не сохранён.';
 }

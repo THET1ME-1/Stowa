@@ -4053,4 +4053,37 @@ class LPl extends L {
 
   @override
   String get hintsRestarted => 'Wprowadzenie zacznie się na ekranie głównym';
+
+  @override
+  String get attachmentsSection => 'Załączniki';
+
+  @override
+  String get attachmentsShared => 'We wspólnym folderze';
+
+  @override
+  String get attachmentsNear => 'Obok notatki';
+
+  @override
+  String get attachmentsSub => 'W podfolderze obok notatki';
+
+  @override
+  String get attachmentsRoot => 'W katalogu głównym';
+
+  @override
+  String get attachmentsHint =>
+      'Dotyczy nowych zdjęć i plików, stare zostają na miejscu.';
+
+  @override
+  String get attachmentsWithObsidian => 'To samo ustawienie co w Obsidian';
+
+  @override
+  String get attachmentsNameLabel => 'Nazwa folderu';
+
+  @override
+  String get attachmentsNameBad =>
+      'Ta nazwa nie zadziała: bez kropki na początku i bez „..”.';
+
+  @override
+  String get attachmentsObsidianBroken =>
+      'Nie da się odczytać ustawień Obsidian, wybór nie został zapisany.';
 }
