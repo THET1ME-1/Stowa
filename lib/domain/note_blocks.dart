@@ -324,7 +324,7 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
     // разметка и [[ссылки]] по порядку; наложившиеся не берутся
     final found = <(int start, int end, int innerStart, int innerEnd, MarkupStyle? style)>[
       for (final match in inlineMarks.allMatches(line, at - from))
-        if ((match.group(1) != null || match.group(4) != null ? 2 : 1) case final width)
+        if ((match.group(1) != null || match.group(4) != null || match.group(6) != null ? 2 : 1) case final width)
           (
             match.start,
             match.end,
@@ -334,7 +334,8 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
                 ? MarkupStyle.bold
                 : match.group(4) != null
                 ? MarkupStyle.strike
-                : match.group(5) != null
+                // формула в подсказке и ленте — исходником моноширинным, как код
+                : match.group(5) != null || match.group(6) != null || match.group(7) != null
                 ? MarkupStyle.code
                 : MarkupStyle.italic,
           ),

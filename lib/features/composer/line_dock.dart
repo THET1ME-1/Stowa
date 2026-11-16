@@ -889,7 +889,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       _move(key == LogicalKeyboardKey.arrowUp ? 1 : -1);
       return KeyEventResult.handled;
     }
-    if (key == LogicalKeyboardKey.enter && !shift) {
+    // клавиша Enter (физическая или клавиатура, что шлёт её клавишей) слушается той же
+    // настройки, что и Enter на экранной клавиатуре; Ctrl+Enter отправляет всегда
+    final control = HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed;
+    if (key == LogicalKeyboardKey.enter && !shift && (control || (ref.read(enterSendsProvider).value ?? false))) {
       _act();
       return KeyEventResult.handled;
     }

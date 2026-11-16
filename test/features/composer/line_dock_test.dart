@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
@@ -480,6 +481,21 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.newline);
       await tester.pumpAndSettle();
       expect(await world.db.select(world.db.items).get(), isEmpty);
+    });
+
+    // эмулятор 16.11: клавиша Enter (физическая или клавиатура, что шлёт её клавишей) отправляла
+    // заметку мимо настройки
+    testWidgets('клавиша Enter по умолчанию тоже не отправляет; Ctrl+Enter — отправляет', (tester) async {
+      await open(tester);
+      await type(tester, 'Купить хлеб');
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(await world.db.select(world.db.items).get(), isEmpty);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+      expect(await world.db.select(world.db.items).get(), hasLength(1));
     });
 
     testWidgets('выбрано «Enter — Закинуть»: Enter отправляет, как раньше', (tester) async {

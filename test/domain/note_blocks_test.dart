@@ -35,6 +35,12 @@ void main() {
     });
 
     // эмулятор 16.11: в ленте и в уведомлении стояли строки «$$» блочной формулы
+    test('в ленте формула — исходником без долларов, моноширинно, а не курсивом', () {
+      final shown = renderMarkup(r'Скорость $v = \frac{s}{t}$ и $$E$$', const []);
+      expect(shown.text, r'Скорость v = \frac{s}{t} и E');
+      expect([for (final (_, _, style) in shown.styles) style], [MarkupStyle.code, MarkupStyle.code]);
+    });
+
     test('в ленте строки знаков блочной формулы не показываются', () {
       final lines = noteLinesUnderTitle('Заметка\nТекст\n\$\$\nE = mc^2\n\$\$', 'Заметка');
       expect(lines.map((line) => line.text), ['Текст', 'E = mc^2']);
