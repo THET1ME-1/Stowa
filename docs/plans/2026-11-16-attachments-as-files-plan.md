@@ -30,6 +30,12 @@
 
 Тест `место вложений: корень, рядом, подкаталог, общая папка, без Obsidian` — все пять случаев на `Stowa/Покупки.md`.
 
+### Задача 1а: выбор места вложений в Stowa
+
+**Файлы:** `vault_layout.dart` (`writeAttachmentSetting(root, value)`: `.obsidian/app.json` слиянием или `.stowa/attachments.json`; `readAttachmentSetting` читает оба; `defaultAttachmentFolder(locale)` — «Вложения», «Вкладення», «Atașamente», «Załączniki», «Anhänge», «Adjuntos», «Attachments»), `main.dart` (без выбора и без Obsidian — записать имя по умолчанию), экран «Хранилище» (`storage_screen.dart`: строка «Вложения» с листом из четырёх вариантов и полем имени), строки на семи языках, тесты слоя и экрана.
+
+Чтение: голый файл в общей папке вложений — заметка без папки, общая папка вложений папкой Stowa не становится. Запись: голый файл без папки — в общую папку вложений, если она задана, иначе в корень.
+
 ### Задача 2: чтение — оба вида
 
 **Файлы:** `lib/domain/vault_note.dart` (хвост), `lib/services/vault/vault_reader.dart` (`_attachments`), тест `test/services/vault/vault_attachments_test.dart`.
