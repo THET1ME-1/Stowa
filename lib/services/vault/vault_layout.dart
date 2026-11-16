@@ -2,6 +2,9 @@
 /// как их хранит база: так они переживают перенос хранилища в другую папку.
 library;
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 import '../../domain/vault_note.dart' show vaultFileName;
@@ -20,8 +23,39 @@ const trashFolder = '.trash';
 /// [folders] — имена от верхней папки до своей.
 String notePath({List<String> folders = const [], required String fileName}) => [for (final name in folders) vaultFileName(name), fileName].join('/');
 
-/// Каталог вложений вещи: рядом с файлом, тем же именем без `.md`.
+/// Каталог вложений вещи: рядом с файлом, тем же именем без `.md`. Так Stowa клала вложения
+/// до 16.11.2026; новые кладутся по [attachmentFolderFor], старые читаются и остаются на месте.
 String attachmentsDir(String notePath) => notePath.endsWith('.md') ? notePath.substring(0, notePath.length - 3) : notePath;
+
+/// Куда Obsidian велит класть вложения: `.obsidian/app.json`, ключ `attachmentFolderPath`.
+/// [obsidian] — в хранилище есть `.obsidian`; сломанный или пустой файл — настройки нет.
+({bool obsidian, String? setting}) readAttachmentSetting(Directory root) {
+  final dir = Directory(p.join(root.path, '.obsidian'));
+  if (!dir.existsSync()) return (obsidian: false, setting: null);
+  try {
+    final json = jsonDecode(File(p.join(dir.path, 'app.json')).readAsStringSync());
+    final value = json is Map ? json['attachmentFolderPath'] : null;
+    return (obsidian: true, setting: value is String && value.trim().isNotEmpty ? value.trim() : null);
+  } on Object {
+    return (obsidian: true, setting: null);
+  }
+}
+
+/// Каталог новых вложений заметки [notePath] (от корня, '' — корень), как у Obsidian:
+/// `/` — корень, `./` — рядом с заметкой, `./имя` — подкаталог рядом, `имя` — общая папка.
+/// Настройки нет: с Obsidian — корень, как у него самого; без Obsidian — рядом с заметкой.
+String attachmentFolderFor(String notePath, {required bool obsidian, String? setting}) {
+  final near = p.posix.dirname(notePath) == '.' ? '' : p.posix.dirname(notePath);
+  final value = setting?.trim();
+  if (value == null || value.isEmpty) return obsidian ? '' : near;
+  if (value == '/') return '';
+  if (value == '.' || value == './') return near;
+  if (value.startsWith('./')) {
+    final sub = value.substring(2).replaceAll(RegExp(r'^/+|/+$'), '');
+    return [if (near.isNotEmpty) near, if (sub.isNotEmpty) sub].join('/');
+  }
+  return value.replaceAll(RegExp(r'^/+|/+$'), '');
+}
 
 /// Свободное имя рядом: «Карбонара.md» → «Карбонара 2.md» → «Карбонара 3.md».
 /// [taken] сравнивает без учёта регистра: Android и Windows через Syncthing его не различают.

@@ -49,4 +49,28 @@ void main() {
     legacy.writeAsBytesSync(gzip.encode(utf8.encode('<title>Старая</title>')));
     expect(await readPage(root, 'b'), '<title>Старая</title>');
   });
+
+  test('место вложений: корень, рядом, подкаталог, общая папка, без Obsidian', () {
+    const note = 'Stowa/Покупки.md';
+    expect(attachmentFolderFor(note, obsidian: true, setting: '/'), '');
+    expect(attachmentFolderFor(note, obsidian: true, setting: null), '');
+    expect(attachmentFolderFor(note, obsidian: true, setting: './'), 'Stowa');
+    expect(attachmentFolderFor(note, obsidian: true, setting: './вложения'), 'Stowa/вложения');
+    expect(attachmentFolderFor(note, obsidian: true, setting: 'Изображения'), 'Изображения');
+    expect(attachmentFolderFor(note, obsidian: false, setting: null), 'Stowa');
+    expect(attachmentFolderFor('Покупки.md', obsidian: false, setting: null), '');
+    expect(attachmentFolderFor('Покупки.md', obsidian: true, setting: './'), '');
+  });
+
+  test('настройка вложений читается из .obsidian/app.json', () {
+    final root = Directory.systemTemp.createTempSync('stowa_att');
+    addTearDown(() => root.deleteSync(recursive: true));
+    expect(readAttachmentSetting(root), (obsidian: false, setting: null));
+    Directory(p.join(root.path, '.obsidian')).createSync();
+    expect(readAttachmentSetting(root), (obsidian: true, setting: null));
+    File(p.join(root.path, '.obsidian', 'app.json')).writeAsStringSync(jsonEncode({'attachmentFolderPath': 'Изображения', 'promptDelete': false}));
+    expect(readAttachmentSetting(root), (obsidian: true, setting: 'Изображения'));
+    File(p.join(root.path, '.obsidian', 'app.json')).writeAsStringSync('{сломан');
+    expect(readAttachmentSetting(root), (obsidian: true, setting: null));
+  });
 }
