@@ -216,6 +216,80 @@ void main() {
     expect(jsonDecode(file('.obsidian/app.json').readAsStringSync()), {'promptDelete': false});
   });
 
+  // копия College 16.11: правка текста переименовывала файл — ссылки [[…]] в Obsidian ломались
+  test('свойство title: из Obsidian и длинное имя — правка текста файл не переименовывает', () async {
+    note('Проекты/Речь защита.md', '---\ntitle: Защита курсовой\n---\nТекст\n');
+    // длиннее 200 байт, которые даёт имя из названия, но в пределе диска 255
+    final long = 'Семинар №1. ${'Очень длинное название семинара по этике ' * 2}ааааааааааааааааааааконец';
+    note('Этика/$long.md', 'Текст\n');
+    await reader().reconcile();
+    for (final item in await db.select(db.items).get()) {
+      await (db.update(db.items)..where((t) => t.id.equals(item.id))).write(ItemsCompanion(body: Value('${item.body}\nещё')));
+    }
+    await writer().drain();
+    expect(file('Проекты/Речь защита.md').readAsStringSync(), contains('ещё'));
+    expect(file('Проекты/Защита курсовой.md').existsSync(), isFalse);
+    expect(file('Этика/$long.md').readAsStringSync(), contains('ещё'));
+    expect(Directory(p.join(root.path, 'Этика')).listSync(), hasLength(1));
+    // а сменил название в Stowa — файл переименовался
+    final id = (await (db.select(db.vaultFiles)..where((t) => t.path.equals('Проекты/Речь защита.md'))).getSingle()).itemId;
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(title: Value('Речь на защите')));
+    await writer().drain();
+    expect(file('Проекты/Речь на защите.md').existsSync(), isTrue);
+  });
+
+  // хозяин 16.11: «если менять название файлов, то менять во ВСЕХ местах, где он упомянут»
+  test('переименовал заметку в Stowa — ссылки на неё в других заметках и на холсте следуют', () async {
+    note('Проекты/Речь.md', 'Речь\n');
+    note('План.md', 'см. [[Речь]] и [[Проекты/Речь#Вступление|вступление]], [ссылка](Проекты/Речь.md)\n');
+    note('Доска.canvas', '{"nodes":[{"id":"a","type":"file","file":"Проекты/Речь.md","x":0,"y":0,"width":400,"height":400}],"edges":[]}');
+    note('Чужое.md', 'про [[Речка]]\n');
+    await reader().reconcile();
+    final id = (await (db.select(db.vaultFiles)..where((t) => t.path.equals('Проекты/Речь.md'))).getSingle()).itemId;
+    final before = file('Чужое.md').readAsStringSync();
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(title: Value('Речь на защите')));
+    await writer().drain();
+    expect(file('Проекты/Речь на защите.md').existsSync(), isTrue);
+    expect(file('План.md').readAsStringSync(), contains('см. [[Речь на защите]] и [[Проекты/Речь на защите#Вступление|вступление]], [ссылка](Проекты/Речь на защите.md)'));
+    expect(file('Доска.canvas').readAsStringSync(), contains('"file":"Проекты/Речь на защите.md"'));
+    expect(file('Чужое.md').readAsStringSync(), before);
+  });
+
+  // копия College 16.11: ссылки стоят в свойствах («Предмет: "[[Курсы/Военка|Военка]]"»)
+  test('ссылки в свойствах шапки тоже следуют за переименованным', () async {
+    note('Курсы/Военка.md', 'Военка\n');
+    note('Тема.md', '---\nПредмет: "[[Курсы/Военка|🎖️ Военка]]"\nСвязи:\n  - "[[Военка]]"\n---\nТема\n');
+    await reader().reconcile();
+    final id = (await (db.select(db.vaultFiles)..where((t) => t.path.equals('Курсы/Военка.md'))).getSingle()).itemId;
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(title: Value('Военная подготовка')));
+    await writer().drain();
+    final text = file('Тема.md').readAsStringSync();
+    expect(text, contains('[[Курсы/Военная подготовка|🎖️ Военка]]'));
+    expect(text, contains('[[Военная подготовка]]'));
+    expect(text, isNot(contains('[[Военка]]')));
+  });
+
+  // копия College 16.11: «ЗОМП.md» рядом с папкой «ЗОМП/» с конспектами — правка дописывала
+  // конспекты хвостом ![[…]] в заметку-папку
+  test('заметка-папка Obsidian: конспекты и картинки папки — не её вложения', () async {
+    note('Военка/ЗОМП.md', 'ЗОМП\n\n[[Ядерное оружие]]\n');
+    note('Военка/ЗОМП/Ядерное оружие.md', 'Ядерное\n');
+    put('Военка/ЗОМП/схема.png');
+    await reader().reconcile();
+    final zomp = (await (db.select(db.vaultFiles)..where((t) => t.path.equals('Военка/ЗОМП.md'))).getSingle()).itemId;
+    expect(await paths(zomp), isEmpty);
+    await (db.update(db.items)..where((t) => t.id.equals(zomp))).write(const ItemsCompanion(body: Value('ЗОМП\n\n[[Ядерное оружие]]\nещё')));
+    await writer().drain();
+    expect(file('Военка/ЗОМП.md').readAsStringSync(), isNot(contains('![[')));
+  });
+
+  test('старый каталог вложений Stowa без заметок внутри — по-прежнему вложения', () async {
+    note('Дом/Плитка.md', 'Плитка\n');
+    put('Дом/Плитка/a.jpg');
+    await reader().reconcile();
+    expect(await paths((await only()).id), ['Дом/Плитка/a.jpg']);
+  });
+
   test('файл ещё копируется — голую заметку не пишут раньше файла', () async {
     await folder('f', 'Stowa');
     await item('n', title: 'Фото от 20 августа', folderId: 'f', auto: true, kind: ItemKind.image);

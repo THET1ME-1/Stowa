@@ -8,6 +8,7 @@ import '../../data/db/database.dart';
 import '../../data/repositories/items_repository.dart' show placeReminderOf;
 import '../../domain/folder_tree.dart';
 import '../../domain/note_blocks.dart' show embedLine, embedNames, embedPath;
+import '../../domain/note_links.dart' show renameCanvasFile, renameLinks;
 import '../../domain/vault_note.dart';
 import '../privacy/sealed_space.dart';
 import '../../domain/models.dart' show ItemKind, documentExtension, isDocumentKind;
@@ -205,13 +206,23 @@ class VaultWriter {
     final live = notePath(folders: folders, fileName: '${vaultFileName(item.title)}.$extension');
     var wanted = live;
     if (item.deletedAt != null) wanted = trashPath(wanted);
+    // название не меняли в Stowa — файл не переименовывается, даже если имя из названия вышло
+    // бы другим: длинное имя обрезается до 200 байт, а свойство `title:` из Obsidian расходится
+    // с именем файла. Переименование ломало бы ссылки [[…]] на эту заметку в Obsidian
+    if (known != null && !_sameName(known.path, wanted) && await _titleOnDisk(known.path, document: document) == item.title) {
+      final dir = p.posix.dirname(wanted);
+      wanted = dir == '.' ? p.posix.basename(known.path) : '$dir/${p.posix.basename(known.path)}';
+    }
     // «Купить молоко 2.md» остаётся «2», пока заголовок тот же: файл не прыгает между именами.
     // Свой холст по id не узнать: id в JSON не пишется, его файл знает только карта файлов
     final path = known != null && _sameName(known.path, wanted)
         ? known.path
         : (known == null && !document ? await _ownFile(wanted, id) : null) ?? await _free(wanted, id);
 
-    if (known != null && known.path != path) await _move(id, known.path, path);
+    if (known != null && known.path != path) {
+      await _move(id, known.path, path);
+      await _followLinks(id, known.path, path);
+    }
     if (document) {
       final file = await _write(path, item.document ?? '');
       final stat = await file.stat();
@@ -245,7 +256,10 @@ class VaultWriter {
     }
 
     final note = await vaultNoteOf(_db, item.copyWith(body: body), attachments: [for (final attachment in attachments) attachment.path]);
-    final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path)));
+    // нынешний файл: его шапка правится на месте, а не пишется заново
+    final current = File(_absolute(path));
+    final previous = await current.exists() ? utf8.decode(await current.readAsBytes(), allowMalformed: true) : null;
+    final file = await _write(path, writeVaultNote(note, fileName: p.posix.basename(path), previous: previous));
     final stat = await file.stat();
     await _db.into(_db.vaultFiles).insertOnConflictUpdate(VaultFilesCompanion.insert(itemId: id, path: path, modified: stat.modified.millisecondsSinceEpoch, size: stat.size));
     if (SealedSpace.root case final open?) await _dropIfEmpty('${open.path}/files/$id');
@@ -415,6 +429,54 @@ class VaultWriter {
     if (folderId == null) return const [];
     final rows = await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get();
     return FolderTree([for (final row in rows) FolderNode(id: row.id, name: row.name, parentId: row.parentId)]).path(folderId);
+  }
+
+  /// Файл заметки переименовали или переложили — ссылки на него во всех остальных заметках и
+  /// холстах следуют за ним, как в Obsidian с «Всегда обновлять ссылки». Корзина ссылок не
+  /// трогает: удалённая заметка вернётся под тем же именем. Правка идёт обычной очередью, файлы
+  /// этих заметок перепишутся следом; время правки не двигается — человек их не правил.
+  Future<void> _followLinks(String id, String from, String to) async {
+    if (from.startsWith('$trashFolder/') || to.startsWith('$trashFolder/')) return;
+    final name = p.posix.basenameWithoutExtension(from);
+    final rows = await (_db.select(_db.items)
+          ..where((t) => t.id.equals(id).not() & t.deletedAt.isNull() & (t.body.like('%$name%') | t.document.like('%$name%') | t.properties.like('%$name%'))))
+        .get();
+    // ссылки стоят и в свойствах шапки («Предмет: "[[Курсы/Военка|Военка]]"»): строки внутри
+    // списков и словарей тоже
+    Object? follow(Object? value) => switch (value) {
+      final String text => renameLinks(text, from: from, to: to),
+      final List<Object?> list => [for (final one in list) follow(one)],
+      final Map<String, Object?> map => {for (final MapEntry(:key, :value) in map.entries) key: follow(value)},
+      _ => value,
+    };
+    for (final row in rows) {
+      final body = renameLinks(row.body, from: from, to: to);
+      final document = switch ((row.kind, row.document)) {
+        (ItemKind.canvas, final String text) => renameCanvasFile(text, from: from, to: to),
+        _ => row.document,
+      };
+      final extra = unpackVaultProperties(row.properties);
+      final followed = follow(extra) as Map<String, Object?>;
+      final properties = jsonEncode(followed) == jsonEncode(extra) ? row.properties : packVaultProperties(followed);
+      if (body == row.body && document == row.document && properties == row.properties) continue;
+      await (_db.update(_db.items)..where((t) => t.id.equals(row.id))).write(ItemsCompanion(body: Value(body), document: Value(document), properties: Value(properties)));
+      // их задачи встали в очередь после снимка этого прохода — пройти ещё раз
+      _again = true;
+    }
+  }
+
+  /// Название заметки так, как его прочтёт сверка из файла сейчас; файла нет — null.
+  Future<String?> _titleOnDisk(String relative, {required bool document}) async {
+    final file = File(_absolute(relative));
+    if (!await file.exists()) return null;
+    try {
+      final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
+      final name = p.posix.basename(relative);
+      final modified = await file.lastModified();
+      return (document ? readVaultDocument(text, fileName: name, fileModified: modified) : readVaultNote(text, fileName: name, fileModified: modified)).title;
+    } on Object {
+      return null;
+    }
   }
 
   bool _sameName(String current, String wanted) {

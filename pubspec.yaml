@@ -62,6 +62,8 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # md5 в проверке безопасности хранилища (tool/vault_safety_check_test.dart)
+  crypto: ^3.0.0
   drift_dev: ^2.35.2
   build_runner: ^2.17.1
   material_symbols_icons: ^4.2960.0

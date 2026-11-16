@@ -227,23 +227,35 @@ class VaultReader {
   }
 
   /// Папки-призраки от прежней гонки с писателем: каталог вложений «Фото от 20 августа/» рядом
-  /// с «Фото от 20 августа.md» сверка однажды приняла за папку. Без вложенных и стоящая ровно
-  /// на месте каталога вложений живой заметки — не папка человека: то, что угадыватель успел
-  /// в неё разложить, переезжает в родительскую папку (писатель перенесёт файлы), строка уходит.
+  /// с «Фото от 20 августа.md» сверка однажды приняла за папку. Призрак — только папка, в каталоге
+  /// которой лежат вложения той самой соседней заметки, без вложенных папок и без заметок,
+  /// разложенных человеком или прочитанных из файлов (`user`, `rule`). Заметка-папка Obsidian
+  /// («Огневая.md» рядом с «Огневая/» с конспектами) и пустая своя папка под это не подходят.
+  /// То, что угадыватель успел разложить в призрак, переезжает в родительскую папку (писатель
+  /// перенесёт файлы), строка папки уходит.
   Future<void> _dropGhostFolders() async {
     final keys = await _folderKeys();
     if (keys.isEmpty) return;
+    // каталог вложений живой заметки → её id
     final noteDirs = {
-      for (final row in await _db.customSelect("SELECT vault_files.path FROM vault_files JOIN items ON items.id = vault_files.item_id WHERE items.deleted_at IS NULL AND vault_files.path LIKE '%.md'").get())
-        attachmentsDir(row.read<String>('path')).toLowerCase(),
+      for (final row in await _db
+          .customSelect("SELECT vault_files.item_id AS id, vault_files.path AS path FROM vault_files JOIN items ON items.id = vault_files.item_id WHERE items.deleted_at IS NULL AND vault_files.path LIKE '%.md'")
+          .get())
+        attachmentsDir(row.read<String>('path')).toLowerCase(): row.read<String>('id'),
     };
-    final ghosts = [
-      for (final MapEntry(key: path, value: id) in keys.entries)
-        if (noteDirs.contains(path)) id,
-    ];
-    for (final id in ghosts) {
+    for (final MapEntry(key: path, value: id) in keys.entries) {
+      final owner = noteDirs[path];
+      if (owner == null) continue;
       final nested = await (_db.select(_db.folders)..where((t) => t.parentId.equals(id) & t.deletedAt.isNull())).get();
       if (nested.isNotEmpty) continue;
+      // в каталоге лежат вложения соседней заметки — иначе это папка человека
+      final ownFiles = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(owner))).get();
+      if (!ownFiles.any((file) => file.path.toLowerCase().startsWith('$path/'))) continue;
+      final placed = await (_db.select(_db.items)
+            ..where((t) => t.folderId.equals(id) & t.deletedAt.isNull() & t.sortedBy.isIn([SortedBy.user.name, SortedBy.rule.name]))
+            ..limit(1))
+          .get();
+      if (placed.isNotEmpty) continue;
       final folder = await (_db.select(_db.folders)..where((t) => t.id.equals(id))).getSingle();
       // не под флагом: файлы разложенных заметок писатель уносит из каталога вложений в папку
       await (_db.update(_db.items)..where((t) => t.folderId.equals(id))).write(ItemsCompanion(folderId: Value(folder.parentId)));
@@ -647,11 +659,17 @@ class VaultReader {
       hit ??= await _anywhere(link);
       if (hit != null && !found.contains(hit)) found.add(hit);
     }
+    // каталог «Заметка/» — старое место вложений Stowa, только пока в нём одни простые файлы.
+    // С заметками, холстами или базами внутри это папка Obsidian рядом с заметкой-папкой
+    // («ЗОМП.md» и «ЗОМП/»): её конспекты и картинки не вложения, хвостом их не дописывать
     final folder = Directory(_absolute(dir));
     if (await folder.exists()) {
+      final entries = await folder.list().toList();
+      final notesInside = entries.any((entity) => entity is File && (entity.path.endsWith('.md') || isDocumentPath(entity.path)));
       final extra = [
-        for (final entity in await folder.list().toList())
-          if (entity is File && !p.basename(entity.path).startsWith('.')) '$dir/${p.basename(entity.path)}',
+        if (!notesInside)
+          for (final entity in entries)
+            if (entity is File && !p.basename(entity.path).startsWith('.')) '$dir/${p.basename(entity.path)}',
       ]..sort();
       for (final path in extra) {
         if (!found.contains(path)) found.add(path);

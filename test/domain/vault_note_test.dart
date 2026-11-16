@@ -28,6 +28,94 @@ void main() {
     attachments: ['Человек-бензопила/фото 1.jpg', 'Человек-бензопила/скан.pdf'],
   );
 
+  // копия College 16.11: «duration: 2 пары» в конспекте роняла всю сверку хранилища
+  test('своё имя свойства чужого вида — свойство человека: не падает и возвращается как было', () {
+    const text = '---\nduration: 2 пары\nkind: лекция\ncreated: вчера\nplace: Каб. 204\npreview: да\npinned: нет\ntags: [лаба]\n---\nКонспект\n';
+    final at = DateTime(2026, 11, 16, 10);
+    final note = readVaultNote(text, fileName: 'Конспект.md', fileModified: at);
+    expect(note.durationSeconds, isNull);
+    expect(note.kind, ItemKind.note);
+    expect(note.created, at);
+    expect(note.latitude, isNull);
+    expect(note.pinned, isNull);
+    expect(note.tags, ['лаба']);
+    expect(note.extra, {'duration': '2 пары', 'kind': 'лекция', 'created': 'вчера', 'place': 'Каб. 204', 'preview': 'да', 'pinned': 'нет'});
+    final again = writeVaultNote(note, fileName: 'Конспект.md');
+    for (final line in ['duration: 2 пары', 'kind: лекция', 'created: вчера', 'place: Каб. 204', 'pinned: нет']) {
+      expect(again, contains(line));
+    }
+    // своё того же имени в файле не двоится: «kind: note» не пишется рядом с «kind: лекция»
+    expect(RegExp(r'^kind:', multiLine: true).allMatches(again), hasLength(1));
+    expect(RegExp(r'^created:', multiLine: true).allMatches(again), hasLength(1));
+  });
+
+  // копия College 16.11: правка текста переставляла свойства, снимала кавычки с дат и
+  // дописывала теги из текста в шапку — 1090 заметок менялись без нужды
+  group('правка существующего файла не трогает шапку зря', () {
+    final at = DateTime(2026, 11, 16, 10);
+    const old = '---\nТип: Тема\nДаты:\n  - "2026-01-05"\nНазвание: "Instrumente si metode"\ntags:\n  - Курс/2\n---\nТекст про #школа\n';
+
+    test('порядок, кавычки и вид списков остаются; своё дописывается в конец', () {
+      final note = readVaultNote(old, fileName: 'Тема.md', fileModified: at);
+      final edited = VaultNote(
+        id: 'n1',
+        kind: note.kind,
+        title: note.title,
+        body: '${note.body}\nещё',
+        created: note.created,
+        updated: at,
+        tags: note.tags,
+        extra: note.extra,
+      );
+      final text = writeVaultNote(edited, fileName: 'Тема.md', previous: old);
+      expect(text, startsWith('---\nТип: Тема\nДаты:\n  - "2026-01-05"\nНазвание: "Instrumente si metode"\ntags:\n  - Курс/2\n'));
+      expect(text, contains('id: n1'));
+      expect(text, endsWith('Текст про #школа\nещё\n'));
+      // тег из текста в шапку не переписан
+      expect(RegExp('школа').allMatches(text), hasLength(1));
+    });
+
+    test('ничего не поменяли — шапка байт в байт', () {
+      final once = writeVaultNote(readVaultNote(old, fileName: 'Тема.md', fileModified: at), fileName: 'Тема.md', previous: old);
+      expect(writeVaultNote(readVaultNote(once, fileName: 'Тема.md', fileModified: at), fileName: 'Тема.md', previous: once), once);
+    });
+
+    test('новый тег из Stowa — в шапку, свойство, стёртое в Stowa, — уходит', () {
+      final note = readVaultNote(old, fileName: 'Тема.md', fileModified: at);
+      final edited = VaultNote(
+        id: 'n1',
+        kind: note.kind,
+        title: note.title,
+        body: note.body,
+        created: note.created,
+        updated: note.created,
+        tags: [...note.tags, 'новый'],
+        extra: {...note.extra}..remove('Название'),
+      );
+      final text = writeVaultNote(edited, fileName: 'Тема.md', previous: old);
+      expect(text, contains('новый'));
+      expect(text, contains('Курс/2'));
+      expect(text, isNot(contains('Название')));
+      expect(text, contains('Даты:\n  - "2026-01-05"'));
+      expect(readVaultNote(text, fileName: 'Тема.md', fileModified: at).tags, containsAll(['курс/2', 'новый', 'школа']));
+    });
+
+    test('без прежнего файла теги из текста в шапку тоже не идут', () {
+      final note = VaultNote(id: 'n', kind: ItemKind.note, title: 'Т', body: 'про #школа', created: at, updated: at, tags: const ['школа', 'дом']);
+      final text = writeVaultNote(note, fileName: 'Т.md');
+      expect(text, contains('tags:\n  - дом'));
+      expect(RegExp('школа').allMatches(text), hasLength(1));
+    });
+  });
+
+  test('вложенное своё свойство с чужими полями не роняет разбор', () {
+    const text = '---\nplace:\n  lat: север\n  name: 5\npreview:\n  site: 3\n---\nТекст\n';
+    final note = readVaultNote(text, fileName: 'Т.md', fileModified: DateTime(2026, 11, 16));
+    expect(note.latitude, isNull);
+    expect(note.placeName, isNull);
+    expect(note.previewSite, isNull);
+  });
+
   test('вещь проходит круг файл → вещь без потерь', () {
     final note = full();
     final text = writeVaultNote(note, fileName: 'Человек-бензопила.md');

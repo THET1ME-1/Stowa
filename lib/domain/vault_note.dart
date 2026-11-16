@@ -5,6 +5,7 @@ library;
 import 'dart:convert';
 
 import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 import 'excalidraw.dart';
 import 'inline_tags.dart';
@@ -117,16 +118,23 @@ String vaultFileName(String title) {
 }
 
 /// Текст файла. [fileName] — имя, под которым файл ляжет: заголовок пишется
-/// свойством, только когда из имени его не вернуть.
-String writeVaultNote(VaultNote note, {required String fileName}) {
-  final lines = <String>[];
-  // своё пустое свойство в файл не идёт
+/// свойством, только когда из имени его не вернуть. [previous] — нынешний текст файла:
+/// его шапка правится на месте (меняются только изменившиеся ключи, порядок, кавычки и
+/// вид остальных — как были), чтобы правка в Stowa не переписывала заметку Obsidian целиком.
+String writeVaultNote(VaultNote note, {required String fileName, String? previous}) {
+  final entries = <(String, Object?)>[];
+  final before = previous == null ? null : _frontmatter(previous);
+  final inline = {for (final tag in extractInlineTags(note.body)) normalizeTagName(tag)};
+  // своё пустое свойство в файл не идёт. Своё имя занято свойством человека («kind: лекция»,
+  // «duration: 2 пары») — пишется его значение: второго такого ключа YAML не допускает, а
+  // написанное человеком терять нельзя
   void put(String key, Object? value) {
+    if (note.extra.containsKey(key)) return;
     if (value == null) return;
     if (value is String && value.isEmpty) return;
     if (value is List && value.isEmpty) return;
     if (value is Map && value.isEmpty) return;
-    lines.addAll(vaultProperty(key, value));
+    entries.add((key, value));
   }
 
   final preview = <String, Object?>{'site': ?note.previewSite, 'author': ?note.previewAuthor, 'text': ?note.previewText};
@@ -136,7 +144,16 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
   if (_stem(fileName) != note.title) put('title', note.title);
   put('created', _time(note.created));
   put('updated', _time(note.updated));
-  put('tags', note.tags);
+  // тег из текста (#школа) Obsidian и так видит: в шапку идут только остальные и те, что уже
+  // стояли в шапке. Совпали с прежними по смыслу — прежняя запись как есть (регистр, порядок)
+  // прежнее написание тега шапки («Курс/2») — главнее приведённого
+  final shapeTags = before == null ? const <String, String>{} : {for (final tag in _tagList(before.values['tags'])) normalizeTagName(tag): tag};
+  final tags = [for (final tag in note.tags) if (!inline.contains(tag) || shapeTags.containsKey(tag)) shapeTags[tag] ?? tag];
+  if (before != null && before.values.containsKey('tags') && tags.toSet().length == shapeTags.length && tags.every(shapeTags.containsValue)) {
+    put('tags', before.values['tags']);
+  } else {
+    put('tags', tags);
+  }
   put('url', note.url);
   put('preview', preview);
   put('cover', note.cover);
@@ -160,11 +177,17 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
   ]);
   // чужое возвращается и пустым: человек завёл свойство и ещё не заполнил
   for (final MapEntry(:key, :value) in note.extra.entries) {
-    lines.addAll(vaultProperty(key, value));
+    entries.add((key, value));
   }
 
   final text = StringBuffer();
-  if (lines.isNotEmpty) text.write('---\n${lines.join('\n')}\n---\n');
+  final shape = before == null ? null : _editedFrontmatter(before, entries);
+  if (shape != null) {
+    if (shape.trim().isNotEmpty) text.write('---\n${shape.trimRight()}\n---\n');
+  } else {
+    final lines = [for (final (key, value) in entries) ...vaultProperty(key, value)];
+    if (lines.isNotEmpty) text.write('---\n${lines.join('\n')}\n---\n');
+  }
   final body = note.body.trimRight();
   if (body.isNotEmpty) text.write('$body\n');
   if (note.attachments.isNotEmpty) {
@@ -174,6 +197,66 @@ String writeVaultNote(VaultNote note, {required String fileName}) {
     }
   }
   return text.toString();
+}
+
+/// Шапка нынешнего файла: исходный текст между `---` и прочитанные значения. Шапки нет или
+/// она не читается словарём — null, тогда файл пишется заново целиком.
+({String source, Map<String, Object?> values})? _frontmatter(String text) {
+  final content = text.replaceAll('\r\n', '\n');
+  if (!content.startsWith('---\n')) return null;
+  final end = RegExp(r'^---[ \t]*$', multiLine: true).firstMatch(content.substring(4));
+  if (end == null) return null;
+  final source = content.substring(4, 4 + end.start);
+  try {
+    final parsed = loadYaml(source);
+    if (parsed is! Map) return null;
+    return (source: source, values: {for (final MapEntry(:key, :value) in parsed.entries) '$key': _plain(value)});
+  } on YamlException {
+    return null;
+  }
+}
+
+/// Прежняя шапка с правками на месте: ключ с тем же значением не трогается вовсе (кавычки,
+/// вид списка, порядок — как были), изменившийся переписывается, новый — в конец, исчезнувший
+/// уходит. Время сравнивается мгновением, а не записью. Не вышло прочесть ровно [entries] — null.
+String? _editedFrontmatter(({String source, Map<String, Object?> values}) before, List<(String, Object?)> entries) {
+  if (before.source.trim().isEmpty) return null;
+  bool same(String key, Object? old, Object? value) {
+    if (const {'created', 'updated', 'reminder', 'pinned'}.contains(key)) {
+      final a = _parseTime(old);
+      if (a != null && a == _parseTime(value)) return true;
+    }
+    return _same(old, value);
+  }
+
+  try {
+    final editor = YamlEditor(before.source);
+    final wanted = {for (final (key, value) in entries) key: value};
+    for (final key in before.values.keys) {
+      if (!wanted.containsKey(key)) editor.remove([key]);
+    }
+    for (final (key, value) in entries) {
+      if (before.values.containsKey(key) && same(key, before.values[key], value)) continue;
+      editor.update([key], value);
+    }
+    bool reads(String text) {
+      final back = loadYaml(text);
+      if (back is! Map || back.length != wanted.length) return false;
+      for (final MapEntry(:key, :value) in wanted.entries) {
+        if (!same(key, _plain(back[key]), value)) return false;
+      }
+      return true;
+    }
+
+    final result = editor.toString();
+    if (!reads(result)) return null;
+    // yaml_edit пишет «/» в кавычках как «\/» — для YAML то же самое, но в Obsidian видно
+    // мусором. Без него текст обязан читаться теми же значениями, иначе остаётся как есть
+    final clean = result.replaceAll(r'\/', '/');
+    return clean != result && reads(clean) ? clean : result;
+  } on Object {
+    return null;
+  }
 }
 
 /// Строки одного свойства так, как их пишет Obsidian: список столбиком, вложенное
@@ -306,6 +389,34 @@ VaultNote readVaultDocument(String text, {required String fileName, required Dat
   );
 }
 
+/// Своё имя свойства с чужим видом значения (`duration: 2 пары`, `kind: лекция`, `created: вчера`)
+/// — свойство человека: Stowa его не читает и возвращает в файл как было.
+bool _fitsOwn(String key, Object? value) {
+  bool fields(Map<String, Type> types) =>
+      value is Map &&
+      value.entries.every(
+        (entry) => switch (types[entry.key]) {
+          null => true,
+          const (num) => entry.value is num,
+          _ => entry.value is String,
+        },
+      );
+  return switch (key) {
+    'id' || 'title' || 'url' || 'cover' => value is String,
+    'kind' => ItemKind.values.asNameMap().containsKey(value),
+    'sorted_by' => SortedBy.values.asNameMap().containsKey(value),
+    'created' || 'updated' || 'reminder' => _parseTime(value) != null,
+    'pinned' => value == true || _parseTime(value) != null,
+    'duration' => value is num,
+    'preview' => fields({'site': String, 'author': String, 'text': String}),
+    'place' => fields({'lat': num, 'lon': num, 'name': String}),
+    'remind_place' => fields({'kind': String, 'lat': num, 'lon': num, 'name': String, 'ref': String, 'day': String}),
+    'tags' => value is List || value is String,
+    'highlights' => value is List,
+    _ => false,
+  };
+}
+
 VaultNote readVaultNote(String text, {required String fileName, required DateTime fileModified}) {
   var properties = const <String, Object?>{};
   var content = text.replaceAll('\r\n', '\n');
@@ -321,6 +432,9 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
       }
     }
   }
+  // своё имя чужого вида — к свойствам человека; дальше читается только своё
+  final all = properties;
+  properties = {for (final MapEntry(:key, :value) in all.entries) if (_known.contains(key) && _fitsOwn(key, value)) key: value};
 
   // хвост из строк ![[путь/…]] — вложения, остальное — текст. До 16.11.2026 Stowa писала хвост
   // путями в свой каталог «Заметка/…»; только такие строки и считаются хвостом. Вставка с путём
@@ -357,7 +471,7 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
     if (name.isNotEmpty && !tags.contains(name)) tags.add(name);
   }
   // date из шаблонов Obsidian — день записи, только если он не позже самого файла: иначе это день события
-  final dated = _parseTime(properties['date']);
+  final dated = _parseTime(all['date']);
   final created = _parseTime(properties['created']) ?? (dated != null && !dated.isAfter(fileModified) ? dated : fileModified);
   return VaultNote(
     id: stringOf('id') ?? '',
@@ -393,9 +507,14 @@ VaultNote readVaultNote(String text, {required String fileName, required DateTim
     highlights: [
       for (final one in (properties['highlights'] as List? ?? const []).whereType<Map<String, Object?>>())
         if (one['quote'] case final String quote when quote.isNotEmpty)
-          VaultHighlight(quote: quote, note: one['note'] as String?, at: _parseTime(one['at']) ?? created, position: (one['pos'] as num?)?.round() ?? 0),
+          VaultHighlight(
+            quote: quote,
+            note: one['note'] is String ? one['note'] as String : null,
+            at: _parseTime(one['at']) ?? created,
+            position: one['pos'] is num ? (one['pos'] as num).round() : 0,
+          ),
     ],
-    extra: {for (final MapEntry(:key, :value) in properties.entries) if (!_known.contains(key)) key: value},
+    extra: {for (final MapEntry(:key, :value) in all.entries) if (!properties.containsKey(key)) key: value},
   );
 }
 

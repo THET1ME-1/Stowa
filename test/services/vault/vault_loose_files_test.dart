@@ -180,6 +180,38 @@ void main() {
     expect(file('Stowa/Фото от 20 августа/IMG.jpg').existsSync(), isTrue);
   });
 
+  // копия College 16.11: «Огневая подготовка.md» рядом с папкой «Огневая подготовка/» с
+  // конспектами (заметка-папка Obsidian) — чистка призраков уносила конспекты уровнем выше
+  test('заметка-папка Obsidian рядом с одноимённой папкой — папка и её заметки на месте', () async {
+    file('Военка/Огневая.md')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('Огневая\n\n[[Автомат]]\n');
+    file('Военка/Огневая/Автомат.md')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('Автомат\n');
+    file('Военка/Тема.md').writeAsStringSync('Тема\n');
+    Directory(p.join(root.path, 'Военка', 'Тема')).createSync();
+    await reader().reconcile();
+    await writer().drain();
+    await reader().reconcile();
+    await writer().drain();
+    expect(file('Военка/Огневая/Автомат.md').existsSync(), isTrue);
+    expect(file('Военка/Автомат.md').existsSync(), isFalse);
+    final names = (await (db.select(db.folders)..where((t) => t.deletedAt.isNull())).get()).map((folder) => folder.name).toSet();
+    expect(names, containsAll(['Военка', 'Огневая']));
+  });
+
+  test('пустая своя папка рядом с одноимённой заметкой — не призрак', () async {
+    file('Проект.md')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('Проект\n');
+    await reader().reconcile();
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'mine', name: 'Проект', icon: 'folder', shape: 'squircle'));
+    await reader().reconcile();
+    expect((await (db.select(db.folders)..where((t) => t.id.equals('mine'))).getSingleOrNull())?.deletedAt, isNull);
+    expect(await (db.select(db.folders)..where((t) => t.id.equals('mine'))).getSingleOrNull(), isNotNull);
+  });
+
   test('удалили файл снаружи — заметка в корзине', () async {
     put('Фото/закат.png', [1, 2]);
     await reader().reconcile();
