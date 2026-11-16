@@ -1127,9 +1127,9 @@
   "codeCollapse": "Свернуть",
   "mdMath": "Формула",
   "mdMathNext": "Следующее поле формулы",
-  "settingsLine": "Строка",
+  "settingsLine": "Поле ввода",
   "enterKeyTitle": "Enter на клавиатуре",
   "enterNewLine": "Новая строка",
   "enterStow": "Закинуть заметку",
-  "enterHint": "Строка на весь экран всегда начинает по Enter новую строку."
+  "enterHint": "В поле ввода на весь экран Enter всегда начинает новую строку."
 }

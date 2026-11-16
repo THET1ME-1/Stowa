@@ -4129,5 +4129,5 @@ class LPl extends L {
 
   @override
   String get enterHint =>
-      'W polu na cały ekran Enter zawsze zaczyna nowy wiersz.';
+      'W polu wpisywania na cały ekran Enter zawsze zaczyna nowy wiersz.';
 }

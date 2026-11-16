@@ -844,9 +844,9 @@
   "codeCollapse": "Einklappen",
   "mdMath": "Formel",
   "mdMathNext": "Nächstes Formelfeld",
-  "settingsLine": "Eingabezeile",
+  "settingsLine": "Eingabefeld",
   "enterKeyTitle": "Eingabetaste",
   "enterNewLine": "Neue Zeile",
   "enterStow": "Notiz speichern",
-  "enterHint": "In der Vollbild-Zeile beginnt Enter immer eine neue Zeile."
+  "enterHint": "Im Eingabefeld im Vollbild beginnt Enter immer eine neue Zeile."
 }

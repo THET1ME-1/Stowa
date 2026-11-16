@@ -4045,7 +4045,7 @@ class LEn extends L {
   String get mdMathNext => 'Next formula field';
 
   @override
-  String get settingsLine => 'Input line';
+  String get settingsLine => 'Input field';
 
   @override
   String get enterKeyTitle => 'Enter key';
@@ -4058,5 +4058,5 @@ class LEn extends L {
 
   @override
   String get enterHint =>
-      'In the full-screen line, Enter always starts a new line.';
+      'In the full-screen input field, Enter always starts a new line.';
 }

@@ -4069,7 +4069,7 @@ class LDe extends L {
   String get mdMathNext => 'Nächstes Formelfeld';
 
   @override
-  String get settingsLine => 'Eingabezeile';
+  String get settingsLine => 'Eingabefeld';
 
   @override
   String get enterKeyTitle => 'Eingabetaste';
@@ -4082,5 +4082,5 @@ class LDe extends L {
 
   @override
   String get enterHint =>
-      'In der Vollbild-Zeile beginnt Enter immer eine neue Zeile.';
+      'Im Eingabefeld im Vollbild beginnt Enter immer eine neue Zeile.';
 }

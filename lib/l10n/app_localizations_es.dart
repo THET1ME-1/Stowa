@@ -4056,7 +4056,7 @@ class LEs extends L {
   String get mdMathNext => 'Siguiente campo de la fórmula';
 
   @override
-  String get settingsLine => 'Línea de escritura';
+  String get settingsLine => 'Campo de escritura';
 
   @override
   String get enterKeyTitle => 'Tecla Intro';
@@ -4069,5 +4069,5 @@ class LEs extends L {
 
   @override
   String get enterHint =>
-      'En la línea a pantalla completa, Intro siempre empieza una línea nueva.';
+      'En el campo de escritura a pantalla completa, Intro siempre empieza una línea nueva.';
 }

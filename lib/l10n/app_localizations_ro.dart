@@ -4083,7 +4083,7 @@ class LRo extends L {
   String get mdMathNext => 'Câmpul următor al formulei';
 
   @override
-  String get settingsLine => 'Rândul de scris';
+  String get settingsLine => 'Câmpul de scriere';
 
   @override
   String get enterKeyTitle => 'Tasta Enter';
@@ -4096,5 +4096,5 @@ class LRo extends L {
 
   @override
   String get enterHint =>
-      'În rândul pe tot ecranul, Enter începe mereu un rând nou.';
+      'În câmpul de scriere pe tot ecranul, Enter începe mereu un rând nou.';
 }

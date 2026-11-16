@@ -6869,10 +6869,10 @@ abstract class L {
   /// **'Next formula field'**
   String get mdMathNext;
 
-  /// Раздел настроек про строку ввода на главной
+  /// Раздел настроек про поле ввода на главной
   ///
   /// In en, this message translates to:
-  /// **'Input line'**
+  /// **'Input field'**
   String get settingsLine;
 
   /// Что делает Enter в строке
@@ -6896,7 +6896,7 @@ abstract class L {
   /// Пояснение под настройкой Enter, одно предложение
   ///
   /// In en, this message translates to:
-  /// **'In the full-screen line, Enter always starts a new line.'**
+  /// **'In the full-screen input field, Enter always starts a new line.'**
   String get enterHint;
 }
 

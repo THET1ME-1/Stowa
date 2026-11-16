@@ -844,9 +844,9 @@
   "codeCollapse": "Згорнути",
   "mdMath": "Формула",
   "mdMathNext": "Наступне поле формули",
-  "settingsLine": "Рядок",
+  "settingsLine": "Поле введення",
   "enterKeyTitle": "Enter на клавіатурі",
   "enterNewLine": "Новий рядок",
   "enterStow": "Закинути нотатку",
-  "enterHint": "Рядок на весь екран завжди починає по Enter новий рядок."
+  "enterHint": "У полі введення на весь екран Enter завжди починає новий рядок."
 }

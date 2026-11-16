@@ -844,9 +844,9 @@
   "codeCollapse": "Contraer",
   "mdMath": "Fórmula",
   "mdMathNext": "Siguiente campo de la fórmula",
-  "settingsLine": "Línea de escritura",
+  "settingsLine": "Campo de escritura",
   "enterKeyTitle": "Tecla Intro",
   "enterNewLine": "Nueva línea",
   "enterStow": "Guardar la nota",
-  "enterHint": "En la línea a pantalla completa, Intro siempre empieza una línea nueva."
+  "enterHint": "En el campo de escritura a pantalla completa, Intro siempre empieza una línea nueva."
 }

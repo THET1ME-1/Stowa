@@ -4896,9 +4896,9 @@
   "@mdMathNext": {
     "description": "Кнопка полосы разметки, когда курсор в формуле: перейти, например, из числителя в знаменатель"
   },
-  "settingsLine": "Input line",
+  "settingsLine": "Input field",
   "@settingsLine": {
-    "description": "Раздел настроек про строку ввода на главной"
+    "description": "Раздел настроек про поле ввода на главной"
   },
   "enterKeyTitle": "Enter key",
   "@enterKeyTitle": {
@@ -4912,7 +4912,7 @@
   "@enterStow": {
     "description": "Enter сразу сохраняет заметку, как кнопка «Закинуть»"
   },
-  "enterHint": "In the full-screen line, Enter always starts a new line.",
+  "enterHint": "In the full-screen input field, Enter always starts a new line.",
   "@enterHint": {
     "description": "Пояснение под настройкой Enter, одно предложение"
   }

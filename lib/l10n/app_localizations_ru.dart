@@ -4123,7 +4123,7 @@ class LRu extends L {
   String get mdMathNext => 'Следующее поле формулы';
 
   @override
-  String get settingsLine => 'Строка';
+  String get settingsLine => 'Поле ввода';
 
   @override
   String get enterKeyTitle => 'Enter на клавиатуре';
@@ -4136,5 +4136,5 @@ class LRu extends L {
 
   @override
   String get enterHint =>
-      'Строка на весь экран всегда начинает по Enter новую строку.';
+      'В поле ввода на весь экран Enter всегда начинает новую строку.';
 }
