@@ -29,8 +29,11 @@ String noticeText(String title, String body) {
   final lines = <String>[];
   var first = true;
   for (final raw in body.split('\n')) {
-    final line = raw.trim().replaceFirst(_lineMarks, '').replaceAll(_inlineMarks, '').trim();
-    if (line.isEmpty || line.startsWith('![[')) continue;
+    // картинки, строки кавычек кода и знаки блочной формулы в уведомлении не нужны
+    final bare = raw.trim();
+    if (bare.startsWith('![[') || bare == r'$$' || bare.startsWith('```') || bare.startsWith('~~~')) continue;
+    final line = bare.replaceFirst(_lineMarks, '').replaceAll(_inlineMarks, '').trim();
+    if (line.isEmpty) continue;
     if (first || line == title.trim()) {
       first = false;
       if (line == title.trim()) continue;

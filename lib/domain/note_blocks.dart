@@ -245,7 +245,8 @@ List<NoteLine> noteLinesUnderTitle(String body, String title) {
   return [
     for (final (index, line) in lines.indexed)
       // картинка из текста в ленте — фото карточки, а не строка `![[…]]`
-      if (index != skip && !fences.contains(index) && line.trim().isNotEmpty && (code.contains(index) || !embedLine.hasMatch(line)))
+      // строка из одних «$$» — знаки блочной формулы, не текст
+      if (index != skip && !fences.contains(index) && line.trim().isNotEmpty && line.trim() != r'$$' && (code.contains(index) || !embedLine.hasMatch(line)))
         if (code.contains(index) ? null : checkLine.firstMatch(line) case final check?)
           NoteLine(index: index, text: check.group(2)!, done: check.group(1) != ' ')
         else

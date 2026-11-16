@@ -106,6 +106,10 @@ void main() {
     expect(port.shown.keys, [noticeNotificationId('a')]);
   });
 
+  test('текст уведомления без строк кавычек кода и знаков блочной формулы', () {
+    expect(noticeText('Физика', 'Физика\nСкорость\n\$\$\nv = s/t\n\$\$\n```py\nprint(1)\n```'), 'Скорость\nv = s/t\nprint(1)');
+  });
+
   test('«Код на вход» — на экране блокировки без текста', () async {
     await NoticeService(port).sync(const [(id: 'a', title: 'Сказать маме', body: '')], private: true);
     expect(port.shown.values.single.private, isTrue);

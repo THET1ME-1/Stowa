@@ -33,6 +33,12 @@ void main() {
       final lines = noteLinesUnderTitle('Заметка\n```python\nprint(1)\n```', 'Заметка');
       expect(lines.map((line) => line.text), ['print(1)']);
     });
+
+    // эмулятор 16.11: в ленте и в уведомлении стояли строки «$$» блочной формулы
+    test('в ленте строки знаков блочной формулы не показываются', () {
+      final lines = noteLinesUnderTitle('Заметка\nТекст\n\$\$\nE = mc^2\n\$\$', 'Заметка');
+      expect(lines.map((line) => line.text), ['Текст', 'E = mc^2']);
+    });
   });
 
   // хозяин 16.11: «есть поддержка LaTeX формул?» — в College 210 блочных формул в 53 заметках
