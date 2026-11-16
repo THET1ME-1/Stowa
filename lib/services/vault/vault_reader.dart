@@ -455,6 +455,8 @@ class VaultReader {
               id: id,
               kind: _looseKind(mime),
               title: p.posix.basenameWithoutExtension(relative),
+              // имя дал файл, не человек: подпись «Фото от …» его не переименует
+              titleAuto: const Value(true),
               folderId: Value(folderId),
               // где лежит файл, решил человек: раскладка его не перекладывает
               sortedBy: const Value(SortedBy.user),

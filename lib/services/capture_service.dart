@@ -263,6 +263,8 @@ class CaptureService {
             id: id,
             kind: kind,
             title: input.title ?? title,
+            // без текста заголовок дало приложение — имя файла или «Фото от …»: файл на диске им не переименовывается
+            titleAuto: Value(input.title == null && titleSource.trim().isEmpty),
             body: Value(text),
             url: Value(url?.toString()),
             folderId: Value(input.forcedFolderId ?? rules.folderId ?? guess?.folderId),
@@ -351,7 +353,7 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
       final fromName = titleFor('', fileName: fileName);
       final createdAt = _db.typeMapping.read(DriftSqlType.dateTime, row.data['created_at'])!;
       final title = fromName.isNotEmpty ? fromName : untitled(mime: row.read<String>('mime'), fileName: fileName, at: createdAt);
-      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(title)));
+      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(title), titleAuto: const Value(true)));
     }
   }
 
@@ -377,7 +379,7 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
       if (title != bySaved && title != byShotTitle) continue;
       final wanted = byShot ? byShotTitle : bySaved;
       if (wanted == title) continue;
-      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(wanted)));
+      await (_db.update(_db.items)..where((t) => t.id.equals(row.read<String>('id')))).write(ItemsCompanion(title: Value(wanted), titleAuto: const Value(true)));
     }
   }
 

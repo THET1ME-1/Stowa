@@ -736,6 +736,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
       ItemsCompanion(
         title: Value(title),
+        // человек сменил название — оно его, файл на диске пойдёт следом
+        titleAuto: before != null && before.title != title ? const Value(false) : const Value.absent(),
         body: Value(body),
         updatedAt: Value(at),
         kind: files.isEmpty ? Value(detectKind(text: text)) : const Value.absent(),

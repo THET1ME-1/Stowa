@@ -220,7 +220,8 @@ class VaultWriter {
     }
     final stat = await current.stat();
     if (stat.modified.millisecondsSinceEpoch != known.modified || stat.size != known.size) throw const _ExternalEdit();
-    final title = item.title.trim().isEmpty ? p.posix.basenameWithoutExtension(known.path) : item.title;
+    // имя на диске меняет только своё название человека; подпись от приложения — нет
+    final title = item.title.trim().isEmpty || item.titleAuto ? p.posix.basenameWithoutExtension(known.path) : item.title;
     var wanted = notePath(folders: await _folderPath(item.folderId), fileName: '${vaultFileName(title)}${p.posix.extension(known.path)}');
     if (item.deletedAt != null) wanted = trashPath(wanted);
     if (_sameName(known.path, wanted)) return;

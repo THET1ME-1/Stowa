@@ -83,12 +83,25 @@ void main() {
     put('Книги/report.pdf', List.filled(10, 1));
     await reader().reconcile();
     final id = (await items()).single.id;
-    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(title: Value('Годовой отчёт')));
+    // заголовок из имени файла дало приложение
+    expect((await items()).single.titleAuto, isTrue);
+    // своё название — как его ставит страница заметки
+    await ItemsRepository(db, clock: () => now).setTitleBody(id, title: 'Годовой отчёт', body: '', at: now);
     await writer().drain();
     expect(file('Книги/report.pdf').existsSync(), isFalse);
     expect(file('Книги/Годовой отчёт.pdf').existsSync(), isTrue);
     final attachment = (await (db.select(db.attachments)..where((t) => t.itemId.equals(id))).get()).single;
     expect(attachment.path, 'Книги/Годовой отчёт.pdf');
+  });
+
+  test('подпись «Фото от …» от приложения файл на диске не переименовывает', () async {
+    put('Фото/IMG_20260820_094401.jpg', [1, 2, 3]);
+    await reader().reconcile();
+    final id = (await items()).single.id;
+    await (db.update(db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(title: Value('Фото от 20 августа'), titleAuto: Value(true)));
+    await writer().drain();
+    expect(file('Фото/IMG_20260820_094401.jpg').existsSync(), isTrue);
+    expect(file('Фото/Фото от 20 августа.jpg').existsSync(), isFalse);
   });
 
   test('дописал к файлу текст — стала обычная заметка с этим файлом во вложениях', () async {
