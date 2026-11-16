@@ -984,5 +984,9 @@
   "drawingTextCopied": "Подпись скопирована",
   "drawingEditInObsidian": "Изменить рисунок можно в Obsidian",
   "drawingUnreadable": "Рисунок не прочитался, открой его в Obsidian",
-  "drawingTextCount": "{count, plural, one{{count} подпись} few{{count} подписи} other{{count} подписей}}"
+  "drawingTextCount": "{count, plural, one{{count} подпись} few{{count} подписи} other{{count} подписей}}",
+  "cmdCanvas": "холст",
+  "cmdBase": "база",
+  "cmdCanvasHint": "Новый холст с этим именем, откроется сразу",
+  "cmdBaseHint": "Новая база с заметками папки, откроется сразу"
 }

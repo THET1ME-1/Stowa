@@ -342,34 +342,34 @@ class LDe extends L {
   String get tagCreateHint => 'pick an icon later';
 
   @override
-  String get cmdRemind => 'remind';
+  String get cmdRemind => 'erinnern';
 
   @override
-  String get cmdTask => 'task';
+  String get cmdTask => 'aufgabe';
 
   @override
-  String get cmdList => 'list';
+  String get cmdList => 'liste';
 
   @override
-  String get cmdFind => 'find';
+  String get cmdFind => 'finden';
 
   @override
-  String get cmdInbox => 'inbox';
+  String get cmdInbox => 'eingang';
 
   @override
-  String get cmdRemindHint => 'Say when: “tomorrow at 10”, “on fri”';
+  String get cmdRemindHint => 'Sag wann: „morgen um 10“, „am Fr“';
 
   @override
-  String get cmdTaskHint => 'Saved with a checkbox';
+  String get cmdTaskHint => 'Wird mit Häkchen gespeichert';
 
   @override
-  String get cmdListHint => 'Every line or comma becomes an item';
+  String get cmdListHint => 'Jede Zeile oder jedes Komma wird ein Punkt';
 
   @override
-  String get cmdFindHint => 'Only search, save nothing';
+  String get cmdFindHint => 'Nur suchen, nichts speichern';
 
   @override
-  String get cmdInboxHint => 'Keep as is, unsorted';
+  String get cmdInboxHint => 'So lassen, wie es ist, unsortiert';
 
   @override
   String savedInto(String folder) {
@@ -3608,4 +3608,18 @@ class LDe extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cmdCanvas => 'leinwand';
+
+  @override
+  String get cmdBase => 'basis';
+
+  @override
+  String get cmdCanvasHint =>
+      'Neue Leinwand mit diesem Namen, öffnet sich sofort';
+
+  @override
+  String get cmdBaseHint =>
+      'Neue Basis mit den Notizen des Ordners, öffnet sich sofort';
 }

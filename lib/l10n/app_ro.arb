@@ -690,5 +690,19 @@
   "drawingTextCopied": "Text copiat",
   "drawingEditInObsidian": "Desenul se poate edita în Obsidian",
   "drawingUnreadable": "Desenul nu s-a putut citi, deschide-l în Obsidian",
-  "drawingTextCount": "{count, plural, one{{count} text} few{{count} texte} other{{count} de texte}}"
+  "drawingTextCount": "{count, plural, one{{count} text} few{{count} texte} other{{count} de texte}}",
+  "cmdRemind": "amintește",
+  "cmdTask": "sarcină",
+  "cmdList": "listă",
+  "cmdFind": "caută",
+  "cmdInbox": "primite",
+  "cmdCanvas": "pânză",
+  "cmdBase": "bază",
+  "cmdRemindHint": "Spune când: „mâine la 10”, „vineri”",
+  "cmdTaskHint": "Se salvează cu o bifă",
+  "cmdListHint": "Fiecare rând sau virgulă devine un punct",
+  "cmdFindHint": "Doar caută, nu salva nimic",
+  "cmdInboxHint": "Păstrează așa cum e, nesortat",
+  "cmdCanvasHint": "O pânză nouă cu acest nume, se deschide imediat",
+  "cmdBaseHint": "O bază nouă cu notițele dosarului, se deschide imediat"
 }

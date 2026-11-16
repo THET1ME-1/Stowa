@@ -3666,4 +3666,16 @@ class LRu extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cmdCanvas => 'холст';
+
+  @override
+  String get cmdBase => 'база';
+
+  @override
+  String get cmdCanvasHint => 'Новый холст с этим именем, откроется сразу';
+
+  @override
+  String get cmdBaseHint => 'Новая база с заметками папки, откроется сразу';
 }

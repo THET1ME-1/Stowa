@@ -341,34 +341,34 @@ class LRo extends L {
   String get tagCreateHint => 'pick an icon later';
 
   @override
-  String get cmdRemind => 'remind';
+  String get cmdRemind => 'amintește';
 
   @override
-  String get cmdTask => 'task';
+  String get cmdTask => 'sarcină';
 
   @override
-  String get cmdList => 'list';
+  String get cmdList => 'listă';
 
   @override
-  String get cmdFind => 'find';
+  String get cmdFind => 'caută';
 
   @override
-  String get cmdInbox => 'inbox';
+  String get cmdInbox => 'primite';
 
   @override
-  String get cmdRemindHint => 'Say when: “tomorrow at 10”, “on fri”';
+  String get cmdRemindHint => 'Spune când: „mâine la 10”, „vineri”';
 
   @override
-  String get cmdTaskHint => 'Saved with a checkbox';
+  String get cmdTaskHint => 'Se salvează cu o bifă';
 
   @override
-  String get cmdListHint => 'Every line or comma becomes an item';
+  String get cmdListHint => 'Fiecare rând sau virgulă devine un punct';
 
   @override
-  String get cmdFindHint => 'Only search, save nothing';
+  String get cmdFindHint => 'Doar caută, nu salva nimic';
 
   @override
-  String get cmdInboxHint => 'Keep as is, unsorted';
+  String get cmdInboxHint => 'Păstrează așa cum e, nesortat';
 
   @override
   String savedInto(String folder) {
@@ -3626,4 +3626,17 @@ class LRo extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cmdCanvas => 'pânză';
+
+  @override
+  String get cmdBase => 'bază';
+
+  @override
+  String get cmdCanvasHint => 'O pânză nouă cu acest nume, se deschide imediat';
+
+  @override
+  String get cmdBaseHint =>
+      'O bază nouă cu notițele dosarului, se deschide imediat';
 }

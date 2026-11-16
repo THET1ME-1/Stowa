@@ -3593,4 +3593,17 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cmdCanvas => 'canvas';
+
+  @override
+  String get cmdBase => 'base';
+
+  @override
+  String get cmdCanvasHint => 'A new canvas with this name, opens right away';
+
+  @override
+  String get cmdBaseHint =>
+      'A new base with the folder’s notes, opens right away';
 }

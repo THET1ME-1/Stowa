@@ -426,43 +426,43 @@
   },
   "cmdRemind": "remind",
   "@cmdRemind": {
-    "description": "Line command word, lowercase, one word"
+    "description": "Команда строки после «/», одно слово без пробелов"
   },
   "cmdTask": "task",
   "@cmdTask": {
-    "description": "Line command word, lowercase, one word"
+    "description": "Команда строки после «/», одно слово без пробелов"
   },
   "cmdList": "list",
   "@cmdList": {
-    "description": "Line command word, lowercase, one word"
+    "description": "Команда строки после «/», одно слово без пробелов"
   },
   "cmdFind": "find",
   "@cmdFind": {
-    "description": "Line command word, lowercase, one word"
+    "description": "Команда строки после «/», одно слово без пробелов"
   },
   "cmdInbox": "inbox",
   "@cmdInbox": {
-    "description": "Line command word, lowercase, one word"
+    "description": "Команда строки после «/»: положить как есть, без разбора; одно слово"
   },
   "cmdRemindHint": "Say when: “tomorrow at 10”, “on fri”",
   "@cmdRemindHint": {
-    "description": "Command description"
+    "description": "Подсказка к команде «напомнить»"
   },
   "cmdTaskHint": "Saved with a checkbox",
   "@cmdTaskHint": {
-    "description": "Command description"
+    "description": "Подсказка к команде «задача»"
   },
   "cmdListHint": "Every line or comma becomes an item",
   "@cmdListHint": {
-    "description": "Command description"
+    "description": "Подсказка к команде «список»"
   },
   "cmdFindHint": "Only search, save nothing",
   "@cmdFindHint": {
-    "description": "Command description"
+    "description": "Подсказка к команде «найти»"
   },
   "cmdInboxHint": "Keep as is, unsorted",
   "@cmdInboxHint": {
-    "description": "Command description"
+    "description": "Подсказка к команде «входящие»"
   },
   "savedInto": "Went to “{folder}”",
   "@savedInto": {
@@ -4563,5 +4563,21 @@
         "type": "int"
       }
     }
+  },
+  "cmdCanvas": "canvas",
+  "@cmdCanvas": {
+    "description": "Команда строки после «/»: завести холст Obsidian; одно слово"
+  },
+  "cmdBase": "base",
+  "@cmdBase": {
+    "description": "Команда строки после «/»: завести базу Obsidian; одно слово"
+  },
+  "cmdCanvasHint": "A new canvas with this name, opens right away",
+  "@cmdCanvasHint": {
+    "description": "Подсказка к команде «холст»"
+  },
+  "cmdBaseHint": "A new base with the folder’s notes, opens right away",
+  "@cmdBaseHint": {
+    "description": "Подсказка к команде «база»"
   }
 }

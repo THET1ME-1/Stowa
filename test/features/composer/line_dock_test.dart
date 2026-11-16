@@ -299,6 +299,54 @@ void main() {
     expect(item.title, 'Купить батарейки');
   });
 
+  testWidgets('«/холст План ремонта» заводит холст с этим именем и сразу открывает его', (tester) async {
+    await open(tester);
+    await type(tester, '/хол');
+    expect(find.text('/холст'), findsOneWidget);
+    await type(tester, '/холст План ремонта');
+    expect(find.text('Новый холст'), findsOneWidget);
+    expect(find.text('План ремонта'), findsOneWidget);
+    await tester.tap(find.text('Создать').last);
+    await tester.pumpAndSettle();
+    final item = await world.db.select(world.db.items).getSingle();
+    expect((item.kind, item.title, item.folderId), (ItemKind.canvas, 'План ремонта', null));
+    expect(find.byKey(const ValueKey('canvas-board')), findsOneWidget);
+  });
+
+  testWidgets('«@Книги», потом «/база» без имени: база «База» в этой папке', (tester) async {
+    await open(tester);
+    await type(tester, '@Книги');
+    await tester.tap(find.text('Создать'));
+    await tester.pumpAndSettle();
+    // команда из подсказки встаёт с пробелом: дальше имя или сразу «Создать»
+    await type(tester, '/база ');
+    expect(find.text('Новая база в «Книги»'), findsOneWidget);
+    await tester.tap(find.text('Создать').last);
+    await tester.pumpAndSettle();
+    final folder = await world.db.select(world.db.folders).getSingle();
+    final item = await world.db.select(world.db.items).getSingle();
+    expect((item.kind, item.title, item.folderId), (ItemKind.base, 'База', folder.id));
+    expect(item.document, contains('file.inFolder("Книги")'));
+  });
+
+  testWidgets('команда на другом языке приложения работает и в русском интерфейсе', (tester) async {
+    await open(tester);
+    await type(tester, '/auf');
+    expect(find.text('/aufgabe'), findsOneWidget);
+    await type(tester, '/aufgabe Milch kaufen');
+    await tester.tap(find.text('Закинуть').last);
+    await tester.pumpAndSettle();
+    expect((await world.db.select(world.db.items).getSingle()).body, '- [ ] Milch kaufen');
+  });
+
+  testWidgets('под замком холста и базы в строке нет', (tester) async {
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(Scaffold(body: Align(alignment: Alignment.bottomCenter, child: LineDock(onOpenItem: (_) {}, writeOnly: true)))));
+    await tester.pumpAndSettle();
+    await type(tester, '/хол');
+    expect(find.text('/холст'), findsNothing);
+  });
+
   testWidgets('похожая заметка: «Дописать» кладёт мысль в неё', (tester) async {
     await note('weather', 'Погода для пары', body: 'Погода для пары\nвиджет показывает погоду у второго');
     await open(tester);

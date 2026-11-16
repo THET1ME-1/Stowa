@@ -340,34 +340,34 @@ class LUk extends L {
   String get tagCreateHint => 'pick an icon later';
 
   @override
-  String get cmdRemind => 'remind';
+  String get cmdRemind => 'нагадати';
 
   @override
-  String get cmdTask => 'task';
+  String get cmdTask => 'завдання';
 
   @override
-  String get cmdList => 'list';
+  String get cmdList => 'список';
 
   @override
-  String get cmdFind => 'find';
+  String get cmdFind => 'знайти';
 
   @override
-  String get cmdInbox => 'inbox';
+  String get cmdInbox => 'вхідні';
 
   @override
-  String get cmdRemindHint => 'Say when: “tomorrow at 10”, “on fri”';
+  String get cmdRemindHint => 'Скажи коли: «завтра о 10», «у пт»';
 
   @override
-  String get cmdTaskHint => 'Saved with a checkbox';
+  String get cmdTaskHint => 'Ляже з галочкою';
 
   @override
-  String get cmdListHint => 'Every line or comma becomes an item';
+  String get cmdListHint => 'Кожен рядок або кома стане пунктом';
 
   @override
-  String get cmdFindHint => 'Only search, save nothing';
+  String get cmdFindHint => 'Лише шукати, нічого не зберігати';
 
   @override
-  String get cmdInboxHint => 'Keep as is, unsorted';
+  String get cmdInboxHint => 'Покласти як є, без розбору';
 
   @override
   String savedInto(String folder) {
@@ -3656,4 +3656,16 @@ class LUk extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cmdCanvas => 'полотно';
+
+  @override
+  String get cmdBase => 'база';
+
+  @override
+  String get cmdCanvasHint => 'Нове полотно з цією назвою, відкриється одразу';
+
+  @override
+  String get cmdBaseHint => 'Нова база з нотатками папки, відкриється одразу';
 }

@@ -341,34 +341,34 @@ class LEs extends L {
   String get tagCreateHint => 'pick an icon later';
 
   @override
-  String get cmdRemind => 'remind';
+  String get cmdRemind => 'recordar';
 
   @override
-  String get cmdTask => 'task';
+  String get cmdTask => 'tarea';
 
   @override
-  String get cmdList => 'list';
+  String get cmdList => 'lista';
 
   @override
-  String get cmdFind => 'find';
+  String get cmdFind => 'buscar';
 
   @override
-  String get cmdInbox => 'inbox';
+  String get cmdInbox => 'entrada';
 
   @override
-  String get cmdRemindHint => 'Say when: “tomorrow at 10”, “on fri”';
+  String get cmdRemindHint => 'Di cuándo: «mañana a las 10», «el vie»';
 
   @override
-  String get cmdTaskHint => 'Saved with a checkbox';
+  String get cmdTaskHint => 'Se guarda con una casilla';
 
   @override
-  String get cmdListHint => 'Every line or comma becomes an item';
+  String get cmdListHint => 'Cada línea o coma será un punto';
 
   @override
-  String get cmdFindHint => 'Only search, save nothing';
+  String get cmdFindHint => 'Solo buscar, sin guardar';
 
   @override
-  String get cmdInboxHint => 'Keep as is, unsorted';
+  String get cmdInboxHint => 'Guardar tal cual, sin ordenar';
 
   @override
   String savedInto(String folder) {
@@ -3599,4 +3599,18 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cmdCanvas => 'lienzo';
+
+  @override
+  String get cmdBase => 'base';
+
+  @override
+  String get cmdCanvasHint =>
+      'Un lienzo nuevo con este nombre, se abre al momento';
+
+  @override
+  String get cmdBaseHint =>
+      'Una base nueva con las notas de la carpeta, se abre al momento';
 }

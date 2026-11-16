@@ -210,6 +210,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   bool get _hasContent => _line.text.trim().isNotEmpty || _files.isNotEmpty;
 
+  // строка под замком холст и базу не заводит: открыть их она не может
+  Map<LineCommand, List<String>> _commandKeys(L l) => commandKeys(l, documents: !widget.writeOnly);
+
   bool get _rested => !_active && _toast == null && _voice == null && !_sending && !_hasContent;
   bool _wasRested = true;
 
@@ -272,7 +275,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     if (!mounted || widget.writeOnly) return;
     final caret = _line.selection.isValid ? _line.selection.extentOffset : _line.text.length;
     if (caretToken(_line.text, caret) != null) return;
-    final query = queryOf(_line.text, commandKeys(L.of(context)));
+    final query = queryOf(_line.text, _commandKeys(L.of(context)));
     final search = parseSearch(query.free, _now);
     final key = '${query.free.toLowerCase()}|${_line.tags.join(' ')}|${_line.folder?.id}';
     if (key == _searchKey) return;
@@ -572,9 +575,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     // «Отменить» вернёт строку такой, какой её набрали, с метками в тексте
     final typed = (text: _line.text, tags: _line.tags, folder: _line.folder);
     final newFolder = _line.takeMarks();
-    final query = queryOf(_line.text, commandKeys(l));
+    final query = queryOf(_line.text, _commandKeys(l));
     final command = query.command;
     final rest = query.rest;
+    if (isDocumentCommand(command)) return _createDocument(command!, rest, newFolder);
     final body = switch (command) {
       LineCommand.list => checklistBody(checklistItems(rest)),
       LineCommand.task => '- [ ] ${rest.trim()}',
@@ -644,9 +648,33 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     }
   }
 
+  /// `/холст План ремонта`, `/база Книги`: документ с именем из строки в выбранной папке
+  /// (@папка или папка экрана) и сразу открыт. Прикреплённые файлы остаются в строке.
+  Future<void> _createDocument(LineCommand command, String rest, String? newFolder) async {
+    final l = L.of(context);
+    final typed = (text: _line.text, tags: _line.tags, folder: _line.folder);
+    setState(() => _sending = true);
+    HapticFeedback.lightImpact();
+    try {
+      if (newFolder != null) _line.chooseFolder(await ref.read(foldersRepositoryProvider).create(newFolder));
+      final kind = command == LineCommand.base ? ItemKind.base : ItemKind.canvas;
+      final id = await ref.read(documentsRepositoryProvider).create(kind, title: documentName(l, command, rest), folderId: _line.folder?.id);
+      if (!mounted) return;
+      final files = List.of(_files);
+      _clearLine();
+      _files.addAll(files);
+      _open(id);
+    } on Object {
+      _line.restore(text: typed.text, tags: typed.tags, folder: typed.folder, reminderDismissed: _line.reminderDismissed, placeDismissed: _line.placeDismissed);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.saveFailed)));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
   Future<void> _append(ResultRow row) async {
     final l = L.of(context);
-    final rest = queryOf(_line.text, commandKeys(l)).rest.trim();
+    final rest = queryOf(_line.text, _commandKeys(l)).rest.trim();
     if (rest.isEmpty) return;
     final text = rest[0].toUpperCase() + rest.substring(1);
     final card = row.result.card;
@@ -842,7 +870,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     final l = L.of(context);
     final now = _now;
     final caret = _line.selection.isValid ? _line.selection.extentOffset : _line.text.length;
-    final keys = commandKeys(l);
+    final keys = _commandKeys(l);
     // «только закинуть» базу не читает: ни теги, ни папки, ни правила в панель не попадают
     final shows = !widget.writeOnly;
     _panel = buildPanel(

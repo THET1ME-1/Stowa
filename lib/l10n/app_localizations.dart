@@ -641,61 +641,61 @@ abstract class L {
   /// **'pick an icon later'**
   String get tagCreateHint;
 
-  /// Line command word, lowercase, one word
+  /// Команда строки после «/», одно слово без пробелов
   ///
   /// In en, this message translates to:
   /// **'remind'**
   String get cmdRemind;
 
-  /// Line command word, lowercase, one word
+  /// Команда строки после «/», одно слово без пробелов
   ///
   /// In en, this message translates to:
   /// **'task'**
   String get cmdTask;
 
-  /// Line command word, lowercase, one word
+  /// Команда строки после «/», одно слово без пробелов
   ///
   /// In en, this message translates to:
   /// **'list'**
   String get cmdList;
 
-  /// Line command word, lowercase, one word
+  /// Команда строки после «/», одно слово без пробелов
   ///
   /// In en, this message translates to:
   /// **'find'**
   String get cmdFind;
 
-  /// Line command word, lowercase, one word
+  /// Команда строки после «/»: положить как есть, без разбора; одно слово
   ///
   /// In en, this message translates to:
   /// **'inbox'**
   String get cmdInbox;
 
-  /// Command description
+  /// Подсказка к команде «напомнить»
   ///
   /// In en, this message translates to:
   /// **'Say when: “tomorrow at 10”, “on fri”'**
   String get cmdRemindHint;
 
-  /// Command description
+  /// Подсказка к команде «задача»
   ///
   /// In en, this message translates to:
   /// **'Saved with a checkbox'**
   String get cmdTaskHint;
 
-  /// Command description
+  /// Подсказка к команде «список»
   ///
   /// In en, this message translates to:
   /// **'Every line or comma becomes an item'**
   String get cmdListHint;
 
-  /// Command description
+  /// Подсказка к команде «найти»
   ///
   /// In en, this message translates to:
   /// **'Only search, save nothing'**
   String get cmdFindHint;
 
-  /// Command description
+  /// Подсказка к команде «входящие»
   ///
   /// In en, this message translates to:
   /// **'Keep as is, unsorted'**
@@ -6016,6 +6016,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} label} other{{count} labels}}'**
   String drawingTextCount(int count);
+
+  /// Команда строки после «/»: завести холст Obsidian; одно слово
+  ///
+  /// In en, this message translates to:
+  /// **'canvas'**
+  String get cmdCanvas;
+
+  /// Команда строки после «/»: завести базу Obsidian; одно слово
+  ///
+  /// In en, this message translates to:
+  /// **'base'**
+  String get cmdBase;
+
+  /// Подсказка к команде «холст»
+  ///
+  /// In en, this message translates to:
+  /// **'A new canvas with this name, opens right away'**
+  String get cmdCanvasHint;
+
+  /// Подсказка к команде «база»
+  ///
+  /// In en, this message translates to:
+  /// **'A new base with the folder’s notes, opens right away'**
+  String get cmdBaseHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

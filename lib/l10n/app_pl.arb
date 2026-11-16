@@ -690,5 +690,19 @@
   "drawingTextCopied": "Skopiowano tekst",
   "drawingEditInObsidian": "Rysunek można edytować w Obsidian",
   "drawingUnreadable": "Nie udało się odczytać rysunku, otwórz go w Obsidian",
-  "drawingTextCount": "{count, plural, one{{count} napis} few{{count} napisy} other{{count} napisów}}"
+  "drawingTextCount": "{count, plural, one{{count} napis} few{{count} napisy} other{{count} napisów}}",
+  "cmdRemind": "przypomnij",
+  "cmdTask": "zadanie",
+  "cmdList": "lista",
+  "cmdFind": "znajdź",
+  "cmdInbox": "skrzynka",
+  "cmdCanvas": "kanwa",
+  "cmdBase": "baza",
+  "cmdRemindHint": "Powiedz kiedy: „jutro o 10”, „w pt”",
+  "cmdTaskHint": "Zapisze się z polem wyboru",
+  "cmdListHint": "Każdy wiersz lub przecinek to osobny punkt",
+  "cmdFindHint": "Tylko szukaj, nic nie zapisuj",
+  "cmdInboxHint": "Zostaw jak jest, bez sortowania",
+  "cmdCanvasHint": "Nowa kanwa o tej nazwie, otworzy się od razu",
+  "cmdBaseHint": "Nowa baza z notatkami folderu, otworzy się od razu"
 }

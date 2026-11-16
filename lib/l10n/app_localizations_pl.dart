@@ -341,34 +341,34 @@ class LPl extends L {
   String get tagCreateHint => 'pick an icon later';
 
   @override
-  String get cmdRemind => 'remind';
+  String get cmdRemind => 'przypomnij';
 
   @override
-  String get cmdTask => 'task';
+  String get cmdTask => 'zadanie';
 
   @override
-  String get cmdList => 'list';
+  String get cmdList => 'lista';
 
   @override
-  String get cmdFind => 'find';
+  String get cmdFind => 'znajdź';
 
   @override
-  String get cmdInbox => 'inbox';
+  String get cmdInbox => 'skrzynka';
 
   @override
-  String get cmdRemindHint => 'Say when: “tomorrow at 10”, “on fri”';
+  String get cmdRemindHint => 'Powiedz kiedy: „jutro o 10”, „w pt”';
 
   @override
-  String get cmdTaskHint => 'Saved with a checkbox';
+  String get cmdTaskHint => 'Zapisze się z polem wyboru';
 
   @override
-  String get cmdListHint => 'Every line or comma becomes an item';
+  String get cmdListHint => 'Każdy wiersz lub przecinek to osobny punkt';
 
   @override
-  String get cmdFindHint => 'Only search, save nothing';
+  String get cmdFindHint => 'Tylko szukaj, nic nie zapisuj';
 
   @override
-  String get cmdInboxHint => 'Keep as is, unsorted';
+  String get cmdInboxHint => 'Zostaw jak jest, bez sortowania';
 
   @override
   String savedInto(String folder) {
@@ -3657,4 +3657,17 @@ class LPl extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get cmdCanvas => 'kanwa';
+
+  @override
+  String get cmdBase => 'baza';
+
+  @override
+  String get cmdCanvasHint => 'Nowa kanwa o tej nazwie, otworzy się od razu';
+
+  @override
+  String get cmdBaseHint =>
+      'Nowa baza z notatkami folderu, otworzy się od razu';
 }

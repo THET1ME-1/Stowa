@@ -690,5 +690,19 @@
   "drawingTextCopied": "Text kopiert",
   "drawingEditInObsidian": "Bearbeiten lässt sich die Zeichnung in Obsidian",
   "drawingUnreadable": "Die Zeichnung ließ sich nicht lesen, öffne sie in Obsidian",
-  "drawingTextCount": "{count, plural, one{{count} Beschriftung} other{{count} Beschriftungen}}"
+  "drawingTextCount": "{count, plural, one{{count} Beschriftung} other{{count} Beschriftungen}}",
+  "cmdRemind": "erinnern",
+  "cmdTask": "aufgabe",
+  "cmdList": "liste",
+  "cmdFind": "finden",
+  "cmdInbox": "eingang",
+  "cmdCanvas": "leinwand",
+  "cmdBase": "basis",
+  "cmdRemindHint": "Sag wann: „morgen um 10“, „am Fr“",
+  "cmdTaskHint": "Wird mit Häkchen gespeichert",
+  "cmdListHint": "Jede Zeile oder jedes Komma wird ein Punkt",
+  "cmdFindHint": "Nur suchen, nichts speichern",
+  "cmdInboxHint": "So lassen, wie es ist, unsortiert",
+  "cmdCanvasHint": "Neue Leinwand mit diesem Namen, öffnet sich sofort",
+  "cmdBaseHint": "Neue Basis mit den Notizen des Ordners, öffnet sich sofort"
 }

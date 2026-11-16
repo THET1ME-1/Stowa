@@ -149,6 +149,8 @@ const commandIcons = {
   LineCommand.list: 'checklist',
   LineCommand.find: 'search',
   LineCommand.inbox: 'inbox',
+  LineCommand.canvas: 'dashboard',
+  LineCommand.base: 'table_view',
 };
 
 /// Всё, из чего складывается панель над строкой.
@@ -215,6 +217,16 @@ SavePlan planSave(PanelInput input, {required LineCommand? command, required Str
   final listCount = command == LineCommand.list ? checklistItems(rest).length : 0;
   FolderCard? folderById(String id) => input.folders.where((folder) => folder.id == id).firstOrNull;
 
+  // холст и база: туда, куда сказали (@папка или папка экрана), без правил и угадывания
+  if (isDocumentCommand(command)) {
+    final chosen = input.chosenFolder;
+    return SavePlan(
+      kind: command == LineCommand.base ? ItemKind.base : ItemKind.canvas,
+      folder: chosen,
+      reason: chosen != null ? SaveReason.chosen : SaveReason.quiet,
+      command: command,
+    );
+  }
   if (command == LineCommand.inbox) {
     return SavePlan(kind: kind, reason: SaveReason.asIs, command: command, remindAt: input.remindAt, attachments: mimes.length, onlyMedia: onlyMedia);
   }
@@ -270,7 +282,8 @@ PanelState buildPanel(PanelInput input) {
   final query = queryOf(input.text, input.commandKeys);
   final command = query.command;
   final hasContent = query.rest.trim().isNotEmpty || input.attachmentMimes.isNotEmpty;
-  final plan = command == LineCommand.find || !hasContent ? null : planSave(input, command: command, rest: query.rest);
+  // «/холст» без имени тоже заводит холст: имя будет «Холст»
+  final plan = command == LineCommand.find || (!hasContent && !isDocumentCommand(command)) ? null : planSave(input, command: command, rest: query.rest);
 
   final kinds = <ItemKind>[];
   for (final result in input.found) {
@@ -324,9 +337,10 @@ PanelState _completions(PanelInput input, CaretToken token) {
   final rows = <PanelRow>[];
   switch (token.kind) {
     case CaretKind.command:
+      // подходит слово любого языка: «/auf» в русском интерфейсе — «aufgabe»; показывается то, что совпало
       for (final entry in input.commandKeys.entries) {
-        final key = entry.value.first;
-        if (normalizeQuery(key).startsWith(query)) rows.add(CommandRow(entry.key, key));
+        final key = entry.value.where((one) => normalizeQuery(one).startsWith(query)).firstOrNull;
+        if (key != null) rows.add(CommandRow(entry.key, key));
       }
     case CaretKind.tag:
       var exact = false;

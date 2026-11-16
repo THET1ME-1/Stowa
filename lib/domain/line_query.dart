@@ -6,7 +6,11 @@ import 'search_query.dart' show isServiceWord;
 import 'word_forms.dart';
 
 /// Встроенные команды строки. Плагины встанут рядом с ними.
-enum LineCommand { remind, task, list, find, inbox }
+/// canvas и base — завести холст или базу Obsidian с именем из строки и сразу открыть.
+enum LineCommand { remind, task, list, find, inbox, canvas, base }
+
+/// Команда заводит документ (холст или базу), а не заметку.
+bool isDocumentCommand(LineCommand? command) => command == LineCommand.canvas || command == LineCommand.base;
 
 enum CaretKind { tag, folder, command }
 

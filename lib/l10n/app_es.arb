@@ -690,5 +690,19 @@
   "drawingTextCopied": "Texto copiado",
   "drawingEditInObsidian": "El dibujo se edita en Obsidian",
   "drawingUnreadable": "No se pudo leer el dibujo, ábrelo en Obsidian",
-  "drawingTextCount": "{count, plural, one{{count} texto} other{{count} textos}}"
+  "drawingTextCount": "{count, plural, one{{count} texto} other{{count} textos}}",
+  "cmdRemind": "recordar",
+  "cmdTask": "tarea",
+  "cmdList": "lista",
+  "cmdFind": "buscar",
+  "cmdInbox": "entrada",
+  "cmdCanvas": "lienzo",
+  "cmdBase": "base",
+  "cmdRemindHint": "Di cuándo: «mañana a las 10», «el vie»",
+  "cmdTaskHint": "Se guarda con una casilla",
+  "cmdListHint": "Cada línea o coma será un punto",
+  "cmdFindHint": "Solo buscar, sin guardar",
+  "cmdInboxHint": "Guardar tal cual, sin ordenar",
+  "cmdCanvasHint": "Un lienzo nuevo con este nombre, se abre al momento",
+  "cmdBaseHint": "Una base nueva con las notas de la carpeta, se abre al momento"
 }

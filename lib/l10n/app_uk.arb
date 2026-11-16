@@ -690,5 +690,19 @@
   "drawingTextCopied": "Підпис скопійовано",
   "drawingEditInObsidian": "Змінити малюнок можна в Obsidian",
   "drawingUnreadable": "Малюнок не прочитався, відкрий його в Obsidian",
-  "drawingTextCount": "{count, plural, one{{count} підпис} few{{count} підписи} other{{count} підписів}}"
+  "drawingTextCount": "{count, plural, one{{count} підпис} few{{count} підписи} other{{count} підписів}}",
+  "cmdRemind": "нагадати",
+  "cmdTask": "завдання",
+  "cmdList": "список",
+  "cmdFind": "знайти",
+  "cmdInbox": "вхідні",
+  "cmdCanvas": "полотно",
+  "cmdBase": "база",
+  "cmdRemindHint": "Скажи коли: «завтра о 10», «у пт»",
+  "cmdTaskHint": "Ляже з галочкою",
+  "cmdListHint": "Кожен рядок або кома стане пунктом",
+  "cmdFindHint": "Лише шукати, нічого не зберігати",
+  "cmdInboxHint": "Покласти як є, без розбору",
+  "cmdCanvasHint": "Нове полотно з цією назвою, відкриється одразу",
+  "cmdBaseHint": "Нова база з нотатками папки, відкриється одразу"
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/format/reminder_format.dart';
@@ -13,19 +12,23 @@ import '../../services/facts/web_extractors.dart' show pageTypeWords;
 import '../../l10n/app_localizations.dart';
 import 'panel_model.dart';
 
-/// Ключи команд: язык интерфейса первым, русский и английский всегда, чтобы
-/// `/задача` и `/task` работали при любом языке.
-Map<LineCommand, List<String>> commandKeys(L l) {
-  final languages = [l, lookupL(const Locale('ru')), lookupL(const Locale('en'))];
+/// Ключи команд: язык интерфейса первым, за ним все остальные языки приложения, чтобы
+/// `/задача`, `/task` и `/aufgabe` работали при любом языке интерфейса.
+/// [documents] — команды холста и базы; строка под замком их не знает: открыть созданное она не может.
+Map<LineCommand, List<String>> commandKeys(L l, {bool documents = true}) {
+  final languages = [l, for (final locale in L.supportedLocales) lookupL(locale)];
   String key(L one, LineCommand command) => switch (command) {
     LineCommand.remind => one.cmdRemind,
     LineCommand.task => one.cmdTask,
     LineCommand.list => one.cmdList,
     LineCommand.find => one.cmdFind,
     LineCommand.inbox => one.cmdInbox,
+    LineCommand.canvas => one.cmdCanvas,
+    LineCommand.base => one.cmdBase,
   };
   return {
-    for (final command in LineCommand.values) command: {for (final one in languages) key(one, command)}.toList(),
+    for (final command in LineCommand.values)
+      if (documents || !isDocumentCommand(command)) command: {for (final one in languages) key(one, command)}.toList(),
   };
 }
 
@@ -35,6 +38,8 @@ String commandHint(L l, LineCommand command) => switch (command) {
   LineCommand.list => l.cmdListHint,
   LineCommand.find => l.cmdFindHint,
   LineCommand.inbox => l.cmdInboxHint,
+  LineCommand.canvas => l.cmdCanvasHint,
+  LineCommand.base => l.cmdBaseHint,
 };
 
 String kindsLabel(L l, ItemKind kind) => switch (kind) {
@@ -205,6 +210,11 @@ String? documentPlace(L l, String? place) {
 
 String saveTitle(L l, SavePlan plan, DateTime now) {
   final command = plan.command;
+  // холст и база ложатся, куда сказали: «папку подберу» было бы неправдой
+  if (isDocumentCommand(command)) {
+    final what = command == LineCommand.base ? l.baseNew : l.canvasNew;
+    return plan.folder == null ? what : l.saveInto(what, plan.folder!.name);
+  }
   if (command == LineCommand.remind) return plan.remindAt == null ? l.saveRemindBare : l.saveRemind(formatReminder(l, plan.remindAt!, now));
   if (command == LineCommand.inbox) return l.saveAsIs;
   final what = command == LineCommand.task
@@ -229,6 +239,10 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
   final remind = plan.remindAt;
   if (remind != null && plan.command != LineCommand.remind) parts.add(l.saveRemindAt(formatReminder(l, remind, now)));
   if (plan.command == LineCommand.remind && remind == null) parts.add(l.saveRemindWhen);
+  // у холста и базы под кнопкой — имя будущего файла
+  if (isDocumentCommand(plan.command)) {
+    return (text: documentName(l, plan.command!, rest), alarm: false);
+  }
   if (parts.isEmpty) {
     final url = firstUrl(rest);
     final title = titleFor(rest);
@@ -243,6 +257,13 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
     );
   }
   return (text: parts.join(' · '), alarm: remind != null && plan.command != LineCommand.remind && plan.autoTags.isEmpty);
+}
+
+/// Имя холста или базы из строки: первая строка текста, без имени — «Холст» или «База».
+String documentName(L l, LineCommand command, String rest) {
+  final name = rest.trim().split('\n').first.trim();
+  if (name.isNotEmpty) return name;
+  return command == LineCommand.base ? l.baseDefaultName : l.canvasDefaultName;
 }
 
 /// Почему сюда: свой выбор, правило или похожее без сети. Пусто — строка причину не называет.
@@ -265,7 +286,9 @@ String saveTitle(L l, SavePlan plan, DateTime now) {
 
 /// Подпись и значок кнопки для выбранной строки.
 ({String label, String icon}) actionOf(L l, PanelRow row) => switch (row) {
-  SaveRow(:final plan) => (label: plan.command == LineCommand.remind ? l.actionRemind : l.actionStow, icon: 'arrow_upward'),
+  SaveRow(:final plan) => isDocumentCommand(plan.command)
+      ? (label: l.actionCreate, icon: 'add')
+      : (label: plan.command == LineCommand.remind ? l.actionRemind : l.actionStow, icon: 'arrow_upward'),
   ResultRow() => (label: l.actionOpen, icon: 'arrow_outward'),
   NewTagRow() || NewFolderRow() => (label: l.actionCreate, icon: 'keyboard_return'),
   TagRow() || FolderRow() || CommandRow() => (label: l.actionInsert, icon: 'keyboard_return'),
