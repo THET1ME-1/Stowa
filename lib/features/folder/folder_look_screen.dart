@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/icons/icon_words.dart';
@@ -8,6 +9,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/color_picker_sheet.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -28,6 +30,12 @@ final List<String> _allIcons = [
 /// Ширина, с которой образец и цвета встают слева, а иконки справа.
 const _wideFrom = 720.0;
 
+/// Последние цвета папок в настройках: ключи палитры или `#RRGGBB`.
+const _recentKey = 'folder_recent_colors';
+
+/// Пока своих последних нет: пять разных оттенков палитры.
+const _starterColors = ['coral', 'amber', 'mint', 'sky', 'violet'];
+
 /// Цвет, форма и иконка папки. Наверху живой образец, как папка выглядит на главной;
 /// иконки идут одной лентой с остальным: под имя, частые, потом весь набор.
 class FolderLookScreen extends StatefulWidget {
@@ -45,6 +53,49 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
   late String? _color = widget.folder.colorKey;
   late final _name = TextEditingController(text: widget.folder.name);
   String _query = '';
+
+  /// Пять последних цветов, которые ставили папкам; пока их нет — пять разных из палитры.
+  List<String> _recent = _starterColors;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecent();
+  }
+
+  Future<void> _loadRecent() async {
+    try {
+      final saved = (await SharedPreferences.getInstance()).getStringList(_recentKey);
+      if (saved != null && saved.isNotEmpty && mounted) setState(() => _recent = saved);
+    } on Object {
+      // без настроек (тесты, сбой диска) строка живёт на палитре
+    }
+  }
+
+  /// Выбранный цвет — первым в последних, без повторов, не больше пяти.
+  Future<void> _rememberColor() async {
+    final key = _color;
+    if (key == null) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_recentKey, [key, ..._recent.where((one) => one != key)].take(5).toList());
+    } on Object {
+      // не запомнилось — не беда, папка уже сохранена
+    }
+  }
+
+  /// Своё в строке: нынешний цвет папки первым, дальше последние — всего пять.
+  List<String> get _row {
+    final current = _color ?? FolderPalette.colors.keys.elementAt(widget.folder.order % FolderPalette.colors.length);
+    return [current, ..._recent.where((key) => key != current && FolderPalette.of(key, 0) != FolderPalette.of(current, 0))].take(5).toList();
+  }
+
+  Future<void> _pickOnWheel(L l) async {
+    final picked = await showColorPickerSheet(context, initial: _fill, title: l.lookColor);
+    if (picked == null || !mounted) return;
+    final key = FolderPalette.colors.entries.where((entry) => entry.value.toARGB32() == picked.toARGB32()).firstOrNull?.key ?? FolderPalette.keyOf(picked);
+    _pick(() => _color = key);
+  }
 
   @override
   void dispose() {
@@ -125,7 +176,13 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
               child: SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: FilledButton(onPressed: () => Navigator.pop<FolderLook>(context, (name: _name.text, icon: _icon, shape: _shape, color: _color)), child: Text(l.save)),
+                child: FilledButton(
+                  onPressed: () {
+                    _rememberColor().ignore();
+                    Navigator.pop<FolderLook>(context, (name: _name.text, icon: _icon, shape: _shape, color: _color));
+                  },
+                  child: Text(l.save),
+                ),
               ),
             ),
           ],
@@ -147,20 +204,24 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
       onChanged: (_) => setState(() {}),
     ),
     SettingsSection(l.lookColor),
-    // двенадцать кружков ровными рядами: по шесть на телефоне, все в ряд, если влезают
-    LayoutBuilder(
-      builder: (context, constraints) => GridView.count(
-        crossAxisCount: constraints.maxWidth >= 12 * 52 ? 12 : 6,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        children: [
-          for (final MapEntry(key: key, value: color) in FolderPalette.colors.entries)
-            _Swatch(key: ValueKey('color-$key'), color: color, chosen: color == _fill, onTap: () => _pick(() => _color = key)),
+    // одна строка: круг оттенков с любым цветом и пять последних. Двенадцать готовых кружков
+    // в два ряда не давали своего цвета и занимали полэкрана
+    Row(
+      children: [
+        Expanded(
+          child: AspectRatio(aspectRatio: 1, child: _WheelButton(key: const ValueKey('color-wheel'), tooltip: l.colorCustom, onTap: () => _pickOnWheel(l))),
+        ),
+        for (final key in _row) ...[
+          const SizedBox(width: 10),
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: _Swatch(key: ValueKey('color-$key'), color: FolderPalette.of(key, 0), chosen: FolderPalette.of(key, 0) == _fill, onTap: () => _pick(() => _color = key)),
+            ),
+          ),
         ],
-      ),
+        for (var i = _row.length; i < 5; i++) ...[const SizedBox(width: 10), const Expanded(child: SizedBox())],
+      ],
     ),
     SettingsSection(l.lookShape),
     Row(
@@ -308,6 +369,47 @@ class _Preview extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Круг всех оттенков: касание открывает выбор любого цвета.
+class _WheelButton extends StatelessWidget {
+  const _WheelButton({super.key, required this.tooltip, required this.onTap});
+
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        label: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              // оттенки той же светлоты, что палитра папок: круг не кричит рядом с ними
+              gradient: SweepGradient(
+                colors: [Color(0xFFFFA098), Color(0xFFFEC766), Color(0xFFB5E285), Color(0xFF51D5CE), Color(0xFF92BFFF), Color(0xFFDFA5EC), Color(0xFFFFA098)],
+              ),
+            ),
+            child: Center(
+              child: FractionallySizedBox(
+                widthFactor: 0.5,
+                heightFactor: 0.5,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: Tokens.background, shape: BoxShape.circle),
+                  child: Icon(symbolIcon('add'), size: 18, color: Tokens.onSurface),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

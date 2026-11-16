@@ -21,9 +21,18 @@ abstract final class FolderPalette {
     'rose': Color(0xFFF89EC1),
   };
 
-  /// Цвет, выбранный человеком, а без выбора — по месту папки в списке:
-  /// соседние папки не сливаются.
-  static Color of(String? key, int order) => colors[key] ?? colors.values.elementAt(order % colors.length);
+  /// Цвет, выбранный человеком (ключ палитры или свой `#RRGGBB` с круга оттенков),
+  /// а без выбора — по месту папки в списке: соседние папки не сливаются.
+  static Color of(String? key, int order) => colors[key] ?? custom(key) ?? colors.values.elementAt(order % colors.length);
+
+  /// Свой цвет `#RRGGBB`; ключ палитры или кривое — null.
+  static Color? custom(String? key) {
+    if (key == null || !RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(key)) return null;
+    return Color(0xFF000000 | int.parse(key.substring(1), radix: 16));
+  }
+
+  /// Ключ для своего цвета: `#RRGGBB`, как его пишет и Obsidian.
+  static String keyOf(Color color) => '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
 
   /// Подложка в цвет папки на поверхности темы: сам цвет приглушён до тени.
   static Color tint(Color color, [double strength = 0.16]) => Color.alphaBlend(color.withValues(alpha: strength), Tokens.container);

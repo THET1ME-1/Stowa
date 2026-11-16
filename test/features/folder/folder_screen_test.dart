@@ -158,6 +158,30 @@ void main() {
     expect(find.byKey(const ValueKey('folder-look')), findsNothing);
   });
 
+  testWidgets('цвет одной строкой: круг оттенков даёт любой цвет, он встаёт первым в строке', (tester) async {
+    await seed();
+    await openFolder(tester);
+    await openLook(tester);
+    // круг и пять кружков, а не двенадцать готовых
+    expect(find.byKey(const ValueKey('color-wheel')), findsOneWidget);
+    expect(find.byWidgetPredicate((widget) => widget.key is ValueKey<String> && (widget.key! as ValueKey<String>).value.startsWith('color-') && widget.key != const ValueKey('color-wheel')), findsNWidgets(5));
+
+    await tester.tap(find.byKey(const ValueKey('color-wheel')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('color-hex')), '3A7BD5');
+    await tester.pumpAndSettle();
+    // каналы R, G, B подхватывают HEX, а правка канала двигает цвет
+    expect(find.widgetWithText(TextField, '58'), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('color-B')), '213');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Готово'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('color-#3A7BD5')), findsOneWidget);
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+    expect((await world.db.select(world.db.folders).getSingle()).color, '#3A7BD5');
+  });
+
   testWidgets('иконки листаются до конца всего набора', (tester) async {
     addTearDown(tester.view.reset);
     tester.view.devicePixelRatio = 1;
