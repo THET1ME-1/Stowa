@@ -53,4 +53,59 @@ void main() {
     expect(type('```\n', 'a << b').text, '```\na << b');
     expect(type('```\nкод\n```\n', 'а -- б').text, '```\nкод\n```\nа — б');
   });
+
+  // хозяин 16.11: «если открытую " то сразу поставится закрытая и курсор между ними, и с «» ',
+  // все виды кавычек; << превращается в « — тоже закрытие ставить»
+  group('парные кавычки', () {
+    String shown(TextEditingValue value) => value.text.replaceRange(value.selection.baseOffset, value.selection.baseOffset, '|');
+
+    test('открывающая ставит закрывающую, курсор между ними', () {
+      expect(shown(type('', '"')), '"|"');
+      expect(shown(type('Он сказал ', '«')), 'Он сказал «|»');
+      expect(shown(type('Er sagte ', '„')), 'Er sagte „|“');
+      expect(shown(type('He said ', '“')), 'He said “|”');
+      expect(shown(type('He said ', '‘')), 'He said ‘|’');
+      expect(shown(type('слово ', "'")), "слово '|'");
+    });
+
+    test('<< становится «» с курсором внутри; дописал и >> — шаг за кавычку', () {
+      expect(shown(type('Он сказал ', '<<')), 'Он сказал «|»');
+      expect(shown(type('Он сказал ', '<<привет>>')), 'Он сказал «привет»|');
+    });
+
+    test('набранная закрывающая перешагивает уже стоящую', () {
+      expect(shown(type('', '"текст"')), '"текст"|');
+      expect(shown(type('', '«текст»')), '«текст»|');
+      expect(shown(type('', '„Text“')), '„Text“|');
+    });
+
+    test('апостроф внутри слова и кавычка после слова — одна, без пары', () {
+      expect(shown(type('', "it's п'ять")), "it's п'ять|");
+      expect(shown(type('Пишу слово', '"')), 'Пишу слово"|');
+    });
+
+    test('кавычка прямо перед словом — одна: слово закавычат следом', () {
+      final value = smartPunctuation(at('сказал привет', 7), at('сказал «привет', 8));
+      expect(shown(value), 'сказал «|привет');
+    });
+
+    test('стирание открывающей в пустой паре стирает и закрывающую', () {
+      final value = smartPunctuation(at('Он сказал «»', 11), at('Он сказал »', 10));
+      expect(shown(value), 'Он сказал |');
+      final straight = smartPunctuation(at('""', 1), at('"', 0));
+      expect(shown(straight), '|');
+    });
+
+    test('кавычка поверх выделения оборачивает его', () {
+      const old = TextEditingValue(text: 'Он сказал привет', selection: TextSelection(baseOffset: 10, extentOffset: 16));
+      final value = smartPunctuation(old, at('Он сказал «', 11));
+      expect(value.text, 'Он сказал «привет»');
+      expect(value.selection.baseOffset, value.text.length);
+    });
+
+    test('в коде и в формуле кавычки не парные', () {
+      expect(shown(type('Флаг `', "'")), "Флаг `'|");
+      expect(shown(type(r'$f', "'")), r"$f'|");
+    });
+  });
 }
