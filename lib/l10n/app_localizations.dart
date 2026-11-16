@@ -6713,10 +6713,10 @@ abstract class L {
   /// **'Press and drag a folder to change the order.'**
   String get tipCatalog;
 
-  /// Подсказка на экране папки
+  /// Подсказка на экране папки про меню «три точки»
   ///
   /// In en, this message translates to:
-  /// **'In “⋮”: a folder inside, canvas, base, name and color.'**
+  /// **'The three dots on top: a folder inside, canvas, base, name and color.'**
   String get tipFolderMenu;
 
   /// Подсказка в папке «Без папки» под кнопкой «Разобрать»

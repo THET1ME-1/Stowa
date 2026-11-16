@@ -1018,10 +1018,14 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                             transitionBuilder: riseTransition,
                             child: !showPanel
                                 ? (showStep
-                                      ? Padding(
+                                      // место панели отдаёт всю высоту: карточка прижата к строке своей высотой
+                                      ? Align(
                                           key: ValueKey('step-${step.name}'),
-                                          padding: const EdgeInsets.only(bottom: 8),
-                                          child: StartCard(step: step, onSkip: () => ref.read(hintsRepositoryProvider).skipStep().ignore(), onTry: _tryOf(step)),
+                                          alignment: Alignment.bottomCenter,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(bottom: 8),
+                                            child: StartCard(step: step, onSkip: () => ref.read(hintsRepositoryProvider).skipStep().ignore(), onTry: _tryOf(step)),
+                                          ),
                                         )
                                       : const SizedBox(key: ValueKey('none'), width: double.infinity))
                                 : Padding(

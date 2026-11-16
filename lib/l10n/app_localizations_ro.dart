@@ -3989,7 +3989,7 @@ class LRo extends L {
 
   @override
   String get tipFolderMenu =>
-      'În „⋮”: dosar în interior, pânză, bază, nume și culoare.';
+      'Cele trei puncte de sus: dosar în interior, pânză, bază, nume și culoare.';
 
   @override
   String get tipSort =>

@@ -3975,7 +3975,7 @@ class LDe extends L {
 
   @override
   String get tipFolderMenu =>
-      'Unter „⋮“: Ordner darin, Canvas, Base, Name und Farbe.';
+      'Die drei Punkte oben: Ordner darin, Canvas, Base, Name und Farbe.';
 
   @override
   String get tipSort =>

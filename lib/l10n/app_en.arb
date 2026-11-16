@@ -4787,9 +4787,9 @@
   "@tipCatalog": {
     "description": "Подсказка в каталоге"
   },
-  "tipFolderMenu": "In “⋮”: a folder inside, canvas, base, name and color.",
+  "tipFolderMenu": "The three dots on top: a folder inside, canvas, base, name and color.",
   "@tipFolderMenu": {
-    "description": "Подсказка на экране папки"
+    "description": "Подсказка на экране папки про меню «три точки»"
   },
   "tipSort": "“Sort” shows notes one by one, and you put each into a folder.",
   "@tipSort": {

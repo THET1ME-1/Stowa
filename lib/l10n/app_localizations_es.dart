@@ -3962,7 +3962,7 @@ class LEs extends L {
 
   @override
   String get tipFolderMenu =>
-      'En «⋮»: carpeta dentro, lienzo, base, nombre y color.';
+      'Los tres puntos de arriba: carpeta dentro, lienzo, base, nombre y color.';
 
   @override
   String get tipSort =>

@@ -13,7 +13,7 @@ import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
-import '../../domain/hints.dart' show Tip;
+import '../../domain/hints.dart' show Tip, visibleStep;
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show PickedFile;
@@ -334,7 +334,9 @@ class _Feed extends ConsumerWidget {
     final folders = ref.watch(foldersProvider).value ?? const [];
     final smart = ref.watch(smartFoldersProvider).value ?? const [];
     final items = ref.read(itemsRepositoryProvider);
-    final bottom = MediaQuery.paddingOf(context).bottom;
+    // карточка шага знакомства стоит над строкой: лента оставляет и под неё место, низ не прячется
+    final hints = ref.watch(hintsProvider).value;
+    final bottom = MediaQuery.paddingOf(context).bottom + (hints != null && visibleStep(hints) != null ? 130 : 0);
 
     return CustomScrollView(
       slivers: [

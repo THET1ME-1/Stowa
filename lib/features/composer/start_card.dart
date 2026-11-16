@@ -61,6 +61,7 @@ class StartCard extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 2),

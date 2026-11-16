@@ -4027,7 +4027,7 @@ class LRu extends L {
 
   @override
   String get tipFolderMenu =>
-      'В «⋮» — папка внутри, холст, база, название и цвет.';
+      'Три точки сверху: папка внутри, холст, база, название и цвет.';
 
   @override
   String get tipSort =>

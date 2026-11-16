@@ -3953,7 +3953,7 @@ class LEn extends L {
 
   @override
   String get tipFolderMenu =>
-      'In “⋮”: a folder inside, canvas, base, name and color.';
+      'The three dots on top: a folder inside, canvas, base, name and color.';
 
   @override
   String get tipSort =>

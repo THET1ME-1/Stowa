@@ -4016,7 +4016,7 @@ class LUk extends L {
 
   @override
   String get tipFolderMenu =>
-      'У «⋮» — тека всередині, полотно, база, назва й колір.';
+      'Три крапки вгорі: тека всередині, полотно, база, назва й колір.';
 
   @override
   String get tipSort =>

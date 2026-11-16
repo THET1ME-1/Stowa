@@ -4021,7 +4021,7 @@ class LPl extends L {
 
   @override
   String get tipFolderMenu =>
-      'W „⋮”: folder w środku, płótno, baza, nazwa i kolor.';
+      'Trzy kropki u góry: folder w środku, płótno, baza, nazwa i kolor.';
 
   @override
   String get tipSort =>

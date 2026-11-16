@@ -88,7 +88,8 @@ class _LinePanelState extends State<LinePanel> {
   void _placeHighlight() {
     final rows = widget.state.rows;
     final stack = _stack.currentContext?.findRenderObject() as RenderBox?;
-    final selected = widget.selected < rows.length ? _keys[rows[widget.selected].key]?.currentContext?.findRenderObject() as RenderBox? : null;
+    // пояснение голого # или @ не выбирается: белой плашки под ним нет
+    final selected = widget.selected < rows.length && rows[widget.selected] is! ExplainRow ? _keys[rows[widget.selected].key]?.currentContext?.findRenderObject() as RenderBox? : null;
     // от низа: список прижат к кнопке, новая строка сверху не двигает плашку
     ({double bottom, double height})? next;
     if (stack != null && selected != null && selected.attached && stack.attached) {

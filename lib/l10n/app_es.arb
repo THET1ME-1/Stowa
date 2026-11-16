@@ -817,7 +817,7 @@
   "tipNoteBar": "Abajo: recordar, etiqueta, otra carpeta y compartir.",
   "tipLongPress": "Mantén pulsada una nota: fijar, mover o borrar.",
   "tipCatalog": "Mantén pulsada una carpeta y arrástrala para cambiar el orden.",
-  "tipFolderMenu": "En «⋮»: carpeta dentro, lienzo, base, nombre y color.",
+  "tipFolderMenu": "Los tres puntos de arriba: carpeta dentro, lienzo, base, nombre y color.",
   "tipSort": "«Ordenar» muestra las notas de una en una y tú pones cada una en una carpeta.",
   "tipCanvas": "Toca dos veces un espacio vacío para añadir una tarjeta.",
   "tipBase": "Iconos de arriba: ordenar, grupo, filtro, columnas, buscar.",
