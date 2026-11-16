@@ -425,6 +425,18 @@ String _noted(String property) => property.contains('.') ? property : 'note.$pro
 
 Object? _groupKey(Object? value) => value is List ? value.map(_text).join(', ') : value;
 
+/// Что записать в свойство [name] карточке, брошенной в колонку доски [key].
+/// Колонка списка подписана склейкой «Прочитал, Любимое»: пишется сам список, а не одна строка с запятой.
+Object? boardColumnValue(List<BaseNote> rows, String name, Object? key) {
+  for (final row in rows) {
+    final value = _plain(row.properties[name]);
+    if (value is List && _groupKey(value) == key) return [...value];
+  }
+  // свойство-список остаётся списком и в новой колонке
+  final asList = rows.any((row) => row.properties[name] is List);
+  return asList ? [key] : key;
+}
+
 List<T> _stableSort<T>(List<T> list, int Function(T, T) compare) {
   final indexed = [for (final (index, item) in list.indexed) (index, item)];
   indexed.sort((a, b) {

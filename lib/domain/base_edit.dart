@@ -9,7 +9,7 @@ class BaseEditor {
   // пустой файл база показывает таблицей: с неё и начинается, иначе YAML вышел бы в строку {…}
   BaseEditor(String text) : _editor = YamlEditor(_brokenOrEmpty(text) ? 'views:\n  - type: table\n    name: Таблица\n' : text);
 
-  final YamlEditor _editor;
+  YamlEditor _editor;
 
   String get text {
     final out = _editor.toString();
@@ -132,7 +132,16 @@ class BaseEditor {
   }
 
   void moveView(int from, int to) {
-    final views = _plainYaml(_read(['views'])) as List<Object?>;
+    final node = _read(['views']);
+    if (node is YamlList && from >= 0 && from < node.length) {
+      final moved = _reorderedViews(_editor.toString(), node, from, to);
+      if (moved != null) {
+        _editor = YamlEditor(moved);
+        return;
+      }
+    }
+    // виды строкой `[{…}, {…}]`: кусков текста нет, список пишется заново
+    final views = _plainYaml(node) as List<Object?>;
     if (from < 0 || from >= views.length) return;
     final view = views.removeAt(from);
     views.insert(to.clamp(0, views.length), view);
@@ -237,6 +246,56 @@ String describeFilter(BaseFilter? filter) => switch (filter) {
   BaseOr(:final any) => 'or(${any.map(describeFilter).join(', ')})',
   BaseNot(:final none) => 'not(${none.map(describeFilter).join(', ')})',
 };
+
+/// Текст файла, где вид [from] стоит на месте [to]. Виды столбиком переставляются кусками
+/// текста, и комментарии внутри вида едут вместе с ним. Не вышло разрезать — null.
+String? _reorderedViews(String text, YamlList views, int from, int to) {
+  if (views.style != CollectionStyle.BLOCK || views.length < 2) return null;
+  int lineStart(int offset) => text.lastIndexOf('\n', offset - 1) + 1;
+  int lineEnd(int offset) {
+    final end = text.indexOf('\n', offset);
+    return end < 0 ? text.length : end + 1;
+  }
+
+  // кусок вида начинается строкой с его «-»
+  final starts = <int>[];
+  for (final view in views.nodes) {
+    final start = lineStart(view.span.start.offset);
+    if (!text.substring(start, view.span.start.offset).trimLeft().startsWith('-')) return null;
+    starts.add(start);
+  }
+  final dashIndent = text.indexOf('-', starts.first) - starts.first;
+
+  // последний вид кончается последней непустой строкой глубже «-»: так в него попадает и комментарий в его конце
+  var end = lineEnd(views.nodes.last.span.end.offset - 1);
+  var scan = end;
+  while (scan < text.length) {
+    final next = lineEnd(scan);
+    final line = text.substring(scan, next).replaceAll(RegExp(r'\s+$'), '');
+    if (line.isNotEmpty) {
+      if (line.length - line.trimLeft().length <= dashIndent) break;
+      end = next;
+    }
+    scan = next;
+  }
+
+  final pieces = [
+    for (var i = 0; i < starts.length; i++) text.substring(starts[i], i + 1 < starts.length ? starts[i + 1] : end),
+  ];
+  if (!pieces.last.endsWith('\n')) pieces.last = '${pieces.last}\n';
+  final piece = pieces.removeAt(from);
+  pieces.insert(to.clamp(0, pieces.length), piece);
+  final moved = '${text.substring(0, starts.first)}${pieces.join()}${text.substring(end)}';
+
+  // разрезанное должно читаться теми же видами, только в новом порядке
+  try {
+    final check = loadYaml(moved);
+    if (check is! Map || check['views'] is! YamlList || (check['views'] as YamlList).length != views.length) return null;
+  } on Object {
+    return null;
+  }
+  return moved;
+}
 
 YamlNode _block(Object? value) => wrapAsYamlNode(value, collectionStyle: CollectionStyle.BLOCK);
 

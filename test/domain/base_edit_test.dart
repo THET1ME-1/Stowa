@@ -114,6 +114,35 @@ void main() {
     expect(base.views.map((view) => view.name), ['Сейчас 2', 'Курсы', 'Доска']);
   });
 
+  test('порядок видов: комментарии внутри видов едут вместе с видом', () {
+    const text = '''
+# мой комментарий
+views:
+  - type: table
+    name: Один
+    # комментарий внутри вида
+    order:
+      - file.name
+  - type: cards
+    name: Два
+    # и у второго
+''';
+    final moved = (BaseEditor(text)..moveView(1, 0)).text;
+    expect(ObsidianBase.parse(moved).views.map((view) => view.name), ['Два', 'Один']);
+    expect(moved, contains('# мой комментарий'));
+    expect(moved, contains('# комментарий внутри вида'));
+    expect(moved, contains('# и у второго'));
+    expect(moved.indexOf('# и у второго'), lessThan(moved.indexOf('name: Один')));
+
+    final back = (BaseEditor(moved)..moveView(0, 1)).text;
+    expect(back, text);
+
+    // «-» без отступа и ключ файла после видов: он остаётся на своём месте
+    const flat = 'views:\n- type: table\n  name: Один\n- type: list\n  name: Два\n  # конец второго\nformulas:\n  x: 1\n';
+    final flatMoved = (BaseEditor(flat)..moveView(0, 1)).text;
+    expect(flatMoved, 'views:\n- type: list\n  name: Два\n  # конец второго\n- type: table\n  name: Один\nformulas:\n  x: 1\n');
+  });
+
   test('пустой файл: первая правка заводит вид, который база показывала сама', () {
     final text = (BaseEditor('')..setSort(0, [(property: 'file.name', descending: false)])).text;
     final base = ObsidianBase.parse(text);

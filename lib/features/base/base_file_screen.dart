@@ -188,6 +188,7 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
               onAdd: () => _addView(base),
               onReorder: (from, to) async {
                 await _edit((editor) => editor.moveView(from, to));
+                if (!mounted) return;
                 // выбранный вид остаётся выбранным, куда бы ни переехал
                 if (from == index) {
                   setState(() => _view = to);
@@ -447,10 +448,10 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
         if (name != null && name.trim().isNotEmpty) await _edit((editor) => editor.renameView(index, name.trim()));
       case 'copy':
         await _edit((editor) => editor.duplicateView(index, '${view.name.isEmpty ? l.kindBase : view.name} 2'));
-        setState(() => _view = base.views.length);
+        if (mounted) setState(() => _view = base.views.length);
       case 'delete':
         await _edit((editor) => editor.deleteView(index));
-        setState(() => _view = (index - 1).clamp(0, base.views.length - 2));
+        if (mounted) setState(() => _view = (index - 1).clamp(0, base.views.length - 2));
     }
   }
 
@@ -474,7 +475,7 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
     final name = await askBaseText(context, title: l.baseViewAdd, initial: _layoutName(l, type));
     if (name == null || !mounted) return;
     await _edit((editor) => editor.addView(type, name.trim().isEmpty ? _layoutName(l, type) : name.trim()));
-    setState(() => _view = base.views.length);
+    if (mounted) setState(() => _view = base.views.length);
   }
 
   /// Новая заметка вида: папка, свойства и теги из условий, чтобы она в виде и осталась.
@@ -504,13 +505,11 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
       return;
     }
     final name = property.startsWith('note.') ? property.substring(5) : property;
-    // свойство-список остаётся списком: «Метки: [В работе]»
-    final asList = rows.any((row) => row.properties[name] is List);
     final next = {...note.properties};
     if (empty) {
       next.remove(name);
     } else {
-      next[name] = asList ? [key] : key;
+      next[name] = boardColumnValue(rows, name, key);
     }
     await ref.read(itemsRepositoryProvider).setProperties(note.id, next, now);
   }
