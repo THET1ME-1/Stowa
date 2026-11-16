@@ -41,6 +41,18 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('карточка заметки со ссылкой на заголовок показывает только этот раздел', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Ремонт', body: const Value('Вступление.\n\n## Покупки\n- молоко\n\n## Сроки\n- март'), createdAt: world.now, updatedAt: world.now),
+    );
+    await canvas(CanvasDoc.parse('{"nodes":[{"id":"f","type":"file","file":"Ремонт.md","subpath":"#Покупки","x":0,"y":0,"width":300,"height":200}],"edges":[]}'));
+    await open(tester);
+    expect(find.text('Ремонт › Покупки'), findsOneWidget);
+    expect(find.textContaining('молоко', findRichText: true), findsOneWidget);
+    expect(find.textContaining('Вступление', findRichText: true), findsNothing);
+    expect(find.textContaining('март', findRichText: true), findsNothing);
+  });
+
   testWidgets('заметка-холст открывается холстом: имя и число карточек в шапке', (tester) async {
     await canvas(CanvasDoc.empty().addText('купить плитку', x: 0, y: 0));
     await open(tester);

@@ -17,6 +17,7 @@ import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../domain/canvas_layout.dart';
 import '../../domain/json_canvas.dart';
+import '../../domain/note_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
@@ -678,7 +679,7 @@ class _NodeView extends ConsumerWidget {
         child: ClipRect(child: MarkedText.note(node.text, style: text.bodyMedium!.copyWith(height: 1.4), maxLines: 400, overflow: TextOverflow.fade)),
       ),
       CanvasNodeType.link => _LinkFace(url: node.url ?? ''),
-      CanvasNodeType.file => _FileFace(path: node.file ?? '', filesRoot: filesRoot, missing: l.canvasMissingFile(node.file ?? '')),
+      CanvasNodeType.file => _FileFace(path: node.file ?? '', subpath: node.subpath, filesRoot: filesRoot, missing: l.canvasMissingFile(node.file ?? '')),
       CanvasNodeType.group => Align(
         alignment: Alignment.topLeft,
         child: node.label.isEmpty
@@ -781,9 +782,12 @@ class _LinkFace extends StatelessWidget {
 const _imageExtensions = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'heic', 'bmp', 'avif'};
 
 class _FileFace extends ConsumerWidget {
-  const _FileFace({required this.path, required this.filesRoot, required this.missing});
+  const _FileFace({required this.path, required this.filesRoot, required this.missing, this.subpath});
 
   final String path;
+
+  /// `#Заголовок` или `#^метка`: на карточке только этот раздел, как в Obsidian.
+  final String? subpath;
   final Directory filesRoot;
   final String missing;
 
@@ -811,13 +815,20 @@ class _FileFace extends ConsumerWidget {
               children: [
                 Icon(symbolIcon('description'), size: 18, color: Tokens.muted),
                 const SizedBox(width: 8),
-                Expanded(child: Text(found.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleMedium)),
+                Expanded(
+                  child: Text(
+                    [found.title, ?sectionTitle(subpath)].join(' › '),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleMedium,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Expanded(
               child: ClipRect(
-                child: MarkedText.note(found.body, style: text.bodySmall!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4), maxLines: 200, overflow: TextOverflow.fade),
+                child: MarkedText.note(noteSection(found.body, subpath), style: text.bodySmall!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4), maxLines: 200, overflow: TextOverflow.fade),
               ),
             ),
           ],
