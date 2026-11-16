@@ -67,6 +67,9 @@ class SilentNotificationPort implements NotificationPort {
 
   @override
   Future<void> cancel(int id) async {}
+
+  @override
+  Future<List<int>> activePinned() async => const [];
 }
 
 /// Система уведомлений за тонкой стенкой: в тестах её подменяют.
@@ -89,6 +92,9 @@ abstract interface class NotificationPort {
 
   /// Снять одно уведомление.
   Future<void> cancel(int id);
+
+  /// Номера закреплённых уведомлений, которые висят сейчас, — и от прошлых запусков.
+  Future<List<int>> activePinned();
 }
 
 /// Держит будильники системы в согласии с базой. Любая правка напоминаний —
@@ -251,6 +257,17 @@ class LocalNotificationPort implements NotificationPort {
   Future<void> cancel(int id) async {
     await start();
     await _plugin.cancel(id: id);
+  }
+
+  @override
+  Future<List<int>> activePinned() async {
+    await start();
+    try {
+      final active = await _plugin.getActiveNotifications();
+      return [for (final one in active) if (one.channelId == 'pinned' && one.id != null) one.id!];
+    } on Object {
+      return const [];
+    }
   }
 
   @override

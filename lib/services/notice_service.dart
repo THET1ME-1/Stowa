@@ -53,7 +53,9 @@ class NoticeService {
 
   Future<void> sync(List<Notice> notices, {required bool private, bool force = false}) async {
     final wanted = {for (final one in notices) noticeNotificationId(one.id): one};
-    for (final id in [..._shown.keys]) {
+    // висящее от прошлого запуска тоже: заметку могли удалить, пока Stowa была закрыта, или
+    // открыть другое хранилище, а смахнуть закреплённое нельзя
+    for (final id in {..._shown.keys, ...await _port.activePinned()}) {
       if (wanted.containsKey(id)) continue;
       await _port.cancel(id);
       _shown.remove(id);

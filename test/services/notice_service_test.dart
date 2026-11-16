@@ -34,6 +34,9 @@ class _Port implements NotificationPort {
 
   @override
   Future<void> cancel(int id) async => shown.remove(id);
+
+  @override
+  Future<List<int>> activePinned() async => [...shown.keys];
 }
 
 void main() {
@@ -94,6 +97,13 @@ void main() {
     port.shown.clear();
     await service.sync(const [(id: 'a', title: 'Сказать маме', body: 'про субботу')], private: false, force: true);
     expect(port.shown, hasLength(1));
+  });
+
+  test('висящее от прошлого запуска (заметку удалили, пока Stowa была закрыта) — снимается', () async {
+    // уведомление осталось от прошлого процесса: в памяти новой службы его нет
+    port.shown[noticeNotificationId('gone')] = (title: 'Удалённая', body: '', payload: 'gone', private: false);
+    await NoticeService(port).sync(const [(id: 'a', title: 'Сказать маме', body: '')], private: false);
+    expect(port.shown.keys, [noticeNotificationId('a')]);
   });
 
   test('«Код на вход» — на экране блокировки без текста', () async {

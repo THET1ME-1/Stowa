@@ -181,6 +181,9 @@ TextEditingValue mathInput(TextEditingValue old, TextEditingValue next) {
     }
     // закрывающий уже стоит — перешагнуть
     if (region != null && old.text.startsWith(r'$', at)) return _set(old.text, caret);
+    // после буквы или цифры («US$», «5$») это знак валюты, а не начало формулы
+    final previous = at >= 1 ? old.text[at - 1] : '';
+    if (RegExp(r'[\p{L}\d]', unicode: true).hasMatch(previous)) return next;
     if (region == null && !_codeSpans(old.text).any((span) => at > span.$1 && at < span.$2)) {
       return _set(text.replaceRange(caret, caret, r'$'), caret);
     }
@@ -188,9 +191,9 @@ TextEditingValue mathInput(TextEditingValue old, TextEditingValue next) {
   }
   if (region == null) return next;
 
-  // цифра сразу в пустой паре: это цена «$5», а не формула — пара снимается
+  // цифра или пробел сразу в пустой паре: это цена («$5», «$ 5»), а не формула — пара снимается
   final emptyInline = !region.display && region.tex.isEmpty && at >= 1 && old.text[at - 1] == r'$' && old.text.startsWith(r'$', at);
-  if (emptyInline && RegExp(r'\d').hasMatch(char)) return _set(text.replaceRange(caret, caret + 1, ''), caret);
+  if (emptyInline && RegExp(r'[\d\s]').hasMatch(char) && char != '\n') return _set(text.replaceRange(caret, caret + 1, ''), caret);
 
   // Enter в пустом блоке $$|$$ — блок на своих строках
   if (char == '\n' && region.display && region.tex.isEmpty) return _set(text.replaceRange(caret, caret, '\n'), caret);

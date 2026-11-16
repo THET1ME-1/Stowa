@@ -281,6 +281,9 @@ class FakeNotificationPort implements NotificationPort {
 
   @override
   Future<void> cancel(int id) async => pinned.remove(id);
+
+  @override
+  Future<List<int>> activePinned() async => [...pinned.keys];
 }
 
 /// Поиск адреса без сети: [found] на любой запрос от трёх букв, точка зовётся [pointName].

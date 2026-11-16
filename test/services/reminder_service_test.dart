@@ -28,6 +28,9 @@ class _FakePort implements NotificationPort {
 
   @override
   Future<void> cancel(int id) async {}
+
+  @override
+  Future<List<int>> activePinned() async => const [];
 }
 
 void main() {
