@@ -6562,6 +6562,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Untitled'**
   String get baseUntitled;
+
+  /// Колонка и условие базы: расширение файла (file.ext)
+  ///
+  /// In en, this message translates to:
+  /// **'File type'**
+  String get baseColExt;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

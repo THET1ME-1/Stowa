@@ -210,8 +210,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Новый холст'));
     await tester.pumpAndSettle();
+    // поле названия, а не «Имя папки», и кнопка «Создать»
+    expect(find.text('Название'), findsOneWidget);
     await tester.enterText(find.byType(TextField).last, 'Меню на неделю');
-    await tester.tap(find.widgetWithText(FilledButton, 'Сохранить'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Создать'));
     await tester.pumpAndSettle();
     final canvas = (await world.db.select(world.db.items).get()).singleWhere((item) => item.kind == ItemKind.canvas);
     expect((canvas.title, canvas.folderId), ('Меню на неделю', 'food'));

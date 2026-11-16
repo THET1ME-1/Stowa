@@ -4686,5 +4686,9 @@
   "baseImageFitCover": "Crop to fill",
   "baseImageFitContain": "Fit whole",
   "baseKanbanNeedsGroup": "Pick a property under Group to build the columns.",
-  "baseUntitled": "Untitled"
+  "baseUntitled": "Untitled",
+  "baseColExt": "File type",
+  "@baseColExt": {
+    "description": "Колонка и условие базы: расширение файла (file.ext)"
+  }
 }

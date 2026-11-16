@@ -791,5 +791,6 @@
   "baseImageFitCover": "Przytnij do ramki",
   "baseImageFitContain": "W całości",
   "baseKanbanNeedsGroup": "Wybierz w „Grupie” właściwość dla kolumn.",
-  "baseUntitled": "Bez tytułu"
+  "baseUntitled": "Bez tytułu",
+  "baseColExt": "Typ pliku"
 }

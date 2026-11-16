@@ -407,7 +407,8 @@ String newBaseFor(String folderPath) {
   final escaped = folderPath.replaceAll(r'\', r'\\').replaceAll('"', r'\"').replaceAll("'", "''");
   return 'filters:\n'
       '  and:\n'
-      "    - 'file.inFolder(\"$escaped\")'\n"
+      // база в корне смотрит на всё хранилище: условие «в папке» с пустым значением только путало
+      "${folderPath.isEmpty ? '' : "    - 'file.inFolder(\"$escaped\")'\n"}"
       '    - \'file.ext == "md"\'\n'
       'views:\n'
       '  - type: table\n'

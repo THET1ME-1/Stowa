@@ -3879,4 +3879,7 @@ class LEs extends L {
 
   @override
   String get baseUntitled => 'Sin título';
+
+  @override
+  String get baseColExt => 'Tipo de archivo';
 }

@@ -118,7 +118,7 @@ class _DrawingScreenState extends ConsumerState<DrawingScreen> {
   }
 
   Future<void> _rename() async {
-    final name = await showRenameSheet(context, widget.item.title);
+    final name = await showRenameSheet(context, widget.item.title, label: L.of(context).baseColName);
     if (name == null || name.trim().isEmpty) return;
     await ref.read(documentsRepositoryProvider).rename(widget.item.id, name.trim());
   }

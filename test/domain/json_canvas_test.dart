@@ -99,4 +99,14 @@ void main() {
     expect(canvasHex('#ff8800'), 0xFFFF8800);
     expect(canvasHex('5'), isNull);
   });
+  test('новая карточка не ложится поверх старой: встаёт рядом, ближе всего к желанному месту', () {
+    final doc = CanvasDoc.empty().addText('Что прочитать', x: -130, y: -70).addGroup('Этап', x: -400, y: -300, width: 900, height: 700);
+    // пусто вокруг — встаёт куда просили
+    expect(freeCanvasSpot(doc.nodes, x: 400, y: 400, width: 200, height: 100), (x: 400, y: 400));
+    // на месте карточки — рядом с ней, без пересечения; группа не мешает
+    final spot = freeCanvasSpot(doc.nodes, x: -200, y: -150, width: 400, height: 300);
+    final text = doc.nodes.firstWhere((node) => node.type == CanvasNodeType.text);
+    final overlaps = spot.x < text.x + text.width && spot.x + 400 > text.x && spot.y < text.y + text.height && spot.y + 300 > text.y;
+    expect(overlaps, isFalse);
+  });
 }

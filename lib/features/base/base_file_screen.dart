@@ -83,7 +83,7 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
   }
 
   Future<void> _rename() async {
-    final name = await showRenameSheet(context, widget.item.title);
+    final name = await showRenameSheet(context, widget.item.title, label: L.of(context).baseColName);
     if (name == null || name.trim().isEmpty) return;
     await ref.read(documentsRepositoryProvider).rename(widget.item.id, name.trim());
   }
@@ -185,7 +185,7 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
                 _collapsed.clear();
               }),
               onMenu: (i) => _viewMenu(base, i, properties, label),
-              onAdd: () => _addView(base),
+              onAdd: () => _addView(base, properties, label),
               onReorder: (from, to) async {
                 await _edit((editor) => editor.moveView(from, to));
                 if (!mounted) return;
@@ -442,7 +442,9 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
         await showBaseViewSettings(context, view: view, properties: properties, label: label, onChanged: (key, value) => _edit((editor) => editor.setCardOption(index, key, value)));
       case 'layout':
         final type = await _pickLayout(view.type);
-        if (type != null) await _edit((editor) => editor.setViewType(index, type));
+        if (type == null) return;
+        await _edit((editor) => editor.setViewType(index, type));
+        if (type == BaseViewType.kanban && view.groupBy == null) await _askColumns(index, properties, label);
       case 'rename':
         final name = await askBaseText(context, title: l.baseRename, initial: view.name);
         if (name != null && name.trim().isNotEmpty) await _edit((editor) => editor.renameView(index, name.trim()));
@@ -468,14 +470,22 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
     );
   }
 
-  Future<void> _addView(ObsidianBase base) async {
+  Future<void> _addView(ObsidianBase base, List<String> properties, String Function(String) label) async {
     final l = L.of(context);
     final type = await _pickLayout(null);
     if (type == null || !mounted) return;
     final name = await askBaseText(context, title: l.baseViewAdd, initial: _layoutName(l, type));
     if (name == null || !mounted) return;
     await _edit((editor) => editor.addView(type, name.trim().isEmpty ? _layoutName(l, type) : name.trim()));
-    if (mounted) setState(() => _view = base.views.length);
+    if (!mounted) return;
+    setState(() => _view = base.views.length);
+    if (type == BaseViewType.kanban) await _askColumns(base.views.length, properties, label);
+  }
+
+  /// Доска без колонок пуста: свойство для них спрашивается сразу, а не подсказкой «выберите в Группе».
+  Future<void> _askColumns(int index, List<String> properties, String Function(String) label) async {
+    if (!mounted) return;
+    await showBaseGroupSheet(context, group: null, properties: properties, label: label, onChanged: (group) => _edit((editor) => editor.setGroupBy(index, group)));
   }
 
   /// Новая заметка вида: папка, свойства и теги из условий, чтобы она в виде и осталась.
@@ -629,6 +639,7 @@ String builtInLabel(L l, String property) => switch (property) {
   'file.tags' => l.baseColTags,
   'file.path' => l.baseColPath,
   'file.links' => l.baseColLinks,
+  'file.ext' => l.baseColExt,
   _ => property.replaceFirst(RegExp(r'^(note|formula)\.'), ''),
 };
 
@@ -639,7 +650,8 @@ final _wikiLink = RegExp(r'^!?\[\[([^\]|]+)(?:\|([^\]]+))?\]\]$');
 /// запятую, «да/нет» галочкой.
 String formatBaseValue(L l, Object? value, String property) {
   String date(DateTime day) {
-    final shown = DateFormat.yMMMd(l.localeName).format(day);
+    // год пишется, только если он не нынешний: иначе дата со временем не влезает в колонку телефона
+    final shown = (day.year == DateTime.now().year ? DateFormat.MMMd(l.localeName) : DateFormat.yMMMd(l.localeName)).format(day);
     return day.hour == 0 && day.minute == 0 ? shown : '$shown, ${DateFormat.Hm(l.localeName).format(day)}';
   }
 

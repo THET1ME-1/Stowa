@@ -233,12 +233,14 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
         if (target == null) return;
         final path = await ref.read(documentsRepositoryProvider).pathOf(target.id);
         if (path == null || !mounted) return;
-        _select(_doc.addFile(path, x: at.dx - 200, y: at.dy - 150));
+        final spot = _spot(at - const Offset(200, 150), 400, 300);
+        _select(_doc.addFile(path, x: spot.dx, y: spot.dy));
       case CanvasNodeType.link:
         final url = await _askText(context, hint: l.canvasLinkHint, multiline: false);
         if (url == null || url.trim().isEmpty) return;
         final full = url.contains('://') ? url.trim() : 'https://${url.trim()}';
-        _select(_doc.addLink(full, x: at.dx - 200, y: at.dy - 60));
+        final spot = _spot(at - const Offset(200, 60), 400, 120);
+        _select(_doc.addLink(full, x: spot.dx, y: spot.dy));
       case CanvasNodeType.group:
         final label = await _askText(context, hint: l.canvasGroupHint, multiline: false, initial: l.canvasAddGroup);
         if (label == null) return;
@@ -256,12 +258,35 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
       _selected = added.id;
       _selectedEdge = null;
     });
+    _reveal(added);
+  }
+
+  /// Свободное место под новую карточку рядом с [wanted] (её левым верхним углом).
+  Offset _spot(Offset wanted, double width, double height) {
+    final spot = freeCanvasSpot(_doc.nodes, x: wanted.dx, y: wanted.dy, width: width, height: height);
+    return Offset(spot.x.toDouble(), spot.y.toDouble());
+  }
+
+  /// Новая карточка видна целиком: окно сдвигается к ней, а крупная уменьшается до ширины экрана.
+  void _reveal(CanvasNode node) {
+    if (_viewport.isEmpty) return;
+    final scale = _transform.value.getMaxScaleOnAxis();
+    final visible = Size(_viewport.width, max(120, _viewport.height - 96));
+    final topLeft = MatrixUtils.transformPoint(_transform.value, Offset(node.x + _origin, node.y + _origin));
+    final shown = Rect.fromLTWH(topLeft.dx, topLeft.dy, node.width * scale, node.height * scale);
+    if (Offset.zero & visible case final view when view.contains(shown.topLeft) && view.contains(shown.bottomRight)) return;
+    final next = min(scale, min((visible.width - 32) / node.width, (visible.height - 32) / node.height)).clamp(0.08, 1.2).toDouble();
+    final center = Offset(node.x + node.width / 2 + _origin, node.y + node.height / 2 + _origin);
+    final dx = visible.width / 2 - center.dx * next;
+    final dy = visible.height / 2 - center.dy * next;
+    _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(next, next, next);
   }
 
   Future<void> _addText(Offset topLeft) async {
     final text = await _askText(context, hint: L.of(context).canvasTextHint);
     if (text == null || text.trim().isEmpty || !mounted) return;
-    _select(_doc.addText(text.trim(), x: topLeft.dx, y: topLeft.dy));
+    final at = _spot(topLeft, 260, 140);
+    _select(_doc.addText(text.trim(), x: at.dx, y: at.dy));
   }
 
   Future<void> _edit(CanvasNode node) async {
@@ -311,7 +336,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
   }
 
   Future<void> _rename() async {
-    final name = await showRenameSheet(context, widget.item.title);
+    final name = await showRenameSheet(context, widget.item.title, label: L.of(context).baseColName);
     if (name == null || name.trim().isEmpty) return;
     await ref.read(documentsRepositoryProvider).rename(widget.item.id, name.trim());
   }

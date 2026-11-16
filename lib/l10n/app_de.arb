@@ -791,5 +791,6 @@
   "baseImageFitCover": "Zuschneiden",
   "baseImageFitContain": "Ganz zeigen",
   "baseKanbanNeedsGroup": "Wähle unter „Gruppieren“ eine Eigenschaft für die Spalten.",
-  "baseUntitled": "Ohne Titel"
+  "baseUntitled": "Ohne Titel",
+  "baseColExt": "Dateityp"
 }

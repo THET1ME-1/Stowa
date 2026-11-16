@@ -3936,4 +3936,7 @@ class LPl extends L {
 
   @override
   String get baseUntitled => 'Bez tytułu';
+
+  @override
+  String get baseColExt => 'Typ pliku';
 }

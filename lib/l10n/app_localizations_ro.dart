@@ -3905,4 +3905,7 @@ class LRo extends L {
 
   @override
   String get baseUntitled => 'Fără titlu';
+
+  @override
+  String get baseColExt => 'Tip fișier';
 }

@@ -80,4 +80,14 @@ views:
     expect(const FilterGroup(FilterJoin.all, []).toFilter(), isNull);
     expect(FilterGroup.from(null).items, isEmpty);
   });
+
+  test('недописанное условие (значения ещё нет) в файл не идёт и заметки не прячет', () {
+    const group = FilterGroup(FilterJoin.all, [
+      FilterRow('file.links', FilterOp.hasLink, ''),
+      FilterRow('Автор', FilterOp.isEqual, '  '),
+      FilterRow('Метки', FilterOp.isNotEmpty, ''),
+    ]);
+    expect(describeFilter(group.toFilter()), 'and(!Метки.isEmpty())');
+    expect(const FilterGroup(FilterJoin.all, [FilterRow('Автор', FilterOp.contains, '')]).toFilter(), isNull);
+  });
 }

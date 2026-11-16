@@ -3934,4 +3934,7 @@ class LUk extends L {
 
   @override
   String get baseUntitled => 'Без назви';
+
+  @override
+  String get baseColExt => 'Тип файлу';
 }

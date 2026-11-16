@@ -791,5 +791,6 @@
   "baseImageFitCover": "Обрізати по рамці",
   "baseImageFitContain": "Повністю",
   "baseKanbanNeedsGroup": "Виберіть у «Групі» властивість для колонок.",
-  "baseUntitled": "Без назви"
+  "baseUntitled": "Без назви",
+  "baseColExt": "Тип файлу"
 }

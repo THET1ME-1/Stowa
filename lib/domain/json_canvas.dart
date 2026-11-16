@@ -216,6 +216,29 @@ const canvasPresets = {'1': 'coral', '2': 'tangerine', '3': 'amber', '4': 'mint'
 
 String? canvasPresetKey(String? color) => canvasPresets[color];
 
+/// Место новой карточки [width]×[height]: желанное ([x], [y]), а занято — ближайшее свободное
+/// справа, слева, ниже или выше соседних карточек. Группы не мешают: карточки лежат в них.
+({num x, num y}) freeCanvasSpot(List<CanvasNode> nodes, {required num x, required num y, required num width, required num height}) {
+  const gap = 40;
+  final cards = [for (final node in nodes) if (node.type != CanvasNodeType.group) node];
+  bool free(num left, num top) => !cards.any(
+    (card) => left < card.x + card.width + gap && left + width + gap > card.x && top < card.y + card.height + gap && top + height + gap > card.y,
+  );
+
+  if (free(x, y)) return (x: x, y: y);
+  // кандидаты — впритык к каждой карточке с четырёх сторон, берётся ближайший к желанному
+  final candidates = [
+    for (final card in cards) ...[
+      (x: card.x + card.width + gap, y: card.y),
+      (x: card.x - width - gap, y: card.y),
+      (x: card.x, y: card.y + card.height + gap),
+      (x: card.x, y: card.y - height - gap),
+    ],
+  ].where((spot) => free(spot.x, spot.y)).toList()
+    ..sort((a, b) => ((a.x - x).abs() + (a.y - y).abs()).compareTo((b.x - x).abs() + (b.y - y).abs()));
+  return candidates.firstOrNull ?? (x: x, y: y);
+}
+
 /// Свой цвет `#RRGGBB` числом ARGB; готовый или кривой — null.
 int? canvasHex(String? color) {
   if (color == null || !RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(color)) return null;

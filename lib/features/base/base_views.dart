@@ -126,6 +126,20 @@ class _BaseTableState extends State<BaseTable> {
     final screen = MediaQuery.sizeOf(context).width;
     // одна колонка — на всю ширину, а не узкой полосой слева
     if (first && widget.columns.length == 1) return screen - 2 * Space.screen;
+    final own = _ownWidth(property, first: first, screen: screen);
+    if (widget.view.widthOf(property) != null) return own;
+    // пустое место справа делится между колонками без своей ширины: даты не обрезаются, когда им есть где встать
+    var total = 0.0;
+    var loose = 0;
+    for (final (i, column) in widget.columns.indexed) {
+      total += _dragging[column] ?? _ownWidth(column, first: i == 0, screen: screen);
+      if (widget.view.widthOf(column) == null && !_dragging.containsKey(column)) loose++;
+    }
+    final spare = screen - 2 * Space.screen - total;
+    return spare > 0 && loose > 0 ? own + spare / loose : own;
+  }
+
+  double _ownWidth(String property, {required bool first, required double screen}) {
     final saved = widget.view.widthOf(property);
     // закреплённое название не шире половины экрана: справа должны быть видны другие колонки
     if (saved != null) return (saved * _scale).clamp(64, first ? screen * 0.5 : 360);

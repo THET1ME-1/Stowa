@@ -3944,4 +3944,7 @@ class LRu extends L {
 
   @override
   String get baseUntitled => 'Без названия';
+
+  @override
+  String get baseColExt => 'Тип файла';
 }

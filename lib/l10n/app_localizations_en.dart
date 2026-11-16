@@ -3872,4 +3872,7 @@ class LEn extends L {
 
   @override
   String get baseUntitled => 'Untitled';
+
+  @override
+  String get baseColExt => 'File type';
 }

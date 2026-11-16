@@ -64,6 +64,9 @@ class FilterRow extends FilterItem {
   final bool quoted;
   final String? raw;
 
+  /// Условие дописано: значение есть там, где оно нужно.
+  bool get complete => !filterOpTakesValue(op) || value.trim().isNotEmpty;
+
   /// Новое значение: похожее на число или true/false пишется без кавычек.
   FilterRow withValue(String value) => FilterRow(property, op, value, quoted: !RegExp(r'^\s*(-?\d+(\.\d+)?|true|false)\s*$').hasMatch(value));
 
@@ -194,11 +197,12 @@ class FilterGroup extends FilterItem {
   /// Сколько строк во всех вложенных группах: число на кнопке «Фильтр».
   int get count => items.fold(0, (sum, item) => sum + (item is FilterGroup ? item.count : 1));
 
-  /// Фильтр для файла; пустая группа — фильтра нет.
+  /// Фильтр для файла; пустая группа — фильтра нет. Условие, которому ещё не вписали значение,
+  /// в файл не идёт: иначе база пустела, пока человек выбирает свойство и набирает значение.
   BaseFilter? toFilter() {
     final parts = [
       for (final item in items)
-        if (item is FilterRow && item.source.trim().isNotEmpty) BaseExpr(item.source) else if (item is FilterGroup) ?item.toFilter(),
+        if (item is FilterRow && item.source.trim().isNotEmpty && item.complete) BaseExpr(item.source) else if (item is FilterGroup) ?item.toFilter(),
     ];
     if (parts.isEmpty) return null;
     return switch (join) {

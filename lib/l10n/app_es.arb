@@ -791,5 +791,6 @@
   "baseImageFitCover": "Recortar al marco",
   "baseImageFitContain": "Entera",
   "baseKanbanNeedsGroup": "Elige en «Agrupar» la propiedad para las columnas.",
-  "baseUntitled": "Sin título"
+  "baseUntitled": "Sin título",
+  "baseColExt": "Tipo de archivo"
 }

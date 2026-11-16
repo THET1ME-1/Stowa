@@ -1075,5 +1075,6 @@
   "baseImageFitCover": "Обрезать по рамке",
   "baseImageFitContain": "Целиком",
   "baseKanbanNeedsGroup": "Выберите в «Группе» свойство для колонок.",
-  "baseUntitled": "Без названия"
+  "baseUntitled": "Без названия",
+  "baseColExt": "Тип файла"
 }

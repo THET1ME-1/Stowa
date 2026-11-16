@@ -68,14 +68,15 @@ Future<void> pickNewDocument(BuildContext context, WidgetRef ref, {String? folde
 /// Спросить имя и завести холст или базу в папке; сразу открыть. Передумал — ничего.
 Future<void> askNewDocument(BuildContext context, WidgetRef ref, ItemKind kind, {String? folderId}) async {
   final l = L.of(context);
-  final name = await showRenameSheet(context, kind == ItemKind.base ? l.baseDefaultName : l.canvasDefaultName);
+  final name = await showRenameSheet(context, kind == ItemKind.base ? l.baseDefaultName : l.canvasDefaultName, label: l.baseColName, action: l.actionCreate);
   if (name == null || name.trim().isEmpty || !context.mounted) return;
   final id = await ref.read(documentsRepositoryProvider).create(kind, title: name.trim(), folderId: folderId);
   if (context.mounted) await Navigator.of(context).push(itemRoute(id));
 }
 
-/// Новое имя папки или null, если передумал.
-Future<String?> showRenameSheet(BuildContext context, String current) {
+/// Новое имя папки или null, если передумал. [label] и [action] — подпись поля и кнопки
+/// для всего, что не папка: холст, база, рисунок.
+Future<String?> showRenameSheet(BuildContext context, String current, {String? label, String? action}) {
   final l = L.of(context);
   final field = TextEditingController(text: current)..selection = TextSelection(baseOffset: 0, extentOffset: current.length);
   return _sheet<String>(
@@ -90,13 +91,13 @@ Future<String?> showRenameSheet(BuildContext context, String current) {
             controller: field,
             autofocus: true,
             textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(labelText: l.folderNameLabel),
+            decoration: InputDecoration(labelText: label ?? l.folderNameLabel),
             onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value),
           ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => Navigator.pop(context, field.text.trim().isEmpty ? null : field.text),
-            child: Text(l.save),
+            child: Text(action ?? l.save),
           ),
         ],
       ),

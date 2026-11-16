@@ -3889,4 +3889,7 @@ class LDe extends L {
 
   @override
   String get baseUntitled => 'Ohne Titel';
+
+  @override
+  String get baseColExt => 'Dateityp';
 }
