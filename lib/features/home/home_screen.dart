@@ -303,7 +303,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
         children: [
           _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
           Positioned.fill(
-            child: LineDock(key: _dock, onOpenItem: _open),
+            child: LineDock(key: _dock, onOpenItem: _open, onboarding: true),
           ),
         ],
       ),

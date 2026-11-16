@@ -25,6 +25,7 @@ import '../../data/repositories/items_repository.dart';
 import '../../domain/folder_guess.dart' show seriesOf;
 import '../../domain/item_kind.dart';
 import '../../domain/language_guess.dart';
+import '../../domain/hints.dart';
 import '../../domain/line_query.dart';
 import '../../domain/models.dart';
 import '../../domain/money.dart' show formatTotal;
@@ -48,6 +49,7 @@ import 'markdown_bar.dart';
 import 'markdown_edit.dart';
 import 'panel_model.dart';
 import 'panel_text.dart';
+import 'start_card.dart';
 import 'picked_files.dart';
 import 'voice_session.dart';
 import 'voice_wave.dart';
@@ -97,7 +99,10 @@ class LineElsewhere {
 }
 
 class LineDock extends ConsumerStatefulWidget {
-  const LineDock({super.key, required this.onOpenItem, this.homeFolder, this.onRest, this.writeOnly = false, this.elsewhere});
+  const LineDock({super.key, required this.onOpenItem, this.homeFolder, this.onRest, this.writeOnly = false, this.elsewhere, this.onboarding = false});
+
+  /// Строка главной: над ней, пока она пуста, стоит шаг знакомства.
+  final bool onboarding;
 
   final ValueChanged<String> onOpenItem;
 
@@ -366,6 +371,32 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   /// Камера виджета: готовый снимок встаёт вложением.
   void attach(List<PickedFile> files) => _addPicked(files);
+
+  /// «Попробовать» на карточке шага: пример в строку, как будто его набрали. У первого шага
+  /// и финала кнопки нет — там нечего вставлять.
+  VoidCallback? _tryOf(StartStep step) {
+    final l = L.of(context);
+    String? example() => switch (step) {
+      StartStep.search => _wordToFind(),
+      StartStep.remind => l.startRemindExample,
+      StartStep.folder => l.startFolderExample.trim(),
+      StartStep.tag => l.startTagExample.trim(),
+      StartStep.commands => '/',
+      StartStep.stow || StartStep.finish => null,
+    };
+    if (example() == null) return null;
+    return () {
+      prefill(example()!);
+      _focus.requestFocus();
+    };
+  }
+
+  /// Слово, по которому найдётся последняя заметка: первое от четырёх букв, иначе заголовок.
+  String? _wordToFind() {
+    final title = (ref.read(recentItemsProvider).value ?? const []).firstOrNull?.title;
+    if (title == null || title.trim().isEmpty) return null;
+    return RegExp(r'[\p{L}\p{N}]{4,}', unicode: true).firstMatch(title)?[0] ?? title.trim();
+  }
 
   /// Набранное в другом окне (полка «Под рукой») продолжается здесь.
   void prefill(String text) {
@@ -643,6 +674,14 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       );
       // поставил напоминание — тут и спросить уведомления; про место «всегда» скажет карточка на главной
       if (saved?.item.reminderAt != null || saved?.item.remindPlace != null) askNotifications(ref).ignore();
+      // знакомство: что человек сделал этим сохранением
+      ref.read(hintsRepositoryProvider).record([
+        StartEvent.stowed,
+        if (saved?.item.reminderAt != null || saved?.item.remindPlace != null) StartEvent.reminded,
+        if (snapshot.folder != null || newFolder != null) StartEvent.foldered,
+        if (snapshot.tags.isNotEmpty) StartEvent.tagged,
+        if (command != null) StartEvent.commanded,
+      ]).ignore();
     } catch (_) {
       // не сохранилось: строка снова такая, как её набрали
       _line.restore(text: typed.text, tags: typed.tags, folder: typed.folder, reminderDismissed: snapshot.dismissed, placeDismissed: snapshot.placeDismissed);
@@ -663,6 +702,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       if (newFolder != null) _line.chooseFolder(await ref.read(foldersRepositoryProvider).create(newFolder));
       final kind = command == LineCommand.base ? ItemKind.base : ItemKind.canvas;
       final id = await ref.read(documentsRepositoryProvider).create(kind, title: documentName(l, command, rest), folderId: _line.folder?.id);
+      ref.read(hintsRepositoryProvider).record([StartEvent.commanded, if (typed.folder != null || newFolder != null) StartEvent.foldered]).ignore();
       if (!mounted) return;
       final files = List.of(_files);
       _clearLine();
@@ -908,6 +948,16 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     // курсор в [[…: над полем список заметок, поиск строки не мешает
     final showPanel = _active && !_full && !_morph.isAnimating && _voice == null && _wikiQuery == null && (_tray || rows.isNotEmpty);
     final shade = showPanel || _full;
+    // шаг знакомства — пока строка пуста и над ней ничего нет; набор, плашка и голос его прячут
+    final hints = widget.onboarding ? ref.watch(hintsProvider).value : null;
+    final step = hints == null ? null : visibleStep(hints);
+    final showStep = step != null && !showPanel && !_full && _voice == null && _toast == null && !_sending && !_hasContent;
+    // нашлось то, что человек набрал сам, — шаг «поиск» сделан
+    if (rows.any((row) => row is ResultRow) && !ref.read(hintsRepositoryProvider).state.done.contains(StartEvent.found)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(hintsRepositoryProvider).record(const [StartEvent.found]).ignore();
+      });
+    }
     final rest = queryOf(_line.text, keys).rest;
     // знак «успокоилась» уходит после кадра: плашка, вставшая следом за закрытием, его отменяет
     final rested = _rested;
@@ -967,7 +1017,13 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                             layoutBuilder: (current, previous) => Stack(alignment: Alignment.bottomCenter, children: [...previous, ?current]),
                             transitionBuilder: riseTransition,
                             child: !showPanel
-                                ? const SizedBox(key: ValueKey('none'), width: double.infinity)
+                                ? (showStep
+                                      ? Padding(
+                                          key: ValueKey('step-${step.name}'),
+                                          padding: const EdgeInsets.only(bottom: 8),
+                                          child: StartCard(step: step, onSkip: () => ref.read(hintsRepositoryProvider).skipStep().ignore(), onTry: _tryOf(step)),
+                                        )
+                                      : const SizedBox(key: ValueKey('none'), width: double.infinity))
                                 : Padding(
                                     key: ValueKey(_tray ? 'tray' : 'panel'),
                                     padding: const EdgeInsets.only(bottom: 8),
