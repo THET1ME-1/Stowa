@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/domain/item_title.dart';
+import 'package:stowa/domain/note_blocks.dart' show noteLinesUnderTitle;
 
 void main() {
   test('заголовок из первой строки узнаётся, свой заголовок — нет', () {
@@ -69,5 +70,14 @@ void main() {
   test('строки под заголовком: первая уходит, только если заголовок из неё', () {
     expect(linesUnderTitle('Борщ\n\n  - свёкла', 'Борщ'), ['  - свёкла']);
     expect(linesUnderTitle('Заметка из Obsidian\n\nТекст снаружи.', 'Снаружи 3'), ['Заметка из Obsidian', 'Текст снаружи.']);
+  });
+
+  test('одна строка, а заголовок — её начало без времени: под заголовком не повторяется', () {
+    expect(linesUnderTitle('Позвонить маме завтра в 10', 'Позвонить маме'), isEmpty);
+    expect(noteLinesUnderTitle('Позвонить маме завтра в 10', 'Позвонить маме'), isEmpty);
+    // хвост длинный — это не время, а продолжение мысли: остаётся
+    expect(linesUnderTitle('Позвонить маме и спросить, как она съездила к сестре в Бельцы', 'Позвонить маме'), hasLength(1));
+    // строк несколько — тоже остаётся
+    expect(linesUnderTitle('Позвонить маме завтра\nи бабушке', 'Позвонить маме'), hasLength(2));
   });
 }

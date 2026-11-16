@@ -272,6 +272,24 @@ class SettingsScreen extends ConsumerWidget {
                   title: l.settingsPrivacyPolicy,
                   onTap: () => launchUrl(privacyPolicyUrl(Localizations.localeOf(context)), mode: LaunchMode.externalApplication).catchError((_) => false),
                 ),
+                SettingsSwitchRow(
+                  key: const ValueKey('settings-hints'),
+                  icon: 'tips_and_updates',
+                  title: l.hintsToggle,
+                  value: !(ref.watch(hintsProvider).value?.off ?? false),
+                  onChanged: (on) => ref.read(hintsRepositoryProvider).setOff(!on),
+                ),
+                SettingsRow(
+                  key: const ValueKey('settings-hints-restart'),
+                  icon: 'replay',
+                  title: l.hintsRestart,
+                  onTap: () {
+                    final hints = ref.read(hintsRepositoryProvider);
+                    final before = hints.state;
+                    hints.restart().ignore();
+                    showUndo(ScaffoldMessenger.of(context), message: l.hintsRestarted, label: l.undo, onUndo: () => hints.restore(before));
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 28),

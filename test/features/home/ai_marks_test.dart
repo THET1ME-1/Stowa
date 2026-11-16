@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/home/note_timeline.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -32,10 +33,15 @@ void main() {
     expect(find.text('разбираю'), findsOneWidget);
   });
 
-  testWidgets('без ключа та же вещь — «Без папки»', (tester) async {
+  testWidgets('без ключа та же вещь — «Без папки», но только когда папки у человека есть', (tester) async {
     await addLoose();
     await open(tester);
     expect(find.text('разбираю'), findsNothing);
+    // папок нет совсем: метка «Без папки» на каждой карточке — шум
+    expect(find.descendant(of: find.byType(NoteTimeline), matching: find.text('Без папки')), findsNothing);
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'g', name: 'Огород', icon: 'yard', shape: 'pill'));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.descendant(of: find.byType(NoteTimeline), matching: find.text('Без папки')), findsOneWidget);
   });
 
   testWidgets('папка от ИИ помечена «новая», пока её не открыли', (tester) async {

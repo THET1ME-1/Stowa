@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/app.dart' show appNavigator;
 import 'package:stowa/data/hints_repository.dart';
 import 'package:stowa/domain/hints.dart';
 
@@ -78,6 +79,27 @@ void main() {
     await tester.pumpAndSettle();
     await stow(tester, 'хлеб');
     expect(world.hints.state.done, containsAll(StartEvent.values.where((event) => event != StartEvent.found)));
+  });
+
+  testWidgets('«Начать знакомство заново» в настройках возвращает шаг 1 на главную', (tester) async {
+    world.hints = HintsRepository.memory(HintsState.finished);
+    await open(tester);
+    expect(find.byKey(const ValueKey('start-stow')), findsNothing);
+    await tester.tap(find.byTooltip('Настройки'));
+    await tester.pumpAndSettle();
+    final restart = find.byKey(const ValueKey('settings-hints-restart'));
+    // под настройками лежит главная со своей прокруткой: листать сам экран настроек, он сверху
+    await tester.scrollUntilVisible(restart, 300, scrollable: find.byType(Scrollable).last);
+    await tester.pumpAndSettle();
+    await tester.tap(restart);
+    await tester.pumpAndSettle();
+    expect(visibleStep(world.hints.state), StartStep.stow);
+    appNavigator.currentState!.popUntil((route) => route.isFirst);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Настройки'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('start-stow')), findsOneWidget);
   });
 
   testWidgets('выключенные подсказки — карточки нет', (tester) async {

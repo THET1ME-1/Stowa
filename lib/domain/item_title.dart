@@ -37,12 +37,21 @@ bool titleIsFirstLine(String body, String title) {
 /// Непустые строки текста под заголовком для карточки. Первая пропускается, только если
 /// заголовок из неё: у заметки из Obsidian заголовок — имя файла, а первая строка — уже текст.
 /// Строки-картинки `![[…]]` в подпись не идут: у карточки для них своё фото.
-List<String> linesUnderTitle(String body, String title) => body
-    .trim()
-    .split('\n')
-    .skip(titleIsFirstLine(body, title) ? 1 : 0)
-    .where((line) => line.trim().isNotEmpty && !_embed.hasMatch(line))
-    .toList();
+List<String> linesUnderTitle(String body, String title) => repeatsTitle(body, title)
+    ? const []
+    : body.trim().split('\n').skip(titleIsFirstLine(body, title) ? 1 : 0).where((line) => line.trim().isNotEmpty && !_embed.hasMatch(line)).toList();
+
+/// Весь текст — одна строка, а заголовок — её начало, и после него пара слов («завтра в 10»):
+/// разбор унёс время в напоминание, под заголовком строка лишь повторила бы его.
+bool repeatsTitle(String body, String title) {
+  final lines = body.split('\n').where((line) => line.trim().isNotEmpty).toList();
+  final core = title.trim().replaceFirst(RegExp(r'…$'), '');
+  if (lines.length != 1 || core.isEmpty) return false;
+  final line = lines.single.trim();
+  if (!line.toLowerCase().startsWith(core.toLowerCase())) return false;
+  final tail = line.substring(core.length).trim();
+  return tail.isNotEmpty && tail.split(RegExp(r'\s+')).length <= 4;
+}
 
 final _embed = RegExp(r'^\s*!\[\[[^\]]+\]\]\s*$');
 

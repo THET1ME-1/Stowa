@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
@@ -22,6 +23,7 @@ import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
+import '../../data/providers.dart' show foldersProvider;
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
 import '../../domain/note_links.dart' show shownTitle;
@@ -1032,7 +1034,7 @@ class _Attachment extends StatelessWidget {
 }
 
 /// Метки под заметкой: папка в её цвете (касание перекладывает) и напоминание.
-class _Marks extends StatelessWidget {
+class _Marks extends ConsumerWidget {
   const _Marks({required this.item, required this.now, required this.aiSorting, required this.onMove});
 
   final ItemCard item;
@@ -1041,12 +1043,14 @@ class _Marks extends StatelessWidget {
   final VoidCallback onMove;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final waiting = item.folderId == null && (item.sortState == SortState.queued || item.sortState == SortState.pending);
     // метка — надпись цветом папки: в светлой теме тёмный тон того же оттенка
     final color = item.folderColor == null ? null : FolderPalette.ink(item.folderColor!);
-    final Widget folder;
+    // папок у человека нет совсем — «Без папки» на каждой карточке только шумит
+    final anyFolders = ref.watch(foldersProvider).value?.isNotEmpty ?? true;
+    final Widget? folder;
     if (aiSorting && waiting) {
       folder = _Chip(
         fill: Tokens.containerHigh,
@@ -1069,20 +1073,22 @@ class _Marks extends StatelessWidget {
         lead: Icon(symbolIcon(item.folderIcon ?? 'folder', filled: true), size: 14, color: color ?? Tokens.onSurfaceVariant),
         label: item.folderName!,
       );
-    } else {
+    } else if (anyFolders) {
       folder = _Chip(
         fill: Tokens.containerHigh,
         ink: Tokens.onSurfaceVariant,
         lead: Icon(symbolIcon('inbox'), size: 14, color: Tokens.onSurfaceVariant),
         label: l.folderNone,
       );
+    } else {
+      folder = null;
     }
     return Wrap(
       spacing: 6,
       runSpacing: 6,
       children: [
         // метка ловит касание с запасом: палец крупнее пилюли
-        GestureDetector(behavior: HitTestBehavior.opaque, onTap: onMove, child: folder),
+        if (folder != null) GestureDetector(behavior: HitTestBehavior.opaque, onTap: onMove, child: folder),
         if (item.reminderAt case final at?)
           _Chip(
             fill: Tokens.containerHigh,

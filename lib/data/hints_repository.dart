@@ -40,8 +40,11 @@ class HintsRepository {
 
   Future<void> setOff(bool off) => _set(_state.copyWith(off: off));
 
-  /// «Начать знакомство заново»: шаги с первого, подсказки снова видны; выключатель не трогается.
-  Future<void> restart() => _set(HintsState(off: _state.off));
+  /// «Начать знакомство заново»: шаги с первого, подсказки снова видны и включены.
+  Future<void> restart() => _set(HintsState.fresh);
+
+  /// «Отменить» после сброса: всё как было.
+  Future<void> restore(HintsState state) => _set(state);
 
   /// Первый запуск версии со знакомством. Место хранилища выбрали раньше — человек давно
   /// пользуется приложением: шаги и подсказки сразу пройдены. Уже решённое не трогается.

@@ -138,6 +138,7 @@ class NoteLine {
 
 /// Непустые строки под заголовком с их номерами. Первая пропускается, только если заголовок из неё.
 List<NoteLine> noteLinesUnderTitle(String body, String title) {
+  if (repeatsTitle(body, title)) return const [];
   final lines = body.split('\n');
   final first = lines.indexWhere((line) => line.trim().isNotEmpty);
   final skip = first >= 0 && titleIsFirstLine(body, title) ? first : -1;
