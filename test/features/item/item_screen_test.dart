@@ -678,7 +678,7 @@ void main() {
       expect(find.byKey(const ValueKey('video-frames')), findsOneWidget);
     });
 
-    testWidgets('фото между абзацами — в тексте на своём месте, над заголовком только остальные', (tester) async {
+    testWidgets('фото между абзацами — в тексте на своём месте, остальные — после текста', (tester) async {
       await show(
         tester,
         ItemsCompanion.insert(
@@ -694,8 +694,6 @@ void main() {
           AttachmentsCompanion.insert(id: 'p2', itemId: 'a', path: 'Плитка/скан.jpg', mime: 'image/jpeg', size: 1, position: const Value(1)),
         ],
       );
-      // крупно над заголовком — только фото, которого нет в тексте
-      expect(find.byType(Image), findsOneWidget);
       await tester.scrollUntilVisible(find.text('клей серый'), 200, scrollable: find.byType(Scrollable).first);
       await tester.pumpAndSettle();
       final card = find.byKey(const ValueKey('item-body-card'));
@@ -707,6 +705,15 @@ void main() {
       expect(photo, lessThan(tester.getTopLeft(find.text('клей серый')).dy));
       // файла нет — тихая плашка с именем
       expect(find.text('нет.jpg'), findsOneWidget);
+      // фото без вставки — не над заголовком, а после текста, как вставка в конце файла
+      // место от начала страницы: экран тестов мал, текст и фото разом не видны
+      final scroll = find.byType(Scrollable).first;
+      double atPage(Finder finder) => tester.getTopLeft(finder).dy + tester.state<ScrollableState>(scroll).position.pixels;
+      final textEnd = atPage(find.text('нет.jpg'));
+      final below = find.byKey(const ValueKey('item-gallery-below'));
+      await tester.scrollUntilVisible(below, 200, scrollable: scroll);
+      await tester.pumpAndSettle();
+      expect(atPage(below), greaterThan(textEnd));
     });
 
     testWidgets('ссылка: превью с сайтом и описанием, адрес не повторяется текстом, главная кнопка «Открыть»', (tester) async {

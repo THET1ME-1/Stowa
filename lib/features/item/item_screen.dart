@@ -735,6 +735,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final attachmentPaths = [for (final file in full.attachments) file.path];
     final inline = {for (final name in embedNames(item.body)) ?embedPath(name, attachmentPaths)};
     final gallery = [for (final image in images) if (!inline.contains(image.path)) image];
+    // у заметки с текстом фото без вставки идут после текста, как вставки в конце файла; у фото
+    // без текста — крупно сверху, оно и есть заметка
+    final writtenText = item.body.split('\n').where((line) => !embedLine.hasMatch(line)).join('\n').trim().isNotEmpty;
+    final galleryBelow = writtenText && gallery.isNotEmpty;
     final url = item.url;
     // ссылка и ролик по адресу живут превью; свой ролик — файлом с обложкой и «Смотреть»
     final linkLike = url != null && (item.kind == ItemKind.link || item.kind == ItemKind.video);
@@ -857,7 +861,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             ReadButton(minutes: minutes, onTap: () => Navigator.of(context).push(readerRoute(_id))),
                           ],
                           const SizedBox(height: 18),
-                        ] else if (cover != null) ...[
+                        ] else if (cover != null && !galleryBelow) ...[
                           _PhotoCover(
                             image: cover,
                             filesRoot: filesRoot,
@@ -985,6 +989,19 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   )
                                 : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink, image: inlineImage),
                           ),
+                        ],
+                        if (galleryBelow && cover != null) ...[
+                          const SizedBox(height: 12),
+                          _PhotoCover(
+                            key: const ValueKey('item-gallery-below'),
+                            image: cover,
+                            filesRoot: filesRoot,
+                            onOpen: () => PhotoViewer.open(context, [for (final image in gallery) p.join(filesRoot.path, image.path)], _cover.clamp(0, gallery.length - 1)),
+                          ),
+                          if (gallery.length > 1) ...[
+                            const SizedBox(height: 8),
+                            _Thumbs(images: gallery, filesRoot: filesRoot, selected: _cover, onPick: (index) => setState(() => _cover = index)),
+                          ],
                         ],
                         // ссылка среди строк заметки: карточка под текстом, как в мессенджерах
                         if (!_editing && item.kind == ItemKind.note && url != null && item.previewAt != null) ...[
@@ -1537,7 +1554,7 @@ class _ReminderBlock extends StatelessWidget {
 /// Снимок на странице вещи в своих пропорциях: обрезаются только очень вытянутые.
 /// Касание открывает его во весь экран.
 class _PhotoCover extends StatelessWidget {
-  const _PhotoCover({required this.image, required this.filesRoot, required this.onOpen, this.radius = Radii.card});
+  const _PhotoCover({super.key, required this.image, required this.filesRoot, required this.onOpen, this.radius = Radii.card});
 
   final Attachment image;
   final Directory filesRoot;
