@@ -6832,6 +6832,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Obsidian settings can\'t be read, the choice wasn\'t saved.'**
   String get attachmentsObsidianBroken;
+
+  /// Подсказка кнопки над блоком кода в заметке
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get codeCopy;
+
+  /// Кнопка копирования кода на миг после касания
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get codeCopied;
+
+  /// Под свёрнутым длинным блоком кода; число — строк в блоке
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Show all · {count} line} other{Show all · {count} lines}}'**
+  String codeShowAll(int count);
+
+  /// Под раскрытым длинным блоком кода
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get codeCollapse;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

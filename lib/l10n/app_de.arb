@@ -837,5 +837,9 @@
   "attachmentsWithObsidian": "Dieselbe Einstellung wie in Obsidian",
   "attachmentsNameLabel": "Ordnername",
   "attachmentsNameBad": "Dieser Name geht nicht: kein Punkt am Anfang und kein „..“.",
-  "attachmentsObsidianBroken": "Die Obsidian-Einstellungen sind nicht lesbar, die Auswahl wurde nicht gespeichert."
+  "attachmentsObsidianBroken": "Die Obsidian-Einstellungen sind nicht lesbar, die Auswahl wurde nicht gespeichert.",
+  "codeCopy": "Code kopieren",
+  "codeCopied": "Kopiert",
+  "codeShowAll": "{count, plural, one{Alles zeigen · {count} Zeile} other{Alles zeigen · {count} Zeilen}}",
+  "codeCollapse": "Einklappen"
 }

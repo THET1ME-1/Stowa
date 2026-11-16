@@ -1,7 +1,57 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/domain/code_language.dart';
 import 'package:stowa/domain/note_blocks.dart';
 
 void main() {
+  // хозяин 16.11: «красивые блоки кода и чтобы язык программирования был виден»
+  group('блоки кода', () {
+    test('язык после кавычек, строки внутри как есть, без разметки', () {
+      final blocks = parseNoteBlocks('До\n```python\ndef f():\n    # не заголовок\n    - [ ] не галочка\n\n    return 1\n```\nПосле');
+      expect(blocks, hasLength(3));
+      final code = blocks[1] as CodeBlock;
+      expect(code.language, 'python');
+      expect(code.code, 'def f():\n    # не заголовок\n    - [ ] не галочка\n\n    return 1');
+      expect((blocks[2] as ParagraphBlock).text, 'После');
+    });
+
+    test('без языка, тильдами, незакрытый — до конца текста', () {
+      expect((parseNoteBlocks('```\nОн так работает\n```').single as CodeBlock).language, isNull);
+      expect((parseNoteBlocks('~~~sql\nSELECT 1\n~~~').single as CodeBlock).code, 'SELECT 1');
+      expect((parseNoteBlocks('```js\nlet a\nlet b').single as CodeBlock).code, 'let a\nlet b');
+      // закрывает только та же черта не короче открывающей
+      expect((parseNoteBlocks('````md\n```\nвнутри\n```\n````').single as CodeBlock).code, '```\nвнутри\n```');
+    });
+
+    test('галочка внутри кода не переключается, картинка внутри кода — не картинка', () {
+      const body = '```\n- [ ] пункт\n![[фото.jpg]]\n```\n- [ ] настоящий';
+      expect(toggleCheckLine(body, 1), body);
+      expect(embedNames(body), isEmpty);
+      expect((parseNoteBlocks(body).last as CheckBlock).line, 4);
+    });
+
+    test('в ленте строки кавычек не показываются', () {
+      final lines = noteLinesUnderTitle('Заметка\n```python\nprint(1)\n```', 'Заметка');
+      expect(lines.map((line) => line.text), ['print(1)']);
+    });
+  });
+
+  group('подпись языка', () {
+    test('известные — красиво, псевдонимы — тем же языком, неизвестные — как написаны', () {
+      expect(codeLanguage('python').label, 'Python');
+      expect(codeLanguage('cpp').label, 'C++');
+      expect(codeLanguage('c#').label, 'C#');
+      expect(codeLanguage('js').label, 'JavaScript');
+      expect(codeLanguage('js').highlight, 'javascript');
+      expect(codeLanguage('dataviewjs').label, 'DataviewJS');
+      expect(codeLanguage('dataviewjs').highlight, 'javascript');
+      expect(codeLanguage('plsql').highlight, 'sql');
+      expect(codeLanguage('html').highlight, 'xml');
+      expect(codeLanguage('custom-frames').label, 'custom-frames');
+      expect(codeLanguage('custom-frames').highlight, isNull);
+      expect(codeLanguage('Python {.numberLines}').label, 'Python');
+    });
+  });
+
   test('строки ленты: без строки-заголовка и пустых, пункты списка со своим номером строки', () {
     final lines = noteLinesUnderTitle('\nКупить\n- [ ] Молоко\n\n- [x] Хлеб\nв «Линелле»', 'Купить');
     expect([for (final line in lines) (line.index, line.text, line.done)], [(2, 'Молоко', false), (4, 'Хлеб', true), (5, 'в «Линелле»', null)]);

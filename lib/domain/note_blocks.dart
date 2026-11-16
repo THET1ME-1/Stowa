@@ -52,14 +52,64 @@ class ImageBlock extends NoteBlock {
   final String name;
 }
 
+/// Блок кода между ``` или ~~~: строки внутри как есть, без разметки. [language] — слово
+/// после открывающих кавычек («python», «dataviewjs»), без него — null.
+class CodeBlock extends NoteBlock {
+  const CodeBlock({required this.code, this.language});
+  final String code;
+  final String? language;
+}
+
+final _fenceOpen = RegExp(r'^\s{0,3}(`{3,}|~{3,})\s*([^`\s]*)');
+
+/// Блок кода в строках текста: [start] — строка открывающих кавычек, [end] — последняя
+/// строка блока (закрывающие кавычки, если [closed]). Незакрытый идёт до конца текста.
+typedef CodeRange = ({int start, int end, bool closed, String? language});
+
+List<CodeRange> codeRanges(List<String> lines) {
+  final ranges = <CodeRange>[];
+  var index = 0;
+  while (index < lines.length) {
+    final open = _fenceOpen.firstMatch(lines[index]);
+    if (open == null) {
+      index++;
+      continue;
+    }
+    final fence = open.group(1)!;
+    final language = open.group(2)!.isEmpty ? null : open.group(2);
+    // закрывают только те же знаки, не меньше числом, и ничего больше в строке
+    final close = RegExp('^\\s{0,3}${RegExp.escape(fence[0])}{${fence.length},}\\s*\$');
+    var end = index + 1;
+    while (end < lines.length && !close.hasMatch(lines[end])) {
+      end++;
+    }
+    final closed = end < lines.length;
+    ranges.add((start: index, end: closed ? end : lines.length - 1, closed: closed, language: language));
+    index = end + 1;
+  }
+  return ranges;
+}
+
+/// Номера строк внутри блоков кода вместе со строками кавычек: в них нет ни галочек,
+/// ни картинок, ни заголовков.
+Set<int> codeLines(List<String> lines) => {
+  for (final range in codeRanges(lines))
+    for (var index = range.start; index <= range.end; index++) index,
+};
+
 /// Строка-картинка целиком; размер Obsidian (`|300`) отбрасывается.
 final embedLine = RegExp(r'^\s*!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]\s*$');
 
-/// Имена картинок в тексте заметки по порядку.
-List<String> embedNames(String body) => [
-  for (final line in body.split('\n'))
-    if (embedLine.firstMatch(line) case final match?) match.group(1)!.trim(),
-];
+/// Имена картинок в тексте заметки по порядку; `![[…]]` внутри блока кода — не картинка.
+List<String> embedNames(String body) {
+  final lines = body.split('\n');
+  final code = codeLines(lines);
+  return [
+    for (final (index, line) in lines.indexed)
+      if (!code.contains(index))
+        if (embedLine.firstMatch(line) case final match?) match.group(1)!.trim(),
+  ];
+}
 
 final _order = RegExp(r'^\d+_');
 
@@ -94,7 +144,18 @@ List<NoteBlock> parseNoteBlocks(String body) {
     paragraph.clear();
   }
 
+  final code = {for (final range in codeRanges(lines)) range.start: range};
+  var skipTo = -1;
   for (final (index, raw) in lines.indexed) {
+    if (index <= skipTo) continue;
+    // блок кода: строки между кавычками как есть
+    if (code[index] case final range?) {
+      flush();
+      final last = range.closed ? range.end - 1 : range.end;
+      blocks.add(CodeBlock(code: lines.sublist(index + 1, last + 1).join('\n'), language: range.language));
+      skipTo = range.end;
+      continue;
+    }
     final line = raw.trimRight();
     if (line.trim().isEmpty) {
       flush();
@@ -142,11 +203,15 @@ List<NoteLine> noteLinesUnderTitle(String body, String title) {
   final lines = body.split('\n');
   final first = lines.indexWhere((line) => line.trim().isNotEmpty);
   final skip = first >= 0 && titleIsFirstLine(body, title) ? first : -1;
+  // строки кавычек блока кода в ленте не нужны, код внутри — как текст
+  final ranges = codeRanges(lines);
+  final fences = {for (final range in ranges) ...[range.start, if (range.closed) range.end]};
+  final code = codeLines(lines);
   return [
     for (final (index, line) in lines.indexed)
       // картинка из текста в ленте — фото карточки, а не строка `![[…]]`
-      if (index != skip && line.trim().isNotEmpty && !embedLine.hasMatch(line))
-        if (checkLine.firstMatch(line) case final check?)
+      if (index != skip && !fences.contains(index) && line.trim().isNotEmpty && (code.contains(index) || !embedLine.hasMatch(line)))
+        if (code.contains(index) ? null : checkLine.firstMatch(line) case final check?)
           NoteLine(index: index, text: check.group(2)!, done: check.group(1) != ' ')
         else
           NoteLine(index: index, text: line.trim()),
@@ -159,6 +224,8 @@ final _checkMark = RegExp(r'^(\s*[-*] \[)([ xX])(\] .*)$');
 String toggleCheckLine(String body, int index) {
   final lines = body.split('\n');
   if (index < 0 || index >= lines.length) return body;
+  // «- [ ]» внутри блока кода — текст кода, не дело
+  if (codeLines(lines).contains(index)) return body;
   final match = _checkMark.firstMatch(lines[index]);
   if (match == null) return body;
   lines[index] = '${match.group(1)}${match.group(2) == ' ' ? 'x' : ' '}${match.group(3)}';

@@ -837,5 +837,9 @@
   "attachmentsWithObsidian": "Те саме налаштування, що в Obsidian",
   "attachmentsNameLabel": "Назва теки",
   "attachmentsNameBad": "Така назва не підійде: без крапки на початку й без «..».",
-  "attachmentsObsidianBroken": "Налаштування Obsidian не читаються, вибір не збережено."
+  "attachmentsObsidianBroken": "Налаштування Obsidian не читаються, вибір не збережено.",
+  "codeCopy": "Скопіювати код",
+  "codeCopied": "Скопійовано",
+  "codeShowAll": "{count, plural, one{Показати все · {count} рядок} few{Показати все · {count} рядки} many{Показати все · {count} рядків} other{Показати все · {count} рядка}}",
+  "codeCollapse": "Згорнути"
 }

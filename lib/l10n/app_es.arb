@@ -837,5 +837,9 @@
   "attachmentsWithObsidian": "El mismo ajuste que en Obsidian",
   "attachmentsNameLabel": "Nombre de la carpeta",
   "attachmentsNameBad": "Ese nombre no sirve: sin punto al principio y sin «..».",
-  "attachmentsObsidianBroken": "No se pueden leer los ajustes de Obsidian, la elección no se guardó."
+  "attachmentsObsidianBroken": "No se pueden leer los ajustes de Obsidian, la elección no se guardó.",
+  "codeCopy": "Copiar código",
+  "codeCopied": "Copiado",
+  "codeShowAll": "{count, plural, one{Mostrar todo · {count} línea} other{Mostrar todo · {count} líneas}}",
+  "codeCollapse": "Contraer"
 }

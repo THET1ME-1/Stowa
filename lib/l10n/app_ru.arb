@@ -1120,5 +1120,9 @@
   "attachmentsWithObsidian": "Та же настройка, что в Obsidian",
   "attachmentsNameLabel": "Имя папки",
   "attachmentsNameBad": "Такое имя не подойдёт: без точки в начале и без «..».",
-  "attachmentsObsidianBroken": "Настройки Obsidian не читаются, выбор не сохранён."
+  "attachmentsObsidianBroken": "Настройки Obsidian не читаются, выбор не сохранён.",
+  "codeCopy": "Скопировать код",
+  "codeCopied": "Скопировано",
+  "codeShowAll": "{count, plural, one{Показать всё · {count} строка} few{Показать всё · {count} строки} many{Показать всё · {count} строк} other{Показать всё · {count} строки}}",
+  "codeCollapse": "Свернуть"
 }

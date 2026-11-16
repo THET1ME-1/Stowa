@@ -4081,4 +4081,26 @@ class LUk extends L {
   @override
   String get attachmentsObsidianBroken =>
       'Налаштування Obsidian не читаються, вибір не збережено.';
+
+  @override
+  String get codeCopy => 'Скопіювати код';
+
+  @override
+  String get codeCopied => 'Скопійовано';
+
+  @override
+  String codeShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Показати все · $count рядка',
+      many: 'Показати все · $count рядків',
+      few: 'Показати все · $count рядки',
+      one: 'Показати все · $count рядок',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get codeCollapse => 'Згорнути';
 }

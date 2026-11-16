@@ -5,8 +5,11 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../domain/note_blocks.dart';
 import '../../domain/note_links.dart' show noteLinkScheme;
+import 'code_block_view.dart';
 
 const _markWidth = 32.0;
+// узкий пробел: поля подложки строчного кода
+const _thinSpace = '\u2009';
 
 /// Текст заметки на странице вещи: абзацы, заголовки, списки, галочки, цитаты.
 /// Касание по тексту открывает правку, по галочке — отмечает дело, по ссылке — открывает её.
@@ -110,6 +113,7 @@ class NoteBody extends StatelessWidget {
         ),
       ),
       ImageBlock(:final name) => image?.call(name) ?? MissingImage(name: name),
+      CodeBlock(:final code, :final language) => CodeBlockView(code: code, language: language, onTap: onEdit),
       QuoteBlock(text: final value) => GestureDetector(
         onTap: onEdit,
         child: Container(
@@ -187,6 +191,9 @@ class _RichLineState extends State<RichLine> {
       }
       // [[заметка]] полужирная: видно, что это ссылка на свою заметку, а не на сайт
       final note = url != null && url.startsWith(noteLinkScheme);
+      // строчный код: поля подложки — узкий пробел основного шрифта (в моноширинном он
+      // шириной в целую букву), чтобы подложка не липла к буквам
+      final margin = piece.code ? TextSpan(text: _thinSpace, style: TextStyle(backgroundColor: Tokens.containerLowest)) : null;
       spans.add(
         TextSpan(
           text: piece.text,
@@ -197,10 +204,15 @@ class _RichLineState extends State<RichLine> {
             decoration: piece.strike ? TextDecoration.lineThrough : (url != null ? TextDecoration.underline : null),
             decorationColor: url != null ? Tokens.onSurfaceVariant : null,
             fontFamily: piece.code ? 'monospace' : null,
-            backgroundColor: piece.code ? Tokens.containerHigh : null,
+            // та же подложка, что у блоков кода: на карточке текста она видна в обеих темах
+            backgroundColor: piece.code ? Tokens.containerLowest : null,
           ),
         ),
       );
+      if (margin != null) {
+        spans.insert(spans.length - 1, margin);
+        spans.add(margin);
+      }
     }
     return Text.rich(TextSpan(style: widget.style, children: spans));
   }

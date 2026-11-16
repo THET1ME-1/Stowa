@@ -4028,4 +4028,24 @@ class LEs extends L {
   @override
   String get attachmentsObsidianBroken =>
       'No se pueden leer los ajustes de Obsidian, la elección no se guardó.';
+
+  @override
+  String get codeCopy => 'Copiar código';
+
+  @override
+  String get codeCopied => 'Copiado';
+
+  @override
+  String codeShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostrar todo · $count líneas',
+      one: 'Mostrar todo · $count línea',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get codeCollapse => 'Contraer';
 }

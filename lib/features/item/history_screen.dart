@@ -95,6 +95,8 @@ class HistoryScreen extends ConsumerWidget {
       final line = switch (block) {
         ParagraphBlock(:final text) || HeadingBlock(:final text) || BulletBlock(:final text) || NumberedBlock(:final text) || CheckBlock(:final text) || QuoteBlock(:final text) => text,
         ImageBlock() => '',
+        // первая строка кода, без подсветки и разметки
+        CodeBlock(:final code) => code.split('\n').firstWhere((one) => one.trim().isNotEmpty, orElse: () => ''),
       };
       final plain = parseInline(line).map((piece) => piece.text).join().trim();
       if (plain.isNotEmpty && plain != title) return plain;

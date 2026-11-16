@@ -95,7 +95,8 @@ class MarkdownController extends TextEditingController {
         _ when match.group(1) != null => (2, const TextStyle(fontWeight: FontWeight.w700)),
         _ when match.group(2) != null || match.group(3) != null => (1, const TextStyle(fontStyle: FontStyle.italic)),
         _ when match.group(4) != null => (2, const TextStyle(decoration: TextDecoration.lineThrough)),
-        _ => (1, TextStyle(fontFamily: 'monospace', backgroundColor: Tokens.containerHigh)),
+        // подложка как у кода на странице: поле правки само цвета containerHigh
+        _ => (1, TextStyle(fontFamily: 'monospace', backgroundColor: Tokens.containerLowest)),
       };
       final whole = match.group(0)!;
       out

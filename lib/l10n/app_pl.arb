@@ -837,5 +837,9 @@
   "attachmentsWithObsidian": "To samo ustawienie co w Obsidian",
   "attachmentsNameLabel": "Nazwa folderu",
   "attachmentsNameBad": "Ta nazwa nie zadziała: bez kropki na początku i bez „..”.",
-  "attachmentsObsidianBroken": "Nie da się odczytać ustawień Obsidian, wybór nie został zapisany."
+  "attachmentsObsidianBroken": "Nie da się odczytać ustawień Obsidian, wybór nie został zapisany.",
+  "codeCopy": "Kopiuj kod",
+  "codeCopied": "Skopiowano",
+  "codeShowAll": "{count, plural, one{Pokaż wszystko · {count} wiersz} few{Pokaż wszystko · {count} wiersze} many{Pokaż wszystko · {count} wierszy} other{Pokaż wszystko · {count} wiersza}}",
+  "codeCollapse": "Zwiń"
 }

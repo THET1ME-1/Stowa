@@ -4086,4 +4086,26 @@ class LPl extends L {
   @override
   String get attachmentsObsidianBroken =>
       'Nie da się odczytać ustawień Obsidian, wybór nie został zapisany.';
+
+  @override
+  String get codeCopy => 'Kopiuj kod';
+
+  @override
+  String get codeCopied => 'Skopiowano';
+
+  @override
+  String codeShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Pokaż wszystko · $count wiersza',
+      many: 'Pokaż wszystko · $count wierszy',
+      few: 'Pokaż wszystko · $count wiersze',
+      one: 'Pokaż wszystko · $count wiersz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get codeCollapse => 'Zwiń';
 }

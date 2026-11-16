@@ -4866,5 +4866,26 @@
   "attachmentsObsidianBroken": "Obsidian settings can't be read, the choice wasn't saved.",
   "@attachmentsObsidianBroken": {
     "description": "Плашка: app.json Obsidian сломан"
+  },
+  "codeCopy": "Copy code",
+  "@codeCopy": {
+    "description": "Подсказка кнопки над блоком кода в заметке"
+  },
+  "codeCopied": "Copied",
+  "@codeCopied": {
+    "description": "Кнопка копирования кода на миг после касания"
+  },
+  "codeShowAll": "{count, plural, one{Show all · {count} line} other{Show all · {count} lines}}",
+  "@codeShowAll": {
+    "description": "Под свёрнутым длинным блоком кода; число — строк в блоке",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "codeCollapse": "Collapse",
+  "@codeCollapse": {
+    "description": "Под раскрытым длинным блоком кода"
   }
 }

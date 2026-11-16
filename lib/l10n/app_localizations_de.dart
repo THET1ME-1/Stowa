@@ -4041,4 +4041,24 @@ class LDe extends L {
   @override
   String get attachmentsObsidianBroken =>
       'Die Obsidian-Einstellungen sind nicht lesbar, die Auswahl wurde nicht gespeichert.';
+
+  @override
+  String get codeCopy => 'Code kopieren';
+
+  @override
+  String get codeCopied => 'Kopiert';
+
+  @override
+  String codeShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alles zeigen · $count Zeilen',
+      one: 'Alles zeigen · $count Zeile',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get codeCollapse => 'Einklappen';
 }

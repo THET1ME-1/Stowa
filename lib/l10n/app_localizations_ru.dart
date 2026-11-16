@@ -4093,4 +4093,26 @@ class LRu extends L {
   @override
   String get attachmentsObsidianBroken =>
       'Настройки Obsidian не читаются, выбор не сохранён.';
+
+  @override
+  String get codeCopy => 'Скопировать код';
+
+  @override
+  String get codeCopied => 'Скопировано';
+
+  @override
+  String codeShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Показать всё · $count строки',
+      many: 'Показать всё · $count строк',
+      few: 'Показать всё · $count строки',
+      one: 'Показать всё · $count строка',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get codeCollapse => 'Свернуть';
 }

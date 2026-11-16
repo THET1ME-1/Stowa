@@ -4054,4 +4054,25 @@ class LRo extends L {
   @override
   String get attachmentsObsidianBroken =>
       'Setările Obsidian nu pot fi citite, alegerea nu s-a salvat.';
+
+  @override
+  String get codeCopy => 'Copiază codul';
+
+  @override
+  String get codeCopied => 'Copiat';
+
+  @override
+  String codeShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Arată tot · $count de rânduri',
+      few: 'Arată tot · $count rânduri',
+      one: 'Arată tot · $count rând',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get codeCollapse => 'Restrânge';
 }

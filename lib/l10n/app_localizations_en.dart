@@ -4017,4 +4017,24 @@ class LEn extends L {
   @override
   String get attachmentsObsidianBroken =>
       'Obsidian settings can\'t be read, the choice wasn\'t saved.';
+
+  @override
+  String get codeCopy => 'Copy code';
+
+  @override
+  String get codeCopied => 'Copied';
+
+  @override
+  String codeShowAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show all · $count lines',
+      one: 'Show all · $count line',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get codeCollapse => 'Collapse';
 }
