@@ -4067,4 +4067,20 @@ class LDe extends L {
 
   @override
   String get mdMathNext => 'Nächstes Formelfeld';
+
+  @override
+  String get settingsLine => 'Eingabezeile';
+
+  @override
+  String get enterKeyTitle => 'Eingabetaste';
+
+  @override
+  String get enterNewLine => 'Neue Zeile';
+
+  @override
+  String get enterStow => 'Notiz speichern';
+
+  @override
+  String get enterHint =>
+      'In der Vollbild-Zeile beginnt Enter immer eine neue Zeile.';
 }

@@ -4081,4 +4081,20 @@ class LRo extends L {
 
   @override
   String get mdMathNext => 'Câmpul următor al formulei';
+
+  @override
+  String get settingsLine => 'Rândul de scris';
+
+  @override
+  String get enterKeyTitle => 'Tasta Enter';
+
+  @override
+  String get enterNewLine => 'Rând nou';
+
+  @override
+  String get enterStow => 'Salvează notița';
+
+  @override
+  String get enterHint =>
+      'În rândul pe tot ecranul, Enter începe mereu un rând nou.';
 }

@@ -843,5 +843,10 @@
   "codeShowAll": "{count, plural, one{Arată tot · {count} rând} few{Arată tot · {count} rânduri} other{Arată tot · {count} de rânduri}}",
   "codeCollapse": "Restrânge",
   "mdMath": "Formulă",
-  "mdMathNext": "Câmpul următor al formulei"
+  "mdMathNext": "Câmpul următor al formulei",
+  "settingsLine": "Rândul de scris",
+  "enterKeyTitle": "Tasta Enter",
+  "enterNewLine": "Rând nou",
+  "enterStow": "Salvează notița",
+  "enterHint": "În rândul pe tot ecranul, Enter începe mereu un rând nou."
 }

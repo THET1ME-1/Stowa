@@ -230,6 +230,20 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            SettingsSection(l.settingsLine),
+            SettingsGroup(
+              tint: settingsTint('teal'),
+              children: [
+                SettingsRow(
+                  key: const ValueKey('settings-enter'),
+                  icon: 'keyboard_return',
+                  title: l.enterKeyTitle,
+                  value: (ref.watch(enterSendsProvider).value ?? false) ? l.enterStow : l.enterNewLine,
+                  onTap: () => showSettingsSheet(context, const _EnterSheet()),
+                ),
+              ],
+            ),
+            SettingsHint(l.enterHint),
             SettingsSection(l.settingsStart),
             SettingsGroup(
               tint: settingsTint('lime'),
@@ -911,6 +925,29 @@ String startLabel(L l, StartScreen start) => switch (start) {
   StartScreen.last => l.startLast,
   StartScreen.random => l.startRandom,
 };
+
+/// Что делает Enter в строке: новая строка (по умолчанию) или «Закинуть».
+class _EnterSheet extends ConsumerWidget {
+  const _EnterSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L.of(context);
+    final sends = ref.watch(enterSendsProvider).value ?? false;
+    Future<void> pick(bool value) async {
+      await ref.read(settingsRepositoryProvider).setEnterSends(value);
+      if (context.mounted) Navigator.pop(context);
+    }
+
+    return SheetOptionsBody(
+      title: l.enterKeyTitle,
+      children: [
+        SheetOption(title: l.enterNewLine, icon: 'keyboard_return', selected: !sends, onTap: () => pick(false)),
+        SheetOption(title: l.enterStow, icon: 'arrow_upward', selected: sends, onTap: () => pick(true)),
+      ],
+    );
+  }
+}
 
 class _StartSheet extends ConsumerWidget {
   const _StartSheet();

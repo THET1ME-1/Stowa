@@ -4121,4 +4121,20 @@ class LRu extends L {
 
   @override
   String get mdMathNext => 'Следующее поле формулы';
+
+  @override
+  String get settingsLine => 'Строка';
+
+  @override
+  String get enterKeyTitle => 'Enter на клавиатуре';
+
+  @override
+  String get enterNewLine => 'Новая строка';
+
+  @override
+  String get enterStow => 'Закинуть заметку';
+
+  @override
+  String get enterHint =>
+      'Строка на весь экран всегда начинает по Enter новую строку.';
 }

@@ -4043,4 +4043,20 @@ class LEn extends L {
 
   @override
   String get mdMathNext => 'Next formula field';
+
+  @override
+  String get settingsLine => 'Input line';
+
+  @override
+  String get enterKeyTitle => 'Enter key';
+
+  @override
+  String get enterNewLine => 'New line';
+
+  @override
+  String get enterStow => 'Save the note';
+
+  @override
+  String get enterHint =>
+      'In the full-screen line, Enter always starts a new line.';
 }

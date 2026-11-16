@@ -843,5 +843,10 @@
   "codeShowAll": "{count, plural, one{Pokaż wszystko · {count} wiersz} few{Pokaż wszystko · {count} wiersze} many{Pokaż wszystko · {count} wierszy} other{Pokaż wszystko · {count} wiersza}}",
   "codeCollapse": "Zwiń",
   "mdMath": "Wzór",
-  "mdMathNext": "Następne pole wzoru"
+  "mdMathNext": "Następne pole wzoru",
+  "settingsLine": "Pole wpisywania",
+  "enterKeyTitle": "Klawisz Enter",
+  "enterNewLine": "Nowy wiersz",
+  "enterStow": "Zapisz notatkę",
+  "enterHint": "W polu na cały ekran Enter zawsze zaczyna nowy wiersz."
 }

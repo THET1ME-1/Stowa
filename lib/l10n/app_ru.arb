@@ -1126,5 +1126,10 @@
   "codeShowAll": "{count, plural, one{Показать всё · {count} строка} few{Показать всё · {count} строки} many{Показать всё · {count} строк} other{Показать всё · {count} строки}}",
   "codeCollapse": "Свернуть",
   "mdMath": "Формула",
-  "mdMathNext": "Следующее поле формулы"
+  "mdMathNext": "Следующее поле формулы",
+  "settingsLine": "Строка",
+  "enterKeyTitle": "Enter на клавиатуре",
+  "enterNewLine": "Новая строка",
+  "enterStow": "Закинуть заметку",
+  "enterHint": "Строка на весь экран всегда начинает по Enter новую строку."
 }

@@ -843,5 +843,10 @@
   "codeShowAll": "{count, plural, one{Alles zeigen · {count} Zeile} other{Alles zeigen · {count} Zeilen}}",
   "codeCollapse": "Einklappen",
   "mdMath": "Formel",
-  "mdMathNext": "Nächstes Formelfeld"
+  "mdMathNext": "Nächstes Formelfeld",
+  "settingsLine": "Eingabezeile",
+  "enterKeyTitle": "Eingabetaste",
+  "enterNewLine": "Neue Zeile",
+  "enterStow": "Notiz speichern",
+  "enterHint": "In der Vollbild-Zeile beginnt Enter immer eine neue Zeile."
 }

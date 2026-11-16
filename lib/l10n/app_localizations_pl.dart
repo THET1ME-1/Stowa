@@ -4114,4 +4114,20 @@ class LPl extends L {
 
   @override
   String get mdMathNext => 'Następne pole wzoru';
+
+  @override
+  String get settingsLine => 'Pole wpisywania';
+
+  @override
+  String get enterKeyTitle => 'Klawisz Enter';
+
+  @override
+  String get enterNewLine => 'Nowy wiersz';
+
+  @override
+  String get enterStow => 'Zapisz notatkę';
+
+  @override
+  String get enterHint =>
+      'W polu na cały ekran Enter zawsze zaczyna nowy wiersz.';
 }

@@ -337,6 +337,17 @@ class SettingsRepository {
 
   Future<void> setTitleDate(TitleDate value) => _set(() => _prefs.setString('title_date', value.name));
 
+  /// Enter на клавиатуре строки отправляет заметку («Закинуть»). По умолчанию нет: Enter
+  /// ставит новую строку, а отправляет кнопка «Закинуть» (хозяин, 16.11.2026).
+  bool get enterSends => _prefs.getBool('enter_sends') ?? false;
+
+  Stream<bool> watchEnterSends() async* {
+    yield enterSends;
+    yield* _changes.stream.map((_) => enterSends).distinct();
+  }
+
+  Future<void> setEnterSends(bool value) => _set(() => _prefs.setBool('enter_sends', value));
+
   /// Что открывать при запуске. По умолчанию главная.
   StartScreen get startScreen => StartScreen.values.asNameMap()[_prefs.getString('start_screen')] ?? StartScreen.home;
 

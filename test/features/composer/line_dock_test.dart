@@ -1,7 +1,9 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/composer/line_dock.dart';
 import 'package:stowa/features/composer/line_panel.dart';
@@ -464,5 +466,31 @@ void main() {
     await open(tester);
     await type(tester, 'погода завтра в 10 #дом');
     expect(tester.takeException(), isNull);
+  });
+
+  // хозяин 16.11, снимок с телефона: «Ентер сразу отправляет заметку, сделать настройку чтобы
+  // новая строка была»; «Ентер клавиатуру, а отправка на Закинуть в открытом и закрытом режиме»
+  group('Enter на клавиатуре', () {
+    TextField line(WidgetTester tester) => tester.widget<TextField>(find.byType(TextField));
+
+    testWidgets('по умолчанию — новая строка и в свёрнутой строке, отправка только «Закинуть»', (tester) async {
+      await open(tester);
+      await type(tester, 'Купить хлеб');
+      expect(line(tester).textInputAction, TextInputAction.newline);
+      await tester.testTextInput.receiveAction(TextInputAction.newline);
+      await tester.pumpAndSettle();
+      expect(await world.db.select(world.db.items).get(), isEmpty);
+    });
+
+    testWidgets('выбрано «Enter — Закинуть»: Enter отправляет, как раньше', (tester) async {
+      SharedPreferences.setMockInitialValues({'enter_sends': true});
+      world.settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+      await open(tester);
+      await type(tester, 'Купить хлеб');
+      expect(line(tester).textInputAction, TextInputAction.send);
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+      await tester.pumpAndSettle();
+      expect((await world.db.select(world.db.items).get()).map((item) => item.title), ['Купить хлеб']);
+    });
   });
 }

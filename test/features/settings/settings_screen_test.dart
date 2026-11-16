@@ -163,6 +163,19 @@ void main() {
     expect(settings.crashReports, isFalse);
   });
 
+  testWidgets('«Enter на клавиатуре»: по умолчанию новая строка, можно выбрать «Закинуть заметку»', (tester) async {
+    await open(tester, keyStatus: 200);
+    await tester.scrollUntilVisible(find.text('Enter на клавиатуре'), 200);
+    await tester.pumpAndSettle();
+    expect(find.text('Новая строка'), findsOneWidget);
+    await tester.tap(find.text('Enter на клавиатуре'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Закинуть заметку'));
+    await tester.pumpAndSettle();
+    expect(settings.enterSends, isTrue);
+    expect(find.text('Закинуть заметку'), findsOneWidget);
+  });
+
   testWidgets('«Запуск»: по умолчанию главная, выбор из листа сохраняется', (tester) async {
     await open(tester, keyStatus: 200);
     await tester.scrollUntilVisible(find.text('Открывать'), 200);

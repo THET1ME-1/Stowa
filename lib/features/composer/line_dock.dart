@@ -1123,7 +1123,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         expands: _full,
         textAlignVertical: TextAlignVertical.top,
         keyboardType: TextInputType.multiline,
-        textInputAction: _full ? TextInputAction.newline : TextInputAction.send,
+        // Enter — новая строка, отправляет «Закинуть»; в свёрнутой строке Enter может
+        // отправлять, если так выбрано в настройках. На весь экран Enter всегда новая строка
+        textInputAction: !_full && (ref.watch(enterSendsProvider).value ?? false) ? TextInputAction.send : TextInputAction.newline,
         textCapitalization: TextCapitalization.sentences,
         onSubmitted: (_) => _act(),
         // строка не теряет фокус после «Вставить», клавиатура остаётся

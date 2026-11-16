@@ -4109,4 +4109,20 @@ class LUk extends L {
 
   @override
   String get mdMathNext => 'Наступне поле формули';
+
+  @override
+  String get settingsLine => 'Рядок';
+
+  @override
+  String get enterKeyTitle => 'Enter на клавіатурі';
+
+  @override
+  String get enterNewLine => 'Новий рядок';
+
+  @override
+  String get enterStow => 'Закинути нотатку';
+
+  @override
+  String get enterHint =>
+      'Рядок на весь екран завжди починає по Enter новий рядок.';
 }

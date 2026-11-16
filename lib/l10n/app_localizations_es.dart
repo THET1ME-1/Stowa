@@ -4054,4 +4054,20 @@ class LEs extends L {
 
   @override
   String get mdMathNext => 'Siguiente campo de la fórmula';
+
+  @override
+  String get settingsLine => 'Línea de escritura';
+
+  @override
+  String get enterKeyTitle => 'Tecla Intro';
+
+  @override
+  String get enterNewLine => 'Nueva línea';
+
+  @override
+  String get enterStow => 'Guardar la nota';
+
+  @override
+  String get enterHint =>
+      'En la línea a pantalla completa, Intro siempre empieza una línea nueva.';
 }

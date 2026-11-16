@@ -843,5 +843,10 @@
   "codeShowAll": "{count, plural, one{Mostrar todo · {count} línea} other{Mostrar todo · {count} líneas}}",
   "codeCollapse": "Contraer",
   "mdMath": "Fórmula",
-  "mdMathNext": "Siguiente campo de la fórmula"
+  "mdMathNext": "Siguiente campo de la fórmula",
+  "settingsLine": "Línea de escritura",
+  "enterKeyTitle": "Tecla Intro",
+  "enterNewLine": "Nueva línea",
+  "enterStow": "Guardar la nota",
+  "enterHint": "En la línea a pantalla completa, Intro siempre empieza una línea nueva."
 }

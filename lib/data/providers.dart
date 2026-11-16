@@ -129,6 +129,16 @@ final vaultsProvider = StreamProvider<VaultList>((ref) => ref.watch(settingsRepo
 /// Что открыть при этом запуске: читается один раз, смена в настройках сработает со следующего.
 final startScreenProvider = Provider<StartScreen>((ref) => ref.read(settingsRepositoryProvider).startScreen);
 
+/// Enter на клавиатуре строки отправляет заметку. Строка живёт и в окнах без настроек
+/// (тесты, окно «Поделиться» до открытия базы) — там Enter ставит новую строку.
+final enterSendsProvider = StreamProvider<bool>((ref) {
+  try {
+    return ref.watch(settingsRepositoryProvider).watchEnterSends();
+  } on Object {
+    return Stream.value(false);
+  }
+});
+
 /// Выбор «При запуске» для экрана настроек.
 final startScreenChoiceProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchStartScreen());
 

@@ -6868,6 +6868,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Next formula field'**
   String get mdMathNext;
+
+  /// Раздел настроек про строку ввода на главной
+  ///
+  /// In en, this message translates to:
+  /// **'Input line'**
+  String get settingsLine;
+
+  /// Что делает Enter в строке
+  ///
+  /// In en, this message translates to:
+  /// **'Enter key'**
+  String get enterKeyTitle;
+
+  /// Enter начинает новую строку
+  ///
+  /// In en, this message translates to:
+  /// **'New line'**
+  String get enterNewLine;
+
+  /// Enter сразу сохраняет заметку, как кнопка «Закинуть»
+  ///
+  /// In en, this message translates to:
+  /// **'Save the note'**
+  String get enterStow;
+
+  /// Пояснение под настройкой Enter, одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'In the full-screen line, Enter always starts a new line.'**
+  String get enterHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

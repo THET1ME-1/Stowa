@@ -4895,5 +4895,25 @@
   "mdMathNext": "Next formula field",
   "@mdMathNext": {
     "description": "Кнопка полосы разметки, когда курсор в формуле: перейти, например, из числителя в знаменатель"
+  },
+  "settingsLine": "Input line",
+  "@settingsLine": {
+    "description": "Раздел настроек про строку ввода на главной"
+  },
+  "enterKeyTitle": "Enter key",
+  "@enterKeyTitle": {
+    "description": "Что делает Enter в строке"
+  },
+  "enterNewLine": "New line",
+  "@enterNewLine": {
+    "description": "Enter начинает новую строку"
+  },
+  "enterStow": "Save the note",
+  "@enterStow": {
+    "description": "Enter сразу сохраняет заметку, как кнопка «Закинуть»"
+  },
+  "enterHint": "In the full-screen line, Enter always starts a new line.",
+  "@enterHint": {
+    "description": "Пояснение под настройкой Enter, одно предложение"
   }
 }
