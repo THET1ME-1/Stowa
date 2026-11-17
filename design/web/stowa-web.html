@@ -130,19 +130,25 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .pill:hover { background: color-mix(in oklab, var(--f) calc(var(--tint) + 10%), var(--c)); }
 .pill .n { color: var(--on-var); font-size: 13px; }
 
-/* главная: лента по дням и колонка «вернуть» */
-.home { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 36px; max-width: 1180px; margin: 0 auto; }
-.day { margin-bottom: 30px; }
-.day-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px 76px; }
+/* значок папки её цветом: тот же оттенок, что у точки раньше */
+.fic { color: color-mix(in oklab, var(--f) var(--ink), #000); font-size: 18px; flex: none; }
+
+/* главная: лента по дням плиткой и колонка «вернуть» */
+.home { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; max-width: 1560px; margin: 0 auto; }
+.day { margin-bottom: 28px; }
+.day-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px 2px; }
 .day-head h2 { font: 600 17px var(--display); letter-spacing: -.01em; margin: 0; }
 .day-head span { color: var(--muted); font-size: 13px; }
-.entry { display: grid; grid-template-columns: 56px 20px minmax(0, 1fr); gap: 0; position: relative; }
-.entry .time { font-size: 13px; color: var(--muted); text-align: right; padding: 18px 10px 0 0; }
-.axis { position: relative; display: flex; justify-content: center; }
-.axis::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 2px dashed color-mix(in oklab, var(--line) 80%, transparent); transform: translateX(-1px); }
-.entry:first-child .axis::before { top: 22px; }
-.entry:last-child .axis::before { bottom: calc(100% - 26px); }
-.axis .dot { position: relative; margin-top: 22px; box-shadow: 0 0 0 4px var(--bg); }
+/* плитка как в Pinterest: столько колонок, сколько влезает по 250 точек, карточки встают
+   сверху вниз без пустот, высота каждой — по её содержимому */
+.pins { columns: 250px; column-gap: 14px; }
+.pins .card { break-inside: avoid; margin: 0 0 14px; }
+.pins .card h3 { -webkit-line-clamp: 3; }
+.pins .card p { -webkit-line-clamp: 6; }
+.pins .photo { margin: -16px -18px 12px; width: calc(100% + 36px); border-radius: var(--r-tile) var(--r-tile) var(--r-photo) var(--r-photo); max-height: none; aspect-ratio: var(--ratio, 4 / 5); }
+.pins .link-prev { grid-template-columns: 1fr; }
+.pins .link-prev .thumb { aspect-ratio: 16 / 9; }
+.card .meta .when { margin-left: auto; color: var(--muted); }
 .card { display: block; width: 100%; text-align: left; margin: 0 0 10px 10px; padding: 16px 18px; border-radius: var(--r-tile); background: color-mix(in oklab, var(--f) var(--tint), var(--c)); transition: transform .16s cubic-bezier(.2, 0, 0, 1), background .16s; }
 .card:hover { background: color-mix(in oklab, var(--f) calc(var(--tint) + 7%), var(--c)); }
 .card:active { transform: scale(.99); }
@@ -312,10 +318,11 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
   .tab { max-width: none; }
   .view { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 140px max(16px, env(safe-area-inset-left, 0px)); }
   .h1 { font-size: 24px; }
-  .entry { grid-template-columns: 40px 16px minmax(0, 1fr); }
-  .entry .time { font-size: 12px; padding-right: 6px; }
-  .day-head { margin-left: 56px; }
-  .card { margin-left: 6px; padding: 14px 16px; }
+  /* на телефоне плитка в две колонки */
+  .pins { columns: 2; column-gap: 10px; }
+  .pins .card { margin-bottom: 10px; }
+  .card { padding: 14px 16px; }
+  .pins .photo { margin: -14px -16px 10px; width: calc(100% + 32px); }
   .props { grid-template-columns: 112px minmax(0, 1fr); }
   .link-prev { grid-template-columns: 88px minmax(0, 1fr); }
   .product { grid-template-columns: 64px minmax(0, 1fr); }
@@ -409,16 +416,19 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 
 <script>
 const FOLDERS = [
-  { id: "dom", name: "Дом", count: 34, kids: [{ id: "remont", name: "Ремонт", count: 9 }] },
-  { id: "work", name: "Работа", count: 58 },
-  { id: "buy", name: "Покупки", count: 21 },
-  { id: "recipes", name: "Рецепты", count: 17 },
-  { id: "books", name: "Книги и фильмы", count: 46 },
-  { id: "ideas", name: "Идеи", count: 29 },
-  { id: "personal", name: "Личное", count: 12 },
+  { id: "dom", name: "Дом", icon: "home", count: 34, kids: [{ id: "remont", name: "Ремонт", icon: "construction", count: 9 }] },
+  { id: "work", name: "Работа", icon: "work", count: 58 },
+  { id: "buy", name: "Покупки", icon: "shopping_cart", count: 21 },
+  { id: "recipes", name: "Рецепты", icon: "restaurant", count: 17 },
+  { id: "books", name: "Книги и фильмы", icon: "menu_book", count: 46 },
+  { id: "ideas", name: "Идеи", icon: "lightbulb", count: 29 },
+  { id: "personal", name: "Личное", icon: "favorite", count: 12 },
 ];
 const FNAME = { none: "Без папки" };
-FOLDERS.forEach(f => { FNAME[f.id] = f.name; (f.kids || []).forEach(k => FNAME[k.id] = k.name); });
+const FICON = { none: "inbox" };
+FOLDERS.forEach(f => { FNAME[f.id] = f.name; FICON[f.id] = f.icon; (f.kids || []).forEach(k => { FNAME[k.id] = k.name; FICON[k.id] = k.icon; }); });
+/* значок папки её цветом, как в приложении */
+const fic = (id, size) => `<span class="sym f fic" data-f="${id}"${size ? ` style="font-size:${size}px"` : ""}>${FICON[id] || "folder"}</span>`;
 
 const NOTES = [
   { id: "kitchen", f: "remont", day: 0, time: "18:20", kind: "check", title: "Ремонт кухни: что заказать",
@@ -429,8 +439,11 @@ const NOTES = [
     site: "youtube.com · 42:18", text: "Сохранила, чтобы досмотреть: с 12-й минуты про повторение по интервалам." },
   { id: "voice", f: "ideas", day: 0, time: "11:10", kind: "voice", title: "Голосовое · 0:47",
     text: "Сделать утренний виджет: одна случайная заметка из «Идей» и кнопка «ещё»." },
-  { id: "walk", f: "personal", day: 0, time: "09:40", kind: "photo", title: "Утро у озера", file: "IMG-20261115-0940.jpg",
+  { id: "walk", f: "personal", day: 0, time: "09:40", kind: "photo", title: "Утро у озера", file: "IMG-20261115-0940.jpg", ratio: "3 / 4",
     text: "Туман над Валя Морилор, ещё никого нет." },
+  { id: "tiles", f: "remont", day: 0, time: "08:55", kind: "photo", title: "Плитка в магазине", file: "IMG-20261115-0855.jpg", ratio: "1 / 1",
+    text: "Вот эта, матовая, 20×20. Спросить, есть ли 6 м² на складе." },
+  { id: "salad", f: "recipes", day: 0, time: "08:10", kind: "photo", title: "Салат с запечённой тыквой", file: "IMG-20261115-0810.jpg", ratio: "4 / 3" },
   { id: "borsch", f: "recipes", day: 1, time: "20:15", kind: "note", title: "Борщ бабушкин",
     text: "Свёклу запекать отдельно, тогда цвет держится. Чеснок и укроп в самом конце, огонь выключить." },
   { id: "call", f: "work", day: 1, time: "16:00", kind: "note", title: "Созвон с Саней: план на неделю",
@@ -438,7 +451,10 @@ const NOTES = [
   { id: "wifi", f: "dom", day: 1, time: "12:30", kind: "note", title: "Пароль от Wi‑Fi",
     text: "Сеть Kitchen_5G, пароль в QR на роутере. Гостевая сеть — без пароля." },
   { id: "quotes", f: "books", day: 1, time: "09:05", kind: "note", title: "«Сто лет одиночества» — цитаты",
-    text: "«Секрет хорошей старости — это честный союз с одиночеством»." },
+    text: "Выписать любимые места при перечитывании: про лёд, про дождь в Макондо, про золотых рыбок полковника." },
+  { id: "flat", f: "dom", day: 1, time: "08:30", kind: "photo", title: "Гостиная, вариант с полкой", file: "IMG-20261114-0830.jpg", ratio: "3 / 4" },
+  { id: "gift", f: "ideas", day: 1, time: "08:02", kind: "check", title: "Подарки на Новый год",
+    checks: [["Маме — тёплый плед", 0], ["Сане — книга по Godot", 1], ["Бабушке — фотоальбом", 0]], more: 4 },
 ];
 const PINNED = ["wifi", "kitchen", "borsch"];
 const DAYS = [["Сегодня", "15 ноября, суббота"], ["Вчера", "14 ноября, пятница"]];
@@ -471,7 +487,7 @@ function renderSide(route) {
   }).join("");
   const row = (f, lvl, hasKids) => `<button class="tree-row" data-f="${f.id}" style="--lvl:${lvl}" data-go="folder-${f.id}" ${route === "folder-" + f.id ? 'aria-current="page"' : ""}>
       <span class="sym chev ${open.has(f.id) ? "open" : ""}" ${hasKids ? `data-toggle="${f.id}"` : 'style="visibility:hidden"'}>chevron_right</span>
-      <span class="dot"></span>${esc(f.name)}<span class="count num">${f.count}</span></button>`;
+      ${fic(f.id, 18)}${esc(f.name)}<span class="count num">${f.count}</span></button>`;
   $("#tree").innerHTML = FOLDERS.map(f => row(f, 0, !!f.kids) + (f.kids && open.has(f.id) ? f.kids.map(k => row(k, 1, false)).join("") : "")).join("");
   document.querySelectorAll(".nav-item").forEach(b => b.toggleAttribute("aria-current", false));
   if (route === "home") document.querySelector('.nav-item[data-go="home"]').setAttribute("aria-current", "page");
@@ -482,8 +498,8 @@ function renderSide(route) {
 let tabs = ["home", "note-kitchen", "folder-recipes"];
 function tabTitle(r) {
   if (r === "home") return [sym("home"), "Главная", "none"];
-  if (r.startsWith("note-")) { const n = NOTES.find(x => "note-" + x.id === r); return [`<span class="dot" data-f="${n.f}"></span>`, n.title, n.f]; }
-  const id = r.slice(7); return [`<span class="dot" data-f="${id}"></span>`, FNAME[id], id];
+  if (r.startsWith("note-")) { const n = NOTES.find(x => "note-" + x.id === r); return [fic(n.f, 17), n.title, n.f]; }
+  const id = r.slice(7); return [fic(id, 17), FNAME[id], id];
 }
 function renderTabs(route) {
   if (!tabs.includes(route)) tabs.push(route);
@@ -494,13 +510,13 @@ function renderTabs(route) {
 /* ── карточка ленты ── */
 function cardBody(n) {
   let body = "";
-  if (n.kind === "photo") body += `<figure class="photo"><figcaption>${sym("image")}${esc(n.file)}</figcaption></figure>`;
+  if (n.kind === "photo") body += `<figure class="photo" style="--ratio:${n.ratio || "4 / 5"}"><figcaption>${sym("image")}${esc(n.file)}</figcaption></figure>`;
   body += `<h3>${esc(n.title)}</h3>`;
   if (n.kind === "check") body += `<ul class="checks">${n.checks.map(([t, d]) => `<li class="${d ? "done" : ""}">${sym(d ? "check_box" : "check_box_outline_blank", d)}${esc(t)}</li>`).join("")}${n.more ? `<li class="more">ещё ${n.more}</li>` : ""}</ul>`;
   else if (n.kind === "voice") body += `<div class="wave"><span class="play">${sym("play_arrow", 1)}</span>${waveSvg()}</div><p style="margin-top:8px">${esc(n.text)}</p>`;
   else if (n.text) body += `<p>${esc(n.text)}</p>`;
   if (n.kind === "link") body += `<div class="link-prev"><div class="thumb">${sym("play_circle", 1)}<span class="len num">42:18</span></div><div><b>Как память выбирает, что сохранить</b><span>${esc(n.site)}</span></div></div>`;
-  body += `<div class="meta"><span class="folder"><span class="dot"></span>${esc(FNAME[n.f])}</span>${n.rem ? `<span class="rem">${sym("notifications")}${esc(n.rem)}</span>` : ""}</div>`;
+  body += `<div class="meta"><span class="folder">${fic(n.f, 15)}${esc(FNAME[n.f])}</span>${n.rem ? `<span class="rem">${sym("notifications")}${esc(n.rem)}</span>` : ""}<span class="when num">${n.time}</span></div>`;
   return body;
 }
 function waveSvg() {
@@ -511,14 +527,14 @@ function waveSvg() {
 
 /* ── главная ── */
 function viewHome() {
-  const pills = FOLDERS.map(f => `<button class="pill" data-f="${f.id}" data-go="folder-${f.id}"><span class="dot"></span>${esc(f.name)}<span class="n num">${f.count}</span></button>`).join("");
+  const pills = FOLDERS.map(f => `<button class="pill" data-f="${f.id}" data-go="folder-${f.id}">${fic(f.id, 18)}${esc(f.name)}<span class="n num">${f.count}</span></button>`).join("");
   const days = DAYS.map(([d, date], i) => {
     const list = NOTES.filter(n => n.day === i);
     return `<section class="day"><div class="day-head"><h2>${d}</h2><span>${date}</span></div>
-      <div class="entries" ${i === 0 ? 'id="today"' : ""}>${list.map(entry).join("")}</div></section>`;
+      <div class="pins" ${i === 0 ? 'id="today"' : ""}>${list.map(entry).join("")}</div></section>`;
   }).join("");
   return `<div class="view-head"><div><h1 class="h1">Главная</h1><div class="sub">218 заметок · 7 папок · последняя правка 18:20</div></div></div>
-  <div class="shelf">${pills}<button class="pill" data-f="none" data-go="folder-none"><span class="dot"></span>Без папки<span class="n num">5</span></button></div>
+  <div class="shelf">${pills}<button class="pill" data-f="none" data-go="folder-none">${fic("none", 18)}Без папки<span class="n num">5</span></button></div>
   <div class="home">
     <div>${days}</div>
     <div class="aside">
@@ -539,9 +555,9 @@ function viewHome() {
     </div>
   </div>`;
 }
+/* лента плиткой, как в Pinterest: колонки по ширине экрана, высота карточки — по содержимому */
 function entry(n) {
-  return `<div class="entry" data-f="${n.f}" data-id="${n.id}"><div class="time num">${n.time}</div><div class="axis"><span class="dot"></span></div>
-    <button class="card" data-go="note-${n.id}">${cardBody(n)}</button></div>`;
+  return `<button class="card pin" data-f="${n.f}" data-id="${n.id}" data-go="note-${n.id}">${cardBody(n)}</button>`;
 }
 
 /* ── заметка ── */
@@ -551,7 +567,7 @@ function viewNote(id) {
     <div class="crumbs"><button data-go="folder-dom">Дом</button>${sym("chevron_right")}<button data-go="folder-remont">Ремонт</button>${sym("chevron_right")}<span>Ремонт кухни: что заказать</span></div>
     <h1 class="doc-title" contenteditable="true" spellcheck="false">Ремонт кухни: что заказать</h1>
     <dl class="props">
-      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="remont"><span class="dot"></span>Дом / Ремонт</span></dd>
+      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="remont">${fic("remont", 16)}Дом / Ремонт</span></dd>
       <dt>${sym("sell")}Теги</dt><dd><span class="chip">#ремонт</span><span class="chip">#кухня</span><span class="chip">#купить</span></dd>
       <dt>${sym("notifications")}Напомнить</dt><dd><span class="chip rem">${sym("event")}Сб, 22 ноября · 10:00</span></dd>
       <dt>${sym("location_on")}Место</dt><dd>Строительный рынок, Кишинёв</dd>
@@ -593,7 +609,7 @@ function viewSimpleNote(n) {
     <div class="crumbs"><button data-go="folder-${n.f}">${esc(FNAME[n.f])}</button>${sym("chevron_right")}<span>${esc(n.title)}</span></div>
     <h1 class="doc-title" contenteditable="true" spellcheck="false">${esc(n.title)}</h1>
     <dl class="props">
-      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="${n.f}"><span class="dot"></span>${esc(FNAME[n.f])}</span></dd>
+      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="${n.f}">${fic(n.f, 16)}${esc(FNAME[n.f])}</span></dd>
       <dt>${sym("calendar_today")}Создана</dt><dd class="num">${n.day ? "14" : "15"} ноября 2026, ${n.time}</dd>
       ${n.rem ? `<dt>${sym("notifications")}Напомнить</dt><dd><span class="chip rem">${sym("event")}${esc(n.rem)}</span></dd>` : ""}
     </dl>
@@ -607,7 +623,7 @@ function rightPanel(id) {
     ? [["ideas", "Идеи для кухни", "ссылка из текста", "note-borsch"], ["buy", "Купить", "похоже: «затирка», «смеситель»", "note-milk"], ["work", "Созвон с Саней", "упоминает ремонт", "note-call"]]
     : [["remont", "Ремонт кухни: что заказать", "похожие слова", "note-kitchen"], ["dom", "Пароль от Wi‑Fi", "та же папка", "note-wifi"]];
   return `<section class="rp-sec"><h5>Связано <span class="num">${links.length}</span></h5>
-    ${links.map(([f, t, why, go]) => `<button class="rel" data-f="${f}" data-go="${go}"><span class="dot"></span><span><b>${esc(t)}</b><small>${esc(why)}</small></span></button>`).join("")}</section>
+    ${links.map(([f, t, why, go]) => `<button class="rel" data-f="${f}" data-go="${go}">${fic(f, 18)}<span><b>${esc(t)}</b><small>${esc(why)}</small></span></button>`).join("")}</section>
   ${id === "kitchen" ? `<section class="rp-sec"><h5>Оглавление</h5><ul class="outline">
     <li><button data-jump="h-order">Заказать</button></li><li><button data-jump="h-price">Цены</button></li><li><button data-jump="h-photo">Как сейчас</button></li></ul></section>` : ""}
   <section class="rp-sec"><h5>Соседи по графу</h5><canvas class="mini-graph" id="graph" aria-label="Граф связей заметки"></canvas></section>
@@ -631,7 +647,7 @@ function drawGraph() {
 function viewFolder(id) {
   const list = id === "recipes" ? RECIPES : NOTES.filter(n => n.f === id || (id === "dom" && n.f === "remont")).map(n => [n.title, n.time, FNAME[n.f], n.kind === "photo" ? 3 / 2 : 0, n]);
   const fid = id === "none" ? "none" : id;
-  return `<div class="view-head" data-f="${fid}"><div><h1 class="h1" style="display:flex;align-items:center;gap:12px"><span class="dot" style="width:14px;height:14px"></span>${esc(FNAME[id])}</h1>
+  return `<div class="view-head" data-f="${fid}"><div><h1 class="h1" style="display:flex;align-items:center;gap:12px">${fic(id, 34)}${esc(FNAME[id])}</h1>
     <div class="sub">${id === "recipes" ? "17 заметок · 12 с фото · доска по высоте картинок" : "заметки папки, свежие сверху"}</div></div>
     <div class="board-tools"><button class="seg">${sym("view_agenda")}Лента</button><button class="seg on">${sym("dashboard")}Доска</button><button class="seg">${sym("gesture")}Холст</button></div></div>
   <div class="board">${list.length ? list.map(([t, a, b, ratio, n]) => `<button class="tile" data-f="${n ? n.f : fid}" ${n ? `data-go="note-${n.id}"` : t === "Борщ бабушкин" ? 'data-go="note-borsch"' : ""}>
@@ -719,7 +735,7 @@ function showResults() {
   const words = text.toLowerCase().replace(/[#@]/g, "").split(/\s+/).filter(w => w.length > 2);
   const found = NOTES.filter(n => words.some(w => (n.title + " " + (n.text || "") + " " + (n.checks || []).map(c => c[0]).join(" ")).toLowerCase().includes(w.slice(0, Math.max(3, w.length - 2))))).slice(0, 4);
   results.innerHTML = `<button class="res main-act" data-f="${fid}" id="save-act"><span class="k">${sym("south_east")}</span><span><b>Закинуть в «${esc(FNAME[fid])}»</b><small>${esc(why)}${rem ? " · напомню " + esc(rem.toLowerCase()) : ""}</small></span><span class="sym" style="margin-left:auto">keyboard_return</span></button>
-    ${found.length ? `<div class="res-label">Нашлось ${found.length}</div>` + found.map(n => `<button class="res" data-f="${n.f}" data-go="note-${n.id}"><span class="k"><span class="dot"></span></span><span style="min-width:0"><b>${highlight(n.title, words)}</b><small>${esc(FNAME[n.f])} · ${n.day ? "вчера" : "сегодня"} ${n.time}</small></span></button>`).join("")
+    ${found.length ? `<div class="res-label">Нашлось ${found.length}</div>` + found.map(n => `<button class="res" data-f="${n.f}" data-go="note-${n.id}"><span class="k">${fic(n.f, 20)}</span><span style="min-width:0"><b>${highlight(n.title, words)}</b><small>${esc(FNAME[n.f])} · ${n.day ? "вчера" : "сегодня"} ${n.time}</small></span></button>`).join("")
       : `<div class="res-label">Похожего нет, запишу как новую</div>`}`;
   results.hidden = false;
 }
@@ -746,7 +762,7 @@ function toast(msg) {
 }
 $("#toast-undo").onclick = () => {
   const i = NOTES.findIndex(n => n.id === undoId); if (i < 0) return;
-  const n = NOTES.splice(i, 1)[0]; document.querySelector(`.entry[data-id="${n.id}"]`)?.remove();
+  const n = NOTES.splice(i, 1)[0]; document.querySelector(`.pin[data-id="${n.id}"]`)?.remove();
   q.value = n.text || n.title; $("#toast").classList.remove("on"); q.focus();
 };
 document.addEventListener("keydown", e => {
