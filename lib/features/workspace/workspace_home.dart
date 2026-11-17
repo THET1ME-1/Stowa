@@ -12,7 +12,7 @@ import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/note_blocks.dart' show toggleCheckLine;
 import '../../l10n/app_localizations.dart';
-import '../home/note_timeline.dart' show NoteCard, dayLabel;
+import '../home/note_timeline.dart' show CardDepth, NoteCard, dayLabel;
 import '../item/item_actions.dart';
 
 /// Ширина колонки плитки, от которой колонок становится больше.
@@ -146,13 +146,18 @@ class _Masonry extends ConsumerWidget {
   final bool dated;
   final ValueChanged<String> onOpen;
 
+  // прикидка высоты карточки по содержимому, с теми же пределами, что у [CardDepth] ниже
   static double _guess(ItemCard card, double width) {
     final perLine = math.max(14, width / 8.6);
-    final title = (card.title.length / perLine).ceil().clamp(1, 2) * 22.0;
-    final body = card.body.isEmpty ? 0.0 : (card.body.length / perLine).ceil().clamp(0, 3) * 21.0;
-    final photo = card.thumbPath == null ? 0.0 : width * 0.75;
+    final title = (card.title.length / perLine).ceil().clamp(1, 3) * 22.0;
+    final rows = card.body.split('\n').where((line) => line.trim().isNotEmpty).fold<int>(0, (sum, line) => sum + (line.length / perLine).ceil());
+    final body = rows.clamp(0, _lines) * 22.0;
+    final photo = card.thumbPath == null ? 0.0 : math.min(width * (card.thumbRatio ?? 0.75), _photoMax);
     return 64 + title + body + photo;
   }
+
+  static const _lines = 8;
+  static const _photoMax = 420.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -176,7 +181,11 @@ class _Masonry extends ConsumerWidget {
             heights[shortest] += _guess(card, width) + _gap;
           }
           return SliverToBoxAdapter(
-            child: Row(
+            // карточка показывает столько, сколько в заметке есть: высота у каждой своя
+            child: CardDepth(
+              lines: _lines,
+              photoMax: _photoMax,
+              child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (var i = 0; i < columns; i++) ...[
@@ -212,6 +221,7 @@ class _Masonry extends ConsumerWidget {
                   ),
                 ],
               ],
+            ),
             ),
           );
         },

@@ -52,6 +52,25 @@ const _dotBottom = 22.0;
 /// Фото в ленте не выше этого: лента листается быстро, а целиком оно на странице заметки.
 const _photoMax = 220.0;
 
+/// Сколько карточка показывает: на телефоне — две строки и фото до 220, в плитке
+/// широкого экрана больше. Короткая заметка остаётся низкой, длинная растёт: колонки
+/// получают разную высоту, как в Pinterest.
+class CardDepth extends InheritedWidget {
+  const CardDepth({super.key, required this.lines, required this.photoMax, required super.child});
+
+  final int lines;
+  final double photoMax;
+
+  static CardDepth? _of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<CardDepth>();
+
+  static int linesOf(BuildContext context) => _of(context)?.lines ?? _excerptLines;
+
+  static double photoMaxOf(BuildContext context) => _of(context)?.photoMax ?? _photoMax;
+
+  @override
+  bool updateShouldNotify(CardDepth old) => old.lines != lines || old.photoMax != photoMax;
+}
+
 /// Сколько строк текста видно на карточке; целиком заметку читают на её странице.
 const _excerptLines = 2;
 
@@ -754,7 +773,7 @@ class _Text extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(shownTitle(item.title), maxLines: lines.isEmpty ? 4 : 2, overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
+        Text(shownTitle(item.title), maxLines: lines.isEmpty ? 4 : (CardDepth.linesOf(context) > _excerptLines ? 3 : 2), overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
         if (lines.isNotEmpty) const SizedBox(height: 6),
         if (checklist)
           _Checks(lines: lines, color: item.folderColor, onToggle: onToggle)
@@ -787,12 +806,13 @@ class _Excerpt extends StatelessWidget {
           textDirection: Directionality.of(context),
           textScaler: MediaQuery.textScalerOf(context),
         )..layout(maxWidth: box.maxWidth);
-        final hidden = painter.computeLineMetrics().length - _excerptLines;
+        final shown = CardDepth.linesOf(context);
+        final hidden = painter.computeLineMetrics().length - shown;
         final line = painter.preferredLineHeight;
         painter.dispose();
         return Stack(
           children: [
-            KeyedSubtree(key: ValueKey('excerpt-$id'), child: MarkedText.note(markdown, maxLines: _excerptLines, overflow: TextOverflow.clip, style: style)),
+            KeyedSubtree(key: ValueKey('excerpt-$id'), child: MarkedText.note(markdown, maxLines: shown, overflow: TextOverflow.clip, style: style)),
             if (hidden > 0)
               Positioned(
                 key: ValueKey('excerpt-fade-$id'),
@@ -829,7 +849,7 @@ class _Checks extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    final shown = lines.where((line) => line.done != null).take(_excerptLines).toList();
+    final shown = lines.where((line) => line.done != null).take(CardDepth.linesOf(context)).toList();
     final hidden = lines.length - shown.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -909,7 +929,7 @@ class _Photo extends StatelessWidget {
         // фото во всю ширину карточки, края скругляет сама карточка
         LayoutBuilder(
           builder: (context, box) => SizedBox(
-            height: math.min(box.maxWidth * (item.thumbRatio ?? 0.75), _photoMax),
+            height: math.min(box.maxWidth * (item.thumbRatio ?? 0.75), CardDepth.photoMaxOf(context)),
             child: WithCopyingBar(
               itemId: item.id,
               copying: item.copying > 0,

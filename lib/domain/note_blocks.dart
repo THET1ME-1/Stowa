@@ -233,14 +233,23 @@ class NoteLine {
 }
 
 /// Непустые строки под заголовком с их номерами. Первая пропускается, только если заголовок из неё.
+/// Блоки-запросы плагинов Obsidian: Dataview, Tasks и встроенный поиск.
+const _queryLanguages = {'dataview', 'dataviewjs', 'tasks', 'query'};
+
 List<NoteLine> noteLinesUnderTitle(String body, String title) {
   if (repeatsTitle(body, title)) return const [];
   final lines = body.split('\n');
   final first = lines.indexWhere((line) => line.trim().isNotEmpty);
   final skip = first >= 0 && titleIsFirstLine(body, title) ? first : -1;
-  // строки кавычек блока кода в ленте не нужны, код внутри — как текст
+  // строки кавычек блока кода в ленте не нужны, код внутри — как текст. Запрос Dataview —
+  // вызов плагина Obsidian, а не текст заметки: в ленте его нет целиком
   final ranges = codeRanges(lines);
-  final fences = {for (final range in ranges) ...[range.start, if (range.closed) range.end]};
+  final fences = {
+    for (final range in ranges)
+      if (_queryLanguages.contains(range.language?.toLowerCase()))
+        for (var line = range.start; line <= range.end; line++) line
+      else ...[range.start, if (range.closed) range.end],
+  };
   final code = codeLines(lines);
   return [
     for (final (index, line) in lines.indexed)

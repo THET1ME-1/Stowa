@@ -34,6 +34,12 @@ void main() {
       expect(lines.map((line) => line.text), ['print(1)']);
     });
 
+    // College 17.11: на карточках книг вместо текста стояли «await dv.view(...» и «TABLE WITHOUT ID»
+    test('запросы Dataview — вызов плагина Obsidian, в ленте их нет', () {
+      final body = 'Книга\n```dataviewjs\nawait dv.view("03 Библиотека/_карточка")\n```\nОтзыв: понравилось\n```dataview\nTABLE WITHOUT ID file.link\n```';
+      expect(noteLinesUnderTitle(body, 'Книга').map((line) => line.text), ['Отзыв: понравилось']);
+    });
+
     // эмулятор 16.11: в ленте и в уведомлении стояли строки «$$» блочной формулы
     test('в ленте формула — исходником без долларов, моноширинно, а не курсивом', () {
       final shown = renderMarkup(r'Скорость $v = \frac{s}{t}$ и $$E$$', const []);
