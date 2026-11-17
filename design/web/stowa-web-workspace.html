@@ -78,8 +78,8 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .bar .presets button:hover { color: var(--on); background: var(--c-high); }
 .bar .presets button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 .bar .icon-btn.on { background: var(--c-high); color: var(--on); }
-#tog-right { margin-left: auto; }
-.bar .presets + #tog-right { margin-left: 0; }
+#tog-keys { margin-left: auto; }
+.bar .presets + #tog-keys { margin-left: 0; }
 .body { flex: 1; display: flex; min-height: 0; padding: 0 max(var(--gap), env(safe-area-inset-right, 0px)) calc(var(--gap) + env(safe-area-inset-bottom, 0px)) max(var(--gap), env(safe-area-inset-left, 0px)); }
 .dockcol { flex: none; width: var(--w); display: flex; flex-direction: column; min-height: 0; background: var(--block); border-radius: var(--r-block); overflow: hidden; }
 .dockcol[hidden] { display: none; }
@@ -260,6 +260,32 @@ body.resizing.rows { cursor: row-resize; }
 .panel { padding: 18px; border-radius: var(--r-card); background: var(--c); }
 .panel h4 { margin: 0 0 12px; font: 600 14px var(--display); letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
 .panel h4 .sym { font-size: 18px; color: var(--on-var); }
+/* окно поверх: палитра команд, переход к заметке, сочетания клавиш */
+.modal { position: fixed; inset: 0; z-index: 60; background: var(--scrim); display: flex; justify-content: center; align-items: flex-start; padding: 12vh 16px 16px; }
+.modal[hidden] { display: none; }
+.modal-card { width: min(640px, 100%); max-height: 72vh; display: flex; flex-direction: column; border-radius: var(--r-card); background: var(--c-high); overflow: hidden; }
+.pal-q { width: 100%; height: 56px; border: 0; outline: none; background: transparent; padding: 0 22px; font-size: 17px; flex: none; }
+.pal-q::placeholder { color: var(--muted); }
+.pal-list, .keys-list { overflow: auto; padding: 0 8px 8px; min-height: 0; }
+.pal-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 6px 12px; border-radius: 16px; text-align: left; font-size: 15px; }
+.pal-row:hover, .pal-row.sel { background: var(--c-highest); }
+.pal-row > .sym { color: var(--on-var); }
+.pal-t { min-width: 0; flex: 1; }
+.pal-t small { display: block; color: var(--muted); font-size: 12px; }
+.pal-k, .keys-k { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+kbd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 7px; background: var(--c-lowest); color: var(--on-var); font: 600 12px var(--body); }
+.then, .or { color: var(--muted); font-size: 11px; margin: 0 4px; }
+.pal-foot { padding: 10px 20px 14px; color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; flex: none; }
+.keys-head { display: flex; align-items: center; gap: 8px; padding: 14px 14px 6px 22px; flex: none; }
+.keys-head h3 { margin: 0; font: 600 17px var(--display); white-space: nowrap; }
+.keys-head .pal-q { flex: 1; width: auto; min-width: 0; height: 40px; border-radius: 100px; background: var(--c-highest); padding: 0 16px; font-size: 14px; }
+.keys-g { font-size: 12px; font-weight: 600; color: var(--muted); padding: 14px 12px 4px; }
+.keys-row { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 4px 6px 4px 12px; border-radius: 14px; }
+.keys-row:hover { background: var(--c-highest); }
+.keys-row > .sym { color: var(--on-var); font-size: 19px; }
+.keys-t { flex: 1; min-width: 0; font-size: 14px; }
+.rec { font-size: 13px; color: var(--on); padding: 3px 10px; border-radius: 100px; background: color-mix(in oklab, var(--accent) 18%, transparent); }
+.toast button[hidden] { display: none; }
 .cal { padding: 0 8px; }
 .cal-head { font-size: 13px; font-weight: 600; margin: 0 0 6px 2px; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; font-size: 12px; }
@@ -419,9 +445,10 @@ body.resizing.rows { cursor: row-resize; }
 
 <div class="ws" id="app">
   <header class="bar">
-    <button class="icon-btn" id="tog-left" title="Левый док"><span class="sym">left_panel_open</span></button>
+    <button class="icon-btn" id="tog-left" title="Левый док (Ctrl+[)"><span class="sym">left_panel_open</span></button>
     <div class="presets" id="presets" role="group" aria-label="Раскладка"></div>
-    <button class="icon-btn" id="tog-right" title="Правый док"><span class="sym">right_panel_open</span></button>
+    <button class="icon-btn" id="tog-keys" title="Сочетания клавиш (?)"><span class="sym">keyboard</span></button>
+    <button class="icon-btn" id="tog-right" title="Правый док (Ctrl+])"><span class="sym">right_panel_open</span></button>
   </header>
   <div class="body">
   <aside class="dockcol left" id="side" aria-label="Левый док">
@@ -472,6 +499,7 @@ body.resizing.rows { cursor: row-resize; }
   </div>
 </div>
 <div class="scrim" id="scrim"></div>
+<div class="modal" id="modal" hidden><div class="modal-card" id="modal-card" role="dialog" aria-modal="true"></div></div>
 
 <script>
 const FOLDERS = [
@@ -788,14 +816,14 @@ const onePane = () => !!L.center.tabs;
 function paneHtml(p) {
   const r = p.tabs[p.at];
   const tabs = p.tabs.map((t, i) => { const [ic, title] = tabTitle(t);
-    return `<button class="tab ${i === p.at ? "on" : ""}" data-tab="${p.id}:${i}">${ic}<span class="t">${esc(title)}</span>${p.tabs.length > 1 || !onePane() ? `<span class="sym x" data-close="${p.id}:${i}" title="Закрыть вкладку">close</span>` : ""}</button>`; }).join("");
+    return `<button class="tab ${i === p.at ? "on" : ""}" data-tab="${p.id}:${i}">${ic}<span class="t">${esc(title)}</span>${p.tabs.length > 1 || !onePane() ? `<span class="sym x" data-close="${p.id}:${i}" title="Закрыть вкладку (Alt+W)">close</span>` : ""}</button>`; }).join("");
   return `<section class="pane ${p.id === activeId ? "active" : ""}" data-pane="${p.id}">
     <div class="pane-top">
       <div class="tabs">${tabs}</div>
       <div class="pane-acts">
-        <button class="icon-btn" data-split="${p.id}:row" title="Разделить вправо">${sym("splitscreen_right")}</button>
-        <button class="icon-btn" data-split="${p.id}:col" title="Разделить вниз">${sym("splitscreen_bottom")}</button>
-        ${onePane() ? "" : `<button class="icon-btn" data-closepane="${p.id}" title="Закрыть окно">${sym("close")}</button>`}
+        <button class="icon-btn" data-split="${p.id}:row" title="Разделить вправо (Ctrl+\\)">${sym("splitscreen_right")}</button>
+        <button class="icon-btn" data-split="${p.id}:col" title="Разделить вниз (Ctrl+Shift+\\)">${sym("splitscreen_bottom")}</button>
+        ${onePane() ? "" : `<button class="icon-btn" data-closepane="${p.id}" title="Закрыть окно (Alt+Shift+W)">${sym("close")}</button>`}
       </div>
     </div>
     <div class="pane-scroll"><div class="view">${viewOf(r)}</div></div>
@@ -1059,22 +1087,217 @@ function save() {
   const homePane = panes().find(p => p.tabs[p.at] === "home");
   if (homePane) { activeId = homePane.id; render(); } else go("home");
   document.querySelector(`.pane[data-pane="${activeId}"] .pin[data-id="${id}"]`)?.classList.add("fresh");
-  toast(`Закинуто в «${FNAME[fid]}»${rem ? " · напомню " + rem.toLowerCase() : ""}`);
+  toast(`Закинуто в «${FNAME[fid]}»${rem ? " · напомню " + rem.toLowerCase() : ""}`, () => {
+    const i = NOTES.findIndex(n => n.id === id); if (i < 0) return;
+    const n = NOTES.splice(i, 1)[0]; render(); q.value = n.text || n.title; q.focus();
+  });
 }
-function toast(msg) {
-  $("#toast-text").textContent = msg; $("#toast").classList.add("on");
+/* уведомление снизу; [undo] — что сделать по «Отменить», без него кнопки нет */
+let undoFn = null;
+function toast(msg, undo) {
+  $("#toast-text").textContent = msg; undoFn = undo || null;
+  $("#toast-undo").hidden = !undo; $("#toast").classList.add("on");
   clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("on"), 4200);
 }
-$("#toast-undo").onclick = () => {
-  const i = NOTES.findIndex(n => n.id === undoId); if (i < 0) return;
-  const n = NOTES.splice(i, 1)[0]; document.querySelector(`.pin[data-id="${n.id}"]`)?.remove();
-  q.value = n.text || n.title; $("#toast").classList.remove("on"); q.focus();
-};
-document.addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); q.focus(); q.select(); }
-  if (e.key === "Escape") { if (document.activeElement === q) { q.value = ""; results.hidden = true; q.blur(); } closeDrawers(); }
-});
+$("#toast-undo").onclick = () => { $("#toast").classList.remove("on"); const f = undoFn; undoFn = null; f?.(); };
 $("#finder").onclick = () => { closeDrawers(); q.focus(); };
+
+/* ── действия и сочетания клавиш ──
+   Правила: Ctrl+N, Ctrl+T, Ctrl+W, Ctrl+Tab и Ctrl+1…9 браузер забирает себе — их не берём.
+   Свободны и привычны Ctrl+K, Ctrl+P, Ctrl+O (Linear, Notion, VS Code). Одна клавиша без
+   модификаторов — только когда курсор не в поле ввода (как в Gmail, GitHub, Linear).
+   Ctrl+Alt+буква не берём: в польской и румынской раскладке это AltGr — им печатают ą, ș.
+   Клавиша ловится по месту на клавиатуре (e.code), поэтому работает и в русской раскладке. */
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+let closedTabs = [];
+const note = id => NOTES.find(n => n.id === id);
+const noteOrToast = () => { const id = activeNote(); if (!id) toast("Сначала откройте заметку"); return id; };
+const letters = () => "abcdefghij".split("").sort(() => Math.random() - .5).join("");
+
+function newNote() {
+  const r = activeRoute(); const f = r && r.startsWith("folder-") ? r.slice(7) : r && r.startsWith("note-") ? note(r.slice(5))?.f || "none" : "none";
+  const now = new Date();
+  const id = "new" + letters();
+  NOTES.unshift({ id, f, day: 0, time: `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`, kind: "note", title: "Без названия", text: "" });
+  go("note-" + id);
+  // курсор сразу в заголовке: пиши
+  const title = document.querySelector(`.pane[data-pane="${activeId}"] .doc-title`);
+  if (title) { title.focus(); getSelection().selectAllChildren(title); }
+  toast(`Новая заметка в «${FNAME[f]}»`, () => removeNote(id));
+}
+function removeNote(id) {
+  const i = NOTES.findIndex(n => n.id === id); if (i < 0) return null;
+  const [n] = NOTES.splice(i, 1);
+  panes().forEach(p => { p.tabs = p.tabs.filter(t => t !== "note-" + id); if (!p.tabs.length) p.tabs = ["home"]; p.at = Math.min(p.at, p.tabs.length - 1); });
+  render(); return [n, i];
+}
+function trashNote() {
+  const id = noteOrToast(); if (!id) return;
+  const pane = activePane(), at = pane.at;
+  const [n, i] = removeNote(id);
+  toast(`«${n.title}» в корзине, 30 дней можно вернуть`, () => { NOTES.splice(i, 0, n); pane.tabs.splice(at, 0, "note-" + id); pane.at = at; render(); });
+}
+function newFolder() {
+  const id = "f" + letters();
+  FOLDERS.push({ id, name: "Новая папка", icon: "folder", count: 0 }); FNAME[id] = "Новая папка"; FICON[id] = "folder";
+  if (!L.left.list.includes("folders")) L.left.list.unshift("folders");
+  L.left.open = true; render();
+  toast("Папка создана — переименуйте её", () => { FOLDERS.splice(FOLDERS.findIndex(f => f.id === id), 1); render(); });
+}
+function closeTab() {
+  const p = activePane(); const [r] = p.tabs.splice(p.at, 1); closedTabs.push([p.id, r]);
+  if (!p.tabs.length) { if (onePane()) p.tabs = ["home"]; else { closePane(p.id); return; } }
+  p.at = Math.min(p.at, p.tabs.length - 1); render();
+}
+function reopenTab() {
+  const last = closedTabs.pop(); if (!last) { toast("Закрытых вкладок нет"); return; }
+  const p = panes().find(x => x.id === last[0]) || activePane(); activeId = p.id; go(last[1]);
+}
+function stepTab(d) { const p = activePane(); p.at = (p.at + d + p.tabs.length) % p.tabs.length; render(); }
+function stepPane(d) { const all = panes(); const i = all.findIndex(p => p.id === activeId); activeId = all[(i + d + all.length) % all.length].id; render(); }
+function preset(k) { paneSeq = 1; L = { preset: k, collapsed: [], ...PRESETS[k].make() }; activeId = panes()[0].id; render(); }
+
+const COMMANDS = [
+  { g: "Поиск и переход", id: "find", t: "Найти или записать", i: "search", keys: ["Ctrl+K", "/"], run: () => { q.focus(); q.select(); } },
+  { g: "Поиск и переход", id: "palette", t: "Все команды", i: "terminal", keys: ["Ctrl+P"], run: () => openPalette("commands") },
+  { g: "Поиск и переход", id: "switch", t: "Открыть заметку по названию", i: "description", keys: ["Ctrl+O"], run: () => openPalette("notes") },
+  { g: "Поиск и переход", id: "home", t: "На главную", i: "home", keys: ["G H"], run: () => go("home") },
+  { g: "Поиск и переход", id: "keys", t: "Сочетания клавиш", i: "keyboard", keys: ["?", "Ctrl+/"], run: openKeys },
+  { g: "Заметки и папки", id: "new", t: "Новая заметка", i: "edit_square", keys: ["N", "Alt+N"], run: newNote },
+  { g: "Заметки и папки", id: "newfolder", t: "Новая папка", i: "create_new_folder", keys: ["Shift+N", "Alt+Shift+N"], run: newFolder },
+  { g: "Заметки и папки", id: "trash", t: "Удалить в корзину", i: "delete", keys: ["Delete", "Alt+Backspace"], run: trashNote },
+  { g: "Заметки и папки", id: "undo", t: "Отменить последнее", i: "undo", keys: ["Ctrl+Z"], run: () => { const f = undoFn; if (f) { undoFn = null; $("#toast").classList.remove("on"); f(); } else toast("Нечего отменять"); } },
+  { g: "Заметки и папки", id: "pin", t: "Закрепить заметку", i: "push_pin", keys: ["P", "Alt+P"], run: () => { const id = noteOrToast(); if (!id) return; const was = PINNED.includes(id); was ? PINNED.splice(PINNED.indexOf(id), 1) : PINNED.unshift(id); render(); toast(was ? "Откреплено" : "Закреплено"); } },
+  { g: "Заметки и папки", id: "move", t: "Переложить в папку", i: "drive_file_move", keys: ["M", "Alt+M"], run: () => { if (noteOrToast()) openPalette("folders"); } },
+  { g: "Заметки и папки", id: "remind", t: "Напомнить", i: "notifications", keys: ["R", "Alt+R"], run: () => { const id = noteOrToast(); if (!id) return; note(id).rem = "Завтра, 9:00"; render(); toast("Напомню завтра в 9:00"); } },
+  { g: "Заметки и папки", id: "edit", t: "Правка или чтение", i: "edit", keys: ["Ctrl+E"], run: () => { const t = document.querySelector(`.pane[data-pane="${activeId}"] .doc-title`); if (!t) { toast("Сначала откройте заметку"); return; } const on = t.isContentEditable; t.contentEditable = String(!on); toast(on ? "Режим чтения" : "Режим правки"); } },
+  { g: "Вкладки и окна", id: "close", t: "Закрыть вкладку", i: "close", keys: ["Alt+W"], run: closeTab },
+  { g: "Вкладки и окна", id: "reopen", t: "Вернуть закрытую вкладку", i: "undo", keys: ["Alt+Shift+T"], run: reopenTab },
+  { g: "Вкладки и окна", id: "next", t: "Следующая вкладка", i: "arrow_forward", keys: ["Alt+]"], run: () => stepTab(1) },
+  { g: "Вкладки и окна", id: "prev", t: "Предыдущая вкладка", i: "arrow_back", keys: ["Alt+["], run: () => stepTab(-1) },
+  { g: "Вкладки и окна", id: "splitr", t: "Разделить вправо", i: "splitscreen_right", keys: ["Ctrl+\\"], run: () => splitPane(activeId, "row") },
+  { g: "Вкладки и окна", id: "splitd", t: "Разделить вниз", i: "splitscreen_bottom", keys: ["Ctrl+Shift+\\"], run: () => splitPane(activeId, "col") },
+  { g: "Вкладки и окна", id: "nextpane", t: "Соседнее окно", i: "switch_left", keys: ["Alt+Shift+→"], run: () => stepPane(1) },
+  { g: "Вкладки и окна", id: "prevpane", t: "Предыдущее окно", i: "switch_right", keys: ["Alt+Shift+←"], run: () => stepPane(-1) },
+  { g: "Вкладки и окна", id: "closepane", t: "Закрыть окно", i: "cancel", keys: ["Alt+Shift+W"], run: () => onePane() ? toast("Это единственное окно") : closePane(activeId) },
+  { g: "Доки и раскладки", id: "left", t: "Левый док", i: "left_panel_open", keys: ["Ctrl+["], run: () => toggleDock("left") },
+  { g: "Доки и раскладки", id: "right", t: "Правый док", i: "right_panel_open", keys: ["Ctrl+]"], run: () => toggleDock("right") },
+  ...Object.entries(PRESETS).map(([k, p], i) => ({ g: "Доки и раскладки", id: "preset-" + k, t: `Раскладка «${p.t}»`, i: p.i, keys: [`Alt+Shift+${i + 1}`], run: () => preset(k) })),
+  { g: "Доки и раскладки", id: "theme", t: "Светлая или тёмная тема", i: "dark_mode", keys: ["Alt+Shift+L"], run: () => $("#theme").click() },
+  { g: "Доки и раскладки", id: "settings", t: "Настройки", i: "settings", keys: ["Ctrl+,"], run: () => toast("Настройки откроются здесь") },
+];
+/* свои сочетания поверх стандартных: { id команды: [сочетания] } */
+const KEYS_SAVE = "stowa-web-keys-v1";
+let customKeys = (() => { try { return JSON.parse(store.get(KEYS_SAVE)) || {}; } catch { return {}; } })();
+const keysOf = c => customKeys[c.id] || c.keys;
+
+/* сочетание из нажатия: по месту клавиши, а не по букве — русская раскладка не мешает */
+const CODE_NAMES = { BracketLeft: "[", BracketRight: "]", Backslash: "\\", Slash: "/", Comma: ",", Period: ".", Backspace: "Backspace", Delete: "Delete", ArrowRight: "→", ArrowLeft: "←", ArrowUp: "↑", ArrowDown: "↓", Enter: "Enter", Escape: "Esc", Space: "Space", Minus: "-", Equal: "=" };
+function comboOf(e) {
+  let k = CODE_NAMES[e.code] || (e.code.startsWith("Key") ? e.code.slice(3) : e.code.startsWith("Digit") ? e.code.slice(5) : null);
+  if (!k) return null;
+  if (e.shiftKey && k === "/") k = "?";
+  return [(e.ctrlKey || e.metaKey) && "Ctrl", e.altKey && "Alt", e.shiftKey && k !== "?" && "Shift", k].filter(Boolean).join("+");
+}
+const show = combo => combo.split(" ").map(part => part.split("+").map(k => `<kbd>${isMac ? { Ctrl: "⌘", Alt: "⌥", Shift: "⇧" }[k] || k : k}</kbd>`).join("")).join('<span class="then">затем</span>');
+const typing = el => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+
+let pending = null, pendingTimer;
+document.addEventListener("keydown", e => {
+  if (recording) return;
+  if (e.key === "Escape") {
+    if (!$("#modal").hidden) { closeModal(); return; }
+    if (document.activeElement === q) { q.value = ""; results.hidden = true; q.blur(); }
+    closeDrawers(); closeAddMenus(); return;
+  }
+  if (!$("#modal").hidden) return;
+  const combo = comboOf(e); if (!combo) return;
+  const bare = !combo.includes("Ctrl") && !combo.includes("Alt");
+  // одна клавиша без модификаторов — только вне поля ввода
+  if (bare && typing(document.activeElement)) return;
+  const seq = pending ? pending + " " + combo : combo;
+  const hit = COMMANDS.find(c => keysOf(c).includes(seq));
+  if (hit) { e.preventDefault(); pending = null; hit.run(); return; }
+  // начало двухклавишного сочетания (G затем H)
+  if (!pending && COMMANDS.some(c => keysOf(c).some(k => k.startsWith(combo + " ")))) {
+    e.preventDefault(); pending = combo; clearTimeout(pendingTimer); pendingTimer = setTimeout(() => pending = null, 1200); return;
+  }
+  pending = null;
+});
+
+/* ── окно поверх: палитра команд, переход к заметке, папки, сочетания ── */
+function closeModal() { $("#modal").hidden = true; recording = null; }
+function openPalette(kind) {
+  const items = kind === "commands" ? COMMANDS.map(c => ({ i: c.i, t: c.t, sub: c.g, keys: keysOf(c)[0], run: c.run }))
+    : kind === "notes" ? [...NOTES.map(n => ({ f: n.f, t: n.title, sub: FNAME[n.f], run: () => go("note-" + n.id) })),
+        ...Object.keys(FNAME).map(id => ({ f: id, t: FNAME[id], sub: "папка", run: () => go("folder-" + id) }))]
+    : Object.keys(FNAME).map(id => ({ f: id, t: FNAME[id], sub: "переложить сюда", run: () => { const n = note(activeNote()); const was = n.f; n.f = id; render(); toast(`Переложено в «${FNAME[id]}»`, () => { n.f = was; render(); }); } }));
+  const ph = { commands: "Команда…", notes: "Название заметки или папки…", folders: "В какую папку…" }[kind];
+  $("#modal").hidden = false;
+  $("#modal-card").innerHTML = `<input class="pal-q" id="pal-q" placeholder="${ph}" autocomplete="off"><div class="pal-list" id="pal-list"></div>
+    <div class="pal-foot">${show("↑")}${show("↓")} выбрать · ${show("Enter")} открыть · ${show("Esc")} закрыть</div>`;
+  let sel = 0, shown = items;
+  const draw = () => {
+    const words = $("#pal-q").value.toLowerCase().split(/\s+/).filter(Boolean);
+    shown = items.filter(it => words.every(w => (it.t + " " + it.sub).toLowerCase().includes(w))).slice(0, 40);
+    sel = Math.min(sel, Math.max(0, shown.length - 1));
+    $("#pal-list").innerHTML = shown.length ? shown.map((it, k) => `<button class="pal-row ${k === sel ? "sel" : ""}" data-k="${k}" ${it.f ? `data-f="${it.f}"` : ""}>
+        ${it.f ? fic(it.f, 20) : sym(it.i)}<span class="pal-t">${esc(it.t)}<small>${esc(it.sub)}</small></span>${it.keys ? `<span class="pal-k">${show(it.keys)}</span>` : ""}</button>`).join("")
+      : `<div class="pnl-note" style="padding:14px">Ничего не нашлось</div>`;
+    $("#pal-list .sel")?.scrollIntoView({ block: "nearest" });
+  };
+  const pick = k => { const it = shown[k]; if (!it) return; closeModal(); it.run(); };
+  $("#pal-q").oninput = () => { sel = 0; draw(); };
+  $("#pal-q").onkeydown = e => {
+    if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(sel + 1, shown.length - 1); draw(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(sel - 1, 0); draw(); }
+    if (e.key === "Enter") { e.preventDefault(); pick(sel); }
+  };
+  $("#pal-list").onclick = e => { const row = e.target.closest("[data-k]"); if (row) pick(+row.dataset.k); };
+  draw(); $("#pal-q").focus();
+}
+
+/* экран «Сочетания клавиш»: у каждой команды свои; нажал «изменить» — следующее нажатие станет сочетанием */
+let recording = null;
+function openKeys() {
+  $("#modal").hidden = false;
+  const groups = [...new Set(COMMANDS.map(c => c.g))];
+  $("#modal-card").innerHTML = `<div class="keys-head"><h3>Сочетания клавиш</h3><input class="pal-q" id="keys-q" placeholder="Найти действие…" autocomplete="off"></div>
+    <div class="keys-list" id="keys-list"></div>
+    <div class="pal-foot">Одна клавиша без Ctrl и Alt работает, когда курсор не в поле ввода. Сочетания по месту клавиши — в любой раскладке.</div>`;
+  const draw = () => {
+    const w = $("#keys-q").value.toLowerCase();
+    $("#keys-list").innerHTML = groups.map(g => {
+      const rows = COMMANDS.filter(c => c.g === g && c.t.toLowerCase().includes(w));
+      return rows.length ? `<div class="keys-g">${g}</div>` + rows.map(c => `<div class="keys-row">${sym(c.i)}<span class="keys-t">${c.t}</span>
+        <span class="keys-k">${recording === c.id ? '<span class="rec">Нажмите сочетание…</span>' : keysOf(c).map(show).join('<span class="or">или</span>')}</span>
+        <button class="mini" data-rebind="${c.id}" title="Изменить">${sym("edit")}</button>
+        ${customKeys[c.id] ? `<button class="mini" data-reset="${c.id}" title="Вернуть как было">${sym("restart_alt")}</button>` : ""}</div>`).join("") : "";
+    }).join("");
+  };
+  $("#keys-q").oninput = draw;
+  $("#keys-list").onclick = e => {
+    const rb = e.target.closest("[data-rebind]"); if (rb) { recording = rb.dataset.rebind; draw(); return; }
+    const rs = e.target.closest("[data-reset]"); if (rs) { delete customKeys[rs.dataset.reset]; store.set(KEYS_SAVE, JSON.stringify(customKeys)); draw(); }
+  };
+  openKeys.draw = draw; draw(); $("#keys-q").focus();
+}
+document.addEventListener("keydown", e => {
+  if (!recording) return;
+  if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) return;
+  e.preventDefault(); e.stopPropagation();
+  if (e.key === "Escape") { recording = null; openKeys.draw(); return; }
+  const combo = comboOf(e); if (!combo) return;
+  const reserved = ["Ctrl+N", "Ctrl+T", "Ctrl+W", "Ctrl+Shift+N", "Ctrl+Shift+T", "Ctrl+Shift+W", "Ctrl+Tab", "Ctrl+Shift+Tab", ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => "Ctrl+" + n)];
+  if (reserved.includes(combo)) { toast(`${combo} браузер оставляет себе — выберите другое`); return; }
+  // занятое другой командой — у той снимается
+  COMMANDS.forEach(c => { const k = keysOf(c); if (k.includes(combo) && c.id !== recording) customKeys[c.id] = k.filter(x => x !== combo); });
+  customKeys[recording] = [combo];
+  store.set(KEYS_SAVE, JSON.stringify(customKeys));
+  recording = null; openKeys.draw();
+}, true);
+$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+$("#tog-keys").onclick = openKeys;
 
 render();
 </script>
