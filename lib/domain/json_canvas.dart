@@ -177,13 +177,15 @@ class CanvasDoc {
 
   CanvasDoc removeEdge(String id) => _with(edges: [for (final edge in edges) if (edge.id != id) edge]);
 
-  /// Стрелка от одного узла к другому, стороны — по тому, как они лежат друг к другу.
-  /// К себе и вторую такую же не ставит.
-  CanvasDoc connect(String from, String to) {
+  /// Стрелка от одного узла к другому. Стороны — заданные (провод из точки-выхода) или
+  /// по тому, как узлы лежат друг к другу. К себе и вторую такую же не ставит.
+  CanvasDoc connect(String from, String to, {CanvasSide? fromSide, CanvasSide? toSide}) {
     final a = node(from), b = node(to);
     if (a == null || b == null || from == to) return this;
     if (edges.any((edge) => edge.fromNode == from && edge.toNode == to)) return this;
-    final (fromSide, toSide) = facingSides(a, b);
+    final facing = facingSides(a, b);
+    fromSide ??= facing.$1;
+    toSide ??= facing.$2;
     return _with(
       edges: [
         ...edges,

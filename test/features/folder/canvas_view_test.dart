@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
-import 'package:stowa/features/folder/canvas_view.dart' show CanvasLinksPainter;
+import 'package:stowa/features/canvas/canvas_kit.dart' show CanvasLinksPainter;
 import 'package:stowa/features/home/folder_shelf.dart';
 
 import '../../helpers/test_app.dart';

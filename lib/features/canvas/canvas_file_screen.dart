@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,6 +27,8 @@ import '../../services/vault/vault_layout.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
 import '../item/item_screen.dart' show itemRoute;
 import '../item/link_sheet.dart';
+import '../../services/capture_service.dart';
+import 'canvas_kit.dart';
 
 /// Мир холста: узлы Obsidian лежат вокруг нуля, в мире — со сдвигом на его середину.
 const _world = 40000.0;
@@ -59,8 +63,7 @@ class CanvasFileScreen extends ConsumerStatefulWidget {
   ConsumerState<CanvasFileScreen> createState() => _CanvasFileScreenState();
 }
 
-class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
-  final _transform = TransformationController();
+class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with CanvasControls {
   late CanvasDoc _doc;
 
   /// Текст, который лежит в базе: свой ли пришёл назад, или файл правили снаружи.
@@ -73,16 +76,22 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
     _stored = widget.item.document;
     _doc = CanvasDoc.parse(_stored ?? '');
   }
+
   Timer? _save;
-  String? _selected;
+
+  /// Выбранные карточки: касанием — одна, мышью — щелчком, Shift+щелчком или рамкой.
+  /// Их двигают стрелки и перетаскивание, убирает Delete; у одной — полоса действий.
+  final _selected = <String>{};
   String? _selectedEdge;
   bool _connecting = false;
-  Size _viewport = Size.zero;
   bool _fitted = false;
   final _pointers = <int>{};
   ({int pointer, String id, bool resize})? _hold;
   Matrix4? _heldView;
-  Offset? _doubleTapAt;
+
+  /// Заметки, положенные на холст в этот раз: узел → id заметки. Угадыватель может
+  /// переложить заметку, пока холст ждёт записи, — путь берётся свежий при записи.
+  final _placed = <String, String>{};
 
   bool get _editable => !_doc.broken;
 
@@ -103,7 +112,6 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
       _save!.cancel();
       _flush();
     }
-    _transform.dispose();
     super.dispose();
   }
 
@@ -116,34 +124,183 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
 
   void _flush() {
     _save = null;
-    _stored = _doc.encode();
-    ref.read(documentsRepositoryProvider).save(widget.item.id, _doc).ignore();
+    final documents = ref.read(documentsRepositoryProvider);
+    final id = widget.item.id;
+    final placed = Map.of(_placed);
+    var doc = _doc;
+    _stored = doc.encode();
+    () async {
+      // свежий путь положенных заметок: их могли разложить по папкам, пока холст ждал
+      for (final MapEntry(key: nodeId, value: itemId) in placed.entries) {
+        final path = await documents.writtenPathOf(itemId) ?? await documents.pathOf(itemId);
+        if (path != null && doc.node(nodeId)?.file != path) doc = doc.updateNode(nodeId, {'file': path});
+      }
+      await documents.save(id, doc);
+    }().ignore();
   }
 
-  Offset _scene(Offset local) => _transform.toScene(local) - const Offset(_origin, _origin);
+  /// Точка экрана → координаты файла (мир без сдвига на середину).
+  Offset _scene(Offset local) => transform.toScene(local) - const Offset(_origin, _origin);
 
-  Offset get _center => _scene(_viewport.center(Offset.zero));
+  Offset get _center => _scene(viewport.center(Offset.zero));
 
-  void _fit() {
-    if (_viewport.isEmpty) return;
+  Rect _rectOf(CanvasNode node) => Rect.fromLTWH(_origin + node.x, _origin + node.y, node.width.toDouble(), node.height.toDouble());
+
+  @override
+  void fitAll() {
+    if (viewport.isEmpty) return;
     if (_doc.nodes.isEmpty) {
-      _transform.value = Matrix4.translationValues(_viewport.width / 2 - _origin, _viewport.height / 3 - _origin, 0);
+      transform.value = Matrix4.translationValues(viewport.width / 2 - _origin, viewport.height / 3 - _origin, 0);
       return;
     }
     final bounds = canvasBounds([for (final node in _doc.nodes) CanvasBox(itemId: node.id, x: node.x.toDouble(), y: node.y.toDouble(), width: node.width.toDouble(), height: node.height.toDouble())], margin: 32);
-    final visible = Size(_viewport.width, max(120, _viewport.height - 96));
-    final scale = min(visible.width / bounds.width, visible.height / bounds.height).clamp(0.08, 1.2);
+    final visible = Size(viewport.width, max(120, viewport.height - 96));
+    final scale = min(visible.width / bounds.width, visible.height / bounds.height).clamp(canvasMinScale, 1.2);
     final dx = (visible.width - bounds.width * scale) / 2 - (_origin + bounds.left) * scale;
     final dy = (visible.height - bounds.height * scale) / 2 - (_origin + bounds.top) * scale;
     // масштаб по трём осям, как у InteractiveViewer: иначе getMaxScaleOnAxis видит 1
-    _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, scale);
+    transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, scale);
   }
 
-  // ── пальцы ──
+  // ——— клавиши: доходят, когда фокус у холста (щёлкнули по нему мышью) ———
+
+  KeyEventResult _onFocusKey(FocusNode node, KeyEvent event) => _onKey(event) ? KeyEventResult.handled : KeyEventResult.ignored;
+
+  bool _onKey(KeyEvent event) {
+    if (!isKeyPress(event)) return false;
+    if (zoomKey(event)) return true;
+    if (event.physicalKey == PhysicalKeyboardKey.escape && (_selected.isNotEmpty || _selectedEdge != null || _connecting)) {
+      setState(_clearSelection);
+      return true;
+    }
+    if (!_editable) return false;
+    if (_selectedEdge case final id?) {
+      if (isDeleteKey(event)) {
+        _delete(edge: _doc.edge(id));
+        return true;
+      }
+    }
+    if (_selected.isEmpty) return false;
+    if (isDeleteKey(event)) {
+      _deleteNodes({..._selected});
+      return true;
+    }
+    final shift = arrowShift(event);
+    if (shift == null) return false;
+    var next = _doc;
+    for (final id in _withContents(_selected)) {
+      final node = next.node(id);
+      if (node != null) next = next.updateNode(id, {'x': (node.x + shift.dx).round(), 'y': (node.y + shift.dy).round()});
+    }
+    _change(next);
+    return true;
+  }
+
+  void _clearSelection() {
+    _selected.clear();
+    _selectedEdge = null;
+    _connecting = false;
+  }
+
+  /// Что едет вместе с [ids]: группа — с тем, что лежит в ней целиком.
+  Set<String> _withContents(Iterable<String> ids) => {
+    for (final id in ids) ...[
+      id,
+      if (_doc.node(id) case final group? when group.type == CanvasNodeType.group)
+        for (final other in _doc.nodes)
+          if (other.id != group.id && other.inside(group)) other.id,
+    ],
+  };
+
+  // ——— мышь ———
+
+  /// Рамка выбора (Shift+тянуть по пустому месту), в координатах мира холста.
+  Rect? _marquee;
+  Offset? _marqueeStart;
+
+  // нажатие попало в карточку: то же нажатие по пустому месту выбор не снимает
+  bool _cardHit = false;
+
+  /// Карточка под мышью: у неё проявляются точки-выходы.
+  String? _hover;
+
+  /// Провод, который тянут из точки-выхода: откуда, с какой стороны и где курсор.
+  ({String from, CanvasSide side, Offset start, Offset normal, Offset end})? _wire;
+
+  /// Стрелки, нарисованные сейчас: по ним щелчок находит выбранную.
+  List<CanvasLink> _links = const [];
+
+  String? _edgeAt(Offset world) {
+    final reach = 10 / transform.value.getMaxScaleOnAxis();
+    return _links.where((link) => link.near(world, reach)).map((link) => link.key).firstOrNull;
+  }
+
+  /// Узел под точкой мира: карточки выше групп.
+  CanvasNode? _nodeAt(Offset world, {double margin = 0, String? except}) {
+    bool hits(CanvasNode node) => node.id != except && _rectOf(node).inflate(margin).contains(world);
+    return _doc.nodes.where((node) => node.type != CanvasNodeType.group && hits(node)).lastOrNull ?? _doc.nodes.where((node) => node.type == CanvasNodeType.group && hits(node)).lastOrNull;
+  }
+
+  void _mouseOnNode(String id) {
+    _cardHit = true;
+    setState(() {
+      selectOnMouse(_selected, id);
+      _selectedEdge = null;
+    });
+  }
+
+  void _endMarquee() {
+    final marquee = _marquee;
+    setState(() {
+      _marquee = null;
+      _marqueeStart = null;
+      _heldView = null;
+      if (marquee == null) return;
+      for (final node in _doc.nodes) {
+        if (node.type != CanvasNodeType.group && _rectOf(node).overlaps(marquee)) _selected.add(node.id);
+      }
+    });
+  }
+
+  void _startWire(String from, CanvasSide side, Offset start, Offset normal) {
+    if (!_editable) return;
+    _cardHit = true;
+    setState(() {
+      _wire = (from: from, side: side, start: start, normal: normal, end: start);
+      _heldView = transform.value.clone();
+    });
+  }
+
+  /// Провод отпустили: на другой карточке — стрелка от выбранной стороны, на пустом месте —
+  /// новая заметка там, уже со стрелкой (как в Obsidian).
+  Future<void> _endWire() async {
+    final wire = _wire;
+    setState(() {
+      _wire = null;
+      _heldView = null;
+    });
+    if (wire == null || (wire.end - wire.start).distance < 12) return;
+    final target = _nodeAt(wire.end, except: wire.from);
+    if (target != null) {
+      _change(_doc.connect(wire.from, target.id, fromSide: wire.side, toSide: sideFacing(_rectOf(target), wire.start)));
+      return;
+    }
+    final added = await _addNote(at: wire.end);
+    if (added == null || !mounted) return;
+    final node = _doc.node(added)!;
+    _change(_doc.connect(wire.from, added, fromSide: wire.side, toSide: sideFacing(_rectOf(node), wire.start)));
+  }
+
+  // ——— пальцы и перетаскивание ———
+
+  /// Карточки, которые едут сейчас: взятая, выбранные вместе с ней и содержимое групп.
+  Set<String> _carried = const {};
+  bool _moved = false;
 
   void _grab(String id, int pointer, {required bool resize}) {
-    if (!_editable || _hold != null || _pointers.length > 1 || _connecting) return;
-    _heldView = _transform.value.clone();
+    if (!_editable || _hold != null || _pointers.isNotEmpty || _connecting) return;
+    _carried = resize ? {id} : _withContents(_selected.contains(id) ? _selected : {id});
+    _heldView = transform.value.clone();
     setState(() => _hold = (pointer: pointer, id: id, resize: resize));
   }
 
@@ -157,8 +314,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
       if (hold.resize) {
         _doc = _doc.updateNode(id, {'width': max(60, node.width + delta.dx), 'height': max(40, node.height + delta.dy)});
       } else {
-        // группа едет вместе с тем, что лежало в ней, когда её взяли
-        for (final moving in {id, ..._carried}) {
+        for (final moving in _carried) {
           final one = _doc.node(moving);
           if (one != null) _doc = _doc.updateNode(moving, {'x': one.x + delta.dx, 'y': one.y + delta.dy});
         }
@@ -167,9 +323,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
     });
   }
 
-  bool _moved = false;
-
-  /// Палец отпустили: координаты целые, группа подтягивает содержимое, правка пишется.
+  /// Отпустили: координаты целые, правка пишется.
   void _drop() {
     final hold = _hold;
     if (hold == null) return;
@@ -185,11 +339,9 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
     _change(next);
   }
 
-  /// Что лежало в группе, когда её взяли: едет вместе с ней.
-  Set<String> _carried = const {};
-
   void _pointerDown(PointerDownEvent event) {
     _pointers.add(event.pointer);
+    // второй палец: это щипок, карточку больше не тащим
     if (_pointers.length > 1) _drop();
   }
 
@@ -198,69 +350,108 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
     if (_hold?.pointer == event.pointer) _drop();
   }
 
-  // ── действия ──
+  // ——— действия ———
 
-  void _tapNode(CanvasNode node) {
-    if (_connecting && _selected != null) {
-      final from = _selected!;
+  /// Касание карточки. Мышь выбирает ещё на нажатии (с Shift — добавляет), поэтому
+  /// касание мышью только завершает «Связать».
+  void _tapNode(CanvasNode node, PointerDeviceKind kind) {
+    if (_connecting && _selected.length == 1) {
+      final from = _selected.single;
       setState(() => _connecting = false);
       _change(_doc.connect(from, node.id));
       return;
     }
+    if (kind == PointerDeviceKind.mouse) return;
     setState(() {
-      _selected = node.id;
+      _selected
+        ..clear()
+        ..add(node.id);
       _selectedEdge = null;
     });
   }
 
   Future<void> _add() async {
     final l = L.of(context);
-    final what = await showOptionsSheet<CanvasNodeType>(
+    final what = await showOptionsSheet<String>(
       context,
       title: l.canvasAdd,
       options: [
-        SheetChoice(value: CanvasNodeType.text, title: l.canvasAddText, icon: 'notes'),
-        SheetChoice(value: CanvasNodeType.file, title: l.canvasAddNote, icon: 'description'),
-        SheetChoice(value: CanvasNodeType.link, title: l.canvasAddLink, icon: 'link'),
-        SheetChoice(value: CanvasNodeType.group, title: l.canvasAddGroup, icon: 'select_all'),
+        SheetChoice(value: 'note', title: l.canvasNote, icon: 'sticky_note_2'),
+        SheetChoice(value: 'file', title: l.canvasAddNote, icon: 'description'),
+        SheetChoice(value: 'text', title: l.canvasAddText, icon: 'notes'),
+        SheetChoice(value: 'link', title: l.canvasAddLink, icon: 'link'),
+        SheetChoice(value: 'group', title: l.canvasAddGroup, icon: 'select_all'),
       ],
     );
     if (what == null || !mounted) return;
     final at = _center;
     switch (what) {
-      case CanvasNodeType.text:
+      case 'note':
+        await _addNote();
+      case 'text':
         await _addText(at - const Offset(130, 70));
-      case CanvasNodeType.file:
+      case 'file':
         final target = await pickLinkTarget(context, ref, exceptId: widget.item.id);
         if (target == null) return;
         final path = await ref.read(documentsRepositoryProvider).pathOf(target.id);
         if (path == null || !mounted) return;
         final spot = _spot(at - const Offset(200, 150), 400, 300);
         _select(_doc.addFile(path, x: spot.dx, y: spot.dy));
-      case CanvasNodeType.link:
+      case 'link':
         final url = await _askText(context, hint: l.canvasLinkHint, multiline: false);
         if (url == null || url.trim().isEmpty) return;
         final full = url.contains('://') ? url.trim() : 'https://${url.trim()}';
         final spot = _spot(at - const Offset(200, 60), 400, 120);
         _select(_doc.addLink(full, x: spot.dx, y: spot.dy));
-      case CanvasNodeType.group:
+      case 'group':
         final label = await _askText(context, hint: l.canvasGroupHint, multiline: false, initial: l.canvasAddGroup);
         if (label == null) return;
         _select(_doc.addGroup(label.trim(), x: at.dx - 300, y: at.dy - 200));
-      case CanvasNodeType.unknown:
-        return;
     }
   }
 
+  /// Записка: обычная заметка хранилища — её разложат по папкам угадыватель и ИИ, — а на
+  /// холсте карточка-файл. [at] — точка мира, куда положить (без неё — середина экрана).
+  /// Вернёт id узла; отказались — null.
+  Future<String?> _addNote({Offset? at}) async {
+    if (!_editable) return null;
+    final text = await askCanvasNote(context);
+    if (text == null || !mounted) return null;
+    final center = at == null ? _center : at - const Offset(_origin, _origin);
+    final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text));
+    final path = await _pathOf(id);
+    if (path == null || !mounted) return null;
+    final spot = _spot(center - const Offset(150, 100), 300, 200);
+    final next = _doc.addFile(path, x: spot.dx, y: spot.dy, width: 300, height: 200);
+    final node = next.nodes.last;
+    _placed[node.id] = id;
+    _select(next, reveal: at == null);
+    return node.id;
+  }
+
+  /// Путь новой заметки: писатель кладёт файл чуть позже сохранения, а угадыватель успевает
+  /// разложить её по папке — ждём файла до 3 с, потом путь по папке и названию.
+  Future<String?> _pathOf(String id) async {
+    final documents = ref.read(documentsRepositoryProvider);
+    for (var attempt = 0; attempt < 12; attempt++) {
+      final written = await documents.writtenPathOf(id);
+      if (written != null) return written;
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+    return documents.pathOf(id);
+  }
+
   /// Новый узел — последний (или первая группа): он и выбирается.
-  void _select(CanvasDoc next) {
+  void _select(CanvasDoc next, {bool reveal = true}) {
     final added = next.nodes.firstWhere((node) => _doc.node(node.id) == null);
     _change(next);
     setState(() {
-      _selected = added.id;
+      _selected
+        ..clear()
+        ..add(added.id);
       _selectedEdge = null;
     });
-    _reveal(added);
+    if (reveal) _reveal(added);
   }
 
   /// Свободное место под новую карточку рядом с [wanted] (её левым верхним углом).
@@ -271,17 +462,17 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
 
   /// Новая карточка видна целиком: окно сдвигается к ней, а крупная уменьшается до ширины экрана.
   void _reveal(CanvasNode node) {
-    if (_viewport.isEmpty) return;
-    final scale = _transform.value.getMaxScaleOnAxis();
-    final visible = Size(_viewport.width, max(120, _viewport.height - 96));
-    final topLeft = MatrixUtils.transformPoint(_transform.value, Offset(node.x + _origin, node.y + _origin));
+    if (viewport.isEmpty) return;
+    final scale = transform.value.getMaxScaleOnAxis();
+    final visible = Size(viewport.width, max(120, viewport.height - 96));
+    final topLeft = MatrixUtils.transformPoint(transform.value, Offset(node.x + _origin, node.y + _origin));
     final shown = Rect.fromLTWH(topLeft.dx, topLeft.dy, node.width * scale, node.height * scale);
     if (Offset.zero & visible case final view when view.contains(shown.topLeft) && view.contains(shown.bottomRight)) return;
-    final next = min(scale, min((visible.width - 32) / node.width, (visible.height - 32) / node.height)).clamp(0.08, 1.2).toDouble();
+    final next = min(scale, min((visible.width - 32) / node.width, (visible.height - 32) / node.height)).clamp(canvasMinScale, 1.2).toDouble();
     final center = Offset(node.x + node.width / 2 + _origin, node.y + node.height / 2 + _origin);
     final dx = visible.width / 2 - center.dx * next;
     final dy = visible.height / 2 - center.dy * next;
-    _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(next, next, next);
+    transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(next, next, next);
   }
 
   Future<void> _addText(Offset topLeft) async {
@@ -326,15 +517,63 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
     _change(node != null ? _doc.updateNode(node.id, {'color': value}) : _doc.updateEdge(edge!.id, {'color': value}));
   }
 
-  void _delete({CanvasNode? node, CanvasEdge? edge}) {
+  /// Убрать карточки (и их стрелки) одним «Отменить». Заметка за карточкой остаётся в хранилище.
+  void _deleteNodes(Set<String> ids) {
     final l = L.of(context);
     final before = _doc;
-    _change(node != null ? _doc.removeNode(node.id) : _doc.removeEdge(edge!.id));
-    setState(() {
-      _selected = null;
-      _selectedEdge = null;
-    });
-    showUndo(ScaffoldMessenger.of(context), message: node != null ? l.canvasDeleted : l.canvasEdgeDeleted, label: l.undo, onUndo: () => _change(before));
+    var next = _doc;
+    for (final id in ids) {
+      next = next.removeNode(id);
+    }
+    _change(next);
+    setState(_clearSelection);
+    showUndo(ScaffoldMessenger.of(context), message: ids.length == 1 ? l.canvasDeleted : l.selDeleted(ids.length), label: l.undo, onUndo: () => _change(before), overDock: true);
+  }
+
+  void _delete({CanvasNode? node, CanvasEdge? edge}) {
+    if (node != null) return _deleteNodes({node.id});
+    if (edge == null) return;
+    final l = L.of(context);
+    final before = _doc;
+    _change(_doc.removeEdge(edge.id));
+    setState(_clearSelection);
+    showUndo(ScaffoldMessenger.of(context), message: l.canvasEdgeDeleted, label: l.undo, onUndo: () => _change(before), overDock: true);
+  }
+
+  /// Правый щелчок и долгое нажатие: те же действия, что у полосы выбранной карточки.
+  Future<void> _nodeMenu(CanvasNode node) async {
+    if (!_editable) return;
+    final l = L.of(context);
+    final canOpen = node.type == CanvasNodeType.file || node.type == CanvasNodeType.link;
+    final canEdit = node.type != CanvasNodeType.file && node.type != CanvasNodeType.unknown;
+    final what = await showOptionsSheet<String>(
+      context,
+      options: [
+        if (canOpen) SheetChoice(value: 'open', title: l.catalogOpenFolder, icon: 'open_in_new'),
+        if (canEdit) SheetChoice(value: 'edit', title: l.canvasEdit, icon: 'edit'),
+        SheetChoice(value: 'connect', title: l.canvasConnect, icon: 'arrow_right_alt'),
+        SheetChoice(value: 'color', title: l.canvasColor, icon: 'palette'),
+        SheetChoice(value: 'delete', title: l.canvasDelete, icon: 'delete', danger: true),
+      ],
+    );
+    if (what == null || !mounted) return;
+    switch (what) {
+      case 'open':
+        await _open(node);
+      case 'edit':
+        await _edit(node);
+      case 'connect':
+        setState(() {
+          _selected
+            ..clear()
+            ..add(node.id);
+          _connecting = true;
+        });
+      case 'color':
+        await _color(node: node);
+      case 'delete':
+        _deleteNodes({node.id});
+    }
   }
 
   Future<void> _rename() async {
@@ -348,10 +587,30 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final filesRoot = ref.watch(filesRootProvider);
-    final selected = _selected == null ? null : _doc.node(_selected!);
+    final selected = _selected.length == 1 ? _doc.node(_selected.single) : null;
     final selectedEdge = _selectedEdge == null ? null : _doc.edge(_selectedEdge!);
     final groups = [for (final node in _doc.nodes) if (node.type == CanvasNodeType.group) node];
     final cards = [for (final node in _doc.nodes) if (node.type != CanvasNodeType.group) node];
+    final hover = _wire?.from ?? _hover;
+    // стрелки файла: свои стороны, цвета и концы, как их записал Obsidian
+    _links = [
+      for (final edge in _doc.edges)
+        if ((_doc.node(edge.fromNode), _doc.node(edge.toNode)) case (final from?, final to?))
+          if (edgeCurve(from, to, edge) case final curve)
+            CanvasLink(
+              edge.fromNode,
+              edge.toNode,
+              curve.start + const Offset(_origin, _origin),
+              curve.c1 + const Offset(_origin, _origin),
+              curve.c2 + const Offset(_origin, _origin),
+              curve.end + const Offset(_origin, _origin),
+              key: edge.id,
+              selected: edge.id == _selectedEdge,
+              arrow: edge.toEnd == CanvasEnd.arrow,
+              backArrow: edge.fromEnd == CanvasEnd.arrow,
+              color: canvasColorOf(edge.color),
+            ),
+    ];
 
     Widget place(CanvasNode node) => Positioned(
       key: ValueKey(node.id),
@@ -362,17 +621,14 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
       child: _NodeView(
         node: node,
         filesRoot: filesRoot,
-        selected: node.id == _selected,
+        selected: _selected.contains(node.id),
+        lifted: _hold?.id == node.id,
         editable: _editable,
-        onTap: () => _tapNode(node),
+        onTap: (kind) => _tapNode(node, kind),
         onDoubleTap: () => node.type == CanvasNodeType.text || node.type == CanvasNodeType.group ? _edit(node) : _open(node),
-        onGrab: (pointer, {required resize}) {
-          if (_hold != null) return;
-          _carried = !resize && node.type == CanvasNodeType.group
-              ? {for (final other in _doc.nodes) if (other.id != node.id && other.inside(node)) other.id}
-              : const {};
-          _grab(node.id, pointer, resize: resize);
-        },
+        onMouseDown: () => _mouseOnNode(node.id),
+        onMenu: () => _nodeMenu(node),
+        onGrab: (pointer, {required resize}) => _grab(node.id, pointer, resize: resize),
         onDrag: (pointer, delta) => _drag(node.id, pointer, delta),
       ),
     );
@@ -386,8 +642,10 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
               padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 6),
               child: Row(
                 children: [
-                  _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.maybePop(context)),
-                  const SizedBox(width: 12),
+                  if (Navigator.canPop(context)) ...[
+                    _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.maybePop(context)),
+                    const SizedBox(width: 12),
+                  ],
                   Expanded(
                     child: InkWell(
                       key: const ValueKey('canvas-title'),
@@ -402,7 +660,6 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
                       ),
                     ),
                   ),
-                  _RoundButton(icon: 'fit_screen', tooltip: l.canvasFit, onTap: _fit),
                 ],
               ),
             ),
@@ -414,125 +671,225 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  _viewport = constraints.biggest;
+                  viewport = constraints.biggest;
                   // первый показ — всё целиком: размер окна известен только здесь
-                  if (!_fitted && !_viewport.isEmpty) {
+                  if (!_fitted && !viewport.isEmpty) {
                     _fitted = true;
-                    WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _fit() : null);
+                    WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? fitAll() : null);
                   }
-                  return Stack(
-                    children: [
-                      Positioned.fill(child: CustomPaint(painter: _DotsPainter(_transform))),
-                      Listener(
-                        onPointerDown: _pointerDown,
-                        onPointerUp: _pointerUp,
-                        onPointerCancel: _pointerUp,
-                        child: InteractiveViewer(
-                          key: const ValueKey('canvas-board'),
-                          transformationController: _transform,
-                          constrained: false,
-                          minScale: 0.08,
-                          maxScale: 4,
-                          panEnabled: _hold == null,
-                          onInteractionUpdate: (details) {
-                            final held = _heldView;
-                            if (_hold != null && details.pointerCount == 1 && held != null) _transform.value = held.clone();
-                          },
-                          boundaryMargin: const EdgeInsets.all(_world),
-                          child: SizedBox(
-                            width: _world,
-                            height: _world,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                // пустое место: касание снимает выбор, двойное — новая карточка там
-                                Positioned.fill(
-                                  child: GestureDetector(
-                                    key: const ValueKey('canvas-empty'),
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () => setState(() {
-                                      _selected = null;
-                                      _selectedEdge = null;
-                                      _connecting = false;
-                                    }),
-                                    onDoubleTapDown: (details) => _doubleTapAt = details.localPosition - const Offset(_origin, _origin),
-                                    onDoubleTap: _editable ? () => _addText((_doubleTapAt ?? Offset.zero) - const Offset(20, 20)) : null,
+                  return Focus(
+                    focusNode: canvasFocus,
+                    onKeyEvent: _onFocusKey,
+                    child: Stack(
+                      key: canvasKey,
+                      children: [
+                        Positioned.fill(child: CustomPaint(painter: CanvasDotsPainter(transform, step: _dotStep))),
+                        // слушатель пальцев не отбирает жест у холста: он только считает пальцы
+                        Listener(
+                          onPointerDown: _pointerDown,
+                          onPointerUp: _pointerUp,
+                          onPointerCancel: _pointerUp,
+                          child: MouseRegion(
+                            // мышью пустое место тянут, как лист бумаги
+                            cursor: _hold == null ? SystemMouseCursors.grab : SystemMouseCursors.grabbing,
+                            child: InteractiveViewer(
+                              key: const ValueKey('canvas-board'),
+                              transformationController: transform,
+                              constrained: false,
+                              minScale: canvasMinScale,
+                              maxScale: canvasMaxScale,
+                              // колесо масштабирует только с Ctrl (canvasSignal); щипок пальцами — как был
+                              scaleFactor: double.maxFinite,
+                              // палец ведёт карточку, мышь тянет рамку или провод — холст под ними не едет
+                              panEnabled: _hold == null && _marqueeStart == null && _wire == null,
+                              onInteractionUpdate: (details) {
+                                final held = _heldView;
+                                if ((_hold != null || _marqueeStart != null || _wire != null) && details.pointerCount == 1 && held != null) transform.value = held.clone();
+                              },
+                              boundaryMargin: const EdgeInsets.all(_world),
+                              // слушатель внутри просмотрщика слышит колесо первым: колесо листает
+                              child: Listener(
+                                behavior: HitTestBehavior.opaque,
+                                onPointerSignal: canvasSignal,
+                                onPointerDown: (event) {
+                                  if (event.kind == PointerDeviceKind.mouse) {
+                                    // щёлкнули мышью по холсту — клавиши теперь ему
+                                    canvasFocus.requestFocus();
+                                    final edge = _cardHit ? null : _edgeAt(event.localPosition);
+                                    if (!_cardHit && HardwareKeyboard.instance.isShiftPressed) {
+                                      // Shift по пустому месту — рамка выбора вместо сдвига холста
+                                      setState(() {
+                                        _marqueeStart = event.localPosition;
+                                        _marquee = Rect.fromPoints(event.localPosition, event.localPosition);
+                                        _heldView = transform.value.clone();
+                                      });
+                                    } else if (edge != null) {
+                                      setState(() {
+                                        _selectedEdge = edge;
+                                        _selected.clear();
+                                      });
+                                    } else if (!_cardHit && (_selected.isNotEmpty || _selectedEdge != null)) {
+                                      setState(_clearSelection);
+                                    }
+                                  }
+                                  _cardHit = false;
+                                },
+                                // мышь над карточкой — у неё проявляются точки-выходы
+                                onPointerHover: (event) {
+                                  final under = _editable ? _nodeAt(event.localPosition, margin: 18)?.id : null;
+                                  if (under != _hover) setState(() => _hover = under);
+                                },
+                                onPointerMove: (event) {
+                                  final start = _marqueeStart;
+                                  if (start != null) setState(() => _marquee = Rect.fromPoints(start, event.localPosition));
+                                  final wire = _wire;
+                                  if (wire != null) setState(() => _wire = (from: wire.from, side: wire.side, start: wire.start, normal: wire.normal, end: event.localPosition));
+                                },
+                                onPointerUp: (event) {
+                                  if (_marqueeStart != null) _endMarquee();
+                                  if (_wire != null) _endWire().ignore();
+                                },
+                                child: GestureDetector(
+                                  // правый щелчок по стрелке — убрать её
+                                  onSecondaryTapDown: (details) {
+                                    final edge = _edgeAt(details.localPosition);
+                                    if (edge != null && _editable) _delete(edge: _doc.edge(edge));
+                                  },
+                                  child: SizedBox(
+                                    width: _world,
+                                    height: _world,
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        // пустое место: касание снимает выбор, двойное — новая заметка там
+                                        Positioned.fill(
+                                          child: GestureDetector(
+                                            key: const ValueKey('canvas-empty'),
+                                            behavior: HitTestBehavior.opaque,
+                                            // мышь снимает выбор ещё на нажатии (там же — щелчок по стрелке)
+                                            onTapUp: (details) {
+                                              if (details.kind != PointerDeviceKind.mouse) setState(_clearSelection);
+                                            },
+                                            onDoubleTapDown: (details) => _doubleTapAt = details.localPosition,
+                                            onDoubleTap: _editable ? () => _addNote(at: _doubleTapAt).ignore() : null,
+                                          ),
+                                        ),
+                                        // группы под стрелками, карточки над ними: так рисует и Obsidian
+                                        for (final node in groups) place(node),
+                                        Positioned.fill(
+                                          child: IgnorePointer(
+                                            child: CustomPaint(key: const ValueKey('canvas-links'), painter: CanvasLinksPainter(_links, ink: Tokens.onSurfaceVariant, accent: Tokens.accent, view: transform)),
+                                          ),
+                                        ),
+                                        for (final node in cards) place(node),
+                                        // стрелки карточки под мышью и выбранных — поверх карточек
+                                        Positioned.fill(
+                                          child: IgnorePointer(
+                                            child: CustomPaint(
+                                              key: const ValueKey('canvas-links-over'),
+                                              painter: CanvasLinksPainter(
+                                                [
+                                                  for (final link in _links)
+                                                    if (link.selected || {link.from, link.to}.any((id) => id == hover || _selected.contains(id))) link.lit(),
+                                                ],
+                                                ink: Tokens.accent,
+                                                accent: Tokens.accent,
+                                                view: transform,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        for (final edge in _doc.edges) _edgeHandle(edge, text),
+                                        if (_wire case final wire?)
+                                          Positioned.fill(
+                                            child: IgnorePointer(
+                                              child: CustomPaint(
+                                                painter: CanvasLinksPainter([CanvasLink.wire(wire.from, wire.start, wire.normal, wire.end)], ink: Tokens.accent, accent: Tokens.accent, view: transform),
+                                              ),
+                                            ),
+                                          ),
+                                        if (hover != null)
+                                          if (_doc.node(hover) case final node?)
+                                            ...canvasSocketDots(id: hover, rect: _rectOf(node), view: transform, onStart: (side, point, normal) => _startWire(hover, side, point, normal)),
+                                        if (_marquee case final marquee?) canvasMarquee(marquee),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                // группы под стрелками, карточки над ними: так рисует и Obsidian
-                                for (final node in groups) place(node),
-                                Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _EdgesPainter(_doc, selected: _selectedEdge, fallback: Tokens.onSurfaceVariant, accent: Tokens.accent)))),
-                                for (final node in cards) place(node),
-                                for (final edge in _doc.edges) _edgeHandle(edge, text),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      if (_doc.nodes.isEmpty && !_doc.broken)
+                        if (_doc.nodes.isEmpty && !_doc.broken)
+                          Positioned(
+                            left: Space.screen * 2,
+                            right: Space.screen * 2,
+                            top: 0,
+                            bottom: 120,
+                            child: IgnorePointer(
+                              child: Center(child: Text(l.canvasEmpty, textAlign: TextAlign.center, style: text.bodyMedium!.copyWith(color: Tokens.muted))),
+                            ),
+                          ),
+                        if (_connecting)
+                          Positioned(top: 8, left: Space.screen, right: 72, child: _Banner(text: l.canvasConnectHint, icon: 'arrow_right_alt'))
+                        // двойное касание по пустому месту нигде не нарисовано
+                        else if (_editable)
+                          const Positioned(top: 8, left: Space.screen, right: 72, child: HintBanner(tip: Tip.canvas)),
                         Positioned(
-                          left: Space.screen * 2,
-                          right: Space.screen * 2,
-                          top: 0,
-                          bottom: 120,
-                          child: IgnorePointer(
-                            child: Center(child: Text(l.canvasEmpty, textAlign: TextAlign.center, style: text.bodyMedium!.copyWith(color: Tokens.muted))),
+                          top: 12,
+                          right: Space.screen,
+                          child: CanvasTools(view: transform, onFit: fitAll, onNote: _editable ? () => _addNote().ignore() : null),
+                        ),
+                        Positioned(
+                          left: Space.screen,
+                          right: Space.screen,
+                          bottom: MediaQuery.paddingOf(context).bottom + 16,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.bottomLeft,
+                                  child: selected != null && _editable
+                                      ? _NodeActions(
+                                          node: selected,
+                                          onEdit: selected.type == CanvasNodeType.file ? null : () => _edit(selected),
+                                          onOpen: selected.type == CanvasNodeType.file || selected.type == CanvasNodeType.link ? () => _open(selected) : null,
+                                          onConnect: () => setState(() => _connecting = true),
+                                          onColor: () => _color(node: selected),
+                                          onDelete: () => _delete(node: selected),
+                                        )
+                                      : selectedEdge != null && _editable
+                                      ? _EdgeActions(
+                                          onLabel: () async {
+                                            final label = await _askText(context, hint: l.canvasEdgeLabel, initial: selectedEdge.label, multiline: false);
+                                            if (label != null) _change(_doc.updateEdge(selectedEdge.id, {'label': label.trim().isEmpty ? null : label.trim()}));
+                                          },
+                                          onColor: () => _color(edge: selectedEdge),
+                                          onDelete: () => _delete(edge: selectedEdge),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ),
+                              ),
+                              if (_editable) ...[
+                                const SizedBox(width: 12),
+                                FloatingActionButton(
+                                  key: const ValueKey('canvas-add'),
+                                  heroTag: null,
+                                  tooltip: l.canvasAdd,
+                                  backgroundColor: Tokens.accent,
+                                  foregroundColor: Tokens.onAccent,
+                                  elevation: 0,
+                                  onPressed: _add,
+                                  child: Icon(symbolIcon('add')),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                      if (_connecting)
-                        Positioned(top: 8, left: Space.screen, right: Space.screen, child: _Banner(text: l.canvasConnectHint, icon: 'arrow_right_alt'))
-                      // двойное касание по пустому месту нигде не нарисовано
-                      else if (_editable)
-                        const Positioned(top: 8, left: Space.screen, right: Space.screen, child: HintBanner(tip: Tip.canvas)),
-                      Positioned(
-                        left: Space.screen,
-                        right: Space.screen,
-                        bottom: MediaQuery.paddingOf(context).bottom + 16,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.bottomLeft,
-                                child: selected != null
-                                    ? _NodeActions(
-                                        node: selected,
-                                        onEdit: selected.type == CanvasNodeType.file ? null : () => _edit(selected),
-                                        onOpen: selected.type == CanvasNodeType.file || selected.type == CanvasNodeType.link ? () => _open(selected) : null,
-                                        onConnect: () => setState(() => _connecting = true),
-                                        onColor: () => _color(node: selected),
-                                        onDelete: () => _delete(node: selected),
-                                      )
-                                    : selectedEdge != null
-                                    ? _EdgeActions(
-                                        onLabel: () async {
-                                          final label = await _askText(context, hint: l.canvasEdgeLabel, initial: selectedEdge.label, multiline: false);
-                                          if (label != null) _change(_doc.updateEdge(selectedEdge.id, {'label': label.trim().isEmpty ? null : label.trim()}));
-                                        },
-                                        onColor: () => _color(edge: selectedEdge),
-                                        onDelete: () => _delete(edge: selectedEdge),
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                            ),
-                            if (_editable) ...[
-                              const SizedBox(width: 12),
-                              FloatingActionButton(
-                                key: const ValueKey('canvas-add'),
-                                heroTag: null,
-                                tooltip: l.canvasAdd,
-                                backgroundColor: Tokens.accent,
-                                foregroundColor: Tokens.onAccent,
-                                elevation: 0,
-                                onPressed: _add,
-                                child: Icon(symbolIcon('add')),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               ),
@@ -542,6 +899,9 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
       ),
     );
   }
+
+  Offset? _doubleTapAt;
+
 
   /// Подпись стрелки посередине — она же место, за которое стрелку выбирают.
   Widget _edgeHandle(CanvasEdge edge, TextTheme text) {
@@ -561,7 +921,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> {
           behavior: HitTestBehavior.opaque,
           onTap: () => setState(() {
             _selectedEdge = edge.id;
-            _selected = null;
+            _selected.clear();
             _connecting = false;
           }),
           child: label.isEmpty
@@ -622,67 +982,17 @@ Offset _normal(CanvasSide side) => switch (side) {
   CanvasSide.left => const Offset(-1, 0),
 };
 
-class _EdgesPainter extends CustomPainter {
-  _EdgesPainter(this.doc, {required this.selected, required this.fallback, required this.accent});
-
-  final CanvasDoc doc;
-  final String? selected;
-  final Color fallback;
-  final Color accent;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.translate(_origin, _origin);
-    for (final edge in doc.edges) {
-      final from = doc.node(edge.fromNode), to = doc.node(edge.toNode);
-      if (from == null || to == null) continue;
-      final curve = edgeCurve(from, to, edge);
-      final color = edge.id == selected ? accent : canvasColorOf(edge.color) ?? fallback;
-      final paint = Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = edge.id == selected ? 3.5 : 2.5
-        ..strokeCap = StrokeCap.round;
-      canvas.drawPath(
-        Path()
-          ..moveTo(curve.start.dx, curve.start.dy)
-          ..cubicTo(curve.c1.dx, curve.c1.dy, curve.c2.dx, curve.c2.dy, curve.end.dx, curve.end.dy),
-        paint,
-      );
-      if (edge.toEnd == CanvasEnd.arrow) _arrow(canvas, curve.c2, curve.end, color);
-      if (edge.fromEnd == CanvasEnd.arrow) _arrow(canvas, curve.c1, curve.start, color);
-    }
-  }
-
-  void _arrow(Canvas canvas, Offset from, Offset tip, Color color) {
-    final direction = tip - from;
-    if (direction.distance == 0) return;
-    final unit = direction / direction.distance;
-    final side = Offset(-unit.dy, unit.dx);
-    const length = 14.0, half = 7.0;
-    final base = tip - unit * length;
-    canvas.drawPath(
-      Path()
-        ..moveTo(tip.dx, tip.dy)
-        ..lineTo((base + side * half).dx, (base + side * half).dy)
-        ..lineTo((base - side * half).dx, (base - side * half).dy)
-        ..close(),
-      Paint()..color = color,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_EdgesPainter old) => old.doc != doc || old.selected != selected || old.fallback != fallback;
-}
-
 class _NodeView extends ConsumerWidget {
   const _NodeView({
     required this.node,
     required this.filesRoot,
     required this.selected,
+    required this.lifted,
     required this.editable,
     required this.onTap,
     required this.onDoubleTap,
+    required this.onMouseDown,
+    required this.onMenu,
     required this.onGrab,
     required this.onDrag,
   });
@@ -690,9 +1000,18 @@ class _NodeView extends ConsumerWidget {
   final CanvasNode node;
   final Directory filesRoot;
   final bool selected;
+
+  /// Её сейчас тянут.
+  final bool lifted;
   final bool editable;
-  final VoidCallback onTap;
+  final ValueChanged<PointerDeviceKind> onTap;
   final VoidCallback onDoubleTap;
+
+  /// Нажата кнопка мыши над карточкой: выбрать её (с Shift — добавить).
+  final VoidCallback onMouseDown;
+
+  /// Правый щелчок и долгое нажатие: меню карточки.
+  final VoidCallback onMenu;
   final void Function(int pointer, {required bool resize}) onGrab;
   final void Function(int pointer, Offset delta) onDrag;
 
@@ -731,42 +1050,72 @@ class _NodeView extends ConsumerWidget {
 
     // слушатель пальцев, а не распознаватель перетаскивания: тот забирал бы палец у холста
     return Listener(
-      onPointerDown: (event) => onGrab(event.pointer, resize: false),
+      onPointerDown: (event) {
+        if (event.kind == PointerDeviceKind.mouse) onMouseDown();
+        // правая кнопка открывает меню, а не тащит
+        if (event.buttons & kSecondaryMouseButton == 0) onGrab(event.pointer, resize: false);
+      },
       onPointerMove: (event) => onDrag(event.pointer, event.localDelta),
-      child: GestureDetector(
-        key: ValueKey('node-${node.id}'),
-        onTap: onTap,
-        onDoubleTap: onDoubleTap,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: fill,
-                  borderRadius: BorderRadius.circular(group ? 24 : 16),
-                  border: Border.all(color: border, width: selected ? 2.5 : (group || color != null ? 2 : 0)),
-                ),
-                child: face,
-              ),
-            ),
-            if (selected && editable)
-              Positioned(
-                right: -14,
-                bottom: -14,
-                child: Listener(
-                  onPointerDown: (event) => onGrab(event.pointer, resize: true),
+      child: MouseRegion(
+        cursor: !editable ? SystemMouseCursors.basic : (lifted ? SystemMouseCursors.grabbing : SystemMouseCursors.move),
+        child: GestureDetector(
+          key: ValueKey('node-${node.id}'),
+          onTapUp: (details) => onTap(details.kind),
+          onDoubleTap: onDoubleTap,
+          onSecondaryTap: onMenu,
+          onLongPress: onMenu,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: AnimatedScale(
+                  scale: lifted && !group ? 1.02 : 1,
+                  duration: const Duration(milliseconds: 120),
                   child: Container(
-                    key: ValueKey('resize-${node.id}'),
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
-                    child: Icon(symbolIcon('open_in_full'), size: 14, color: Tokens.onAccent),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: fill,
+                      borderRadius: BorderRadius.circular(group ? 24 : 16),
+                      border: Border.all(color: lifted ? Tokens.accent : border, width: selected || lifted ? 2.5 : (group || color != null ? 2 : 0)),
+                    ),
+                    child: face,
                   ),
                 ),
               ),
-          ],
+              // угол: тянешь — карточка меняет размер
+              if (editable)
+                Positioned(
+                  right: -14,
+                  bottom: -14,
+                  child: Listener(
+                    behavior: HitTestBehavior.opaque,
+                    // угол глубже карточки и слышит палец первым: дальше карточка его уже не возьмёт
+                    onPointerDown: (event) => onGrab(event.pointer, resize: true),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.resizeDownRight,
+                      child: Container(
+                        key: ValueKey('resize-${node.id}'),
+                        width: 28,
+                        height: 28,
+                        alignment: Alignment.center,
+                        child: selected
+                            ? Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+                                child: Icon(symbolIcon('open_in_full'), size: 14, color: Tokens.onAccent),
+                              )
+                            : Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle, border: Border.all(color: Tokens.background, width: 2)),
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -996,33 +1345,6 @@ class _Banner extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DotsPainter extends CustomPainter {
-  _DotsPainter(this.transform) : super(repaint: transform);
-
-  final TransformationController transform;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final matrix = transform.value;
-    final scale = matrix.getMaxScaleOnAxis();
-    var step = _dotStep * scale;
-    while (step < 14) {
-      step *= 2;
-    }
-    final offset = Offset(matrix.getTranslation().x % step, matrix.getTranslation().y % step);
-    final paint = Paint()..color = Tokens.outline;
-    final radius = (1.4 * scale).clamp(0.8, 2.0);
-    for (var x = offset.dx; x < size.width; x += step) {
-      for (var y = offset.dy; y < size.height; y += step) {
-        canvas.drawCircle(Offset(x, y), radius, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DotsPainter oldDelegate) => oldDelegate.transform != transform;
 }
 
 /// Лист с полем: текст карточки (много строк) или подпись и адрес (одна строка).

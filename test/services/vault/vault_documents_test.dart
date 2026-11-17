@@ -98,6 +98,24 @@ void main() {
     expect(await items(), hasLength(1));
   });
 
+  test('заметку с холста переложили в другую папку — карточка холста идёт за ней', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'f', name: 'Физика', icon: 'folder', shape: 'pill'));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Закон Ома', body: const Value('U = IR'), createdAt: now, updatedAt: now));
+    await writer().drain();
+    final path = (await (db.select(db.vaultFiles)..where((t) => t.itemId.equals('n'))).getSingle()).path;
+    expect(path, 'Закон Ома.md');
+    final doc = CanvasDoc.empty().addFile(path, x: 0, y: 0);
+    await db.into(db.items).insert(
+      ItemsCompanion.insert(id: 'c', kind: ItemKind.canvas, title: 'Доска', body: Value(doc.plainText()), document: Value(doc.encode()), createdAt: now, updatedAt: now),
+    );
+    await writer().drain();
+    // угадыватель или ИИ разложил заметку по папке
+    await (db.update(db.items)..where((t) => t.id.equals('n'))).write(const ItemsCompanion(folderId: Value('f')));
+    await writer().drain();
+    await writer().drain();
+    expect(CanvasDoc.parse(file('Доска.canvas').readAsStringSync()).nodes.single.file, 'Физика/Закон Ома.md');
+  });
+
   test('удалили файл холста снаружи — заметка уходит в корзину', () async {
     put('План.canvas', _canvas);
     await reader().reconcile();

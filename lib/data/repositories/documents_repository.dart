@@ -91,6 +91,9 @@ class DocumentsRepository {
       (_db.update(_db.items)..where((t) => t.id.equals(id))).write(ItemsCompanion(title: Value(title), updatedAt: Value(_clock())));
 
   /// Путь файла заметки от корня хранилища: из карты файлов, а пока файла нет — по папкам и заголовку.
+  /// Путь, под которым заметка уже лежит файлом; не записана ещё — null.
+  Future<String?> writtenPathOf(String itemId) async => (await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(itemId))).getSingleOrNull())?.path;
+
   Future<String?> pathOf(String itemId) async {
     final known = await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(itemId))).getSingleOrNull();
     if (known != null) return known.path;

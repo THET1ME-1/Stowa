@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +12,6 @@ import '../../core/widgets/file_count_badge.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/pressable.dart';
 import '../../data/db/database.dart' show Link;
 import '../../data/providers.dart';
 import '../../data/repositories/canvas_repository.dart';
@@ -22,9 +20,9 @@ import '../../domain/canvas_layout.dart';
 import '../../domain/note_links.dart' show shownTitle, wikiTitles;
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../canvas/canvas_kit.dart';
 import '../../services/capture_service.dart';
 import '../composer/panel_text.dart';
-import '../composer/smart_punctuation.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../item/adult_veil.dart';
 import '../item/item_actions.dart' show showItemActions;
@@ -32,9 +30,6 @@ import '../item/item_actions.dart' show showItemActions;
 /// Мир холста: вещи лежат в нём со сдвигом, чтобы отрицательные координаты тоже помещались.
 const _origin = 10000.0;
 const _world = 20000.0;
-
-/// Шаг точечной сетки на фоне.
-const _dotStep = 32.0;
 
 /// Ширина вещи, впервые попавшей на холст: картинка крупнее, текст уже.
 double canvasDefaultWidth(ItemCard card) => card.thumbPath != null ? 260 : 220;
@@ -59,27 +54,14 @@ class CanvasView extends ConsumerStatefulWidget {
   ConsumerState<CanvasView> createState() => _CanvasViewState();
 }
 
-class _CanvasViewState extends ConsumerState<CanvasView> {
-  final _transform = TransformationController();
+class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
 
   /// Положения, пока палец ещё ведёт вещь: база получит их при отпускании.
   final _moving = <String, CanvasSpot>{};
   final _placing = <String>{};
-  Size _viewport = Size.zero;
   bool _fitted = false;
 
-  final _focus = FocusNode(debugLabel: 'canvas');
-
-  @override
-  void dispose() {
-    _focus.dispose();
-    _transform.dispose();
-    super.dispose();
-  }
-
   // ——— мышь и клавиатура (компьютер, браузер); на телефоне этого не происходит ———
-
-  final _stack = GlobalKey();
 
   /// Карточки, выбранные мышью: щелчком, Shift+щелчком или рамкой. Их двигают стрелки
   /// и перетаскивание, убирает Delete. Пальцем не выбираются: у телефона нет клавиатуры,
@@ -93,74 +75,16 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
   // щелчок попал в карточку: тот же щелчок по пустому месту выбор не снимает
   bool _cardHit = false;
 
-  Offset? _local(Offset global) {
-    final box = _stack.currentContext?.findRenderObject() as RenderBox?;
-    return box?.globalToLocal(global);
-  }
-
-  /// Колесо листает холст, Shift+колесо — вбок, Ctrl+колесо (и щипок тачпада в браузере)
-  /// масштабирует вокруг курсора: как в Figma и холсте Obsidian.
-  void _signal(PointerSignalEvent event) {
-    // браузер отдаёт Ctrl+колесо масштабом exp(Δ/200) — у просмотрщика это скачок в 65 %
-    // и масштабирует сам, мимо очереди сигналов: наш шаг встаёт поверх его, когда он закончит
-    if (event is PointerScaleEvent) {
-      final focal = _local(event.position);
-      if (focal == null) return;
-      _zoom(event.scale.clamp(1 / 1.18, 1.18), focal);
-      final target = _transform.value.clone();
-      scheduleMicrotask(() => _transform.value = target);
-      return;
-    }
-    if (event is! PointerScrollEvent) return;
-    GestureBinding.instance.pointerSignalResolver.register(event, (event) {
-      final scroll = event as PointerScrollEvent;
-      final keyboard = HardwareKeyboard.instance;
-      if (keyboard.isControlPressed || keyboard.isMetaPressed) {
-        final focal = _local(scroll.position);
-        // щелчок колеса (100 точек) — около 18 %: мягко, без скачков
-        // браузеры шлют щелчок колеса разной величины: шаг не больше 18 % за событие
-        if (focal != null) _zoom(exp(-scroll.scrollDelta.dy / 600).clamp(1 / 1.18, 1.18), focal);
-        return;
-      }
-      final delta = keyboard.isShiftPressed && scroll.scrollDelta.dx == 0 ? Offset(scroll.scrollDelta.dy, 0) : scroll.scrollDelta;
-      _transform.value = Matrix4.translationValues(-delta.dx, -delta.dy, 0) * _transform.value;
-    });
-  }
-
-  /// Приблизить в [factor] раз так, что точка экрана [focal] остаётся на месте.
-  void _zoom(double factor, Offset focal) {
-    final now = _transform.value.getMaxScaleOnAxis();
-    final next = (now * factor).clamp(0.1, 4.0);
-    final step = next / now;
-    _transform.value = Matrix4.translationValues(focal.dx, focal.dy, 0) * Matrix4.diagonal3Values(step, step, step) * Matrix4.translationValues(-focal.dx, -focal.dy, 0) * _transform.value;
-  }
-
   /// Клавиши холста: доходят сюда, когда фокус у холста (щёлкнули по нему мышью). Холст
   /// забирает их себе: иначе стрелка заодно увела бы фокус в поле ввода.
   KeyEventResult _onFocusKey(FocusNode node, KeyEvent event) => _onKey(event) ? KeyEventResult.handled : KeyEventResult.ignored;
 
   bool _onKey(KeyEvent event) {
-    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return false;
+    if (!isKeyPress(event)) return false;
     final key = event.physicalKey;
-    final keyboard = HardwareKeyboard.instance;
-    final ctrl = keyboard.isControlPressed || keyboard.isMetaPressed;
-    final center = _viewport.center(Offset.zero);
-    // масштаб с клавиатуры
-    {
-      final VoidCallback? zoom = switch (key) {
-        PhysicalKeyboardKey.equal || PhysicalKeyboardKey.numpadAdd => () => _zoom(1.25, center),
-        PhysicalKeyboardKey.minus || PhysicalKeyboardKey.numpadSubtract => () => _zoom(0.8, center),
-        PhysicalKeyboardKey.digit0 when ctrl => () => _zoom(1 / _transform.value.getMaxScaleOnAxis(), center),
-        PhysicalKeyboardKey.digit1 when keyboard.isShiftPressed => _fitAll,
-        _ => null,
-      };
-      if (zoom != null) {
-        zoom();
-        return true;
-      }
-    }
+    if (zoomKey(event)) return true;
     if (_selectedLink case final link?) {
-      if (event.logicalKey == LogicalKeyboardKey.delete || event.logicalKey == LogicalKeyboardKey.backspace) {
+      if (isDeleteKey(event)) {
         _unlink(link);
         return true;
       }
@@ -174,19 +98,11 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
       setState(_selected.clear);
       return true;
     }
-    // Delete и Backspace от раскладки не зависят: по смыслу клавиши надёжнее
-    if (event.logicalKey == LogicalKeyboardKey.delete || event.logicalKey == LogicalKeyboardKey.backspace) {
+    if (isDeleteKey(event)) {
       _trash({..._selected});
       return true;
     }
-    final step = keyboard.isShiftPressed ? 50.0 : 10.0;
-    final shift = switch (key) {
-      PhysicalKeyboardKey.arrowLeft => Offset(-step, 0),
-      PhysicalKeyboardKey.arrowRight => Offset(step, 0),
-      PhysicalKeyboardKey.arrowUp => Offset(0, -step),
-      PhysicalKeyboardKey.arrowDown => Offset(0, step),
-      _ => null,
-    };
+    final shift = arrowShift(event);
     if (shift == null) return false;
     final saved = ref.read(canvasSpotsProvider(widget.folderId)).value ?? const {};
     final moved = <String, CanvasSpot>{
@@ -200,7 +116,8 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     return true;
   }
 
-  void _fitAll() {
+  @override
+  void fitAll() {
     final saved = ref.read(canvasSpotsProvider(widget.folderId)).value;
     if (saved != null) _fit(_boxes(saved));
   }
@@ -231,15 +148,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
   /// (если она уже среди выбранных — оставить всех: их сейчас потащат вместе).
   void _mouseOnCard(String id) {
     _cardHit = true;
-    setState(() {
-      if (HardwareKeyboard.instance.isShiftPressed) {
-        if (!_selected.remove(id)) _selected.add(id);
-      } else if (!_selected.contains(id)) {
-        _selected
-          ..clear()
-          ..add(id);
-      }
-    });
+    setState(() => selectOnMouse(_selected, id));
   }
 
   /// Рамка выбора: всё, что пересекает её, выбирается (с Shift — к уже выбранным).
@@ -279,27 +188,27 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
 
   /// Показать всё разом: рамка вокруг вещей посередине экрана.
   void _fit(List<CanvasBox> boxes) {
-    if (_viewport.isEmpty) return;
+    if (viewport.isEmpty) return;
     if (boxes.isEmpty) {
-      _transform.value = Matrix4.translationValues(-_origin + 24, -_origin + 24, 0);
+      transform.value = Matrix4.translationValues(-_origin + 24, -_origin + 24, 0);
       return;
     }
     final bounds = canvasBounds(boxes, margin: 24);
-    final visible = Size(_viewport.width, max(120, _viewport.height - widget.bottomInset));
+    final visible = Size(viewport.width, max(120, viewport.height - widget.bottomInset));
     final scale = min(visible.width / bounds.width, visible.height / bounds.height).clamp(0.1, 1.2);
     final dx = (visible.width - bounds.width * scale) / 2 - (_origin + bounds.left) * scale;
     final dy = (visible.height - bounds.height * scale) / 2 - (_origin + bounds.top) * scale;
     // масштаб по всем трём осям, как у InteractiveViewer: иначе getMaxScaleOnAxis видит 1
-    _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, scale);
+    transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, scale);
   }
 
   /// Записка прямо на холсте: заметка в этой папке там, куда сейчас смотрит экран, или
   /// в точке холста [at] (двойной щелчок мышью по пустому месту).
   /// Вернёт id новой заметки; отказались — null.
   Future<String?> _addNote({Offset? at}) async {
-    final text = await _askNote(context);
+    final text = await askCanvasNote(context);
     if (text == null || !mounted) return null;
-    final center = at ?? _transform.toScene(_viewport.center(Offset.zero));
+    final center = at ?? transform.toScene(viewport.center(Offset.zero));
     final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text, forcedFolderId: widget.folderId));
     await ref.read(canvasRepositoryProvider).save(widget.folderId, id, (x: center.dx - _origin - 110, y: center.dy - _origin - 88, width: 220));
     return id;
@@ -321,7 +230,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
   List<CanvasLink> _links = const [];
 
   (String, String)? _linkAt(Offset world) {
-    final reach = 10 / _transform.value.getMaxScaleOnAxis();
+    final reach = 10 / transform.value.getMaxScaleOnAxis();
     return _links.where((link) => !link.written && link.near(world, reach)).map((link) => (link.from, link.to)).firstOrNull;
   }
 
@@ -329,7 +238,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     _cardHit = true;
     setState(() {
       _wire = (from: from, start: start, normal: normal, end: start);
-      _heldView = _transform.value.clone();
+      _heldView = transform.value.clone();
     });
   }
 
@@ -390,7 +299,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
   void _grab(ItemCard card, int pointer, {required bool resize}) {
     if (_hold != null || _pointers.isNotEmpty) return;
     _raise(card.id);
-    _heldView = _transform.value.clone();
+    _heldView = transform.value.clone();
     setState(() => _hold = (pointer: pointer, itemId: card.id, resize: resize));
   }
 
@@ -438,7 +347,6 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
     final saved = ref.watch(canvasSpotsProvider(widget.folderId)).value;
     final filesRoot = ref.watch(filesRootProvider);
     if (saved == null) return const SizedBox.expand();
@@ -447,7 +355,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
       _placeMissing(saved);
       // первый показ — всё целиком, но только когда места есть у всех вещей
       final boxes = _boxes(saved);
-      if (!_fitted && !_viewport.isEmpty && boxes.length == widget.cards.length) {
+      if (!_fitted && !viewport.isEmpty && boxes.length == widget.cards.length) {
         _fitted = true;
         _fit(boxes);
       }
@@ -476,15 +384,15 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        _viewport = constraints.biggest;
+        viewport = constraints.biggest;
         return Focus(
-          focusNode: _focus,
+          focusNode: canvasFocus,
           onKeyEvent: _onFocusKey,
           child: Stack(
-          key: _stack,
+          key: canvasKey,
           children: [
             // сетка рисуется в координатах экрана: точек ровно столько, сколько видно
-            Positioned.fill(child: CustomPaint(painter: _DotsPainter(_transform))),
+            Positioned.fill(child: CustomPaint(painter: CanvasDotsPainter(transform))),
             // слушатель пальцев не отбирает жест у холста: он только считает пальцы
             Listener(
               onPointerDown: _pointerDown,
@@ -494,7 +402,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                 // мышью пустое место тянут, как лист бумаги
                 cursor: _hold == null ? SystemMouseCursors.grab : SystemMouseCursors.grabbing,
                 child: InteractiveViewer(
-                transformationController: _transform,
+                transformationController: transform,
                 constrained: false,
                 minScale: 0.1,
                 maxScale: 4,
@@ -504,25 +412,25 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                 panEnabled: _hold == null && _marqueeStart == null && _wire == null,
                 onInteractionUpdate: (details) {
                   final held = _heldView;
-                  if ((_hold != null || _marqueeStart != null || _wire != null) && details.pointerCount == 1 && held != null) _transform.value = held.clone();
+                  if ((_hold != null || _marqueeStart != null || _wire != null) && details.pointerCount == 1 && held != null) transform.value = held.clone();
                 },
                 boundaryMargin: const EdgeInsets.all(_world),
                 // слушатель внутри просмотрщика слышит колесо первым: колесо листает, а не масштабирует
                 child: Listener(
                   // пустое место холста тоже ловит колесо и щелчки
                   behavior: HitTestBehavior.opaque,
-                  onPointerSignal: _signal,
+                  onPointerSignal: canvasSignal,
                   // щелчок мышью мимо карточек снимает выбор
                   onPointerDown: (event) {
                     if (event.kind == PointerDeviceKind.mouse) {
                       // щёлкнули мышью по холсту — клавиши теперь ему
-                      _focus.requestFocus();
+                      canvasFocus.requestFocus();
                       final link = _cardHit ? null : _linkAt(event.localPosition);                      if (!_cardHit && HardwareKeyboard.instance.isShiftPressed) {
                         // Shift по пустому месту — рамка выбора вместо сдвига холста
                         setState(() {
                           _marqueeStart = event.localPosition;
                           _marquee = Rect.fromPoints(event.localPosition, event.localPosition);
-                          _heldView = _transform.value.clone();
+                          _heldView = transform.value.clone();
                         });
                       } else if (link != null) {
                         // щелчок по стрелке выбирает её
@@ -576,7 +484,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                       // стрелки под карточками: кривые, как провода нод в Blender
                       Positioned.fill(
                         child: IgnorePointer(
-                          child: CustomPaint(key: const ValueKey('canvas-links'), painter: CanvasLinksPainter(_links, ink: Tokens.muted, accent: Tokens.accent, view: _transform)),
+                          child: CustomPaint(key: const ValueKey('canvas-links'), painter: CanvasLinksPainter(_links, ink: Tokens.muted, accent: Tokens.accent, view: transform)),
                         ),
                       ),
                       for (final box in layered)
@@ -609,11 +517,11 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                               [
                                 for (final link in _links)
                                   if (link.selected || {link.from, link.to}.any((id) => id == hover || _selected.contains(id)))
-                                    CanvasLink(link.from, link.to, link.start, link.c1, link.c2, link.end, selected: true),
+                                    link.lit(),
                               ],
                               ink: Tokens.accent,
                               accent: Tokens.accent,
-                              view: _transform,
+                              view: transform,
                             ),
                           ),
                         ),
@@ -623,56 +531,15 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                         Positioned.fill(
                           child: IgnorePointer(
                             child: CustomPaint(
-                              painter: CanvasLinksPainter([CanvasLink.wire(wire.from, wire.start, wire.normal, wire.end)], ink: Tokens.accent, accent: Tokens.accent, view: _transform),
+                              painter: CanvasLinksPainter([CanvasLink.wire(wire.from, wire.start, wire.normal, wire.end)], ink: Tokens.accent, accent: Tokens.accent, view: transform),
                             ),
                           ),
                         ),
                       // точки-выходы карточки под мышью: из любой тянут провод
                       if (hover != null)
                         if (boxes.where((box) => box.itemId == hover).firstOrNull case final box?)
-                          for (final (side, point, normal) in _sockets(_rectOf(box)))
-                            Positioned(
-                              left: point.dx,
-                              top: point.dy,
-                              // точка одного размера на экране при любом масштабе холста
-                              child: ValueListenableBuilder(
-                                valueListenable: _transform,
-                                builder: (context, matrix, child) => Transform.scale(scale: 1 / matrix.getMaxScaleOnAxis(), alignment: Alignment.topLeft, child: child),
-                                child: FractionalTranslation(
-                                  translation: const Offset(-0.5, -0.5),
-                                  child: SizedBox(
-                                    key: ValueKey('socket-$hover-$side'),
-                                    width: 22,
-                                    height: 22,
-                                    child: Listener(
-                                      onPointerDown: (event) {
-                                        if (event.kind == PointerDeviceKind.mouse) _startWire(hover, point, normal);
-                                      },
-                                      child: MouseRegion(
-                                        cursor: SystemMouseCursors.precise,
-                                        child: Center(
-                                          child: Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle, border: Border.all(color: Tokens.background, width: 2)),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                      // рамка выбора: мягкая подложка цвета акцента
-                      if (_marquee case final marquee?)
-                        Positioned.fromRect(
-                          rect: marquee,
-                          child: IgnorePointer(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(color: Tokens.accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
-                            ),
-                          ),
-                        ),
+                          ...canvasSocketDots(id: hover, rect: _rectOf(box), view: transform, onStart: (side, point, normal) => _startWire(hover, point, normal)),
+                      if (_marquee case final marquee?) canvasMarquee(marquee),
                     ],
                   ),
                 ),
@@ -684,19 +551,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
             Positioned(
               top: 12,
               right: Space.screen,
-              child: Column(
-                children: [
-                  // масштаб пилюлей: касание возвращает 100 %
-                  ValueListenableBuilder(
-                    valueListenable: _transform,
-                    builder: (context, matrix, _) => _Tool(label: '${(matrix.getMaxScaleOnAxis() * 100).round()}%', tooltip: l.canvasFit, onTap: () => _fit(boxes)),
-                  ),
-                  const SizedBox(height: 8),
-                  _Tool(icon: 'fit_screen', tooltip: l.canvasFit, onTap: () => _fit(boxes)),
-                  const SizedBox(height: 8),
-                  _Tool(icon: 'sticky_note_2', tooltip: l.canvasNote, onTap: _addNote),
-                ],
-              ),
+              child: CanvasTools(view: transform, onFit: () => _fit(boxes), onNote: _addNote),
             ),
           ],
         ),
@@ -846,204 +701,4 @@ class _CanvasItem extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Tool extends StatelessWidget {
-  const _Tool({required this.tooltip, required this.onTap, this.icon, this.label});
-
-  final String? icon;
-  final String? label;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Pressable(
-        pressedScale: 0.9,
-        onTap: onTap,
-        child: Container(
-          height: 44,
-          constraints: const BoxConstraints(minWidth: 44),
-          padding: EdgeInsets.symmetric(horizontal: label == null ? 0 : 12),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(22)),
-          child: label != null
-              ? Text(label!, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontFeatures: const [FontFeature.tabularFigures()]))
-              : Icon(symbolIcon(icon!), size: 22, color: Tokens.onSurface),
-        ),
-      ),
-    );
-  }
-}
-
-/// Точки сетки, сдвинутые и растянутые вместе с холстом.
-/// Точки-выходы карточки: середины четырёх сторон и куда из них смотрит провод.
-List<(String, Offset, Offset)> _sockets(Rect rect) => [
-  ('left', rect.centerLeft, const Offset(-1, 0)),
-  ('right', rect.centerRight, const Offset(1, 0)),
-  ('top', rect.topCenter, const Offset(0, -1)),
-  ('bottom', rect.bottomCenter, const Offset(0, 1)),
-];
-
-/// Стрелка холста — кривая Безье от стороны одной карточки к стороне другой, как провод
-/// между нодами в Blender. Координаты — мира холста.
-class CanvasLink {
-  const CanvasLink(this.from, this.to, this.start, this.c1, this.c2, this.end, {this.selected = false, this.arrow = true, this.written = false});
-
-  /// Между карточками: выходят стороны, которые смотрят друг на друга.
-  factory CanvasLink.between(String from, String to, Rect a, Rect b, {bool selected = false, bool written = false}) {
-    final delta = b.center - a.center;
-    final across = delta.dx.abs() >= delta.dy.abs();
-    final (start, out) = across ? (delta.dx >= 0 ? (a.centerRight, const Offset(1, 0)) : (a.centerLeft, const Offset(-1, 0))) : (delta.dy >= 0 ? (a.bottomCenter, const Offset(0, 1)) : (a.topCenter, const Offset(0, -1)));
-    final (end, into) = across ? (delta.dx >= 0 ? (b.centerLeft, const Offset(-1, 0)) : (b.centerRight, const Offset(1, 0))) : (delta.dy >= 0 ? (b.topCenter, const Offset(0, -1)) : (b.bottomCenter, const Offset(0, 1)));
-    final reach = max(40.0, (end - start).distance * 0.4);
-    return CanvasLink(from, to, start, start + out * reach, end + into * reach, end, selected: selected, written: written);
-  }
-
-  /// Провод, который тянут мышью: из выхода к курсору.
-  factory CanvasLink.wire(String from, Offset start, Offset normal, Offset end) {
-    final reach = max(40.0, (end - start).distance * 0.4);
-    return CanvasLink(from, '', start, start + normal * reach, end, end, arrow: false);
-  }
-
-  final String from;
-  final String to;
-  final Offset start;
-  final Offset c1;
-  final Offset c2;
-  final Offset end;
-  final bool selected;
-  final bool arrow;
-
-  /// Связь из текста `[[…]]`: выбрать и снять клавишей её нельзя, только правкой заметки.
-  final bool written;
-
-  Offset point(double t) {
-    final u = 1 - t;
-    return start * (u * u * u) + c1 * (3 * u * u * t) + c2 * (3 * u * t * t) + end * (t * t * t);
-  }
-
-  /// Середина кривой: за неё удобно взяться щелчком.
-  Offset get middle => point(0.5);
-
-  /// Точка [world] ближе [reach] к кривой.
-  bool near(Offset world, double reach) {
-    for (var step = 0; step <= 32; step++) {
-      if ((point(step / 32) - world).distance <= reach) return true;
-    }
-    return false;
-  }
-}
-
-/// Рисует стрелки холста: кривая и наконечник у конца, выбранная — цветом акцента и толще.
-class CanvasLinksPainter extends CustomPainter {
-  CanvasLinksPainter(this.links, {required this.ink, required this.accent, this.view}) : super(repaint: view);
-
-  final List<CanvasLink> links;
-  final Color ink;
-  final Color accent;
-
-  /// Вид холста: толщина линий и наконечник одни на экране при любом масштабе.
-  final ValueListenable<Matrix4>? view;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final unit = 1 / (view?.value.getMaxScaleOnAxis() ?? 1);
-    for (final link in links) {
-      final color = link.selected ? accent : ink;
-      final paint = Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = (link.selected ? 3.5 : 2.5) * unit
-        ..strokeCap = StrokeCap.round;
-      final path = Path()
-        ..moveTo(link.start.dx, link.start.dy)
-        ..cubicTo(link.c1.dx, link.c1.dy, link.c2.dx, link.c2.dy, link.end.dx, link.end.dy);
-      canvas.drawPath(path, paint);
-      if (!link.arrow) {
-        canvas.drawCircle(link.end, 5 * unit, Paint()..color = color);
-        continue;
-      }
-      // наконечник по касательной у конца
-      final along = link.end - link.point(0.96);
-      final direction = along.distance == 0 ? const Offset(1, 0) : along / along.distance;
-      final side = Offset(-direction.dy, direction.dx);
-      final back = direction * 12 * unit, wide = side * 6 * unit;
-      final head = Path()
-        ..moveTo(link.end.dx, link.end.dy)
-        ..lineTo((link.end - back + wide).dx, (link.end - back + wide).dy)
-        ..lineTo((link.end - back - wide).dx, (link.end - back - wide).dy)
-        ..close();
-      canvas.drawPath(head, Paint()..color = color);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CanvasLinksPainter old) => old.links != links || old.ink != ink || old.accent != accent;
-}
-
-class _DotsPainter extends CustomPainter {
-  _DotsPainter(this.transform) : super(repaint: transform);
-
-  final TransformationController transform;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final matrix = transform.value;
-    final scale = matrix.getMaxScaleOnAxis();
-    var step = _dotStep * scale;
-    // сильно отдалили — точки реже, иначе фон рябит
-    while (step < 14) {
-      step *= 2;
-    }
-    final offset = Offset(matrix.getTranslation().x % step, matrix.getTranslation().y % step);
-    final paint = Paint()..color = Tokens.outline;
-    final radius = (1.4 * scale).clamp(0.8, 2.0);
-    for (var x = offset.dx; x < size.width; x += step) {
-      for (var y = offset.dy; y < size.height; y += step) {
-        canvas.drawCircle(Offset(x, y), radius, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DotsPainter oldDelegate) => oldDelegate.transform != transform;
-}
-
-Future<String?> _askNote(BuildContext context) {
-  final l = L.of(context);
-  final field = TextEditingController();
-  return showModalBottomSheet<String>(
-    context: context,
-    useSafeArea: true,
-    isScrollControlled: true,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: field,
-                autofocus: true,
-                minLines: 2,
-                maxLines: 6,
-                inputFormatters: [TextInputFormatter.withFunction(smartPunctuation)],
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(hintText: l.canvasNoteHint),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(onPressed: () => Navigator.pop(context, field.text.trim().isEmpty ? null : field.text.trim()), child: Text(l.canvasNote)),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
 }
