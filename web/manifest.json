@@ -1,0 +1,34 @@
+{
+    "name": "Stowa",
+    "short_name": "Stowa",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0C0D0E",
+    "theme_color": "#0C0D0E",
+    "description": "Заметки, ссылки и файлы в одной папке.",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

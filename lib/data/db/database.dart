@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 
 import '../../domain/item_title.dart';
 import '../../domain/models.dart';
+import 'raw_open.dart' if (dart.library.js_interop) 'raw_open_web.dart';
 import 'tables.dart';
 
 part 'database.g.dart';
@@ -97,16 +98,27 @@ class AppDatabase extends _$AppDatabase {
         executor ??
             driftDatabase(
               name: name,
-              native: DriftNativeOptions(shareAcrossIsolates: true, databaseDirectory: Platform.isIOS ? getApplicationSupportDirectory : null),
+              native: DriftNativeOptions(shareAcrossIsolates: true, databaseDirectory: !kIsWeb && Platform.isIOS ? getApplicationSupportDirectory : null),
+              // в браузере — SQLite на WebAssembly в личной папке сайта (OPFS); файлы
+              // выпуска drift лежат в web/, их версия — в web/README.md
+              web: DriftWebOptions(
+                sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+                driftWorker: Uri.parse('drift_worker.js'),
+                onResult: (result) => webDatabaseMode = result.chosenImplementation.name,
+              ),
             ),
       );
+
+  /// Как браузер хранит базу: `opfsLocks` и `opfsShared` — надёжно на диске,
+  /// `sharedIndexedDb` и `inMemory` — правка может потеряться. На телефоне пусто.
+  static String? webDatabaseMode;
 
   /// База хранилища [name] на диске.
   AppDatabase.named(String name) : this(null, name);
 
   /// База в памяти для тестов. Стримы закрываются сразу: иначе drift ждёт
   /// оборот цикла событий, а часы теста поддельные, и закрытие виснет.
-  AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
+  AppDatabase.memory() : super(DatabaseConnection(memoryExecutor(), closeStreamsSynchronously: true));
 
   @override
   int get schemaVersion => 22;

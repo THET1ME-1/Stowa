@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 
 import '../data/db/database.dart';
+import '../data/db/raw_open.dart' if (dart.library.js_interop) '../data/db/raw_open_web.dart';
 
 /// Папки с файлами вещей, обложками ссылок и картинками тегов.
 const _fileFolders = ['attachments', 'covers', 'tags', '.stowa/covers', '.stowa/tag-icons', '.stowa/incoming'];
@@ -139,7 +139,7 @@ class BackupService {
       await extractFileToDisk(zip.path, work.path);
       final copy = File(p.join(work.path, 'stowa.sqlite'));
       // старая копия проходит те же миграции, что и база в приложении
-      final upgraded = AppDatabase(NativeDatabase(copy));
+      final upgraded = AppDatabase(fileExecutor(copy));
       await upgraded.customSelect('SELECT 1').get();
       await upgraded.close();
 

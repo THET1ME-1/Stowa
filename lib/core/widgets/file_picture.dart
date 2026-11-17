@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -49,8 +51,8 @@ class FilePicture extends StatelessWidget {
       );
     }
     final error = errorBuilder;
-    final picture = SvgPicture.file(
-      file,
+    final picture = SvgPicture(
+      _SvgFile(file),
       fit: fit ?? BoxFit.contain,
       width: width,
       height: height,
@@ -60,4 +62,26 @@ class FilePicture extends StatelessWidget {
     // у вектора нет кадров загрузки: отдаём готовый сразу
     return frameBuilder?.call(context, picture, 0, true) ?? picture;
   }
+}
+
+/// SVG из файла хранилища. Свой загрузчик вместо `SvgPicture.file`: тот ждёт файл
+/// `dart:io`, а в браузере файлы хранилища — свои, и читаются они не синхронно.
+class _SvgFile extends SvgLoader<Uint8List> {
+  const _SvgFile(this.file);
+
+  final File file;
+
+  @override
+  Future<Uint8List?> prepareMessage(BuildContext? context) => file.readAsBytes();
+
+  @override
+  String provideSvg(Uint8List? message) => utf8.decode(message ?? Uint8List(0), allowMalformed: true);
+
+  // как у SvgFileLoader: сравнение по самому файлу, а не по пути, иначе правка
+  // картинки на том же месте показывала бы прежнюю из кэша
+  @override
+  int get hashCode => file.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is _SvgFile && other.file == file;
 }
