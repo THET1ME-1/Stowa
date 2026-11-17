@@ -18,4 +18,7 @@ jobs:
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter gen-l10n
       - run: flutter analyze
-      - run: flutter test
+      # тяжёлые тесты (симуляции синхронизации, длинные тексты) — отдельным шагом:
+      # рядом с ними тесты на время сохранения не укладывались в свои 100 мс
+      - run: flutter test --exclude-tags heavy
+      - run: flutter test --tags heavy

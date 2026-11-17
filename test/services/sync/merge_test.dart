@@ -66,7 +66,7 @@ void main() {
       expect(result.text, contains('строка десять'));
       expect(result.text, contains('строка в конце'));
       expect(result.loser, isNull);
-    });
+    }, tags: 'heavy');
   });
 
   group('mergeJsonTables', () {
