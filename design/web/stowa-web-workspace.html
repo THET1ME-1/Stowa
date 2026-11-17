@@ -286,6 +286,61 @@ kbd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; 
 .keys-t { flex: 1; min-width: 0; font-size: 14px; }
 .rec { font-size: 13px; color: var(--on); padding: 3px 10px; border-radius: 100px; background: color-mix(in oklab, var(--accent) 18%, transparent); }
 .toast button[hidden] { display: none; }
+
+/* ── настройки: вкладка в окне, как файл. Слева разделы, справа их содержимое;
+   окно узкое — разделы встают полосой сверху (та же вёрстка, другой размер) ── */
+.pane-scroll { container-type: inline-size; }
+.set { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 28px; max-width: 1100px; margin: 0 auto; align-items: start; }
+.set-nav { position: sticky; top: 0; display: grid; gap: 2px; }
+.set-find { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; margin-bottom: 8px; border-radius: 100px; background: var(--c); color: var(--muted); }
+.set-find input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 14px; }
+.set-nav button { display: flex; align-items: center; gap: 11px; height: 38px; padding: 0 12px; border-radius: 12px; font-size: 14px; color: var(--on-var); text-align: left; white-space: nowrap; }
+.set-nav button:hover { background: var(--c); color: var(--on); }
+.set-nav button.on { background: var(--c-high); color: var(--on); font-weight: 600; }
+.set-nav button .sym { font-size: 19px; }
+.set-nav .web { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 2px 6px; border-radius: 6px; background: var(--c-highest); color: var(--on-var); }
+.set-body h1 { font: 700 26px/1.2 var(--display); letter-spacing: -.02em; margin: 2px 0 6px; }
+.set-body .lead { color: var(--muted); font-size: 14px; margin: 0 0 20px; max-width: 62ch; }
+/* подложка группы — полупрозрачная: видна и в активном окне, и в приглушённом */
+.set-group { border-radius: var(--r-tile); background: color-mix(in oklab, var(--on) 5%, transparent); padding: 4px; margin-bottom: 18px; }
+.set-gh { font-size: 12px; font-weight: 600; color: var(--muted); padding: 10px 14px 4px; }
+.set-row { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 8px 12px 8px 14px; border-radius: 16px; }
+.set-row + .set-row { margin-top: 2px; }
+.set-row:hover { background: color-mix(in oklab, var(--on) 4%, transparent); }
+.set-row > .sym { color: var(--on-var); font-size: 21px; flex: none; }
+.set-t { flex: 1; min-width: 0; font-size: 15px; }
+.set-t small { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 1px; }
+.set-v { color: var(--on-var); font-size: 14px; display: inline-flex; align-items: center; gap: 4px; flex: none; }
+.set-row.link { cursor: pointer; }
+.switch { width: 52px; height: 32px; border-radius: 100px; background: var(--c-highest); position: relative; flex: none; transition: background .15s; }
+.switch::after { content: ""; position: absolute; top: 8px; left: 8px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); transition: all .18s cubic-bezier(.2, 0, 0, 1); }
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 24px; top: 4px; width: 24px; height: 24px; background: var(--on-accent); }
+.seg2 { display: inline-flex; gap: 3px; padding: 3px; border-radius: 100px; background: var(--c-highest); flex: none; }
+.seg2 button { height: 32px; padding: 0 14px; border-radius: 100px; font-size: 13px; color: var(--on-var); }
+.seg2 button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.swatches { display: flex; gap: 8px; flex: none; }
+.swatches button { width: 28px; height: 28px; border-radius: 50%; background: var(--sw); }
+.swatches button.on { outline: 2px solid var(--on); outline-offset: 2px; }
+.set-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; background: color-mix(in oklab, var(--on) 5%, transparent); color: var(--on-var); font-size: 13px; margin-bottom: 18px; }
+.set-note .sym { font-size: 18px; }
+/* сочетания: у действия несколько сочетаний-фишек; фишка — заменить, крестик — убрать, плюс — ещё одно */
+.chord { display: inline-flex; align-items: center; gap: 3px; padding: 3px 3px 3px 4px; border-radius: 10px; background: var(--c-highest); cursor: pointer; }
+.chord:hover { background: color-mix(in oklab, var(--on) 14%, var(--c-highest)); }
+.chord .x { font-size: 15px; color: var(--muted); border-radius: 6px; padding: 1px; }
+.chord .x:hover { color: var(--on); background: var(--c-high); }
+.chord.rec { padding: 4px 10px; font-size: 13px; color: var(--on); background: color-mix(in oklab, var(--accent) 18%, var(--c-highest)); cursor: default; }
+.chords { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; }
+.chord-add { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); }
+.chord-add:hover { background: var(--c-highest); color: var(--on); }
+.set-changed { font-size: 11px; color: var(--muted); }
+@container (max-width: 700px) {
+  .set { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .set-nav { position: static; display: flex; overflow-x: auto; scrollbar-width: none; gap: 4px; }
+  .set-find { display: none; }
+  .set-row { flex-wrap: wrap; }
+  .chords { justify-content: flex-start; width: 100%; padding-left: 35px; }
+}
 .cal { padding: 0 8px; }
 .cal-head { font-size: 13px; font-weight: 600; margin: 0 0 6px 2px; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; font-size: 12px; }
@@ -466,7 +521,7 @@ kbd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; 
       <button class="add-panel" data-addmenu="left"><span class="sym">add</span>Панель</button>
       <div class="add-menu" id="add-left" hidden></div>
       <button class="icon-btn" id="theme" title="Светлая или тёмная" style="margin-left:auto"><span class="sym">dark_mode</span></button>
-      <button class="icon-btn" title="Настройки"><span class="sym">settings</span></button>
+      <button class="icon-btn" title="Настройки (Ctrl+,)" data-go="settings"><span class="sym">settings</span></button>
     </div>
   </aside>
   <div class="gutter" data-resize="left" title="Потянуть ширину"></div>
@@ -673,6 +728,7 @@ function renderDocks() {
 /* ── вкладки окна ── */
 function tabTitle(r) {
   if (r === "home") return [sym("home"), "Главная", "none"];
+  if (r.startsWith("settings")) return [sym("settings"), "Настройки", "none"];
   if (r.startsWith("note-")) { const n = NOTES.find(x => "note-" + x.id === r); return [fic(n.f, 17), n.title, n.f]; }
   const id = r.slice(7); return [fic(id, 17), FNAME[id], id];
 }
@@ -810,7 +866,7 @@ function viewFolder(id) {
 }
 
 /* ── центр: дерево окон ── */
-const viewOf = r => r === "home" ? viewHome() : r.startsWith("note-") ? viewNote(r.slice(5)) : viewFolder(r.slice(7));
+const viewOf = r => r === "home" ? viewHome() : r.startsWith("settings") ? viewSettings(r.slice(9)) : r.startsWith("note-") ? viewNote(r.slice(5)) : viewFolder(r.slice(7));
 const onePane = () => !!L.center.tabs;
 
 function paneHtml(p) {
@@ -851,10 +907,11 @@ function render() {
 
 /* открыть в активном окне: уже открытое — переключиться на вкладку, иначе новая вкладка */
 function go(r) {
-  if (!/^(home|note-[a-z]+|folder-[a-z]+)$/.test(r)) r = "home";
+  if (!/^(home|note-[a-z]+|folder-[a-z]+|settings(-[a-z]+)?)$/.test(r)) r = "home";
   const p = activePane();
-  const i = p.tabs.indexOf(r);
-  if (i >= 0) p.at = i; else { p.tabs.push(r); p.at = p.tabs.length - 1; }
+  // настройки — одна вкладка на окно: другой раздел открывается в ней же
+  const i = r.startsWith("settings") ? p.tabs.findIndex(t => t.startsWith("settings")) : p.tabs.indexOf(r);
+  if (i >= 0) { p.tabs[i] = r; p.at = i; } else { p.tabs.push(r); p.at = p.tabs.length - 1; }
   L.preset = null; closeDrawers(); render();
   document.querySelector(`.pane[data-pane="${p.id}"] .pane-scroll`).scrollTop = 0;
 }
@@ -1162,7 +1219,7 @@ const COMMANDS = [
   { g: "Поиск и переход", id: "palette", t: "Все команды", i: "terminal", keys: ["Ctrl+P"], run: () => openPalette("commands") },
   { g: "Поиск и переход", id: "switch", t: "Открыть заметку по названию", i: "description", keys: ["Ctrl+O"], run: () => openPalette("notes") },
   { g: "Поиск и переход", id: "home", t: "На главную", i: "home", keys: ["G H"], run: () => go("home") },
-  { g: "Поиск и переход", id: "keys", t: "Сочетания клавиш", i: "keyboard", keys: ["?", "Ctrl+/"], run: openKeys },
+  { g: "Поиск и переход", id: "keys", t: "Сочетания клавиш", i: "keyboard", keys: ["?", "Ctrl+/"], run: () => go("settings-keys") },
   { g: "Заметки и папки", id: "new", t: "Новая заметка", i: "edit_square", keys: ["N", "Alt+N"], run: newNote },
   { g: "Заметки и папки", id: "newfolder", t: "Новая папка", i: "create_new_folder", keys: ["Shift+N", "Alt+Shift+N"], run: newFolder },
   { g: "Заметки и папки", id: "trash", t: "Удалить в корзину", i: "delete", keys: ["Delete", "Alt+Backspace"], run: trashNote },
@@ -1184,7 +1241,7 @@ const COMMANDS = [
   { g: "Доки и раскладки", id: "right", t: "Правый док", i: "right_panel_open", keys: ["Ctrl+]"], run: () => toggleDock("right") },
   ...Object.entries(PRESETS).map(([k, p], i) => ({ g: "Доки и раскладки", id: "preset-" + k, t: `Раскладка «${p.t}»`, i: p.i, keys: [`Alt+Shift+${i + 1}`], run: () => preset(k) })),
   { g: "Доки и раскладки", id: "theme", t: "Светлая или тёмная тема", i: "dark_mode", keys: ["Alt+Shift+L"], run: () => $("#theme").click() },
-  { g: "Доки и раскладки", id: "settings", t: "Настройки", i: "settings", keys: ["Ctrl+,"], run: () => toast("Настройки откроются здесь") },
+  { g: "Доки и раскладки", id: "settings", t: "Настройки", i: "settings", keys: ["Ctrl+,"], run: () => go("settings") },
 ];
 /* свои сочетания поверх стандартных: { id команды: [сочетания] } */
 const KEYS_SAVE = "stowa-web-keys-v1";
@@ -1257,47 +1314,202 @@ function openPalette(kind) {
   draw(); $("#pal-q").focus();
 }
 
-/* экран «Сочетания клавиш»: у каждой команды свои; нажал «изменить» — следующее нажатие станет сочетанием */
-let recording = null;
-function openKeys() {
-  $("#modal").hidden = false;
-  const groups = [...new Set(COMMANDS.map(c => c.g))];
-  $("#modal-card").innerHTML = `<div class="keys-head"><h3>Сочетания клавиш</h3><input class="pal-q" id="keys-q" placeholder="Найти действие…" autocomplete="off"></div>
-    <div class="keys-list" id="keys-list"></div>
-    <div class="pal-foot">Одна клавиша без Ctrl и Alt работает, когда курсор не в поле ввода. Сочетания по месту клавиши — в любой раскладке.</div>`;
-  const draw = () => {
-    const w = $("#keys-q").value.toLowerCase();
-    $("#keys-list").innerHTML = groups.map(g => {
-      const rows = COMMANDS.filter(c => c.g === g && c.t.toLowerCase().includes(w));
-      return rows.length ? `<div class="keys-g">${g}</div>` + rows.map(c => `<div class="keys-row">${sym(c.i)}<span class="keys-t">${c.t}</span>
-        <span class="keys-k">${recording === c.id ? '<span class="rec">Нажмите сочетание…</span>' : keysOf(c).map(show).join('<span class="or">или</span>')}</span>
-        <button class="mini" data-rebind="${c.id}" title="Изменить">${sym("edit")}</button>
-        ${customKeys[c.id] ? `<button class="mini" data-reset="${c.id}" title="Вернуть как было">${sym("restart_alt")}</button>` : ""}</div>`).join("") : "";
-    }).join("");
-  };
-  $("#keys-q").oninput = draw;
-  $("#keys-list").onclick = e => {
-    const rb = e.target.closest("[data-rebind]"); if (rb) { recording = rb.dataset.rebind; draw(); return; }
-    const rs = e.target.closest("[data-reset]"); if (rs) { delete customKeys[rs.dataset.reset]; store.set(KEYS_SAVE, JSON.stringify(customKeys)); draw(); }
-  };
-  openKeys.draw = draw; draw(); $("#keys-q").focus();
+$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+$("#tog-keys").onclick = () => go("settings-keys");
+
+/* ── настройки: вкладка «Настройки», как файл в окне ──
+   Разделы те же, что в приложении. Чисто телефонное (Под рукой, виджеты, Enter
+   клавиатуры телефона) сюда не попадает, а «Сочетания клавиш» есть только здесь. */
+const SET_SAVE = "stowa-web-settings-v1";
+const SET = Object.assign({ theme: "system", color: "graphite", density: "normal", width: "narrow", aiFirst: true, returns: true, webPush: false,
+  place: true, adult: false, crash: true, articleImages: true, send: "enter", pairs: true, start: "tabs", lang: "ru", hints: true },
+  (() => { try { return JSON.parse(store.get(SET_SAVE)) || {}; } catch { return {}; } })());
+const saveSet = () => store.set(SET_SAVE, JSON.stringify(SET));
+const SECTIONS = [
+  ["vault", "Хранилище", "folder"], ["sync", "Stowa Sync", "cloud_sync"], ["look", "Оформление", "palette"],
+  ["ai", "Разбор ИИ", "auto_awesome"], ["notify", "Уведомления", "notifications"], ["outside", "Снаружи", "send"],
+  ["order", "Теги, папки и правила", "label"], ["data", "Данные", "database"], ["import", "Перенос", "move_down"],
+  ["line", "Поле ввода", "keyboard_return"], ["keys", "Сочетания клавиш", "keyboard", true], ["start", "Запуск", "start"],
+  ["lang", "Язык", "translate"], ["help", "Помощь", "help"],
+];
+const swt = key => `<button class="switch ${SET[key] ? "on" : ""}" data-set="${key}" role="switch" aria-checked="${!!SET[key]}"></button>`;
+const seg = (key, opts) => `<div class="seg2">${opts.map(([v, t]) => `<button class="${SET[key] === v ? "on" : ""}" data-seg="${key}:${v}">${t}</button>`).join("")}</div>`;
+const val = t => `<span class="set-v">${t}${sym("chevron_right")}</span>`;
+const row = (icon, title, hint, ctl = "", link = "") => `<div class="set-row ${link ? "link" : ""}" ${link ? `data-act="${link}"` : ""}>${sym(icon)}<span class="set-t">${title}${hint ? `<small>${hint}</small>` : ""}</span>${ctl}</div>`;
+const group = (title, rows) => `<div class="set-group">${title ? `<div class="set-gh">${title}</div>` : ""}${rows.join("")}</div>`;
+
+function settingsSection(id) {
+  switch (id) {
+    case "vault": return group("Открытое хранилище", [
+        row("folder", "Мои заметки", "~/Документы/Мои заметки · 218 заметок · 7 папок", val("Сменить"), "toast:Выбор папки откроется в окне браузера"),
+        row("folder_open", "Открыть другую папку", "Хранилище Obsidian или прежнее хранилище Stowa", val(""), "toast:Выбор папки"),
+      ]) + group("Копия", [
+        row("save", "Сохранить копию", "Один файл со всеми заметками и вложениями", val(""), "toast:Копия собирается…"),
+        row("description", "Выгрузить в Markdown", "Папка с файлами .md, как в Obsidian", val(""), "toast:Выгрузка в Markdown"),
+        row("refresh", "Пересобрать указатель", "Если поиск находит не всё", val(""), "toast:Указатель пересобирается"),
+      ]);
+    case "sync": return group("Аккаунт", [
+        row("mail", "alex@example.com", "Синхронизировано в 18:20 · подписка до 17 ноября 2027", `<span class="set-v">Stowa+</span>`),
+        row("sync", "Синхронизировать сейчас", "", val(""), "toast:Синхронизация…"),
+      ]) + group("Устройства", [
+        row("smartphone", "Xiaomi 15T", "2 минуты назад"), row("phone_iphone", "iPhone 16", "вчера"), row("laptop", "Этот браузер", "сейчас"),
+      ]) + group("", [row("logout", "Выйти", "Заметки на этом компьютере останутся на месте.", "", "toast:Вы вышли из аккаунта")]);
+    case "look": return group("", [
+        row("contrast", "Тема", "", seg("theme", [["system", "Как в системе"], ["light", "Светлая"], ["dark", "Тёмная"]])),
+        row("palette", "Цвет", "", `<div class="swatches">${[["graphite", "#5F6066"], ["sea", "#5FCDF5"], ["sage", "#76D5A4"], ["rose", "#F89EC1"], ["sun", "#FEC766"]]
+          .map(([k, c]) => `<button class="${SET.color === k ? "on" : ""}" style="--sw:${c}" data-seg="color:${k}" title="${k}"></button>`).join("")}</div>`),
+      ]) + group("Только в веб-версии", [
+        row("density_medium", "Плотность", "Сколько заметок помещается в окне", seg("density", [["normal", "Обычно"], ["compact", "Плотно"]])),
+        row("width", "Ширина текста заметки", "Широкое окно не растягивает строки на весь экран", seg("width", [["narrow", "Удобно читать"], ["wide", "Во всю ширину"]])),
+      ]);
+    case "ai": return group("", [
+        row("key", "Ключ", "Хранится на этом компьютере", val("Задан"), "toast:Ключ"),
+        row("dns", "Поставщик", "", val("openrouter.ai"), "toast:Поставщик"),
+        row("category", "Модель разбора", "", val("gemini-2.5-flash"), "toast:Модель"),
+        row("auto_awesome", "ИИ в приоритете", "Модель проверяет и то, что разложено без неё.", swt("aiFirst")),
+        row("graphic_eq", "Расшифровка голосовых", "", val("whisper-large"), "toast:Модель расшифровки"),
+        row("receipt_long", "Журнал запросов", "", val(""), "toast:Журнал откроется вкладкой"),
+      ]);
+    case "notify": return group("", [
+        row("replay", "Вернуть к незаконченному", "Статья, ролик, список — напомню вернуться", swt("returns")),
+        row("notifications_active", "Уведомления браузера", "Напоминания придут, даже если вкладка свёрнута. Спросит разрешение у браузера.", swt("webPush")),
+      ]);
+    case "outside": return group("", [
+        row("send", "Свой бот Telegram", "Пересланное боту ложится во «Входящие»", val("@stowa_alex_bot"), "toast:Бот"),
+      ]) + `<div class="set-note">${sym("smartphone")}<span>«Под рукой», виджеты и «Поделиться» живут в приложении на телефоне.</span></div>`;
+    case "order": return group("", [
+        row("label", "Теги", "6 тегов", val(""), "toast:Теги откроются вкладкой"),
+        row("folder", "Папки", "7 папок", val(""), "toast:Папки откроются вкладкой"),
+        row("rule", "Правила разбора", "Куда класть по словам и тегам", val(""), "toast:Правила откроются вкладкой"),
+      ]);
+    case "data": return group("", [
+        row("delete", "Корзина", "Удалённое лежит 30 дней", val("5"), "toast:Корзина откроется вкладкой"),
+        row("location_on", "Запоминать, где сохранено", "Место по данным браузера, если разрешите", swt("place")),
+        row("explicit", "Показывать 18+", "", swt("adult")),
+        row("calendar_month", "Название фото и видео", "", val("По дате съёмки"), "toast:Название"),
+        row("bug_report", "Отчёты об ошибках", "Без текста заметок", swt("crash")),
+      ]) + group("Статьи", [
+        row("image", "Картинки статей", "Скачивать вместе с текстом", swt("articleImages")),
+        row("link_off", "Битые ссылки", "3 ссылки больше не открываются", val("3"), "toast:Битые ссылки"),
+      ]);
+    case "import": return group("Перенести заметки", [
+        row("description", "Из Obsidian", "Открыть папку хранилища как есть", val(""), "toast:Перенос"),
+        row("article", "Из Notion", "Выгрузка Markdown и CSV", val(""), "toast:Перенос"),
+        row("sticky_note_2", "Из Google Keep", "Архив Google Takeout", val(""), "toast:Перенос"),
+        row("send", "Из Telegram", "Избранное и каналы — выгрузка Telegram Desktop", val(""), "toast:Перенос"),
+      ]);
+    case "line": return group("", [
+        row("keyboard_return", "Чем отправлять", "Второе сочетание делает новую строку", seg("send", [["enter", "Enter"], ["ctrl", "Ctrl+Enter"]])),
+        row("format_quote", "Парные кавычки и скобки", "Открыл « — закрывающая встанет сама", swt("pairs")),
+      ]);
+    case "keys": return keysSection();
+    case "start": return group("", [
+        row("start", "Открывать", "", seg("start", [["tabs", "Прошлые вкладки"], ["home", "Главную"], ["line", "Строку"]])),
+      ]);
+    case "lang": return group("", [["system", "Как в браузере"], ["ru", "Русский"], ["en", "English"], ["uk", "Українська"], ["ro", "Română"], ["pl", "Polski"], ["de", "Deutsch"], ["es", "Español"]]
+        .map(([k, t]) => row(SET.lang === k ? "radio_button_checked" : "radio_button_unchecked", t, "", "", "lang:" + k)));
+    case "help": return group("", [
+        row("flag", "Сообщить о проблеме", "", val(""), "toast:Форма откроется вкладкой"),
+        row("mail", "Написать в поддержку", "", val("support@stowa.work"), "toast:Откроется почта"),
+        row("policy", "Политика конфиденциальности", "", val(""), "toast:Откроется сайт"),
+        row("tips_and_updates", "Подсказки", "", swt("hints")),
+        row("replay", "Начать знакомство заново", "", val(""), "toast:Знакомство начнётся с главной"),
+      ]);
+  }
+  return "";
 }
+
+/* сочетания: у действия одно или несколько. Фишка — заменить её, крестик — убрать,
+   плюс — добавить ещё одно, стрелка — вернуть как было */
+let recording = null; // { id, i }: i — какую фишку заменить, -1 — добавить новую
+function keysSection() {
+  const groups = [...new Set(COMMANDS.map(c => c.g))];
+  const changed = Object.keys(customKeys).length;
+  return `<div class="set-note">${sym("info")}<span>Одна клавиша без Ctrl и Alt срабатывает, когда курсор не в поле ввода. Клавиши ловятся по месту на клавиатуре — в любой раскладке.
+      Ctrl+N, Ctrl+T, Ctrl+W, Ctrl+Tab браузер оставляет себе.</span></div>
+    ${changed ? `<div style="margin:-6px 0 14px"><button class="seg" data-resetall style="background:var(--c);">${sym("restart_alt")}Вернуть все как было · изменено ${changed}</button></div>` : ""}
+    ${groups.map(g => group(g, COMMANDS.filter(c => c.g === g).map(c => {
+      const keys = keysOf(c);
+      const chips = keys.map((k, i) => recording && recording.id === c.id && recording.i === i
+        ? `<span class="chord rec">Нажмите сочетание · Esc — отмена</span>`
+        : `<span class="chord" data-chord="${c.id}:${i}" title="Нажмите, чтобы заменить">${show(k)}<span class="sym x" data-unchord="${c.id}:${i}" title="Убрать">close</span></span>`).join("");
+      const adding = recording && recording.id === c.id && recording.i === -1 ? `<span class="chord rec">Нажмите сочетание · Esc — отмена</span>` : "";
+      return row(c.i, c.t, customKeys[c.id] ? '<span class="set-changed">изменено</span>' : "",
+        `<div class="chords">${chips}${adding}<button class="chord-add" data-addchord="${c.id}" title="Добавить сочетание">${sym("add")}</button>
+          ${customKeys[c.id] ? `<button class="chord-add" data-resetkeys="${c.id}" title="Вернуть как было">${sym("restart_alt")}</button>` : ""}</div>`);
+    }))).join("")}`;
+}
+
+function viewSettings(sec) {
+  sec = SECTIONS.some(s => s[0] === sec) ? sec : "vault";
+  const [, title] = SECTIONS.find(s => s[0] === sec);
+  return `<div class="set">
+    <nav class="set-nav" aria-label="Разделы настроек">
+      <label class="set-find">${sym("search")}<input data-setfind placeholder="Найти настройку" autocomplete="off"></label>
+      ${SECTIONS.map(([id, t, i, web]) => `<button class="${id === sec ? "on" : ""}" data-setsec="${id}">${sym(i)}${t}${web ? '<span class="web">ВЕБ</span>' : ""}</button>`).join("")}
+    </nav>
+    <div class="set-body">
+      ${SECTIONS.map(([id, t]) => `<section data-sec="${id}" ${id === sec ? "" : "hidden"}><h1>${t}</h1>${settingsSection(id)}</section>`).join("")}
+      <div class="pnl-note" data-setnone hidden>Такой настройки нет.</div>
+    </div></div>`;
+}
+
+/* поиск по настройкам: видны все разделы, только совпавшие строки */
+document.addEventListener("input", e => {
+  const f = e.target.closest("[data-setfind]"); if (!f) return;
+  const box = f.closest(".set"); const w = f.value.trim().toLowerCase();
+  const cur = box.querySelector(".set-nav .on")?.dataset.setsec;
+  let any = false;
+  box.querySelectorAll("section[data-sec]").forEach(s => {
+    let hit = 0;
+    s.querySelectorAll(".set-row").forEach(r => { const ok = !w || r.textContent.toLowerCase().includes(w); r.hidden = !ok; hit += ok; });
+    s.querySelectorAll(".set-group").forEach(g => g.hidden = w && !g.querySelector(".set-row:not([hidden])"));
+    s.hidden = w ? !hit : s.dataset.sec !== cur; any ||= !!hit;
+  });
+  box.querySelector("[data-setnone]").hidden = !w || any;
+});
+
+document.addEventListener("click", e => {
+  const t = e.target;
+  const sec = t.closest("[data-setsec]");
+  if (sec) { const p = activePane(); p.tabs[p.at] = "settings-" + sec.dataset.setsec; render(); return; }
+  const sw = t.closest("[data-set]");
+  if (sw) { SET[sw.dataset.set] = !SET[sw.dataset.set]; saveSet(); render(); return; }
+  const sg = t.closest("[data-seg]");
+  if (sg) { const [k, v] = sg.dataset.seg.split(":"); SET[k] = v; saveSet(); if (k === "theme") { applyTheme(v === "system" ? null : v); if (v === "system") delete document.documentElement.dataset.theme; } render(); return; }
+  const act = t.closest("[data-act]");
+  if (act && !t.closest("[data-set],[data-seg]")) { const [kind, arg] = act.dataset.act.split(":"); if (kind === "toast") toast(arg); if (kind === "lang") { SET.lang = arg; saveSet(); render(); } return; }
+  const un = t.closest("[data-unchord]");
+  if (un) { e.stopPropagation(); const [id, i] = un.dataset.unchord.split(":"); const c = COMMANDS.find(x => x.id === id); customKeys[id] = keysOf(c).filter((_, k) => k !== +i); saveKeys(); return; }
+  const ch = t.closest("[data-chord]");
+  if (ch) { const [id, i] = ch.dataset.chord.split(":"); recording = { id, i: +i }; render(); return; }
+  const add = t.closest("[data-addchord]");
+  if (add) { recording = { id: add.dataset.addchord, i: -1 }; render(); return; }
+  const rk = t.closest("[data-resetkeys]");
+  if (rk) { delete customKeys[rk.dataset.resetkeys]; saveKeys(); return; }
+  if (t.closest("[data-resetall]")) { customKeys = {}; saveKeys(); toast("Все сочетания как были"); }
+});
+function saveKeys() { store.set(KEYS_SAVE, JSON.stringify(customKeys)); render(); }
+
+/* запись сочетания: следующее нажатие заменяет фишку или добавляется новой */
 document.addEventListener("keydown", e => {
   if (!recording) return;
   if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) return;
   e.preventDefault(); e.stopPropagation();
-  if (e.key === "Escape") { recording = null; openKeys.draw(); return; }
+  if (e.key === "Escape") { recording = null; render(); return; }
   const combo = comboOf(e); if (!combo) return;
   const reserved = ["Ctrl+N", "Ctrl+T", "Ctrl+W", "Ctrl+Shift+N", "Ctrl+Shift+T", "Ctrl+Shift+W", "Ctrl+Tab", "Ctrl+Shift+Tab", ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => "Ctrl+" + n)];
   if (reserved.includes(combo)) { toast(`${combo} браузер оставляет себе — выберите другое`); return; }
-  // занятое другой командой — у той снимается
-  COMMANDS.forEach(c => { const k = keysOf(c); if (k.includes(combo) && c.id !== recording) customKeys[c.id] = k.filter(x => x !== combo); });
-  customKeys[recording] = [combo];
-  store.set(KEYS_SAVE, JSON.stringify(customKeys));
-  recording = null; openKeys.draw();
+  const c = COMMANDS.find(x => x.id === recording.id);
+  // занятое другой командой — у той снимается, и об этом говорим
+  const owner = COMMANDS.find(x => x.id !== c.id && keysOf(x).includes(combo));
+  if (owner) customKeys[owner.id] = keysOf(owner).filter(x => x !== combo);
+  const keys = keysOf(c).filter(x => x !== combo);
+  if (recording.i < 0 || recording.i >= keys.length) keys.push(combo); else keys.splice(recording.i, 1, combo);
+  customKeys[c.id] = keys;
+  recording = null; saveKeys();
+  if (owner) toast(`${combo} теперь у «${c.t}», у «${owner.t}» снято`);
 }, true);
-$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
-$("#tog-keys").onclick = openKeys;
 
 render();
 </script>
