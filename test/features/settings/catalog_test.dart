@@ -9,6 +9,8 @@ import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/known_vaults.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/settings/sync_screen.dart';
+import 'package:stowa/services/sync/sync_service.dart';
 import 'package:stowa/services/vault/vault_layout.dart' show readAttachmentSetting;
 
 import '../../helpers/test_app.dart';
@@ -78,13 +80,13 @@ void main() {
     expect(top(find.text('ДАННЫЕ')), lessThan(top(find.text('Корзина'))));
   });
 
-  testWidgets('экран: Stowa Sync «Платно · Скоро», открытое с пилюлей, прежние с числом заметок', (tester) async {
+  testWidgets('экран: Stowa Sync «Платно · Выключена», открытое с пилюлей, прежние с числом заметок', (tester) async {
     await openCatalog(tester);
     // есть ли папка, строка узнаёт с диска
     await settle(tester);
     expect(find.text('Stowa Sync'), findsOneWidget);
     expect(find.text('Платно'), findsOneWidget);
-    expect(find.text('Скоро'), findsOneWidget);
+    expect(find.text('Выключена'), findsOneWidget);
     final current = find.byKey(const ValueKey('vault-current'));
     expect(find.descendant(of: current, matching: find.text('Внутри приложения')), findsOneWidget);
     expect(find.descendant(of: current, matching: find.text('Открыто')), findsOneWidget);
@@ -112,14 +114,17 @@ void main() {
     expect(find.descendant(of: row, matching: find.textContaining('9 заметок')), findsOneWidget);
   });
 
-  testWidgets('Stowa Sync: лист с одним предложением и «Понятно»', (tester) async {
+  testWidgets('Stowa Sync: касание открывает экран синхронизации', (tester) async {
     await openCatalog(tester);
     await tester.tap(find.text('Stowa Sync'));
     await tester.pumpAndSettle();
-    expect(find.text('Заметки сами сойдутся на телефоне, планшете и компьютере.'), findsOneWidget);
-    await tester.tap(find.text('Понятно'));
-    await tester.pumpAndSettle();
-    expect(find.text('Понятно'), findsNothing);
+    expect(find.byType(SyncScreen), findsOneWidget);
+  });
+
+  testWidgets('Stowa Sync: вошли — под названием почта аккаунта', (tester) async {
+    world.syncAccount.value = SyncAccount(email: 'me@x.io', token: 't', key: List.filled(32, 1), vaultDb: 'stowa').toJson();
+    await openCatalog(tester);
+    expect(find.descendant(of: find.byKey(const ValueKey('storage-sync')), matching: find.text('me@x.io')), findsOneWidget);
   });
 
   testWidgets('касание прежнего открывает его: настройки на нём, приложение пересобирается на его базе', (tester) async {

@@ -230,9 +230,18 @@ class SyncService {
   Timer? _poke;
 
   /// Своя правка легла в файлы: отправить, когда правки утихнут.
-  void poke() {
+  void poke() => unawaited(_pokeIfSignedIn());
+
+  Future<void> _pokeIfSignedIn() async {
+    // не вошли — ждать нечего, таймер не нужен
+    if (await account() == null) return;
     _poke?.cancel();
     _poke = Timer(const Duration(seconds: 2), () => unawaited(trigger?.call()));
+  }
+
+  void dispose() {
+    stopListening();
+    _poke?.cancel();
   }
 
   bool _listening = false;
@@ -256,15 +265,31 @@ class SyncService {
         if (page.changes.isNotEmpty && _listening) {
           await trigger?.call();
           // проход не сдвинул курсор (сбой): не долбить сервер тем же ответом
-          if (await DbSyncState(_db).cursor() == cursor) await Future<void>.delayed(const Duration(seconds: 15));
+          if (await DbSyncState(_db).cursor() == cursor) await _pause(const Duration(seconds: 15));
         }
       } on Object {
         // сеть пропала: ждать дольше с каждым сбоем, до минуты
         failures++;
-        await Future<void>.delayed(Duration(seconds: (5 * failures).clamp(5, 60)));
+        await _pause(Duration(seconds: (5 * failures).clamp(5, 60)));
       }
     }
   }
 
-  void stopListening() => _listening = false;
+  Timer? _sleep;
+  Completer<void>? _woken;
+
+  /// Пауза, которую [stopListening] обрывает сразу: свёрнутое приложение не держит таймер.
+  Future<void> _pause(Duration duration) {
+    final woken = _woken = Completer<void>();
+    _sleep = Timer(duration, () {
+      if (!woken.isCompleted) woken.complete();
+    });
+    return woken.future;
+  }
+
+  void stopListening() {
+    _listening = false;
+    _sleep?.cancel();
+    if (_woken case final woken? when !woken.isCompleted) woken.complete();
+  }
 }

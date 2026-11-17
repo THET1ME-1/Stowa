@@ -809,7 +809,7 @@ final syncServiceProvider = Provider((ref) {
     store: ref.watch(syncAccountStoreProvider),
     client: ref.watch(syncHttpProvider),
   );
-  ref.onDispose(service.stopListening);
+  ref.onDispose(service.dispose);
   return service;
 });
 

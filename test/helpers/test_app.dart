@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:stowa/app.dart';
 import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
@@ -221,7 +222,8 @@ class TestWorld {
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
         // аккаунт синхронизации — в памяти, сервер — поддельный, если тест его дал
         syncAccountStoreProvider.overrideWithValue(syncAccount),
-        if (syncHttp case final syncHttp?) syncHttpProvider.overrideWithValue(syncHttp),
+        // тесты в сеть не ходят: без своего сервера — поддельный, который всем отказывает
+        syncHttpProvider.overrideWithValue(syncHttp ?? MockClient((_) async => http.Response('', 401))),
         if (vaultRoot case final vaultRoot?) vaultRootProvider.overrideWith(() => VaultRootNotifier(vaultRoot)),
       ];
 
