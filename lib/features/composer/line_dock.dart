@@ -54,6 +54,7 @@ import 'start_card.dart';
 import 'picked_files.dart';
 import 'voice_session.dart';
 import 'voice_wave.dart';
+import '../workspace/workspace_shell.dart' show WorkspaceScope;
 
 const _toastTime = Duration(milliseconds: 3400);
 
@@ -128,7 +129,12 @@ class LineDock extends ConsumerStatefulWidget {
     this.elsewhere,
     this.onboarding = false,
     this.maxWidth = double.infinity,
+    this.onSaved,
   });
+
+  /// Заметки сохранены (строкой с файлами без текста — по одной на файл): холст кладёт их
+  /// карточками. Без него строка спрашивает рабочее пространство, не ждёт ли их открытый экран.
+  final void Function(List<String> ids)? onSaved;
 
   /// Строка главной: над ней, пока она пуста, стоит шаг знакомства.
   final bool onboarding;
@@ -678,6 +684,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       );
       final ids = apart ? await capture.captureAll([for (final file in files) inputFor([file])]) : [await capture.capture(inputFor(files))];
       final id = ids.first;
+      if (mounted) (widget.onSaved ?? WorkspaceScope.maybeOf(context)?.captureTarget?.onSaved)?.call(ids);
       if (_clip != null && snapshot.text.contains(_clip!)) _usedSuggestions.add(_clip!);
       final saved = await ref.read(itemsRepositoryProvider).get(id);
       // «только закинуть» кладёт по правилам, но куда легло — не говорит

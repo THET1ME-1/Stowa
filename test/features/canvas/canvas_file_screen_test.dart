@@ -8,7 +8,10 @@ import 'package:stowa/domain/json_canvas.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/canvas/canvas_file_screen.dart';
 import 'package:stowa/features/canvas/canvas_kit.dart' show CanvasLinksPainter;
+import 'package:stowa/features/composer/line_dock.dart';
 import 'package:stowa/features/item/item_screen.dart';
+import 'package:stowa/features/workspace/workspace_model.dart';
+import 'package:stowa/features/workspace/workspace_shell.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -312,5 +315,53 @@ void main() {
     await saved(tester);
     expect((await stored()).edges, isEmpty);
     expect((await stored()).nodes, hasLength(2));
+  });
+
+  testWidgets('строка холста: сохранённая заметка встаёт на холст карточкой-файлом', (tester) async {
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await open(tester);
+    final field = find.descendant(of: find.byType(LineDock), matching: find.byType(TextField));
+    await tester.showKeyboard(field);
+    await tester.enterText(field, 'Купить затирку для швов');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Закинуть').last);
+    await tester.pump(const Duration(seconds: 4));
+    await saved(tester);
+    final note = (await world.db.select(world.db.items).get()).firstWhere((item) => item.kind == ItemKind.note);
+    expect(note.body, 'Купить затирку для швов');
+    // заметку раскладывают по папкам как обычно: в холст она не заперта
+    final file = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file).single;
+    expect(await world.db.searchIds('затирку'), contains(note.id));
+    expect(file.file, endsWith('.md'));
+  });
+
+  testWidgets('широкий экран: холст во вкладке перед глазами — общая строка кладёт заметку на него', (tester) async {
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final line = find.byType(LineDock);
+    expect(line, findsOneWidget);
+    WorkspaceScope.maybeOf(tester.element(line))!.open(const WsTab.item('c'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CanvasFileScreen), findsOneWidget);
+    // своей строки у холста на широком экране нет: строка одна, общая
+    expect(find.byType(LineDock), findsOneWidget);
+    // в покое строка — капсула; щелчок раскрывает поле
+    await tester.tap(find.descendant(of: line, matching: find.textContaining('Закинь')).first);
+    await tester.pumpAndSettle();
+    final field = find.descendant(of: line, matching: find.byType(TextField));
+    await tester.showKeyboard(field);
+    await tester.enterText(field, 'Позвонить плиточнику');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Закинуть').last);
+    await tester.pump(const Duration(seconds: 4));
+    await saved(tester);
+    expect((await stored()).nodes.where((node) => node.type == CanvasNodeType.file), hasLength(1));
   });
 }

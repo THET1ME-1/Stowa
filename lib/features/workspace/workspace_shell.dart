@@ -87,6 +87,14 @@ class WorkspaceController extends ChangeNotifier {
   /// Курсор в общую строку: Ctrl K, «Найти или записать», поиск на экране папки.
   VoidCallback? find;
 
+  /// Куда ещё отдать сохранённое общей строкой. Ставит экран, который на виду в окне с
+  /// фокусом (холст-файл кладёт новые заметки карточками); null — просто сохранить.
+  CaptureTarget? captureTarget;
+
+  /// Вкладка [tab] из окна [paneId] — та, что сейчас перед глазами: окно с фокусом,
+  /// вкладка в нём открыта.
+  bool isFront(String paneId, WsTab tab) => workspace.focusedId == paneId && workspace.focusedPane.activeTab == tab;
+
   void update(void Function(Workspace workspace) change) {
     change(workspace);
     notifyListeners();
@@ -103,6 +111,28 @@ class WorkspaceController extends ChangeNotifier {
     _save?.cancel();
     super.dispose();
   }
+}
+
+/// Приём сохранённого общей строкой: [owner] — кто поставил (снимает только он),
+/// [onSaved] получает id новых заметок.
+class CaptureTarget {
+  const CaptureTarget({required this.owner, required this.onSaved});
+
+  final Object owner;
+  final void Function(List<String> ids) onSaved;
+}
+
+/// Вкладка и её окно — экрану внутри вкладки: на виду ли он сейчас.
+class WsTabScope extends InheritedWidget {
+  const WsTabScope({super.key, required this.paneId, required this.tab, required super.child});
+
+  final String paneId;
+  final WsTab tab;
+
+  static WsTabScope? maybeOf(BuildContext context) => context.dependOnInheritedWidgetOfExactType<WsTabScope>();
+
+  @override
+  bool updateShouldNotify(WsTabScope old) => old.paneId != paneId || old.tab != tab;
 }
 
 class WorkspaceScope extends InheritedNotifier<WorkspaceController> {
@@ -601,7 +631,7 @@ class _PaneView extends StatelessWidget {
                                 _TabLayer(
                                   key: ValueKey('tab-${tab.key}'),
                                   visible: tab == active,
-                                  child: _TabBody(tab: tab, navigatorKey: navigatorFor(tab)),
+                                  child: WsTabScope(paneId: paneId, tab: tab, child: _TabBody(tab: tab, navigatorKey: navigatorFor(tab))),
                                 ),
                             ],
                           ),
