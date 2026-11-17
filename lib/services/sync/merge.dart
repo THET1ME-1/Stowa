@@ -173,7 +173,10 @@ List<(int, int)> _anchors(Int32List a, Int32List b) {
       count[lines[i]] = (count[lines[i]] ?? 0) + 1;
       at[lines[i]] = i;
     }
-    return {for (final e in at.entries) if (count[e.key] == 1) e.key: e.value};
+    return {
+      for (final e in at.entries)
+        if (count[e.key] == 1) e.key: e.value,
+    };
   }
 
   final inB = unique(b);

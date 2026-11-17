@@ -9,6 +9,7 @@ environment:
 dependencies:
   archive: ^4.6.0
   connectivity_plus: ^7.3.2
+  crypto: ^3.0.8
   cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
   drift: ^2.35.3
@@ -51,6 +52,7 @@ dependencies:
   snowball_stemmer: ^0.1.0
   stack_trace: ^1.12.1
   timezone: ^0.11.2
+  unorm_dart: ^0.3.3
   url_launcher: ^6.3.3
   uuid: ^4.6.0
   workmanager: ^0.10.10
@@ -65,7 +67,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   # md5 в проверке безопасности хранилища (tool/vault_safety_check_test.dart)
-  crypto: ^3.0.0
   drift_dev: ^2.35.2
   build_runner: ^2.17.1
   material_symbols_icons: ^4.2960.0
