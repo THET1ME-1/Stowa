@@ -18,7 +18,7 @@ import '../../l10n/app_localizations.dart';
 import 'settings_blocks.dart';
 
 /// Почта поддержки: её показывает строка «Написать в поддержку».
-const supportEmail = 'stgroup.dev@gmail.com';
+const supportEmail = 'support@stowa.work';
 
 /// Приём обращений на сервере Togetherly (`pb_hooks/stowa_feedback.pb.js` в его репозитории):
 /// запись в базу и письмо в ящик поддержки, оттуда — в Gmail владельца.
