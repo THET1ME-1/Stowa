@@ -70,6 +70,23 @@ void main() {
     expect((await reader().reconcile()).changed + (await reader().reconcile()).added, 0);
   });
 
+  test('сверку оборвали посреди первого прохода — следующая не плодит копий', () async {
+    for (var index = 0; index < 250; index++) {
+      put('Конспекты/Лекция $index.md', 'Текст лекции $index');
+    }
+    // приложение закрыли, пока шла вторая сотня: часы бросают посреди её записи
+    var ticks = 0;
+    final broken = VaultReader(db, root: root, clock: () {
+      if (++ticks > 150) throw StateError('закрыли');
+      return now;
+    });
+    await expectLater(broken.reconcile(), throwsStateError);
+    await reader().reconcile();
+    final all = await (db.select(db.items)..where((t) => t.deletedAt.isNull())).get();
+    expect(all, hasLength(250));
+    expect(await db.select(db.vaultFiles).get(), hasLength(250));
+  });
+
   test('удалённый снаружи файл — вещь в корзине', () async {
     await note('a', 'Плитка');
     await writer().drain();

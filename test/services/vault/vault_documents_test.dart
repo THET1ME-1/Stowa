@@ -116,6 +116,29 @@ void main() {
     expect(CanvasDoc.parse(file('Доска.canvas').readAsStringSync()).nodes.single.file, 'Физика/Закон Ома.md');
   });
 
+  test('холст из Obsidian после нескольких сверок и записей — одна заметка', () async {
+    put('Курсовая/Схема.canvas', _canvas);
+    for (var pass = 0; pass < 3; pass++) {
+      await reader().reconcile();
+      await writer().drain();
+    }
+    expect(await items(), hasLength(1));
+    expect(file('Курсовая/Схема.canvas').readAsStringSync(), _canvas);
+  });
+
+  test('холст из Obsidian правят в Stowa — пишется в тот же файл, копии «2» нет', () async {
+    put('Курсовая/Схема курсовой работы.canvas', _canvas);
+    await reader().reconcile();
+    final one = (await items()).single;
+    final next = CanvasDoc.parse(one.document!).addText('Новая', x: 300, y: 0);
+    await (db.update(db.items)..where((t) => t.id.equals(one.id))).write(ItemsCompanion(document: Value(next.encode()), body: Value(next.plainText()), updatedAt: Value(now.add(const Duration(minutes: 1)))));
+    await writer().drain();
+    expect(Directory(p.join(root.path, 'Курсовая')).listSync().map((entry) => p.basename(entry.path)), ['Схема курсовой работы.canvas']);
+    expect(CanvasDoc.parse(file('Курсовая/Схема курсовой работы.canvas').readAsStringSync()).nodes, hasLength(2));
+    await reader().reconcile();
+    expect(await items(), hasLength(1));
+  });
+
   test('удалили файл холста снаружи — заметка уходит в корзину', () async {
     put('План.canvas', _canvas);
     await reader().reconcile();

@@ -193,18 +193,11 @@ class VaultReader {
       scan.conflicts++;
     }
     // в базу идут только изменённые: вторая половина хода — их доля
-    await _store(incoming, progress: (done) => progress?.call((total + total * done ~/ incoming.length) ~/ 2, total));
-
-    // id в чужие заметки, карта файлов — одной пачкой
-    final mapped = <VaultFilesCompanion>[];
+    // id в чужие заметки и карта файлов — вместе с каждой пачкой
+    await _store(incoming, mapFiles: true, progress: (done) => progress?.call((total + total * done ~/ incoming.length) ~/ 2, total));
     for (final one in incoming) {
-      final file = File(_absolute(one.relative));
-      if (one.newId && !isDocumentKind(one.note.kind)) await _writeId(file, one.text, one.id);
-      final after = await file.stat();
-      mapped.add(VaultFilesCompanion.insert(itemId: one.id, path: one.relative, modified: after.modified.millisecondsSinceEpoch, size: after.size));
       one.exists ? scan.changed++ : scan.added++;
     }
-    await _db.batch((batch) => batch.insertAllOnConflictUpdate(_db.vaultFiles, mapped));
     for (final one in incoming.where((one) => one.clash)) {
       await (_db.delete(_db.vaultQueue)..where((t) => t.target.equals('item:${one.id}'))).go();
     }
@@ -379,7 +372,10 @@ class VaultReader {
 
   /// Прочитанные заметки — в базу пачками, под флагом: вещь уже лежит в файле. Папки и
   /// теги берутся из памяти, новые заводятся по ходу, и их файлы просятся отдельно.
-  Future<void> _store(List<_Incoming> incoming, {void Function(int done)? progress}) async {
+  /// Пачками по [_batch] в транзакции. С [mapFiles] пачка сразу получает и карту файлов,
+  /// а новые заметки — id в файл: оборванный посреди проход (закрыли приложение, вкладку)
+  /// не оставляет заметок без файла, и следующая сверка не заводит их второй раз.
+  Future<void> _store(List<_Incoming> incoming, {void Function(int done)? progress, bool mapFiles = false}) async {
     if (incoming.isEmpty) return;
     final folders = await _folderKeys();
     final tags = {for (final tag in await _db.select(_db.tags).get()) tag.name: tag.id};
@@ -387,10 +383,21 @@ class VaultReader {
     for (var start = 0; start < incoming.length; start += _batch) {
       final chunk = incoming.sublist(start, min(start + _batch, incoming.length));
       await _keepLease();
+      // id в файл — до записи в базу: оборвалось между ними — следующий проход прочтёт id из файла
+      final mapped = <VaultFilesCompanion>[];
+      if (mapFiles) {
+        for (final one in chunk) {
+          final file = File(_absolute(one.relative));
+          if (one.newId && !isDocumentKind(one.note.kind)) await _writeId(file, one.text, one.id);
+          final after = await file.stat();
+          mapped.add(VaultFilesCompanion.insert(itemId: one.id, path: one.relative, modified: after.modified.millisecondsSinceEpoch, size: after.size));
+        }
+      }
       await _quietly(() async {
         for (final one in chunk) {
           await _storeOne(one, folders, tags, created);
         }
+        if (mapped.isNotEmpty) await _db.batch((batch) => batch.insertAllOnConflictUpdate(_db.vaultFiles, mapped));
       });
       progress?.call(start + chunk.length);
     }
