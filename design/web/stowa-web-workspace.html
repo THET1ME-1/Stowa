@@ -64,9 +64,14 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: color-mix(in oklab, var(--f) var(--ink), #000); flex: none; }
 
 /* ── каркас: левый док · центр · правый док ─────────── */
-:root { --hair: color-mix(in oklab, var(--line) 50%, transparent); }
-.ws { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
-.bar { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; border-bottom: 1px solid var(--hair); background: var(--c-lowest); flex: none; }
+/* Как в Obsidian хозяина: каждая часть — отдельный скруглённый блок на фоне окна, между
+   блоками зазор. Линий-разделителей нет (в Material 3 их заменяют тон и отступ).
+   Вкладки окна лежат на фоне над его блоком, открытая вкладка сливается с блоком. */
+:root { --gap: 8px; --r-block: 20px; --block: var(--c-low); }
+:root[data-theme="light"] { --block: var(--c-lowest); --page: #DEDEDA; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --block: var(--c-lowest); --page: #DEDEDA; } }
+.ws { height: 100%; display: flex; flex-direction: column; background: var(--page); }
+.bar { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 var(--gap); padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; background: var(--page); flex: none; }
 .bar .presets { display: flex; gap: 4px; padding: 3px; border-radius: 100px; background: var(--c); margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
 .bar .presets button { height: 30px; padding: 0 12px; border-radius: 100px; font-size: 13px; color: var(--on-var); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .bar .presets button .sym { font-size: 17px; }
@@ -75,14 +80,12 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .bar .icon-btn.on { background: var(--c-high); color: var(--on); }
 #tog-right { margin-left: auto; }
 .bar .presets + #tog-right { margin-left: 0; }
-.body { flex: 1; display: flex; min-height: 0; }
-.dockcol { flex: none; width: var(--w); display: flex; flex-direction: column; min-height: 0; background: var(--c-lowest); }
-.dockcol.left { border-right: 1px solid var(--hair); padding-left: env(safe-area-inset-left, 0px); }
-.dockcol.right { border-left: 1px solid var(--hair); padding-right: env(safe-area-inset-right, 0px); }
+.body { flex: 1; display: flex; min-height: 0; padding: 0 max(var(--gap), env(safe-area-inset-right, 0px)) calc(var(--gap) + env(safe-area-inset-bottom, 0px)) max(var(--gap), env(safe-area-inset-left, 0px)); }
+.dockcol { flex: none; width: var(--w); display: flex; flex-direction: column; min-height: 0; background: var(--block); border-radius: var(--r-block); overflow: hidden; }
 .dockcol[hidden] { display: none; }
 .dock-scroll { flex: 1; overflow: auto; min-height: 0; padding: 6px 8px 10px; }
-.dock-empty { margin: 8px; padding: 18px 14px; border: 1.5px dashed var(--line); border-radius: 18px; color: var(--muted); font-size: 13px; text-align: center; }
-.dock-foot { display: flex; align-items: center; gap: 4px; padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--hair); position: relative; }
+.dock-empty { margin: 8px; padding: 18px 14px; border-radius: 18px; background: var(--c-low); color: var(--muted); font-size: 13px; text-align: center; }
+.dock-foot { display: flex; align-items: center; gap: 4px; padding: 6px 10px 8px; position: relative; }
 .add-panel { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; color: var(--muted); }
 .add-panel:hover { background: var(--c); color: var(--on); }
 .add-menu { position: absolute; bottom: calc(100% + 6px); left: 8px; right: 8px; z-index: 20; padding: 6px; border-radius: 18px; background: var(--c-high); display: grid; gap: 2px; max-height: 50vh; overflow: auto; }
@@ -110,12 +113,13 @@ button { cursor: pointer; border: 0; background: none; padding: 0; }
 .drop-mark { height: 3px; border-radius: 2px; background: var(--accent); margin: 1px 8px; }
 .pnl-note { color: var(--muted); font-size: 13px; padding: 4px 8px 6px; }
 
-/* ручки: тянуть ширину дока и границу между окнами */
-.gutter { flex: none; width: 7px; margin: 0 -3px; cursor: col-resize; position: relative; z-index: 6; touch-action: none; }
-.gutter::after { content: ""; position: absolute; inset: 0 3px; border-radius: 2px; transition: background .12s; }
-.gutter:hover::after, .gutter.drag::after { background: color-mix(in oklab, var(--accent) 45%, transparent); }
-.gutter.row { width: auto; height: 7px; margin: -3px 0; cursor: row-resize; }
-.gutter.row::after { inset: 3px 0; }
+/* ручки — это сами зазоры между блоками; при наведении в середине проступает пилюля */
+.gutter { flex: none; width: var(--gap); cursor: col-resize; position: relative; z-index: 6; touch-action: none; display: grid; place-items: center; }
+.gutter::after { content: ""; width: 4px; height: 40px; border-radius: 4px; background: transparent; transition: background .12s, height .12s; }
+.gutter:hover::after, .gutter.drag::after { background: color-mix(in oklab, var(--on) 40%, transparent); height: 56px; }
+.gutter.row { width: auto; height: var(--gap); cursor: row-resize; }
+.gutter.row::after { width: 40px; height: 4px; }
+.gutter.row:hover::after, .gutter.row.drag::after { width: 56px; height: 4px; }
 body.resizing { user-select: none; cursor: col-resize; }
 body.resizing.rows { cursor: row-resize; }
 
@@ -125,14 +129,18 @@ body.resizing.rows { cursor: row-resize; }
 .split { display: flex; flex: 1; min-width: 0; min-height: 0; }
 .split.col { flex-direction: column; }
 .slot { display: flex; min-width: 0; min-height: 0; flex-basis: 0; }
-.pane { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); }
-.split.row > .slot + .gutter + .slot > .pane, .split.row > .slot + .gutter + .slot { border-left: 1px solid var(--hair); }
-.split.col > .slot + .gutter + .slot { border-top: 1px solid var(--hair); }
-.pane-top { display: flex; align-items: center; gap: 4px; height: 46px; padding: 0 6px 0 8px; border-bottom: 2px solid transparent; flex: none; }
-.pane.active .pane-top { border-bottom-color: color-mix(in oklab, var(--accent) 40%, transparent); }
-.pane-acts { display: flex; gap: 1px; margin-left: auto; flex: none; }
-.pane-scroll { flex: 1; overflow: auto; min-height: 0; scroll-behavior: smooth; }
-.pane:not(.active) .pane-scroll { opacity: .96; }
+.pane { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+/* вкладки на фоне окна; открытая — того же тона, что блок под ней, и прирастает к нему */
+.pane-top { display: flex; align-items: flex-end; gap: 4px; height: 42px; padding: 0 2px 0 0; flex: none; }
+.pane-top .tabs { align-self: stretch; align-items: flex-end; }
+.pane-top .tab { height: 36px; border-radius: 14px 14px 0 0; padding: 0 8px 2px 14px; }
+.pane-top .tab.on { background: var(--block); font-weight: 600; }
+.pane:not(.active) .pane-top .tab.on { color: var(--on-var); font-weight: 500; background: color-mix(in oklab, var(--block) 55%, var(--page)); }
+.pane-acts { display: flex; gap: 1px; margin-left: auto; flex: none; align-self: center; }
+.pane-scroll { flex: 1; overflow: auto; min-height: 0; scroll-behavior: smooth; background: var(--block); border-radius: var(--r-block); }
+/* у первой вкладки блок не скруглён сверху слева: вкладка и блок — одно целое */
+.pane-top:has(.tab.on:first-child) + .pane-scroll { border-top-left-radius: 0; }
+.pane:not(.active) .pane-scroll { background: color-mix(in oklab, var(--block) 55%, var(--page)); }
 
 /* ── боковая панель ── */
 .vault { display: flex; align-items: center; gap: 10px; padding: 14px 14px 10px 16px; }
@@ -377,9 +385,9 @@ body.resizing.rows { cursor: row-resize; }
 
 /* ── узкий экран: доки выезжают поверх, окна встают друг под другом ── */
 @media (max-width: 959px) {
-  .dockcol { position: fixed; top: 0; bottom: 0; z-index: 40; width: min(320px, 86vw); transition: transform .25s cubic-bezier(.2, 0, 0, 1); }
-  .dockcol.left { left: 0; transform: translateX(-100%); }
-  .dockcol.right { right: 0; transform: translateX(100%); }
+  .dockcol { position: fixed; top: var(--gap); bottom: var(--gap); z-index: 40; width: min(320px, 86vw); transition: transform .25s cubic-bezier(.2, 0, 0, 1); }
+  .dockcol.left { left: var(--gap); transform: translateX(calc(-100% - 2 * var(--gap))); }
+  .dockcol.right { right: var(--gap); transform: translateX(calc(100% + 2 * var(--gap))); }
   .dockcol[hidden] { display: flex; }
   .dockcol.open { transform: none; }
   .body > .gutter { display: none; }
