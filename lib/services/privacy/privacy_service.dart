@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/platform.dart' show currentProcessId;
 import '../../data/db/database.dart';
 import '../../data/settings_repository.dart' show KeyStore;
 import '../../domain/folder_tree.dart';
@@ -64,7 +65,7 @@ class PrivacyService {
        _vault = vault, // ignore: prefer_initializing_formals
        _flush = flush, // ignore: prefer_initializing_formals
        _fingerprintKey = fingerprintKey, // ignore: prefer_initializing_formals
-       _pid = processId ?? pid,
+       _pid = processId ?? currentProcessId,
        openDir = Directory(p.join(appData.path, 'sealed-open')),
        _stateFile = File(p.join(appData.path, 'sealed-open.state')),
        _remindersFile = File(p.join(appData.path, 'sealed-reminders.json')),

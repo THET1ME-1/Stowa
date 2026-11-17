@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/hint_banner.dart';
@@ -67,7 +67,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // возврате: HyperOS убивает их вместе с процессом, и открывать Stowa приходилось дважды
     ref.read(edgeControlProvider).resumed().ignore();
     // виджеты iPhone читают заметки из файла в папке группы: держать его свежим, замок — сразу
-    if (Platform.isIOS) {
+    if (isIOS) {
       ref.read(widgetSyncProvider).start();
       ref.listenManual(privacyLockProvider, (previous, next) => ref.read(widgetSyncProvider).refresh());
     }

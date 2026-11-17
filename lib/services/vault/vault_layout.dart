@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import '../../core/platform.dart';
 import '../../domain/vault_note.dart' show vaultFileName;
 import '../privacy/sealed_space.dart';
 
@@ -94,7 +95,7 @@ String? attachmentFolderNameError(String name) {
 }
 
 /// Умолчание для записи хранилища: язык приложения, если выбран, иначе телефона.
-String Function() attachmentsDefaultFor(String? appLanguage) => () => defaultAttachmentFolder(appLanguage ?? Platform.localeName);
+String Function() attachmentsDefaultFor(String? appLanguage) => () => defaultAttachmentFolder(appLanguage ?? systemLocaleName);
 
 /// Имя общей папки вложений по умолчанию — на языке телефона.
 String defaultAttachmentFolder(String locale) => switch (locale.split(RegExp('[_-]')).first.toLowerCase()) {

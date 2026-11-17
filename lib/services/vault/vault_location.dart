@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../core/platform.dart';
 import '../../data/db/database.dart';
 import '../../data/settings_repository.dart';
 
@@ -48,7 +49,12 @@ class VaultPlace {
 
 /// Единственное место хранилища на iPhone: папка «Документы» приложения, в «Файлах» она
 /// видна как «На iPhone → Stowa». На Android место выбирает человек — null.
-Future<Directory?> vaultHome() async => Platform.isIOS ? getApplicationDocumentsDirectory() : null;
+// в браузере место тоже одно: личная папка сайта, в ней `/vault`
+Future<Directory?> vaultHome() async => isWeb
+    ? Directory('/vault')
+    : isIOS
+    ? getApplicationDocumentsDirectory()
+    : null;
 
 class VaultLocation {
   VaultLocation({required this.settings, required this.appSupport, this.home, this.channel = const VaultChannel()});

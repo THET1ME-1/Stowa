@@ -9,7 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'app_session.dart';
+import 'core/fs/web_files.dart';
 import 'core/motion/unfold/unfold_touch.dart';
+import 'core/platform.dart';
 import 'core/theme/tokens.dart';
 import 'data/db/database.dart';
 import 'data/hints_repository.dart';
@@ -33,6 +35,12 @@ import 'services/vault/vault_writer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (isWeb) {
+    // в браузере файлы — свои, поверх личной папки сайта: ставятся до первого File(...)
+    await startWebFiles();
+    await _run(const StowaApp(), null, 'web');
+    return;
+  }
   final notifications = reminderPort(
     // тап по уведомлению: открыть заметку или экран возврата, как только навигатор готов
     onOpen: (payload) => WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -72,21 +80,22 @@ Future<void> stickerMain(List<String> args) async {
   await _run(StowaApp(home: StickerHost(noteId: args.first), lockable: false), reminderPort(), 'sticker');
 }
 
-/// [window] — какое окно запущено: с ним ошибка уходит в отчёт.
-Future<void> _run(StowaApp app, LocalNotificationPort notifications, String window) async {
+/// [window] — какое окно запущено: с ним ошибка уходит в отчёт. [notifications] нет
+/// в браузере: там напоминания молчат.
+Future<void> _run(StowaApp app, LocalNotificationPort? notifications, String window) async {
   // запоминает, по чему нажали: из этого места вырастет следующий экран
   UnfoldTouch.install();
   // сюда выбор файлов, камера и «Поделиться» кладут свои копии: их можно переносить, а не копировать
-  final cache = await getTemporaryDirectory();
+  final cache = isWeb ? webCacheDirectory : await getTemporaryDirectory();
   final prefs = await SharedPreferences.getInstance();
   final settings = SettingsRepository(prefs, const SecureKeyStore());
   // знакомство: кто выбрал место хранилища до этой версии, шагов и подсказок не увидит
   final hints = HintsRepository(prefs);
   await hints.settleOldInstall(vaultAskedBefore: settings.vaultAsked);
-  final appSupport = await getApplicationSupportDirectory();
+  final appSupport = isWeb ? webAppDirectory : await getApplicationSupportDirectory();
   // ошибки ловятся как можно раньше: база и хранилище ниже тоже могут упасть
   final crashes = crashReporterFor(appSupport, settings, window);
-  if (!kDebugMode) {
+  if (!kDebugMode && !isWeb) {
     crashes.attach();
     AppLifecycleListener(onResume: crashes.send);
     // выключили отчёты — накопленное стирается сразу
@@ -132,7 +141,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
           vaultHomeProvider.overrideWithValue(home),
           startLockProvider.overrideWithValue(session.lock),
           cacheRootProvider.overrideWithValue(cache),
-          notificationPortProvider.overrideWithValue(notifications),
+          notificationPortProvider.overrideWithValue(notifications ?? const SilentNotificationPort()),
           settingsRepositoryProvider.overrideWithValue(settings),
           hintsRepositoryProvider.overrideWithValue(hints),
           preferencesProvider.overrideWithValue(prefs),
@@ -142,10 +151,12 @@ Future<void> _run(StowaApp app, LocalNotificationPort notifications, String wind
       ),
     ),
   );
-  unawaited(notifications.start());
-  unawaited(scheduleBackgroundWork().catchError((_) {}));
-  // накопленное с прошлого раза, в том числе падение, после которого приложение открыли заново
-  unawaited(crashes.send());
+  if (notifications != null) unawaited(notifications.start());
+  if (!isWeb) {
+    unawaited(scheduleBackgroundWork().catchError((_) {}));
+    // накопленное с прошлого раза, в том числе падение, после которого приложение открыли заново
+    unawaited(crashes.send());
+  }
   // таблицы времени ~100 языков собираются при первом разборе: пусть не на первой набранной букве
   WidgetsBinding.instance.addPostFrameCallback((_) => Timer(const Duration(milliseconds: 300), warmUpReminders));
   // проверка сбора на эмуляторе: сборка с --dart-define=CRASH_PROBE=true роняет ошибку сама

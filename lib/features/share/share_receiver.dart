@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import '../../core/platform.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
@@ -117,7 +117,7 @@ Stream<List<SharedPiece>> incomingShared() async* {
 
 /// Присланное главному окну. Только iPhone: на Android его принимает [ShareHost].
 final sharedInboxProvider = Provider<Stream<List<SharedPiece>>>(
-  (ref) => Platform.isIOS ? incomingShared().asBroadcastStream() : const Stream.empty(),
+  (ref) => isIOS ? incomingShared().asBroadcastStream() : const Stream.empty(),
 );
 
 /// Сохранить присланное одной вещью. Вернёт её id или null, если сохранять нечего.

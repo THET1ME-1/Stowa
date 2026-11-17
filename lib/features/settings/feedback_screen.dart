@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
@@ -83,7 +84,7 @@ Map<String, Object?> _readAbout(Directory appSupport) {
     return jsonDecode(File(p.join(appSupport.path, 'crashes', 'about.json')).readAsStringSync()) as Map<String, Object?>;
   } catch (_) {
     // на iPhone и до первого запуска Android файла нет: тогда только версия и система
-    return {'os': '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'.trim()};
+    return {'os': '$operatingSystemName $operatingSystemVersion'.trim()};
   }
 }
 
@@ -152,7 +153,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       email: email,
       device: _attach ? _device : null,
       app: _version,
-      platform: Platform.operatingSystem,
+      platform: operatingSystemName,
       lang: Localizations.localeOf(context).languageCode,
     );
     final result = await (widget.send ?? (draft) => sendFeedback(http.Client(), draft))(draft);
