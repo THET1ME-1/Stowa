@@ -7,10 +7,13 @@ import 'vault_writer.dart';
 /// В таком порядке правка с компьютера не затирается незаписанной правкой из приложения,
 /// а при правке с двух сторон обе версии остаются.
 class VaultSync {
-  VaultSync({required this.reader, required this.writer});
+  VaultSync({required this.reader, required this.writer, this.remote});
 
   final VaultReader reader;
   final VaultWriter writer;
+
+  /// Проход синхронизации через сервер; true — пришли файлы, их надо забрать сверкой.
+  final Future<bool> Function()? remote;
 
   /// С какого числа пришедших заметок главная показывает полоску: пара правок появится и так.
   static const showFrom = 50;
@@ -38,6 +41,12 @@ class VaultSync {
         await writer.drain();
         // файл поправили, пока писатель писал соседние: забрать и дописать
         if (writer.sawExternalEdit) {
+          await reader.reconcile(progress: _report);
+          await writer.drain();
+        }
+        // свои правки уже в файлах: синхронизация отправляет их и кладёт чужие
+        final sync = remote;
+        if (sync != null && await sync().catchError((_) => false)) {
           await reader.reconcile(progress: _report);
           await writer.drain();
         }

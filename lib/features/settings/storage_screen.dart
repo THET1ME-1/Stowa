@@ -22,6 +22,7 @@ import '../folder/folder_sheets.dart' show showRenameSheet;
 import '../privacy/markdown_export_action.dart';
 import '../vault/vault_actions.dart';
 import 'settings_blocks.dart';
+import 'sync_screen.dart';
 
 Route<void> storageRoute() => settingsPageRoute(const StorageScreen());
 
@@ -327,18 +328,22 @@ class _VaultRow extends StatelessWidget {
   }
 }
 
-/// Stowa Sync: платная синхронизация, пока «скоро». Касание — лист из двух предложений.
-class _SyncRow extends StatelessWidget {
+/// Stowa Sync: платная синхронизация. Под названием — почта аккаунта или «Выключена».
+class _SyncRow extends ConsumerWidget {
   const _SyncRow();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
+    final sync = ref.watch(syncServiceProvider);
+    // аккаунт читается из защищённого хранилища: почта появится в строке, как прочтётся
+    sync.account().ignore();
     return Material(
       color: Tokens.containerHigh,
       child: InkWell(
-        onTap: () => showSettingsSheet<void>(context, const _SyncSheet()),
+        key: const ValueKey('storage-sync'),
+        onTap: () => Navigator.of(context).push(syncRoute()),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
           child: Row(
@@ -359,7 +364,10 @@ class _SyncRow extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(l.syncSoon, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+                    ValueListenableBuilder(
+                      valueListenable: sync.status,
+                      builder: (context, status, _) => Text(status.email ?? l.syncOff, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+                    ),
                   ],
                 ),
               ),
@@ -386,40 +394,6 @@ class _PaidPill extends StatelessWidget {
       child: Text(
         L.of(context).syncPaid,
         style: Theme.of(context).textTheme.labelSmall!.copyWith(color: FolderPalette.ink(tint), fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-}
-
-class _SyncSheet extends StatelessWidget {
-  const _SyncSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, Space.screen),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              SettingsIconChip('cloud_sync', color: settingsTint('sky')),
-              const SizedBox(width: 14),
-              Text(l.syncTitle, style: text.titleLarge),
-              const SizedBox(width: 10),
-              const _PaidPill(),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(l.syncAbout, style: text.bodyLarge!.copyWith(height: 1.4)),
-          const SizedBox(height: 8),
-          Text(l.syncLater, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
-          const SizedBox(height: 20),
-          FilledButton(onPressed: () => Navigator.pop(context), child: Text(l.syncOk)),
-        ],
       ),
     );
   }

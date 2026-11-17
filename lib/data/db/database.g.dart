@@ -11298,6 +11298,614 @@ class RuleHitsCompanion extends UpdateCompanion<RuleHit> {
   }
 }
 
+class $SyncEntriesTable extends SyncEntries
+    with TableInfo<$SyncEntriesTable, SyncEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _fileMeta = const VerificationMeta('file');
+  @override
+  late final GeneratedColumn<String> file = GeneratedColumn<String>(
+    'file',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  @override
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _revMeta = const VerificationMeta('rev');
+  @override
+  late final GeneratedColumn<int> rev = GeneratedColumn<int>(
+    'rev',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hashMeta = const VerificationMeta('hash');
+  @override
+  late final GeneratedColumn<String> hash = GeneratedColumn<String>(
+    'hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  @override
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mtimeMeta = const VerificationMeta('mtime');
+  @override
+  late final GeneratedColumn<int> mtime = GeneratedColumn<int>(
+    'mtime',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [file, path, rev, hash, size, mtime];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SyncEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('file')) {
+      context.handle(
+        _fileMeta,
+        file.isAcceptableOrUnknown(data['file']!, _fileMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileMeta);
+    }
+    if (data.containsKey('path')) {
+      context.handle(
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pathMeta);
+    }
+    if (data.containsKey('rev')) {
+      context.handle(
+        _revMeta,
+        rev.isAcceptableOrUnknown(data['rev']!, _revMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revMeta);
+    }
+    if (data.containsKey('hash')) {
+      context.handle(
+        _hashMeta,
+        hash.isAcceptableOrUnknown(data['hash']!, _hashMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hashMeta);
+    }
+    if (data.containsKey('size')) {
+      context.handle(
+        _sizeMeta,
+        size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sizeMeta);
+    }
+    if (data.containsKey('mtime')) {
+      context.handle(
+        _mtimeMeta,
+        mtime.isAcceptableOrUnknown(data['mtime']!, _mtimeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mtimeMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {file};
+  @override
+  SyncEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncEntry(
+      file: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file'],
+      )!,
+      path: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}path'],
+      )!,
+      rev: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rev'],
+      )!,
+      hash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hash'],
+      )!,
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size'],
+      )!,
+      mtime: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mtime'],
+      )!,
+    );
+  }
+
+  @override
+  $SyncEntriesTable createAlias(String alias) {
+    return $SyncEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class SyncEntry extends DataClass implements Insertable<SyncEntry> {
+  /// Номер файла на сервере: от ключа хранилища и пути.
+  final String file;
+  final String path;
+  final int rev;
+
+  /// Отпечаток содержимого ревизии; пустой — на сервере удалён.
+  final String hash;
+
+  /// Размер и время файла на диске, когда он совпадал с ревизией; -1 — не совпадал.
+  final int size;
+  final int mtime;
+  const SyncEntry({
+    required this.file,
+    required this.path,
+    required this.rev,
+    required this.hash,
+    required this.size,
+    required this.mtime,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['file'] = Variable<String>(file);
+    map['path'] = Variable<String>(path);
+    map['rev'] = Variable<int>(rev);
+    map['hash'] = Variable<String>(hash);
+    map['size'] = Variable<int>(size);
+    map['mtime'] = Variable<int>(mtime);
+    return map;
+  }
+
+  SyncEntriesCompanion toCompanion(bool nullToAbsent) {
+    return SyncEntriesCompanion(
+      file: Value(file),
+      path: Value(path),
+      rev: Value(rev),
+      hash: Value(hash),
+      size: Value(size),
+      mtime: Value(mtime),
+    );
+  }
+
+  factory SyncEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncEntry(
+      file: serializer.fromJson<String>(json['file']),
+      path: serializer.fromJson<String>(json['path']),
+      rev: serializer.fromJson<int>(json['rev']),
+      hash: serializer.fromJson<String>(json['hash']),
+      size: serializer.fromJson<int>(json['size']),
+      mtime: serializer.fromJson<int>(json['mtime']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'file': serializer.toJson<String>(file),
+      'path': serializer.toJson<String>(path),
+      'rev': serializer.toJson<int>(rev),
+      'hash': serializer.toJson<String>(hash),
+      'size': serializer.toJson<int>(size),
+      'mtime': serializer.toJson<int>(mtime),
+    };
+  }
+
+  SyncEntry copyWith({
+    String? file,
+    String? path,
+    int? rev,
+    String? hash,
+    int? size,
+    int? mtime,
+  }) => SyncEntry(
+    file: file ?? this.file,
+    path: path ?? this.path,
+    rev: rev ?? this.rev,
+    hash: hash ?? this.hash,
+    size: size ?? this.size,
+    mtime: mtime ?? this.mtime,
+  );
+  SyncEntry copyWithCompanion(SyncEntriesCompanion data) {
+    return SyncEntry(
+      file: data.file.present ? data.file.value : this.file,
+      path: data.path.present ? data.path.value : this.path,
+      rev: data.rev.present ? data.rev.value : this.rev,
+      hash: data.hash.present ? data.hash.value : this.hash,
+      size: data.size.present ? data.size.value : this.size,
+      mtime: data.mtime.present ? data.mtime.value : this.mtime,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncEntry(')
+          ..write('file: $file, ')
+          ..write('path: $path, ')
+          ..write('rev: $rev, ')
+          ..write('hash: $hash, ')
+          ..write('size: $size, ')
+          ..write('mtime: $mtime')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(file, path, rev, hash, size, mtime);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncEntry &&
+          other.file == this.file &&
+          other.path == this.path &&
+          other.rev == this.rev &&
+          other.hash == this.hash &&
+          other.size == this.size &&
+          other.mtime == this.mtime);
+}
+
+class SyncEntriesCompanion extends UpdateCompanion<SyncEntry> {
+  final Value<String> file;
+  final Value<String> path;
+  final Value<int> rev;
+  final Value<String> hash;
+  final Value<int> size;
+  final Value<int> mtime;
+  final Value<int> rowid;
+  const SyncEntriesCompanion({
+    this.file = const Value.absent(),
+    this.path = const Value.absent(),
+    this.rev = const Value.absent(),
+    this.hash = const Value.absent(),
+    this.size = const Value.absent(),
+    this.mtime = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SyncEntriesCompanion.insert({
+    required String file,
+    required String path,
+    required int rev,
+    required String hash,
+    required int size,
+    required int mtime,
+    this.rowid = const Value.absent(),
+  }) : file = Value(file),
+       path = Value(path),
+       rev = Value(rev),
+       hash = Value(hash),
+       size = Value(size),
+       mtime = Value(mtime);
+  static Insertable<SyncEntry> custom({
+    Expression<String>? file,
+    Expression<String>? path,
+    Expression<int>? rev,
+    Expression<String>? hash,
+    Expression<int>? size,
+    Expression<int>? mtime,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (file != null) 'file': file,
+      if (path != null) 'path': path,
+      if (rev != null) 'rev': rev,
+      if (hash != null) 'hash': hash,
+      if (size != null) 'size': size,
+      if (mtime != null) 'mtime': mtime,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SyncEntriesCompanion copyWith({
+    Value<String>? file,
+    Value<String>? path,
+    Value<int>? rev,
+    Value<String>? hash,
+    Value<int>? size,
+    Value<int>? mtime,
+    Value<int>? rowid,
+  }) {
+    return SyncEntriesCompanion(
+      file: file ?? this.file,
+      path: path ?? this.path,
+      rev: rev ?? this.rev,
+      hash: hash ?? this.hash,
+      size: size ?? this.size,
+      mtime: mtime ?? this.mtime,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (file.present) {
+      map['file'] = Variable<String>(file.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (rev.present) {
+      map['rev'] = Variable<int>(rev.value);
+    }
+    if (hash.present) {
+      map['hash'] = Variable<String>(hash.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (mtime.present) {
+      map['mtime'] = Variable<int>(mtime.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncEntriesCompanion(')
+          ..write('file: $file, ')
+          ..write('path: $path, ')
+          ..write('rev: $rev, ')
+          ..write('hash: $hash, ')
+          ..write('size: $size, ')
+          ..write('mtime: $mtime, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SyncShadowsTable extends SyncShadows
+    with TableInfo<$SyncShadowsTable, SyncShadow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncShadowsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _fileMeta = const VerificationMeta('file');
+  @override
+  late final GeneratedColumn<String> file = GeneratedColumn<String>(
+    'file',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [file, body];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_shadows';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SyncShadow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('file')) {
+      context.handle(
+        _fileMeta,
+        file.isAcceptableOrUnknown(data['file']!, _fileMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {file};
+  @override
+  SyncShadow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncShadow(
+      file: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+    );
+  }
+
+  @override
+  $SyncShadowsTable createAlias(String alias) {
+    return $SyncShadowsTable(attachedDatabase, alias);
+  }
+}
+
+class SyncShadow extends DataClass implements Insertable<SyncShadow> {
+  final String file;
+  final String body;
+  const SyncShadow({required this.file, required this.body});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['file'] = Variable<String>(file);
+    map['body'] = Variable<String>(body);
+    return map;
+  }
+
+  SyncShadowsCompanion toCompanion(bool nullToAbsent) {
+    return SyncShadowsCompanion(file: Value(file), body: Value(body));
+  }
+
+  factory SyncShadow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncShadow(
+      file: serializer.fromJson<String>(json['file']),
+      body: serializer.fromJson<String>(json['body']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'file': serializer.toJson<String>(file),
+      'body': serializer.toJson<String>(body),
+    };
+  }
+
+  SyncShadow copyWith({String? file, String? body}) =>
+      SyncShadow(file: file ?? this.file, body: body ?? this.body);
+  SyncShadow copyWithCompanion(SyncShadowsCompanion data) {
+    return SyncShadow(
+      file: data.file.present ? data.file.value : this.file,
+      body: data.body.present ? data.body.value : this.body,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncShadow(')
+          ..write('file: $file, ')
+          ..write('body: $body')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(file, body);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncShadow &&
+          other.file == this.file &&
+          other.body == this.body);
+}
+
+class SyncShadowsCompanion extends UpdateCompanion<SyncShadow> {
+  final Value<String> file;
+  final Value<String> body;
+  final Value<int> rowid;
+  const SyncShadowsCompanion({
+    this.file = const Value.absent(),
+    this.body = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SyncShadowsCompanion.insert({
+    required String file,
+    required String body,
+    this.rowid = const Value.absent(),
+  }) : file = Value(file),
+       body = Value(body);
+  static Insertable<SyncShadow> custom({
+    Expression<String>? file,
+    Expression<String>? body,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (file != null) 'file': file,
+      if (body != null) 'body': body,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SyncShadowsCompanion copyWith({
+    Value<String>? file,
+    Value<String>? body,
+    Value<int>? rowid,
+  }) {
+    return SyncShadowsCompanion(
+      file: file ?? this.file,
+      body: body ?? this.body,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (file.present) {
+      map['file'] = Variable<String>(file.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncShadowsCompanion(')
+          ..write('file: $file, ')
+          ..write('body: $body, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -11326,6 +11934,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NoteVersionsTable noteVersions = $NoteVersionsTable(this);
   late final $SmartFoldersTable smartFolders = $SmartFoldersTable(this);
   late final $RuleHitsTable ruleHits = $RuleHitsTable(this);
+  late final $SyncEntriesTable syncEntries = $SyncEntriesTable(this);
+  late final $SyncShadowsTable syncShadows = $SyncShadowsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -11354,6 +11964,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     noteVersions,
     smartFolders,
     ruleHits,
+    syncEntries,
+    syncShadows,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -17194,6 +17806,378 @@ typedef $$RuleHitsTableProcessedTableManager =
       RuleHit,
       PrefetchHooks Function()
     >;
+typedef $$SyncEntriesTableCreateCompanionBuilder =
+    SyncEntriesCompanion Function({
+      required String file,
+      required String path,
+      required int rev,
+      required String hash,
+      required int size,
+      required int mtime,
+      Value<int> rowid,
+    });
+typedef $$SyncEntriesTableUpdateCompanionBuilder =
+    SyncEntriesCompanion Function({
+      Value<String> file,
+      Value<String> path,
+      Value<int> rev,
+      Value<String> hash,
+      Value<int> size,
+      Value<int> mtime,
+      Value<int> rowid,
+    });
+
+class $$SyncEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncEntriesTable> {
+  $$SyncEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get file => $composableBuilder(
+    column: $table.file,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rev => $composableBuilder(
+    column: $table.rev,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get mtime => $composableBuilder(
+    column: $table.mtime,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SyncEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncEntriesTable> {
+  $$SyncEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get file => $composableBuilder(
+    column: $table.file,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rev => $composableBuilder(
+    column: $table.rev,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get mtime => $composableBuilder(
+    column: $table.mtime,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SyncEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncEntriesTable> {
+  $$SyncEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get file =>
+      $composableBuilder(column: $table.file, builder: (column) => column);
+
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<int> get rev =>
+      $composableBuilder(column: $table.rev, builder: (column) => column);
+
+  GeneratedColumn<String> get hash =>
+      $composableBuilder(column: $table.hash, builder: (column) => column);
+
+  GeneratedColumn<int> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => column);
+
+  GeneratedColumn<int> get mtime =>
+      $composableBuilder(column: $table.mtime, builder: (column) => column);
+}
+
+class $$SyncEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SyncEntriesTable,
+          SyncEntry,
+          $$SyncEntriesTableFilterComposer,
+          $$SyncEntriesTableOrderingComposer,
+          $$SyncEntriesTableAnnotationComposer,
+          $$SyncEntriesTableCreateCompanionBuilder,
+          $$SyncEntriesTableUpdateCompanionBuilder,
+          (
+            SyncEntry,
+            BaseReferences<_$AppDatabase, $SyncEntriesTable, SyncEntry>,
+          ),
+          SyncEntry,
+          PrefetchHooks Function()
+        > {
+  $$SyncEntriesTableTableManager(_$AppDatabase db, $SyncEntriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> file = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<int> rev = const Value.absent(),
+                Value<String> hash = const Value.absent(),
+                Value<int> size = const Value.absent(),
+                Value<int> mtime = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncEntriesCompanion(
+                file: file,
+                path: path,
+                rev: rev,
+                hash: hash,
+                size: size,
+                mtime: mtime,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String file,
+                required String path,
+                required int rev,
+                required String hash,
+                required int size,
+                required int mtime,
+                Value<int> rowid = const Value.absent(),
+              }) => SyncEntriesCompanion.insert(
+                file: file,
+                path: path,
+                rev: rev,
+                hash: hash,
+                size: size,
+                mtime: mtime,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SyncEntriesTable, SyncEntry>(table),
+                  BaseReferences<_$AppDatabase, $SyncEntriesTable, SyncEntry>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SyncEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SyncEntriesTable,
+      SyncEntry,
+      $$SyncEntriesTableFilterComposer,
+      $$SyncEntriesTableOrderingComposer,
+      $$SyncEntriesTableAnnotationComposer,
+      $$SyncEntriesTableCreateCompanionBuilder,
+      $$SyncEntriesTableUpdateCompanionBuilder,
+      (SyncEntry, BaseReferences<_$AppDatabase, $SyncEntriesTable, SyncEntry>),
+      SyncEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$SyncShadowsTableCreateCompanionBuilder =
+    SyncShadowsCompanion Function({
+      required String file,
+      required String body,
+      Value<int> rowid,
+    });
+typedef $$SyncShadowsTableUpdateCompanionBuilder =
+    SyncShadowsCompanion Function({
+      Value<String> file,
+      Value<String> body,
+      Value<int> rowid,
+    });
+
+class $$SyncShadowsTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncShadowsTable> {
+  $$SyncShadowsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get file => $composableBuilder(
+    column: $table.file,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SyncShadowsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncShadowsTable> {
+  $$SyncShadowsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get file => $composableBuilder(
+    column: $table.file,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SyncShadowsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncShadowsTable> {
+  $$SyncShadowsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get file =>
+      $composableBuilder(column: $table.file, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+}
+
+class $$SyncShadowsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SyncShadowsTable,
+          SyncShadow,
+          $$SyncShadowsTableFilterComposer,
+          $$SyncShadowsTableOrderingComposer,
+          $$SyncShadowsTableAnnotationComposer,
+          $$SyncShadowsTableCreateCompanionBuilder,
+          $$SyncShadowsTableUpdateCompanionBuilder,
+          (
+            SyncShadow,
+            BaseReferences<_$AppDatabase, $SyncShadowsTable, SyncShadow>,
+          ),
+          SyncShadow,
+          PrefetchHooks Function()
+        > {
+  $$SyncShadowsTableTableManager(_$AppDatabase db, $SyncShadowsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncShadowsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncShadowsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncShadowsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> file = const Value.absent(),
+            Value<String> body = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => SyncShadowsCompanion(file: file, body: body, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required String file,
+                required String body,
+                Value<int> rowid = const Value.absent(),
+              }) => SyncShadowsCompanion.insert(
+                file: file,
+                body: body,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SyncShadowsTable, SyncShadow>(table),
+                  BaseReferences<_$AppDatabase, $SyncShadowsTable, SyncShadow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SyncShadowsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SyncShadowsTable,
+      SyncShadow,
+      $$SyncShadowsTableFilterComposer,
+      $$SyncShadowsTableOrderingComposer,
+      $$SyncShadowsTableAnnotationComposer,
+      $$SyncShadowsTableCreateCompanionBuilder,
+      $$SyncShadowsTableUpdateCompanionBuilder,
+      (
+        SyncShadow,
+        BaseReferences<_$AppDatabase, $SyncShadowsTable, SyncShadow>,
+      ),
+      SyncShadow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -17243,4 +18227,8 @@ class $AppDatabaseManager {
       $$SmartFoldersTableTableManager(_db, _db.smartFolders);
   $$RuleHitsTableTableManager get ruleHits =>
       $$RuleHitsTableTableManager(_db, _db.ruleHits);
+  $$SyncEntriesTableTableManager get syncEntries =>
+      $$SyncEntriesTableTableManager(_db, _db.syncEntries);
+  $$SyncShadowsTableTableManager get syncShadows =>
+      $$SyncShadowsTableTableManager(_db, _db.syncShadows);
 }

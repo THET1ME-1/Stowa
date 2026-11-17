@@ -4118,4 +4118,86 @@ class LRo extends L {
 
   @override
   String get noticeHiddenTitle => 'Notiță fixată';
+
+  @override
+  String get syncOff => 'Oprită';
+
+  @override
+  String get syncIntro =>
+      'Seiful rămâne la fel pe toate telefoanele tale și e criptat înainte să plece de pe telefon.';
+
+  @override
+  String get syncEmail => 'E-mail';
+
+  @override
+  String get syncGetCode => 'Primește codul';
+
+  @override
+  String syncCodeSent(String email) {
+    return 'Am trimis un cod la $email';
+  }
+
+  @override
+  String get syncCode => 'Codul din e-mail';
+
+  @override
+  String get syncSignIn => 'Intră';
+
+  @override
+  String syncResendIn(int seconds) {
+    return 'Retrimite în $seconds s';
+  }
+
+  @override
+  String get syncResend => 'Trimite codul din nou';
+
+  @override
+  String get syncOtherEmail => 'Alt e-mail';
+
+  @override
+  String get syncWrongCode => 'Codul e greșit sau a expirat';
+
+  @override
+  String get syncMailFailed =>
+      'E-mailul nu a plecat. Verifică conexiunea și încearcă din nou';
+
+  @override
+  String get syncNoServer => 'Serverul nu răspunde';
+
+  @override
+  String get syncNow => 'Sincronizează acum';
+
+  @override
+  String get syncRunning => 'Se sincronizează…';
+
+  @override
+  String syncLast(String time) {
+    return 'Sincronizat la $time';
+  }
+
+  @override
+  String get syncInactive => 'Sincronizarea nu e activă pentru acest cont';
+
+  @override
+  String get syncMassDelete =>
+      'Au dispărut multe fișiere deodată, așa că nu au fost șterse pe celelalte telefoane';
+
+  @override
+  String get syncVaultUnreadable => 'Nu am putut citi dosarul seifului';
+
+  @override
+  String get syncOffline =>
+      'Serverul nu e disponibil. Sincronizarea va continua singură';
+
+  @override
+  String get syncOtherVault => 'Se sincronizează alt seif';
+
+  @override
+  String get syncNoVault => 'Alege mai întâi dosarul seifului';
+
+  @override
+  String get syncSignOut => 'Ieși';
+
+  @override
+  String get syncSignOutHint => 'Notițele rămân pe acest telefon.';
 }

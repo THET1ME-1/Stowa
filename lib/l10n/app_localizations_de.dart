@@ -4104,4 +4104,87 @@ class LDe extends L {
 
   @override
   String get noticeHiddenTitle => 'Angeheftete Notiz';
+
+  @override
+  String get syncOff => 'Aus';
+
+  @override
+  String get syncIntro =>
+      'Dein Tresor bleibt auf all deinen Handys gleich und wird schon auf dem Handy verschlüsselt.';
+
+  @override
+  String get syncEmail => 'E-Mail';
+
+  @override
+  String get syncGetCode => 'Code anfordern';
+
+  @override
+  String syncCodeSent(String email) {
+    return 'Code an $email gesendet';
+  }
+
+  @override
+  String get syncCode => 'Code aus der E-Mail';
+
+  @override
+  String get syncSignIn => 'Anmelden';
+
+  @override
+  String syncResendIn(int seconds) {
+    return 'Erneut senden in $seconds s';
+  }
+
+  @override
+  String get syncResend => 'Code erneut senden';
+
+  @override
+  String get syncOtherEmail => 'Andere E-Mail';
+
+  @override
+  String get syncWrongCode => 'Der Code ist falsch oder abgelaufen';
+
+  @override
+  String get syncMailFailed =>
+      'Die E-Mail wurde nicht gesendet. Prüfe die Verbindung und versuch es noch einmal';
+
+  @override
+  String get syncNoServer => 'Server nicht erreichbar';
+
+  @override
+  String get syncNow => 'Jetzt synchronisieren';
+
+  @override
+  String get syncRunning => 'Wird synchronisiert…';
+
+  @override
+  String syncLast(String time) {
+    return 'Synchronisiert um $time';
+  }
+
+  @override
+  String get syncInactive =>
+      'Synchronisierung ist für dieses Konto nicht aktiv';
+
+  @override
+  String get syncMassDelete =>
+      'Viele Dateien sind auf einmal verschwunden, deshalb wurden sie auf deinen anderen Handys nicht gelöscht';
+
+  @override
+  String get syncVaultUnreadable => 'Tresorordner konnte nicht gelesen werden';
+
+  @override
+  String get syncOffline =>
+      'Server nicht erreichbar. Die Synchronisierung läuft von selbst weiter';
+
+  @override
+  String get syncOtherVault => 'Ein anderer Tresor wird synchronisiert';
+
+  @override
+  String get syncNoVault => 'Wähle zuerst einen Tresorordner';
+
+  @override
+  String get syncSignOut => 'Abmelden';
+
+  @override
+  String get syncSignOutHint => 'Deine Notizen bleiben auf diesem Handy.';
 }

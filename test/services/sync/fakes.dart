@@ -15,7 +15,7 @@ class Broken implements Exception {
 }
 
 /// Хранилище в памяти. Время правки идёт по общим часам [clock].
-class MemoryVault implements VaultFiles {
+class MemoryVault implements SyncFiles {
   MemoryVault(this.clock);
 
   final int Function() clock;

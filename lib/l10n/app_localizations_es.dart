@@ -4091,4 +4091,86 @@ class LEs extends L {
 
   @override
   String get noticeHiddenTitle => 'Nota fijada';
+
+  @override
+  String get syncOff => 'Desactivada';
+
+  @override
+  String get syncIntro =>
+      'Tu bóveda es igual en todos tus teléfonos y se cifra antes de salir del teléfono.';
+
+  @override
+  String get syncEmail => 'Correo';
+
+  @override
+  String get syncGetCode => 'Recibir código';
+
+  @override
+  String syncCodeSent(String email) {
+    return 'Enviamos un código a $email';
+  }
+
+  @override
+  String get syncCode => 'Código del correo';
+
+  @override
+  String get syncSignIn => 'Entrar';
+
+  @override
+  String syncResendIn(int seconds) {
+    return 'Reenviar en $seconds s';
+  }
+
+  @override
+  String get syncResend => 'Enviar el código otra vez';
+
+  @override
+  String get syncOtherEmail => 'Otro correo';
+
+  @override
+  String get syncWrongCode => 'El código es incorrecto o caducó';
+
+  @override
+  String get syncMailFailed =>
+      'El correo no salió. Revisa la conexión e inténtalo de nuevo';
+
+  @override
+  String get syncNoServer => 'No hay conexión con el servidor';
+
+  @override
+  String get syncNow => 'Sincronizar ahora';
+
+  @override
+  String get syncRunning => 'Sincronizando…';
+
+  @override
+  String syncLast(String time) {
+    return 'Sincronizado a las $time';
+  }
+
+  @override
+  String get syncInactive => 'La sincronización no está activa en esta cuenta';
+
+  @override
+  String get syncMassDelete =>
+      'Desaparecieron muchos archivos a la vez, así que no se borraron en tus otros teléfonos';
+
+  @override
+  String get syncVaultUnreadable => 'No se pudo leer la carpeta de la bóveda';
+
+  @override
+  String get syncOffline =>
+      'El servidor no responde. La sincronización seguirá sola';
+
+  @override
+  String get syncOtherVault => 'Se sincroniza otra bóveda';
+
+  @override
+  String get syncNoVault => 'Primero elige la carpeta de la bóveda';
+
+  @override
+  String get syncSignOut => 'Cerrar sesión';
+
+  @override
+  String get syncSignOutHint => 'Tus notas se quedan en este teléfono.';
 }

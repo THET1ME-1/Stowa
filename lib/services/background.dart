@@ -37,6 +37,7 @@ import 'telegram_service.dart';
 import 'vault/vault_layout.dart' show attachmentsDefaultFor;
 import 'vault/vault_location.dart';
 import 'vault/vault_reader.dart';
+import 'sync/sync_service.dart';
 import 'vault/vault_sync.dart';
 import 'vault/vault_writer.dart';
 
@@ -160,7 +161,14 @@ void backgroundDispatcher() {
       // файлы — прежде всего: без сети и без ключа, просто положить на место
       final filesDone = await keepFilesInBackground(db, filesRoot, scratch);
       // и сразу в файлы хранилища: приложение могли закрыть, не дописав очередь
-      final vault = VaultSync(reader: VaultReader(db, root: place.vault, clock: DateTime.now), writer: VaultWriter(db, root: place.vault, clock: DateTime.now, attachmentsDefault: attachmentsDefaultFor(settings.language?.code)));
+      final reader = VaultReader(db, root: place.vault, clock: DateTime.now);
+      // синхронизация через сервер: правки с других телефонов ложатся и в закрытое приложение
+      final sync = SyncService(db: db, root: place.vault, vaultDb: () => settings.vaultDb, reader: reader, store: const SecureKeyStore('sync_account'), client: client);
+      final vault = VaultSync(
+        reader: reader,
+        writer: VaultWriter(db, root: place.vault, clock: DateTime.now, attachmentsDefault: attachmentsDefaultFor(settings.language?.code)),
+        remote: sync.run,
+      );
       await vault.run().catchError((_) {});
       // легли файлы или вышла новая версия извлекателей: разобрать, пока приложение закрыто.
       // Правила по фактам — после разбора и по очереди: фоновая задача не ждёт брошенных

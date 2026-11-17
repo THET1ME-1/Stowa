@@ -50,6 +50,12 @@ class VaultReader {
   /// файлы, потом всё прочитанное ложится в базу пачками.
   Future<VaultScan> reconcile({void Function(int done, int total)? progress}) => _exclusively(() => _reconcile(progress: progress));
 
+  /// Работа под той же арендой, что сверка: синхронизация кладёт пришедшие файлы,
+  /// пока сверка их не читает. Долгая работа продлевает аренду через [keepLease].
+  Future<T> exclusively<T>(Future<T> Function() work) => _exclusively(work);
+
+  Future<void> keepLease() => _keepLease();
+
   /// Сверка одна на всю базу: окно, «Поделиться» и фоновая задача держат свою очередь,
   /// а читают одни файлы. Две сверки разом читали новый файл без id обе и заводили
   /// заметку и папку дважды. Метка `reading` в базе — аренда: оборвался проход —

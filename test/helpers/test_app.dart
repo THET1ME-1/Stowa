@@ -219,7 +219,20 @@ class TestWorld {
           ),
         ],
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
+        // аккаунт синхронизации — в памяти, сервер — поддельный, если тест его дал
+        syncAccountStoreProvider.overrideWithValue(syncAccount),
+        if (syncHttp case final syncHttp?) syncHttpProvider.overrideWithValue(syncHttp),
+        if (vaultRoot case final vaultRoot?) vaultRootProvider.overrideWith(() => VaultRootNotifier(vaultRoot)),
       ];
+
+  /// Аккаунт синхронизации: по умолчанию не вошли.
+  final syncAccount = MemoryKeyStore();
+
+  /// Поддельный сервер синхронизации.
+  http.Client? syncHttp;
+
+  /// Папка хранилища; null — хранилище не выбрано.
+  Directory? vaultRoot;
 
   /// Без настоящих настроек: ключа нет. Тест плашки паузы подставляет сюда настройки на паузе.
   AiSettings aiSettings = const AiSettings();

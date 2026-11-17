@@ -83,6 +83,8 @@ String _vaultEnqueue(String target) => 'INSERT INTO vault_queue (target) VALUES 
     NoteVersions,
     SmartFolders,
     RuleHits,
+    SyncEntries,
+    SyncShadows,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -107,7 +109,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -180,6 +182,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 20) await migrator.addColumn(items, items.titleAuto);
       // заметка, закреплённая в уведомлениях (16.11.2026)
       if (from < 21) await migrator.addColumn(items, items.noticeAt);
+      // синхронизация через сервер (17.11.2026)
+      if (from < 22) {
+        await migrator.createTable(syncEntries);
+        await migrator.createTable(syncShadows);
+      }
       // 7: хранилище файлами — очередь записи, карта файлов; всё уже накопленное ждёт выгрузки
       if (from < 7) {
         // до очереди: файлы хранилища сразу пишутся с целым текстом

@@ -4146,4 +4146,86 @@ class LUk extends L {
 
   @override
   String get noticeHiddenTitle => 'Закріплена нотатка';
+
+  @override
+  String get syncOff => 'Вимкнена';
+
+  @override
+  String get syncIntro =>
+      'Сховище однакове на всіх ваших телефонах і шифрується ще на телефоні.';
+
+  @override
+  String get syncEmail => 'Пошта';
+
+  @override
+  String get syncGetCode => 'Отримати код';
+
+  @override
+  String syncCodeSent(String email) {
+    return 'Код надіслано на $email';
+  }
+
+  @override
+  String get syncCode => 'Код із листа';
+
+  @override
+  String get syncSignIn => 'Увійти';
+
+  @override
+  String syncResendIn(int seconds) {
+    return 'Надіслати знову через $seconds с';
+  }
+
+  @override
+  String get syncResend => 'Надіслати код знову';
+
+  @override
+  String get syncOtherEmail => 'Інша пошта';
+
+  @override
+  String get syncWrongCode => 'Код неправильний або застарів';
+
+  @override
+  String get syncMailFailed =>
+      'Лист не надіслано, перевірте інтернет і спробуйте ще раз';
+
+  @override
+  String get syncNoServer => 'Немає зв\'язку з сервером';
+
+  @override
+  String get syncNow => 'Синхронізувати зараз';
+
+  @override
+  String get syncRunning => 'Синхронізація…';
+
+  @override
+  String syncLast(String time) {
+    return 'Синхронізовано о $time';
+  }
+
+  @override
+  String get syncInactive => 'Синхронізацію для цього акаунта не ввімкнено';
+
+  @override
+  String get syncMassDelete =>
+      'Зникло багато файлів одразу, тож на інших телефонах їх не видалено';
+
+  @override
+  String get syncVaultUnreadable => 'Не вдалося прочитати теку сховища';
+
+  @override
+  String get syncOffline =>
+      'Сервер недоступний, синхронізація продовжиться сама';
+
+  @override
+  String get syncOtherVault => 'Синхронізується інше сховище';
+
+  @override
+  String get syncNoVault => 'Спершу виберіть теку сховища';
+
+  @override
+  String get syncSignOut => 'Вийти';
+
+  @override
+  String get syncSignOutHint => 'Нотатки на цьому телефоні залишаться.';
 }

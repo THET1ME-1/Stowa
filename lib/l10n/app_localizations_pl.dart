@@ -4151,4 +4151,86 @@ class LPl extends L {
 
   @override
   String get noticeHiddenTitle => 'Przypięta notatka';
+
+  @override
+  String get syncOff => 'Wyłączona';
+
+  @override
+  String get syncIntro =>
+      'Skarbiec jest taki sam na wszystkich twoich telefonach i jest szyfrowany jeszcze na telefonie.';
+
+  @override
+  String get syncEmail => 'E-mail';
+
+  @override
+  String get syncGetCode => 'Wyślij kod';
+
+  @override
+  String syncCodeSent(String email) {
+    return 'Kod wysłany na $email';
+  }
+
+  @override
+  String get syncCode => 'Kod z e-maila';
+
+  @override
+  String get syncSignIn => 'Zaloguj';
+
+  @override
+  String syncResendIn(int seconds) {
+    return 'Wyślij ponownie za $seconds s';
+  }
+
+  @override
+  String get syncResend => 'Wyślij kod ponownie';
+
+  @override
+  String get syncOtherEmail => 'Inny e-mail';
+
+  @override
+  String get syncWrongCode => 'Kod jest błędny lub wygasł';
+
+  @override
+  String get syncMailFailed =>
+      'E-mail nie wyszedł. Sprawdź internet i spróbuj ponownie';
+
+  @override
+  String get syncNoServer => 'Brak połączenia z serwerem';
+
+  @override
+  String get syncNow => 'Synchronizuj teraz';
+
+  @override
+  String get syncRunning => 'Synchronizacja…';
+
+  @override
+  String syncLast(String time) {
+    return 'Zsynchronizowano o $time';
+  }
+
+  @override
+  String get syncInactive => 'Synchronizacja nie jest włączona dla tego konta';
+
+  @override
+  String get syncMassDelete =>
+      'Zniknęło naraz wiele plików, więc nie usunięto ich na innych telefonach';
+
+  @override
+  String get syncVaultUnreadable => 'Nie udało się odczytać folderu skarbca';
+
+  @override
+  String get syncOffline =>
+      'Serwer jest niedostępny. Synchronizacja wznowi się sama';
+
+  @override
+  String get syncOtherVault => 'Synchronizowany jest inny skarbiec';
+
+  @override
+  String get syncNoVault => 'Najpierw wybierz folder skarbca';
+
+  @override
+  String get syncSignOut => 'Wyloguj';
+
+  @override
+  String get syncSignOutHint => 'Notatki zostaną na tym telefonie.';
 }

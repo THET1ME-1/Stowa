@@ -14,7 +14,7 @@ class LocalFile {
   final int mtime;
 }
 
-abstract interface class VaultFiles {
+abstract interface class SyncFiles {
   /// Все файлы хранилища. Не удалось обойти папку — бросает: без полного списка
   /// пропавший файл не отличить от непрочитанного, и удаления не отправляются.
   Future<List<LocalFile>> list();

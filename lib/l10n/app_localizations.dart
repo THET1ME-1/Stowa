@@ -6940,6 +6940,150 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Pinned note'**
   String get noticeHiddenTitle;
+
+  /// Settings row value when not signed in
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get syncOff;
+
+  /// syncIntro
+  ///
+  /// In en, this message translates to:
+  /// **'Your vault stays the same on all your phones and is encrypted before it leaves the phone.'**
+  String get syncIntro;
+
+  /// syncEmail
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get syncEmail;
+
+  /// syncGetCode
+  ///
+  /// In en, this message translates to:
+  /// **'Get code'**
+  String get syncGetCode;
+
+  /// Shown above the code field
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a code to {email}'**
+  String syncCodeSent(String email);
+
+  /// syncCode
+  ///
+  /// In en, this message translates to:
+  /// **'Code from the email'**
+  String get syncCode;
+
+  /// syncSignIn
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get syncSignIn;
+
+  /// syncResendIn
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds} s'**
+  String syncResendIn(int seconds);
+
+  /// syncResend
+  ///
+  /// In en, this message translates to:
+  /// **'Send the code again'**
+  String get syncResend;
+
+  /// syncOtherEmail
+  ///
+  /// In en, this message translates to:
+  /// **'Different email'**
+  String get syncOtherEmail;
+
+  /// syncWrongCode
+  ///
+  /// In en, this message translates to:
+  /// **'The code is wrong or expired'**
+  String get syncWrongCode;
+
+  /// syncMailFailed
+  ///
+  /// In en, this message translates to:
+  /// **'The email didn\'t go out. Check your connection and try again'**
+  String get syncMailFailed;
+
+  /// syncNoServer
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the server'**
+  String get syncNoServer;
+
+  /// syncNow
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// syncRunning
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get syncRunning;
+
+  /// syncLast
+  ///
+  /// In en, this message translates to:
+  /// **'Synced at {time}'**
+  String syncLast(String time);
+
+  /// syncInactive
+  ///
+  /// In en, this message translates to:
+  /// **'Sync isn\'t turned on for this account'**
+  String get syncInactive;
+
+  /// syncMassDelete
+  ///
+  /// In en, this message translates to:
+  /// **'Many files disappeared at once, so they weren\'t deleted on your other phones'**
+  String get syncMassDelete;
+
+  /// syncVaultUnreadable
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the vault folder'**
+  String get syncVaultUnreadable;
+
+  /// syncOffline
+  ///
+  /// In en, this message translates to:
+  /// **'The server is unreachable. Sync will resume on its own'**
+  String get syncOffline;
+
+  /// syncOtherVault
+  ///
+  /// In en, this message translates to:
+  /// **'Another vault is being synced'**
+  String get syncOtherVault;
+
+  /// syncNoVault
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a vault folder first'**
+  String get syncNoVault;
+
+  /// syncSignOut
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get syncSignOut;
+
+  /// syncSignOutHint
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes stay on this phone.'**
+  String get syncSignOutHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

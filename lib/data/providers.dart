@@ -48,6 +48,7 @@ import '../services/telegram_service.dart';
 import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
+import '../services/sync/sync_service.dart';
 import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
 import '../services/widget_snapshot.dart';
@@ -777,8 +778,40 @@ final widgetSyncProvider = Provider((ref) {
 /// Забирает в базу правки, сделанные в файлах снаружи.
 final vaultReaderProvider = Provider((ref) => VaultReader(ref.watch(databaseProvider), root: ref.watch(vaultRootProvider), clock: ref.watch(clockProvider)));
 
-/// Сверка хранилища: сперва чужие правки, потом свои.
-final vaultSyncProvider = Provider((ref) => VaultSync(reader: ref.watch(vaultReaderProvider), writer: ref.watch(vaultWriterProvider)));
+/// Сверка хранилища: сперва чужие правки, потом свои, потом синхронизация через сервер.
+final vaultSyncProvider = Provider((ref) {
+  final sync = ref.watch(syncServiceProvider);
+  final vault = VaultSync(reader: ref.watch(vaultReaderProvider), writer: ref.watch(vaultWriterProvider), remote: sync.run);
+  sync.trigger = vault.run;
+  return vault;
+});
+
+/// Где телефон держит аккаунт синхронизации: защищённое хранилище, в тестах — память.
+final syncAccountStoreProvider = Provider<KeyStore>((ref) => const SecureKeyStore('sync_account'));
+
+/// Клиент сервера синхронизации; в тестах — поддельный.
+final syncHttpProvider = Provider<http.Client?>((ref) => null);
+
+/// Синхронизация хранилища через sync.stowa.work.
+final syncServiceProvider = Provider((ref) {
+  final service = SyncService(
+    db: ref.watch(databaseProvider),
+    root: ref.watch(vaultRootProvider),
+    vaultDb: () {
+      try {
+        return ref.read(settingsRepositoryProvider).vaultDb;
+      } on Object {
+        // настроек нет (тесты, окно без них) — первое хранилище
+        return 'stowa';
+      }
+    },
+    reader: ref.watch(vaultReaderProvider),
+    store: ref.watch(syncAccountStoreProvider),
+    client: ref.watch(syncHttpProvider),
+  );
+  ref.onDispose(service.stopListening);
+  return service;
+});
 
 /// Сколько задач ждёт записи в хранилище: изменилось — главная разбирает очередь.
 /// Очередь записи хранилища: (задач, сумма версий) — меняется и от новой правки поверх старой.

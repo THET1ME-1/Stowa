@@ -441,3 +441,31 @@ class CanvasPositions extends Table {
   @override
   Set<Column> get primaryKey => {folderId, itemId};
 }
+
+/// Синхронизация (v22): что телефон знает о каждом файле хранилища на сервере.
+/// Курсор изменений — `vault_flags` с именем `sync:cursor`.
+class SyncEntries extends Table {
+  /// Номер файла на сервере: от ключа хранилища и пути.
+  TextColumn get file => text()();
+  TextColumn get path => text()();
+  IntColumn get rev => integer()();
+
+  /// Отпечаток содержимого ревизии; пустой — на сервере удалён.
+  TextColumn get hash => text()();
+
+  /// Размер и время файла на диске, когда он совпадал с ревизией; -1 — не совпадал.
+  IntColumn get size => integer()();
+  IntColumn get mtime => integer()();
+
+  @override
+  Set<Column> get primaryKey => {file};
+}
+
+/// Текст последней синхронизированной версии заметки: общая версия для склейки.
+class SyncShadows extends Table {
+  TextColumn get file => text()();
+  TextColumn get body => text()();
+
+  @override
+  Set<Column> get primaryKey => {file};
+}

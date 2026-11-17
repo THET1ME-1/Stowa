@@ -4943,5 +4943,116 @@
   "noticeHiddenTitle": "Pinned note",
   "@noticeHiddenTitle": {
     "description": "Заголовок закреплённого уведомления заметки из скрытой папки, без текста"
+  },
+  "syncOff": "Off",
+  "@syncOff": {
+    "description": "Settings row value when not signed in"
+  },
+  "syncIntro": "Your vault stays the same on all your phones and is encrypted before it leaves the phone.",
+  "@syncIntro": {
+    "description": "syncIntro"
+  },
+  "syncEmail": "Email",
+  "@syncEmail": {
+    "description": "syncEmail"
+  },
+  "syncGetCode": "Get code",
+  "@syncGetCode": {
+    "description": "syncGetCode"
+  },
+  "syncCodeSent": "We sent a code to {email}",
+  "@syncCodeSent": {
+    "description": "Shown above the code field",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "syncCode": "Code from the email",
+  "@syncCode": {
+    "description": "syncCode"
+  },
+  "syncSignIn": "Sign in",
+  "@syncSignIn": {
+    "description": "syncSignIn"
+  },
+  "syncResendIn": "Resend in {seconds} s",
+  "@syncResendIn": {
+    "description": "syncResendIn",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "syncResend": "Send the code again",
+  "@syncResend": {
+    "description": "syncResend"
+  },
+  "syncOtherEmail": "Different email",
+  "@syncOtherEmail": {
+    "description": "syncOtherEmail"
+  },
+  "syncWrongCode": "The code is wrong or expired",
+  "@syncWrongCode": {
+    "description": "syncWrongCode"
+  },
+  "syncMailFailed": "The email didn't go out. Check your connection and try again",
+  "@syncMailFailed": {
+    "description": "syncMailFailed"
+  },
+  "syncNoServer": "Can't reach the server",
+  "@syncNoServer": {
+    "description": "syncNoServer"
+  },
+  "syncNow": "Sync now",
+  "@syncNow": {
+    "description": "syncNow"
+  },
+  "syncRunning": "Syncing…",
+  "@syncRunning": {
+    "description": "syncRunning"
+  },
+  "syncLast": "Synced at {time}",
+  "@syncLast": {
+    "description": "syncLast",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncInactive": "Sync isn't turned on for this account",
+  "@syncInactive": {
+    "description": "syncInactive"
+  },
+  "syncMassDelete": "Many files disappeared at once, so they weren't deleted on your other phones",
+  "@syncMassDelete": {
+    "description": "syncMassDelete"
+  },
+  "syncVaultUnreadable": "Couldn't read the vault folder",
+  "@syncVaultUnreadable": {
+    "description": "syncVaultUnreadable"
+  },
+  "syncOffline": "The server is unreachable. Sync will resume on its own",
+  "@syncOffline": {
+    "description": "syncOffline"
+  },
+  "syncOtherVault": "Another vault is being synced",
+  "@syncOtherVault": {
+    "description": "syncOtherVault"
+  },
+  "syncNoVault": "Choose a vault folder first",
+  "@syncNoVault": {
+    "description": "syncNoVault"
+  },
+  "syncSignOut": "Sign out",
+  "@syncSignOut": {
+    "description": "syncSignOut"
+  },
+  "syncSignOutHint": "Your notes stay on this phone.",
+  "@syncSignOutHint": {
+    "description": "syncSignOutHint"
   }
 }

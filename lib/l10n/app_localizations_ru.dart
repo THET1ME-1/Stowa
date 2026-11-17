@@ -4158,4 +4158,85 @@ class LRu extends L {
 
   @override
   String get noticeHiddenTitle => 'Закреплённая заметка';
+
+  @override
+  String get syncOff => 'Выключена';
+
+  @override
+  String get syncIntro =>
+      'Хранилище держится одинаковым на всех ваших телефонах, а шифруется ещё на телефоне.';
+
+  @override
+  String get syncEmail => 'Почта';
+
+  @override
+  String get syncGetCode => 'Получить код';
+
+  @override
+  String syncCodeSent(String email) {
+    return 'Код отправлен на $email';
+  }
+
+  @override
+  String get syncCode => 'Код из письма';
+
+  @override
+  String get syncSignIn => 'Войти';
+
+  @override
+  String syncResendIn(int seconds) {
+    return 'Прислать снова через $seconds с';
+  }
+
+  @override
+  String get syncResend => 'Прислать код снова';
+
+  @override
+  String get syncOtherEmail => 'Другая почта';
+
+  @override
+  String get syncWrongCode => 'Код неверный или устарел';
+
+  @override
+  String get syncMailFailed =>
+      'Письмо не ушло, проверьте интернет и попробуйте ещё раз';
+
+  @override
+  String get syncNoServer => 'Нет связи с сервером';
+
+  @override
+  String get syncNow => 'Синхронизировать сейчас';
+
+  @override
+  String get syncRunning => 'Синхронизация…';
+
+  @override
+  String syncLast(String time) {
+    return 'Синхронизировано в $time';
+  }
+
+  @override
+  String get syncInactive => 'Синхронизация для этого аккаунта не включена';
+
+  @override
+  String get syncMassDelete =>
+      'Пропало много файлов разом, поэтому на других телефонах они не удалены';
+
+  @override
+  String get syncVaultUnreadable => 'Не удалось прочитать папку хранилища';
+
+  @override
+  String get syncOffline => 'Сервер недоступен, синхронизация продолжится сама';
+
+  @override
+  String get syncOtherVault => 'Синхронизируется другое хранилище';
+
+  @override
+  String get syncNoVault => 'Сначала выберите папку хранилища';
+
+  @override
+  String get syncSignOut => 'Выйти';
+
+  @override
+  String get syncSignOutHint => 'Заметки на этом телефоне останутся на месте.';
 }

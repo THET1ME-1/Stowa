@@ -54,9 +54,26 @@ bool _isMetaJson(String path) => path.startsWith('.stowa/') && !path.startsWith(
 const _shadowLimit = 20 * 1024 * 1024;
 
 class SyncEngine {
-  SyncEngine({required this.vault, required this.remote, required this.state, required this.key, this.loser, this.chunk = syncChunk});
+  SyncEngine({
+    required this.vault,
+    required this.remote,
+    required this.state,
+    required this.key,
+    this.loser,
+    this.chunk = syncChunk,
+    Future<T> Function<T>(Future<T> Function() work)? exclusive,
+    this.heartbeat,
+  }) : exclusive = exclusive ?? _direct;
 
-  final VaultFiles vault;
+  static Future<T> _direct<T>(Future<T> Function() work) => work();
+
+  /// Аренда сверки хранилища: под ней движок кладёт пришедшие файлы.
+  final Future<T> Function<T>(Future<T> Function() work) exclusive;
+
+  /// Продлить аренду посреди долгой работы.
+  final Future<void> Function()? heartbeat;
+
+  final SyncFiles vault;
   final SyncRemote remote;
   final SyncState state;
   final VaultKey key;
@@ -97,13 +114,16 @@ class SyncEngine {
     try {
       // сперва забрать, потом отправить; сервер отказал по ревизии — забрать и повторить
       for (var round = 0; round < 3; round++) {
-        await _pull(local, report);
-        // ревизию, которую курсор уже прошёл, спрашиваем у сервера по одному файлу
-        for (final file in _conflicts.toList()) {
-          final current = await remote.file(file);
-          if (current != null) await _apply(current, local, report);
-          _conflicts.remove(file);
-        }
+        // файлы на диск кладутся только при приёме: аренда сверки нужна только ему
+        await exclusive(() async {
+          await _pull(local, report);
+          // ревизию, которую курсор уже прошёл, спрашиваем у сервера по одному файлу
+          for (final file in _conflicts.toList()) {
+            final current = await remote.file(file);
+            if (current != null) await _apply(current, local, report);
+            _conflicts.remove(file);
+          }
+        });
         if (!await _push(local, report)) break;
       }
     } on _MassDelete {
@@ -121,6 +141,7 @@ class SyncEngine {
     while (true) {
       final page = await remote.changes(cursor);
       for (final change in page.changes) {
+        await heartbeat?.call();
         await _apply(change, local, report);
       }
       cursor = page.cursor;
@@ -200,6 +221,7 @@ class SyncEngine {
     // части скачиваются и открываются по одной: весь файл в памяти не держим
     Stream<List<int>> parts() async* {
       for (final blob in change.blobs) {
+        await heartbeat?.call();
         yield await key.openChunk(await remote.getBlob(blob));
       }
     }

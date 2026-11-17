@@ -4080,4 +4080,86 @@ class LEn extends L {
 
   @override
   String get noticeHiddenTitle => 'Pinned note';
+
+  @override
+  String get syncOff => 'Off';
+
+  @override
+  String get syncIntro =>
+      'Your vault stays the same on all your phones and is encrypted before it leaves the phone.';
+
+  @override
+  String get syncEmail => 'Email';
+
+  @override
+  String get syncGetCode => 'Get code';
+
+  @override
+  String syncCodeSent(String email) {
+    return 'We sent a code to $email';
+  }
+
+  @override
+  String get syncCode => 'Code from the email';
+
+  @override
+  String get syncSignIn => 'Sign in';
+
+  @override
+  String syncResendIn(int seconds) {
+    return 'Resend in $seconds s';
+  }
+
+  @override
+  String get syncResend => 'Send the code again';
+
+  @override
+  String get syncOtherEmail => 'Different email';
+
+  @override
+  String get syncWrongCode => 'The code is wrong or expired';
+
+  @override
+  String get syncMailFailed =>
+      'The email didn\'t go out. Check your connection and try again';
+
+  @override
+  String get syncNoServer => 'Can\'t reach the server';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String get syncRunning => 'Syncing…';
+
+  @override
+  String syncLast(String time) {
+    return 'Synced at $time';
+  }
+
+  @override
+  String get syncInactive => 'Sync isn\'t turned on for this account';
+
+  @override
+  String get syncMassDelete =>
+      'Many files disappeared at once, so they weren\'t deleted on your other phones';
+
+  @override
+  String get syncVaultUnreadable => 'Couldn\'t read the vault folder';
+
+  @override
+  String get syncOffline =>
+      'The server is unreachable. Sync will resume on its own';
+
+  @override
+  String get syncOtherVault => 'Another vault is being synced';
+
+  @override
+  String get syncNoVault => 'Choose a vault folder first';
+
+  @override
+  String get syncSignOut => 'Sign out';
+
+  @override
+  String get syncSignOutHint => 'Your notes stay on this phone.';
 }

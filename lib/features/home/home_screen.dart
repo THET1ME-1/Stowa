@@ -100,6 +100,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final writer = ref.read(vaultWriterProvider);
       writer.drain().then((_) {
         if (writer.sawExternalEdit) ref.read(vaultSyncProvider).run().ignore();
+        // правка легла в файлы: отправить на другие телефоны, когда правки утихнут
+        ref.read(syncServiceProvider).poke();
       }).ignore();
     });
     // ИИ положил вещь в папку, пока приложение открыто: сказать куда и дать переложить
@@ -199,6 +201,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void _watchVault() {
     _watch?.stop().ignore();
     _watch = VaultWatch(ref.read(databaseProvider), root: ref.read(vaultRootProvider), onChange: () => ref.read(vaultSyncProvider).run())..start();
+    // пока приложение на экране, правка с другого телефона приходит сразу
+    ref.read(syncServiceProvider).listen().ignore();
   }
 
   /// Запуск снаружи: уведомление по месту или заметка из окна виджета открывают заметку или экран
@@ -276,6 +280,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       _handOverFiles().ignore();
       _watch?.stop().ignore();
       _watch = null;
+      ref.read(syncServiceProvider).stopListening();
       return;
     }
     // «ближайшее» считается от момента подписки, после паузы его надо пересчитать
