@@ -47,10 +47,24 @@ class DbSyncState implements SyncState {
     }
   }
 
+  static const _pendingPrefix = 'sync:pending:';
+
+  @override
+  Future<Set<String>> pending() async => {for (final row in await (_db.select(_db.vaultFlags)..where((f) => f.name.like('$_pendingPrefix%'))).get()) row.name.substring(_pendingPrefix.length)};
+
+  @override
+  Future<void> setPending(String file, bool waiting) async {
+    if (waiting) {
+      await _db.into(_db.vaultFlags).insertOnConflictUpdate(VaultFlagsCompanion.insert(name: '$_pendingPrefix$file'));
+    } else {
+      await (_db.delete(_db.vaultFlags)..where((f) => f.name.equals('$_pendingPrefix$file'))).go();
+    }
+  }
+
   /// Забыть всё о синхронизации: после выхода следующий вход идёт как первый, без удалений.
   Future<void> clear() async {
     await _db.delete(_db.syncEntries).go();
     await _db.delete(_db.syncShadows).go();
-    await (_db.delete(_db.vaultFlags)..where((f) => f.name.equals(cursorFlag))).go();
+    await (_db.delete(_db.vaultFlags)..where((f) => f.name.equals(cursorFlag) | f.name.like('$_pendingPrefix%'))).go();
   }
 }

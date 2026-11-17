@@ -171,6 +171,25 @@ void main() {
     expect(b.vault.files['видео.mp4']!.$1, a.vault.files['видео.mp4']!.$1);
   });
 
+  test('файл застрял в бакете — остальные ложатся, курсор идёт дальше, застрявший приходит потом', () async {
+    final a = Device(remote, key), b = Device(remote, key);
+    for (var i = 0; i < 120; i++) {
+      a.vault.putText('n$i.md', '$i\n');
+    }
+    await a.sync();
+    var gets = 0;
+    remote.failWhen = (call) => call == 'getBlob' && ++gets == 3;
+    final first = await b.sync();
+    expect(first.error, SyncError.network);
+    expect(b.vault.files.length, 119);
+    // страниц по 50: курсор прошёл все три, а не застрял на первой
+    expect(await b.state.cursor(), remote.lastSeq);
+    remote.failWhen = null;
+    final second = await b.sync();
+    expect(second.error, isNull);
+    expect(b.vault.files.length, 120);
+  });
+
   test('имя в другой записи кириллицы — тот же файл', () async {
     final a = Device(remote, key), b = Device(remote, key);
     a.vault.putText('Учёба.md', 'x\n');

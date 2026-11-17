@@ -56,9 +56,15 @@ void main() {
     stdout.writeln('отправка: $up, ${upTime.inSeconds} с, файлов ${before.length}');
     expect(up.error, isNull);
 
+    // второй телефон: застрявшие в бакете файлы откладываются и дочитываются следующим проходом
     watch.reset();
-    final down = await phone(b).sync();
+    final second = phone(b);
+    var down = await second.sync();
     stdout.writeln('приём: $down, ${watch.elapsed.inSeconds} с');
+    for (var pass = 2; pass <= 4 && down.error != null; pass++) {
+      down = await second.sync();
+      stdout.writeln('приём, проход $pass: $down, ${watch.elapsed.inSeconds} с');
+    }
     expect(down.error, isNull);
 
     final after = _prints(b);

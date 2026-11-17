@@ -113,6 +113,12 @@ abstract interface class SyncState {
 
   Future<void> remove(String file);
 
+  /// Отложенные файлы: изменение пришло, а часть не скачалась. Курсор ушёл дальше,
+  /// файл дочитывается по одному в следующих проходах.
+  Future<Set<String>> pending();
+
+  Future<void> setPending(String file, bool waiting);
+
   /// Тень: текст последней синхронизированной версии для склейки по трём версиям.
   Future<String?> shadow(String file);
 

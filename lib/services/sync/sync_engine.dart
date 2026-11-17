@@ -28,10 +28,13 @@ class SyncReport {
   int pushed = 0;
   int deleted = 0;
   int merged = 0;
+
+  /// Файлов отложено: изменение пришло, часть не скачалась.
+  int waiting = 0;
   SyncError? error;
 
   @override
-  String toString() => 'SyncReport(pulled: $pulled, pushed: $pushed, deleted: $deleted, merged: $merged, error: $error)';
+  String toString() => 'SyncReport(pulled: $pulled, pushed: $pushed, deleted: $deleted, merged: $merged, waiting: $waiting, error: $error)';
 }
 
 /// Синхронизируется ли путь. Обложки, кадры, копии страниц, кэш и входящие
@@ -91,13 +94,12 @@ class SyncEngine {
 
   /// Сделать [work] для каждого, по [parallel] разом. Первая ошибка — после того,
   /// как начатые доделались: память о файлах не остаётся наполовину записанной.
-  /// [keepGoing] — после ошибки доделать и остальные, ошибку отдать в конце.
-  Future<void> _each<T>(List<T> items, Future<void> Function(T item) work, {bool keepGoing = false}) async {
+  Future<void> _each<T>(List<T> items, Future<void> Function(T item) work) async {
     var next = 0;
     Object? failure;
     StackTrace? trace;
     Future<void> worker() async {
-      while ((keepGoing || failure == null) && next < items.length) {
+      while (failure == null && next < items.length) {
         final item = items[next++];
         try {
           await work(item);
@@ -160,21 +162,41 @@ class SyncEngine {
     } on Object {
       report.error = SyncError.network;
     }
+    // часть файлов отложена: проход не полный, следующий их дочитает
+    if (report.waiting > 0) report.error ??= SyncError.network;
     return report;
   }
 
   // ── приём ──
 
   Future<void> _pull(Map<String, LocalFile> local, SyncReport report) async {
+    // отложенные с прошлых проходов дочитываются по одному файлу
+    final waiting = await state.pending();
+    await _each(waiting.toList(), (file) async {
+      try {
+        final current = await remote.file(file);
+        if (current != null) await _apply(current, local, report);
+        await state.setPending(file, false);
+      } on Object {
+        report.waiting++;
+      }
+    });
     var cursor = await state.cursor();
     while (true) {
       final page = await remote.changes(cursor);
-      // в странице каждый файл один раз: файлы приходят параллельно. Один застрял в бакете —
-      // остальные всё равно ложатся, а курсор стоит, пока не придёт и он
+      // в странице каждый файл один раз: файлы приходят параллельно. Застрял в бакете
+      // (Hetzner отдаёт отдельные объекты по две минуты) — файл откладывается, курсор
+      // идёт дальше: иначе один файл держал бы все остальные
       await _each(page.changes, (change) async {
         await heartbeat?.call();
-        await _apply(change, local, report);
-      }, keepGoing: true);
+        try {
+          await _apply(change, local, report);
+          if (waiting.contains(change.file)) await state.setPending(change.file, false);
+        } on Object {
+          await state.setPending(change.file, true);
+          report.waiting++;
+        }
+      });
       cursor = page.cursor;
       await state.setCursor(cursor);
       if (!page.more) break;

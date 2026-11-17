@@ -141,6 +141,13 @@ class MemoryState implements SyncState {
   int _cursor = 0;
   final _files = <String, SyncedFile>{};
   final _shadows = <String, String>{};
+  final _pending = <String>{};
+
+  @override
+  Future<Set<String>> pending() async => Set.of(_pending);
+
+  @override
+  Future<void> setPending(String file, bool waiting) async => waiting ? _pending.add(file) : _pending.remove(file);
 
   @override
   Future<int> cursor() async => _cursor;
