@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{subject}}</title>
+<!--
+  Письмо с кодом входа Stowa. Цвета — палитры graphiteLight и graphiteDark
+  из lib/core/theme/palette.dart, шрифты Unbounded и Onest с сайта проекта.
+  Gmail шрифты не грузит и показывает запасной Arial, Apple Mail грузит.
+  Рамок и теней нет, как в приложении: плитки отделены тоном.
+  Код — одно слово без пробелов: двойное касание или долгое нажатие
+  выделяет его целиком, а Gmail на телефоне сам находит код и ставит
+  над письмом кнопку «Копировать код».
+-->
+<style>
+  @font-face { font-family: "Unbounded"; src: url("https://thet1me-1.github.io/Stowa/fonts/unbounded.woff2") format("woff2"); font-weight: 200 900; }
+  @font-face { font-family: "Onest"; src: url("https://thet1me-1.github.io/Stowa/fonts/onest.woff2") format("woff2"); font-weight: 100 900; }
+  body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
+  .code { -webkit-user-select: all; user-select: all; }
+  a { color: #1B1C1E; }
+  @media (max-width: 520px) {
+    .card { padding: 32px 22px !important; border-radius: 24px !important; }
+    .code { font-size: 34px !important; letter-spacing: 7px !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .page { background: #141517 !important; }
+    .card { background: #1A1B1E !important; }
+    .tile { background: #26272B !important; }
+    .ink { color: #F2F2F0 !important; }
+    .soft { color: #B0B1B6 !important; }
+    .muted { color: #96979D !important; }
+    a { color: #F2F2F0 !important; }
+  }
+  [data-ogsc] .page { background: #141517 !important; }
+  [data-ogsc] .card { background: #1A1B1E !important; }
+  [data-ogsc] .tile { background: #26272B !important; }
+  [data-ogsc] .ink { color: #F2F2F0 !important; }
+  [data-ogsc] .soft { color: #B0B1B6 !important; }
+  [data-ogsc] .muted { color: #96979D !important; }
+</style>
+</head>
+<body class="page" style="margin:0; padding:0; background:#F6F6F4;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#F6F6F4;">{{preheader}}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" class="page" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F6F6F4;">
+  <tr>
+    <td align="center" style="padding:40px 12px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
+
+        <!-- Знак: слово Stowa шрифтом заголовков приложения -->
+        <tr>
+          <td align="center" style="padding:0 0 24px;">
+            <span class="ink" style="font-family:'Unbounded','Arial Black',Arial,sans-serif; font-size:26px; font-weight:700; letter-spacing:-0.5px; color:#1B1C1E;">Stowa</span>
+          </td>
+        </tr>
+
+        <!-- Карточка -->
+        <tr>
+          <td class="card" style="background:#FFFFFF; border-radius:28px; padding:40px 36px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td class="ink" style="font-family:'Unbounded',Arial,sans-serif; font-size:22px; line-height:30px; font-weight:600; color:#1B1C1E; padding:0 0 12px;">{{title}}</td>
+              </tr>
+              <tr>
+                <td class="soft" style="font-family:'Onest',Arial,sans-serif; font-size:16px; line-height:24px; color:#46474C; padding:0 0 28px;">{{lead}}</td>
+              </tr>
+
+              <!-- Плитка с кодом -->
+              <tr>
+                <td class="tile" align="center" style="background:#F0F0EE; border-radius:20px; padding:28px 16px 22px;">
+                  <div class="code ink" style="font-family:'Unbounded','Arial Black',Arial,sans-serif; font-size:40px; line-height:48px; font-weight:700; letter-spacing:10px; color:#1B1C1E; -webkit-user-select:all; user-select:all;">{{code}}</div>
+                  <div class="muted" style="font-family:'Onest',Arial,sans-serif; font-size:13px; line-height:18px; color:#5F6066; padding-top:12px;">{{hint}}</div>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="soft" style="font-family:'Onest',Arial,sans-serif; font-size:14px; line-height:21px; color:#46474C; padding:28px 0 0;">{{safety}}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Подвал -->
+        <tr>
+          <td class="muted" align="center" style="font-family:'Onest',Arial,sans-serif; font-size:13px; line-height:20px; color:#5F6066; padding:24px 16px 0;">
+            {{footer}} <a href="mailto:support@stowa.work" style="color:#1B1C1E; text-decoration:underline;">support@stowa.work</a>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
