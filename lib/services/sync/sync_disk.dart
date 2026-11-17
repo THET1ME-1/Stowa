@@ -48,7 +48,7 @@ class DiskSyncFiles implements SyncFiles {
   }
 
   @override
-  Future<void> write(String path, Stream<List<int>> data) async {
+  Future<String> stage(String path, Stream<List<int>> data) async {
     final target = _file(path);
     await target.parent.create(recursive: true);
     // временный файл рядом и переименование: сверка и Obsidian видят файл только целым
@@ -57,15 +57,31 @@ class DiskSyncFiles implements SyncFiles {
     try {
       await sink.addStream(data);
       await sink.flush();
-    } finally {
+    } catch (_) {
       await sink.close();
+      // оборвалось посреди: обрывок не оставляем
+      if (temp.existsSync()) await temp.delete();
+      rethrow;
     }
-    await temp.rename(target.path);
+    await sink.close();
+    return _relative(temp.path);
   }
 
   @override
-  Future<void> delete(String path) async {
-    final file = _file(path);
-    if (file.existsSync()) await file.delete();
+  Future<bool> place(String staged, String path, {LocalFile? expect}) async {
+    final temp = _file(staged);
+    if (!sameFile(await stat(path), expect)) {
+      if (temp.existsSync()) await temp.delete();
+      return false;
+    }
+    await temp.rename(_file(path).path);
+    return true;
+  }
+
+  @override
+  Future<bool> delete(String path, {required LocalFile expect}) async {
+    if (!sameFile(await stat(path), expect)) return false;
+    await _file(path).delete();
+    return true;
   }
 }

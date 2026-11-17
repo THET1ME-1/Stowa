@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
@@ -19,13 +20,13 @@ import 'fakes.dart';
 class Phone {
   Phone(FakeRemote remote, VaultKey key) {
     final reader = VaultReader(db, root: root, clock: DateTime.now);
-    engine = SyncEngine(vault: DiskSyncFiles(root), remote: remote, state: DbSyncState(db), key: key, exclusive: reader.exclusively, heartbeat: reader.keepLease);
+    engine = SyncEngine(vault: DiskSyncFiles(root), remote: remote, state: DbSyncState(db), key: key, exclusive: reader.exclusively);
     vault = VaultSync(
       reader: reader,
       writer: VaultWriter(db, root: root, clock: DateTime.now),
       remote: () async {
         last = await engine.sync();
-        return last!.pulled + last!.merged + last!.deleted > 0;
+        return last!.received;
       },
     );
   }
@@ -82,15 +83,59 @@ void main() {
     expect(File(p.join(a.root.path, 'Идеи.md')).readAsStringSync(), contains('правка со второго'));
   });
 
-  test('служебное хранилища доезжает: метка со второго телефона не теряется', () async {
+  test('два телефона: метки и заметка из Obsidian доезжают до баз, потом телефоны затихают', () async {
     final now = DateTime.now();
     await a.db.into(a.db.items).insert(ItemsCompanion.insert(id: 'n1', kind: ItemKind.note, title: 'Список', body: const Value('Список'), createdAt: now, updatedAt: now));
+    await a.db.into(a.db.tags).insert(TagsCompanion.insert(id: 't-a', name: 'дом', createdAt: now));
     await a.vault.run();
     await b.vault.run();
-    // временные файлы движка и писателя не уезжают
-    final names = Directory(b.root.path).listSync(recursive: true).map((e) => p.basename(e.path));
-    expect(names.where((n) => n.endsWith('.tmp')), isEmpty);
-    expect(await b.db.select(b.db.syncEntries).get(), isNotEmpty);
+    // метка первого — в базе второго; второй заводит свою и кладёт заметку из Obsidian
+    expect((await b.db.select(b.db.tags).get()).map((t) => t.name), contains('дом'));
+    await b.db.into(b.db.tags).insert(TagsCompanion.insert(id: 't-b', name: 'работа', createdAt: now));
+    File(p.join(b.root.path, 'Из Obsidian.md')).writeAsStringSync('Купить хлеб\n');
+    await b.vault.run();
+    await a.vault.run();
+    expect((await a.db.select(a.db.tags).get()).map((t) => t.name).toSet(), {'дом', 'работа'});
+    expect(await a.byTitle('Из Obsidian'), isNotNull);
+    expect((await b.db.select(b.db.tags).get()).map((t) => t.name).toSet(), {'дом', 'работа'});
+
+    // ещё круги, пока всё не разойдётся, и два последних — без единого файла туда и обратно
+    for (var round = 0; round < 3; round++) {
+      await a.vault.run();
+      await b.vault.run();
+    }
+    for (var round = 0; round < 2; round++) {
+      for (final phone in [a, b]) {
+        await phone.vault.run();
+        expect(phone.last!.pushed + phone.last!.received.length, 0, reason: 'круг $round: ${phone.last}');
+      }
+    }
+    // временные файлы движка и писателя не уезжают и не остаются
+    for (final phone in [a, b]) {
+      final names = Directory(phone.root.path).listSync(recursive: true).map((e) => p.basename(e.path));
+      expect(names.where((n) => n.endsWith('.tmp')), isEmpty);
+    }
+  });
+
+  test('схема 21 → 22: таблицы синхронизации появляются, данные на месте', () async {
+    final file = File(p.join(a.root.path, '..', 'migrate_${DateTime.now().microsecondsSinceEpoch}.db'));
+    addTearDown(() {
+      if (file.existsSync()) file.deleteSync();
+    });
+    final old = AppDatabase(NativeDatabase(file));
+    final now = DateTime.now();
+    await old.into(old.items).insert(ItemsCompanion.insert(id: 'x', kind: ItemKind.note, title: 'Старая', body: const Value('Старая'), createdAt: now, updatedAt: now));
+    // как будто база осталась от версии со схемой 21
+    await old.customStatement('DROP TABLE sync_entries');
+    await old.customStatement('DROP TABLE sync_shadows');
+    await old.customStatement('PRAGMA user_version = 21');
+    await old.close();
+    final upgraded = AppDatabase(NativeDatabase(file));
+    addTearDown(upgraded.close);
+    expect((await upgraded.select(upgraded.items).getSingle()).title, 'Старая');
+    await upgraded.into(upgraded.syncEntries).insert(SyncEntriesCompanion.insert(file: 'f', path: 'a.md', rev: 1, hash: 'h', size: 1, mtime: 1));
+    await upgraded.into(upgraded.syncShadows).insert(SyncShadowsCompanion.insert(file: 'f', body: 'текст'));
+    expect(await upgraded.select(upgraded.syncEntries).get(), hasLength(1));
   });
 
   test('после выхода память синхронизации стирается: следующий вход идёт как первый', () async {

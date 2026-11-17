@@ -212,8 +212,8 @@ List<(int, int)> _anchors(Int32List a, Int32List b) {
 
 const _pretty = JsonEncoder.withIndent('  ');
 
-/// Склеить служебный JSON вида `{"таблица": [строки]}` по ключу строки (`id`
-/// или первая колонка). Другой вид склеивается целиком.
+/// Склеить служебный JSON вида `{"таблица": [строки]}` по ключу строки (`id`,
+/// без него — вся строка). Другой вид склеивается целиком.
 String mergeJsonTables(String base, String ours, String theirs, {required bool oursNewer}) {
   if (ours == theirs) return ours;
   if (ours == base) return theirs;
@@ -251,7 +251,9 @@ Map<String, List<Object?>>? _tables(String text) {
 Map<String, Object?> _keyed(List<Object?> rows) {
   final out = <String, Object?>{};
   for (final row in rows) {
-    final key = row is Map ? '${row['id'] ?? (row.isEmpty ? '' : row.values.first)}' : jsonEncode(row);
+    // без id ключ — вся строка: у положения на холсте первая колонка — папка, и строки
+    // одной папки слиплись бы в одну. Правка такой строки — удаление старой и новая
+    final key = row is Map && row['id'] != null ? '${row['id']}' : jsonEncode(row);
     out[key] = row;
   }
   return out;

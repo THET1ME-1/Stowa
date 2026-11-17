@@ -12,8 +12,8 @@ class VaultSync {
   final VaultReader reader;
   final VaultWriter writer;
 
-  /// Проход синхронизации через сервер; true — пришли файлы, их надо забрать сверкой.
-  final Future<bool> Function()? remote;
+  /// Проход синхронизации через сервер: пути файлов, которые он положил или удалил.
+  final Future<List<String>> Function()? remote;
 
   /// С какого числа пришедших заметок главная показывает полоску: пара правок появится и так.
   static const showFrom = 50;
@@ -46,8 +46,12 @@ class VaultSync {
         }
         // свои правки уже в файлах: синхронизация отправляет их и кладёт чужие
         final sync = remote;
-        if (sync != null && await sync().catchError((_) => false)) {
+        final received = sync == null ? const <String>[] : await sync().catchError((_) => const <String>[]);
+        if (received.isNotEmpty) {
+          // метки, папки и правила с другого телефона — до заметок, история — после
+          await reader.restoreSynced(received, meta: true);
           await reader.reconcile(progress: _report);
+          await reader.restoreSynced(received, meta: false);
           await writer.drain();
         }
       } while (_again);

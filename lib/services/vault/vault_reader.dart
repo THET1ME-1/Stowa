@@ -50,11 +50,9 @@ class VaultReader {
   /// файлы, потом всё прочитанное ложится в базу пачками.
   Future<VaultScan> reconcile({void Function(int done, int total)? progress}) => _exclusively(() => _reconcile(progress: progress));
 
-  /// Работа под той же арендой, что сверка: синхронизация кладёт пришедшие файлы,
-  /// пока сверка их не читает. Долгая работа продлевает аренду через [keepLease].
+  /// Работа под той же арендой, что сверка: синхронизация ставит пришедший файл на
+  /// место, пока сверка его не читает.
   Future<T> exclusively<T>(Future<T> Function() work) => _exclusively(work);
-
-  Future<void> keepLease() => _keepLease();
 
   /// Сверка одна на всю базу: окно, «Поделиться» и фоновая задача держат свою очередь,
   /// а читают одни файлы. Две сверки разом читали новый файл без id обе и заводили
@@ -330,17 +328,40 @@ class VaultReader {
     await for (final entity in dir.list()) {
       if (entity is! File || !entity.path.endsWith('.json')) continue;
       await _keepLease();
-      final id = p.basenameWithoutExtension(entity.path);
-      if (await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) continue;
-      final json = jsonDecode(await entity.readAsString()) as Map<String, Object?>;
-      await _quietly(() async {
-        await (_db.delete(_db.noteVersions)..where((t) => t.itemId.equals(id))).go();
-        for (final row in (json['versions'] as List? ?? const []).whereType<Map<String, Object?>>()) {
-          await _insertRow('note_versions', row);
-        }
-      });
+      await _restoreHistoryFile(entity);
     }
   }
+
+  Future<void> _restoreHistoryFile(File file) async {
+    final id = p.basenameWithoutExtension(file.path);
+    if (!await file.exists() || await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) return;
+    final json = jsonDecode(await file.readAsString()) as Map<String, Object?>;
+    await _quietly(() async {
+      await (_db.delete(_db.noteVersions)..where((t) => t.itemId.equals(id))).go();
+      for (final row in (json['versions'] as List? ?? const []).whereType<Map<String, Object?>>()) {
+        await _insertRow('note_versions', row);
+      }
+    });
+  }
+
+  /// Служебное, пришедшее синхронизацией с другого телефона. [meta] — метки, папки,
+  /// правила и прочие таблицы: до сверки заметок, заметки ищут по ним свою папку.
+  /// Иначе — история и добытое о вещах: после сверки, когда новые заметки уже в базе.
+  /// Строки добавляются и обновляются; удалённое на другом телефоне здесь не удаляется.
+  Future<void> restoreSynced(Iterable<String> paths, {required bool meta}) => _exclusively(() async {
+    final received = paths.toSet();
+    if (meta) {
+      for (final name in vaultMetaTables.keys) {
+        if (received.contains(metaFile(name))) await _restoreMeta(name);
+      }
+      return;
+    }
+    for (final path in received) {
+      if (!path.endsWith('.json')) continue;
+      if (path.startsWith('$serviceFolder/history/')) await _restoreHistoryFile(File(_absolute(path)));
+      if (path.startsWith('$serviceFolder/facts/')) await _restoreFactsFile(File(_absolute(path)));
+    }
+  });
 
   /// Пути заметок от корня: без служебного, или только корзина.
   Future<List<String>> _notes({required bool trash}) async {
@@ -785,24 +806,28 @@ class VaultReader {
     await for (final entity in dir.list()) {
       if (entity is! File || !entity.path.endsWith('.json')) continue;
       await _keepLease();
-      final id = p.basenameWithoutExtension(entity.path);
-      if (await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) continue;
-      final json = jsonDecode(await entity.readAsString()) as Map<String, Object?>;
-      await _quietly(() async {
-        await (_db.delete(_db.facts)..where((t) => t.itemId.equals(id))).go();
-        await (_db.delete(_db.extractorRuns)..where((t) => t.itemId.equals(id))).go();
-        for (final row in (json['facts'] as List? ?? const []).whereType<Map<String, Object?>>()) {
-          await _insertRow('facts', row);
-        }
-        for (final row in (json['runs'] as List? ?? const []).whereType<Map<String, Object?>>()) {
-          await _insertRow('extractor_runs', row);
-        }
-        await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
-          ItemsCompanion(transcript: Value(json['transcript'] as String?), aiDescription: Value(json['ai_description'] as String?)),
-        );
-        await refreshFactsText(_db, id);
-      });
+      await _restoreFactsFile(entity);
     }
+  }
+
+  Future<void> _restoreFactsFile(File file) async {
+    final id = p.basenameWithoutExtension(file.path);
+    if (!await file.exists() || await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) return;
+    final json = jsonDecode(await file.readAsString()) as Map<String, Object?>;
+    await _quietly(() async {
+      await (_db.delete(_db.facts)..where((t) => t.itemId.equals(id))).go();
+      await (_db.delete(_db.extractorRuns)..where((t) => t.itemId.equals(id))).go();
+      for (final row in (json['facts'] as List? ?? const []).whereType<Map<String, Object?>>()) {
+        await _insertRow('facts', row);
+      }
+      for (final row in (json['runs'] as List? ?? const []).whereType<Map<String, Object?>>()) {
+        await _insertRow('extractor_runs', row);
+      }
+      await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
+        ItemsCompanion(transcript: Value(json['transcript'] as String?), aiDescription: Value(json['ai_description'] as String?)),
+      );
+      await refreshFactsText(_db, id);
+    });
   }
 
   // строка таблицы как её записал писатель: поля как есть

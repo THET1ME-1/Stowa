@@ -164,6 +164,7 @@ class SyncService {
       }
     }
     stopListening();
+    _retry?.cancel();
     await _store.write(null);
     await DbSyncState(_db).clear();
     _account = null;
@@ -172,20 +173,23 @@ class SyncService {
 
   // ── проход ──
 
-  Future<bool>? _running;
+  Future<List<String>>? _running;
 
-  /// Один проход: забрать чужое, склеить, отправить своё. true — на диск пришли файлы,
-  /// нужна сверка. Новый вызов посреди прохода ждёт текущий.
-  Future<bool> run() {
+  /// Один проход: забрать чужое, склеить, отправить своё. Отдаёт пути файлов, которые
+  /// легли на диск или ушли с него, — их забирает сверка. Новый вызов ждёт текущий.
+  Future<List<String>> run() {
     final running = _running;
     if (running != null) return running;
     return _running = _run().whenComplete(() => _running = null);
   }
 
-  Future<bool> _run() async {
+  Timer? _retry;
+  var _retries = 0;
+
+  Future<List<String>> _run() async {
     final account = await this.account();
     final root = _root;
-    if (account == null || root == null || account.vaultDb != _vaultDb) return false;
+    if (account == null || root == null || account.vaultDb != _vaultDb) return const [];
     status.value = status.value.copyWith(running: true);
     final engine = SyncEngine(
       vault: DiskSyncFiles(root),
@@ -194,7 +198,6 @@ class SyncService {
       key: VaultKey(account.key),
       loser: (path, text) => unawaited(_keepLoser(path, text)),
       exclusive: _reader.exclusively,
-      heartbeat: _reader.keepLease,
     );
     final report = await engine.sync();
     var inactive = status.value.inactive;
@@ -205,7 +208,7 @@ class SyncService {
       } on SyncHttpError catch (error) {
         if (error.status == 401) {
           await signOut();
-          return false;
+          return const [];
         }
       } on Object {
         // сети нет — подождём
@@ -214,7 +217,16 @@ class SyncService {
       inactive = false;
     }
     status.value = status.value.copyWith(running: false, lastAt: report.error == null ? DateTime.now() : null, error: report.error, clearError: report.error == null, inactive: inactive);
-    return report.pulled + report.merged + report.deleted > 0;
+    // проход не полный (сеть, отложенные файлы): повторить самим, с растущей паузой до
+    // 10 минут, — ожидание правок будит только новая правка, а отложенные курсор уже прошёл
+    _retry?.cancel();
+    if (report.error == SyncError.network && !inactive) {
+      _retries++;
+      _retry = Timer(Duration(seconds: (15 * _retries * _retries).clamp(15, 600)), () => unawaited(trigger?.call()));
+    } else {
+      _retries = 0;
+    }
+    return report.received;
   }
 
   /// Проигравшая версия заметки — в её историю: её видно на экране версий.
@@ -242,6 +254,7 @@ class SyncService {
   void dispose() {
     stopListening();
     _poke?.cancel();
+    _retry?.cancel();
   }
 
   bool _listening = false;

@@ -171,6 +171,52 @@ void main() {
     expect(b.vault.files['видео.mp4']!.$1, a.vault.files['видео.mp4']!.$1);
   });
 
+  test('правку положили после обхода папки — пришедшая её не затирает, а склеивается', () async {
+    final a = Device(remote, key), b = Device(remote, key);
+    a.vault.putText('n.md', 'один\nдва\nтри\n');
+    await a.sync();
+    await b.sync();
+    a.vault.putText('n.md', 'ОДИН\nдва\nтри\n');
+    await a.sync();
+    // писатель телефона B кладёт правку уже после того, как движок обошёл папку
+    var once = true;
+    remote.onChanges = () {
+      if (!once) return;
+      once = false;
+      b.vault.putText('n.md', 'один\nдва\nТРИ\n');
+    };
+    await b.sync();
+    remote.onChanges = null;
+    await a.sync();
+    expect(b.vault.text('n.md'), 'ОДИН\nдва\nТРИ\n');
+    expect(a.vault.text('n.md'), 'ОДИН\nдва\nТРИ\n');
+  });
+
+  test('правку положили посреди скачивания — файл не затёрт, изменение отложено и склеено', () async {
+    final a = Device(remote, key), b = Device(remote, key);
+    a.vault.putText('n.md', 'один\nдва\nтри\n');
+    await a.sync();
+    await b.sync();
+    a.vault.putText('n.md', 'ОДИН\nдва\nтри\n');
+    await a.sync();
+    var once = true;
+    remote.failWhen = (call) {
+      if (call == 'getBlob' && once) {
+        once = false;
+        b.vault.putText('n.md', 'один\nдва\nТРИ\n');
+      }
+      return false;
+    };
+    final first = await b.sync();
+    remote.failWhen = null;
+    expect(b.vault.text('n.md'), 'один\nдва\nТРИ\n');
+    expect(first.waiting, 1);
+    await b.sync();
+    await a.sync();
+    expect(b.vault.text('n.md'), 'ОДИН\nдва\nТРИ\n');
+    expect(a.vault.text('n.md'), 'ОДИН\nдва\nТРИ\n');
+  });
+
   test('файл застрял в бакете — остальные ложатся, курсор идёт дальше, застрявший приходит потом', () async {
     final a = Device(remote, key), b = Device(remote, key);
     for (var i = 0; i < 120; i++) {

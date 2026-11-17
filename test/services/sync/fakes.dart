@@ -46,17 +46,33 @@ class MemoryVault implements SyncFiles {
     return data.sublist(min(offset, data.length), min(offset + length, data.length));
   }
 
+  final _staged = <String, List<int>>{};
+
   @override
-  Future<void> write(String path, Stream<List<int>> data) async {
+  Future<String> stage(String path, Stream<List<int>> data) async {
     final all = <int>[];
     await for (final part in data) {
       all.addAll(part);
     }
-    files[path] = (all, clock());
+    final name = '$path.sync.tmp${_staged.length}';
+    _staged[name] = all;
+    return name;
   }
 
   @override
-  Future<void> delete(String path) async => files.remove(path);
+  Future<bool> place(String staged, String path, {LocalFile? expect}) async {
+    final data = _staged.remove(staged)!;
+    if (!sameFile(await stat(path), expect)) return false;
+    files[path] = (data, clock());
+    return true;
+  }
+
+  @override
+  Future<bool> delete(String path, {required LocalFile expect}) async {
+    if (!sameFile(await stat(path), expect)) return false;
+    files.remove(path);
+    return true;
+  }
 }
 
 List<int> _utf8(String s) => utf8.encode(s);
@@ -84,8 +100,12 @@ class FakeRemote implements SyncRemote {
     if (failWhen?.call(call) ?? false) throw Broken(call);
   }
 
+  /// Зовётся в начале каждого запроса изменений: тест правит телефон посреди прохода.
+  void Function()? onChanges;
+
   @override
   Future<ChangePage> changes(int since, {int wait = 0}) async {
+    onChanges?.call();
     _maybeFail('changes');
     final fresh = [
       for (final e in _seq.entries)

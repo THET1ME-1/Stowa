@@ -23,11 +23,20 @@ abstract interface class SyncFiles {
 
   Future<List<int>> read(String path, int offset, int length);
 
-  /// Записать файл целиком: временный файл рядом, потом переименование.
-  Future<void> write(String path, Stream<List<int>> data);
+  /// Записать содержимое во временный файл рядом с [path]; отдаёт его путь.
+  Future<String> stage(String path, Stream<List<int>> data);
 
-  Future<void> delete(String path);
+  /// Поставить временный файл на место [path], если там всё тот же файл, что [expect]
+  /// (null — файла не было). Иначе временный удаляется и ответ false: файл поправили,
+  /// пока качали, — затирать нельзя.
+  Future<bool> place(String staged, String path, {LocalFile? expect});
+
+  /// Удалить [path], если там всё тот же файл, что [expect]. Иначе false.
+  Future<bool> delete(String path, {required LocalFile expect});
 }
+
+/// Тот же файл: оба нет или совпали размер и время.
+bool sameFile(LocalFile? a, LocalFile? b) => a == null || b == null ? a == b : a.size == b.size && a.mtime == b.mtime;
 
 /// Изменение на сервере: текущая ревизия файла.
 class RemoteChange {

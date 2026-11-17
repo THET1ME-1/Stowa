@@ -110,6 +110,23 @@ void main() {
       ]);
     });
 
+    test('строки без id не слипаются: два места на холсте одной папки', () {
+      String canvas(List<Map<String, Object?>> rows) => jsonEncode({'canvas_positions': rows});
+      final base = canvas([
+        {'folder_id': 'f', 'item_id': 'a', 'x': 1},
+      ]);
+      final ours = canvas([
+        {'folder_id': 'f', 'item_id': 'a', 'x': 1},
+        {'folder_id': 'f', 'item_id': 'b', 'x': 2},
+      ]);
+      final theirs = canvas([
+        {'folder_id': 'f', 'item_id': 'a', 'x': 1},
+        {'folder_id': 'f', 'item_id': 'c', 'x': 3},
+      ]);
+      final rows = (jsonDecode(mergeJsonTables(base, ours, theirs, oursNewer: true)) as Map)['canvas_positions'] as List;
+      expect(rows.map((r) => (r as Map)['item_id']).toSet(), {'a', 'b', 'c'});
+    });
+
     test('пустая общая объединяет строки', () {
       final ours = tables([
         {'id': '1', 'name': 'a'},

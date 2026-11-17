@@ -29,8 +29,11 @@ class SyncReport {
   int deleted = 0;
   int merged = 0;
 
-  /// Файлов отложено: изменение пришло, часть не скачалась.
+  /// Файлов отложено: изменение пришло, часть не скачалась или файл правили.
   int waiting = 0;
+
+  /// Пути, которые проход положил или удалил на диске: их забирает сверка.
+  final received = <String>[];
   SyncError? error;
 
   @override
@@ -66,16 +69,12 @@ class SyncEngine {
     this.chunk = syncChunk,
     this.parallel = 6,
     Future<T> Function<T>(Future<T> Function() work)? exclusive,
-    this.heartbeat,
   }) : exclusive = exclusive ?? _direct;
 
   static Future<T> _direct<T>(Future<T> Function() work) => work();
 
-  /// Аренда сверки хранилища: под ней движок кладёт пришедшие файлы.
+  /// Аренда сверки хранилища: под ней движок ставит на место один пришедший файл.
   final Future<T> Function<T>(Future<T> Function() work) exclusive;
-
-  /// Продлить аренду посреди долгой работы.
-  final Future<void> Function()? heartbeat;
 
   final SyncFiles vault;
   final SyncRemote remote;
@@ -145,16 +144,13 @@ class SyncEngine {
     try {
       // сперва забрать, потом отправить; сервер отказал по ревизии — забрать и повторить
       for (var round = 0; round < 3; round++) {
-        // файлы на диск кладутся только при приёме: аренда сверки нужна только ему
-        await exclusive(() async {
-          await _pull(local, report);
-          // ревизию, которую курсор уже прошёл, спрашиваем у сервера по одному файлу
-          for (final file in _conflicts.toList()) {
-            final current = await remote.file(file);
-            if (current != null) await _apply(current, local, report);
-            _conflicts.remove(file);
-          }
-        });
+        await _pull(local, report);
+        // ревизию, которую курсор уже прошёл, спрашиваем у сервера по одному файлу
+        for (final file in _conflicts.toList()) {
+          final current = await remote.file(file);
+          if (current != null) await _apply(current, local, report);
+          _conflicts.remove(file);
+        }
         if (!await _push(local, report)) break;
       }
     } on _MassDelete {
@@ -188,7 +184,6 @@ class SyncEngine {
       // (Hetzner отдаёт отдельные объекты по две минуты) — файл откладывается, курсор
       // идёт дальше: иначе один файл держал бы все остальные
       await _each(page.changes, (change) async {
-        await heartbeat?.call();
         try {
           await _apply(change, local, report);
           if (waiting.contains(change.file)) await state.setPending(change.file, false);
@@ -207,15 +202,18 @@ class SyncEngine {
     final known = _known[change.file];
     if (known != null && change.rev <= known.rev) return;
     final meta = await key.openMeta(change.meta);
-    final mine = local[change.file];
+    // свежий взгляд на диск, а не снимок начала прохода: проход идёт минуты, а писатель
+    // за это время мог положить правку
+    final mine = await vault.stat(local[change.file]?.path ?? meta.path);
     final mineHash = mine == null ? null : await _hashOf(mine, known);
     final mineChanged = mine != null && (known == null || mineHash != known.hash);
 
     if (change.deleted) {
       if (mine != null && !mineChanged) {
-        await vault.delete(mine.path);
+        if (!await exclusive(() => vault.delete(mine.path, expect: mine))) throw const _Moved();
         local.remove(change.file);
         report.deleted++;
+        report.received.add(mine.path);
       }
       // надгробие: ревизия удаления. Правка здесь уйдёт поверх него, новый файл с тем же
       // именем — тоже, а не упрётся в отказ по ревизии
@@ -227,7 +225,7 @@ class SyncEngine {
     final path = mine?.path ?? meta.path;
     if (!mineChanged) {
       // здесь не правили или файл удалён здесь: правка оттуда побеждает удаление
-      await _download(change, meta, path, local, report);
+      await _download(change, meta, path, mine, local, report);
       return;
     }
     if (mineHash == meta.hash) {
@@ -247,7 +245,11 @@ class SyncEngine {
       } else {
         text = mergeJsonTables(base, ours, theirs, oursNewer: oursNewer);
       }
-      if (text != ours) await vault.write(path, Stream.value(utf8.encode(text)));
+      if (text != ours) {
+        final staged = await vault.stage(path, Stream.value(utf8.encode(text)));
+        if (!await exclusive(() => vault.place(staged, path, expect: mine))) throw const _Moved();
+        report.received.add(path);
+      }
       // запоминаем пришедшую ревизию: склеенный текст отличается от неё и уйдёт при отправке
       await _remember(change.file, path, change.rev, meta.hash, local, differs: text != theirs);
       await state.setShadow(change.file, theirs.length <= _shadowLimit ? theirs : null);
@@ -256,7 +258,7 @@ class SyncEngine {
     }
     // фото и прочее: побеждает свежее, прежнее остаётся ревизией на сервере
     if (meta.mtime >= mine.mtime) {
-      await _download(change, meta, path, local, report);
+      await _download(change, meta, path, mine, local, report);
     } else {
       await _put(SyncedFile(file: change.file, path: path, rev: change.rev, hash: meta.hash, size: -1, mtime: -1));
     }
@@ -270,16 +272,19 @@ class SyncEngine {
     return out;
   }
 
-  Future<void> _download(RemoteChange change, FileMeta meta, String path, Map<String, LocalFile> local, SyncReport report) async {
+  /// Скачать ревизию и поставить на место [path], если там всё ещё [mine].
+  Future<void> _download(RemoteChange change, FileMeta meta, String path, LocalFile? mine, Map<String, LocalFile> local, SyncReport report) async {
     // части скачиваются и открываются по одной: весь файл в памяти не держим
     Stream<List<int>> parts() async* {
       for (final blob in change.blobs) {
-        await heartbeat?.call();
         yield await key.openChunk(await remote.getBlob(blob));
       }
     }
 
-    await vault.write(path, parts());
+    // качаем без аренды, ставим на место под арендой: сверка ждёт одно переименование
+    final staged = await vault.stage(path, parts());
+    if (!await exclusive(() => vault.place(staged, path, expect: mine))) throw const _Moved();
+    report.received.add(path);
     final written = await _remember(change.file, path, change.rev, meta.hash, local);
     if (written != null && (_isNote(path) || _isMetaJson(path)) && written.size <= _shadowLimit) {
       await state.setShadow(change.file, utf8.decode(await vault.read(path, 0, written.size), allowMalformed: true));
@@ -408,6 +413,11 @@ class SyncEngine {
 
 /// С какого размера часть сперва ищется на сервере, а не отправляется сразу.
 const _askFirst = 256 * 1024;
+
+/// Файл поправили, пока качали: изменение откладывается, следующий проход склеит.
+class _Moved implements Exception {
+  const _Moved();
+}
 
 class _MassDelete implements Exception {
   const _MassDelete();
