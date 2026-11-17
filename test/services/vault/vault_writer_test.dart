@@ -34,6 +34,17 @@ void main() {
   Future<String?> pathOf(String id) async => (await (db.select(db.vaultFiles)..where((t) => t.itemId.equals(id))).getSingleOrNull())?.path;
   Future<List<String>> queue() async => [for (final row in await db.select(db.vaultQueue).get()) row.target];
 
+  test('заметка с очень длинным русским названием пишется: временный файл не выходит за 255 байт', () async {
+    // как семинар в College (248 байт имени файла) и чуть длиннее: 254 байта с «.md»
+    const title = 'Семинар №1. Морально-этические основы профессиональной деятельности. Предпосылки возникновения этики. Моральная концепция буддизма!!!!!!';
+    await note('long', title);
+    await writer().drain();
+    final path = await pathOf('long');
+    expect(path, isNotNull);
+    expect(file(path!).existsSync(), isTrue);
+    expect(await queue(), isEmpty);
+  });
+
   test('новая заметка появляется файлом в своей папке, с тегами; очередь пустая', () async {
     await note('a', 'Карбонара', folder: 'recipes', body: 'Карбонара\nгуанчиале');
     await db.into(db.tags).insert(TagsCompanion.insert(id: 't', name: 'паста', createdAt: now));

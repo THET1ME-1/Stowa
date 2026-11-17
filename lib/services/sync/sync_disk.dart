@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:path/path.dart' as p;
 
+import 'sync_crypto.dart' show sha256Hex;
 import 'sync_ports.dart';
 
 /// Файлы хранилища на диске для движка синхронизации.
@@ -51,8 +53,10 @@ class DiskSyncFiles implements SyncFiles {
   Future<String> stage(String path, Stream<List<int>> data) async {
     final target = _file(path);
     await target.parent.create(recursive: true);
-    // временный файл рядом и переименование: сверка и Obsidian видят файл только целым
-    final temp = File('${target.parent.path}/.${p.basename(target.path)}.sync.tmp');
+    // временный файл рядом и переименование: сверка и Obsidian видят файл только целым.
+    // Имя короткое: «.имя.sync.tmp» у заметки с длинным русским названием выходило за
+    // 255 байт (College, семинар по этике — 248 байт)
+    final temp = File('${target.parent.path}/.sync-${sha256Hex(utf8.encode(path)).substring(0, 16)}.tmp');
     final sink = temp.openWrite();
     try {
       await sink.addStream(data);

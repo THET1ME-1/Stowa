@@ -117,6 +117,15 @@ void main() {
     }
   });
 
+  test('файл с именем в 248 байт доезжает: временный файл приёма не длиннее предела', () async {
+    const name = 'Семинар №1. Морально-этические основы профессиональной деятельности. Предпосылки возникновения этики. Моральная концепция буддизма.md';
+    File(p.join(a.root.path, name)).writeAsStringSync('конспект\n');
+    await a.vault.run();
+    await b.vault.run();
+    expect(b.last!.error, isNull);
+    expect(File(p.join(b.root.path, name)).readAsStringSync(), contains('конспект'));
+  });
+
   test('схема 21 → 22: таблицы синхронизации появляются, данные на месте', () async {
     final file = File(p.join(a.root.path, '..', 'migrate_${DateTime.now().microsecondsSinceEpoch}.db'));
     addTearDown(() {
