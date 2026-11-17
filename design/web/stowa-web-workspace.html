@@ -535,7 +535,6 @@ kbd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; 
 <div class="ws" id="app">
   <header class="bar">
     <button class="icon-btn" id="tog-left" title="Левый док (Ctrl+[)"><span class="sym">left_panel_open</span></button>
-    <div class="presets" id="presets" role="group" aria-label="Раскладка"></div>
     <button class="icon-btn" id="tog-keys" title="Сочетания клавиш (?)"><span class="sym">keyboard</span></button>
     <button class="icon-btn" id="tog-right" title="Правый док (Ctrl+])"><span class="sym">right_panel_open</span></button>
   </header>
@@ -934,8 +933,8 @@ function renderCenter() {
   layoutPins();
 }
 function render() {
+  // готовых раскладок нет: окна собирают перетаскиванием вкладок
   renderCenter(); renderDocks();
-  $("#presets").innerHTML = Object.entries(PRESETS).map(([k, p]) => `<button data-preset="${k}" class="${L.preset === k ? "on" : ""}">${sym(p.i)}${p.t}</button>`).join("");
   saveLayout();
 }
 
@@ -1273,7 +1272,6 @@ const COMMANDS = [
   { g: "Вкладки и окна", id: "closepane", t: "Закрыть окно", i: "cancel", keys: ["Alt+Shift+W"], run: () => onePane() ? toast("Это единственное окно") : closePane(activeId) },
   { g: "Доки и раскладки", id: "left", t: "Левый док", i: "left_panel_open", keys: ["Ctrl+["], run: () => toggleDock("left") },
   { g: "Доки и раскладки", id: "right", t: "Правый док", i: "right_panel_open", keys: ["Ctrl+]"], run: () => toggleDock("right") },
-  ...Object.entries(PRESETS).map(([k, p], i) => ({ g: "Доки и раскладки", id: "preset-" + k, t: `Раскладка «${p.t}»`, i: p.i, keys: [`Alt+Shift+${i + 1}`], run: () => preset(k) })),
   { g: "Доки и раскладки", id: "theme", t: "Светлая или тёмная тема", i: "dark_mode", keys: ["Alt+Shift+L"], run: () => $("#theme").click() },
   { g: "Доки и раскладки", id: "settings", t: "Настройки", i: "settings", keys: ["Ctrl+,"], run: () => go("settings") },
 ];

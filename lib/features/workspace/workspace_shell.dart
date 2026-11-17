@@ -710,12 +710,25 @@ class _TabBody extends ConsumerWidget {
     'inbox' => const FolderScreen(folderId: null),
     'folder' => FolderScreen(folderId: tab.id),
     'item' => ItemScreen(id: tab.id!),
-    'settings' => Scaffold(body: WorkspaceSettings(section: tab.id)),
+    'settings' => const _SettingsTab(),
     'map' => const MapScreen(),
     'graph' => GraphScreen(title: L.of(context).graphTitle),
     'later' => const ReturnScreen(kind: ReturnKind.watchLater),
     _ => const SizedBox.shrink(),
   };
+}
+
+/// Настройки. Страница навигатора строится один раз, а раздел меняется: он берётся
+/// из раскладки при каждой перерисовке.
+class _SettingsTab extends StatelessWidget {
+  const _SettingsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = WorkspaceScope.of(context).workspace;
+    final tab = [for (final pane in ws.panes) ...pane.tabs].where((tab) => tab.kind == 'settings').firstOrNull;
+    return Scaffold(body: WorkspaceSettings(section: tab?.id));
+  }
 }
 
 /// Главная: плитка заметок. Строка ввода — общая, под всеми окнами.
