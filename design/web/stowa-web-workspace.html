@@ -294,35 +294,69 @@ kbd { display: inline-grid; place-items: center; min-width: 24px; height: 24px; 
 .set-nav { position: sticky; top: 0; display: grid; gap: 2px; }
 .set-find { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; margin-bottom: 8px; border-radius: 100px; background: var(--c); color: var(--muted); }
 .set-find input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 14px; }
-.set-nav button { display: flex; align-items: center; gap: 11px; height: 38px; padding: 0 12px; border-radius: 12px; font-size: 14px; color: var(--on-var); text-align: left; white-space: nowrap; }
+/* как в приложении (settings_blocks.dart): цвет значков у каждой группы свой, из палитры папок */
+[data-tint="coral"] { --t: #FFA098; } [data-tint="tangerine"] { --t: #F7A974; } [data-tint="amber"] { --t: #FEC766; }
+[data-tint="lemon"] { --t: #E1D569; } [data-tint="lime"] { --t: #B5E285; } [data-tint="mint"] { --t: #76D5A4; }
+[data-tint="teal"] { --t: #51D5CE; } [data-tint="sky"] { --t: #5FCDF5; } [data-tint="blue"] { --t: #92BFFF; }
+[data-tint="violet"] { --t: #BCB1FF; } [data-tint="orchid"] { --t: #DFA5EC; } [data-tint="rose"] { --t: #F89EC1; }
+/* круглый значок: цвет группы на его же приглушённой подложке (22%), в светлой теме знак темнее */
+.ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex: none;
+  background: color-mix(in oklab, var(--t) 22%, var(--c)); color: color-mix(in oklab, var(--t) var(--ink), #000); }
+.ic .sym { font-size: 22px; font-variation-settings: "FILL" 1, "opsz" 24; }
+.ic.s { width: 32px; height: 32px; }
+.ic.s .sym { font-size: 18px; }
+.set-nav button { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 4px 12px 4px 6px; border-radius: 100px; font-size: 14px; color: var(--on-var); text-align: left; white-space: nowrap; }
 .set-nav button:hover { background: var(--c); color: var(--on); }
 .set-nav button.on { background: var(--c-high); color: var(--on); font-weight: 600; }
-.set-nav button .sym { font-size: 19px; }
 .set-nav .web { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 2px 6px; border-radius: 6px; background: var(--c-highest); color: var(--on-var); }
-.set-body h1 { font: 700 26px/1.2 var(--display); letter-spacing: -.02em; margin: 2px 0 6px; }
-.set-body .lead { color: var(--muted); font-size: 14px; margin: 0 0 20px; max-width: 62ch; }
-/* подложка группы — полупрозрачная: видна и в активном окне, и в приглушённом */
-.set-group { border-radius: var(--r-tile); background: color-mix(in oklab, var(--on) 5%, transparent); padding: 4px; margin-bottom: 18px; }
-.set-gh { font-size: 12px; font-weight: 600; color: var(--muted); padding: 10px 14px 4px; }
-.set-row { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 8px 12px 8px 14px; border-radius: 16px; }
-.set-row + .set-row { margin-top: 2px; }
-.set-row:hover { background: color-mix(in oklab, var(--on) 4%, transparent); }
-.set-row > .sym { color: var(--on-var); font-size: 21px; flex: none; }
-.set-t { flex: 1; min-width: 0; font-size: 15px; }
-.set-t small { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 1px; }
-.set-v { color: var(--on-var); font-size: 14px; display: inline-flex; align-items: center; gap: 4px; flex: none; }
+.set-body h1 { font: 700 26px/1.2 var(--display); letter-spacing: -.02em; margin: 2px 0 0; }
+/* заголовок группы заглавными, как SettingsSection */
+.set-gh { font-size: 12px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--on-var); padding: 26px 8px 10px; }
+/* каждая строка — свой блок: крайние скруглены крупно (28), средние слегка (8), между ними щель 4 */
+.set-group { display: grid; gap: 4px; }
+.set-row { display: flex; align-items: center; gap: 16px; min-height: 68px; padding: 12px 12px 12px 16px; border-radius: 8px; background: var(--c-high); }
+.set-group > .set-row:first-child, .set-group > .set-gh + .set-row { border-top-left-radius: 28px; border-top-right-radius: 28px; }
+.set-group > .set-row:last-child { border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; }
 .set-row.link { cursor: pointer; }
-.switch { width: 52px; height: 32px; border-radius: 100px; background: var(--c-highest); position: relative; flex: none; transition: background .15s; }
-.switch::after { content: ""; position: absolute; top: 8px; left: 8px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); transition: all .18s cubic-bezier(.2, 0, 0, 1); }
-.switch.on { background: var(--accent); }
-.switch.on::after { left: 24px; top: 4px; width: 24px; height: 24px; background: var(--on-accent); }
+.set-row.link:hover, .set-row:has(.switch):hover { background: color-mix(in oklab, var(--on) 5%, var(--c-high)); }
+.set-t { flex: 1; min-width: 0; font-size: 16px; font-weight: 600; }
+.set-t small { display: block; color: var(--on-var); font-size: 14px; font-weight: 400; line-height: 1.4; margin-top: 2px; }
+.set-v { color: var(--muted); display: inline-flex; align-items: center; flex: none; }
+.set-v .sym { font-size: 22px; }
+/* переключатель M3: выключенный — дорожка с обводкой и маленький круг */
+.switch { width: 52px; height: 32px; border-radius: 100px; background: var(--c-highest); border: 2px solid var(--muted); position: relative; flex: none; transition: background .15s, border-color .15s; }
+.switch::after { content: ""; position: absolute; top: 6px; left: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); transition: all .18s cubic-bezier(.2, 0, 0, 1); }
+.switch.on { background: var(--accent); border-color: var(--accent); }
+.switch.on::after { left: 22px; top: 2px; width: 24px; height: 24px; background: var(--on-accent); }
 .seg2 { display: inline-flex; gap: 3px; padding: 3px; border-radius: 100px; background: var(--c-highest); flex: none; }
-.seg2 button { height: 32px; padding: 0 14px; border-radius: 100px; font-size: 13px; color: var(--on-var); }
+.seg2 button { height: 34px; padding: 0 14px; border-radius: 100px; font-size: 13px; color: var(--on-var); }
 .seg2 button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
-.swatches { display: flex; gap: 8px; flex: none; }
-.swatches button { width: 28px; height: 28px; border-radius: 50%; background: var(--sw); }
-.swatches button.on { outline: 2px solid var(--on); outline-offset: 2px; }
-.set-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; background: color-mix(in oklab, var(--on) 5%, transparent); color: var(--on-var); font-size: 13px; margin-bottom: 18px; }
+/* блок раздела (как _Block в «Оформлении»): та же ступень и скругление 28 */
+.set-block { padding: 16px; border-radius: 28px; background: var(--c-high); }
+.set-block .cap { font-size: 16px; font-weight: 500; margin-top: 12px; }
+.set-block .hint { color: var(--on-var); font-size: 13px; line-height: 1.4; margin-top: 8px; }
+.modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.modes button { height: 52px; border-radius: 100px; background: var(--c-highest); color: var(--on-var); display: grid; place-items: center; transition: border-radius .2s, background .2s; }
+.modes button .sym { font-size: 24px; }
+.modes button.on { background: var(--accent); color: var(--on-accent); border-radius: 18px; }
+.modes button.on .sym { font-variation-settings: "FILL" 1, "opsz" 24; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; }
+.choices button { min-height: 48px; border-radius: 100px; background: var(--c-highest); color: var(--on-var); font-size: 14px; font-weight: 500; }
+.choices button.on { background: var(--accent); color: var(--on-accent); border-radius: 16px; }
+/* образцы цвета 48: четыре доли схемы от цвета, у выбранного кольцо */
+/* как цвет папки (folder_look_screen.dart): круг оттенков и пять последних одной строкой */
+.swatches { display: grid; grid-template-columns: repeat(6, minmax(0, 56px)); gap: 10px; }
+.swatches button { aspect-ratio: 1; border-radius: 50%; padding: 0; border: 2px solid transparent; background: var(--sw); background-clip: content-box; transition: padding .15s; display: grid; place-items: center; color: #1a1a1a; }
+.swatches button.on { padding: 4px; border-color: var(--on); }
+.swatches button .sym { font-size: 20px; font-variation-settings: "wght" 600; }
+.swatches .wheel { background: conic-gradient(from 90deg, #FFA098, #FEC766, #B5E285, #51D5CE, #92BFFF, #DFA5EC, #FFA098); }
+.swatches .wheel span { width: 50%; height: 50%; border-radius: 50%; background: var(--page); color: var(--on); display: grid; place-items: center; }
+.swatches .wheel .sym { font-size: 18px; }
+/* статус наверху раздела (как «Выключен» в «Разборе ИИ») */
+.set-status { padding: 18px; border-radius: 28px; background: var(--c-high); margin-top: 18px; }
+.set-status .pill { display: inline-block; padding: 8px 16px; border-radius: 100px; background: var(--c-highest); font-weight: 600; font-size: 15px; }
+.set-status p { margin: 12px 0 0; color: var(--on-var); font-size: 16px; line-height: 1.5; }
+.set-note { display: flex; gap: 10px; align-items: flex-start; padding: 8px 4px 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .set-note .sym { font-size: 18px; }
 /* сочетания: у действия несколько сочетаний-фишек; фишка — заменить, крестик — убрать, плюс — ещё одно */
 .chord { display: inline-flex; align-items: center; gap: 3px; padding: 3px 3px 3px 4px; border-radius: 10px; background: var(--c-highest); cursor: pointer; }
@@ -1321,99 +1355,112 @@ $("#tog-keys").onclick = () => go("settings-keys");
    Разделы те же, что в приложении. Чисто телефонное (Под рукой, виджеты, Enter
    клавиатуры телефона) сюда не попадает, а «Сочетания клавиш» есть только здесь. */
 const SET_SAVE = "stowa-web-settings-v1";
-const SET = Object.assign({ theme: "system", color: "graphite", density: "normal", width: "narrow", aiFirst: true, returns: true, webPush: false,
+const SET = Object.assign({ theme: "system", seed: null, vibrant: true, amoled: false, density: "normal", width: "narrow", aiFirst: false, recent: ["graphite", "violet", "teal", "coral", "amber"], returns: true, webPush: false,
   place: true, adult: false, crash: true, articleImages: true, send: "enter", pairs: true, start: "tabs", lang: "ru", hints: true },
   (() => { try { return JSON.parse(store.get(SET_SAVE)) || {}; } catch { return {}; } })());
 const saveSet = () => store.set(SET_SAVE, JSON.stringify(SET));
+/* разделы и цвет их значков — те же, что у групп в settings_screen.dart */
 const SECTIONS = [
-  ["vault", "Хранилище", "folder"], ["sync", "Stowa Sync", "cloud_sync"], ["look", "Оформление", "palette"],
-  ["ai", "Разбор ИИ", "auto_awesome"], ["notify", "Уведомления", "notifications"], ["outside", "Снаружи", "send"],
-  ["order", "Теги, папки и правила", "label"], ["data", "Данные", "database"], ["import", "Перенос", "move_down"],
-  ["line", "Поле ввода", "keyboard_return"], ["keys", "Сочетания клавиш", "keyboard", true], ["start", "Запуск", "start"],
-  ["lang", "Язык", "translate"], ["help", "Помощь", "help"],
+  ["vault", "Хранилище", "folder", "teal"], ["sync", "Stowa Sync", "cloud_sync", "sky"], ["look", "Оформление", "palette", "rose"],
+  ["ai", "Разбор ИИ", "auto_awesome", "violet"], ["notify", "Уведомления", "replay", "violet"], ["outside", "Снаружи", "send", "sky"],
+  ["order", "Теги, папки и правила", "label", "amber"], ["data", "Данные", "delete", "teal"], ["import", "Перенос", "move_down", "sky"],
+  ["line", "Поле ввода", "keyboard_return", "teal"], ["keys", "Сочетания клавиш", "keyboard", "blue", true], ["start", "Запуск", "start", "lime"],
+  ["lang", "Язык", "translate", "orchid"], ["help", "Помощь", "flag", "coral"],
 ];
+const ic = (icon, small) => `<span class="ic ${small ? "s" : ""}">${sym(icon, 1)}</span>`;
 const swt = key => `<button class="switch ${SET[key] ? "on" : ""}" data-set="${key}" role="switch" aria-checked="${!!SET[key]}"></button>`;
 const seg = (key, opts) => `<div class="seg2">${opts.map(([v, t]) => `<button class="${SET[key] === v ? "on" : ""}" data-seg="${key}:${v}">${t}</button>`).join("")}</div>`;
-const val = t => `<span class="set-v">${t}${sym("chevron_right")}</span>`;
-const row = (icon, title, hint, ctl = "", link = "") => `<div class="set-row ${link ? "link" : ""}" ${link ? `data-act="${link}"` : ""}>${sym(icon)}<span class="set-t">${title}${hint ? `<small>${hint}</small>` : ""}</span>${ctl}</div>`;
-const group = (title, rows) => `<div class="set-group">${title ? `<div class="set-gh">${title}</div>` : ""}${rows.join("")}</div>`;
+const val = () => `<span class="set-v">${sym("chevron_right")}</span>`;
+/* строка как SettingsRow: круглый значок, название крупно, значение подписью под ним, стрелка */
+const row = (icon, title, hint, ctl = "", link = "") => `<div class="set-row ${link ? "link" : ""}" ${link ? `data-act="${link}"` : ""}>${ic(icon)}<span class="set-t">${title}${hint ? `<small>${hint}</small>` : ""}</span>${ctl}</div>`;
+const go1 = (icon, title, value, act) => row(icon, title, value, val(), act || "toast:" + title);
+/* группа: заголовок заглавными над блоками, цвет значков группы */
+const group = (title, tint, rows) => (title ? `<div class="set-gh">${title}</div>` : `<div style="height:18px"></div>`) + `<div class="set-group" data-tint="${tint}">${rows.join("")}</div>`;
+
+const SEEDS = [["coral", "Коралл", "#FFA098"], ["amber", "Янтарь", "#FEC766"], ["lime", "Лайм", "#B5E285"], ["mint", "Мята", "#76D5A4"],
+  ["teal", "Бирюза", "#51D5CE"], ["blue", "Синий", "#92BFFF"], ["violet", "Фиалка", "#BCB1FF"], ["rose", "Роза", "#F89EC1"]];
+/* образец — четыре доли схемы от цвета, как _SeedSwatch: светлая, насыщенная, два соседних оттенка */
+const GRAPHITE_SW = "conic-gradient(#F4F4F2 0 25%, #26272B 0 50%, #333438 0 75%, #DCDCD9 0)";
+const MODES = [["light", "light_mode", "Светлая"], ["dark", "dark_mode", "Тёмная"], ["system", "brightness_auto", "Как в системе"], ["bytime", "schedule", "По времени суток"]];
+
+function lookSection() {
+  const mode = MODES.find(m => m[0] === SET.theme) || MODES[1];
+  const seedName = SET.seed ? SEEDS.find(s => s[0] === SET.seed)?.[1] || "Свой цвет" : "Графит";
+  const dark = document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && !matchMedia("(prefers-color-scheme: light)").matches);
+  return `<div class="set-gh">Тема</div>
+    <div class="set-block"><div class="modes">${MODES.map(([k, i, t]) => `<button class="${SET.theme === k ? "on" : ""}" data-seg="theme:${k}" title="${t}">${sym(i, SET.theme === k)}</button>`).join("")}</div>
+      <div class="cap">${mode[2]}</div>${SET.theme === "bytime" ? `<div class="hint">Светлая днём, тёмная после заката.</div>` : ""}</div>
+    <div class="set-gh">Цвет</div>
+    <div class="set-block"><div class="swatches">
+        <button class="wheel" data-act="toast:Круг оттенков: любой цвет, HEX и RGB" title="Свой цвет"><span>${sym("add")}</span></button>
+        ${SET.recent.map(k => { const s = SEEDS.find(x => x[0] === k); const on = (SET.seed || "graphite") === k;
+          return `<button class="${on ? "on" : ""}" style="--sw:${s ? s[2] : GRAPHITE_SW};${s ? "" : "color:#fff"}" data-seg="seed:${k === "graphite" ? "" : k}" title="${s ? s[1] : "Графит"}">${on ? sym("check") : ""}</button>`; }).join("")}
+      </div>
+      <div class="cap">${seedName}</div>
+      ${SET.seed ? `<div class="choices"><button class="${SET.vibrant ? "on" : ""}" data-seg="vibrant:1">Сочно</button><button class="${!SET.vibrant ? "on" : ""}" data-seg="vibrant:">Точь-в-точь</button></div>
+        <div class="hint">«Сочно» подкрашивает и фон, «Точь-в-точь» оставляет его серым.</div>` : ""}
+    </div>
+    ${dark ? group("", "rose", [row("contrast", "Чёрный фон", "Чистый чёрный для экранов AMOLED, бережёт заряд", swt("amoled"))]) : ""}
+    ${group("Только в веб-версии", "blue", [
+      row("density_medium", "Плотность", "Сколько заметок помещается в окне", seg("density", [["normal", "Обычно"], ["compact", "Плотно"]])),
+      row("width", "Ширина текста заметки", "Широкое окно не растягивает строки на весь экран", seg("width", [["narrow", "Удобно читать"], ["wide", "Во всю ширину"]])),
+    ])}`;
+}
 
 function settingsSection(id) {
   switch (id) {
-    case "vault": return group("Открытое хранилище", [
-        row("folder", "Мои заметки", "~/Документы/Мои заметки · 218 заметок · 7 папок", val("Сменить"), "toast:Выбор папки откроется в окне браузера"),
-        row("folder_open", "Открыть другую папку", "Хранилище Obsidian или прежнее хранилище Stowa", val(""), "toast:Выбор папки"),
-      ]) + group("Копия", [
-        row("save", "Сохранить копию", "Один файл со всеми заметками и вложениями", val(""), "toast:Копия собирается…"),
-        row("description", "Выгрузить в Markdown", "Папка с файлами .md, как в Obsidian", val(""), "toast:Выгрузка в Markdown"),
-        row("refresh", "Пересобрать указатель", "Если поиск находит не всё", val(""), "toast:Указатель пересобирается"),
+    case "vault": return group("Открытое хранилище", "teal", [
+        go1("folder", "Мои заметки", "~/Документы/Мои заметки · 218 заметок"),
+        go1("folder_open", "Открыть другую папку", "Хранилище Obsidian или прежнее хранилище Stowa"),
+      ]) + group("Копия", "teal", [
+        go1("save", "Сохранить копию", "Один файл со всеми заметками и вложениями"),
+        go1("description", "Выгрузить в Markdown", "Папка с файлами .md, как в Obsidian"),
+        go1("refresh", "Пересобрать указатель", "Если поиск находит не всё"),
       ]);
-    case "sync": return group("Аккаунт", [
-        row("mail", "alex@example.com", "Синхронизировано в 18:20 · подписка до 17 ноября 2027", `<span class="set-v">Stowa+</span>`),
-        row("sync", "Синхронизировать сейчас", "", val(""), "toast:Синхронизация…"),
-      ]) + group("Устройства", [
+    case "sync": return group("Аккаунт", "sky", [
+        row("mail", "alex@example.com", "Синхронизировано в 18:20"),
+        go1("sync", "Синхронизировать сейчас", ""),
+      ]) + group("Устройства", "sky", [
         row("smartphone", "Xiaomi 15T", "2 минуты назад"), row("phone_iphone", "iPhone 16", "вчера"), row("laptop", "Этот браузер", "сейчас"),
-      ]) + group("", [row("logout", "Выйти", "Заметки на этом компьютере останутся на месте.", "", "toast:Вы вышли из аккаунта")]);
-    case "look": return group("", [
-        row("contrast", "Тема", "", seg("theme", [["system", "Как в системе"], ["light", "Светлая"], ["dark", "Тёмная"]])),
-        row("palette", "Цвет", "", `<div class="swatches">${[["graphite", "#5F6066"], ["sea", "#5FCDF5"], ["sage", "#76D5A4"], ["rose", "#F89EC1"], ["sun", "#FEC766"]]
-          .map(([k, c]) => `<button class="${SET.color === k ? "on" : ""}" style="--sw:${c}" data-seg="color:${k}" title="${k}"></button>`).join("")}</div>`),
-      ]) + group("Только в веб-версии", [
-        row("density_medium", "Плотность", "Сколько заметок помещается в окне", seg("density", [["normal", "Обычно"], ["compact", "Плотно"]])),
-        row("width", "Ширина текста заметки", "Широкое окно не растягивает строки на весь экран", seg("width", [["narrow", "Удобно читать"], ["wide", "Во всю ширину"]])),
+      ]) + group("", "rose", [go1("logout", "Выйти", "Заметки на этом компьютере останутся на месте.")]);
+    case "look": return lookSection();
+    case "ai": return `<div class="set-status"><span class="pill">Выключен</span><p>Вставь свой ключ, и заметки без папки разложатся сами.</p></div>` + group("", "violet", [
+        go1("key", "Ключ", "Не задан"),
+        go1("dns", "Поставщик", "openrouter.ai"),
+        go1("category", "Модель разбора", "nemotron-3.5-super-vl"),
+        row("auto_awesome", "ИИ в приоритете", "Модель проверяет и то, что приложение разложило само, запросов станет больше", swt("aiFirst")),
+        go1("graphic_eq", "Расшифровка голосовых", "Выключена"),
+        go1("receipt_long", "Журнал запросов", ""),
       ]);
-    case "ai": return group("", [
-        row("key", "Ключ", "Хранится на этом компьютере", val("Задан"), "toast:Ключ"),
-        row("dns", "Поставщик", "", val("openrouter.ai"), "toast:Поставщик"),
-        row("category", "Модель разбора", "", val("gemini-2.5-flash"), "toast:Модель"),
-        row("auto_awesome", "ИИ в приоритете", "Модель проверяет и то, что разложено без неё.", swt("aiFirst")),
-        row("graphic_eq", "Расшифровка голосовых", "", val("whisper-large"), "toast:Модель расшифровки"),
-        row("receipt_long", "Журнал запросов", "", val(""), "toast:Журнал откроется вкладкой"),
-      ]);
-    case "notify": return group("", [
+    case "notify": return group("", "violet", [
         row("replay", "Вернуть к незаконченному", "Статья, ролик, список — напомню вернуться", swt("returns")),
-        row("notifications_active", "Уведомления браузера", "Напоминания придут, даже если вкладка свёрнута. Спросит разрешение у браузера.", swt("webPush")),
+      ]) + group("Только в веб-версии", "blue", [
+        row("notifications_active", "Уведомления браузера", "Напоминания придут, даже если вкладка свёрнута", swt("webPush")),
       ]);
-    case "outside": return group("", [
-        row("send", "Свой бот Telegram", "Пересланное боту ложится во «Входящие»", val("@stowa_alex_bot"), "toast:Бот"),
-      ]) + `<div class="set-note">${sym("smartphone")}<span>«Под рукой», виджеты и «Поделиться» живут в приложении на телефоне.</span></div>`;
-    case "order": return group("", [
-        row("label", "Теги", "6 тегов", val(""), "toast:Теги откроются вкладкой"),
-        row("folder", "Папки", "7 папок", val(""), "toast:Папки откроются вкладкой"),
-        row("rule", "Правила разбора", "Куда класть по словам и тегам", val(""), "toast:Правила откроются вкладкой"),
-      ]);
-    case "data": return group("", [
-        row("delete", "Корзина", "Удалённое лежит 30 дней", val("5"), "toast:Корзина откроется вкладкой"),
-        row("location_on", "Запоминать, где сохранено", "Место по данным браузера, если разрешите", swt("place")),
-        row("explicit", "Показывать 18+", "", swt("adult")),
-        row("calendar_month", "Название фото и видео", "", val("По дате съёмки"), "toast:Название"),
-        row("bug_report", "Отчёты об ошибках", "Без текста заметок", swt("crash")),
-      ]) + group("Статьи", [
-        row("image", "Картинки статей", "Скачивать вместе с текстом", swt("articleImages")),
-        row("link_off", "Битые ссылки", "3 ссылки больше не открываются", val("3"), "toast:Битые ссылки"),
-      ]);
-    case "import": return group("Перенести заметки", [
-        row("description", "Из Obsidian", "Открыть папку хранилища как есть", val(""), "toast:Перенос"),
-        row("article", "Из Notion", "Выгрузка Markdown и CSV", val(""), "toast:Перенос"),
-        row("sticky_note_2", "Из Google Keep", "Архив Google Takeout", val(""), "toast:Перенос"),
-        row("send", "Из Telegram", "Избранное и каналы — выгрузка Telegram Desktop", val(""), "toast:Перенос"),
-      ]);
-    case "line": return group("", [
+    case "outside": return group("", "sky", [go1("send", "Свой бот Telegram", "@stowa_alex_bot")])
+        + `<div class="set-note">${sym("smartphone")}<span>«Под рукой», виджеты и «Поделиться» — в приложении на телефоне.</span></div>`;
+    case "order": return group("", "amber", [go1("label", "Теги, папки и правила", "")]);
+    case "data": return group("", "teal", [go1("delete", "Корзина", "5")])
+      + group("", "mint", [row("location_on", "Запоминать, где сохранено", "Место по данным браузера, если разрешите", swt("place"))])
+      + group("", "coral", [row("explicit", "Показывать 18+", "", swt("adult"))])
+      + group("", "sky", [go1("calendar_month", "Название фото и видео", "По дате съёмки")])
+      + group("", "amber", [row("bug_report", "Отчёты об ошибках", "Без текста заметок", swt("crash"))])
+      + group("Статьи", "lemon", [row("image", "Картинки статей", "Скачивать вместе с текстом", swt("articleImages")), go1("link_off", "Битые ссылки", "3")]);
+    case "import": return group("", "sky", [go1("move_down", "Перенос", "Obsidian, Notion, Google Keep, Telegram")]);
+    case "line": return group("", "teal", [
         row("keyboard_return", "Чем отправлять", "Второе сочетание делает новую строку", seg("send", [["enter", "Enter"], ["ctrl", "Ctrl+Enter"]])),
         row("format_quote", "Парные кавычки и скобки", "Открыл « — закрывающая встанет сама", swt("pairs")),
       ]);
     case "keys": return keysSection();
-    case "start": return group("", [
-        row("start", "Открывать", "", seg("start", [["tabs", "Прошлые вкладки"], ["home", "Главную"], ["line", "Строку"]])),
-      ]);
-    case "lang": return group("", [["system", "Как в браузере"], ["ru", "Русский"], ["en", "English"], ["uk", "Українська"], ["ro", "Română"], ["pl", "Polski"], ["de", "Deutsch"], ["es", "Español"]]
+    case "start": return group("", "lime", [row("start", "Открывать", "", seg("start", [["tabs", "Прошлые вкладки"], ["home", "Главную"], ["line", "Строку"]]))]);
+    case "lang": return group("", "orchid", [["system", "Как в браузере"], ["ru", "Русский"], ["en", "English"], ["uk", "Українська"], ["ro", "Română"], ["pl", "Polski"], ["de", "Deutsch"], ["es", "Español"]]
         .map(([k, t]) => row(SET.lang === k ? "radio_button_checked" : "radio_button_unchecked", t, "", "", "lang:" + k)));
-    case "help": return group("", [
-        row("flag", "Сообщить о проблеме", "", val(""), "toast:Форма откроется вкладкой"),
-        row("mail", "Написать в поддержку", "", val("support@stowa.work"), "toast:Откроется почта"),
-        row("policy", "Политика конфиденциальности", "", val(""), "toast:Откроется сайт"),
+    case "help": return group("", "coral", [
+        go1("flag", "Сообщить о проблеме", ""),
+        go1("mail", "Написать в поддержку", "support@stowa.work"),
+        go1("policy", "Политика конфиденциальности", ""),
         row("tips_and_updates", "Подсказки", "", swt("hints")),
-        row("replay", "Начать знакомство заново", "", val(""), "toast:Знакомство начнётся с главной"),
+        go1("replay", "Начать знакомство заново", ""),
       ]);
   }
   return "";
@@ -1428,7 +1475,7 @@ function keysSection() {
   return `<div class="set-note">${sym("info")}<span>Одна клавиша без Ctrl и Alt срабатывает, когда курсор не в поле ввода. Клавиши ловятся по месту на клавиатуре — в любой раскладке.
       Ctrl+N, Ctrl+T, Ctrl+W, Ctrl+Tab браузер оставляет себе.</span></div>
     ${changed ? `<div style="margin:-6px 0 14px"><button class="seg" data-resetall style="background:var(--c);">${sym("restart_alt")}Вернуть все как было · изменено ${changed}</button></div>` : ""}
-    ${groups.map(g => group(g, COMMANDS.filter(c => c.g === g).map(c => {
+    ${groups.map(g => group(g, "blue", COMMANDS.filter(c => c.g === g).map(c => {
       const keys = keysOf(c);
       const chips = keys.map((k, i) => recording && recording.id === c.id && recording.i === i
         ? `<span class="chord rec">Нажмите сочетание · Esc — отмена</span>`
@@ -1446,7 +1493,7 @@ function viewSettings(sec) {
   return `<div class="set">
     <nav class="set-nav" aria-label="Разделы настроек">
       <label class="set-find">${sym("search")}<input data-setfind placeholder="Найти настройку" autocomplete="off"></label>
-      ${SECTIONS.map(([id, t, i, web]) => `<button class="${id === sec ? "on" : ""}" data-setsec="${id}">${sym(i)}${t}${web ? '<span class="web">ВЕБ</span>' : ""}</button>`).join("")}
+      ${SECTIONS.map(([id, t, i, tint, web]) => `<button class="${id === sec ? "on" : ""}" data-setsec="${id}" data-tint="${tint}">${ic(i, 1)}${t}${web ? '<span class="web">ВЕБ</span>' : ""}</button>`).join("")}
     </nav>
     <div class="set-body">
       ${SECTIONS.map(([id, t]) => `<section data-sec="${id}" ${id === sec ? "" : "hidden"}><h1>${t}</h1>${settingsSection(id)}</section>`).join("")}
@@ -1476,7 +1523,7 @@ document.addEventListener("click", e => {
   const sw = t.closest("[data-set]");
   if (sw) { SET[sw.dataset.set] = !SET[sw.dataset.set]; saveSet(); render(); return; }
   const sg = t.closest("[data-seg]");
-  if (sg) { const [k, v] = sg.dataset.seg.split(":"); SET[k] = v; saveSet(); if (k === "theme") { applyTheme(v === "system" ? null : v); if (v === "system") delete document.documentElement.dataset.theme; } render(); return; }
+  if (sg) { const [k, v] = sg.dataset.seg.split(":"); SET[k] = v; saveSet(); if (k === "theme") { applyTheme(v === "system" || v === "bytime" ? null : v); if (v === "system" || v === "bytime") delete document.documentElement.dataset.theme; } render(); return; }
   const act = t.closest("[data-act]");
   if (act && !t.closest("[data-set],[data-seg]")) { const [kind, arg] = act.dataset.act.split(":"); if (kind === "toast") toast(arg); if (kind === "lang") { SET.lang = arg; saveSet(); render(); } return; }
   const un = t.closest("[data-unchord]");
