@@ -91,12 +91,13 @@ class SyncEngine {
 
   /// Сделать [work] для каждого, по [parallel] разом. Первая ошибка — после того,
   /// как начатые доделались: память о файлах не остаётся наполовину записанной.
-  Future<void> _each<T>(List<T> items, Future<void> Function(T item) work) async {
+  /// [keepGoing] — после ошибки доделать и остальные, ошибку отдать в конце.
+  Future<void> _each<T>(List<T> items, Future<void> Function(T item) work, {bool keepGoing = false}) async {
     var next = 0;
     Object? failure;
     StackTrace? trace;
     Future<void> worker() async {
-      while (failure == null && next < items.length) {
+      while ((keepGoing || failure == null) && next < items.length) {
         final item = items[next++];
         try {
           await work(item);
@@ -168,11 +169,12 @@ class SyncEngine {
     var cursor = await state.cursor();
     while (true) {
       final page = await remote.changes(cursor);
-      // в странице каждый файл один раз: файлы приходят параллельно
+      // в странице каждый файл один раз: файлы приходят параллельно. Один застрял в бакете —
+      // остальные всё равно ложатся, а курсор стоит, пока не придёт и он
       await _each(page.changes, (change) async {
         await heartbeat?.call();
         await _apply(change, local, report);
-      });
+      }, keepGoing: true);
       cursor = page.cursor;
       await state.setCursor(cursor);
       if (!page.more) break;

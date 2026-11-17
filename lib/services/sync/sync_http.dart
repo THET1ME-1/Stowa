@@ -108,6 +108,9 @@ class SyncAccountApi {
   }
 }
 
+/// Сколько ждать ответа на часть: сервер ждёт бакет до 155 секунд, плюс сама передача.
+const _blobTimeout = Duration(minutes: 4);
+
 /// Порт движка поверх HTTP.
 class HttpSyncRemote implements SyncRemote {
   HttpSyncRemote(this._client, this._token, {this.base = syncServer});
@@ -162,13 +165,14 @@ class HttpSyncRemote implements SyncRemote {
 
   @override
   Future<void> putBlob(String hash, List<int> data) async {
-    final response = await _send(() => _client.put(Uri.parse('$base/v1/blobs/$hash'), headers: {..._auth, 'content-type': 'application/octet-stream'}, body: data), const Duration(minutes: 3));
+    // сервер сам ждёт бакет Hetzner до 155 секунд: телефону ждать дольше
+    final response = await _send(() => _client.put(Uri.parse('$base/v1/blobs/$hash'), headers: {..._auth, 'content-type': 'application/octet-stream'}, body: data), _blobTimeout);
     _check(response, [204]);
   }
 
   @override
   Future<List<int>> getBlob(String hash) async {
-    final response = await _send(() => _client.get(Uri.parse('$base/v1/blobs/$hash'), headers: _auth), const Duration(minutes: 3));
+    final response = await _send(() => _client.get(Uri.parse('$base/v1/blobs/$hash'), headers: _auth), _blobTimeout);
     _check(response);
     return response.bodyBytes;
   }
