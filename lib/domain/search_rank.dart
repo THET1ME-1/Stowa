@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'language_guess.dart' show guessLanguage;
 import 'line_query.dart';
@@ -159,56 +160,82 @@ const _typo = 0.6;
 /// Короче основа формой не считается: «паро» — это начало «пароля», а не форма «пары».
 const _formStem = 4;
 
-// куски текста, где нашлось слово запроса в любом из его вариантов; [language] — язык заметки,
-// если у него есть правила Snowball: тогда форма — и то, что они сводят к одной основе («chevaux» — «cheval»)
-({double strength, List<TextMark> marks}) _hitsIn(String text, QueryWord query, String? language) {
-  var strength = 0.0;
-  final marks = <TextMark>[];
+/// Слова поля заметки: свёрнутый текст и границы слов парами (начало, конец). Свёртка
+/// длину не меняет — начала совпадают с исходным текстом.
+typedef _Tokens = (String folded, Int32List spans);
+
+_Tokens _tokens(String text) {
   final folded = foldText(text);
-  for (final match in wordMatches(folded)) {
-    final word = match.group(0)!;
-    var best = 0.0;
-    var length = 0;
-    for (final (index, variant) in query.variants.indexed) {
-      final wanted = variant.text;
-      final base = stemOf(wanted);
-      var hit = 0.0;
-      var span = 0;
-      if (word == wanted) {
-        hit = _exact;
-        span = word.length;
-      } else if (word.startsWith(base)) {
-        final form = base.length >= _formStem && stemOf(word) == base;
-        final typed = word.startsWith(wanted);
-        hit = form ? _form : (typed ? _typed : _stemStart);
-        span = typed ? wanted.length : base.length;
-        while (span < word.length && span < wanted.length && word[span] == wanted[span]) {
-          span++;
-        }
-      } else if (language != null && _sameLanguageStem(word, wanted, language)) {
-        hit = _form;
-        span = word.length;
-      } else if (index == 0 &&
-          wanted.length >= 4 &&
-          // короткое слово текста — не опечатка длинного запроса: «лей» не «клей»
-          word.length >= 4 &&
-          (nearWords(word.substring(0, min(word.length, wanted.length)), wanted) || nearWords(word.substring(0, min(word.length, wanted.length + 1)), wanted))) {
-        // опечатку ищем только у самого слова: у транслита и раскладки она даёт шум
-        hit = _typo;
-        span = min(word.length, wanted.length);
+  final matches = wordMatches(folded).toList();
+  final spans = Int32List(matches.length * 2);
+  for (final (index, match) in matches.indexed) {
+    spans[index * 2] = match.start;
+    spans[index * 2 + 1] = match.end;
+  }
+  return (folded, spans);
+}
+
+/// Строка ищет на каждое нажатие, а заметки между нажатиями не меняются: разрезанный текст
+/// и язык заметки помнятся, пока текст тот же (сверка по длине и хешу). Память — границы
+/// слов числами, без копий слов.
+final _fieldMemory = <(String, SearchField), (int, int, _Tokens)>{};
+final _languageMemory = <String, (int, int, String?)>{};
+const _memoryLimit = 20000;
+
+_Tokens _fieldTokens(SearchDoc doc, SearchField field) {
+  final text = doc.field(field);
+  final key = (doc.id, field);
+  final known = _fieldMemory[key];
+  if (known != null && known.$1 == text.length && known.$2 == text.hashCode) return known.$3;
+  if (_fieldMemory.length > _memoryLimit) _fieldMemory.clear();
+  final tokens = _tokens(text);
+  _fieldMemory[key] = (text.length, text.hashCode, tokens);
+  return tokens;
+}
+
+/// Насколько слово текста похоже на слово запроса и сколько знаков подсветить. Одно и то же
+/// слово встречается в заметках тысячи раз — ответ помнится на весь поиск (ключ — слово).
+typedef _Memo = Map<String, (double, int)>;
+
+// варианты слова запроса с готовыми основами: основа варианта не пересчитывается на каждое слово текста
+List<(String, String, double)> _variantsOf(QueryWord query) => [for (final variant in query.variants) (variant.text, stemOf(variant.text), variant.weight)];
+
+(double, int) _likeness(String word, List<(String, String, double)> variants, String? language) {
+  var best = 0.0;
+  var length = 0;
+  for (final (index, (wanted, base, weight)) in variants.indexed) {
+    var hit = 0.0;
+    var span = 0;
+    if (word == wanted) {
+      hit = _exact;
+      span = word.length;
+    } else if (word.startsWith(base)) {
+      final form = base.length >= _formStem && stemOf(word) == base;
+      final typed = word.startsWith(wanted);
+      hit = form ? _form : (typed ? _typed : _stemStart);
+      span = typed ? wanted.length : base.length;
+      while (span < word.length && span < wanted.length && word[span] == wanted[span]) {
+        span++;
       }
-      hit *= variant.weight;
-      if (hit > best) {
-        best = hit;
-        length = span;
-      }
+    } else if (language != null && _sameLanguageStem(word, wanted, language)) {
+      hit = _form;
+      span = word.length;
+    } else if (index == 0 &&
+        wanted.length >= 4 &&
+        // короткое слово текста — не опечатка длинного запроса: «лей» не «клей»
+        word.length >= 4 &&
+        (nearWords(word.substring(0, min(word.length, wanted.length)), wanted) || nearWords(word.substring(0, min(word.length, wanted.length + 1)), wanted))) {
+      // опечатку ищем только у самого слова: у транслита и раскладки она даёт шум
+      hit = _typo;
+      span = min(word.length, wanted.length);
     }
-    if (best > 0) {
-      marks.add((match.start, length));
-      strength = max(strength, best);
+    hit *= weight;
+    if (hit > best) {
+      best = hit;
+      length = span;
     }
   }
-  return (strength: strength, marks: marks);
+  return (best, length);
 }
 
 // одна основа по правилам языка заметки; короткая основа формой не считается, как и у своих языков
@@ -220,9 +247,15 @@ bool _sameLanguageStem(String word, String wanted, String language) {
 
 // язык заметки по началу её текста: длинной статье хватит первых двух тысяч знаков
 String? _docLanguage(SearchDoc doc) {
-  final sample = '${doc.title}\n${doc.body}';
-  final language = guessLanguage(sample.length > 2000 ? sample.substring(0, 2000) : sample);
-  return hasLanguageStems(language) ? language : null;
+  final whole = '${doc.title}\n${doc.body}';
+  final sample = whole.length > 2000 ? whole.substring(0, 2000) : whole;
+  final known = _languageMemory[doc.id];
+  if (known != null && known.$1 == sample.length && known.$2 == sample.hashCode) return known.$3;
+  if (_languageMemory.length > _memoryLimit) _languageMemory.clear();
+  final guessed = guessLanguage(sample);
+  final language = hasLanguageStems(guessed) ? guessed : null;
+  _languageMemory[doc.id] = (sample.length, sample.hashCode, language);
+  return language;
 }
 
 /// Свежесть: прибавка, которая разводит равные совпадения в пользу новых.
@@ -241,6 +274,9 @@ List<SearchHit> rankSearch(
   if (words.isEmpty && tagFilters.isEmpty && folderFilter == null && !filtered) return const [];
   final hits = <SearchHit>[];
   final need = words.length <= 2 ? words.length : max(1, (words.length / 3).ceil());
+  final variants = [for (final word in words) _variantsOf(word)];
+  // ответы по словам текста — на каждое слово запроса и язык заметки свои
+  final memos = <(int, String?), _Memo>{};
   for (final doc in docs) {
     if (folderFilter != null && doc.folderId != folderFilter) continue;
     final own = doc.tags.map(normalizeQuery).toList();
@@ -251,18 +287,32 @@ List<SearchHit> rankSearch(
     var strong = words.isNotEmpty && words.length <= 3;
     final marks = <SearchField, List<TextMark>>{};
     final language = words.isEmpty ? null : _docLanguage(doc);
-    for (final word in words) {
+    final docMemos = [for (var index = 0; index < words.length; index++) memos[(index, language)] ??= {}];
+    // каждое слово поля сверяется со всеми словами запроса за один проход; сила — лучшее
+    // совпадение слова запроса в поле, метки — куски, где нашлось
+    final strength = [for (final _ in words) <SearchField, double>{}];
+    for (final field in words.isEmpty ? const <SearchField>[] : SearchField.values) {
+      final (folded, spans) = _fieldTokens(doc, field);
+      for (var at = 0; at < spans.length; at += 2) {
+        final start = spans[at];
+        final word = folded.substring(start, spans[at + 1]);
+        for (var index = 0; index < words.length; index++) {
+          final (best, length) = docMemos[index][word] ??= _likeness(word, variants[index], language);
+          if (best <= 0) continue;
+          marks.putIfAbsent(field, () => []).add((start, length));
+          if (best > (strength[index][field] ?? 0)) strength[index][field] = best;
+        }
+      }
+    }
+    for (var index = 0; index < words.length; index++) {
       var best = 0.0;
       var bestStrength = 0.0;
       SearchField? bestField;
-      for (final field in SearchField.values) {
-        final found = _hitsIn(doc.field(field), word, language);
-        if (found.strength == 0) continue;
-        marks.putIfAbsent(field, () => []).addAll(found.marks);
-        final weighted = found.strength * _weights[field]!;
+      for (final MapEntry(key: field, value: found) in strength[index].entries) {
+        final weighted = found * _weights[field]!;
         if (weighted > best) {
           best = weighted;
-          bestStrength = found.strength;
+          bestStrength = found;
           bestField = field;
         }
       }
