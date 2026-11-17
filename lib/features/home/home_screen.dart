@@ -25,6 +25,7 @@ import '../../services/vault/vault_watch.dart';
 import '../catalog/catalog_screen.dart';
 import '../composer/line_dock.dart';
 import '../composer/panel_text.dart';
+import '../workspace/workspace_shell.dart';
 import '../composer/picked_files.dart' show pickCameraPhoto;
 import '../folder/folder_screen.dart';
 import '../smart/smart_folder_screen.dart';
@@ -327,13 +328,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
-          Positioned.fill(
-            child: LineDock(key: _dock, onOpenItem: _open, onboarding: true),
-          ),
-        ],
+      // широкое окно (браузер, компьютер) — рабочее пространство с доками и вкладками;
+      // обходы, слежка за хранилищем и синхронизация остаются здесь, при любой ширине
+      body: LayoutBuilder(
+        builder: (context, constraints) => constraints.maxWidth >= workspaceFrom
+            ? WorkspaceShell(
+                onFind: () => _dock.currentState?.focusLine(),
+                composer: (open) => LineDock(key: _dock, onOpenItem: open, onboarding: true, maxWidth: 760),
+              )
+            : Stack(
+                children: [
+                  _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
+                  Positioned.fill(
+                    child: LineDock(key: _dock, onOpenItem: _open, onboarding: true),
+                  ),
+                ],
+              ),
       ),
     );
   }

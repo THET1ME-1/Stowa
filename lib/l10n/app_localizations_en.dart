@@ -4162,4 +4162,58 @@ class LEn extends L {
 
   @override
   String get syncSignOutHint => 'Your notes stay on this phone.';
+
+  @override
+  String get wsPresetNormal => 'Normal';
+
+  @override
+  String get wsPresetReading => 'Reading';
+
+  @override
+  String get wsPresetTwo => 'Two panes';
+
+  @override
+  String get wsPresetThree => 'Three panes';
+
+  @override
+  String get wsSections => 'Sections';
+
+  @override
+  String get wsHome => 'Home';
+
+  @override
+  String get wsFind => 'Find or write';
+
+  @override
+  String get wsSplitRight => 'Split right';
+
+  @override
+  String get wsSplitDown => 'Split down';
+
+  @override
+  String get wsCloseTab => 'Close tab';
+
+  @override
+  String get wsLeftDock => 'Left panel';
+
+  @override
+  String get wsRightDock => 'Right panel';
+
+  @override
+  String get wsYearAgo => 'A year ago';
+
+  @override
+  String get wsKeys => 'Keyboard shortcuts';
+
+  @override
+  String get wsTheme => 'Switch theme';
+
+  @override
+  String get wsInBrowser => 'In this browser';
+
+  @override
+  String get wsSynced => 'Synced';
+
+  @override
+  String get wsSyncOff => 'Sync is off';
 }

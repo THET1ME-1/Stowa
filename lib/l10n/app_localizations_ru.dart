@@ -4239,4 +4239,58 @@ class LRu extends L {
 
   @override
   String get syncSignOutHint => 'Заметки на этом телефоне останутся на месте.';
+
+  @override
+  String get wsPresetNormal => 'Обычная';
+
+  @override
+  String get wsPresetReading => 'Чтение';
+
+  @override
+  String get wsPresetTwo => 'Два окна';
+
+  @override
+  String get wsPresetThree => 'Три окна';
+
+  @override
+  String get wsSections => 'Разделы';
+
+  @override
+  String get wsHome => 'Главная';
+
+  @override
+  String get wsFind => 'Найти или записать';
+
+  @override
+  String get wsSplitRight => 'Разделить вправо';
+
+  @override
+  String get wsSplitDown => 'Разделить вниз';
+
+  @override
+  String get wsCloseTab => 'Закрыть вкладку';
+
+  @override
+  String get wsLeftDock => 'Левая панель';
+
+  @override
+  String get wsRightDock => 'Правая панель';
+
+  @override
+  String get wsYearAgo => 'Год назад';
+
+  @override
+  String get wsKeys => 'Сочетания клавиш';
+
+  @override
+  String get wsTheme => 'Сменить тему';
+
+  @override
+  String get wsInBrowser => 'В этом браузере';
+
+  @override
+  String get wsSynced => 'Синхронизировано';
+
+  @override
+  String get wsSyncOff => 'Синхронизация выключена';
 }

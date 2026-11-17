@@ -7084,6 +7084,114 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Your notes stay on this phone.'**
   String get syncSignOutHint;
+
+  /// Wide-screen layout preset: one window with both side panels
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get wsPresetNormal;
+
+  /// Layout preset: one window, side panels hidden
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get wsPresetReading;
+
+  /// Layout preset: two windows side by side
+  ///
+  /// In en, this message translates to:
+  /// **'Two panes'**
+  String get wsPresetTwo;
+
+  /// Layout preset: three windows side by side
+  ///
+  /// In en, this message translates to:
+  /// **'Three panes'**
+  String get wsPresetThree;
+
+  /// Side panel with the main places of the app
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get wsSections;
+
+  /// Home tab
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get wsHome;
+
+  /// Button in the left panel that focuses the input line
+  ///
+  /// In en, this message translates to:
+  /// **'Find or write'**
+  String get wsFind;
+
+  /// Split the window to the right
+  ///
+  /// In en, this message translates to:
+  /// **'Split right'**
+  String get wsSplitRight;
+
+  /// Split the window downwards
+  ///
+  /// In en, this message translates to:
+  /// **'Split down'**
+  String get wsSplitDown;
+
+  /// Close a tab
+  ///
+  /// In en, this message translates to:
+  /// **'Close tab'**
+  String get wsCloseTab;
+
+  /// Show or hide the left side panel
+  ///
+  /// In en, this message translates to:
+  /// **'Left panel'**
+  String get wsLeftDock;
+
+  /// Show or hide the right side panel
+  ///
+  /// In en, this message translates to:
+  /// **'Right panel'**
+  String get wsRightDock;
+
+  /// Side panel with notes saved on this day in earlier years
+  ///
+  /// In en, this message translates to:
+  /// **'A year ago'**
+  String get wsYearAgo;
+
+  /// Keyboard shortcuts settings
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts'**
+  String get wsKeys;
+
+  /// Toggle light and dark theme
+  ///
+  /// In en, this message translates to:
+  /// **'Switch theme'**
+  String get wsTheme;
+
+  /// Where the notes are stored in the web version
+  ///
+  /// In en, this message translates to:
+  /// **'In this browser'**
+  String get wsInBrowser;
+
+  /// Sync status: everything is up to date
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get wsSynced;
+
+  /// Sync status: not signed in
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is off'**
+  String get wsSyncOff;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

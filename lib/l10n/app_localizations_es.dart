@@ -4173,4 +4173,58 @@ class LEs extends L {
 
   @override
   String get syncSignOutHint => 'Tus notas se quedan en este teléfono.';
+
+  @override
+  String get wsPresetNormal => 'Normal';
+
+  @override
+  String get wsPresetReading => 'Lectura';
+
+  @override
+  String get wsPresetTwo => 'Dos ventanas';
+
+  @override
+  String get wsPresetThree => 'Tres ventanas';
+
+  @override
+  String get wsSections => 'Secciones';
+
+  @override
+  String get wsHome => 'Inicio';
+
+  @override
+  String get wsFind => 'Buscar o escribir';
+
+  @override
+  String get wsSplitRight => 'Dividir a la derecha';
+
+  @override
+  String get wsSplitDown => 'Dividir hacia abajo';
+
+  @override
+  String get wsCloseTab => 'Cerrar pestaña';
+
+  @override
+  String get wsLeftDock => 'Panel izquierdo';
+
+  @override
+  String get wsRightDock => 'Panel derecho';
+
+  @override
+  String get wsYearAgo => 'Hace un año';
+
+  @override
+  String get wsKeys => 'Atajos de teclado';
+
+  @override
+  String get wsTheme => 'Cambiar tema';
+
+  @override
+  String get wsInBrowser => 'En este navegador';
+
+  @override
+  String get wsSynced => 'Sincronizado';
+
+  @override
+  String get wsSyncOff => 'Sincronización desactivada';
 }

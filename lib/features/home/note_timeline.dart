@@ -183,7 +183,7 @@ class _NoteTimelineState extends State<NoteTimeline> {
       mark(item, true);
     }
     for (final (day, items) in _days()) {
-      final (name, date) = _dayLabel(l, day, widget.now);
+      final (name, date) = dayLabel(l, day, widget.now);
       section(_dayKeys[day] ?? GlobalKey(), name, date, items);
       for (final item in items) {
         mark(item, false);
@@ -367,7 +367,8 @@ String _capitalized(String text) => text.isEmpty ? text : text[0].toUpperCase() 
 Color _dotColor(ItemCard item) => item.folderColor == null ? Tokens.muted : FolderPalette.ink(item.folderColor!);
 
 /// «Сегодня» и «7 ноября», «Вчера», «Среда»; другой год — с годом.
-(String, String) _dayLabel(L l, DateTime day, DateTime now) {
+/// «Сегодня» и «17 ноября»: день ленты именем и датой. Её же берёт плитка широкого экрана.
+(String, String) dayLabel(L l, DateTime day, DateTime now) {
   final today = DateTime(now.year, now.month, now.day);
   final name = switch (today.difference(day).inDays) {
     0 => l.dateToday,
@@ -520,7 +521,7 @@ class _DayHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final (name, date) = _dayLabel(L.of(context), day, now);
+    final (name, date) = dayLabel(L.of(context), day, now);
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 22, Space.screen, 12),
       child: Row(

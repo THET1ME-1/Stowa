@@ -4187,4 +4187,58 @@ class LDe extends L {
 
   @override
   String get syncSignOutHint => 'Deine Notizen bleiben auf diesem Handy.';
+
+  @override
+  String get wsPresetNormal => 'Normal';
+
+  @override
+  String get wsPresetReading => 'Lesen';
+
+  @override
+  String get wsPresetTwo => 'Zwei Fenster';
+
+  @override
+  String get wsPresetThree => 'Drei Fenster';
+
+  @override
+  String get wsSections => 'Bereiche';
+
+  @override
+  String get wsHome => 'Start';
+
+  @override
+  String get wsFind => 'Suchen oder notieren';
+
+  @override
+  String get wsSplitRight => 'Rechts teilen';
+
+  @override
+  String get wsSplitDown => 'Unten teilen';
+
+  @override
+  String get wsCloseTab => 'Tab schließen';
+
+  @override
+  String get wsLeftDock => 'Linke Leiste';
+
+  @override
+  String get wsRightDock => 'Rechte Leiste';
+
+  @override
+  String get wsYearAgo => 'Vor einem Jahr';
+
+  @override
+  String get wsKeys => 'Tastenkürzel';
+
+  @override
+  String get wsTheme => 'Design wechseln';
+
+  @override
+  String get wsInBrowser => 'In diesem Browser';
+
+  @override
+  String get wsSynced => 'Synchronisiert';
+
+  @override
+  String get wsSyncOff => 'Synchronisierung aus';
 }

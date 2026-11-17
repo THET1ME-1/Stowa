@@ -4233,4 +4233,58 @@ class LPl extends L {
 
   @override
   String get syncSignOutHint => 'Notatki zostaną na tym telefonie.';
+
+  @override
+  String get wsPresetNormal => 'Zwykły';
+
+  @override
+  String get wsPresetReading => 'Czytanie';
+
+  @override
+  String get wsPresetTwo => 'Dwa okna';
+
+  @override
+  String get wsPresetThree => 'Trzy okna';
+
+  @override
+  String get wsSections => 'Sekcje';
+
+  @override
+  String get wsHome => 'Start';
+
+  @override
+  String get wsFind => 'Znajdź lub zapisz';
+
+  @override
+  String get wsSplitRight => 'Podziel w prawo';
+
+  @override
+  String get wsSplitDown => 'Podziel w dół';
+
+  @override
+  String get wsCloseTab => 'Zamknij kartę';
+
+  @override
+  String get wsLeftDock => 'Lewy panel';
+
+  @override
+  String get wsRightDock => 'Prawy panel';
+
+  @override
+  String get wsYearAgo => 'Rok temu';
+
+  @override
+  String get wsKeys => 'Skróty klawiszowe';
+
+  @override
+  String get wsTheme => 'Zmień motyw';
+
+  @override
+  String get wsInBrowser => 'W tej przeglądarce';
+
+  @override
+  String get wsSynced => 'Zsynchronizowano';
+
+  @override
+  String get wsSyncOff => 'Synchronizacja wyłączona';
 }

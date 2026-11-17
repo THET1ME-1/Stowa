@@ -4228,4 +4228,58 @@ class LUk extends L {
 
   @override
   String get syncSignOutHint => 'Нотатки на цьому телефоні залишаться.';
+
+  @override
+  String get wsPresetNormal => 'Звичайна';
+
+  @override
+  String get wsPresetReading => 'Читання';
+
+  @override
+  String get wsPresetTwo => 'Два вікна';
+
+  @override
+  String get wsPresetThree => 'Три вікна';
+
+  @override
+  String get wsSections => 'Розділи';
+
+  @override
+  String get wsHome => 'Головна';
+
+  @override
+  String get wsFind => 'Знайти або записати';
+
+  @override
+  String get wsSplitRight => 'Розділити праворуч';
+
+  @override
+  String get wsSplitDown => 'Розділити вниз';
+
+  @override
+  String get wsCloseTab => 'Закрити вкладку';
+
+  @override
+  String get wsLeftDock => 'Ліва панель';
+
+  @override
+  String get wsRightDock => 'Права панель';
+
+  @override
+  String get wsYearAgo => 'Рік тому';
+
+  @override
+  String get wsKeys => 'Сполучення клавіш';
+
+  @override
+  String get wsTheme => 'Змінити тему';
+
+  @override
+  String get wsInBrowser => 'У цьому браузері';
+
+  @override
+  String get wsSynced => 'Синхронізовано';
+
+  @override
+  String get wsSyncOff => 'Синхронізацію вимкнено';
 }

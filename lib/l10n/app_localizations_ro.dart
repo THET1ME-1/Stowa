@@ -4200,4 +4200,58 @@ class LRo extends L {
 
   @override
   String get syncSignOutHint => 'Notițele rămân pe acest telefon.';
+
+  @override
+  String get wsPresetNormal => 'Obișnuit';
+
+  @override
+  String get wsPresetReading => 'Citire';
+
+  @override
+  String get wsPresetTwo => 'Două ferestre';
+
+  @override
+  String get wsPresetThree => 'Trei ferestre';
+
+  @override
+  String get wsSections => 'Secțiuni';
+
+  @override
+  String get wsHome => 'Acasă';
+
+  @override
+  String get wsFind => 'Caută sau scrie';
+
+  @override
+  String get wsSplitRight => 'Împarte la dreapta';
+
+  @override
+  String get wsSplitDown => 'Împarte în jos';
+
+  @override
+  String get wsCloseTab => 'Închide fila';
+
+  @override
+  String get wsLeftDock => 'Panoul stâng';
+
+  @override
+  String get wsRightDock => 'Panoul drept';
+
+  @override
+  String get wsYearAgo => 'Acum un an';
+
+  @override
+  String get wsKeys => 'Comenzi rapide';
+
+  @override
+  String get wsTheme => 'Schimbă tema';
+
+  @override
+  String get wsInBrowser => 'În acest browser';
+
+  @override
+  String get wsSynced => 'Sincronizat';
+
+  @override
+  String get wsSyncOff => 'Sincronizare oprită';
 }

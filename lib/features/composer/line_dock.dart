@@ -99,11 +99,42 @@ class LineElsewhere {
   final Future<void> Function(bool on) recording;
 }
 
+/// Место строки и панели: отступ от краёв, на широком экране — колонка по центру внизу.
+class _DockColumn extends StatelessWidget {
+  const _DockColumn({required this.maxWidth, required this.child});
+
+  final double maxWidth;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(constraints: BoxConstraints(maxWidth: maxWidth), child: child),
+      ),
+    );
+  }
+}
+
 class LineDock extends ConsumerStatefulWidget {
-  const LineDock({super.key, required this.onOpenItem, this.homeFolder, this.onRest, this.writeOnly = false, this.elsewhere, this.onboarding = false});
+  const LineDock({
+    super.key,
+    required this.onOpenItem,
+    this.homeFolder,
+    this.onRest,
+    this.writeOnly = false,
+    this.elsewhere,
+    this.onboarding = false,
+    this.maxWidth = double.infinity,
+  });
 
   /// Строка главной: над ней, пока она пуста, стоит шаг знакомства.
   final bool onboarding;
+
+  /// Ширина строки и панели над ней на широком экране; затемнение — на всё место.
+  final double maxWidth;
 
   final ValueChanged<String> onOpenItem;
 
@@ -1002,8 +1033,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           ),
           Positioned.fill(
             child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              child: _DockColumn(
+                maxWidth: widget.maxWidth,
                 child: LayoutBuilder(
                   builder: (context, constraints) => Column(
                     mainAxisAlignment: MainAxisAlignment.end,
