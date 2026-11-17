@@ -48,6 +48,12 @@ void main() {
     expect(doc.encode(), contains('\n\t"nodes"'));
   });
 
+  test('пишет, как Obsidian: узел и стрелка — одной строкой, нетронутый файл байт в байт тот же', () {
+    const obsidian = '{\n\t"nodes":[\n\t\t{"id":"3f021506d89f05d8","type":"group","x":360,"y":-440,"width":1900,"height":1100,"color":"6","label":"Скриншоты"},\n\t\t{"id":"a1","type":"text","text":"купить \\"плитку\\"\\nи клей","x":0,"y":0,"width":250,"height":60}\n\t],\n\t"edges":[\n\t\t{"id":"e1","fromNode":"3f021506d89f05d8","fromSide":"bottom","toNode":"a1","toSide":"top"}\n\t]\n}';
+    expect(CanvasDoc.parse(obsidian).encode(), obsidian);
+    expect(CanvasDoc.empty().encode(), '{\n\t"nodes":[],\n\t"edges":[]\n}');
+  });
+
   test('группа тянет с собой всё, что лежит внутри неё целиком', () {
     final doc = CanvasDoc.parse(_obsidian).moveNode('g1', 100, 0, withContents: true);
     expect(doc.node('g1')!.x, -60);

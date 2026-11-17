@@ -105,12 +105,21 @@ class CanvasDoc {
   CanvasNode? node(String id) => nodes.where((node) => node.id == id).firstOrNull;
   CanvasEdge? edge(String id) => edges.where((edge) => edge.id == id).firstOrNull;
 
-  /// Текст файла, как пишет Obsidian: табуляция, сначала узлы, потом стрелки.
-  String encode() => const JsonEncoder.withIndent('\t').convert({
-    'nodes': [for (final node in nodes) node.raw],
-    'edges': [for (final edge in edges) edge.raw],
-    ...rest,
-  });
+  /// Текст файла, как пишет Obsidian: узлы, потом стрелки, каждый — одной строкой с
+  /// табуляцией. Нетронутый файл выходит байт в байт тем же, правка одной карточки —
+  /// одной строкой в разнице.
+  String encode() {
+    String list(List<Map<String, Object?>> rows) => rows.isEmpty ? '[]' : '[\n${rows.map((row) => '\t\t${jsonEncode(row)}').join(',\n')}\n\t]';
+    return [
+      '{',
+      [
+        '\t"nodes":${list([for (final node in nodes) node.raw])}',
+        '\t"edges":${list([for (final edge in edges) edge.raw])}',
+        for (final MapEntry(:key, :value) in rest.entries) '\t${jsonEncode(key)}:${jsonEncode(value)}',
+      ].join(',\n'),
+      '}',
+    ].join('\n');
+  }
 
   /// Текст для поиска и ленты: карточки, подписи групп и стрелок, имена файлов, адреса.
   String plainText() => [
