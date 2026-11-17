@@ -19,7 +19,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/canvas_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/canvas_layout.dart';
-import '../../domain/note_links.dart' show shownTitle;
+import '../../domain/note_links.dart' show shownTitle, wikiTitles;
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
@@ -322,7 +322,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
 
   (String, String)? _linkAt(Offset world) {
     final reach = 10 / _transform.value.getMaxScaleOnAxis();
-    return _links.where((link) => link.near(world, reach)).map((link) => (link.from, link.to)).firstOrNull;
+    return _links.where((link) => !link.written && link.near(world, reach)).map((link) => (link.from, link.to)).firstOrNull;
   }
 
   void _startWire(String from, Offset start, Offset normal) {
@@ -458,10 +458,19 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     final layered = [...boxes.where((box) => !_front.contains(box.itemId)), for (final id in _front) ...boxes.where((box) => box.itemId == id)];
     // стрелки — связи, у которых оба конца лежат на этом холсте
     final rects = {for (final box in boxes) box.itemId: _rectOf(box)};
+    final stored = [for (final link in ref.watch(noteLinksProvider).value ?? const <Link>[]) (link.fromId, link.toId)];
+    // [[Название]] в тексте — тоже связь, как в графе; снимается правкой текста, не клавишей
+    final byTitle = {for (final card in widget.cards.reversed) card.title.trim().toLowerCase(): card.id};
+    final written = <(String, String)>{
+      for (final card in widget.cards)
+        for (final title in wikiTitles(card.body))
+          if (byTitle[title.toLowerCase()] case final other? when other != card.id) (card.id, other),
+    };
+    final pairs = {...stored, ...written.where((pair) => !stored.contains(pair) && !stored.contains((pair.$2, pair.$1)))};
     _links = [
-      for (final link in ref.watch(noteLinksProvider).value ?? const <Link>[])
-        if ((rects[link.fromId], rects[link.toId]) case (final from?, final to?))
-          CanvasLink.between(link.fromId, link.toId, from, to, selected: _selectedLink == (link.fromId, link.toId)),
+      for (final (fromId, toId) in pairs)
+        if ((rects[fromId], rects[toId]) case (final from?, final to?))
+          CanvasLink.between(fromId, toId, from, to, selected: _selectedLink == (fromId, toId), written: written.contains((fromId, toId)) && !stored.contains((fromId, toId))),
     ];
     final hover = _wire?.from ?? _hoverCard;
 
@@ -881,16 +890,16 @@ List<(String, Offset, Offset)> _sockets(Rect rect) => [
 /// Стрелка холста — кривая Безье от стороны одной карточки к стороне другой, как провод
 /// между нодами в Blender. Координаты — мира холста.
 class CanvasLink {
-  const CanvasLink(this.from, this.to, this.start, this.c1, this.c2, this.end, {this.selected = false, this.arrow = true});
+  const CanvasLink(this.from, this.to, this.start, this.c1, this.c2, this.end, {this.selected = false, this.arrow = true, this.written = false});
 
   /// Между карточками: выходят стороны, которые смотрят друг на друга.
-  factory CanvasLink.between(String from, String to, Rect a, Rect b, {bool selected = false}) {
+  factory CanvasLink.between(String from, String to, Rect a, Rect b, {bool selected = false, bool written = false}) {
     final delta = b.center - a.center;
     final across = delta.dx.abs() >= delta.dy.abs();
     final (start, out) = across ? (delta.dx >= 0 ? (a.centerRight, const Offset(1, 0)) : (a.centerLeft, const Offset(-1, 0))) : (delta.dy >= 0 ? (a.bottomCenter, const Offset(0, 1)) : (a.topCenter, const Offset(0, -1)));
     final (end, into) = across ? (delta.dx >= 0 ? (b.centerLeft, const Offset(-1, 0)) : (b.centerRight, const Offset(1, 0))) : (delta.dy >= 0 ? (b.topCenter, const Offset(0, -1)) : (b.bottomCenter, const Offset(0, 1)));
     final reach = max(40.0, (end - start).distance * 0.4);
-    return CanvasLink(from, to, start, start + out * reach, end + into * reach, end, selected: selected);
+    return CanvasLink(from, to, start, start + out * reach, end + into * reach, end, selected: selected, written: written);
   }
 
   /// Провод, который тянут мышью: из выхода к курсору.
@@ -907,6 +916,9 @@ class CanvasLink {
   final Offset end;
   final bool selected;
   final bool arrow;
+
+  /// Связь из текста `[[…]]`: выбрать и снять клавишей её нельзя, только правкой заметки.
+  final bool written;
 
   Offset point(double t) {
     final u = 1 - t;

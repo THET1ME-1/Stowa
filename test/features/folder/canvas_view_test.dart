@@ -360,6 +360,13 @@ void main() {
     expect(tester.getRect(find.byKey(const ValueKey('i0'))), from);
   });
 
+  testWidgets('ссылка [[…]] в тексте заметки — тоже стрелка', (tester) async {
+    await openCanvas(tester);
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('i0'))).write(const ItemsCompanion(body: Value('Кухня\nсм. [[Свет]]')));
+    await tester.pumpAndSettle();
+    expect(drawnLinks(tester), [('i0', 'i1')]);
+  });
+
   testWidgets('связи выбранной карточки рисуются поверх карточек', (tester) async {
     await world.db.into(world.db.links).insert(LinksCompanion.insert(fromId: 'i0', toId: 'i2', source: LinkSource.manual));
     await openCanvas(tester);

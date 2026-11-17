@@ -698,10 +698,8 @@ class _TabBody extends ConsumerWidget {
       child: Navigator(
         key: navigatorKey,
         onGenerateInitialRoutes: (navigator, initial) => [
-          PageRouteBuilder<void>(
-            transitionDuration: Duration.zero,
-            pageBuilder: (context, _, _) => _screen(context, controller),
-          ),
+          // первый экран вкладки не въезжает: начальные маршруты навигатор показывает без перехода
+          MaterialPageRoute<void>(builder: (context) => _screen(context, controller)),
         ],
       ),
     );
