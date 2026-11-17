@@ -196,6 +196,8 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
     }
     final id = keys.commandFor(chord);
     if (id == null) return false;
+    // команды заметки без открытой заметки клавишу не забирают: Delete на холсте — его
+    if (const {'trash', 'pin', 'move'}.contains(id) && _noteId == null) return false;
     _run(id);
     return true;
   }

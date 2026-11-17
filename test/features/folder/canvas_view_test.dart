@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart' show Value;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
@@ -179,6 +181,68 @@ void main() {
     final after = (await spots()).firstWhere((spot) => spot.itemId == 'i0');
     expect(after.x, greaterThan(before.x));
     expect(after.y, greaterThan(before.y));
+  });
+
+  // ——— мышь и клавиатура: компьютер и браузер ———
+
+  Future<void> wheel(WidgetTester tester, Offset at, Offset delta) async {
+    tester.binding.handlePointerEvent(PointerScrollEvent(position: at, scrollDelta: delta, kind: PointerDeviceKind.mouse));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('колесо мыши листает холст, а не масштабирует', (tester) async {
+    await openBig(tester);
+    final start = percent(tester);
+    final card = find.text('Вещь 0').last;
+    final before = tester.getTopLeft(card);
+    await wheel(tester, tester.getCenter(find.byType(InteractiveViewer)), const Offset(0, 100));
+    expect(percent(tester), start);
+    expect(tester.getTopLeft(card).dy, closeTo(before.dy - 100, 1));
+    // Shift+колесо — вбок
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await wheel(tester, tester.getCenter(find.byType(InteractiveViewer)), const Offset(0, 50));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    expect(tester.getTopLeft(card).dx, closeTo(before.dx - 50, 1));
+  });
+
+  testWidgets('Ctrl+колесо масштабирует, точка под курсором стоит на месте', (tester) async {
+    await openBig(tester);
+    final start = percent(tester);
+    final card = find.text('Вещь 0').last;
+    final under = tester.getTopLeft(card) + const Offset(5, 5);
+    final before = tester.getTopLeft(card);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await wheel(tester, under, const Offset(0, -120));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    expect(percent(tester), greaterThan(start));
+    // угол карточки рядом с курсором почти не сдвинулся
+    expect((tester.getTopLeft(card) - before).distance, lessThan(8));
+  });
+
+  testWidgets('щелчок мышью выделяет карточку, стрелка двигает, Delete — в корзину с «Отменить»', (tester) async {
+    await openCanvas(tester);
+    final before = (await spots()).firstWhere((spot) => spot.itemId == 'i1');
+    await tester.tap(find.text('Свет').last, kind: PointerDeviceKind.mouse);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+    final moved = (await spots()).firstWhere((spot) => spot.itemId == 'i1');
+    expect(moved.x, before.x + 10);
+    await tester.sendKeyEvent(LogicalKeyboardKey.delete);
+    await tester.pumpAndSettle();
+    final item = await (world.db.select(world.db.items)..where((t) => t.id.equals('i1'))).getSingle();
+    expect(item.deletedAt, isNotNull);
+    expect(find.text('Отменить'), findsOneWidget);
+  });
+
+  testWidgets('пальцем карточка не выделяется: Delete на телефоне ничего не удаляет', (tester) async {
+    await openCanvas(tester);
+    await tester.tap(find.text('Свет').last);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.sendKeyEvent(LogicalKeyboardKey.delete);
+    await tester.pumpAndSettle();
+    final item = await (world.db.select(world.db.items)..where((t) => t.id.equals('i1'))).getSingle();
+    expect(item.deletedAt, isNull);
   });
 
   testWidgets('двойное касание открывает вещь', (tester) async {

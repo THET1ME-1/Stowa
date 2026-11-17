@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +22,9 @@ import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
 import '../composer/panel_text.dart';
 import '../composer/smart_punctuation.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../item/adult_veil.dart';
+import '../item/item_actions.dart' show showItemActions;
 
 /// Мир холста: вещи лежат в нём со сдвигом, чтобы отрицательные координаты тоже помещались.
 const _origin = 10000.0;
@@ -62,10 +65,122 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
   Size _viewport = Size.zero;
   bool _fitted = false;
 
+  final _focus = FocusNode(debugLabel: 'canvas');
+
   @override
   void dispose() {
+    _focus.dispose();
     _transform.dispose();
     super.dispose();
+  }
+
+  // ——— мышь и клавиатура (компьютер, браузер); на телефоне этого не происходит ———
+
+  final _stack = GlobalKey();
+
+  /// Карточка, выбранная щелчком мыши: её двигают стрелки и убирает Delete. Пальцем не
+  /// выбирается: у телефона нет клавиатуры, а касание — это перетаскивание.
+  String? _selected;
+
+  // щелчок попал в карточку: тот же щелчок по пустому месту выбор не снимает
+  bool _cardHit = false;
+
+  Offset? _local(Offset global) {
+    final box = _stack.currentContext?.findRenderObject() as RenderBox?;
+    return box?.globalToLocal(global);
+  }
+
+  /// Колесо листает холст, Shift+колесо — вбок, Ctrl+колесо (и щипок тачпада в браузере)
+  /// масштабирует вокруг курсора: как в Figma и холсте Obsidian.
+  void _signal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+    GestureBinding.instance.pointerSignalResolver.register(event, (event) {
+      final scroll = event as PointerScrollEvent;
+      final keyboard = HardwareKeyboard.instance;
+      if (keyboard.isControlPressed || keyboard.isMetaPressed) {
+        final focal = _local(scroll.position);
+        if (focal != null) _zoom(exp(-scroll.scrollDelta.dy / 240), focal);
+        return;
+      }
+      final delta = keyboard.isShiftPressed && scroll.scrollDelta.dx == 0 ? Offset(scroll.scrollDelta.dy, 0) : scroll.scrollDelta;
+      _transform.value = Matrix4.translationValues(-delta.dx, -delta.dy, 0) * _transform.value;
+    });
+  }
+
+  /// Приблизить в [factor] раз так, что точка экрана [focal] остаётся на месте.
+  void _zoom(double factor, Offset focal) {
+    final now = _transform.value.getMaxScaleOnAxis();
+    final next = (now * factor).clamp(0.1, 4.0);
+    final step = next / now;
+    _transform.value = Matrix4.translationValues(focal.dx, focal.dy, 0) * Matrix4.diagonal3Values(step, step, step) * Matrix4.translationValues(-focal.dx, -focal.dy, 0) * _transform.value;
+  }
+
+  /// Клавиши холста: доходят сюда, когда фокус у холста (щёлкнули по нему мышью). Холст
+  /// забирает их себе: иначе стрелка заодно увела бы фокус в поле ввода.
+  KeyEventResult _onFocusKey(FocusNode node, KeyEvent event) => _onKey(event) ? KeyEventResult.handled : KeyEventResult.ignored;
+
+  bool _onKey(KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return false;
+    final key = event.physicalKey;
+    final keyboard = HardwareKeyboard.instance;
+    final ctrl = keyboard.isControlPressed || keyboard.isMetaPressed;
+    final center = _viewport.center(Offset.zero);
+    // масштаб с клавиатуры
+    {
+      final VoidCallback? zoom = switch (key) {
+        PhysicalKeyboardKey.equal || PhysicalKeyboardKey.numpadAdd => () => _zoom(1.25, center),
+        PhysicalKeyboardKey.minus || PhysicalKeyboardKey.numpadSubtract => () => _zoom(0.8, center),
+        PhysicalKeyboardKey.digit0 when ctrl => () => _zoom(1 / _transform.value.getMaxScaleOnAxis(), center),
+        PhysicalKeyboardKey.digit1 when keyboard.isShiftPressed => _fitAll,
+        _ => null,
+      };
+      if (zoom != null) {
+        zoom();
+        return true;
+      }
+    }
+    final selected = _selected;
+    if (selected == null) return false;
+    if (key == PhysicalKeyboardKey.escape) {
+      setState(() => _selected = null);
+      return true;
+    }
+    // Delete и Backspace от раскладки не зависят: по смыслу клавиши надёжнее
+    if (event.logicalKey == LogicalKeyboardKey.delete || event.logicalKey == LogicalKeyboardKey.backspace) {
+      _trash(selected);
+      return true;
+    }
+    final step = keyboard.isShiftPressed ? 50.0 : 10.0;
+    final shift = switch (key) {
+      PhysicalKeyboardKey.arrowLeft => Offset(-step, 0),
+      PhysicalKeyboardKey.arrowRight => Offset(step, 0),
+      PhysicalKeyboardKey.arrowUp => Offset(0, -step),
+      PhysicalKeyboardKey.arrowDown => Offset(0, step),
+      _ => null,
+    };
+    if (shift == null) return false;
+    final spot = _moving[selected] ?? ref.read(canvasSpotsProvider(widget.folderId)).value?[selected];
+    if (spot == null) return true;
+    final moved = (x: spot.x + shift.dx, y: spot.y + shift.dy, width: spot.width);
+    setState(() => _moving[selected] = moved);
+    ref.read(canvasRepositoryProvider).save(widget.folderId, selected, moved).then((_) {
+      if (mounted) setState(() => _moving.remove(selected));
+    });
+    return true;
+  }
+
+  void _fitAll() {
+    final saved = ref.read(canvasSpotsProvider(widget.folderId)).value;
+    if (saved != null) _fit(_boxes(saved));
+  }
+
+  /// Delete: выбранная вещь — в корзину, с «Отменить».
+  void _trash(String id) {
+    final l = L.of(context);
+    final items = ref.read(itemsRepositoryProvider);
+    setState(() => _selected = null);
+    items.softDelete(id, ref.read(clockProvider)()).ignore();
+    showUndo(ScaffoldMessenger.of(context), message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(id), overDock: true);
   }
 
 
@@ -105,11 +220,12 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, scale);
   }
 
-  /// Записка прямо на холсте: заметка в этой папке там, куда сейчас смотрит экран.
-  Future<void> _addNote() async {
+  /// Записка прямо на холсте: заметка в этой папке там, куда сейчас смотрит экран, или
+  /// в точке холста [at] (двойной щелчок мышью по пустому месту).
+  Future<void> _addNote({Offset? at}) async {
     final text = await _askNote(context);
     if (text == null || !mounted) return;
-    final center = _transform.toScene(_viewport.center(Offset.zero));
+    final center = at ?? _transform.toScene(_viewport.center(Offset.zero));
     final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text, forcedFolderId: widget.folderId));
     await ref.read(canvasRepositoryProvider).save(widget.folderId, id, (x: center.dx - _origin - 110, y: center.dy - _origin - 88, width: 220));
   }
@@ -201,7 +317,11 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     return LayoutBuilder(
       builder: (context, constraints) {
         _viewport = constraints.biggest;
-        return Stack(
+        return Focus(
+          focusNode: _focus,
+          onKeyEvent: _onFocusKey,
+          child: Stack(
+          key: _stack,
           children: [
             // сетка рисуется в координатах экрана: точек ровно столько, сколько видно
             Positioned.fill(child: CustomPaint(painter: _DotsPainter(_transform))),
@@ -210,11 +330,16 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
               onPointerDown: _pointerDown,
               onPointerUp: _pointerUp,
               onPointerCancel: _pointerUp,
-              child: InteractiveViewer(
+              child: MouseRegion(
+                // мышью пустое место тянут, как лист бумаги
+                cursor: _hold == null ? SystemMouseCursors.grab : SystemMouseCursors.grabbing,
+                child: InteractiveViewer(
                 transformationController: _transform,
                 constrained: false,
                 minScale: 0.1,
                 maxScale: 4,
+                // колесо мыши масштабирует здесь только с Ctrl (_signal); щипок пальцами — как был
+                scaleFactor: double.maxFinite,
                 // палец ведёт карточку — холст под ним не едет
                 panEnabled: _hold == null,
                 onInteractionUpdate: (details) {
@@ -222,7 +347,27 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                   if (_hold != null && details.pointerCount == 1 && held != null) _transform.value = held.clone();
                 },
                 boundaryMargin: const EdgeInsets.all(_world),
-                child: SizedBox(
+                // слушатель внутри просмотрщика слышит колесо первым: колесо листает, а не масштабирует
+                child: Listener(
+                  // пустое место холста тоже ловит колесо и щелчки
+                  behavior: HitTestBehavior.opaque,
+                  onPointerSignal: _signal,
+                  // щелчок мышью мимо карточек снимает выбор
+                  onPointerDown: (event) {
+                    if (event.kind == PointerDeviceKind.mouse) {
+                      // щёлкнули мышью по холсту — клавиши теперь ему
+                      _focus.requestFocus();
+                      if (!_cardHit && _selected != null) setState(() => _selected = null);
+                    }
+                    _cardHit = false;
+                  },
+                  child: GestureDetector(
+                    // двойной щелчок мышью по пустому месту — записка прямо тут
+                    onDoubleTapDown: (details) {
+                      if (details.kind == PointerDeviceKind.mouse && !_cardHit) _addNote(at: details.localPosition).ignore();
+                    },
+                    onDoubleTap: () {},
+                    child: SizedBox(
                   width: _world,
                   height: _world,
                   child: Stack(
@@ -240,14 +385,23 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                               card: card,
                               filesRoot: filesRoot,
                               lifted: _hold?.itemId == card.id,
+                              selected: _selected == card.id,
                               onOpen: () => widget.onOpen(card.id),
                               onGrab: (pointer, {required resize}) => _grab(card, pointer, resize: resize),
                               onDrag: (pointer, delta) => _drag(card, (x: box.x, y: box.y, width: box.width), pointer, delta),
+                              onMouseDown: () {
+                                _cardHit = true;
+                                if (_selected != card.id) setState(() => _selected = card.id);
+                              },
+                              onMenu: () => showItemActions(context, ref, card),
                             ),
                           ),
                     ],
                   ),
                 ),
+                  ),
+                ),
+              ),
               ),
             ),
             Positioned(
@@ -268,6 +422,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
               ),
             ),
           ],
+        ),
         );
       },
     );
@@ -275,12 +430,31 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
 }
 
 class _CanvasItem extends StatelessWidget {
-  const _CanvasItem({required this.card, required this.filesRoot, required this.lifted, required this.onOpen, required this.onGrab, required this.onDrag});
+  const _CanvasItem({
+    required this.card,
+    required this.filesRoot,
+    required this.lifted,
+    required this.selected,
+    required this.onOpen,
+    required this.onGrab,
+    required this.onDrag,
+    required this.onMouseDown,
+    required this.onMenu,
+  });
 
   final ItemCard card;
   final Directory filesRoot;
   final bool lifted;
+
+  /// Выбрана щелчком мыши: её двигают стрелки и убирает Delete.
+  final bool selected;
   final VoidCallback onOpen;
+
+  /// Нажата кнопка мыши над карточкой: выбрать её.
+  final VoidCallback onMouseDown;
+
+  /// Правый щелчок: то же меню, что долгое нажатие в ленте.
+  final VoidCallback onMenu;
 
   /// Палец лёг на карточку или на её угол.
   final void Function(int pointer, {required bool resize}) onGrab;
@@ -333,10 +507,17 @@ class _CanvasItem extends StatelessWidget {
     // слушатели касаний, а не распознаватель перетаскивания: тот забирал бы палец
     // у холста, и щипок с пальцем на карточке не масштабировал бы
     return Listener(
-      onPointerDown: (event) => onGrab(event.pointer, resize: false),
+      onPointerDown: (event) {
+        if (event.kind == PointerDeviceKind.mouse) onMouseDown();
+        // правая кнопка открывает меню, а не тащит
+        if (event.buttons & kSecondaryMouseButton == 0) onGrab(event.pointer, resize: false);
+      },
       onPointerMove: (event) => onDrag(event.pointer, event.localDelta),
-      child: GestureDetector(
+      child: MouseRegion(
+        cursor: lifted ? SystemMouseCursors.grabbing : SystemMouseCursors.move,
+        child: GestureDetector(
         onDoubleTap: onOpen,
+        onSecondaryTap: onMenu,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -345,11 +526,11 @@ class _CanvasItem extends StatelessWidget {
                 scale: lifted ? 1.02 : 1,
                 duration: const Duration(milliseconds: 120),
                 child: DecoratedBox(
-                  // поднятая вещь обведена: видно, что именно тянешь
+                  // поднятая или выбранная мышью вещь обведена: видно, что именно тянешь
                   position: DecorationPosition.foreground,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(Radii.photo),
-                    border: lifted ? Border.all(color: Tokens.accent, width: 2) : null,
+                    border: lifted || selected ? Border.all(color: Tokens.accent, width: 2) : null,
                   ),
                   child: ClipRRect(borderRadius: BorderRadius.circular(Radii.photo), child: face),
                 ),
@@ -363,23 +544,27 @@ class _CanvasItem extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 // угол глубже карточки и слышит палец первым: дальше карточка его уже не возьмёт
                 onPointerDown: (event) => onGrab(event.pointer, resize: true),
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  alignment: Alignment.center,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeDownRight,
                   child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: Tokens.accent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Tokens.background, width: 2),
+                    width: 28,
+                    height: 28,
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Tokens.accent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Tokens.background, width: 2),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ],
+        ),
         ),
       ),
     );
