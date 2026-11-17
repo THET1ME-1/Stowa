@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/features/item/item_screen.dart';
+import 'package:flutter/gestures.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
@@ -134,6 +136,37 @@ void main() {
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'Купить [[]]');
     expect(find.byKey(const ValueKey('wiki-suggestions')), findsNothing);
   });
+
+  testWidgets('компьютер: «Открыть» мышью открывает найденное, новой заметки нет', (tester) async {
+    await note('n1', 'Схема курсовой работы', body: 'Скриншоты приложения');
+    await open(tester);
+    await type(tester, 'Схема курсовой работы');
+    expect(find.text('Открыть'), findsOneWidget);
+    await tester.tap(find.text('Открыть'), kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    expect(await world.db.select(world.db.items).get(), hasLength(1));
+    expect(find.byType(ItemScreen), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
+
+  testWidgets('широкий экран: «Открыть» мышью открывает найденное вкладкой, новой заметки нет', (tester) async {
+    await note('n1', 'Схема курсовой работы', body: 'Скриншоты приложения');
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await open(tester);
+    final line = find.byType(LineDock);
+    await tester.tap(find.descendant(of: line, matching: find.textContaining('Закинь')).first, kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    final field = find.descendant(of: line, matching: find.byType(TextField));
+    await tester.enterText(field, 'Схема курсовой работы');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    expect(find.text('Открыть'), findsOneWidget);
+    await tester.tap(find.text('Открыть'), kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    expect(await world.db.select(world.db.items).get(), hasLength(1));
+    expect(find.byType(ItemScreen), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets('новая мысль: строка «Закинуть» с причиной и напоминанием, сохраняет и чистит', (tester) async {
     await open(tester);
