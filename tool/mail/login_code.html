@@ -34,6 +34,8 @@
     .soft { color: #B0B1B6 !important; }
     .muted { color: #96979D !important; }
     a { color: #F2F2F0 !important; }
+    .badge { background: #F2F2F0 !important; color: #141517 !important; }
+    b { color: #F2F2F0 !important; }
   }
   [data-ogsc] .page { background: #141517 !important; }
   [data-ogsc] .card { background: #1A1B1E !important; }
@@ -76,8 +78,21 @@
                 </td>
               </tr>
 
+              <!-- Откуда письмо: когда и с какого устройства просили вход -->
               <tr>
-                <td class="soft" style="font-family:'Onest',Arial,sans-serif; font-size:14px; line-height:21px; color:#46474C; padding:28px 0 0;">{{safety}}</td>
+                <td style="padding:24px 0 0;">
+                  <table role="presentation" class="tile" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F0EE; border-radius:20px;">
+                    <tr>
+                      <td valign="top" style="padding:18px 0 18px 18px; width:22px;">
+                        <div class="badge" style="width:22px; height:22px; border-radius:11px; background:#1B1C1E; color:#FFFFFF; font-family:Georgia,'Times New Roman',serif; font-size:14px; line-height:22px; font-weight:700; font-style:italic; text-align:center;">i</div>
+                      </td>
+                      <td class="soft" style="font-family:'Onest',Arial,sans-serif; font-size:14px; line-height:21px; color:#46474C; padding:18px 18px 18px 14px;">
+                        {{reason_html}}
+                        <div style="padding-top:10px;">{{advice}}</div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
               </tr>
             </table>
           </td>
