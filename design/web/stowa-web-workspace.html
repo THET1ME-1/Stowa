@@ -1,0 +1,1072 @@
+<title>Stowa Web</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..40,400..600,0..1,0&display=block">
+<style>
+/* Рабочее пространство, как в Obsidian и Blender: три части — левый док, центр, правый док.
+   Доки собраны из панелей: добавить, убрать, свернуть, перетащить в другой док, потянуть ширину.
+   Центр делится на окна вправо и вниз, у каждого окна свои вкладки. Раскладка запоминается.
+   Цвета — графит Stowa (palette.dart), цвета папок — FolderPalette, подложка карточки — 16% цвета папки. */
+:root {
+  --page: #0C0D0E;
+  --bg: #141517;
+  --c-lowest: #101113;
+  --c-low: #1A1B1E;
+  --c: #1F2023;
+  --c-high: #26272B;
+  --c-highest: #2E2F33;
+  --line: #3A3B40;
+  --on: #F2F2F0;
+  --on-var: #B0B1B6;
+  --muted: #96979D;
+  --accent: #F4F4F2;
+  --on-accent: #141517;
+  --error: #FFB4AB;
+  --tint: 16%;
+  --ink: 100%;
+  --scrim: rgba(12, 13, 14, .72);
+  --display: "Unbounded", "Onest", system-ui, sans-serif;
+  --body: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-card: 28px; --r-tile: 20px; --r-photo: 16px; --r-ctl: 14px;
+  --sb: 272px; --rp: 320px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --page: #ECECE9; --bg: #F6F6F4; --c-lowest: #FFFFFF; --c-low: #F0F0EE; --c: #EAEAE7; --c-high: #E4E4E1; --c-highest: #DCDCD9;
+    --line: #C6C6C2; --on: #1B1C1E; --on-var: #46474C; --muted: #5F6066; --accent: #1B1C1E; --on-accent: #F6F6F4; --error: #BA1A1A;
+    --tint: 26%; --ink: 58%; --scrim: rgba(27, 28, 30, .42); color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --page: #ECECE9; --bg: #F6F6F4; --c-lowest: #FFFFFF; --c-low: #F0F0EE; --c: #EAEAE7; --c-high: #E4E4E1; --c-highest: #DCDCD9;
+  --line: #C6C6C2; --on: #1B1C1E; --on-var: #46474C; --muted: #5F6066; --accent: #1B1C1E; --on-accent: #F6F6F4; --error: #BA1A1A;
+  --tint: 26%; --ink: 58%; --scrim: rgba(27, 28, 30, .42); color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--page); color: var(--on); font: 400 15px/1.5 var(--body); overflow: hidden; -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+.sym { font-family: "Material Symbols Rounded"; font-weight: 450; font-style: normal; font-size: 20px; line-height: 1; letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr; font-variation-settings: "FILL" 0, "opsz" 24; -webkit-font-smoothing: antialiased; user-select: none; }
+.sym.f { font-variation-settings: "FILL" 1, "opsz" 24; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* цвет папки: точка — --f «чернилами», подложка — смесь с поверхностью */
+[data-f] { --f: #96979D; }
+[data-f="dom"] { --f: #FEC766; } [data-f="remont"] { --f: #F7A974; } [data-f="work"] { --f: #5FCDF5; }
+[data-f="buy"] { --f: #76D5A4; } [data-f="recipes"] { --f: #FFA098; } [data-f="books"] { --f: #BCB1FF; }
+[data-f="ideas"] { --f: #B5E285; } [data-f="personal"] { --f: #F89EC1; } [data-f="none"] { --f: #96979D; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: color-mix(in oklab, var(--f) var(--ink), #000); flex: none; }
+
+/* ── каркас: левый док · центр · правый док ─────────── */
+:root { --hair: color-mix(in oklab, var(--line) 50%, transparent); }
+.ws { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
+.bar { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; border-bottom: 1px solid var(--hair); background: var(--c-lowest); flex: none; }
+.bar .presets { display: flex; gap: 4px; padding: 3px; border-radius: 100px; background: var(--c); margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
+.bar .presets button { height: 30px; padding: 0 12px; border-radius: 100px; font-size: 13px; color: var(--on-var); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.bar .presets button .sym { font-size: 17px; }
+.bar .presets button:hover { color: var(--on); background: var(--c-high); }
+.bar .presets button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.bar .icon-btn.on { background: var(--c-high); color: var(--on); }
+#tog-right { margin-left: auto; }
+.bar .presets + #tog-right { margin-left: 0; }
+.body { flex: 1; display: flex; min-height: 0; }
+.dockcol { flex: none; width: var(--w); display: flex; flex-direction: column; min-height: 0; background: var(--c-lowest); }
+.dockcol.left { border-right: 1px solid var(--hair); padding-left: env(safe-area-inset-left, 0px); }
+.dockcol.right { border-left: 1px solid var(--hair); padding-right: env(safe-area-inset-right, 0px); }
+.dockcol[hidden] { display: none; }
+.dock-scroll { flex: 1; overflow: auto; min-height: 0; padding: 6px 8px 10px; }
+.dock-empty { margin: 8px; padding: 18px 14px; border: 1.5px dashed var(--line); border-radius: 18px; color: var(--muted); font-size: 13px; text-align: center; }
+.dock-foot { display: flex; align-items: center; gap: 4px; padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--hair); position: relative; }
+.add-panel { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 10px; font-size: 13px; color: var(--muted); }
+.add-panel:hover { background: var(--c); color: var(--on); }
+.add-menu { position: absolute; bottom: calc(100% + 6px); left: 8px; right: 8px; z-index: 20; padding: 6px; border-radius: 18px; background: var(--c-high); display: grid; gap: 2px; max-height: 50vh; overflow: auto; }
+.add-menu[hidden] { display: none; }
+.add-menu button { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 12px; font-size: 14px; text-align: left; }
+.add-menu button:hover { background: var(--c-highest); }
+.add-menu button .sym { font-size: 18px; color: var(--on-var); }
+.add-menu small { padding: 6px 10px 2px; color: var(--muted); font-size: 12px; }
+
+/* панель дока: заголовок — ручка для перетаскивания, кнопки появляются при наведении */
+.pnl { margin-bottom: 2px; border-radius: 16px; }
+.pnl-head { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 4px 0 6px; border-radius: 12px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; cursor: grab; user-select: none; }
+.pnl-head:hover { background: var(--c); color: var(--on-var); }
+.pnl-head > .sym { font-size: 17px; }
+.pnl-head .chev2 { font-size: 18px; transition: transform .16s; }
+.pnl.collapsed .chev2 { transform: rotate(-90deg); }
+.pnl.collapsed .pnl-body { display: none; }
+.pnl-head .acts { margin-left: auto; display: flex; gap: 1px; opacity: 0; transition: opacity .12s; }
+.pnl-head:hover .acts, .pnl-head:focus-within .acts { opacity: 1; }
+.mini { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--muted); }
+.mini:hover { background: var(--c-high); color: var(--on); }
+.mini .sym { font-size: 17px; }
+.pnl-body { padding: 2px 2px 10px; }
+.pnl.dragging { opacity: .35; }
+.drop-mark { height: 3px; border-radius: 2px; background: var(--accent); margin: 1px 8px; }
+.pnl-note { color: var(--muted); font-size: 13px; padding: 4px 8px 6px; }
+
+/* ручки: тянуть ширину дока и границу между окнами */
+.gutter { flex: none; width: 7px; margin: 0 -3px; cursor: col-resize; position: relative; z-index: 6; touch-action: none; }
+.gutter::after { content: ""; position: absolute; inset: 0 3px; border-radius: 2px; transition: background .12s; }
+.gutter:hover::after, .gutter.drag::after { background: color-mix(in oklab, var(--accent) 45%, transparent); }
+.gutter.row { width: auto; height: 7px; margin: -3px 0; cursor: row-resize; }
+.gutter.row::after { inset: 3px 0; }
+body.resizing { user-select: none; cursor: col-resize; }
+body.resizing.rows { cursor: row-resize; }
+
+/* центр: дерево окон */
+.center { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.panes { flex: 1; display: flex; min-height: 0; min-width: 0; }
+.split { display: flex; flex: 1; min-width: 0; min-height: 0; }
+.split.col { flex-direction: column; }
+.slot { display: flex; min-width: 0; min-height: 0; flex-basis: 0; }
+.pane { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); }
+.split.row > .slot + .gutter + .slot > .pane, .split.row > .slot + .gutter + .slot { border-left: 1px solid var(--hair); }
+.split.col > .slot + .gutter + .slot { border-top: 1px solid var(--hair); }
+.pane-top { display: flex; align-items: center; gap: 4px; height: 46px; padding: 0 6px 0 8px; border-bottom: 2px solid transparent; flex: none; }
+.pane.active .pane-top { border-bottom-color: color-mix(in oklab, var(--accent) 40%, transparent); }
+.pane-acts { display: flex; gap: 1px; margin-left: auto; flex: none; }
+.pane-scroll { flex: 1; overflow: auto; min-height: 0; scroll-behavior: smooth; }
+.pane:not(.active) .pane-scroll { opacity: .96; }
+
+/* ── боковая панель ── */
+.vault { display: flex; align-items: center; gap: 10px; padding: 14px 14px 10px 16px; }
+.vault-mark { width: 34px; height: 34px; border-radius: 11px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font: 700 15px var(--display); flex: none; }
+.vault-name { font: 600 15px/1.2 var(--body); }
+.vault-sync { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.vault-sync i { width: 7px; height: 7px; border-radius: 50%; background: #76D5A4; }
+.vault .icon-btn { margin-left: auto; }
+.icon-btn { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: var(--on-var); flex: none; }
+.icon-btn:hover { background: var(--c-high); color: var(--on); }
+.finder { margin: 4px 12px 10px; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: var(--r-ctl); background: var(--c); color: var(--muted); font-size: 14px; text-align: left; }
+.finder:hover { background: var(--c-high); }
+.finder kbd { margin-left: auto; font: 500 11px var(--body); padding: 2px 6px; border-radius: 6px; background: var(--c-highest); color: var(--on-var); }
+.side-scroll { flex: 1; overflow: auto; padding: 0 8px 12px; min-height: 0; }
+.nav-item { display: flex; align-items: center; gap: 11px; width: 100%; height: 36px; padding: 0 10px; border-radius: 12px; color: var(--on-var); font-size: 14px; text-align: left; }
+.nav-item:hover { background: var(--c); color: var(--on); }
+.nav-item[aria-current="page"] { background: var(--c-high); color: var(--on); font-weight: 600; }
+.nav-item .count { margin-left: auto; font-size: 12px; color: var(--muted); }
+.nav-item .sym { color: var(--muted); }
+.nav-item[aria-current="page"] .sym { color: var(--on); }
+.group { margin-top: 18px; }
+.group-head { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 6px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+.group-head button { color: var(--muted); }
+.tree-row { display: flex; align-items: center; gap: 9px; width: 100%; height: 34px; padding: 0 10px 0 calc(10px + var(--lvl, 0) * 18px); border-radius: 12px; font-size: 14px; color: var(--on); text-align: left; }
+.tree-row:hover { background: var(--c); }
+.tree-row[aria-current="page"] { background: color-mix(in oklab, var(--f) var(--tint), var(--c)); font-weight: 600; }
+.tree-row .chev { width: 16px; color: var(--muted); font-size: 18px; transition: transform .18s; }
+.tree-row .chev.open { transform: rotate(90deg); }
+.tree-row .count { margin-left: auto; font-size: 12px; color: var(--muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px; }
+.tag { height: 28px; padding: 0 10px; border-radius: 100px; background: var(--c); color: var(--on-var); font-size: 13px; display: inline-flex; align-items: center; }
+.tag:hover { background: var(--c-high); color: var(--on); }
+.side-foot { display: flex; align-items: center; gap: 4px; padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid color-mix(in oklab, var(--line) 50%, transparent); }
+.me { display: flex; align-items: center; gap: 8px; margin-right: auto; font-size: 13px; color: var(--on-var); }
+.me b { width: 28px; height: 28px; border-radius: 50%; background: color-mix(in oklab, #F89EC1 70%, var(--c)); color: #1B1C1E; display: grid; place-items: center; font: 600 12px var(--body); }
+
+/* ── верхняя полоса ── */
+.top { display: flex; align-items: center; gap: 6px; height: 56px; padding: 0 12px; padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; border-bottom: 1px solid color-mix(in oklab, var(--line) 50%, transparent); background: var(--bg); }
+.menu-btn { display: none; }
+.tabs { display: flex; gap: 4px; min-width: 0; overflow: hidden; flex: 1; }
+.tab { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 12px; border-radius: 12px; background: transparent; color: var(--on-var); font-size: 13px; max-width: 220px; min-width: 0; }
+.tab span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab:hover { background: var(--c); color: var(--on); }
+.tab.on { background: var(--c-high); color: var(--on); font-weight: 600; }
+.tab .x { font-size: 16px; color: var(--muted); border-radius: 6px; padding: 2px; }
+.tab .x:hover { background: var(--c-highest); }
+.top-actions { display: flex; gap: 2px; margin-left: auto; }
+
+/* ── прокручиваемая область ── */
+.scroll { flex: 1; overflow: auto; min-height: 0; scroll-behavior: smooth; }
+.view { padding: 28px max(24px, env(safe-area-inset-right, 0px)) 140px max(24px, env(safe-area-inset-left, 0px)); }
+.view-head { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.h1 { font: 700 30px/1.15 var(--display); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+/* полка папок одной строкой, как на главной приложения */
+.shelf { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 26px; scrollbar-width: none; }
+.shelf::-webkit-scrollbar { display: none; }
+.pill { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 12px; border-radius: 100px; background: color-mix(in oklab, var(--f) var(--tint), var(--c)); font-size: 14px; font-weight: 500; white-space: nowrap; flex: none; }
+.pill:hover { background: color-mix(in oklab, var(--f) calc(var(--tint) + 10%), var(--c)); }
+.pill .n { color: var(--on-var); font-size: 13px; }
+
+/* значок папки её цветом: тот же оттенок, что у точки раньше */
+.fic { color: color-mix(in oklab, var(--f) var(--ink), #000); font-size: 18px; flex: none; }
+
+/* главная: лента по дням плиткой и колонка «вернуть» */
+.home { max-width: 1560px; margin: 0 auto; }
+.day { margin-bottom: 28px; }
+.day-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px 2px; }
+.day-head h2 { font: 600 17px var(--display); letter-spacing: -.01em; margin: 0; }
+.day-head span { color: var(--muted); font-size: 13px; }
+/* плитка как в Pinterest: столько колонок, сколько влезает по 200 точек, порядок слева
+   направо — свежее в первом ряду, — высота карточки по содержимому. Сетка из рядов по 2 точки,
+   сколько рядов занять, считает layoutPins() по настоящей высоте карточки */
+.pins { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); grid-auto-rows: 2px; column-gap: 14px; }
+.pins .card { align-self: start; margin: 0; }
+.pins .card h3 { -webkit-line-clamp: 3; }
+.pins .card p { -webkit-line-clamp: 6; }
+.pins .photo { margin: -16px -18px 12px; width: calc(100% + 36px); border-radius: var(--r-tile) var(--r-tile) var(--r-photo) var(--r-photo); max-height: none; aspect-ratio: var(--ratio, 4 / 5); }
+.pins .link-prev { grid-template-columns: 1fr; }
+.pins .link-prev .thumb { aspect-ratio: 16 / 9; }
+.card .meta .when { margin-left: auto; color: var(--muted); }
+.card .meta .rem, .card .meta .folder { white-space: nowrap; }
+.card .meta { flex-wrap: wrap; row-gap: 6px; }
+.finder { white-space: nowrap; overflow: hidden; }
+.card { display: block; width: 100%; text-align: left; margin: 0 0 10px 10px; padding: 16px 18px; border-radius: var(--r-tile); background: color-mix(in oklab, var(--f) var(--tint), var(--c)); transition: transform .16s cubic-bezier(.2, 0, 0, 1), background .16s; }
+.card:hover { background: color-mix(in oklab, var(--f) calc(var(--tint) + 7%), var(--c)); }
+.card:active { transform: scale(.99); }
+.card h3 { font: 600 16px/1.3 var(--body); margin: 0 0 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card p { margin: 0; color: var(--on-var); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card .meta { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--on-var); }
+.card .meta .folder { display: inline-flex; align-items: center; gap: 6px; }
+.card .meta .rem { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 6px; border-radius: 100px; background: color-mix(in oklab, var(--on) 9%, transparent); }
+.card .meta .rem .sym { font-size: 14px; }
+.checks { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 5px; font-size: 14px; }
+.checks li { display: flex; gap: 8px; align-items: center; color: var(--on); }
+.checks li.done { color: var(--muted); text-decoration: line-through; }
+.checks .sym { font-size: 18px; color: var(--on-var); }
+.checks .more { color: var(--muted); padding-left: 26px; }
+.photo { position: relative; border-radius: var(--r-photo); margin: -4px -6px 10px; overflow: hidden; aspect-ratio: 16 / 9; max-height: 220px; width: calc(100% + 12px); background:
+  radial-gradient(120% 90% at 20% 15%, color-mix(in oklab, var(--f) 55%, var(--c-high)), transparent 60%),
+  radial-gradient(90% 80% at 85% 90%, color-mix(in oklab, var(--f) 30%, var(--c-lowest)), transparent 70%),
+  var(--c-high); }
+.photo figcaption { position: absolute; left: 10px; bottom: 10px; display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px 4px 8px; border-radius: 100px; background: var(--scrim); color: #F2F2F0; font-size: 12px; }
+.photo figcaption .sym { font-size: 16px; }
+.link-prev { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; margin-top: 10px; padding: 8px; border-radius: 16px; background: color-mix(in oklab, var(--c-lowest) 55%, transparent); }
+.link-prev .thumb { position: relative; aspect-ratio: 16 / 10; border-radius: 10px; background: linear-gradient(135deg, color-mix(in oklab, var(--f) 45%, #222), #1A1B1E); display: grid; place-items: center; color: #F2F2F0; }
+.link-prev .thumb .len { position: absolute; right: 6px; bottom: 6px; font-size: 11px; padding: 1px 5px; border-radius: 6px; background: rgba(0,0,0,.6); }
+.link-prev b { display: block; font-size: 14px; line-height: 1.3; }
+.link-prev span { font-size: 12px; color: var(--muted); }
+.wave { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.wave .play { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; }
+.wave svg { flex: 1; height: 28px; min-width: 0; }
+.wave svg rect { fill: color-mix(in oklab, var(--on) 55%, transparent); }
+
+.aside { display: grid; gap: 14px; align-content: start; position: sticky; top: 0; }
+.panel { padding: 18px; border-radius: var(--r-card); background: var(--c); }
+.panel h4 { margin: 0 0 12px; font: 600 14px var(--display); letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.panel h4 .sym { font-size: 18px; color: var(--on-var); }
+.cal { padding: 0 8px; }
+.cal-head { font-size: 13px; font-weight: 600; margin: 0 0 6px 2px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; font-size: 12px; }
+.cal-grid i { font-style: normal; color: var(--muted); font-size: 11px; padding-bottom: 2px; }
+.cal-grid button { height: 28px; border-radius: 9px; color: var(--on-var); position: relative; }
+.cal-grid button:hover { background: var(--c); color: var(--on); }
+.cal-grid button.busy::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--muted); }
+.cal-grid button.today { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.later { display: grid; gap: 2px; }
+.later button { display: flex; align-items: center; gap: 10px; padding: 8px; margin: 0 -8px; border-radius: 12px; text-align: left; font-size: 14px; }
+.later button:hover { background: var(--c-high); }
+.later .k { width: 40px; height: 40px; border-radius: 12px; background: color-mix(in oklab, var(--f) var(--tint), var(--c-high)); display: grid; place-items: center; flex: none; }
+.later small { display: block; color: var(--muted); font-size: 12px; }
+.ago { display: block; width: 100%; text-align: left; padding: 14px; border-radius: var(--r-tile); background: color-mix(in oklab, var(--f) var(--tint), var(--c-high)); }
+.ago small { color: var(--on-var); font-size: 12px; }
+.ago b { display: block; font-size: 15px; margin-top: 2px; }
+.sync-panel { display: flex; gap: 12px; align-items: flex-start; }
+.sync-panel .badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 100px; background: var(--accent); color: var(--on-accent); }
+.devices { display: grid; gap: 8px; margin-top: 4px; font-size: 13px; color: var(--on-var); }
+.devices div { display: flex; align-items: center; gap: 8px; }
+.devices .sym { font-size: 18px; }
+.devices em { margin-left: auto; font-style: normal; color: var(--muted); font-size: 12px; }
+
+/* страница заметки: документ со свойствами */
+.doc { max-width: 760px; margin: 0 auto; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+.crumbs button:hover { color: var(--on); }
+.doc-title { font: 700 clamp(26px, 3.4vw, 36px)/1.15 var(--display); letter-spacing: -.02em; margin: 0 0 20px; text-wrap: balance; outline: none; }
+.props { display: grid; grid-template-columns: 160px minmax(0, 1fr); row-gap: 2px; margin-bottom: 26px; font-size: 14px; }
+.props dt { display: flex; align-items: center; gap: 8px; color: var(--muted); height: 36px; }
+.props dt .sym { font-size: 18px; }
+.props dd { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 36px; padding: 4px 8px; border-radius: 10px; }
+.props dd:hover { background: var(--c); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 100px; background: var(--c-high); font-size: 13px; }
+.chip.f { background: color-mix(in oklab, var(--f) var(--tint), var(--c-high)); }
+.chip.rem { background: color-mix(in oklab, var(--accent) 10%, var(--c-high)); }
+.prop-add { color: var(--muted); font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px; border-radius: 10px; }
+.prop-add:hover { background: var(--c); color: var(--on); }
+.rule { height: 1px; background: color-mix(in oklab, var(--line) 60%, transparent); margin: 6px 0 24px; }
+.prose { font-size: 16px; line-height: 1.65; }
+.prose p { margin: 0 0 14px; max-width: 68ch; }
+.prose h2 { font: 600 19px/1.3 var(--display); letter-spacing: -.01em; margin: 30px 0 10px; }
+.prose .wikilink { color: var(--on); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--on) 40%, transparent); text-underline-offset: 3px; font-weight: 500; cursor: pointer; }
+.prose .money { font-variant-numeric: tabular-nums; background: color-mix(in oklab, #76D5A4 22%, transparent); padding: 1px 6px; border-radius: 6px; }
+.todo { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 4px; }
+.todo li { display: flex; align-items: center; gap: 10px; padding: 4px 6px; margin-left: -6px; border-radius: 10px; }
+.todo li:hover { background: var(--c); }
+.todo .box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line); display: grid; place-items: center; flex: none; cursor: pointer; }
+.todo li.done .box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.todo li.done .label { color: var(--muted); text-decoration: line-through; }
+.todo .box .sym { font-size: 16px; font-variation-settings: "FILL" 1, "wght" 600; }
+.price-table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 4px 0 8px; }
+.price-table td { padding: 9px 0; border-bottom: 1px solid color-mix(in oklab, var(--line) 50%, transparent); }
+.price-table td:last-child { text-align: right; }
+.total { display: inline-flex; align-items: center; gap: 8px; margin: 6px 0 18px; padding: 6px 12px 6px 10px; border-radius: 100px; background: color-mix(in oklab, #76D5A4 18%, var(--c)); font-size: 14px; font-weight: 600; }
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 6px 0 18px; }
+.gallery .photo { margin: 0; width: 100%; aspect-ratio: 4 / 3; max-height: none; }
+.product { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px; border-radius: var(--r-tile); background: var(--c); margin: 4px 0 18px; }
+.product .thumb { aspect-ratio: 1; border-radius: 14px; background: repeating-conic-gradient(color-mix(in oklab, #F7A974 40%, var(--c-high)) 0 25%, var(--c-high) 0 50%) 0 0 / 24px 24px; }
+.product b { display: block; font-size: 15px; }
+.product small { color: var(--muted); font-size: 13px; }
+.product .price { font: 600 16px var(--body); font-variant-numeric: tabular-nums; padding-right: 8px; }
+
+/* правая панель */
+.rp-sec { padding: 18px 18px 6px; }
+.rp-sec + .rp-sec { border-top: 1px solid color-mix(in oklab, var(--line) 45%, transparent); }
+.rp-sec h5 { margin: 0 0 10px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; display: flex; justify-content: space-between; }
+.rel { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; padding: 9px 10px; margin: 0 -10px 4px; border-radius: 14px; }
+.rel:hover { background: var(--c); }
+.rel .dot { margin-top: 6px; }
+.rel b { display: block; font-size: 14px; font-weight: 600; }
+.rel small { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.outline { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 2px; font-size: 14px; }
+.outline button { width: 100%; text-align: left; padding: 6px 10px; margin: 0 -10px; border-radius: 10px; color: var(--on-var); }
+.outline button:hover { background: var(--c); color: var(--on); }
+.mini-graph { width: 100%; height: 170px; border-radius: var(--r-tile); background: var(--c); display: block; margin-bottom: 14px; }
+.hist { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--on-var); margin-bottom: 16px; }
+
+/* папка: доска */
+.board-tools { display: flex; gap: 6px; margin-left: auto; padding: 4px; border-radius: 100px; background: var(--c); }
+.seg { height: 34px; padding: 0 14px; border-radius: 100px; font-size: 13px; color: var(--on-var); display: inline-flex; align-items: center; gap: 6px; }
+.seg.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.board { columns: 4 220px; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
+.tile { break-inside: avoid; display: block; width: 100%; margin: 0 0 12px; text-align: left; border-radius: var(--r-tile); background: color-mix(in oklab, var(--f) var(--tint), var(--c)); overflow: hidden; transition: transform .16s cubic-bezier(.2, 0, 0, 1); }
+.tile:hover { transform: translateY(-2px); }
+.tile .photo { margin: 0; width: 100%; max-height: none; border-radius: 0; }
+.tile .in { padding: 12px 14px 14px; }
+.tile b { display: block; font-size: 15px; line-height: 1.3; }
+.tile small { display: flex; gap: 10px; color: var(--on-var); font-size: 12px; margin-top: 6px; }
+
+/* ── строка: ищет и записывает ── */
+.dock { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); pointer-events: none; display: flex; justify-content: center; }
+.dock-in { width: min(760px, 100%); pointer-events: auto; }
+.results { margin-bottom: 8px; border-radius: var(--r-card); background: var(--c-high); padding: 8px; box-shadow: 0 1px 0 color-mix(in oklab, var(--line) 60%, transparent) inset; max-height: min(52vh, 420px); overflow: auto; }
+.results[hidden] { display: none; }
+.res { display: flex; gap: 12px; align-items: center; width: 100%; padding: 10px 12px; border-radius: 18px; text-align: left; }
+.res:hover, .res.sel { background: var(--c-highest); }
+.res.main-act { background: var(--accent); color: var(--on-accent); }
+.res.main-act small { color: color-mix(in oklab, var(--on-accent) 65%, transparent); }
+.res .k { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; flex: none; background: color-mix(in oklab, var(--f) var(--tint), var(--c)); }
+.res.main-act .k { background: color-mix(in oklab, var(--on-accent) 12%, transparent); }
+.res b { display: block; font-size: 14px; font-weight: 600; }
+.res small { display: block; font-size: 12px; color: var(--muted); }
+.res mark { background: color-mix(in oklab, #FEC766 45%, transparent); color: inherit; border-radius: 4px; padding: 0 2px; }
+.res-label { font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 12px 4px; }
+.chips-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 4px 8px 6px; }
+.line { display: flex; align-items: center; gap: 4px; min-height: 60px; padding: 8px 8px 8px 18px; border-radius: 100px; background: var(--c-high); box-shadow: 0 0 0 1px color-mix(in oklab, var(--line) 55%, transparent); }
+.line:focus-within { box-shadow: 0 0 0 2px color-mix(in oklab, var(--on) 35%, transparent); }
+.line input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 16px; height: 44px; }
+.line input::placeholder { color: var(--muted); }
+.line .kbd { font-size: 11px; color: var(--muted); padding: 2px 6px; border-radius: 6px; background: var(--c-highest); margin-right: 6px; }
+.send { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; transition: transform .15s; }
+.send:active { transform: scale(.92); }
+
+.toast { position: absolute; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 12px); opacity: 0; pointer-events: none; display: flex; gap: 14px; align-items: center; padding: 10px 10px 10px 16px; border-radius: 16px; background: var(--accent); color: var(--on-accent); font-size: 14px; transition: opacity .2s, transform .2s; white-space: nowrap; max-width: calc(100% - 32px); }
+.toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.toast button { font-weight: 600; padding: 6px 10px; border-radius: 10px; background: color-mix(in oklab, var(--on-accent) 10%, transparent); }
+.fresh { animation: drop .45s cubic-bezier(.16, 1, .3, 1); }
+@keyframes drop { from { opacity: 0; transform: translateY(-10px) scale(.98); } }
+
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 30; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+
+/* ── узкий экран: доки выезжают поверх, окна встают друг под другом ── */
+@media (max-width: 959px) {
+  .dockcol { position: fixed; top: 0; bottom: 0; z-index: 40; width: min(320px, 86vw); transition: transform .25s cubic-bezier(.2, 0, 0, 1); }
+  .dockcol.left { left: 0; transform: translateX(-100%); }
+  .dockcol.right { right: 0; transform: translateX(100%); }
+  .dockcol[hidden] { display: flex; }
+  .dockcol.open { transform: none; }
+  .body > .gutter { display: none; }
+  .bar .presets { display: none; }
+}
+@media (max-width: 719px) {
+  .split.row { flex-direction: column; }
+  .split.row > .gutter { display: none; }
+  .tabs .tab:not(.on) { display: none; }
+  .tab { max-width: none; }
+  .view { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 140px max(16px, env(safe-area-inset-left, 0px)); }
+  .h1 { font-size: 24px; }
+  /* на телефоне плитка в две колонки */
+  .pins { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; }
+  .card { padding: 14px 16px; }
+  .pins .photo { margin: -14px -16px 10px; width: calc(100% + 32px); }
+  .props { grid-template-columns: 112px minmax(0, 1fr); }
+  .link-prev { grid-template-columns: 88px minmax(0, 1fr); }
+  .product { grid-template-columns: 64px minmax(0, 1fr); }
+  .product .price { grid-column: 2; padding: 0; font-size: 14px; }
+  .line { min-height: 54px; }
+  .line .kbd { display: none; }
+  .top-actions .hide-s { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+</style>
+
+<div class="ws" id="app">
+  <header class="bar">
+    <button class="icon-btn" id="tog-left" title="Левый док"><span class="sym">left_panel_open</span></button>
+    <div class="presets" id="presets" role="group" aria-label="Раскладка"></div>
+    <button class="icon-btn" id="tog-right" title="Правый док"><span class="sym">right_panel_open</span></button>
+  </header>
+  <div class="body">
+  <aside class="dockcol left" id="side" aria-label="Левый док">
+    <div class="vault">
+      <div class="vault-mark">S</div>
+      <div>
+        <div class="vault-name">Мои заметки</div>
+        <div class="vault-sync"><i></i>Синхронизировано</div>
+      </div>
+      <button class="icon-btn" title="Сменить хранилище"><span class="sym">unfold_more</span></button>
+    </div>
+    <button class="finder" id="finder"><span class="sym">search</span>Найти или записать<kbd>Ctrl K</kbd></button>
+    <div class="dock-scroll" id="dock-left" data-side="left"></div>
+    <div class="dock-foot">
+      <button class="add-panel" data-addmenu="left"><span class="sym">add</span>Панель</button>
+      <div class="add-menu" id="add-left" hidden></div>
+      <button class="icon-btn" id="theme" title="Светлая или тёмная" style="margin-left:auto"><span class="sym">dark_mode</span></button>
+      <button class="icon-btn" title="Настройки"><span class="sym">settings</span></button>
+    </div>
+  </aside>
+  <div class="gutter" data-resize="left" title="Потянуть ширину"></div>
+
+  <main class="center">
+    <div class="panes" id="panes"></div>
+    <div class="toast" id="toast"><span id="toast-text"></span><button id="toast-undo">Отменить</button></div>
+    <div class="dock">
+      <div class="dock-in">
+        <div class="results" id="results" hidden></div>
+        <form class="line" id="line" autocomplete="off">
+          <input id="q" placeholder="Записать или найти…" aria-label="Записать или найти">
+          <span class="kbd">Ctrl K</span>
+          <button type="button" class="icon-btn" title="Прикрепить файл"><span class="sym">attach_file</span></button>
+          <button type="button" class="icon-btn" title="Голосовое"><span class="sym">mic</span></button>
+          <button class="send" title="Закинуть"><span class="sym f">arrow_upward</span></button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <div class="gutter" data-resize="right" title="Потянуть ширину"></div>
+  <aside class="dockcol right" id="right" aria-label="Правый док">
+    <div class="dock-scroll" id="dock-right" data-side="right"></div>
+    <div class="dock-foot">
+      <button class="add-panel" data-addmenu="right"><span class="sym">add</span>Панель</button>
+      <div class="add-menu" id="add-right" hidden></div>
+    </div>
+  </aside>
+  </div>
+</div>
+<div class="scrim" id="scrim"></div>
+
+<script>
+const FOLDERS = [
+  { id: "dom", name: "Дом", icon: "home", count: 34, kids: [{ id: "remont", name: "Ремонт", icon: "construction", count: 9 }] },
+  { id: "work", name: "Работа", icon: "work", count: 58 },
+  { id: "buy", name: "Покупки", icon: "shopping_cart", count: 21 },
+  { id: "recipes", name: "Рецепты", icon: "restaurant", count: 17 },
+  { id: "books", name: "Книги и фильмы", icon: "menu_book", count: 46 },
+  { id: "ideas", name: "Идеи", icon: "lightbulb", count: 29 },
+  { id: "personal", name: "Личное", icon: "favorite", count: 12 },
+];
+const FNAME = { none: "Без папки" };
+const FICON = { none: "inbox" };
+FOLDERS.forEach(f => { FNAME[f.id] = f.name; FICON[f.id] = f.icon; (f.kids || []).forEach(k => { FNAME[k.id] = k.name; FICON[k.id] = k.icon; }); });
+/* значок папки её цветом, как в приложении */
+const fic = (id, size) => `<span class="sym f fic" data-f="${id}"${size ? ` style="font-size:${size}px"` : ""}>${FICON[id] || "folder"}</span>`;
+
+const NOTES = [
+  { id: "kitchen", f: "remont", day: 0, time: "18:20", kind: "check", title: "Ремонт кухни: что заказать",
+    checks: [["Плитка 20×20, 6 м²", 1], ["Затирка, серая", 0], ["Смеситель с длинным изливом", 0]], more: 2, rem: "Сб, 10:00" },
+  { id: "milk", f: "buy", day: 0, time: "17:05", kind: "check", title: "Купить",
+    checks: [["Молоко", 0], ["Свёкла и морковь", 0], ["Хлеб ржаной", 1]], more: 3, rem: "у Linella" },
+  { id: "lecture", f: "books", day: 0, time: "14:32", kind: "link", title: "Лекция: как память выбирает, что сохранить",
+    site: "youtube.com · 42:18", text: "Сохранила, чтобы досмотреть: с 12-й минуты про повторение по интервалам." },
+  { id: "voice", f: "ideas", day: 0, time: "11:10", kind: "voice", title: "Голосовое · 0:47",
+    text: "Сделать утренний виджет: одна случайная заметка из «Идей» и кнопка «ещё»." },
+  { id: "walk", f: "personal", day: 0, time: "09:40", kind: "photo", title: "Утро у озера", file: "IMG-20261115-0940.jpg", ratio: "3 / 4",
+    text: "Туман над Валя Морилор, ещё никого нет." },
+  { id: "tiles", f: "remont", day: 0, time: "08:55", kind: "photo", title: "Плитка в магазине", file: "IMG-20261115-0855.jpg", ratio: "1 / 1",
+    text: "Вот эта, матовая, 20×20. Спросить, есть ли 6 м² на складе." },
+  { id: "salad", f: "recipes", day: 0, time: "08:10", kind: "photo", title: "Салат с запечённой тыквой", file: "IMG-20261115-0810.jpg", ratio: "4 / 3" },
+  { id: "borsch", f: "recipes", day: 1, time: "20:15", kind: "note", title: "Борщ бабушкин",
+    text: "Свёклу запекать отдельно, тогда цвет держится. Чеснок и укроп в самом конце, огонь выключить." },
+  { id: "call", f: "work", day: 1, time: "16:00", kind: "note", title: "Созвон с Саней: план на неделю",
+    text: "Сайт S&T: макет к среде. Stowa: веб-версия, синхронизация, первые цены.", rem: "Пн, 10:00" },
+  { id: "wifi", f: "dom", day: 1, time: "12:30", kind: "note", title: "Пароль от Wi‑Fi",
+    text: "Сеть Kitchen_5G, пароль в QR на роутере. Гостевая сеть — без пароля." },
+  { id: "quotes", f: "books", day: 1, time: "09:05", kind: "note", title: "«Сто лет одиночества» — цитаты",
+    text: "Выписать любимые места при перечитывании: про лёд, про дождь в Макондо, про золотых рыбок полковника." },
+  { id: "flat", f: "dom", day: 1, time: "08:30", kind: "photo", title: "Гостиная, вариант с полкой", file: "IMG-20261114-0830.jpg", ratio: "3 / 4" },
+  { id: "gift", f: "ideas", day: 1, time: "08:02", kind: "check", title: "Подарки на Новый год",
+    checks: [["Маме — тёплый плед", 0], ["Сане — книга по Godot", 1], ["Бабушке — фотоальбом", 0]], more: 4 },
+];
+const PINNED = ["wifi", "kitchen", "borsch"];
+const DAYS = [["Сегодня", "15 ноября, суббота"], ["Вчера", "14 ноября, пятница"]];
+const RECIPES = [
+  ["Борщ бабушкин", "2 ч", "8 порций", 4 / 5], ["Сырники на рисовой муке", "25 мин", "4 порции", 4 / 3], ["Плов на казане", "1 ч 40 мин", "6 порций", 1],
+  ["Тыквенный суп с имбирём", "45 мин", "4 порции", 3 / 4], ["Фокачча с розмарином", "3 ч", "1 противень", 16 / 10], ["Шарлотка", "1 ч", "8 кусков", 1],
+  ["Плацинды с брынзой", "1 ч 20 мин", "10 штук", 5 / 4], ["Мамалыга", "40 мин", "4 порции", 4 / 3],
+];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sym = (n, f) => `<span class="sym${f ? " f" : ""}">${n}</span>`;
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+/* ── тема ── */
+function applyTheme(t) { if (t) document.documentElement.dataset.theme = t; }
+applyTheme(store.get("stowa-web-theme"));
+$("#theme").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const next = cur === "dark" ? "light" : "dark";
+  applyTheme(next); store.set("stowa-web-theme", next); drawGraph();
+};
+
+/* ── раскладка: что в каком доке, какие окна в центре. Запоминается в браузере ── */
+let paneSeq = 1;
+const pane = (...tabs) => ({ id: "p" + paneSeq++, tabs, at: 0 });
+const PRESETS = {
+  normal: { t: "Обычная", i: "dashboard", make: () => ({
+    left: { open: true, w: 272, list: ["nav", "pinned", "folders", "tags"] },
+    right: { open: true, w: 300, list: ["later", "ago", "sync"] },
+    center: pane("home", "note-kitchen", "folder-recipes") }) },
+  focus: { t: "Чтение", i: "chrome_reader_mode", make: () => ({
+    left: { open: false, w: 272, list: ["nav", "pinned", "folders", "tags"] },
+    right: { open: false, w: 300, list: ["outline", "links"] },
+    center: pane("note-kitchen") }) },
+  two: { t: "Два окна", i: "vertical_split", make: () => ({
+    left: { open: true, w: 260, list: ["folders", "pinned"] },
+    right: { open: false, w: 300, list: ["links", "outline"] },
+    center: { dir: "row", ratio: 0.55, a: pane("home"), b: pane("note-kitchen") } }) },
+  study: { t: "Три окна", i: "space_dashboard", make: () => ({
+    left: { open: true, w: 260, list: ["folders", "calendar"] },
+    right: { open: true, w: 290, list: ["outline", "links", "graph"] },
+    center: { dir: "row", ratio: 0.5, a: pane("note-kitchen"), b: { dir: "col", ratio: 0.5, a: pane("folder-recipes"), b: pane("note-borsch") } } }) },
+};
+const SAVE_KEY = "stowa-web-layout-v1";
+let L = (() => { try { return JSON.parse(store.get(SAVE_KEY)) || null; } catch { return null; } })() || { preset: "normal", ...PRESETS.normal.make() };
+L.collapsed ||= [];
+// номера окон после перезагрузки не должны повториться
+(function bump(n) { if (!n) return; if (n.tabs) paneSeq = Math.max(paneSeq, +n.id.slice(1) + 1); else { bump(n.a); bump(n.b); } })(L.center);
+let activeId = (function first(n) { return n.tabs ? n.id : first(n.a); })(L.center);
+const saveLayout = () => store.set(SAVE_KEY, JSON.stringify(L));
+
+function panes(n = L.center, out = []) { if (n.tabs) out.push(n); else { panes(n.a, out); panes(n.b, out); } return out; }
+const activePane = () => panes().find(p => p.id === activeId) || panes()[0];
+const activeRoute = () => { const p = activePane(); return p.tabs[p.at]; };
+const activeNote = () => { const r = activeRoute(); return r && r.startsWith("note-") ? r.slice(5) : null; };
+
+/* ── панели доков: любая встаёт в любой док ── */
+const open = new Set(["dom"]);
+const PANELS = {
+  nav: { t: "Разделы", i: "explore", body: () => `<nav>
+      ${[["home", "home", "Главная"], ["inbox", "folder-none", "Без папки", 5], ["notifications", "home", "Напоминания", 3], ["schedule", "home", "Посмотреть потом", 4], ["map", "home", "Карта"], ["hub", "home", "Граф"]]
+        .map(([i, go, t, n]) => `<button class="nav-item" data-go="${go}" ${activeRoute() === go && t !== "Напоминания" && t !== "Посмотреть потом" && t !== "Карта" && t !== "Граф" ? 'aria-current="page"' : ""}><span class="sym">${i}</span>${t}${n ? `<span class="count num">${n}</span>` : ""}</button>`).join("")}</nav>` },
+  pinned: { t: "Закреплено", i: "push_pin", body: () => PINNED.map(id => {
+      const n = NOTES.find(x => x.id === id);
+      return `<button class="tree-row" data-f="${n.f}" data-go="note-${n.id}" ${activeRoute() === "note-" + n.id ? 'aria-current="page"' : ""}><span class="sym f" style="font-size:16px;color:var(--muted)">push_pin</span>${esc(n.title)}</button>`;
+    }).join("") },
+  folders: { t: "Папки", i: "folder", body: () => {
+      const r = activeRoute();
+      const row = (f, lvl, hasKids) => `<button class="tree-row" data-f="${f.id}" style="--lvl:${lvl}" data-go="folder-${f.id}" ${r === "folder-" + f.id ? 'aria-current="page"' : ""}>
+        <span class="sym chev ${open.has(f.id) ? "open" : ""}" ${hasKids ? `data-toggle="${f.id}"` : 'style="visibility:hidden"'}>chevron_right</span>
+        ${fic(f.id, 18)}${esc(f.name)}<span class="count num">${f.count}</span></button>`;
+      return FOLDERS.map(f => row(f, 0, !!f.kids) + (f.kids && open.has(f.id) ? f.kids.map(k => row(k, 1, false)).join("") : "")).join("");
+    } },
+  tags: { t: "Теги", i: "sell", body: () => `<div class="tags">${["купить", "ремонт", "кухня", "читать", "идея", "важно"].map(t => `<button class="tag">#${t}</button>`).join("")}</div>` },
+  smart: { t: "Умные папки", i: "auto_awesome", body: () => [["Чеки за ноябрь", 7], ["Ролики до 10 минут", 12]]
+      .map(([t, n]) => `<button class="tree-row"><span class="sym" style="font-size:18px;color:var(--muted)">auto_awesome</span>${t}<span class="count num">${n}</span></button>`).join("") },
+  later: { t: "Посмотреть потом", i: "schedule", body: () => `<div class="later" style="padding:0 8px">
+      <button data-f="books" data-go="note-lecture"><span class="k">${sym("smart_display")}</span><span>Лекция про память<small>42 мин · сохранено сегодня</small></span></button>
+      <button data-f="books"><span class="k">${sym("article")}</span><span>Как устроен поиск по смыслу<small>статья · 11 мин</small></span></button>
+      <button data-f="ideas"><span class="k">${sym("smart_display")}</span><span>Обзор русской клавиатуры<small>8 мин</small></span></button></div>` },
+  ago: { t: "Год назад", i: "history", body: () => `<div style="padding:0 6px"><button class="ago" data-f="recipes" data-go="note-borsch"><small>15 ноября 2025</small><b>Борщ бабушкин</b></button></div>` },
+  sync: { t: "Stowa Sync", i: "cloud_done", body: () => `<div class="devices" style="padding:0 8px">
+      <div>${sym("smartphone")}Xiaomi 15T<em>2 мин назад</em></div><div>${sym("phone_iphone")}iPhone 16<em>вчера</em></div><div>${sym("laptop")}Этот браузер<em>сейчас</em></div></div>` },
+  links: { t: "Связано", i: "link", body: () => linksHtml(activeNote()) },
+  outline: { t: "Оглавление", i: "toc", body: () => outlineHtml(activeNote()) },
+  graph: { t: "Граф", i: "hub", body: () => `<canvas class="mini-graph" id="graph" aria-label="Граф связей заметки"></canvas>` },
+  calendar: { t: "Календарь", i: "calendar_month", body: calendarHtml },
+};
+
+function calendarHtml() {
+  // ноябрь 2026: 1-е — воскресенье; точки — дни с заметками
+  const busy = new Set([3, 6, 9, 12, 14, 15]);
+  let cells = Array(6).fill('<span></span>').join("");
+  for (let d = 1; d <= 30; d++) cells += `<button class="${d === 15 ? "today" : ""} ${busy.has(d) ? "busy" : ""}">${d}</button>`;
+  return `<div class="cal"><div class="cal-head">Ноябрь 2026</div><div class="cal-grid">${["пн", "вт", "ср", "чт", "пт", "сб", "вс"].map(d => `<i>${d}</i>`).join("")}${cells}</div></div>`;
+}
+
+function panelHtml(id, side) {
+  const p = PANELS[id]; if (!p) return "";
+  const folded = L.collapsed.includes(id);
+  const other = side === "left" ? "right" : "left";
+  return `<section class="pnl ${folded ? "collapsed" : ""}" data-panel="${id}">
+    <div class="pnl-head" draggable="true" data-fold="${id}" title="Перетащите, чтобы переставить или унести в другой док">
+      <span class="sym chev2">expand_more</span>${sym(p.i)}<span>${p.t}</span>
+      <span class="acts">
+        <button class="mini" data-move="${id}" title="${other === "right" ? "В правый док" : "В левый док"}">${sym(other === "right" ? "arrow_forward" : "arrow_back")}</button>
+        <button class="mini" data-remove="${id}" title="Убрать панель">${sym("close")}</button>
+      </span>
+    </div>
+    <div class="pnl-body">${p.body()}</div></section>`;
+}
+
+function renderDocks() {
+  for (const side of ["left", "right"]) {
+    const d = L[side];
+    const col = side === "left" ? $("#side") : $("#right");
+    col.style.setProperty("--w", d.w + "px");
+    col.hidden = !d.open;
+    if (innerWidth < 960) col.classList.toggle("open", !!d.drawer);
+    $(`.gutter[data-resize="${side}"]`).hidden = !d.open;
+    $("#dock-" + side).innerHTML = d.list.length ? d.list.map(id => panelHtml(id, side)).join("")
+      : `<div class="dock-empty">Пустой док. Добавьте панель снизу или перетащите сюда из другого дока.</div>`;
+    $("#tog-" + side).classList.toggle("on", d.open);
+  }
+  requestAnimationFrame(drawGraph);
+}
+
+/* ── вкладки окна ── */
+function tabTitle(r) {
+  if (r === "home") return [sym("home"), "Главная", "none"];
+  if (r.startsWith("note-")) { const n = NOTES.find(x => "note-" + x.id === r); return [fic(n.f, 17), n.title, n.f]; }
+  const id = r.slice(7); return [fic(id, 17), FNAME[id], id];
+}
+
+/* ── карточка ленты ── */
+function cardBody(n) {
+  let body = "";
+  if (n.kind === "photo") body += `<figure class="photo" style="--ratio:${n.ratio || "4 / 5"}"><figcaption>${sym("image")}${esc(n.file)}</figcaption></figure>`;
+  body += `<h3>${esc(n.title)}</h3>`;
+  if (n.kind === "check") body += `<ul class="checks">${n.checks.map(([t, d]) => `<li class="${d ? "done" : ""}">${sym(d ? "check_box" : "check_box_outline_blank", d)}${esc(t)}</li>`).join("")}${n.more ? `<li class="more">ещё ${n.more}</li>` : ""}</ul>`;
+  else if (n.kind === "voice") body += `<div class="wave"><span class="play">${sym("play_arrow", 1)}</span>${waveSvg()}</div><p style="margin-top:8px">${esc(n.text)}</p>`;
+  else if (n.text) body += `<p>${esc(n.text)}</p>`;
+  if (n.kind === "link") body += `<div class="link-prev"><div class="thumb">${sym("play_circle", 1)}<span class="len num">42:18</span></div><div><b>Как память выбирает, что сохранить</b><span>${esc(n.site)}</span></div></div>`;
+  body += `<div class="meta"><span class="folder">${fic(n.f, 15)}${esc(FNAME[n.f])}</span>${n.rem ? `<span class="rem">${sym("notifications")}${esc(n.rem)}</span>` : ""}<span class="when num">${n.time}</span></div>`;
+  return body;
+}
+function waveSvg() {
+  let bars = "", seed = 7;
+  for (let i = 0; i < 46; i++) { seed = (seed * 9301 + 49297) % 233280; const h = 6 + (seed / 233280) * 20; bars += `<rect x="${i * 6}" y="${(28 - h) / 2}" width="3" height="${h.toFixed(1)}" rx="1.5"/>`; }
+  return `<svg viewBox="0 0 276 28" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>`;
+}
+
+/* ── главная ── */
+function viewHome() {
+  const pills = FOLDERS.map(f => `<button class="pill" data-f="${f.id}" data-go="folder-${f.id}">${fic(f.id, 18)}${esc(f.name)}<span class="n num">${f.count}</span></button>`).join("");
+  const days = DAYS.map(([d, date], i) => {
+    const list = NOTES.filter(n => n.day === i);
+    return `<section class="day"><div class="day-head"><h2>${d}</h2><span>${date}</span></div>
+      <div class="pins" ${i === 0 ? 'data-today' : ""}>${list.map(entry).join("")}</div></section>`;
+  }).join("");
+  return `<div class="view-head"><div><h1 class="h1">Главная</h1><div class="sub">218 заметок · 7 папок · последняя правка 18:20</div></div></div>
+  <div class="shelf">${pills}<button class="pill" data-f="none" data-go="folder-none">${fic("none", 18)}Без папки<span class="n num">5</span></button></div>
+  <div class="home">${days}</div>`;
+}
+/* лента плиткой, как в Pinterest: колонки по ширине экрана, высота карточки — по содержимому */
+function entry(n) {
+  return `<button class="card pin" data-f="${n.f}" data-id="${n.id}" data-go="note-${n.id}">${cardBody(n)}</button>`;
+}
+
+/* ── заметка ── */
+function viewNote(id) {
+  if (id !== "kitchen") return viewSimpleNote(NOTES.find(n => n.id === id));
+  return `<article class="doc" data-f="remont">
+    <div class="crumbs"><button data-go="folder-dom">Дом</button>${sym("chevron_right")}<button data-go="folder-remont">Ремонт</button>${sym("chevron_right")}<span>Ремонт кухни: что заказать</span></div>
+    <h1 class="doc-title" contenteditable="true" spellcheck="false">Ремонт кухни: что заказать</h1>
+    <dl class="props">
+      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="remont">${fic("remont", 16)}Дом / Ремонт</span></dd>
+      <dt>${sym("sell")}Теги</dt><dd><span class="chip">#ремонт</span><span class="chip">#кухня</span><span class="chip">#купить</span></dd>
+      <dt>${sym("notifications")}Напомнить</dt><dd><span class="chip rem">${sym("event")}Сб, 22 ноября · 10:00</span></dd>
+      <dt>${sym("location_on")}Место</dt><dd>Строительный рынок, Кишинёв</dd>
+      <dt>${sym("calendar_today")}Создана</dt><dd class="num">12 ноября 2026, 21:14</dd>
+      <dt>${sym("edit")}Правка</dt><dd>сегодня в 18:20 · с Xiaomi 15T</dd>
+    </dl>
+    <button class="prop-add">${sym("add")}Добавить свойство</button>
+    <div class="rule"></div>
+    <div class="prose">
+      <p>Замер: 3,2 × 2,6 м, высота 2,7. Фартук только над рабочей зоной, до вытяжки. Варианты, которые смотрели, — в <span class="wikilink" data-go="note-borsch">Идеи для кухни</span>.</p>
+      <h2 id="h-order">Заказать</h2>
+      <ul class="todo">
+        <li class="done"><span class="box">${sym("check")}</span><span class="label">Плитка 20×20, 6 м² с запасом</span></li>
+        <li><span class="box"></span><span class="label">Затирка, серая, 2 кг</span></li>
+        <li><span class="box"></span><span class="label">Смеситель с длинным изливом</span></li>
+        <li><span class="box"></span><span class="label">Профиль для торца столешницы</span></li>
+        <li><span class="box"></span><span class="label">Позвонить электрику про розетки над столом</span></li>
+      </ul>
+      <h2 id="h-price">Цены</h2>
+      <table class="price-table num">
+        <tr><td>Плитка, 6 м² × <span class="money">640 лей</span></td><td>3 840 лей</td></tr>
+        <tr><td>Смеситель</td><td><span class="money">2 900 лей</span></td></tr>
+        <tr><td>Затирка и клей</td><td><span class="money">1 100 лей</span></td></tr>
+        <tr><td>Работа плиточника</td><td><span class="money">2 000 лей</span></td></tr>
+      </table>
+      <span class="total num">${sym("payments")}Всего по заметке: 9 840 лей</span>
+      <div class="product" data-f="remont"><div class="thumb"></div><div><b>Плитка керамическая 20×20, белая матовая</b><small>магазин плитки · есть в наличии</small></div><div class="price num">640 лей/м²</div></div>
+      <h2 id="h-photo">Как сейчас</h2>
+      <div class="gallery">
+        <figure class="photo" data-f="remont"><figcaption>${sym("image")}kitchen-before-1.jpg</figcaption></figure>
+        <figure class="photo" data-f="dom"><figcaption>${sym("image")}kitchen-before-2.jpg</figcaption></figure>
+      </div>
+      <p>Начать с демонтажа старого фартука в субботу. Мусор вывозить вместе с соседями с третьего этажа.</p>
+    </div>
+  </article>`;
+}
+function viewSimpleNote(n) {
+  return `<article class="doc" data-f="${n.f}">
+    <div class="crumbs"><button data-go="folder-${n.f}">${esc(FNAME[n.f])}</button>${sym("chevron_right")}<span>${esc(n.title)}</span></div>
+    <h1 class="doc-title" contenteditable="true" spellcheck="false">${esc(n.title)}</h1>
+    <dl class="props">
+      <dt>${sym("folder")}Папка</dt><dd><span class="chip f" data-f="${n.f}">${fic(n.f, 16)}${esc(FNAME[n.f])}</span></dd>
+      <dt>${sym("calendar_today")}Создана</dt><dd class="num">${n.day ? "14" : "15"} ноября 2026, ${n.time}</dd>
+      ${n.rem ? `<dt>${sym("notifications")}Напомнить</dt><dd><span class="chip rem">${sym("event")}${esc(n.rem)}</span></dd>` : ""}
+    </dl>
+    <div class="rule"></div>
+    <div class="prose">${n.kind === "photo" ? `<figure class="photo" data-f="${n.f}" style="margin:0 0 16px;width:100%;max-height:none;aspect-ratio:3/2"><figcaption>${sym("image")}${esc(n.file)}</figcaption></figure>` : ""}
+      ${n.kind === "check" ? `<ul class="todo">${n.checks.map(([t, d]) => `<li class="${d ? "done" : ""}"><span class="box">${d ? sym("check") : ""}</span><span class="label">${esc(t)}</span></li>`).join("")}</ul>` : `<p>${esc(n.text || "")}</p>`}</div>
+  </article>`;
+}
+/* панели про открытую заметку: следуют за активным окном */
+function linksHtml(id) {
+  if (!id) return `<div class="pnl-note">Откройте заметку — здесь будут её связи.</div>`;
+  const links = id === "kitchen"
+    ? [["ideas", "Идеи для кухни", "ссылка из текста", "note-borsch"], ["buy", "Купить", "похоже: «затирка», «смеситель»", "note-milk"], ["work", "Созвон с Саней", "упоминает ремонт", "note-call"]]
+    : [["remont", "Ремонт кухни: что заказать", "похожие слова", "note-kitchen"], ["dom", "Пароль от Wi‑Fi", "та же папка", "note-wifi"]];
+  return `<div style="padding:0 10px">${links.map(([f, t, why, go]) => `<button class="rel" data-f="${f}" data-go="${go}">${fic(f, 18)}<span><b>${esc(t)}</b><small>${esc(why)}</small></span></button>`).join("")}</div>`;
+}
+function outlineHtml(id) {
+  if (id !== "kitchen") return `<div class="pnl-note">${id ? "В этой заметке нет заголовков." : "Откройте заметку — здесь будут её разделы."}</div>`;
+  return `<ul class="outline" style="padding:0 10px"><li><button data-jump="h-order">Заказать</button></li><li><button data-jump="h-price">Цены</button></li><li><button data-jump="h-photo">Как сейчас</button></li></ul>`;
+}
+function drawGraph() {
+  const c = $("#graph"); if (!c) return;
+  const r = c.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  c.width = r.width * dpr; c.height = r.height * dpr; const g = c.getContext("2d"); g.scale(dpr, dpr);
+  const css = getComputedStyle(document.documentElement), line = css.getPropertyValue("--line").trim(), on = css.getPropertyValue("--on").trim();
+  const cx = r.width / 2, cy = r.height / 2;
+  const nodes = [["#F7A974", 0, 0, 9], ["#B5E285", -0.95, -0.55, 6], ["#76D5A4", 0.9, -0.5, 6], ["#5FCDF5", 0.75, 0.7, 6], ["#FEC766", -0.7, 0.72, 5], ["#BCB1FF", -0.15, -0.9, 4], ["#FFA098", 0.15, 0.95, 4]];
+  const pos = nodes.map(([c2, x, y, s]) => [c2, cx + x * r.width * 0.36, cy + y * r.height * 0.38, s]);
+  g.strokeStyle = line; g.lineWidth = 1.2;
+  pos.slice(1).forEach(p => { g.beginPath(); g.moveTo(pos[0][1], pos[0][2]); g.lineTo(p[1], p[2]); g.stroke(); });
+  g.beginPath(); g.moveTo(pos[1][1], pos[1][2]); g.lineTo(pos[5][1], pos[5][2]); g.stroke();
+  pos.forEach(([col, x, y, s], i) => { g.beginPath(); g.arc(x, y, s, 0, 7); g.fillStyle = col; g.fill(); if (!i) { g.lineWidth = 2; g.strokeStyle = on; g.stroke(); g.strokeStyle = line; g.lineWidth = 1.2; } });
+}
+
+/* ── папка: доска ── */
+function viewFolder(id) {
+  const list = id === "recipes" ? RECIPES : NOTES.filter(n => n.f === id || (id === "dom" && n.f === "remont")).map(n => [n.title, n.time, FNAME[n.f], n.kind === "photo" ? 3 / 2 : 0, n]);
+  const fid = id === "none" ? "none" : id;
+  return `<div class="view-head" data-f="${fid}"><div><h1 class="h1" style="display:flex;align-items:center;gap:12px">${fic(id, 34)}${esc(FNAME[id])}</h1>
+    <div class="sub">${id === "recipes" ? "17 заметок · 12 с фото · доска по высоте картинок" : "заметки папки, свежие сверху"}</div></div>
+    <div class="board-tools"><button class="seg">${sym("view_agenda")}Лента</button><button class="seg on">${sym("dashboard")}Доска</button><button class="seg">${sym("gesture")}Холст</button></div></div>
+  <div class="board">${list.length ? list.map(([t, a, b, ratio, n]) => `<button class="tile" data-f="${n ? n.f : fid}" ${n ? `data-go="note-${n.id}"` : t === "Борщ бабушкин" ? 'data-go="note-borsch"' : ""}>
+      ${ratio ? `<figure class="photo" style="aspect-ratio:${ratio}"><figcaption>${sym("image")}фото</figcaption></figure>` : ""}
+      <div class="in"><b>${esc(t)}</b><small><span>${sym("schedule").replace('class="sym"', 'class="sym" style="font-size:14px"')} ${esc(a)}</span><span>${esc(b)}</span></small></div></button>`).join("")
+    : `<div class="panel" style="max-width:520px">Здесь будут заметки без папки. Stowa разложит их сама или спросит вас.</div>`}</div>`;
+}
+
+/* ── центр: дерево окон ── */
+const viewOf = r => r === "home" ? viewHome() : r.startsWith("note-") ? viewNote(r.slice(5)) : viewFolder(r.slice(7));
+const onePane = () => !!L.center.tabs;
+
+function paneHtml(p) {
+  const r = p.tabs[p.at];
+  const tabs = p.tabs.map((t, i) => { const [ic, title] = tabTitle(t);
+    return `<button class="tab ${i === p.at ? "on" : ""}" data-tab="${p.id}:${i}">${ic}<span class="t">${esc(title)}</span>${p.tabs.length > 1 || !onePane() ? `<span class="sym x" data-close="${p.id}:${i}" title="Закрыть вкладку">close</span>` : ""}</button>`; }).join("");
+  return `<section class="pane ${p.id === activeId ? "active" : ""}" data-pane="${p.id}">
+    <div class="pane-top">
+      <div class="tabs">${tabs}</div>
+      <div class="pane-acts">
+        <button class="icon-btn" data-split="${p.id}:row" title="Разделить вправо">${sym("splitscreen_right")}</button>
+        <button class="icon-btn" data-split="${p.id}:col" title="Разделить вниз">${sym("splitscreen_bottom")}</button>
+        ${onePane() ? "" : `<button class="icon-btn" data-closepane="${p.id}" title="Закрыть окно">${sym("close")}</button>`}
+      </div>
+    </div>
+    <div class="pane-scroll"><div class="view">${viewOf(r)}</div></div>
+  </section>`;
+}
+function nodeHtml(n, path) {
+  if (n.tabs) return paneHtml(n);
+  return `<div class="split ${n.dir}">
+    <div class="slot" style="flex-grow:${n.ratio}">${nodeHtml(n.a, path + "a")}</div>
+    <div class="gutter ${n.dir === "col" ? "row" : ""}" data-ratio="${path}" title="Потянуть границу"></div>
+    <div class="slot" style="flex-grow:${1 - n.ratio}">${nodeHtml(n.b, path + "b")}</div></div>`;
+}
+function nodeAt(path) { let n = L.center; for (const c of path) n = n[c]; return n; }
+function renderCenter() {
+  const keep = {}; document.querySelectorAll(".pane").forEach(el => keep[el.dataset.pane] = el.querySelector(".pane-scroll").scrollTop);
+  $("#panes").innerHTML = nodeHtml(L.center, "");
+  document.querySelectorAll(".pane").forEach(el => { if (keep[el.dataset.pane]) el.querySelector(".pane-scroll").scrollTop = keep[el.dataset.pane]; });
+  layoutPins();
+}
+function render() {
+  renderCenter(); renderDocks();
+  $("#presets").innerHTML = Object.entries(PRESETS).map(([k, p]) => `<button data-preset="${k}" class="${L.preset === k ? "on" : ""}">${sym(p.i)}${p.t}</button>`).join("");
+  saveLayout();
+}
+
+/* открыть в активном окне: уже открытое — переключиться на вкладку, иначе новая вкладка */
+function go(r) {
+  if (!/^(home|note-[a-z]+|folder-[a-z]+)$/.test(r)) r = "home";
+  const p = activePane();
+  const i = p.tabs.indexOf(r);
+  if (i >= 0) p.at = i; else { p.tabs.push(r); p.at = p.tabs.length - 1; }
+  L.preset = null; closeDrawers(); render();
+  document.querySelector(`.pane[data-pane="${p.id}"] .pane-scroll`).scrollTop = 0;
+}
+
+/* разделить окно: новое окно с той же вкладкой встаёт справа или снизу */
+function splitPane(id, dir) {
+  const replace = (n, parent, key) => {
+    if (n.tabs && n.id === id) {
+      const fresh = pane(n.tabs[n.at]);
+      const s = { dir, ratio: 0.5, a: n, b: fresh };
+      if (parent) parent[key] = s; else L.center = s;
+      activeId = fresh.id; return true;
+    }
+    return !n.tabs && (replace(n.a, n, "a") || replace(n.b, n, "b"));
+  };
+  replace(L.center, null, null); L.preset = null; render();
+}
+/* закрыть окно: его место занимает сосед */
+function closePane(id) {
+  const drop = (n, parent, key) => {
+    if (n.tabs) return false;
+    for (const [mine, other] of [["a", "b"], ["b", "a"]]) {
+      if (n[mine].tabs && n[mine].id === id) { if (parent) parent[key] = n[other]; else L.center = n[other]; return true; }
+    }
+    return drop(n.a, n, "a") || drop(n.b, n, "b");
+  };
+  drop(L.center, null, null);
+  if (!panes().some(p => p.id === activeId)) activeId = panes()[0].id;
+  L.preset = null; render();
+}
+
+/* ── плитка слева направо: сколько рядов по 2 точки занимает каждая карточка ── */
+const pinsSeen = new WeakSet();
+const pinsWatch = new ResizeObserver(entries => entries.forEach(e => sizePins(e.target)));
+function sizePins(box) {
+  for (const card of box.children) {
+    card.style.gridRowEnd = "auto";
+    const h = card.getBoundingClientRect().height;
+    card.style.gridRowEnd = `span ${Math.ceil((h + 14) / 2)}`;
+  }
+}
+function layoutPins() {
+  document.querySelectorAll(".pins").forEach(box => { sizePins(box); if (!pinsSeen.has(box)) { pinsSeen.add(box); pinsWatch.observe(box); } });
+}
+
+/* ── клики ── */
+document.addEventListener("pointerdown", e => {
+  const el = e.target.closest(".pane");
+  if (el && el.dataset.pane !== activeId) { activeId = el.dataset.pane; document.querySelectorAll(".pane").forEach(x => x.classList.toggle("active", x.dataset.pane === activeId)); renderDocks(); }
+}, true);
+document.addEventListener("click", e => {
+  const t = e.target;
+  const preset = t.closest("[data-preset]");
+  if (preset) { const k = preset.dataset.preset; paneSeq = 1; L = { preset: k, collapsed: [], ...PRESETS[k].make() }; activeId = panes()[0].id; render(); return; }
+  const close = t.closest("[data-close]");
+  if (close) {
+    e.stopPropagation();
+    const [id, i] = close.dataset.close.split(":"); const p = panes().find(x => x.id === id);
+    if (p.tabs.length === 1) { closePane(id); return; }
+    p.tabs.splice(+i, 1); p.at = Math.min(p.at, p.tabs.length - 1); render(); return;
+  }
+  const tab = t.closest("[data-tab]");
+  if (tab) { const [id, i] = tab.dataset.tab.split(":"); const p = panes().find(x => x.id === id); p.at = +i; activeId = id; render(); return; }
+  const sp = t.closest("[data-split]");
+  if (sp) { const [id, dir] = sp.dataset.split.split(":"); splitPane(id, dir); return; }
+  const cp = t.closest("[data-closepane]");
+  if (cp) { closePane(cp.dataset.closepane); return; }
+  const fold = t.closest("[data-fold]");
+  if (fold && !t.closest(".acts")) { const id = fold.dataset.fold; L.collapsed = L.collapsed.includes(id) ? L.collapsed.filter(x => x !== id) : [...L.collapsed, id]; renderDocks(); saveLayout(); return; }
+  const mv = t.closest("[data-move]");
+  if (mv) { const id = mv.dataset.move; const from = L.left.list.includes(id) ? "left" : "right", to = from === "left" ? "right" : "left";
+    L[from].list = L[from].list.filter(x => x !== id); L[to].list.push(id); L[to].open = true; L.preset = null; render(); return; }
+  const rm = t.closest("[data-remove]");
+  if (rm) { const id = rm.dataset.remove; for (const s of ["left", "right"]) L[s].list = L[s].list.filter(x => x !== id); L.preset = null; render(); return; }
+  const am = t.closest("[data-addmenu]");
+  if (am) { e.stopPropagation(); toggleAddMenu(am.dataset.addmenu); return; }
+  const pick = t.closest("[data-pick]");
+  if (pick) { const [side, id] = pick.dataset.pick.split(":"); for (const s of ["left", "right"]) L[s].list = L[s].list.filter(x => x !== id);
+    L[side].list.push(id); L.collapsed = L.collapsed.filter(x => x !== id); L.preset = null; closeAddMenus(); render(); return; }
+  if (!t.closest(".add-menu")) closeAddMenus();
+  const tog = t.closest("[data-toggle]");
+  if (tog) { e.stopPropagation(); const id = tog.dataset.toggle; open.has(id) ? open.delete(id) : open.add(id); renderDocks(); return; }
+  const jump = t.closest("[data-jump]");
+  if (jump) { document.querySelector(`.pane[data-pane="${activeId}"] #${jump.dataset.jump}`)?.scrollIntoView({ block: "start" }); closeDrawers(); return; }
+  const box = t.closest(".todo .box");
+  if (box) { const li = box.parentElement; li.classList.toggle("done"); box.innerHTML = li.classList.contains("done") ? sym("check") : ""; return; }
+  const link = t.closest("[data-go]");
+  if (link) {
+    // ссылку из окна открываем в нём самом, из дока — в активном окне
+    const host = link.closest(".pane"); if (host) activeId = host.dataset.pane;
+    go(link.dataset.go);
+  }
+});
+
+/* меню «Панель»: какие панели можно поставить в этот док */
+function toggleAddMenu(side) {
+  const menu = $("#add-" + side); const wasOpen = !menu.hidden; closeAddMenus(); if (wasOpen) return;
+  const here = L[side].list, there = L[side === "left" ? "right" : "left"].list;
+  const free = Object.keys(PANELS).filter(id => !here.includes(id) && !there.includes(id));
+  const moved = Object.keys(PANELS).filter(id => there.includes(id));
+  menu.innerHTML = (free.length ? `<small>Добавить</small>` + free.map(id => `<button data-pick="${side}:${id}">${sym(PANELS[id].i)}${PANELS[id].t}</button>`).join("") : "")
+    + (moved.length ? `<small>Перенести из другого дока</small>` + moved.map(id => `<button data-pick="${side}:${id}">${sym(PANELS[id].i)}${PANELS[id].t}</button>`).join("") : "");
+  menu.hidden = false;
+}
+function closeAddMenus() { document.querySelectorAll(".add-menu").forEach(m => m.hidden = true); }
+
+/* ── перетаскивание панелей: внутри дока и между доками ── */
+let dragId = null;
+document.addEventListener("dragstart", e => {
+  const head = e.target.closest?.(".pnl-head"); if (!head) return;
+  dragId = head.dataset.fold; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragId);
+  requestAnimationFrame(() => head.parentElement.classList.add("dragging"));
+});
+document.addEventListener("dragend", () => { dragId = null; document.querySelectorAll(".dragging").forEach(x => x.classList.remove("dragging")); document.querySelectorAll(".drop-mark").forEach(x => x.remove()); });
+function dropIndex(dock, y) {
+  const items = [...dock.querySelectorAll(".pnl:not(.dragging)")];
+  const i = items.findIndex(el => { const r = el.getBoundingClientRect(); return y < r.top + r.height / 2; });
+  return [i < 0 ? items.length : i, items];
+}
+document.querySelectorAll(".dock-scroll").forEach(dock => {
+  dock.addEventListener("dragover", e => {
+    if (!dragId) return; e.preventDefault();
+    document.querySelectorAll(".drop-mark").forEach(x => x.remove());
+    const [i, items] = dropIndex(dock, e.clientY);
+    const mark = document.createElement("div"); mark.className = "drop-mark";
+    if (items[i]) dock.insertBefore(mark, items[i]); else dock.appendChild(mark);
+  });
+  dock.addEventListener("drop", e => {
+    if (!dragId) return; e.preventDefault();
+    const side = dock.dataset.side;
+    const [i, items] = dropIndex(dock, e.clientY);
+    const before = items[i]?.dataset.panel;
+    for (const s of ["left", "right"]) L[s].list = L[s].list.filter(x => x !== dragId);
+    const list = L[side].list; const at = before ? list.indexOf(before) : list.length;
+    list.splice(at < 0 ? list.length : at, 0, dragId);
+    dragId = null; L.preset = null; render();
+  });
+});
+
+/* ── ручки: ширина дока и граница между окнами ── */
+document.addEventListener("pointerdown", e => {
+  const g = e.target.closest(".gutter"); if (!g) return;
+  e.preventDefault(); g.setPointerCapture(e.pointerId); g.classList.add("drag");
+  const rows = g.classList.contains("row");
+  document.body.classList.add("resizing"); document.body.classList.toggle("rows", rows);
+  const side = g.dataset.resize, path = g.dataset.ratio;
+  const box = path !== undefined ? g.parentElement.getBoundingClientRect() : null;
+  const move = ev => {
+    if (side) {
+      const w = side === "left" ? ev.clientX - $("#side").getBoundingClientRect().left : $("#right").getBoundingClientRect().right - ev.clientX;
+      L[side].w = Math.round(Math.min(480, Math.max(200, w)));
+      (side === "left" ? $("#side") : $("#right")).style.setProperty("--w", L[side].w + "px");
+    } else {
+      const ratio = rows ? (ev.clientY - box.top) / box.height : (ev.clientX - box.left) / box.width;
+      const n = nodeAt(path); n.ratio = Math.min(0.85, Math.max(0.15, ratio));
+      const slots = g.parentElement.children; slots[0].style.flexGrow = n.ratio; slots[2].style.flexGrow = 1 - n.ratio;
+    }
+    layoutPins();
+  };
+  const up = () => { g.classList.remove("drag"); document.body.classList.remove("resizing", "rows"); g.removeEventListener("pointermove", move); g.removeEventListener("pointerup", up); L.preset = null; render(); };
+  g.addEventListener("pointermove", move); g.addEventListener("pointerup", up);
+});
+
+/* ── кнопки доков: на широком экране — показать или спрятать, на узком — выдвинуть поверх ── */
+function toggleDock(side) {
+  if (innerWidth < 960) { const was = L[side].drawer; closeDrawers(); L[side].drawer = !was; $("#scrim").classList.toggle("on", !was); renderDocks(); return; }
+  L[side].open = !L[side].open; L.preset = null; render();
+}
+$("#tog-left").onclick = () => toggleDock("left");
+$("#tog-right").onclick = () => toggleDock("right");
+function closeDrawers() { L.left.drawer = L.right.drawer = false; $("#side").classList.remove("open"); $("#right").classList.remove("open"); $("#scrim").classList.remove("on"); }
+$("#scrim").onclick = closeDrawers;
+window.addEventListener("resize", () => { layoutPins(); drawGraph(); });
+// шрифты догружаются позже первого кадра и меняют высоту карточек: пересчитать плитку
+document.fonts?.ready.then(layoutPins);
+
+/* ── строка: пока пишешь, видно, что она сделает ── */
+const q = $("#q"), results = $("#results");
+let undoId = null, toastTimer;
+function guessFolder(text) {
+  const t = text.toLowerCase();
+  const tag = (t.match(/#([\wа-яё]+)/i) || [])[1];
+  const at = (t.match(/@([\wа-яё]+)/i) || [])[1];
+  if (at) { const f = Object.entries(FNAME).find(([, n]) => n.toLowerCase().startsWith(at)); if (f) return [f[0], `вы написали @${at}`]; }
+  // \b в JS не видит кириллицу, поэтому слова ищутся по началу
+  if (tag === "купить" || /(^|\s)(купит|купи|молок|хлеб|сыр|яйц)/.test(t)) return ["buy", tag ? "правило тега #купить" : "похоже на «Покупки»"];
+  if (/(плитк|ремонт|смесител|розетк|обои)/.test(t)) return ["remont", "похоже на «Ремонт»"];
+  if (/(созвон|встреч|отчёт|задач|клиент)/.test(t)) return ["work", "похоже на «Работу»"];
+  if (/(рецепт|варить|запекать|суп|тесто)/.test(t)) return ["recipes", "похоже на «Рецепты»"];
+  if (/(книг|фильм|сериал|посмотреть|youtube|http)/.test(t)) return ["books", "похоже на «Книги и фильмы»"];
+  return ["ideas", "по словам ближе всего «Идеи»"];
+}
+function remOf(text) {
+  const m = text.match(/(завтра|сегодня|в понедельник|в пятницу|в субботу)(\s+в\s+\d{1,2}(:\d\d)?)?/i);
+  if (!m) return "";
+  const w = m[1][0].toUpperCase() + m[1].slice(1);
+  return m[2] ? `${w}${m[2]}` : `${w} в 9:00`;
+}
+function highlight(s, words) {
+  let out = esc(s);
+  words.forEach(w => { if (w.length > 1) out = out.replace(new RegExp(`(${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig"), "<mark>$1</mark>"); });
+  return out;
+}
+function showResults() {
+  const text = q.value.trim();
+  if (!text) { results.hidden = true; return; }
+  const [fid, why] = guessFolder(text);
+  const rem = remOf(text);
+  const words = text.toLowerCase().replace(/[#@]/g, "").split(/\s+/).filter(w => w.length > 2);
+  const found = NOTES.filter(n => words.some(w => (n.title + " " + (n.text || "") + " " + (n.checks || []).map(c => c[0]).join(" ")).toLowerCase().includes(w.slice(0, Math.max(3, w.length - 2))))).slice(0, 4);
+  results.innerHTML = `<button class="res main-act" data-f="${fid}" id="save-act"><span class="k">${sym("south_east")}</span><span><b>Закинуть в «${esc(FNAME[fid])}»</b><small>${esc(why)}${rem ? " · напомню " + esc(rem.toLowerCase()) : ""}</small></span><span class="sym" style="margin-left:auto">keyboard_return</span></button>
+    ${found.length ? `<div class="res-label">Нашлось ${found.length}</div>` + found.map(n => `<button class="res" data-f="${n.f}" data-go="note-${n.id}"><span class="k">${fic(n.f, 20)}</span><span style="min-width:0"><b>${highlight(n.title, words)}</b><small>${esc(FNAME[n.f])} · ${n.day ? "вчера" : "сегодня"} ${n.time}</small></span></button>`).join("")
+      : `<div class="res-label">Похожего нет, запишу как новую</div>`}`;
+  results.hidden = false;
+}
+q.addEventListener("input", showResults);
+q.addEventListener("focus", showResults);
+document.addEventListener("click", e => { if (!e.target.closest(".dock-in")) results.hidden = true; });
+results.addEventListener("click", e => { if (e.target.closest("#save-act")) { e.preventDefault(); save(); } else if (e.target.closest("[data-go]")) { q.value = ""; results.hidden = true; } });
+$("#line").addEventListener("submit", e => { e.preventDefault(); save(); });
+function save() {
+  const text = q.value.trim(); if (!text) return;
+  const [fid] = guessFolder(text); const rem = remOf(text);
+  const id = "new" + Date.now().toString(36).replace(/[0-9]/g, c => "abcdefghij"[c]);
+  const now = new Date(); const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const title = text.replace(/[#@][\wа-яё]+/gi, "").trim() || text;
+  NOTES.unshift({ id, f: fid, day: 0, time, kind: "note", title: title.length > 60 ? title.slice(0, 60) + "…" : title, text: title.length > 60 ? title : "", rem });
+  q.value = ""; results.hidden = true; undoId = id;
+  // новая заметка видна на главной: в окне, где она открыта, или в активном
+  const homePane = panes().find(p => p.tabs[p.at] === "home");
+  if (homePane) { activeId = homePane.id; render(); } else go("home");
+  document.querySelector(`.pane[data-pane="${activeId}"] .pin[data-id="${id}"]`)?.classList.add("fresh");
+  toast(`Закинуто в «${FNAME[fid]}»${rem ? " · напомню " + rem.toLowerCase() : ""}`);
+}
+function toast(msg) {
+  $("#toast-text").textContent = msg; $("#toast").classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("on"), 4200);
+}
+$("#toast-undo").onclick = () => {
+  const i = NOTES.findIndex(n => n.id === undoId); if (i < 0) return;
+  const n = NOTES.splice(i, 1)[0]; document.querySelector(`.pin[data-id="${n.id}"]`)?.remove();
+  q.value = n.text || n.title; $("#toast").classList.remove("on"); q.focus();
+};
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); q.focus(); q.select(); }
+  if (e.key === "Escape") { if (document.activeElement === q) { q.value = ""; results.hidden = true; q.blur(); } closeDrawers(); }
+});
+$("#finder").onclick = () => { closeDrawers(); q.focus(); };
+
+render();
+</script>
