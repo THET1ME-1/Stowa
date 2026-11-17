@@ -716,8 +716,8 @@ class VaultRootNotifier extends Notifier<Directory?> {
 }
 
 /// Переносит правки из базы в файлы хранилища.
-final vaultWriterProvider = Provider(
-  (ref) => VaultWriter(
+final vaultWriterProvider = Provider((ref) {
+  final writer = VaultWriter(
     ref.watch(databaseProvider),
     root: ref.watch(vaultRootProvider),
     clock: ref.watch(clockProvider),
@@ -731,8 +731,10 @@ final vaultWriterProvider = Provider(
       }
       return attachmentsDefaultFor(language)();
     },
-  ),
-);
+  );
+  ref.onDispose(writer.dispose);
+  return writer;
+});
 
 /// Замок и скрытые папки. Ключ для отпечатка — в Keystore телефона, код и копия — в хранилище.
 final privacyServiceProvider = Provider(

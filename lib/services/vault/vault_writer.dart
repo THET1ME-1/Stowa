@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -58,6 +59,11 @@ class VaultWriter {
   bool _running = false;
   bool _again = false;
 
+  // задача занята другим писателем или прошлым запуском: повторить, когда аренда истечёт
+  Timer? _retry;
+
+  void dispose() => _retry?.cancel();
+
   /// В последнем проходе нашёлся файл, который правили снаружи после нашей записи:
   /// писатель его не тронул, сперва нужна сверка читателем.
   bool sawExternalEdit = false;
@@ -99,10 +105,26 @@ class VaultWriter {
           done++;
         }
       } while (_again);
+      await _retryClaimed();
     } finally {
       _running = false;
     }
     return done;
+  }
+
+  /// Остались задачи под чужой арендой. Аренда прошлого запуска (вкладку перезагрузили,
+  /// приложение убили посреди записи) никем не снимется, а новой правки может не быть:
+  /// писатель сам возвращается к ним, когда аренда истечёт.
+  Future<void> _retryClaimed() async {
+    final now = _clock().millisecondsSinceEpoch;
+    final soonest = await (_db.selectOnly(_db.vaultQueue)
+          ..addColumns([_db.vaultQueue.claimedUntil.min()])
+          ..where(_db.vaultQueue.claimedUntil.isBiggerOrEqualValue(now)))
+        .map((row) => row.read(_db.vaultQueue.claimedUntil.min()))
+        .getSingleOrNull();
+    if (soonest == null) return;
+    _retry?.cancel();
+    _retry = Timer(Duration(milliseconds: soonest - now + 50), () => drain().ignore());
   }
 
   static int _order(String target) => target.startsWith('item:') ? 0 : (target.startsWith('facts:') || target.startsWith('history:') ? 1 : 2);

@@ -297,6 +297,22 @@ void main() {
     expect(await queue(), contains('item:a'));
   });
 
+  test('аренда прошлого запуска истекла — задача дописывается сама, без новой правки', () async {
+    // вкладку перезагрузили (телефон убил приложение), пока задача была занята: после
+    // старта новых правок может не быть, а файл должен лечь
+    var clock = now;
+    final late = VaultWriter(db, root: root, clock: () => clock);
+    await note('a', 'Идеи');
+    await (db.update(db.vaultQueue)..where((t) => t.target.equals('item:a'))).write(VaultQueueCompanion(claimedUntil: Value(now.millisecondsSinceEpoch + 200)));
+    await late.drain();
+    expect(file('Идеи.md').existsSync(), isFalse);
+    clock = now.add(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    expect(file('Идеи.md').existsSync(), isTrue);
+    expect(await queue(), isEmpty);
+    late.dispose();
+  });
+
   test('хранилище не выбрано — ничего не пишет, очередь ждёт', () async {
     await note('a', 'Идеи');
     expect(await VaultWriter(db, root: null, clock: () => now).drain(), 0);
