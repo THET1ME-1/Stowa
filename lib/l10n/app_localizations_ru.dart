@@ -4241,18 +4241,6 @@ class LRu extends L {
   String get syncSignOutHint => 'Заметки на этом телефоне останутся на месте.';
 
   @override
-  String get wsPresetNormal => 'Обычная';
-
-  @override
-  String get wsPresetReading => 'Чтение';
-
-  @override
-  String get wsPresetTwo => 'Два окна';
-
-  @override
-  String get wsPresetThree => 'Три окна';
-
-  @override
   String get wsSections => 'Разделы';
 
   @override
@@ -4293,4 +4281,112 @@ class LRu extends L {
 
   @override
   String get wsSyncOff => 'Синхронизация выключена';
+
+  @override
+  String get wsGroupNav => 'Поиск и переход';
+
+  @override
+  String get wsGroupNotes => 'Заметки и папки';
+
+  @override
+  String get wsGroupTabs => 'Вкладки и окна';
+
+  @override
+  String get wsGroupDocks => 'Доки и раскладки';
+
+  @override
+  String get wsCmdPalette => 'Все команды';
+
+  @override
+  String get wsCmdSwitch => 'Открыть заметку по названию';
+
+  @override
+  String get wsCmdHome => 'На главную';
+
+  @override
+  String get wsCmdNew => 'Новая заметка';
+
+  @override
+  String get wsCmdTrash => 'Удалить в корзину';
+
+  @override
+  String get wsCmdPin => 'Закрепить заметку';
+
+  @override
+  String get wsCmdMove => 'Переложить в папку';
+
+  @override
+  String get wsCmdReopen => 'Вернуть закрытую вкладку';
+
+  @override
+  String get wsCmdNext => 'Следующая вкладка';
+
+  @override
+  String get wsCmdPrev => 'Предыдущая вкладка';
+
+  @override
+  String get wsCmdNextPane => 'Соседнее окно';
+
+  @override
+  String get wsCmdPrevPane => 'Предыдущее окно';
+
+  @override
+  String get wsCmdClosePane => 'Закрыть окно';
+
+  @override
+  String get wsCmdTheme => 'Светлая или тёмная тема';
+
+  @override
+  String get wsThen => 'затем';
+
+  @override
+  String get wsKeysHint =>
+      'Одна клавиша без Ctrl и Alt срабатывает, когда курсор не в поле ввода, а клавиши ловятся по месту на клавиатуре в любой раскладке.';
+
+  @override
+  String get wsKeysResetAll => 'Вернуть все как было';
+
+  @override
+  String get wsKeysAdd => 'Добавить сочетание';
+
+  @override
+  String get wsKeysPress => 'Нажмите сочетание · Esc — отмена';
+
+  @override
+  String wsKeysTaken(String name) {
+    return 'Сочетание снято с «$name»';
+  }
+
+  @override
+  String get wsKeysBrowser => 'Это сочетание браузер оставляет себе';
+
+  @override
+  String get wsKeysReset => 'Вернуть как было';
+
+  @override
+  String get wsKeysRemove => 'Убрать';
+
+  @override
+  String get wsChanged => 'изменено';
+
+  @override
+  String get wsPaletteHint => 'Команда или название заметки';
+
+  @override
+  String get wsOpenNoteFirst => 'Сначала откройте заметку';
+
+  @override
+  String get wsAddPanel => 'Панель';
+
+  @override
+  String get wsToRight => 'В правый док';
+
+  @override
+  String get wsToLeft => 'В левый док';
+
+  @override
+  String get wsHidePanel => 'Убрать панель';
+
+  @override
+  String get wsPanelEmpty => 'Пока пусто';
 }

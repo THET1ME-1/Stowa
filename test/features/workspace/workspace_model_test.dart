@@ -48,33 +48,75 @@ void main() {
     expect(ws.focusedPane.tabs.single, const WsTab.home());
   });
 
-  test('раскладка «Два окна»: вкладки делятся на два окна; «Обычная» собирает их обратно', () {
+  test('вкладку к правому краю окна — окно делится, вкладка встаёт новым окном справа', () {
+    final ws = Workspace.initial();
+    ws.open(const WsTab.item('a'));
+    final first = ws.focusedId;
+    ws.drop(first, 1, first, WsDrop.right);
+    final split = ws.root as WsSplit;
+    expect(split.axis, WsAxis.row);
+    expect(ws.panes.map((pane) => pane.tabs), [
+      [const WsTab.home()],
+      [const WsTab.item('a')],
+    ]);
+    expect(ws.focusedPane.tabs.single, const WsTab.item('a'));
+  });
+
+  test('к верхнему краю — деление вниз, новое окно сверху', () {
+    final ws = Workspace.initial();
+    ws.open(const WsTab.item('a'));
+    ws.drop(ws.focusedId, 1, ws.focusedId, WsDrop.top);
+    expect((ws.root as WsSplit).axis, WsAxis.column);
+    expect(ws.panes.first.tabs.single, const WsTab.item('a'));
+  });
+
+  test('единственную вкладку окна к его же краю — ничего не меняется', () {
+    final ws = Workspace.initial();
+    ws.drop(ws.focusedId, 0, ws.focusedId, WsDrop.left);
+    expect(ws.root, isA<WsLeaf>());
+  });
+
+  test('вкладку в другое окно — переезжает, опустевшее окно уходит', () {
+    final ws = Workspace.initial();
+    ws.open(const WsTab.item('a'));
+    final first = ws.focusedId;
+    ws.drop(first, 1, first, WsDrop.right);
+    final second = ws.focusedId;
+    ws.drop(second, 0, first, WsDrop.center);
+    expect(ws.panes, hasLength(1));
+    expect(ws.focusedPane.tabs, [const WsTab.home(), const WsTab.item('a')]);
+  });
+
+  test('рядом с окном в том же ряду — его доля делится пополам, соседи не трогаются', () {
     final ws = Workspace.initial();
     ws.open(const WsTab.item('a'));
     ws.open(const WsTab.item('b'));
-    ws.arrange(WsPreset.byName('two'));
-    expect(ws.panes, hasLength(2));
-    final all = [for (final pane in ws.panes) ...pane.tabs];
-    expect(all.toSet(), {const WsTab.home(), const WsTab.item('a'), const WsTab.item('b')});
-    ws.arrange(WsPreset.byName('normal'));
-    expect(ws.panes, hasLength(1));
-    expect(ws.focusedPane.tabs.toSet(), all.toSet());
+    final first = ws.focusedId;
+    ws.drop(first, 2, first, WsDrop.right);
+    final split = ws.root as WsSplit;
+    ws.resize(split, 0, 0.7);
+    ws.drop(first, 1, first, WsDrop.right);
+    final after = ws.root as WsSplit;
+    expect(after.children, hasLength(3));
+    expect(after.ratios[0], closeTo(0.35, 1e-9));
+    expect(after.ratios[1], closeTo(0.35, 1e-9));
+    expect(after.ratios[2], closeTo(0.3, 1e-9));
   });
 
-  test('раскладка «Чтение» прячет доки, «Обычная» возвращает', () {
+  test('перетаскивание по полосе вкладок меняет порядок', () {
     final ws = Workspace.initial();
-    ws.arrange(WsPreset.byName('reading'));
-    expect(ws.leftOpen || ws.rightOpen, isFalse);
-    ws.arrange(WsPreset.byName('normal'));
-    expect(ws.leftOpen && ws.rightOpen, isTrue);
+    ws.open(const WsTab.item('a'));
+    ws.open(const WsTab.item('b'));
+    ws.drop(ws.focusedId, 2, ws.focusedId, WsDrop.center, at: 0);
+    expect(ws.focusedPane.tabs, [const WsTab.item('b'), const WsTab.home(), const WsTab.item('a')]);
+    expect(ws.focusedPane.activeTab, const WsTab.item('b'));
   });
 
-  test('окон в раскладке больше, чем вкладок, — лишние окна открывают главную', () {
+  test('новое окно открывает то, чего ещё нет на экране, а не вторую главную', () {
     final ws = Workspace.initial();
-    ws.arrange(WsPreset.byName('three'));
+    ws.split(ws.focusedId, WsAxis.row);
+    ws.split(ws.focusedId, WsAxis.row);
     expect(ws.panes, hasLength(3));
-    expect(ws.panes.every((pane) => pane.tabs.isNotEmpty), isTrue);
-    // главная одна: в лишних окнах «Без папки» и «Посмотреть потом», а не три главных
     expect({for (final pane in ws.panes) ...pane.tabs}, hasLength(3));
   });
 
@@ -96,6 +138,27 @@ void main() {
   test('сломанная запись раскладки — начинаем с чистой', () {
     final back = Workspace.fromJsonOrInitial('{не json');
     expect(back.panes.single.tabs.single, const WsTab.home());
+  });
+
+  test('панели доков: убрать, вернуть в другой док, перетащить на место', () {
+    final ws = Workspace.initial();
+    expect(ws.left, ['sections', 'pinned', 'folders']);
+    expect(ws.right, ['later', 'yearAgo', 'sync']);
+    ws.hidePanel('pinned');
+    expect(ws.left, ['sections', 'folders']);
+    expect(ws.hiddenPanels, ['pinned']);
+    ws.placePanel('pinned', left: false, index: 0);
+    expect(ws.right, ['pinned', 'later', 'yearAgo', 'sync']);
+    // перетащили внутри дока ниже
+    ws.placePanel('pinned', left: false, index: 3);
+    expect(ws.right, ['later', 'yearAgo', 'pinned', 'sync']);
+    // и в другой док
+    ws.placePanel('sync', left: true, index: 1);
+    expect(ws.left, ['sections', 'sync', 'folders']);
+    expect(ws.right, ['later', 'yearAgo', 'pinned']);
+    final back = Workspace.fromJson(jsonDecode(jsonEncode(ws.toJson())) as Map<String, dynamic>);
+    expect(back.left, ws.left);
+    expect(back.right, ws.right);
   });
 
   test('доля деления меняется перетаскиванием и не уходит за края', () {

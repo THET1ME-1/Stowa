@@ -81,25 +81,8 @@ class WsSplit extends WsNode {
   final List<double> ratios;
 }
 
-/// Готовая раскладка верхней полосы: сколько окон и какие доки видны.
-class WsPreset {
-  const WsPreset(this.name, {required this.icon, required this.panes, required this.left, required this.right});
-
-  final String name;
-  final String icon;
-  final int panes;
-  final bool left;
-  final bool right;
-
-  static const all = [
-    WsPreset('normal', icon: 'dashboard', panes: 1, left: true, right: true),
-    WsPreset('reading', icon: 'chrome_reader_mode', panes: 1, left: false, right: false),
-    WsPreset('two', icon: 'view_column_2', panes: 2, left: true, right: false),
-    WsPreset('three', icon: 'view_column', panes: 3, left: true, right: false),
-  ];
-
-  static WsPreset byName(String name) => all.firstWhere((preset) => preset.name == name, orElse: () => all.first);
-}
+/// Куда бросили вкладку на окне: в само окно или к краю — тогда окно делится в ту сторону.
+enum WsDrop { center, left, right, top, bottom }
 
 /// Рабочее пространство широкого экрана, как в Obsidian и Blender: левый док, центр
 /// из окон с вкладками, правый док. Только состояние, без виджетов: его легко проверить
@@ -119,10 +102,34 @@ class Workspace {
   bool rightOpen = true;
   double leftWidth = 296;
   double rightWidth = 320;
-  String preset = 'normal';
 
   /// Свёрнутые панели доков.
   final Set<String> collapsed = {};
+
+  /// Все панели доков; какие где — [left] и [right], остальные убраны.
+  static const allPanels = ['sections', 'pinned', 'folders', 'later', 'yearAgo', 'sync'];
+
+  final List<String> left = ['sections', 'pinned', 'folders'];
+  final List<String> right = ['later', 'yearAgo', 'sync'];
+
+  /// Убранные панели: их возвращает «+ Панель».
+  List<String> get hiddenPanels => [for (final id in allPanels) if (!left.contains(id) && !right.contains(id)) id];
+
+  void hidePanel(String id) {
+    left.remove(id);
+    right.remove(id);
+  }
+
+  /// Поставить панель в док на место [index] (считая без неё самой): перетаскивание,
+  /// перенос в другой док и возврат убранной.
+  void placePanel(String id, {required bool left, required int index}) {
+    final target = left ? this.left : right;
+    final from = target.indexOf(id);
+    hidePanel(id);
+    // внутри того же дока места после неё сдвигаются на одно
+    final at = from >= 0 && from < index ? index - 1 : index;
+    target.insert(at.clamp(0, target.length), id);
+  }
 
   int _next = 2;
 
@@ -271,34 +278,66 @@ class Workspace {
     split.ratios[index + 1] = pair - first;
   }
 
-  /// Готовая раскладка: вкладки всех окон делятся на [WsPreset.panes] окон в ряд.
-  void arrange(WsPreset choice) {
-    preset = choice.name;
-    leftOpen = choice.left;
-    rightOpen = choice.right;
-    final focusedTab = focusedPane.activeTab;
-    final tabs = <WsTab>[];
-    for (final pane in panes) {
-      for (final tab in pane.tabs) {
-        if (!tabs.any((other) => other.key == tab.key)) tabs.add(tab);
+  // вынуть вкладку из окна, открытой остаётся соседняя
+  WsTab _take(WsPane pane, int index) {
+    final tab = pane.tabs.removeAt(index);
+    if (pane.active > index || pane.active >= pane.tabs.length) pane.active = (pane.active - 1).clamp(0, 1 << 20);
+    return tab;
+  }
+
+  /// Вкладку номер [index] окна [fromId] перетащили на окно [toId]. В середину — она
+  /// переезжает в это окно (на место [at], если бросили на полосу вкладок); к краю —
+  /// окно делится в ту сторону, и вкладка встаёт новым окном. Так человек сам собирает
+  /// раскладку: готовых нет.
+  void drop(String fromId, int index, String toId, WsDrop where, {int? at}) {
+    final from = _panes[fromId]!;
+    final to = _panes[toId]!;
+    if (where == WsDrop.center) {
+      if (fromId == toId) {
+        if (at == null) return;
+        final tab = _take(from, index);
+        final place = (at > index ? at - 1 : at).clamp(0, from.tabs.length);
+        from.tabs.insert(place, tab);
+        from.active = place;
+        focusedId = fromId;
+        return;
       }
-    }
-    _panes.clear();
-    _next = 1;
-    final made = <WsPane>[for (var i = 0; i < choice.panes; i++) WsPane(_newId(), const [])];
-    for (final pane in made) {
+      final tab = _take(from, index);
+      final place = (at ?? to.active + 1).clamp(0, to.tabs.length);
+      to.tabs.insert(place, tab);
+      to.active = place;
+      focusedId = toId;
+    } else {
+      // единственную вкладку окна к его же краю — делить нечего
+      if (fromId == toId && from.tabs.length == 1) return;
+      final pane = WsPane(_newId(), [_take(from, index)]);
       _panes[pane.id] = pane;
+      final axis = where == WsDrop.left || where == WsDrop.right ? WsAxis.row : WsAxis.column;
+      root = _beside(root, toId, pane.id, axis, before: where == WsDrop.left || where == WsDrop.top);
+      focusedId = pane.id;
     }
-    // по очереди: вкладка с фокусом остаётся в первом окне
-    final ordered = [?focusedTab, ...tabs.where((tab) => tab != focusedTab)];
-    for (final (index, tab) in ordered.indexed) {
-      made[index % made.length].tabs.add(tab);
+    if (from.tabs.isEmpty) _removeLeaf(fromId);
+  }
+
+  // новое окно рядом с [target]: в том же ряду делит его долю пополам, иначе — новое деление
+  WsNode _beside(WsNode node, String target, String added, WsAxis axis, {required bool before}) {
+    switch (node) {
+      case WsLeaf():
+        if (node.paneId != target) return node;
+        return WsSplit(axis, before ? [WsLeaf(added), node] : [node, WsLeaf(added)], [0.5, 0.5]);
+      case WsSplit():
+        final index = node.children.indexWhere((child) => child is WsLeaf && child.paneId == target);
+        if (index >= 0 && node.axis == axis) {
+          final half = node.ratios[index] / 2;
+          final at = before ? index : index + 1;
+          final children = [...node.children]..insert(at, WsLeaf(added));
+          final ratios = [...node.ratios]
+            ..[index] = half
+            ..insert(at, half);
+          return WsSplit(axis, children, ratios);
+        }
+        return WsSplit(node.axis, [for (final child in node.children) _beside(child, target, added, axis, before: before)], node.ratios);
     }
-    for (final pane in made.where((pane) => pane.tabs.isEmpty)) {
-      pane.tabs.add(_filler());
-    }
-    root = made.length == 1 ? WsLeaf(made.single.id) : WsSplit(WsAxis.row, [for (final pane in made) WsLeaf(pane.id)], List.filled(made.length, 1 / made.length));
-    focusedId = made.first.id;
   }
 
   // ——— сохранение ———
@@ -313,8 +352,9 @@ class Workspace {
     'right': rightOpen,
     'leftWidth': leftWidth,
     'rightWidth': rightWidth,
-    'preset': preset,
     'collapsed': [...collapsed],
+    'leftPanels': left,
+    'rightPanels': right,
   };
 
   static Object _nodeJson(WsNode node) => switch (node) {
@@ -346,8 +386,18 @@ class Workspace {
       ..rightOpen = json['right'] as bool? ?? true
       ..leftWidth = (json['leftWidth'] as num?)?.toDouble() ?? 296
       ..rightWidth = (json['rightWidth'] as num?)?.toDouble() ?? 320
-      ..preset = json['preset'] as String? ?? 'normal'
-      ..collapsed.addAll([for (final name in json['collapsed'] as List? ?? const []) name as String]);
+      ..collapsed.addAll([for (final name in json['collapsed'] as List? ?? const []) name as String])
+      .._restorePanels(json['leftPanels'], json['rightPanels']);
+  }
+
+  void _restorePanels(Object? leftJson, Object? rightJson) {
+    if (leftJson is! List || rightJson is! List) return;
+    left
+      ..clear()
+      ..addAll([for (final id in leftJson) if (allPanels.contains(id)) id as String]);
+    right
+      ..clear()
+      ..addAll([for (final id in rightJson) if (allPanels.contains(id) && !left.contains(id)) id as String]);
   }
 
   /// Раскладка из сохранённого текста; сломана — с чистого листа.

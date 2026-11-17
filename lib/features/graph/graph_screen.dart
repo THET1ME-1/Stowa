@@ -115,20 +115,23 @@ class _GraphScreenState extends ConsumerState<GraphScreen> {
               padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 8),
               child: Row(
                 children: [
-                  Tooltip(
-                    message: MaterialLocalizations.of(context).backButtonTooltip,
-                    child: Pressable(
-                      pressedScale: 0.9,
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
-                        child: Icon(symbolIcon('arrow_back'), color: Tokens.onSurface),
+                  // во вкладке широкого экрана возвращаться некуда
+                  if (Navigator.of(context).canPop()) ...[
+                    Tooltip(
+                      message: MaterialLocalizations.of(context).backButtonTooltip,
+                      child: Pressable(
+                        pressedScale: 0.9,
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
+                          child: Icon(symbolIcon('arrow_back'), color: Tokens.onSurface),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
+                    const SizedBox(width: 12),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

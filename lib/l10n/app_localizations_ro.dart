@@ -4202,18 +4202,6 @@ class LRo extends L {
   String get syncSignOutHint => 'Notițele rămân pe acest telefon.';
 
   @override
-  String get wsPresetNormal => 'Obișnuit';
-
-  @override
-  String get wsPresetReading => 'Citire';
-
-  @override
-  String get wsPresetTwo => 'Două ferestre';
-
-  @override
-  String get wsPresetThree => 'Trei ferestre';
-
-  @override
   String get wsSections => 'Secțiuni';
 
   @override
@@ -4254,4 +4242,113 @@ class LRo extends L {
 
   @override
   String get wsSyncOff => 'Sincronizare oprită';
+
+  @override
+  String get wsGroupNav => 'Căutare și navigare';
+
+  @override
+  String get wsGroupNotes => 'Notițe și dosare';
+
+  @override
+  String get wsGroupTabs => 'File și ferestre';
+
+  @override
+  String get wsGroupDocks => 'Panouri și aranjări';
+
+  @override
+  String get wsCmdPalette => 'Toate comenzile';
+
+  @override
+  String get wsCmdSwitch => 'Deschide notița după titlu';
+
+  @override
+  String get wsCmdHome => 'Acasă';
+
+  @override
+  String get wsCmdNew => 'Notiță nouă';
+
+  @override
+  String get wsCmdTrash => 'Mută în coș';
+
+  @override
+  String get wsCmdPin => 'Fixează notița';
+
+  @override
+  String get wsCmdMove => 'Mută în dosar';
+
+  @override
+  String get wsCmdReopen => 'Redeschide fila închisă';
+
+  @override
+  String get wsCmdNext => 'Fila următoare';
+
+  @override
+  String get wsCmdPrev => 'Fila anterioară';
+
+  @override
+  String get wsCmdNextPane => 'Fereastra următoare';
+
+  @override
+  String get wsCmdPrevPane => 'Fereastra anterioară';
+
+  @override
+  String get wsCmdClosePane => 'Închide fereastra';
+
+  @override
+  String get wsCmdTheme => 'Temă luminoasă sau întunecată';
+
+  @override
+  String get wsThen => 'apoi';
+
+  @override
+  String get wsKeysHint =>
+      'O singură tastă fără Ctrl și Alt funcționează în afara unui câmp de text, iar tastele contează după locul lor pe tastatură, în orice aranjare.';
+
+  @override
+  String get wsKeysResetAll => 'Revino la toate';
+
+  @override
+  String get wsKeysAdd => 'Adaugă o combinație';
+
+  @override
+  String get wsKeysPress => 'Apasă o combinație · Esc anulează';
+
+  @override
+  String wsKeysTaken(String name) {
+    return 'Combinația a fost luată de la „$name”';
+  }
+
+  @override
+  String get wsKeysBrowser =>
+      'Browserul păstrează această combinație pentru el';
+
+  @override
+  String get wsKeysReset => 'Revino';
+
+  @override
+  String get wsKeysRemove => 'Elimină';
+
+  @override
+  String get wsChanged => 'modificat';
+
+  @override
+  String get wsPaletteHint => 'Comandă sau titlu de notiță';
+
+  @override
+  String get wsOpenNoteFirst => 'Deschide întâi o notiță';
+
+  @override
+  String get wsAddPanel => 'Panou';
+
+  @override
+  String get wsToRight => 'În panoul drept';
+
+  @override
+  String get wsToLeft => 'În panoul stâng';
+
+  @override
+  String get wsHidePanel => 'Elimină panoul';
+
+  @override
+  String get wsPanelEmpty => 'Încă gol';
 }

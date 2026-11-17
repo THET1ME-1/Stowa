@@ -58,13 +58,16 @@ class ReturnScreen extends ConsumerWidget {
           children: [
             Row(
               children: [
-                IconButton(
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
-                  icon: Icon(symbolIcon('arrow_back'), size: 20, color: Tokens.onSurface),
-                ),
-                const SizedBox(width: 12),
+                // во вкладке широкого экрана возвращаться некуда
+                if (Navigator.of(context).canPop()) ...[
+                  IconButton(
+                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                    onPressed: () => Navigator.pop(context),
+                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
+                    icon: Icon(symbolIcon('arrow_back'), size: 20, color: Tokens.onSurface),
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(child: Text(title, style: text.titleLarge!.copyWith(fontSize: 18))),
               ],
             ),

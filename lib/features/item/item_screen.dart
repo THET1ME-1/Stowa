@@ -1314,8 +1314,11 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
       child: Row(
         children: [
-          _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: onBack),
-          const SizedBox(width: 8),
+          // во вкладке широкого экрана заметка открыта первой: возвращаться некуда
+          if (Navigator.of(context).canPop()) ...[
+            _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: onBack),
+            const SizedBox(width: 8),
+          ],
           Expanded(
             child: Tooltip(
               message: l.itemMove,

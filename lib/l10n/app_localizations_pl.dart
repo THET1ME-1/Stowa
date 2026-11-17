@@ -4235,18 +4235,6 @@ class LPl extends L {
   String get syncSignOutHint => 'Notatki zostaną na tym telefonie.';
 
   @override
-  String get wsPresetNormal => 'Zwykły';
-
-  @override
-  String get wsPresetReading => 'Czytanie';
-
-  @override
-  String get wsPresetTwo => 'Dwa okna';
-
-  @override
-  String get wsPresetThree => 'Trzy okna';
-
-  @override
   String get wsSections => 'Sekcje';
 
   @override
@@ -4287,4 +4275,112 @@ class LPl extends L {
 
   @override
   String get wsSyncOff => 'Synchronizacja wyłączona';
+
+  @override
+  String get wsGroupNav => 'Wyszukiwanie i nawigacja';
+
+  @override
+  String get wsGroupNotes => 'Notatki i foldery';
+
+  @override
+  String get wsGroupTabs => 'Karty i okna';
+
+  @override
+  String get wsGroupDocks => 'Panele i układy';
+
+  @override
+  String get wsCmdPalette => 'Wszystkie polecenia';
+
+  @override
+  String get wsCmdSwitch => 'Otwórz notatkę po tytule';
+
+  @override
+  String get wsCmdHome => 'Na start';
+
+  @override
+  String get wsCmdNew => 'Nowa notatka';
+
+  @override
+  String get wsCmdTrash => 'Do kosza';
+
+  @override
+  String get wsCmdPin => 'Przypnij notatkę';
+
+  @override
+  String get wsCmdMove => 'Przenieś do folderu';
+
+  @override
+  String get wsCmdReopen => 'Przywróć zamkniętą kartę';
+
+  @override
+  String get wsCmdNext => 'Następna karta';
+
+  @override
+  String get wsCmdPrev => 'Poprzednia karta';
+
+  @override
+  String get wsCmdNextPane => 'Następne okno';
+
+  @override
+  String get wsCmdPrevPane => 'Poprzednie okno';
+
+  @override
+  String get wsCmdClosePane => 'Zamknij okno';
+
+  @override
+  String get wsCmdTheme => 'Jasny lub ciemny motyw';
+
+  @override
+  String get wsThen => 'potem';
+
+  @override
+  String get wsKeysHint =>
+      'Pojedynczy klawisz bez Ctrl i Alt działa poza polem tekstowym, a klawisze liczą się według miejsca na klawiaturze, w każdym układzie.';
+
+  @override
+  String get wsKeysResetAll => 'Przywróć wszystko';
+
+  @override
+  String get wsKeysAdd => 'Dodaj skrót';
+
+  @override
+  String get wsKeysPress => 'Naciśnij skrót · Esc anuluje';
+
+  @override
+  String wsKeysTaken(String name) {
+    return 'Skrót zdjęty z „$name”';
+  }
+
+  @override
+  String get wsKeysBrowser => 'Ten skrót przeglądarka zostawia sobie';
+
+  @override
+  String get wsKeysReset => 'Przywróć';
+
+  @override
+  String get wsKeysRemove => 'Usuń';
+
+  @override
+  String get wsChanged => 'zmieniono';
+
+  @override
+  String get wsPaletteHint => 'Polecenie lub tytuł notatki';
+
+  @override
+  String get wsOpenNoteFirst => 'Najpierw otwórz notatkę';
+
+  @override
+  String get wsAddPanel => 'Panel';
+
+  @override
+  String get wsToRight => 'Do prawego panelu';
+
+  @override
+  String get wsToLeft => 'Do lewego panelu';
+
+  @override
+  String get wsHidePanel => 'Usuń panel';
+
+  @override
+  String get wsPanelEmpty => 'Na razie pusto';
 }

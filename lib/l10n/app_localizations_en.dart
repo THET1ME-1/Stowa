@@ -4164,18 +4164,6 @@ class LEn extends L {
   String get syncSignOutHint => 'Your notes stay on this phone.';
 
   @override
-  String get wsPresetNormal => 'Normal';
-
-  @override
-  String get wsPresetReading => 'Reading';
-
-  @override
-  String get wsPresetTwo => 'Two panes';
-
-  @override
-  String get wsPresetThree => 'Three panes';
-
-  @override
   String get wsSections => 'Sections';
 
   @override
@@ -4216,4 +4204,112 @@ class LEn extends L {
 
   @override
   String get wsSyncOff => 'Sync is off';
+
+  @override
+  String get wsGroupNav => 'Search and navigation';
+
+  @override
+  String get wsGroupNotes => 'Notes and folders';
+
+  @override
+  String get wsGroupTabs => 'Tabs and panes';
+
+  @override
+  String get wsGroupDocks => 'Panels and layouts';
+
+  @override
+  String get wsCmdPalette => 'All commands';
+
+  @override
+  String get wsCmdSwitch => 'Open note by title';
+
+  @override
+  String get wsCmdHome => 'Go home';
+
+  @override
+  String get wsCmdNew => 'New note';
+
+  @override
+  String get wsCmdTrash => 'Move to trash';
+
+  @override
+  String get wsCmdPin => 'Pin note';
+
+  @override
+  String get wsCmdMove => 'Move to folder';
+
+  @override
+  String get wsCmdReopen => 'Reopen closed tab';
+
+  @override
+  String get wsCmdNext => 'Next tab';
+
+  @override
+  String get wsCmdPrev => 'Previous tab';
+
+  @override
+  String get wsCmdNextPane => 'Next pane';
+
+  @override
+  String get wsCmdPrevPane => 'Previous pane';
+
+  @override
+  String get wsCmdClosePane => 'Close pane';
+
+  @override
+  String get wsCmdTheme => 'Light or dark theme';
+
+  @override
+  String get wsThen => 'then';
+
+  @override
+  String get wsKeysHint =>
+      'A single key without Ctrl or Alt works when the cursor is not in a text field, and keys are matched by their place on the keyboard in any layout.';
+
+  @override
+  String get wsKeysResetAll => 'Reset all';
+
+  @override
+  String get wsKeysAdd => 'Add shortcut';
+
+  @override
+  String get wsKeysPress => 'Press a shortcut · Esc to cancel';
+
+  @override
+  String wsKeysTaken(String name) {
+    return 'Shortcut removed from “$name”';
+  }
+
+  @override
+  String get wsKeysBrowser => 'The browser keeps this shortcut for itself';
+
+  @override
+  String get wsKeysReset => 'Reset';
+
+  @override
+  String get wsKeysRemove => 'Remove';
+
+  @override
+  String get wsChanged => 'changed';
+
+  @override
+  String get wsPaletteHint => 'Command or note title';
+
+  @override
+  String get wsOpenNoteFirst => 'Open a note first';
+
+  @override
+  String get wsAddPanel => 'Panel';
+
+  @override
+  String get wsToRight => 'Move to the right panel';
+
+  @override
+  String get wsToLeft => 'Move to the left panel';
+
+  @override
+  String get wsHidePanel => 'Remove panel';
+
+  @override
+  String get wsPanelEmpty => 'Nothing here yet';
 }

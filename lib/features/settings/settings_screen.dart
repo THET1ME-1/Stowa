@@ -63,10 +63,18 @@ String _pauseText(L l, AiSettings ai) => ai.pauseReason == AiFailureKind.payment
 /// Настройки. Большие разделы (оформление, разбор ИИ, возврат, хранилище) — одной
 /// строкой с итогом и на своём экране, остальное на месте.
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.section, this.title});
+
+  /// Только этот раздел (вкладка настроек широкого экрана): `outside`, `data`, `line`,
+  /// `start`, `language`, `help`. null — все.
+  final String? section;
+
+  /// Заголовок вместо «Настройки».
+  final String? title;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    bool show(String id) => section == null || section == id;
     final l = L.of(context);
     final ai = ref.watch(aiSettingsProvider).value ?? const AiSettings();
     final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
@@ -80,7 +88,8 @@ class SettingsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
-            SettingsHeader(l.settingsTitle),
+            SettingsHeader(title ?? l.settingsTitle),
+            if (show('vault')) ...[
             SettingsSection(l.settingsCatalog),
             SettingsGroup(
               tint: settingsTint('teal'),
@@ -94,6 +103,8 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            ],
+            if (show('look')) ...[
             SettingsSection(l.settingsLook),
             SettingsGroup(
               tint: settingsTint('rose'),
@@ -106,6 +117,8 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            ],
+            if (show('helpers')) ...[
             SettingsSection(l.settingsHelpers),
             SettingsGroup(
               tint: settingsTint('violet'),
@@ -114,6 +127,8 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute())),
               ],
             ),
+            ],
+            if (show('outside')) ...[
             SettingsSection(l.settingsOutside),
             SettingsGroup(
               tint: settingsTint('sky'),
@@ -130,11 +145,15 @@ class SettingsScreen extends ConsumerWidget {
                   ),
               ],
             ),
+            ],
+            if (show('order')) ...[
             SettingsSection(l.settingsOrder),
             SettingsGroup(
               tint: settingsTint('amber'),
               children: [SettingsRow(icon: 'label', title: l.settingsTooltip, onTap: () => Navigator.of(context).push(tagsRoute()))],
             ),
+            ],
+            if (show('data')) ...[
             SettingsSection(l.settingsData),
             SettingsGroup(
               tint: settingsTint('teal'),
@@ -217,6 +236,8 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsHint(l.articleImagesAbout),
+            ],
+            if (show('import')) ...[
             SettingsSection(l.settingsImport),
             SettingsGroup(
               tint: settingsTint('sky'),
@@ -230,6 +251,8 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            ],
+            if (show('line')) ...[
             SettingsSection(l.settingsLine),
             SettingsGroup(
               tint: settingsTint('teal'),
@@ -244,6 +267,8 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsHint(l.enterHint),
+            ],
+            if (show('start')) ...[
             SettingsSection(l.settingsStart),
             SettingsGroup(
               tint: settingsTint('lime'),
@@ -257,11 +282,15 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsHint(l.startHint),
+            ],
+            if (show('language')) ...[
             SettingsSection(l.settingsLanguage),
             SettingsGroup(
               tint: settingsTint('orchid'),
               children: [SettingsRow(icon: 'translate', title: l.settingsLanguage, value: language?.label ?? l.languageSystem, onTap: () => _showLanguageSheet(context, language))],
             ),
+            ],
+            if (show('help')) ...[
             SettingsSection(l.settingsHelp),
             SettingsGroup(
               tint: settingsTint('coral'),
@@ -306,6 +335,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            ],
             const SizedBox(height: 28),
             FutureBuilder(
               future: PackageInfo.fromPlatform().then((info) => info.version, onError: (_) => ''),

@@ -4189,18 +4189,6 @@ class LDe extends L {
   String get syncSignOutHint => 'Deine Notizen bleiben auf diesem Handy.';
 
   @override
-  String get wsPresetNormal => 'Normal';
-
-  @override
-  String get wsPresetReading => 'Lesen';
-
-  @override
-  String get wsPresetTwo => 'Zwei Fenster';
-
-  @override
-  String get wsPresetThree => 'Drei Fenster';
-
-  @override
   String get wsSections => 'Bereiche';
 
   @override
@@ -4241,4 +4229,112 @@ class LDe extends L {
 
   @override
   String get wsSyncOff => 'Synchronisierung aus';
+
+  @override
+  String get wsGroupNav => 'Suche und Navigation';
+
+  @override
+  String get wsGroupNotes => 'Notizen und Ordner';
+
+  @override
+  String get wsGroupTabs => 'Tabs und Fenster';
+
+  @override
+  String get wsGroupDocks => 'Leisten und Layouts';
+
+  @override
+  String get wsCmdPalette => 'Alle Befehle';
+
+  @override
+  String get wsCmdSwitch => 'Notiz nach Titel öffnen';
+
+  @override
+  String get wsCmdHome => 'Zum Start';
+
+  @override
+  String get wsCmdNew => 'Neue Notiz';
+
+  @override
+  String get wsCmdTrash => 'In den Papierkorb';
+
+  @override
+  String get wsCmdPin => 'Notiz anheften';
+
+  @override
+  String get wsCmdMove => 'In Ordner verschieben';
+
+  @override
+  String get wsCmdReopen => 'Geschlossenen Tab wiederherstellen';
+
+  @override
+  String get wsCmdNext => 'Nächster Tab';
+
+  @override
+  String get wsCmdPrev => 'Vorheriger Tab';
+
+  @override
+  String get wsCmdNextPane => 'Nächstes Fenster';
+
+  @override
+  String get wsCmdPrevPane => 'Vorheriges Fenster';
+
+  @override
+  String get wsCmdClosePane => 'Fenster schließen';
+
+  @override
+  String get wsCmdTheme => 'Helles oder dunkles Design';
+
+  @override
+  String get wsThen => 'dann';
+
+  @override
+  String get wsKeysHint =>
+      'Eine einzelne Taste ohne Strg und Alt wirkt nur außerhalb eines Textfelds, und Tasten zählen nach ihrer Lage auf der Tastatur, in jedem Layout.';
+
+  @override
+  String get wsKeysResetAll => 'Alles zurücksetzen';
+
+  @override
+  String get wsKeysAdd => 'Kürzel hinzufügen';
+
+  @override
+  String get wsKeysPress => 'Kürzel drücken · Esc bricht ab';
+
+  @override
+  String wsKeysTaken(String name) {
+    return 'Kürzel von „$name“ entfernt';
+  }
+
+  @override
+  String get wsKeysBrowser => 'Dieses Kürzel behält der Browser für sich';
+
+  @override
+  String get wsKeysReset => 'Zurücksetzen';
+
+  @override
+  String get wsKeysRemove => 'Entfernen';
+
+  @override
+  String get wsChanged => 'geändert';
+
+  @override
+  String get wsPaletteHint => 'Befehl oder Notiztitel';
+
+  @override
+  String get wsOpenNoteFirst => 'Öffne zuerst eine Notiz';
+
+  @override
+  String get wsAddPanel => 'Leiste';
+
+  @override
+  String get wsToRight => 'In die rechte Leiste';
+
+  @override
+  String get wsToLeft => 'In die linke Leiste';
+
+  @override
+  String get wsHidePanel => 'Leiste entfernen';
+
+  @override
+  String get wsPanelEmpty => 'Noch leer';
 }

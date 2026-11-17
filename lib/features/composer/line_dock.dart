@@ -396,6 +396,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   void focusLine() {
     _activate();
     _focus.requestFocus();
+    // капсула широкого экрана поля не держит: оно встаёт кадром позже
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_focus.hasFocus) _focus.requestFocus();
+    });
   }
 
   /// Микрофон виджета: запись начинается сразу, без касания строки. false — записи нет.
@@ -1182,21 +1186,25 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       ),
     );
 
+    // широкий экран в покое: капсула в одну строку, как в макете; касание раскрывает строку
+    final capsule = widget.maxWidth.isFinite && !_active && !_hasContent && _voice == null && !_full && !_tray;
+
     // фон со скруглёнными углами снаружи, рамка роста внутри: растёт сама карточка, как height
     // в макете (0,46 с пружинкой), а не обрезанная рамкой копия с плоскими углами
     return AnimatedContainer(
       key: const ValueKey('composer'),
-      duration: const Duration(milliseconds: 250),
+      duration: widget.maxWidth.isFinite ? Motion.long : const Duration(milliseconds: 250),
       curve: Motion.emphasized,
       transform: Matrix4.translationValues(0, _drag * 0.35, 0),
-      decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(Radii.card)),
+      decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(capsule ? 100 : Radii.card)),
       clipBehavior: Clip.antiAlias,
       child: AnimatedSize(
-        // во время раскрытия высоту ведёт сама анимация раскрытия; ноль Flutter не принимает
+        // во время раскрытия высоту ведёт сама анимация раскрытия; ноль Flutter не принимает.
+        // На широком экране — без пружины: там всё движется мягко
         duration: _full || _morph.isAnimating ? const Duration(milliseconds: 1) : const Duration(milliseconds: 460),
-        curve: Motion.spatial,
+        curve: widget.maxWidth.isFinite ? Motion.emphasized : Motion.spatial,
         alignment: Alignment.bottomCenter,
-        child: Padding(
+        child: capsule ? _capsule(l) : Padding(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
           child: Column(
             mainAxisSize: _full ? MainAxisSize.max : MainAxisSize.min,
@@ -1252,6 +1260,76 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Капсула широкого экрана: подсказка, Ctrl K, вложение, голос и кнопка. Поля в ней нет —
+  /// касание раскрывает строку, и поле встаёт уже в ней.
+  Widget _capsule(L l) {
+    final text = Theme.of(context).textTheme;
+    return SizedBox(
+      key: const ValueKey('capsule'),
+      height: 60,
+      child: Row(
+        children: [
+          Expanded(
+            child: MouseRegion(
+              cursor: SystemMouseCursors.text,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: focusLine,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 22),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      widget.homeFolder != null ? l.dropHere : l.composerHint,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: text.bodyLarge!.copyWith(fontSize: 16, color: Tokens.muted),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(7)),
+            child: Text('Ctrl K', style: text.labelSmall!.copyWith(color: Tokens.muted)),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: l.composerAttach,
+            onPressed: () {
+              _activate();
+              if (!_tray) _toggleTray();
+            },
+            style: IconButton.styleFrom(fixedSize: const Size.square(44), foregroundColor: Tokens.onSurfaceVariant),
+            icon: Icon(symbolIcon('attach_file'), size: 20),
+          ),
+          IconButton(
+            tooltip: l.voiceRecord,
+            onPressed: _act,
+            style: IconButton.styleFrom(fixedSize: const Size.square(44), foregroundColor: Tokens.onSurfaceVariant),
+            icon: Icon(symbolIcon('mic'), size: 20),
+          ),
+          const SizedBox(width: 2),
+          Tooltip(
+            message: l.actionStow,
+            child: Material(
+              color: Tokens.accent,
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: focusLine,
+                child: SizedBox.square(dimension: 44, child: Icon(symbolIcon('arrow_upward'), size: 20, color: Tokens.onAccent)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
     );
   }

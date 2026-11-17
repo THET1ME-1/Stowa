@@ -144,8 +144,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 0),
               child: Row(
                 children: [
-                  _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
-                  const SizedBox(width: 12),
+                  // во вкладке широкого экрана возвращаться некуда
+                  if (Navigator.of(context).canPop()) ...[
+                    _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
+                    const SizedBox(width: 12),
+                  ],
                   Container(
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 16),

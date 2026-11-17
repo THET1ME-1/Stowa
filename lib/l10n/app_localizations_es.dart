@@ -4175,18 +4175,6 @@ class LEs extends L {
   String get syncSignOutHint => 'Tus notas se quedan en este teléfono.';
 
   @override
-  String get wsPresetNormal => 'Normal';
-
-  @override
-  String get wsPresetReading => 'Lectura';
-
-  @override
-  String get wsPresetTwo => 'Dos ventanas';
-
-  @override
-  String get wsPresetThree => 'Tres ventanas';
-
-  @override
   String get wsSections => 'Secciones';
 
   @override
@@ -4227,4 +4215,112 @@ class LEs extends L {
 
   @override
   String get wsSyncOff => 'Sincronización desactivada';
+
+  @override
+  String get wsGroupNav => 'Búsqueda y navegación';
+
+  @override
+  String get wsGroupNotes => 'Notas y carpetas';
+
+  @override
+  String get wsGroupTabs => 'Pestañas y ventanas';
+
+  @override
+  String get wsGroupDocks => 'Paneles y diseños';
+
+  @override
+  String get wsCmdPalette => 'Todos los comandos';
+
+  @override
+  String get wsCmdSwitch => 'Abrir nota por título';
+
+  @override
+  String get wsCmdHome => 'Ir al inicio';
+
+  @override
+  String get wsCmdNew => 'Nota nueva';
+
+  @override
+  String get wsCmdTrash => 'Mover a la papelera';
+
+  @override
+  String get wsCmdPin => 'Fijar nota';
+
+  @override
+  String get wsCmdMove => 'Mover a carpeta';
+
+  @override
+  String get wsCmdReopen => 'Reabrir pestaña cerrada';
+
+  @override
+  String get wsCmdNext => 'Pestaña siguiente';
+
+  @override
+  String get wsCmdPrev => 'Pestaña anterior';
+
+  @override
+  String get wsCmdNextPane => 'Ventana siguiente';
+
+  @override
+  String get wsCmdPrevPane => 'Ventana anterior';
+
+  @override
+  String get wsCmdClosePane => 'Cerrar ventana';
+
+  @override
+  String get wsCmdTheme => 'Tema claro u oscuro';
+
+  @override
+  String get wsThen => 'luego';
+
+  @override
+  String get wsKeysHint =>
+      'Una sola tecla sin Ctrl ni Alt funciona fuera de un campo de texto, y las teclas cuentan por su lugar en el teclado, en cualquier distribución.';
+
+  @override
+  String get wsKeysResetAll => 'Restablecer todo';
+
+  @override
+  String get wsKeysAdd => 'Añadir atajo';
+
+  @override
+  String get wsKeysPress => 'Pulsa un atajo · Esc para cancelar';
+
+  @override
+  String wsKeysTaken(String name) {
+    return 'Atajo quitado de «$name»';
+  }
+
+  @override
+  String get wsKeysBrowser => 'El navegador se reserva este atajo';
+
+  @override
+  String get wsKeysReset => 'Restablecer';
+
+  @override
+  String get wsKeysRemove => 'Quitar';
+
+  @override
+  String get wsChanged => 'cambiado';
+
+  @override
+  String get wsPaletteHint => 'Comando o título de nota';
+
+  @override
+  String get wsOpenNoteFirst => 'Primero abre una nota';
+
+  @override
+  String get wsAddPanel => 'Panel';
+
+  @override
+  String get wsToRight => 'Al panel derecho';
+
+  @override
+  String get wsToLeft => 'Al panel izquierdo';
+
+  @override
+  String get wsHidePanel => 'Quitar panel';
+
+  @override
+  String get wsPanelEmpty => 'Aún vacío';
 }

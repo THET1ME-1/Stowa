@@ -7085,30 +7085,6 @@ abstract class L {
   /// **'Your notes stay on this phone.'**
   String get syncSignOutHint;
 
-  /// Wide-screen layout preset: one window with both side panels
-  ///
-  /// In en, this message translates to:
-  /// **'Normal'**
-  String get wsPresetNormal;
-
-  /// Layout preset: one window, side panels hidden
-  ///
-  /// In en, this message translates to:
-  /// **'Reading'**
-  String get wsPresetReading;
-
-  /// Layout preset: two windows side by side
-  ///
-  /// In en, this message translates to:
-  /// **'Two panes'**
-  String get wsPresetTwo;
-
-  /// Layout preset: three windows side by side
-  ///
-  /// In en, this message translates to:
-  /// **'Three panes'**
-  String get wsPresetThree;
-
   /// Side panel with the main places of the app
   ///
   /// In en, this message translates to:
@@ -7192,6 +7168,216 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Sync is off'**
   String get wsSyncOff;
+
+  /// No description provided for @wsGroupNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Search and navigation'**
+  String get wsGroupNav;
+
+  /// No description provided for @wsGroupNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes and folders'**
+  String get wsGroupNotes;
+
+  /// No description provided for @wsGroupTabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Tabs and panes'**
+  String get wsGroupTabs;
+
+  /// No description provided for @wsGroupDocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Panels and layouts'**
+  String get wsGroupDocks;
+
+  /// No description provided for @wsCmdPalette.
+  ///
+  /// In en, this message translates to:
+  /// **'All commands'**
+  String get wsCmdPalette;
+
+  /// No description provided for @wsCmdSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Open note by title'**
+  String get wsCmdSwitch;
+
+  /// No description provided for @wsCmdHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go home'**
+  String get wsCmdHome;
+
+  /// No description provided for @wsCmdNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get wsCmdNew;
+
+  /// No description provided for @wsCmdTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to trash'**
+  String get wsCmdTrash;
+
+  /// No description provided for @wsCmdPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin note'**
+  String get wsCmdPin;
+
+  /// No description provided for @wsCmdMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to folder'**
+  String get wsCmdMove;
+
+  /// No description provided for @wsCmdReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen closed tab'**
+  String get wsCmdReopen;
+
+  /// No description provided for @wsCmdNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next tab'**
+  String get wsCmdNext;
+
+  /// No description provided for @wsCmdPrev.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous tab'**
+  String get wsCmdPrev;
+
+  /// No description provided for @wsCmdNextPane.
+  ///
+  /// In en, this message translates to:
+  /// **'Next pane'**
+  String get wsCmdNextPane;
+
+  /// No description provided for @wsCmdPrevPane.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous pane'**
+  String get wsCmdPrevPane;
+
+  /// No description provided for @wsCmdClosePane.
+  ///
+  /// In en, this message translates to:
+  /// **'Close pane'**
+  String get wsCmdClosePane;
+
+  /// No description provided for @wsCmdTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Light or dark theme'**
+  String get wsCmdTheme;
+
+  /// Between the two keys of a two-step shortcut: G then H
+  ///
+  /// In en, this message translates to:
+  /// **'then'**
+  String get wsThen;
+
+  /// No description provided for @wsKeysHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A single key without Ctrl or Alt works when the cursor is not in a text field, and keys are matched by their place on the keyboard in any layout.'**
+  String get wsKeysHint;
+
+  /// No description provided for @wsKeysResetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all'**
+  String get wsKeysResetAll;
+
+  /// No description provided for @wsKeysAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add shortcut'**
+  String get wsKeysAdd;
+
+  /// No description provided for @wsKeysPress.
+  ///
+  /// In en, this message translates to:
+  /// **'Press a shortcut · Esc to cancel'**
+  String get wsKeysPress;
+
+  /// The new shortcut was taken from another command
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcut removed from “{name}”'**
+  String wsKeysTaken(String name);
+
+  /// No description provided for @wsKeysBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'The browser keeps this shortcut for itself'**
+  String get wsKeysBrowser;
+
+  /// No description provided for @wsKeysReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get wsKeysReset;
+
+  /// No description provided for @wsKeysRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get wsKeysRemove;
+
+  /// No description provided for @wsChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'changed'**
+  String get wsChanged;
+
+  /// No description provided for @wsPaletteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Command or note title'**
+  String get wsPaletteHint;
+
+  /// No description provided for @wsOpenNoteFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a note first'**
+  String get wsOpenNoteFirst;
+
+  /// No description provided for @wsAddPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Panel'**
+  String get wsAddPanel;
+
+  /// No description provided for @wsToRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to the right panel'**
+  String get wsToRight;
+
+  /// No description provided for @wsToLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to the left panel'**
+  String get wsToLeft;
+
+  /// No description provided for @wsHidePanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove panel'**
+  String get wsHidePanel;
+
+  /// No description provided for @wsPanelEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get wsPanelEmpty;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

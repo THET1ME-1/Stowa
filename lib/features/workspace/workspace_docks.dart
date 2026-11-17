@@ -24,72 +24,28 @@ final _syncSignedInProvider = FutureProvider.autoDispose<bool>((ref) async {
   }
 });
 
-/// Левый док: хранилище, «Найти или записать», разделы, закреплённое, папки деревом.
-class LeftDock extends ConsumerWidget {
+/// Левый док: хранилище и «Найти или записать» сверху, ниже — панели, внизу тема и настройки.
+class LeftDock extends StatelessWidget {
   const LeftDock({super.key, required this.onFind, required this.onTheme});
 
   final VoidCallback onFind;
   final VoidCallback onTheme;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l = L.of(context);
     final ws = WorkspaceScope.of(context);
-    final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
-    final pinned = ref.watch(pinnedItemsProvider).value ?? const [];
-    final recent = ref.watch(recentItemsProvider).value ?? const [];
-    final inbox = {for (final card in [...pinned, ...recent]) if (card.folderId == null) card.id}.length;
-    final later = ref.watch(watchLaterProvider).value?.length ?? 0;
-    final active = ws.workspace.focusedPane.activeTab;
-
-    Widget nav(String icon, String label, WsTab tab, {int? count}) =>
-        _NavRow(icon: icon, label: label, count: count, selected: active == tab, onTap: () => ws.open(tab));
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _VaultCard(),
         _FindButton(label: l.wsFind, onTap: onFind),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
-            children: [
-              _Panel(
-                id: 'sections',
-                icon: 'explore',
-                title: l.wsSections,
-                children: [
-                  nav('home', l.wsHome, const WsTab.home()),
-                  nav('inbox', l.folderNone, const WsTab.inbox(), count: inbox),
-                  nav('schedule', l.returnWatchTitle, const WsTab.later(), count: later),
-                  if (!isWeb) nav('map', l.mapTitle, const WsTab.map()),
-                  nav('hub', l.graphTitle, const WsTab.graph()),
-                ],
-              ),
-              if (pinned.isNotEmpty)
-                _Panel(
-                  id: 'pinned',
-                  icon: 'keep',
-                  title: l.homePinned,
-                  children: [
-                    for (final card in pinned.take(8))
-                      _NavRow(icon: 'keep', label: card.title, selected: active == WsTab.item(card.id), onTap: () => ws.open(WsTab.item(card.id)), filledIcon: true),
-                  ],
-                ),
-              if (folders.isNotEmpty)
-                _Panel(
-                  id: 'folders',
-                  icon: 'folder',
-                  title: l.homeFolders,
-                  children: [for (final folder in folders) _FolderRow(folder: folder, selected: active == WsTab.folder(folder.id), onTap: () => ws.open(WsTab.folder(folder.id)))],
-                ),
-            ],
-          ),
-        ),
+        const Expanded(child: _PanelList(left: true)),
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
           child: Row(
             children: [
+              const _AddPanel(left: true),
               const Spacer(),
               _DockIcon(icon: Tokens.palette.isDark ? 'light_mode' : 'dark_mode', tooltip: l.wsTheme, onTap: onTheme),
               _DockIcon(icon: 'settings', tooltip: l.settingsTitle, onTap: () => ws.open(const WsTab.settings())),
@@ -101,76 +57,254 @@ class LeftDock extends ConsumerWidget {
   }
 }
 
-/// Правый док: «Посмотреть потом», «Год назад», Stowa Sync.
-class RightDock extends ConsumerWidget {
+/// Правый док: только панели и «+ Панель».
+class RightDock extends StatelessWidget {
   const RightDock({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(child: _PanelList(left: false)),
+        Padding(padding: EdgeInsets.fromLTRB(10, 4, 10, 10), child: Row(children: [_AddPanel(left: false)])),
+      ],
+    );
+  }
+}
+
+/// Название и значок панели.
+(String, String) _panelLook(L l, String id) => switch (id) {
+  'sections' => ('explore', l.wsSections),
+  'pinned' => ('keep', l.homePinned),
+  'folders' => ('folder', l.homeFolders),
+  'later' => ('schedule', l.returnWatchTitle),
+  'yearAgo' => ('history', l.wsYearAgo),
+  _ => ('cloud_sync', l.syncTitle),
+};
+
+/// Панели дока по порядку. Заголовок панели тянут мышью: место, куда она встанет,
+/// подсвечивается полосой; бросить можно и в другой док.
+class _PanelList extends StatelessWidget {
+  const _PanelList({required this.left});
+
+  final bool left;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = WorkspaceScope.of(context);
+    final panels = left ? controller.workspace.left : controller.workspace.right;
+    return ListView(
+      padding: EdgeInsets.fromLTRB(8, left ? 4 : 10, 8, 12),
+      children: [
+        for (final (index, id) in panels.indexed)
+          _PanelDrop(key: ValueKey('drop-$id'), left: left, index: index, child: _Panel(key: ValueKey('panel-$id'), id: id, left: left)),
+        // в конец дока — и в пустой док тоже
+        _DropSlot(left: left, index: panels.length, tall: true),
+      ],
+    );
+  }
+}
+
+/// Панель как цель перетаскивания: верхняя половина — встать перед ней, нижняя — после.
+class _PanelDrop extends StatefulWidget {
+  const _PanelDrop({super.key, required this.left, required this.index, required this.child});
+
+  final bool left;
+  final int index;
+  final Widget child;
+
+  @override
+  State<_PanelDrop> createState() => _PanelDropState();
+}
+
+class _PanelDropState extends State<_PanelDrop> {
+  bool _after = false;
+
+  void _track(Offset global) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final after = box.globalToLocal(global).dy > box.size.height / 2;
+    if (after != _after) setState(() => _after = after);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = WorkspaceScope.of(context);
+    return DragTarget<String>(
+      onMove: (details) => _track(details.offset),
+      onAcceptWithDetails: (details) => controller.update((ws) => ws.placePanel(details.data, left: widget.left, index: widget.index + (_after ? 1 : 0))),
+      builder: (context, candidates, _) {
+        final over = candidates.isNotEmpty;
+        Widget line(bool show) => AnimatedContainer(
+          duration: Motion.short,
+          curve: Motion.emphasized,
+          height: 4,
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(color: show ? Tokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(2)),
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [line(over && !_after), widget.child, line(over && _after)],
+        );
+      },
+    );
+  }
+}
+
+/// Место между панелями, куда можно бросить перетаскиваемую.
+class _DropSlot extends StatelessWidget {
+  const _DropSlot({required this.left, required this.index, this.tall = false});
+
+  final bool left;
+  final int index;
+  final bool tall;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = WorkspaceScope.of(context);
+    return DragTarget<String>(
+      onAcceptWithDetails: (details) => controller.update((ws) => ws.placePanel(details.data, left: left, index: index)),
+      builder: (context, candidates, _) {
+        final over = candidates.isNotEmpty;
+        return AnimatedContainer(
+          duration: Motion.short,
+          curve: Motion.emphasized,
+          height: tall ? 160 : (over ? 12 : 6),
+          alignment: Alignment.topCenter,
+          child: AnimatedContainer(
+            duration: Motion.short,
+            curve: Motion.emphasized,
+            height: over ? 4 : 0,
+            decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(2)),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// «+ Панель»: вернуть убранную панель в этот док.
+class _AddPanel extends StatelessWidget {
+  const _AddPanel({required this.left});
+
+  final bool left;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final text = Theme.of(context).textTheme;
+    final controller = WorkspaceScope.of(context);
+    final hidden = controller.workspace.hiddenPanels;
+    return AnimatedOpacity(
+      duration: Motion.medium,
+      curve: Motion.emphasized,
+      opacity: hidden.isEmpty ? 0.45 : 1,
+      child: MenuAnchor(
+        style: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(Tokens.containerHigh),
+          shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+        ),
+        menuChildren: [
+          for (final id in hidden)
+            MenuItemButton(
+              leadingIcon: Icon(symbolIcon(_panelLook(l, id).$1), size: 18, color: Tokens.onSurfaceVariant),
+              onPressed: () {
+                final target = left ? controller.workspace.left : controller.workspace.right;
+                controller.update((ws) => ws.placePanel(id, left: left, index: target.length));
+              },
+              child: Text(_panelLook(l, id).$2),
+            ),
+        ],
+        builder: (context, menu, _) => TextButton.icon(
+          onPressed: hidden.isEmpty ? null : () => menu.isOpen ? menu.close() : menu.open(),
+          style: TextButton.styleFrom(foregroundColor: Tokens.muted, textStyle: text.labelLarge),
+          icon: Icon(symbolIcon('add'), size: 18),
+          label: Text(l.wsAddPanel),
+        ),
+      ),
+    );
+  }
+}
+
+/// Что внутри панели.
+class _PanelBody extends ConsumerWidget {
+  const _PanelBody({required this.id});
+
+  final String id;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final ws = WorkspaceScope.of(context);
-    final later = ref.watch(watchLaterProvider).value ?? const [];
-    final day = ref.watch(onThisDayProvider).value;
-    final signedIn = ref.watch(_syncSignedInProvider).value ?? false;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
-      children: [
-        _Panel(
-          id: 'later',
-          icon: 'schedule',
-          title: l.returnWatchTitle,
-          children: [
-            if (later.isEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
-                child: Text(l.returnWatchEmpty, style: text.bodySmall!.copyWith(color: Tokens.muted)),
-              ),
-            for (final entry in later.take(6))
-              _LaterRow(title: entry.title, video: entry.isVideo, minutes: entry.minutes, onTap: () => ws.open(WsTab.item(entry.id))),
-          ],
-        ),
-        if (day != null)
-          _Panel(
-            id: 'yearAgo',
-            icon: 'history',
-            title: l.wsYearAgo,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Material(
-                  color: FolderPalette.tint(FolderPalette.colors['rose']!, 0.18),
-                  borderRadius: BorderRadius.circular(Radii.tile),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () => ws.open(WsTab.item(day.found.firstId)),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                      child: Text(
-                        returnText(l, ReturnPick(ReturnKind.onThisDay, day: day.found)).title,
-                        style: text.titleSmall!.copyWith(fontWeight: FontWeight.w700),
+    final active = ws.workspace.focusedPane.activeTab;
+    Widget empty(String message) => Padding(
+      padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
+      child: Text(message, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+    );
+    Widget nav(String icon, String label, WsTab tab, {int? count}) =>
+        _NavRow(icon: icon, label: label, count: count, selected: active == tab, onTap: () => ws.open(tab));
+    final List<Widget> rows;
+    switch (id) {
+      case 'sections':
+        final pinned = ref.watch(pinnedItemsProvider).value ?? const [];
+        final recent = ref.watch(recentItemsProvider).value ?? const [];
+        final inbox = {for (final card in [...pinned, ...recent]) if (card.folderId == null) card.id}.length;
+        final later = ref.watch(watchLaterProvider).value?.length ?? 0;
+        rows = [
+          nav('home', l.wsHome, const WsTab.home()),
+          nav('inbox', l.folderNone, const WsTab.inbox(), count: inbox),
+          nav('schedule', l.returnWatchTitle, const WsTab.later(), count: later),
+          if (!isWeb) nav('map', l.mapTitle, const WsTab.map()),
+          nav('hub', l.graphTitle, const WsTab.graph()),
+        ];
+      case 'pinned':
+        final pinned = ref.watch(pinnedItemsProvider).value ?? const [];
+        rows = pinned.isEmpty
+            ? [empty(l.wsPanelEmpty)]
+            : [
+                for (final card in pinned.take(8))
+                  _NavRow(icon: 'keep', label: card.title, selected: active == WsTab.item(card.id), onTap: () => ws.open(WsTab.item(card.id)), filledIcon: true),
+              ];
+      case 'folders':
+        final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
+        rows = folders.isEmpty
+            ? [empty(l.wsPanelEmpty)]
+            : [for (final folder in folders) _FolderRow(folder: folder, selected: active == WsTab.folder(folder.id), onTap: () => ws.open(WsTab.folder(folder.id)))];
+      case 'later':
+        final later = ref.watch(watchLaterProvider).value ?? const [];
+        rows = later.isEmpty
+            ? [empty(l.returnWatchEmpty)]
+            : [for (final entry in later.take(6)) _LaterRow(title: entry.title, video: entry.isVideo, minutes: entry.minutes, onTap: () => ws.open(WsTab.item(entry.id)))];
+      case 'yearAgo':
+        final day = ref.watch(onThisDayProvider).value;
+        rows = day == null
+            ? [empty(l.wsPanelEmpty)]
+            : [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Material(
+                    color: FolderPalette.tint(FolderPalette.colors['rose']!, 0.18),
+                    borderRadius: BorderRadius.circular(Radii.tile),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => ws.open(WsTab.item(day.found.firstId)),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                        child: Text(returnText(l, ReturnPick(ReturnKind.onThisDay, day: day.found)).title, style: text.titleSmall!.copyWith(fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        _Panel(
-          id: 'sync',
-          icon: 'cloud_sync',
-          title: l.syncTitle,
-          children: [
-            _NavRow(
-              icon: signedIn ? 'cloud_done' : 'cloud_off',
-              label: signedIn ? l.wsSynced : l.wsSyncOff,
-              selected: false,
-              onTap: () => ws.open(const WsTab.settings('sync')),
-            ),
-          ],
-        ),
-      ],
-    );
+              ];
+      default:
+        final signedIn = ref.watch(_syncSignedInProvider).value ?? false;
+        rows = [
+          _NavRow(icon: signedIn ? 'cloud_done' : 'cloud_off', label: signedIn ? l.wsSynced : l.wsSyncOff, selected: false, onTap: () => ws.open(const WsTab.settings('sync'))),
+        ];
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows);
   }
 }
 
@@ -273,57 +407,96 @@ class _Keycap extends StatelessWidget {
   }
 }
 
-/// Панель дока: заголовок сворачивает её, содержимое уходит плавно.
-class _Panel extends StatelessWidget {
-  const _Panel({required this.id, required this.icon, required this.title, required this.children});
+/// Панель дока. Касание заголовка сворачивает её (содержимое уходит плавно), заголовок
+/// тянут мышью в другое место; при наведении — «в другой док» и «убрать».
+class _Panel extends StatefulWidget {
+  const _Panel({super.key, required this.id, required this.left});
 
   final String id;
-  final String icon;
-  final String title;
-  final List<Widget> children;
+  final bool left;
+
+  @override
+  State<_Panel> createState() => _PanelState();
+}
+
+class _PanelState extends State<_Panel> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final ws = WorkspaceScope.of(context);
+    final id = widget.id;
     final collapsed = ws.workspace.collapsed.contains(id);
     final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+    final (icon, title) = _panelLook(l, id);
+    Widget header({required bool feedback}) => Material(
+      color: feedback ? Tokens.containerHigh : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => ws.update((workspace) => collapsed ? workspace.collapsed.remove(id) : workspace.collapsed.add(id)),
+        child: SizedBox(
+          height: 34,
+          width: feedback ? 240 : null,
+          child: Row(
+            children: [
+              const SizedBox(width: 6),
+              AnimatedRotation(
+                turns: collapsed ? -0.25 : 0,
+                duration: Motion.medium,
+                curve: Motion.emphasized,
+                child: Icon(symbolIcon('expand_more'), size: 18, color: Tokens.muted),
+              ),
+              const SizedBox(width: 4),
+              Icon(symbolIcon(icon), size: 17, color: Tokens.muted),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.labelMedium!.copyWith(color: Tokens.muted, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+                ),
+              ),
+              if (!feedback)
+                // кнопки панели проявляются при наведении
+                AnimatedOpacity(
+                  duration: Motion.short,
+                  curve: Motion.emphasized,
+                  opacity: _hover ? 1 : 0,
+                  child: IgnorePointer(
+                    ignoring: !_hover,
+                    child: Row(
+                      children: [
+                        _MiniIcon(
+                          icon: widget.left ? 'right_panel_open' : 'left_panel_open',
+                          tooltip: widget.left ? l.wsToRight : l.wsToLeft,
+                          onTap: () => ws.update((workspace) => workspace.placePanel(id, left: !widget.left, index: 0)),
+                        ),
+                        _MiniIcon(icon: 'close', tooltip: l.wsHidePanel, onTap: () => ws.update((workspace) => workspace.hidePanel(id))),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => ws.update((workspace) => collapsed ? workspace.collapsed.remove(id) : workspace.collapsed.add(id)),
-              child: SizedBox(
-                height: 34,
-                child: Row(
-                  children: [
-                    const SizedBox(width: 6),
-                    AnimatedRotation(
-                      turns: collapsed ? -0.25 : 0,
-                      duration: Motion.medium,
-                      curve: Motion.emphasized,
-                      child: Icon(symbolIcon('expand_more'), size: 18, color: Tokens.muted),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(symbolIcon(icon), size: 17, color: Tokens.muted),
-                    const SizedBox(width: 7),
-                    Expanded(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.labelMedium!.copyWith(color: Tokens.muted, fontWeight: FontWeight.w600, letterSpacing: 0.2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          Draggable<String>(
+            data: id,
+            dragAnchorStrategy: pointerDragAnchorStrategy,
+            feedback: Opacity(opacity: 0.9, child: header(feedback: true)),
+            childWhenDragging: Opacity(opacity: 0.35, child: header(feedback: false)),
+            child: MouseRegion(cursor: SystemMouseCursors.grab, child: header(feedback: false)),
           ),
           // сворачивается высотой и прозрачностью вместе, без рывка
           AnimatedSize(
@@ -336,13 +509,30 @@ class _Panel extends StatelessWidget {
               opacity: collapsed ? 0 : 1,
               child: collapsed
                   ? const SizedBox(width: double.infinity)
-                  : Padding(
-                      padding: const EdgeInsets.only(top: 2, bottom: 8),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
-                    ),
+                  : Padding(padding: const EdgeInsets.only(top: 2, bottom: 8), child: _PanelBody(id: id)),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MiniIcon extends StatelessWidget {
+  const _MiniIcon({required this.icon, required this.tooltip, required this.onTap});
+
+  final String icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkResponse(
+        onTap: onTap,
+        radius: 14,
+        child: Padding(padding: const EdgeInsets.all(5), child: Icon(symbolIcon(icon), size: 16, color: Tokens.muted)),
       ),
     );
   }

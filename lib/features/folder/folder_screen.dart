@@ -32,6 +32,8 @@ import '../item/item_screen.dart';
 import '../sort/sort_screen.dart';
 import '../privacy/privacy_flows.dart';
 import '../tags/tag_picker.dart';
+import '../workspace/workspace_model.dart' show WsTab;
+import '../workspace/workspace_shell.dart' show WorkspaceScope;
 import 'canvas_view.dart';
 import 'folder_look_screen.dart';
 import 'folder_cards.dart';
@@ -86,7 +88,12 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
   final _selected = <String>{};
   bool get _selecting => _selected.isNotEmpty;
 
-  void _open(String id) => Navigator.of(context).push(itemRoute(id));
+  // на широком экране заметка открывается своей вкладкой: одна заметка — одна вкладка
+  void _open(String id) {
+    final workspace = WorkspaceScope.maybeOf(context);
+    if (workspace != null) return workspace.open(WsTab.item(id));
+    Navigator.of(context).push(itemRoute(id));
+  }
 
   void _tap(ItemCard card) => _selecting ? _toggle(card) : _open(card.id);
 
@@ -324,9 +331,18 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
             )
           : Row(
               children: [
-                _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
+                // во вкладке широкого экрана папка открыта первой: возвращаться некуда
+                if (Navigator.of(context).canPop())
+                  _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
                 const Spacer(),
-                _RoundButton(icon: 'search', tooltip: l.folderSearch, onTap: () => _dock.currentState?.focusLine()),
+                _RoundButton(
+                  icon: 'search',
+                  tooltip: l.folderSearch,
+                  onTap: () {
+                    final workspace = WorkspaceScope.maybeOf(context);
+                    workspace == null ? _dock.currentState?.focusLine() : workspace.find?.call();
+                  },
+                ),
                 if (cards.length > 1 && !canvas) ...[const SizedBox(width: 8), _RoundButton(icon: 'sort', tooltip: l.sortTooltip, onTap: () => _pickOrder(colored: cards.any((card) => card.mainColor != null)))],
                 if (folder != null) ...[const SizedBox(width: 8), _RoundButton(icon: 'more_vert', tooltip: l.folderMore, onTap: () => _menu(folder))],
               ],
@@ -544,7 +560,8 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                   onDelete: () => _deleteSelected(cards),
                 ),
               )
-            else
+            // на широком экране строка одна, общая, под всеми окнами
+            else if (WorkspaceScope.maybeOf(context) == null)
               Positioned.fill(
                 child: LineDock(key: _dock, homeFolder: folder, onOpenItem: _open),
               ),

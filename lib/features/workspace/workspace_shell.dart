@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,16 +19,22 @@ import '../graph/graph_screen.dart';
 import '../item/item_screen.dart';
 import '../map/map_screen.dart';
 import '../returns/return_screen.dart';
-import '../settings/settings_screen.dart';
+import '../../core/widgets/undo_snack.dart';
+import '../item/item_actions.dart';
 import 'workspace_docks.dart';
 import 'workspace_home.dart';
+import 'workspace_keys.dart';
 import 'workspace_model.dart';
+import 'workspace_settings.dart';
 
 /// От этой ширины окна — рабочее пространство, уже — телефонная главная.
 /// Решает ширина, а не платформа: так же будет в сборках для Windows и Linux.
 const workspaceFrom = 1000.0;
 
 const _gap = 8.0;
+
+/// Место общей строки внизу центра: капсула 60 и отступы вокруг.
+const _lineSpace = 80.0;
 const _blockRadius = 20.0;
 const _prefsKey = 'workspace_layout';
 
@@ -40,14 +47,45 @@ Color get _block => Tokens.palette.isDark ? Tokens.containerLow : Tokens.contain
 /// Раскладка и действия над ней для всех виджетов пространства. Каждое изменение
 /// перерисовывает пространство и сохраняется.
 class WorkspaceController extends ChangeNotifier {
-  WorkspaceController(this._prefs) : workspace = Workspace.fromJsonOrInitial(_prefs?.getString(_prefsKey));
+  WorkspaceController(this._prefs)
+    : workspace = Workspace.fromJsonOrInitial(_prefs?.getString(_prefsKey)),
+      keys = KeyMap.fromJson(_prefs?.getString(_keysKey));
+
+  static const _keysKey = 'workspace_keys';
 
   final SharedPreferences? _prefs;
   final Workspace workspace;
+
+  /// Сочетания клавиш: стандартные и свои.
+  final KeyMap keys;
   Timer? _save;
 
-  /// Строка ввода главной: живёт во вкладке «Главная», у папок и заметок строки свои.
+  /// Закрытые вкладки, последняя сверху: Alt+Shift+T возвращает.
+  final closed = <WsTab>[];
+
+  /// Поменять сочетания; вернёт команду, у которой сочетание сняли.
+  String? updateKeys(String? Function(KeyMap keys) change) {
+    final taken = change(keys);
+    notifyListeners();
+    _prefs?.setString(_keysKey, keys.toJson()).ignore();
+    return taken;
+  }
+
+  void closeTab(String paneId, int index) => update((ws) {
+    closed.add(ws.pane(paneId).tabs[index]);
+    if (closed.length > 20) closed.removeAt(0);
+    ws.close(paneId, index);
+  });
+
+  void reopen() {
+    if (closed.isNotEmpty) open(closed.removeLast());
+  }
+
+  /// Общая строка ввода под всеми окнами.
   Widget? composer;
+
+  /// Курсор в общую строку: Ctrl K, «Найти или записать», поиск на экране папки.
+  VoidCallback? find;
 
   void update(void Function(Workspace workspace) change) {
     change(workspace);
@@ -105,12 +143,143 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onKey);
+  }
+
+  @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKey);
+    _sequenceTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   GlobalKey<NavigatorState> _navigatorFor(WsTab tab) => _navigators.putIfAbsent(tab.key, () => GlobalKey<NavigatorState>(debugLabel: tab.key));
+
+  // ——— сочетания клавиш ———
+
+  // первая клавиша двойного сочетания («G», затем «H»)
+  String? _sequence;
+  Timer? _sequenceTimer;
+
+  /// Курсор в поле ввода: одиночные клавиши — это набор текста, а не команды.
+  static bool get _typing => FocusManager.instance.primaryFocus?.context?.findAncestorStateOfType<EditableTextState>() != null;
+
+  bool _onKey(KeyEvent event) {
+    if (event is! KeyDownEvent || !mounted) return false;
+    // поверх пространства открыт лист, меню или палитра — клавиши им
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    final keyboard = HardwareKeyboard.instance;
+    final chord = chordOf(event.physicalKey, ctrl: keyboard.isControlPressed || keyboard.isMetaPressed, alt: keyboard.isAltPressed, shift: keyboard.isShiftPressed);
+    if (chord == null) return false;
+    if (keyCapture case final capture?) {
+      capture(chord);
+      return true;
+    }
+    if (needsFreeFocus(chord) && _typing) return false;
+    final keys = _controller.keys;
+    if (_sequence case final first?) {
+      _sequence = null;
+      _sequenceTimer?.cancel();
+      if (keys.commandFor('$first $chord') case final id?) {
+        _run(id);
+        return true;
+      }
+    }
+    if (needsFreeFocus(chord) && keys.startsSequence(chord)) {
+      _sequence = chord;
+      _sequenceTimer?.cancel();
+      _sequenceTimer = Timer(const Duration(milliseconds: 1200), () => _sequence = null);
+      return true;
+    }
+    final id = keys.commandFor(chord);
+    if (id == null) return false;
+    _run(id);
+    return true;
+  }
+
+  /// Заметка в открытой вкладке окна с фокусом: для «Удалить», «Закрепить», «Переложить».
+  String? get _noteId {
+    final tab = _controller.workspace.focusedPane.activeTab;
+    return tab?.kind == 'item' ? tab!.id : null;
+  }
+
+  void _say(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+  void _run(String id) {
+    final l = L.of(context);
+    final ws = _controller.workspace;
+    final pane = ws.focusedPane;
+    final panes = ws.panes;
+    switch (id) {
+      case 'find' || 'new':
+        _find();
+      case 'palette' || 'switch':
+        final items = [...?ref.read(pinnedItemsProvider).value, ...?ref.read(recentItemsProvider).value];
+        showPalette(
+          context,
+          keys: _controller.keys,
+          notes: id == 'switch',
+          items: [for (final card in {for (final card in items) card.id: card}.values) (id: card.id, title: card.title)],
+          onCommand: _run,
+          onItem: (itemId) => _controller.open(WsTab.item(itemId)),
+        ).ignore();
+      case 'home':
+        _controller.open(const WsTab.home());
+      case 'keys':
+        _controller.open(const WsTab.settings('keys'));
+      case 'settings':
+        _controller.open(const WsTab.settings());
+      case 'trash' || 'pin' || 'move':
+        final noteId = _noteId;
+        if (noteId == null) return _say(l.wsOpenNoteFirst);
+        final item = ref.read(itemProvider(noteId)).value?.item;
+        if (item == null) return;
+        if (id == 'trash') {
+          final items = ref.read(itemsRepositoryProvider);
+          items.softDelete(noteId, ref.read(clockProvider)()).ignore();
+          _controller.closeTab(pane.id, pane.active);
+          showUndo(ScaffoldMessenger.of(context), message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(noteId));
+        } else if (id == 'pin') {
+          togglePinned(context, ref, id: noteId, pinned: item.pinnedAt != null).ignore();
+        } else {
+          moveItemById(context, ref, id: noteId, from: item.folderId).ignore();
+        }
+      case 'close':
+        _controller.closeTab(pane.id, pane.active);
+      case 'reopen':
+        _controller.reopen();
+      case 'next' || 'prev':
+        if (pane.tabs.length > 1) {
+          final step = id == 'next' ? 1 : -1;
+          _controller.update((ws) => ws.activate(pane.id, (pane.active + step) % pane.tabs.length));
+        }
+      case 'splitRight' || 'splitDown':
+        _controller.update((ws) => ws.split(pane.id, id == 'splitRight' ? WsAxis.row : WsAxis.column));
+      case 'nextPane' || 'prevPane':
+        if (panes.length > 1) {
+          final at = panes.indexWhere((one) => one.id == pane.id);
+          final step = id == 'nextPane' ? 1 : -1;
+          _controller.update((ws) => ws.focus(panes[(at + step) % panes.length].id));
+        }
+      case 'closePane':
+        if (panes.length > 1) {
+          _controller.update((ws) {
+            while (ws.panes.any((one) => one.id == pane.id)) {
+              ws.close(pane.id, 0);
+            }
+          });
+        }
+      case 'left':
+        _controller.update((ws) => ws.leftOpen = !ws.leftOpen);
+      case 'right':
+        _controller.update((ws) => ws.rightOpen = !ws.rightOpen);
+      case 'theme':
+        _toggleTheme();
+    }
+  }
 
   void _toggleTheme() {
     final settings = ref.read(settingsRepositoryProvider);
@@ -119,14 +288,13 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
   }
 
   /// «Найти или записать»: строка живёт на главной — сперва главная, потом фокус.
-  void _find() {
-    _controller.open(const WsTab.home());
-    WidgetsBinding.instance.addPostFrameCallback((_) => widget.onFind());
-  }
+  /// Курсор в общую строку; открытые вкладки остаются как были.
+  void _find() => widget.onFind();
 
   @override
   Widget build(BuildContext context) {
     _controller.composer = widget.composer((id) => _controller.open(WsTab.item(id)));
+    _controller.find = _find;
     return WorkspaceScope(
       controller: _controller,
       child: Builder(
@@ -154,7 +322,16 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
                             onResize: (width) => _controller.update((ws) => ws.leftWidth = width.clamp(220, 420)),
                             child: LeftDock(onFind: _find, onTheme: _toggleTheme),
                           ),
-                          Expanded(child: _NodeView(node: ws.root, navigatorFor: _navigatorFor)),
+                          // окна и одна общая строка под ними: она ищет по всему хранилищу
+                          // и записывает новое, сколько бы окон ни было открыто
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                Positioned.fill(child: _NodeView(node: ws.root, navigatorFor: _navigatorFor, atBottom: true)),
+                                if (_controller.composer case final composer?) Positioned.fill(child: composer),
+                              ],
+                            ),
+                          ),
                           _SideDock(
                             open: ws.rightOpen,
                             width: ws.rightWidth,
@@ -176,7 +353,8 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
   }
 }
 
-/// Верхняя полоса: доки слева и справа, раскладки по центру.
+/// Верхняя полоса: показать и спрятать доки, сочетания клавиш. Раскладку окон человек
+/// собирает сам, перетаскивая вкладки.
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.controller});
 
@@ -186,7 +364,6 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final ws = controller.workspace;
-    final labels = {'normal': l.wsPresetNormal, 'reading': l.wsPresetReading, 'two': l.wsPresetTwo, 'three': l.wsPresetThree};
     return SizedBox(
       height: 48,
       child: Padding(
@@ -194,66 +371,11 @@ class _TopBar extends StatelessWidget {
         child: Row(
           children: [
             _BarIcon(icon: 'left_panel_open', tooltip: l.wsLeftDock, on: ws.leftOpen, onTap: () => controller.update((ws) => ws.leftOpen = !ws.leftOpen)),
-            Expanded(
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(100)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final preset in WsPreset.all)
-                        _PresetButton(icon: preset.icon, label: labels[preset.name]!, on: ws.preset == preset.name, onTap: () => controller.update((ws) => ws.arrange(preset))),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            const Spacer(),
             _BarIcon(icon: 'keyboard', tooltip: l.wsKeys, onTap: () => controller.open(const WsTab.settings('keys'))),
             const SizedBox(width: 4),
             _BarIcon(icon: 'right_panel_open', tooltip: l.wsRightDock, on: ws.rightOpen, onTap: () => controller.update((ws) => ws.rightOpen = !ws.rightOpen)),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PresetButton extends StatelessWidget {
-  const _PresetButton({required this.icon, required this.label, required this.on, required this.onTap});
-
-  final String icon;
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final color = on ? Tokens.onAccent : Tokens.onSurfaceVariant;
-    return GestureDetector(
-      onTap: onTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: AnimatedContainer(
-          duration: Motion.medium,
-          curve: Motion.emphasized,
-          height: 32,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(color: on ? Tokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(100)),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(symbolIcon(icon), size: 17, color: color),
-              const SizedBox(width: 6),
-              AnimatedDefaultTextStyle(
-                duration: Motion.medium,
-                curve: Motion.emphasized,
-                style: text.labelLarge!.copyWith(color: color, fontWeight: on ? FontWeight.w700 : FontWeight.w500),
-                child: Text(label),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -361,26 +483,30 @@ class _Gutter extends StatelessWidget {
 
 /// Дерево окон центра: окно или деление с долями.
 class _NodeView extends StatelessWidget {
-  const _NodeView({required this.node, required this.navigatorFor});
+  const _NodeView({required this.node, required this.navigatorFor, required this.atBottom});
 
   final WsNode node;
   final GlobalKey<NavigatorState> Function(WsTab tab) navigatorFor;
+
+  /// Нижний край у низа центра: там общая строка, окно оставляет под неё место.
+  final bool atBottom;
 
   @override
   Widget build(BuildContext context) {
     final node = this.node;
     return switch (node) {
-      WsLeaf(:final paneId) => _PaneView(key: ValueKey('pane-$paneId'), paneId: paneId, navigatorFor: navigatorFor),
-      WsSplit() => _SplitView(split: node, navigatorFor: navigatorFor),
+      WsLeaf(:final paneId) => _PaneView(key: ValueKey('pane-$paneId'), paneId: paneId, navigatorFor: navigatorFor, atBottom: atBottom),
+      WsSplit() => _SplitView(split: node, navigatorFor: navigatorFor, atBottom: atBottom),
     };
   }
 }
 
 class _SplitView extends StatelessWidget {
-  const _SplitView({required this.split, required this.navigatorFor});
+  const _SplitView({required this.split, required this.navigatorFor, required this.atBottom});
 
   final WsSplit split;
   final GlobalKey<NavigatorState> Function(WsTab tab) navigatorFor;
+  final bool atBottom;
 
   @override
   Widget build(BuildContext context) {
@@ -407,7 +533,8 @@ class _SplitView extends StatelessWidget {
           children.add(
             Flexible(
               flex: (split.ratios[i] * 1000).round(),
-              child: _NodeView(node: split.children[i], navigatorFor: navigatorFor),
+              // в ряду низа касаются все, в столбце — только нижнее окно
+              child: _NodeView(node: split.children[i], navigatorFor: navigatorFor, atBottom: atBottom && (row || i == split.children.length - 1)),
             ),
           );
         }
@@ -420,10 +547,11 @@ class _SplitView extends StatelessWidget {
 /// Окно: вкладки на фоне, открытая сливается с блоком; содержимое всех вкладок живёт,
 /// видна одна — смена вкладки затуханием.
 class _PaneView extends StatelessWidget {
-  const _PaneView({super.key, required this.paneId, required this.navigatorFor});
+  const _PaneView({super.key, required this.paneId, required this.navigatorFor, required this.atBottom});
 
   final String paneId;
   final GlobalKey<NavigatorState> Function(WsTab tab) navigatorFor;
+  final bool atBottom;
 
   @override
   Widget build(BuildContext context) {
@@ -450,26 +578,31 @@ class _PaneView extends StatelessWidget {
                 borderRadius: _blockCorners(firstActive: pane.active == 0),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    // экраны внутри меряют себя по окну, а не по всему экрану
+                    // экраны внутри меряют себя по окну, а не по всему экрану; у нижних окон
+                    // низ занят общей строкой — как вырез экрана телефона, его обходят сами
+                    final under = EdgeInsets.only(bottom: atBottom ? _lineSpace : 0);
                     final media = MediaQuery.of(context).copyWith(
                       size: constraints.biggest,
-                      padding: EdgeInsets.zero,
-                      viewPadding: EdgeInsets.zero,
+                      padding: under,
+                      viewPadding: under,
                       viewInsets: EdgeInsets.zero,
                     );
                     return MediaQuery(
                       data: media,
                       child: Theme(
                         data: Theme.of(context).copyWith(scaffoldBackgroundColor: _block),
-                        child: Stack(
-                          children: [
-                            for (final tab in pane.tabs)
-                              _TabLayer(
-                                key: ValueKey('tab-${tab.key}'),
-                                visible: tab == active,
-                                child: _TabBody(tab: tab, navigatorKey: navigatorFor(tab)),
-                              ),
-                          ],
+                        child: _PaneDrop(
+                          paneId: paneId,
+                          child: Stack(
+                            children: [
+                              for (final tab in pane.tabs)
+                                _TabLayer(
+                                  key: ValueKey('tab-${tab.key}'),
+                                  visible: tab == active,
+                                  child: _TabBody(tab: tab, navigatorKey: navigatorFor(tab)),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -577,7 +710,7 @@ class _TabBody extends ConsumerWidget {
     'inbox' => const FolderScreen(folderId: null),
     'folder' => FolderScreen(folderId: tab.id),
     'item' => ItemScreen(id: tab.id!),
-    'settings' => const SettingsScreen(),
+    'settings' => Scaffold(body: WorkspaceSettings(section: tab.id)),
     'map' => const MapScreen(),
     'graph' => GraphScreen(title: L.of(context).graphTitle),
     'later' => const ReturnScreen(kind: ReturnKind.watchLater),
@@ -585,7 +718,7 @@ class _TabBody extends ConsumerWidget {
   };
 }
 
-/// Главная: плитка и строка ввода над ней колонкой по центру.
+/// Главная: плитка заметок. Строка ввода — общая, под всеми окнами.
 class _HomeTab extends StatelessWidget {
   const _HomeTab();
 
@@ -593,14 +726,129 @@ class _HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = WorkspaceScope.of(context);
     return Scaffold(
-      body: Stack(
-        children: [
-          WorkspaceHome(
-            onOpen: (id) => controller.open(WsTab.item(id)),
-            onFolder: (id) => controller.open(id == null ? const WsTab.inbox() : WsTab.folder(id)),
-          ),
-          if (controller.composer case final composer?) Positioned.fill(child: composer),
-        ],
+      body: WorkspaceHome(
+        bottomSpace: MediaQuery.paddingOf(context).bottom + 24,
+        onOpen: (id) => controller.open(WsTab.item(id)),
+        onFolder: (id) => controller.open(id == null ? const WsTab.inbox() : WsTab.folder(id)),
+      ),
+    );
+  }
+}
+
+/// Что тащат: вкладку номер [index] окна [paneId].
+class _TabDrag {
+  const _TabDrag(this.paneId, this.index, this.tab);
+
+  final String paneId;
+  final int index;
+  final WsTab tab;
+}
+
+/// Вкладка под курсором, пока её тащат.
+class _TabGhost extends ConsumerWidget {
+  const _TabGhost({required this.tab});
+
+  final WsTab tab;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final (icon, label, color) = _TabChip.lookOf(L.of(context), ref, tab);
+    return Material(
+      color: Tokens.containerHigh,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(symbolIcon(icon, filled: color != null), size: 18, color: color ?? Tokens.onSurface),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelLarge!.copyWith(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Окно как цель перетаскивания вкладки: края — новое окно в ту сторону, середина —
+/// вкладка переезжает сюда. Подсвечивается место, куда встанет.
+class _PaneDrop extends StatefulWidget {
+  const _PaneDrop({required this.paneId, required this.child});
+
+  final String paneId;
+  final Widget child;
+
+  @override
+  State<_PaneDrop> createState() => _PaneDropState();
+}
+
+class _PaneDropState extends State<_PaneDrop> {
+  WsDrop? _zone;
+
+  WsDrop _zoneAt(Offset global) {
+    final box = context.findRenderObject()! as RenderBox;
+    final local = box.globalToLocal(global);
+    final x = local.dx / box.size.width;
+    final y = local.dy / box.size.height;
+    // ближний край в пределах четверти окна
+    final edges = {WsDrop.left: x, WsDrop.right: 1 - x, WsDrop.top: y, WsDrop.bottom: 1 - y};
+    final nearest = edges.entries.reduce((a, b) => a.value <= b.value ? a : b);
+    return nearest.value < 0.25 ? nearest.key : WsDrop.center;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = WorkspaceScope.of(context);
+    return DragTarget<_TabDrag>(
+      onMove: (details) {
+        final zone = _zoneAt(details.offset);
+        if (zone != _zone) setState(() => _zone = zone);
+      },
+      onLeave: (_) => setState(() => _zone = null),
+      onAcceptWithDetails: (details) {
+        final zone = _zone ?? WsDrop.center;
+        setState(() => _zone = null);
+        controller.update((ws) => ws.drop(details.data.paneId, details.data.index, widget.paneId, zone));
+      },
+      builder: (context, _, _) => LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final h = constraints.maxHeight;
+          final zone = _zone;
+          final rect = switch (zone) {
+            WsDrop.left => Rect.fromLTWH(0, 0, w / 2, h),
+            WsDrop.right => Rect.fromLTWH(w / 2, 0, w / 2, h),
+            WsDrop.top => Rect.fromLTWH(0, 0, w, h / 2),
+            WsDrop.bottom => Rect.fromLTWH(0, h / 2, w, h / 2),
+            _ => Rect.fromLTWH(0, 0, w, h),
+          };
+          return Stack(
+            children: [
+              Positioned.fill(child: widget.child),
+              // будущее окно: мягкая подложка цвета акцента, переезжает за курсором
+              AnimatedPositioned.fromRect(
+                duration: Motion.medium,
+                curve: Motion.emphasized,
+                rect: rect.deflate(6),
+                child: IgnorePointer(
+                  child: AnimatedOpacity(
+                    duration: Motion.medium,
+                    curve: Motion.emphasized,
+                    opacity: zone == null ? 0 : 1,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(color: Tokens.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(_blockRadius - 4)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -623,19 +871,51 @@ class _TabStrip extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                for (final (index, tab) in pane.tabs.indexed)
-                  _TabChip(
-                    key: ValueKey('chip-${tab.key}'),
-                    tab: tab,
-                    active: index == pane.active,
-                    first: index == 0,
-                    onTap: () => controller.update((ws) => ws.activate(paneId, index)),
-                    onClose: () => controller.update((ws) => ws.close(paneId, index)),
-                  ),
-              ],
+            // пустое место полосы: вкладка встаёт последней
+            child: DragTarget<_TabDrag>(
+              onAcceptWithDetails: (details) => controller.update((ws) => ws.drop(details.data.paneId, details.data.index, paneId, WsDrop.center, at: pane.tabs.length)),
+              builder: (context, _, _) => ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  for (final (index, tab) in pane.tabs.indexed)
+                    // вкладку тянут мышью: по полосе — порядок, на окно — переезд или новое окно
+                    DragTarget<_TabDrag>(
+                      key: ValueKey('chip-${tab.key}'),
+                      onWillAcceptWithDetails: (details) => details.data.tab != tab,
+                      onAcceptWithDetails: (details) => controller.update((ws) => ws.drop(details.data.paneId, details.data.index, paneId, WsDrop.center, at: index)),
+                      builder: (context, candidates, _) => Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // куда встанет: полоска перед вкладкой
+                          AnimatedContainer(
+                            duration: Motion.short,
+                            curve: Motion.emphasized,
+                            width: candidates.isEmpty ? 0 : 3,
+                            height: 24,
+                            margin: EdgeInsets.only(right: candidates.isEmpty ? 0 : 4, bottom: 8),
+                            decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(2)),
+                          ),
+                          Draggable<_TabDrag>(
+                            data: _TabDrag(paneId, index, tab),
+                            dragAnchorStrategy: pointerDragAnchorStrategy,
+                            feedback: _TabGhost(tab: tab),
+                            childWhenDragging: Opacity(
+                              opacity: 0.35,
+                              child: _TabChip(tab: tab, active: index == pane.active, first: index == 0, onTap: () {}, onClose: () {}),
+                            ),
+                            child: _TabChip(
+                              tab: tab,
+                              active: index == pane.active,
+                              first: index == 0,
+                              onTap: () => controller.update((ws) => ws.activate(paneId, index)),
+                              onClose: () => controller.closeTab(paneId, index),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           Padding(
@@ -654,7 +934,7 @@ class _TabStrip extends ConsumerWidget {
 }
 
 class _TabChip extends ConsumerWidget {
-  const _TabChip({super.key, required this.tab, required this.active, required this.first, required this.onTap, required this.onClose});
+  const _TabChip({required this.tab, required this.active, required this.first, required this.onTap, required this.onClose});
 
   final WsTab tab;
   final bool active;
@@ -667,7 +947,7 @@ class _TabChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
-    final (icon, label, color) = _look(l, ref);
+    final (icon, label, color) = lookOf(l, ref, tab);
     return GestureDetector(
       onTap: onTap,
       // средняя кнопка мыши закрывает вкладку, как в браузере
@@ -734,7 +1014,8 @@ class _TabChip extends ConsumerWidget {
         );
   }
 
-  (String, String, Color?) _look(L l, WidgetRef ref) {
+  /// Значок, подпись и цвет значка вкладки (у папки — её цвет).
+  static (String, String, Color?) lookOf(L l, WidgetRef ref, WsTab tab) {
     switch (tab.kind) {
       case 'home':
         return ('home', l.wsHome, null);

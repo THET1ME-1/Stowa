@@ -253,8 +253,11 @@ class SettingsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SettingsRoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
-        const SizedBox(width: 12),
+        // во вкладке широкого экрана настройки открыты первыми: возвращаться некуда
+        if (Navigator.of(context).canPop()) ...[
+          SettingsRoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
+          const SizedBox(width: 12),
+        ],
         Expanded(child: Text(title, style: Theme.of(context).textTheme.titleLarge!.copyWith(fontSize: 22))),
       ],
     );

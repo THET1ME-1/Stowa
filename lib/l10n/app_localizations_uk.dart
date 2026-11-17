@@ -4230,18 +4230,6 @@ class LUk extends L {
   String get syncSignOutHint => 'Нотатки на цьому телефоні залишаться.';
 
   @override
-  String get wsPresetNormal => 'Звичайна';
-
-  @override
-  String get wsPresetReading => 'Читання';
-
-  @override
-  String get wsPresetTwo => 'Два вікна';
-
-  @override
-  String get wsPresetThree => 'Три вікна';
-
-  @override
   String get wsSections => 'Розділи';
 
   @override
@@ -4282,4 +4270,112 @@ class LUk extends L {
 
   @override
   String get wsSyncOff => 'Синхронізацію вимкнено';
+
+  @override
+  String get wsGroupNav => 'Пошук і перехід';
+
+  @override
+  String get wsGroupNotes => 'Нотатки й папки';
+
+  @override
+  String get wsGroupTabs => 'Вкладки й вікна';
+
+  @override
+  String get wsGroupDocks => 'Панелі й розкладки';
+
+  @override
+  String get wsCmdPalette => 'Усі команди';
+
+  @override
+  String get wsCmdSwitch => 'Відкрити нотатку за назвою';
+
+  @override
+  String get wsCmdHome => 'На головну';
+
+  @override
+  String get wsCmdNew => 'Нова нотатка';
+
+  @override
+  String get wsCmdTrash => 'Видалити в кошик';
+
+  @override
+  String get wsCmdPin => 'Закріпити нотатку';
+
+  @override
+  String get wsCmdMove => 'Перекласти в папку';
+
+  @override
+  String get wsCmdReopen => 'Повернути закриту вкладку';
+
+  @override
+  String get wsCmdNext => 'Наступна вкладка';
+
+  @override
+  String get wsCmdPrev => 'Попередня вкладка';
+
+  @override
+  String get wsCmdNextPane => 'Сусіднє вікно';
+
+  @override
+  String get wsCmdPrevPane => 'Попереднє вікно';
+
+  @override
+  String get wsCmdClosePane => 'Закрити вікно';
+
+  @override
+  String get wsCmdTheme => 'Світла чи темна тема';
+
+  @override
+  String get wsThen => 'потім';
+
+  @override
+  String get wsKeysHint =>
+      'Одна клавіша без Ctrl і Alt спрацьовує, коли курсор не в полі введення, а клавіші ловляться за місцем на клавіатурі в будь-якій розкладці.';
+
+  @override
+  String get wsKeysResetAll => 'Повернути все як було';
+
+  @override
+  String get wsKeysAdd => 'Додати сполучення';
+
+  @override
+  String get wsKeysPress => 'Натисніть сполучення · Esc — скасувати';
+
+  @override
+  String wsKeysTaken(String name) {
+    return 'Сполучення знято з «$name»';
+  }
+
+  @override
+  String get wsKeysBrowser => 'Це сполучення браузер залишає собі';
+
+  @override
+  String get wsKeysReset => 'Повернути як було';
+
+  @override
+  String get wsKeysRemove => 'Прибрати';
+
+  @override
+  String get wsChanged => 'змінено';
+
+  @override
+  String get wsPaletteHint => 'Команда або назва нотатки';
+
+  @override
+  String get wsOpenNoteFirst => 'Спершу відкрийте нотатку';
+
+  @override
+  String get wsAddPanel => 'Панель';
+
+  @override
+  String get wsToRight => 'У праву панель';
+
+  @override
+  String get wsToLeft => 'У ліву панель';
+
+  @override
+  String get wsHidePanel => 'Прибрати панель';
+
+  @override
+  String get wsPanelEmpty => 'Поки порожньо';
 }
