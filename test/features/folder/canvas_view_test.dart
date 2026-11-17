@@ -235,6 +235,80 @@ void main() {
     expect(find.text('Отменить'), findsOneWidget);
   });
 
+  Future<void> shiftClick(WidgetTester tester, Finder target) async {
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.tap(target, kind: PointerDeviceKind.mouse);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pump(const Duration(milliseconds: 400));
+  }
+
+  testWidgets('Shift+щелчок выбирает несколько: стрелка двигает все, Delete убирает все', (tester) async {
+    await openCanvas(tester);
+    final before = {for (final spot in await spots()) spot.itemId: spot};
+    await tester.tap(find.text('Кухня').last, kind: PointerDeviceKind.mouse);
+    await tester.pump(const Duration(milliseconds: 400));
+    await shiftClick(tester, find.text('Свет').last);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    final after = {for (final spot in await spots()) spot.itemId: spot};
+    expect(after['i0']!.y, before['i0']!.y + 10);
+    expect(after['i1']!.y, before['i1']!.y + 10);
+    expect(after['i2']!.y, before['i2']!.y);
+    // Shift+щелчок по выбранной снимает её
+    await shiftClick(tester, find.text('Свет').last);
+    await tester.sendKeyEvent(LogicalKeyboardKey.delete);
+    await tester.pumpAndSettle();
+    final items = {for (final item in await world.db.select(world.db.items).get()) item.id: item};
+    expect(items['i0']!.deletedAt, isNotNull);
+    expect(items['i1']!.deletedAt, isNull);
+  });
+
+  testWidgets('тянешь одну из выбранных — едут все выбранные', (tester) async {
+    await openCanvas(tester);
+    final before = {for (final spot in await spots()) spot.itemId: spot};
+    await tester.tap(find.text('Кухня').last, kind: PointerDeviceKind.mouse);
+    await tester.pump(const Duration(milliseconds: 400));
+    await shiftClick(tester, find.text('Пол').last);
+    final mouse = await tester.startGesture(tester.getCenter(find.text('Кухня').last), kind: PointerDeviceKind.mouse);
+    for (var step = 0; step < 10; step++) {
+      await mouse.moveBy(const Offset(5, 3));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await mouse.up();
+    await tester.pumpAndSettle();
+    final after = {for (final spot in await spots()) spot.itemId: spot};
+    for (final id in ['i0', 'i2']) {
+      expect(after[id]!.x, greaterThan(before[id]!.x), reason: id);
+      expect(after[id]!.x - before[id]!.x, closeTo(after['i0']!.x - before['i0']!.x, 0.5), reason: id);
+    }
+    expect(after['i1']!.x, before['i1']!.x);
+  });
+
+  testWidgets('Shift+тянуть по пустому месту — рамка выбирает всё, что в неё попало', (tester) async {
+    await openCanvas(tester);
+    final cards = [for (final title in ['Кухня', 'Свет', 'Пол']) tester.getRect(find.text(title).last)];
+    final area = cards.reduce((a, b) => a.expandToInclude(b)).inflate(30);
+    final viewBefore = tester.getTopLeft(find.text('Кухня').last);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    final mouse = await tester.startGesture(area.topLeft, kind: PointerDeviceKind.mouse);
+    for (var step = 1; step <= 10; step++) {
+      await mouse.moveTo(Offset.lerp(area.topLeft, area.bottomRight, step / 10)!);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await mouse.up();
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pumpAndSettle();
+    // рамка не тащит холст
+    expect(tester.getTopLeft(find.text('Кухня').last), viewBefore);
+    final before = {for (final spot in await spots()) spot.itemId: spot};
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+    final after = {for (final spot in await spots()) spot.itemId: spot};
+    for (final id in ['i0', 'i1', 'i2']) {
+      expect(after[id]!.x, before[id]!.x + 10, reason: id);
+    }
+  });
+
   testWidgets('пальцем карточка не выделяется: Delete на телефоне ничего не удаляет', (tester) async {
     await openCanvas(tester);
     await tester.tap(find.text('Свет').last);

@@ -78,9 +78,14 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
 
   final _stack = GlobalKey();
 
-  /// Карточка, выбранная щелчком мыши: её двигают стрелки и убирает Delete. Пальцем не
-  /// выбирается: у телефона нет клавиатуры, а касание — это перетаскивание.
-  String? _selected;
+  /// Карточки, выбранные мышью: щелчком, Shift+щелчком или рамкой. Их двигают стрелки
+  /// и перетаскивание, убирает Delete. Пальцем не выбираются: у телефона нет клавиатуры,
+  /// а касание — это перетаскивание.
+  final _selected = <String>{};
+
+  /// Рамка выбора (Shift+тянуть по пустому месту), в координатах мира холста.
+  Rect? _marquee;
+  Offset? _marqueeStart;
 
   // щелчок попал в карточку: тот же щелчок по пустому месту выбор не снимает
   bool _cardHit = false;
@@ -99,7 +104,8 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
       final keyboard = HardwareKeyboard.instance;
       if (keyboard.isControlPressed || keyboard.isMetaPressed) {
         final focal = _local(scroll.position);
-        if (focal != null) _zoom(exp(-scroll.scrollDelta.dy / 240), focal);
+        // щелчок колеса (100 точек) — около 18 %: мягко, без скачков
+        if (focal != null) _zoom(exp(-scroll.scrollDelta.dy / 600), focal);
         return;
       }
       final delta = keyboard.isShiftPressed && scroll.scrollDelta.dx == 0 ? Offset(scroll.scrollDelta.dy, 0) : scroll.scrollDelta;
@@ -139,15 +145,14 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
         return true;
       }
     }
-    final selected = _selected;
-    if (selected == null) return false;
+    if (_selected.isEmpty) return false;
     if (key == PhysicalKeyboardKey.escape) {
-      setState(() => _selected = null);
+      setState(_selected.clear);
       return true;
     }
     // Delete и Backspace от раскладки не зависят: по смыслу клавиши надёжнее
     if (event.logicalKey == LogicalKeyboardKey.delete || event.logicalKey == LogicalKeyboardKey.backspace) {
-      _trash(selected);
+      _trash({..._selected});
       return true;
     }
     final step = keyboard.isShiftPressed ? 50.0 : 10.0;
@@ -159,12 +164,14 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
       _ => null,
     };
     if (shift == null) return false;
-    final spot = _moving[selected] ?? ref.read(canvasSpotsProvider(widget.folderId)).value?[selected];
-    if (spot == null) return true;
-    final moved = (x: spot.x + shift.dx, y: spot.y + shift.dy, width: spot.width);
-    setState(() => _moving[selected] = moved);
-    ref.read(canvasRepositoryProvider).save(widget.folderId, selected, moved).then((_) {
-      if (mounted) setState(() => _moving.remove(selected));
+    final saved = ref.read(canvasSpotsProvider(widget.folderId)).value ?? const {};
+    final moved = <String, CanvasSpot>{
+      for (final id in _selected)
+        if (_moving[id] ?? saved[id] case final spot?) id: (x: spot.x + shift.dx, y: spot.y + shift.dy, width: spot.width),
+    };
+    setState(() => _moving.addAll(moved));
+    ref.read(canvasRepositoryProvider).saveAll(widget.folderId, moved).then((_) {
+      if (mounted) setState(() => moved.keys.forEach(_moving.remove));
     });
     return true;
   }
@@ -174,13 +181,55 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     if (saved != null) _fit(_boxes(saved));
   }
 
-  /// Delete: выбранная вещь — в корзину, с «Отменить».
-  void _trash(String id) {
+  /// Delete: выбранные вещи — в корзину, с одним «Отменить» на все.
+  void _trash(Set<String> ids) {
     final l = L.of(context);
     final items = ref.read(itemsRepositoryProvider);
-    setState(() => _selected = null);
-    items.softDelete(id, ref.read(clockProvider)()).ignore();
-    showUndo(ScaffoldMessenger.of(context), message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(id), overDock: true);
+    final now = ref.read(clockProvider)();
+    setState(_selected.clear);
+    for (final id in ids) {
+      items.softDelete(id, now).ignore();
+    }
+    showUndo(
+      ScaffoldMessenger.of(context),
+      message: ids.length == 1 ? l.itemDeleted : l.selDeleted(ids.length),
+      label: l.undo,
+      onUndo: () {
+        for (final id in ids) {
+          items.restore(id).ignore();
+        }
+      },
+      overDock: true,
+    );
+  }
+
+  /// Нажали мышью на карточку: Shift — добавить или снять, без Shift — выбрать её одну
+  /// (если она уже среди выбранных — оставить всех: их сейчас потащат вместе).
+  void _mouseOnCard(String id) {
+    _cardHit = true;
+    setState(() {
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        if (!_selected.remove(id)) _selected.add(id);
+      } else if (!_selected.contains(id)) {
+        _selected
+          ..clear()
+          ..add(id);
+      }
+    });
+  }
+
+  /// Рамка выбора: всё, что пересекает её, выбирается (с Shift — к уже выбранным).
+  void _endMarquee(Map<String, CanvasSpot> saved) {
+    final marquee = _marquee;
+    setState(() {
+      _marquee = null;
+      _marqueeStart = null;
+      _heldView = null;
+      if (marquee == null) return;
+      for (final box in _boxes(saved)) {
+        if (Rect.fromLTWH(_origin + box.x, _origin + box.y, box.width, box.height).overlaps(marquee)) _selected.add(box.itemId);
+      }
+    });
   }
 
 
@@ -263,23 +312,31 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
   void _drag(ItemCard card, CanvasSpot from, int pointer, Offset delta) {
     final hold = _hold;
     if (hold == null || hold.pointer != pointer || hold.itemId != card.id) return;
-    final current = _moving[card.id] ?? from;
-    setState(
-      () => _moving[card.id] = hold.resize
-          ? (x: current.x, y: current.y, width: (current.width + delta.dx).clamp(80.0, 1600.0))
-          : (x: current.x + delta.dx, y: current.y + delta.dy, width: current.width),
-    );
+    if (hold.resize) {
+      final current = _moving[card.id] ?? from;
+      setState(() => _moving[card.id] = (x: current.x, y: current.y, width: (current.width + delta.dx).clamp(80.0, 1600.0)));
+      return;
+    }
+    // тянут одну из выбранных — едут все выбранные
+    final saved = ref.read(canvasSpotsProvider(widget.folderId)).value ?? const {};
+    final group = _selected.contains(card.id) ? _selected : {card.id};
+    setState(() {
+      for (final id in group) {
+        final current = _moving[id] ?? (id == card.id ? from : saved[id]);
+        if (current != null) _moving[id] = (x: current.x + delta.dx, y: current.y + delta.dy, width: current.width);
+      }
+    });
   }
 
-  /// Карточку отпустили: место пишется в базу.
+  /// Карточку отпустили: места пишутся в базу (у группы — все разом).
   Future<void> _drop() async {
     final hold = _hold;
     if (hold == null) return;
     setState(() => _hold = null);
-    final spot = _moving[hold.itemId];
-    if (spot == null) return;
-    await ref.read(canvasRepositoryProvider).save(widget.folderId, hold.itemId, spot);
-    if (mounted) setState(() => _moving.remove(hold.itemId));
+    final moved = Map.of(_moving);
+    if (moved.isEmpty) return;
+    await ref.read(canvasRepositoryProvider).saveAll(widget.folderId, moved);
+    if (mounted) setState(() => moved.keys.forEach(_moving.remove));
   }
 
   void _pointerDown(PointerDownEvent event) {
@@ -340,11 +397,11 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                 maxScale: 4,
                 // колесо мыши масштабирует здесь только с Ctrl (_signal); щипок пальцами — как был
                 scaleFactor: double.maxFinite,
-                // палец ведёт карточку — холст под ним не едет
-                panEnabled: _hold == null,
+                // палец ведёт карточку или мышь тянет рамку — холст под ними не едет
+                panEnabled: _hold == null && _marqueeStart == null,
                 onInteractionUpdate: (details) {
                   final held = _heldView;
-                  if (_hold != null && details.pointerCount == 1 && held != null) _transform.value = held.clone();
+                  if ((_hold != null || _marqueeStart != null) && details.pointerCount == 1 && held != null) _transform.value = held.clone();
                 },
                 boundaryMargin: const EdgeInsets.all(_world),
                 // слушатель внутри просмотрщика слышит колесо первым: колесо листает, а не масштабирует
@@ -357,9 +414,25 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                     if (event.kind == PointerDeviceKind.mouse) {
                       // щёлкнули мышью по холсту — клавиши теперь ему
                       _focus.requestFocus();
-                      if (!_cardHit && _selected != null) setState(() => _selected = null);
+                      if (!_cardHit && HardwareKeyboard.instance.isShiftPressed) {
+                        // Shift по пустому месту — рамка выбора вместо сдвига холста
+                        setState(() {
+                          _marqueeStart = event.localPosition;
+                          _marquee = Rect.fromPoints(event.localPosition, event.localPosition);
+                          _heldView = _transform.value.clone();
+                        });
+                      } else if (!_cardHit && _selected.isNotEmpty) {
+                        setState(_selected.clear);
+                      }
                     }
                     _cardHit = false;
+                  },
+                  onPointerMove: (event) {
+                    final start = _marqueeStart;
+                    if (start != null) setState(() => _marquee = Rect.fromPoints(start, event.localPosition));
+                  },
+                  onPointerUp: (event) {
+                    if (_marqueeStart != null) _endMarquee(saved);
                   },
                   child: GestureDetector(
                     // двойной щелчок мышью по пустому месту — записка прямо тут
@@ -385,17 +458,24 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
                               card: card,
                               filesRoot: filesRoot,
                               lifted: _hold?.itemId == card.id,
-                              selected: _selected == card.id,
+                              selected: _selected.contains(card.id),
                               onOpen: () => widget.onOpen(card.id),
                               onGrab: (pointer, {required resize}) => _grab(card, pointer, resize: resize),
                               onDrag: (pointer, delta) => _drag(card, (x: box.x, y: box.y, width: box.width), pointer, delta),
-                              onMouseDown: () {
-                                _cardHit = true;
-                                if (_selected != card.id) setState(() => _selected = card.id);
-                              },
+                              onMouseDown: () => _mouseOnCard(card.id),
                               onMenu: () => showItemActions(context, ref, card),
                             ),
                           ),
+                      // рамка выбора: мягкая подложка цвета акцента
+                      if (_marquee case final marquee?)
+                        Positioned.fromRect(
+                          rect: marquee,
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(color: Tokens.accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
