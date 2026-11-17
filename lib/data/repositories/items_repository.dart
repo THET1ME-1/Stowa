@@ -593,6 +593,9 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     });
   }
 
+  /// Связи, поставленные человеком и ИИ (не отклонённые): стрелки холста.
+  Stream<List<Link>> watchLinks() => (_db.select(_db.links)..where((t) => t.rejected.equals(false) & t.source.isNotInValues([LinkSource.similar]))).watch();
+
   /// Убрать ручную связь, с какой стороны её ни ставили.
   Future<void> unlink(String id, String otherId) => (_db.delete(_db.links)
         ..where((t) => t.source.equalsValue(LinkSource.manual) & ((t.fromId.equals(id) & t.toId.equals(otherId)) | (t.fromId.equals(otherId) & t.toId.equals(id)))))

@@ -850,6 +850,9 @@ final allRulesProvider = StreamProvider((ref) => ref.watch(rulesRepositoryProvid
 /// Вещи, связанные с открытой, с причиной: общие редкие слова или сайт.
 final relatedProvider = StreamProvider.family<List<LinkedNote>, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchLinked(id));
 
+/// Связи заметок, поставленные человеком и ИИ: стрелки на холсте папки.
+final noteLinksProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchLinks());
+
 /// Одна вещь целиком для её страницы, обновляется вместе с базой.
 final itemProvider = StreamProvider.family<ItemFull?, String>((ref, id) => ref.watch(itemsRepositoryProvider).watchItem(id));
 

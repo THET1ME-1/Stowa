@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
+import 'package:stowa/features/folder/canvas_view.dart' show CanvasLinksPainter;
 import 'package:stowa/features/home/folder_shelf.dart';
 
 import '../../helpers/test_app.dart';
@@ -219,6 +220,20 @@ void main() {
     expect((tester.getTopLeft(card) - before).distance, lessThan(8));
   });
 
+  testWidgets('Ctrl+колесо в браузере (событие масштаба) — шаг мягкий, точка под курсором на месте', (tester) async {
+    await openBig(tester);
+    final start = percent(tester);
+    final card = find.text('Вещь 0').last;
+    final under = tester.getTopLeft(card) + const Offset(5, 5);
+    final before = tester.getTopLeft(card);
+    // Chromium отдаёт Ctrl+колесо масштабом exp(100/200) ≈ 1,65 за щелчок
+    tester.binding.handlePointerEvent(PointerScaleEvent(position: under, scale: 1.65, kind: PointerDeviceKind.mouse));
+    await tester.pumpAndSettle();
+    expect(percent(tester), greaterThan(start));
+    expect(percent(tester), lessThanOrEqualTo(start * 1.19));
+    expect((tester.getTopLeft(card) - before).distance, lessThan(8));
+  });
+
   testWidgets('щелчок мышью выделяет карточку, стрелка двигает, Delete — в корзину с «Отменить»', (tester) async {
     await openCanvas(tester);
     final before = (await spots()).firstWhere((spot) => spot.itemId == 'i1');
@@ -307,6 +322,70 @@ void main() {
     for (final id in ['i0', 'i1', 'i2']) {
       expect(after[id]!.x, before[id]!.x + 10, reason: id);
     }
+  });
+
+  // ——— стрелки-связи ———
+
+  List<(String, String)> drawnLinks(WidgetTester tester) =>
+      (tester.widget<CustomPaint>(find.byKey(const ValueKey('canvas-links'))).painter! as CanvasLinksPainter).links.map((link) => (link.from, link.to)).toList();
+
+  Future<List<(String, String)>> storedLinks() async => [for (final link in await world.db.select(world.db.links).get()) if (!link.rejected) (link.fromId, link.toId)];
+
+  testWidgets('связь между заметками папки видна стрелкой', (tester) async {
+    await world.db.into(world.db.links).insert(LinksCompanion.insert(fromId: 'i0', toId: 'i2', source: LinkSource.manual));
+    await openCanvas(tester);
+    expect(drawnLinks(tester), [('i0', 'i2')]);
+  });
+
+  testWidgets('провод из точки-выхода на другую карточку — связь записана', (tester) async {
+    await openCanvas(tester);
+    final from = tester.getRect(find.byKey(const ValueKey('i0')));
+    final to = tester.getRect(find.byKey(const ValueKey('i1')));
+    // мышь над карточкой: точки-выходы проявились
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: from.center);
+    await mouse.moveTo(from.center);
+    await tester.pumpAndSettle();
+    final socket = tester.getCenter(find.byKey(const ValueKey('socket-i0-right')));
+    await mouse.down(socket);
+    for (var step = 1; step <= 10; step++) {
+      await mouse.moveTo(Offset.lerp(socket, to.center, step / 10)!);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await mouse.up();
+    await tester.pumpAndSettle();
+    expect(await storedLinks(), [('i0', 'i1')]);
+    expect(drawnLinks(tester), [('i0', 'i1')]);
+    // карточка, из которой тянули, осталась на месте
+    expect(tester.getRect(find.byKey(const ValueKey('i0'))), from);
+  });
+
+  testWidgets('связи выбранной карточки рисуются поверх карточек', (tester) async {
+    await world.db.into(world.db.links).insert(LinksCompanion.insert(fromId: 'i0', toId: 'i2', source: LinkSource.manual));
+    await openCanvas(tester);
+    List<(String, String)> over() =>
+        (tester.widget<CustomPaint>(find.byKey(const ValueKey('canvas-links-over'))).painter! as CanvasLinksPainter).links.map((link) => (link.from, link.to)).toList();
+    expect(over(), isEmpty);
+    await tester.tap(find.byKey(const ValueKey('i2')), kind: PointerDeviceKind.mouse);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(over(), [('i0', 'i2')]);
+  });
+
+  testWidgets('щелчок по стрелке выбирает её, Delete убирает связь', (tester) async {
+    // соседние карточки: стрелка между ними не уходит под третью
+    await world.db.into(world.db.links).insert(LinksCompanion.insert(fromId: 'i0', toId: 'i1', source: LinkSource.manual));
+    await openCanvas(tester);
+    final painter = tester.widget<CustomPaint>(find.byKey(const ValueKey('canvas-links'))).painter! as CanvasLinksPainter;
+    // мир холста → экран по настоящему прямоугольнику карточки (мир сдвинут на 10000)
+    final spot = (await spots()).firstWhere((spot) => spot.itemId == 'i0');
+    final onScreen = tester.getRect(find.byKey(const ValueKey('i0')));
+    final scale = onScreen.width / spot.width;
+    final middle = onScreen.topLeft + (painter.links.single.middle - Offset(10000 + spot.x, 10000 + spot.y)) * scale;
+    await tester.tapAt(middle, kind: PointerDeviceKind.mouse);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.sendKeyEvent(LogicalKeyboardKey.delete);
+    await tester.pumpAndSettle();
+    expect(await storedLinks(), isEmpty);
   });
 
   testWidgets('пальцем карточка не выделяется: Delete на телефоне ничего не удаляет', (tester) async {
