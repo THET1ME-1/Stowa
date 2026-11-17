@@ -131,9 +131,23 @@ class HttpSyncRemote implements SyncRemote {
     if (!ok.contains(response.statusCode)) throw SyncHttpError(response.statusCode);
   }
 
+  /// Запрос с повтором: обрыв, таймаут и 5xx — ещё две попытки с паузой. Повтор правки
+  /// безопасен: если первая дошла, сервер ответит отказом по ревизии, и движок дочитает файл.
+  Future<http.Response> _send(Future<http.Response> Function() request, Duration timeout) async {
+    for (var attempt = 0; ; attempt++) {
+      try {
+        final response = await request().timeout(timeout);
+        if (response.statusCode < 500 || attempt >= 2) return response;
+      } on Object {
+        if (attempt >= 2) rethrow;
+      }
+      await Future<void>.delayed(Duration(seconds: 1 + attempt * 2));
+    }
+  }
+
   @override
   Future<ChangePage> changes(int since, {int wait = 0}) async {
-    final response = await _client.get(Uri.parse('$base/v1/changes?since=$since&wait=$wait'), headers: _auth).timeout(Duration(seconds: 30 + wait));
+    final response = await _send(() => _client.get(Uri.parse('$base/v1/changes?since=$since&wait=$wait'), headers: _auth), Duration(seconds: 30 + wait));
     _check(response);
     final json = jsonDecode(response.body) as Map<String, Object?>;
     return ChangePage(cursor: json['cursor'] as int, more: json['more'] as bool, changes: [for (final c in json['changes'] as List) _change(c as Map<String, Object?>)]);
@@ -141,33 +155,34 @@ class HttpSyncRemote implements SyncRemote {
 
   @override
   Future<bool> hasBlob(String hash) async {
-    final response = await _client.head(Uri.parse('$base/v1/blobs/$hash'), headers: _auth).timeout(const Duration(seconds: 30));
+    final response = await _send(() => _client.head(Uri.parse('$base/v1/blobs/$hash'), headers: _auth), const Duration(seconds: 30));
     _check(response, [200, 404]);
     return response.statusCode == 200;
   }
 
   @override
   Future<void> putBlob(String hash, List<int> data) async {
-    final response = await _client.put(Uri.parse('$base/v1/blobs/$hash'), headers: {..._auth, 'content-type': 'application/octet-stream'}, body: data).timeout(const Duration(minutes: 5));
+    final response = await _send(() => _client.put(Uri.parse('$base/v1/blobs/$hash'), headers: {..._auth, 'content-type': 'application/octet-stream'}, body: data), const Duration(minutes: 3));
     _check(response, [204]);
   }
 
   @override
   Future<List<int>> getBlob(String hash) async {
-    final response = await _client.get(Uri.parse('$base/v1/blobs/$hash'), headers: _auth).timeout(const Duration(minutes: 5));
+    final response = await _send(() => _client.get(Uri.parse('$base/v1/blobs/$hash'), headers: _auth), const Duration(minutes: 3));
     _check(response);
     return response.bodyBytes;
   }
 
   @override
   Future<CommitResult> commit(String file, {required int baseRev, required String meta, required List<String> blobs, required int size, bool deleted = false}) async {
-    final response = await _client
-        .post(
-          Uri.parse('$base/v1/files/$file'),
-          headers: {..._auth, 'content-type': 'application/json'},
-          body: jsonEncode({'base_rev': baseRev, 'deleted': deleted, 'meta': meta, 'blobs': blobs, 'size': size}),
-        )
-        .timeout(const Duration(seconds: 30));
+    final response = await _send(
+      () => _client.post(
+        Uri.parse('$base/v1/files/$file'),
+        headers: {..._auth, 'content-type': 'application/json'},
+        body: jsonEncode({'base_rev': baseRev, 'deleted': deleted, 'meta': meta, 'blobs': blobs, 'size': size}),
+      ),
+      const Duration(seconds: 30),
+    );
     if (response.statusCode == 409) return Conflict((jsonDecode(response.body) as Map)['rev'] as int);
     _check(response);
     return Committed((jsonDecode(response.body) as Map)['rev'] as int);
@@ -175,7 +190,7 @@ class HttpSyncRemote implements SyncRemote {
 
   @override
   Future<RemoteChange?> file(String file) async {
-    final response = await _client.get(Uri.parse('$base/v1/files/$file'), headers: _auth).timeout(const Duration(seconds: 30));
+    final response = await _send(() => _client.get(Uri.parse('$base/v1/files/$file'), headers: _auth), const Duration(seconds: 30));
     if (response.statusCode == 404) return null;
     _check(response);
     return _change(jsonDecode(response.body) as Map<String, Object?>);

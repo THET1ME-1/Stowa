@@ -61,6 +61,7 @@ class SyncEngine {
     required this.key,
     this.loser,
     this.chunk = syncChunk,
+    this.parallel = 6,
     Future<T> Function<T>(Future<T> Function() work)? exclusive,
     this.heartbeat,
   }) : exclusive = exclusive ?? _direct;
@@ -82,6 +83,33 @@ class SyncEngine {
   final void Function(String path, String text)? loser;
 
   final int chunk;
+
+  /// Сколько файлов идёт разом. Сервер в Москве, до него ~100 мс: по одному три
+  /// тысячи файлов College уходили бы 40 минут. Больше не надо — Hetzner под
+  /// большим числом потоков отвечает 400 и 504.
+  final int parallel;
+
+  /// Сделать [work] для каждого, по [parallel] разом. Первая ошибка — после того,
+  /// как начатые доделались: память о файлах не остаётся наполовину записанной.
+  Future<void> _each<T>(List<T> items, Future<void> Function(T item) work) async {
+    var next = 0;
+    Object? failure;
+    StackTrace? trace;
+    Future<void> worker() async {
+      while (failure == null && next < items.length) {
+        final item = items[next++];
+        try {
+          await work(item);
+        } catch (error, stack) {
+          failure ??= error;
+          trace ??= stack;
+        }
+      }
+    }
+
+    await Future.wait([for (var i = 0; i < min(parallel, items.length); i++) worker()]);
+    if (failure case final error?) Error.throwWithStackTrace(error, trace!);
+  }
 
   /// Сколько удалений разом считается пропажей, а не уборкой.
   static const massDeleteCount = 20;
@@ -140,10 +168,11 @@ class SyncEngine {
     var cursor = await state.cursor();
     while (true) {
       final page = await remote.changes(cursor);
-      for (final change in page.changes) {
+      // в странице каждый файл один раз: файлы приходят параллельно
+      await _each(page.changes, (change) async {
         await heartbeat?.call();
         await _apply(change, local, report);
-      }
+      });
       cursor = page.cursor;
       await state.setCursor(cursor);
       if (!page.more) break;
@@ -250,20 +279,21 @@ class SyncEngine {
   Future<bool> _push(Map<String, LocalFile> local, SyncReport report) async {
     final known = Map.of(_known);
     var conflict = false;
-    for (final entry in local.entries) {
-      final file = entry.key;
-      final seen = entry.value;
-      final was = known[file];
-      if (was != null && was.size == seen.size && was.mtime == seen.mtime) continue;
-      final result = await _upload(file, seen, was);
-      if (result == null) continue;
+    final changed = [
+      for (final MapEntry(key: file, value: seen) in local.entries)
+        if (known[file] case final was when was != null && was.size == seen.size && was.mtime == seen.mtime) ...[] else (file, seen),
+    ];
+    await _each(changed, (pair) async {
+      final (file, seen) = pair;
+      final result = await _upload(file, seen, known[file]);
+      if (result == null) return;
       if (result is Conflict) {
         conflict = true;
         _conflicts.add(file);
       } else {
         report.pushed++;
       }
-    }
+    });
 
     // удаления: файл был синхронизирован, а на диске его нет; надгробия не в счёт
     final alive = known.values.where((was) => was.hash.isNotEmpty).toList();
@@ -314,7 +344,8 @@ class SyncEngine {
       final plain = parts.length > index ? parts[index] : await vault.read(seen.path, offset, min(chunk, seen.size - offset));
       final box = await key.sealChunk(plain);
       final name = sha256Hex(box);
-      if (!await remote.hasBlob(name)) await remote.putBlob(name, box);
+      // большую часть сперва ищем на сервере (докачка после обрыва), мелкую дешевле просто отправить
+      if (box.length < min(_askFirst, chunk ~/ 2) || !await remote.hasBlob(name)) await remote.putBlob(name, box);
       blobs.add(name);
       offset += plain.length;
       index++;
@@ -350,6 +381,9 @@ class SyncEngine {
     return whole.value.toString();
   }
 }
+
+/// С какого размера часть сперва ищется на сервере, а не отправляется сразу.
+const _askFirst = 256 * 1024;
 
 class _MassDelete implements Exception {
   const _MassDelete();
