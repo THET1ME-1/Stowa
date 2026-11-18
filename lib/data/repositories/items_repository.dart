@@ -1029,6 +1029,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       ids.addAll(filtered.map((row) => row.read<String>('id')));
     }
     if (ids.isEmpty) return const [];
+    // устаревший поиск не занимает базу: в браузере она одна на всё и отвечает по очереди
+    if (stale?.call() ?? false) return const [];
     // для ранжирования — лёгкая выборка без подзапросов карточки; название и текст — из памяти,
     // пока заметку не правили (в браузере база в отдельном потоке, и 600 полных карточек на
     // каждую букву шли секундами). Полные карточки — только для показанных
@@ -1042,6 +1044,7 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
           readsFrom: {_db.items, _db.folders, _db.itemTags, _db.tags},
         )
         .get();
+    if (stale?.call() ?? false) return const [];
     if (_texts.length > 20000) _texts.clear();
     final fresh = [
       for (final row in light)
@@ -1093,17 +1096,23 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       top = rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit);
     } else {
       // порциями: между ними — кадр и проверка, не устарел ли поиск. Лучшие порций сводятся в одни
+      // кадр отдаётся, только когда ранжирование заняло больше кадра подряд
       final hits = <SearchHit>[];
+      final busy = Stopwatch()..start();
       for (var start = 0; start < docs.length; start += _rankChunk) {
         if (stale()) return const [];
         hits.addAll(rankSearch(docs.sublist(start, math.min(start + _rankChunk, docs.length)), words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit));
-        await Future<void>.delayed(Duration.zero);
+        if (busy.elapsedMilliseconds > 12) {
+          await Future<void>.delayed(Duration.zero);
+          busy.reset();
+        }
       }
       if (stale()) return const [];
       hits.sort(compareHits);
       top = hits.take(limit).toList();
     }
     if (top.isEmpty) return const [];
+    if (stale?.call() ?? false) return const [];
     final shown = {for (final hit in top) hit.doc.id};
     final rows = await _db
         .customSelect(
