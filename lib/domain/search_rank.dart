@@ -261,6 +261,12 @@ String? _docLanguage(SearchDoc doc) {
 /// Свежесть: прибавка, которая разводит равные совпадения в пользу новых.
 double _freshness(SearchDoc doc) => 0.5 / (1 + doc.ageDays / 14);
 
+/// Порядок найденного: очки, у равных — id, чтобы поиск целиком и порциями давал одно и то же.
+int compareHits(SearchHit a, SearchHit b) {
+  final byScore = b.score.compareTo(a.score);
+  return byScore != 0 ? byScore : a.doc.id.compareTo(b.doc.id);
+}
+
 /// Лучшие вещи по словам запроса. Чипы тегов и папки — строгий фильтр.
 /// Без слов, но с [filtered] (вещи уже отобраны по дате, виду, месту) — свежие первыми.
 List<SearchHit> rankSearch(
@@ -325,6 +331,6 @@ List<SearchHit> rankSearch(
     if (matched < need) continue;
     hits.add(SearchHit(doc: doc, score: total / max(1, words.length) + _freshness(doc), matched: matched, strong: strong, marks: marks));
   }
-  hits.sort((a, b) => b.score.compareTo(a.score));
+  hits.sort(compareHits);
   return hits.take(limit).toList();
 }

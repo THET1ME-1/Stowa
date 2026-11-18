@@ -422,10 +422,11 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Id живых вещей по запросу FTS5, лучшие первыми.
-  Future<List<String>> searchIds(String ftsMatch) async {
+  /// [limit] — сколько лучших по индексу взять (без него — все).
+  Future<List<String>> searchIds(String ftsMatch, {int? limit}) async {
     final rows = await customSelect(
       'SELECT items.id FROM items_fts JOIN items ON items.rowid = items_fts.rowid '
-      'WHERE items_fts MATCH ? AND items.deleted_at IS NULL ORDER BY items_fts.rank',
+      'WHERE items_fts MATCH ? AND items.deleted_at IS NULL ORDER BY items_fts.rank${limit == null ? '' : ' LIMIT $limit'}',
       variables: [Variable.withString(normalizeSearchText(ftsMatch))],
       readsFrom: {items},
     ).get();

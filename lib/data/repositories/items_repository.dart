@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:drift/drift.dart';
 
 import 'package:flutter/painting.dart' show Color;
@@ -210,6 +211,12 @@ class SearchResult {
 }
 
 // карточка целиком: вещь, её папка, первая картинка и теги одним запросом
+/// Кандидатов поиска из индекса — лучших по нему; ещё 500 свежих заметок ловят опечатки.
+const _indexCandidates = 400;
+
+/// Заметок в порции ранжирования строки: между порциями — кадр.
+const _rankChunk = 80;
+
 const _cardSelect = '''
 SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folders.color AS folder_color, folders.sort_order AS folder_order,
   -- своя картинка главнее, у ссылки и ролика без неё — обложка превью
@@ -877,20 +884,22 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
   /// Поиск строки ввода. Фильтры запроса (дата, вид, сайт, длина, «рядом»)
   /// отбирают вещи сами; не нашли ничего — запрос ищется простыми словами.
   /// [here] — где сейчас телефон, для «рядом».
-  Future<SearchFound> search({required SearchQuery query, List<String> tags = const [], String? folderId, required DateTime now, (double, double)? here, int limit = 6}) async {
+  /// [stale] — поиск уже не нужен (набрали следующую букву): строка бросает его между
+  /// порциями заметок и отдаёт кадр, иначе в браузере старые поиски стоят в очереди перед новым.
+  Future<SearchFound> search({required SearchQuery query, List<String> tags = const [], String? folderId, required DateTime now, (double, double)? here, int limit = 6, bool Function()? stale}) async {
     if (query.spending) {
       final spent = await _searchSpent(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit);
       if (spent.results.isNotEmpty) return spent;
       final plain = query.withoutFilters();
-      return SearchFound(await _searchOnce(plain, tags: tags, folderId: folderId, now: now, here: here, limit: limit), plain);
+      return SearchFound(await _searchOnce(plain, tags: tags, folderId: folderId, now: now, here: here, limit: limit, stale: stale), plain);
     }
     if (query.hasFilters) {
-      final results = await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit);
+      final results = await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit, stale: stale);
       if (results.isNotEmpty) return SearchFound(results, query);
       final plain = query.withoutFilters();
-      return SearchFound(await _searchOnce(plain, tags: tags, folderId: folderId, now: now, here: here, limit: limit), plain);
+      return SearchFound(await _searchOnce(plain, tags: tags, folderId: folderId, now: now, here: here, limit: limit, stale: stale), plain);
     }
-    return SearchFound(await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit), query);
+    return SearchFound(await _searchOnce(query, tags: tags, folderId: folderId, now: now, here: here, limit: limit, stale: stale), query);
   }
 
   /// Поиск умной папки: запрос разбирается заново на сегодня при каждой правке заметок,
@@ -981,6 +990,7 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     (double, double)? here,
     required int limit,
     Set<String>? inFolders,
+    bool Function()? stale,
   }) async {
     final words = query.words;
     if (query.isEmpty && tags.isEmpty && folderId == null) return const [];
@@ -994,7 +1004,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
           for (final word in words)
             for (final variant in word.variants) ...{stemOf(variant.text), ...languageStems(variant.text)},
         };
-        ids.addAll(await _db.searchIds(stems.map((stem) => '"$stem"*').join(' OR ')));
+        // одна буква по началу совпадает почти со всем хранилищем: берутся лучшие по индексу
+        ids.addAll(await _db.searchIds(stems.map((stem) => '"$stem"*').join(' OR '), limit: _indexCandidates));
       }
       final recent = await _db
           .customSelect('SELECT items.id FROM items WHERE items.deleted_at IS NULL ORDER BY items.created_at DESC LIMIT 500', readsFrom: {_db.items})
@@ -1046,10 +1057,22 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
         ),
       );
     }
-    return [
-      for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit))
-        SearchResult(card: cards[hit.doc.id]!, hit: hit),
-    ];
+    if (stale == null) {
+      return [
+        for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit))
+          SearchResult(card: cards[hit.doc.id]!, hit: hit),
+      ];
+    }
+    // порциями: между ними — кадр и проверка, не устарел ли поиск. Лучшие порций сводятся в одни
+    final hits = <SearchHit>[];
+    for (var start = 0; start < docs.length; start += _rankChunk) {
+      if (stale()) return const [];
+      hits.addAll(rankSearch(docs.sublist(start, math.min(start + _rankChunk, docs.length)), words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit));
+      await Future<void>.delayed(Duration.zero);
+    }
+    if (stale()) return const [];
+    hits.sort(compareHits);
+    return [for (final hit in hits.take(limit)) SearchResult(card: cards[hit.doc.id]!, hit: hit)];
   }
 
   // факты, по которым ищут: текст документов, страница ссылки, субтитры и главы ролика. Деньги,

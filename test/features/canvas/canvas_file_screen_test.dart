@@ -364,4 +364,30 @@ void main() {
     await saved(tester);
     expect((await stored()).nodes.where((node) => node.type == CanvasNodeType.file), hasLength(1));
   });
+
+  testWidgets('широкий экран, мышь: при открытом холсте «Открыть» в общей строке открывает найденное', (tester) async {
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Пересмешник', body: const Value('Пересмешник'), createdAt: world.now, updatedAt: world.now));
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final line = find.byType(LineDock);
+    WorkspaceScope.maybeOf(tester.element(line))!.open(const WsTab.item('c'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: line, matching: find.textContaining('Закинь')).first, kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.descendant(of: line, matching: find.byType(TextField)), 'Пересмешник');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    // в браузере между нажатием и отпусканием проходят кадры
+    final press = await tester.startGesture(tester.getCenter(find.text('Открыть')), kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    await press.up();
+    await tester.pumpAndSettle();
+    expect(WorkspaceScope.maybeOf(tester.element(line))!.workspace.focusedPane.activeTab, const WsTab.item('n'));
+    expect(await world.db.select(world.db.items).get(), hasLength(2));
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 }

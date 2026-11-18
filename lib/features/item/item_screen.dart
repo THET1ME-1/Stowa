@@ -69,6 +69,7 @@ import 'photo_viewer.dart';
 import 'properties_block.dart';
 import 'link_sheet.dart';
 import 'related_block.dart';
+import '../workspace/workspace_shell.dart' show WorkspaceScope;
 
 /// Страница вырастает из нажатой карточки и складывается в неё (переход темы);
 /// открытая уведомлением или ссылкой — въезжает справа.
@@ -785,6 +786,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final titleStyle = text.headlineSmall!.copyWith(fontSize: 25, height: 1.2, letterSpacing: -0.4);
     final bodyStyle = text.bodyLarge!.copyWith(fontSize: 16, height: 1.5, color: Tokens.onSurface);
     final bottom = MediaQuery.paddingOf(context).bottom;
+    // широкий экран (вкладка рабочего пространства): текст колонкой до 760 точек посередине, как в
+    // макете, панель действий — под шапкой той же ширины, низ окна отдан общей строке ввода
+    final desk = WorkspaceScope.maybeOf(context) != null;
+    final side = desk ? math.max(12.0, (MediaQuery.sizeOf(context).width - _deskColumn) / 2) : 12.0;
     final cover = gallery.isEmpty ? null : gallery[_cover.clamp(0, gallery.length - 1)];
     // картинка из текста по имени; касание открывает просмотр всех фото заметки на ней
     Widget inlineImage(String name) {
@@ -804,6 +809,74 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final what = images.isNotEmpty ? l.itemPhotos(images.length) : kindLabel(l, item.kind);
     final subtitle = _editing ? l.itemAutosave : _capitalized(what);
 
+    final Widget dock = AnimatedSwitcher(
+        duration: Motion.medium,
+        child: _editing
+            ? Column(
+                key: const ValueKey('edit-dock'),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // та же полоса разметки, что в строке на весь экран
+                  Container(
+                    height: _markdownStrip,
+                    decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(_markdownStrip / 2)),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    alignment: Alignment.center,
+                    child: MarkdownBar(onAction: _markdown, field: _body),
+                  ),
+                  const SizedBox(height: 8),
+                  ValueListenableBuilder(
+                    valueListenable: _undo,
+                    builder: (context, history, _) => _Dock(
+                      height: 64,
+                      buttons: [
+                        _DockButton(icon: 'add_photo_alternate', tooltip: l.itemAddPhoto, onTap: _addPhotos),
+                        _DockButton(icon: 'undo', tooltip: l.mdUndo, onTap: history.canUndo ? _undo.undo : null),
+                        _DockButton(icon: 'redo', tooltip: l.mdRedo, onTap: history.canRedo ? _undo.redo : null),
+                      ],
+                      accentIcon: 'check',
+                      accentLabel: l.itemEditDone,
+                      onAccent: _finish,
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                key: const ValueKey('view-dock'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // значки панели без подписей: один раз сказать, что они делают
+                  if (!desk) const HintBanner(tip: Tip.noteBar, padding: EdgeInsets.only(bottom: 8)),
+                  _Dock(
+                height: _dockHeight,
+                buttons: [
+                  _DockButton(
+                    icon: item.reminderAt != null || item.remindPlace != null ? 'alarm' : 'add_alarm',
+                    tooltip: l.itemRemind,
+                    active: item.reminderAt != null || item.remindPlace != null,
+                    onTap: () => item.reminderAt != null
+                        ? _reminderMenu(item.reminderAt!)
+                        : item.remindPlace != null
+                        ? _placeMenu(_placeOf(item)!)
+                        : _remindSheet(),
+                  ),
+                  _DockButton(icon: 'tag', tooltip: l.tagAdd, onTap: _addTag),
+                  // у ссылки главное — открыть, поэтому дописать мысль уходит в панель
+                  if (linkLike)
+                    _DockButton(icon: 'edit_note', tooltip: l.itemAppend, onTap: () => _startEditing(item, append: true))
+                  else
+                    _DockButton(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
+                  _DockButton(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
+                ],
+                accentIcon: videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add'),
+                accentLabel: videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend),
+                onAccent: linkLike || videoFile != null ? openMain : () => _startEditing(item, append: true),
+              ),
+                ],
+              ),
+    );
+
     return PopScope(
       // «назад» посреди правки сначала закрывает правку, сохранив текст
       canPop: !_editing,
@@ -816,6 +889,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
           child: Column(
             children: [
               _Header(
+                side: desk ? side - 2 : 10,
                 folder: folder,
                 folderName: folder?.name ?? l.folderNone,
                 subtitle: subtitle,
@@ -825,6 +899,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                 onEdit: () => _startEditing(item),
                 onMore: () => _menu(item),
               ),
+              if (desk)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(side, 4, side, 8),
+                  child: dock,
+                ),
               Expanded(
                 child: Stack(
                   key: _stackKey,
@@ -833,7 +912,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                       controller: _scroll,
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
                       // в правке панель выше: конец текста должен прокручиваться над полосой разметки
-                      padding: EdgeInsets.fromLTRB(12, 6, 12, (_editing ? _editDockHeight : _dockHeight) + _dockGap * 2 + bottom),
+                      padding: desk ? EdgeInsets.fromLTRB(side, 6, side, bottom + 24) : EdgeInsets.fromLTRB(12, 6, 12, (_editing ? _editDockHeight : _dockHeight) + _dockGap * 2 + bottom),
                       children: [
                         // файл ещё ложится: вещь уже правится, а показать его пока нечем
                         if (full.copying > 0) ...[
@@ -1060,78 +1139,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                         if (!_editing) RelatedBlock(itemId: _id, onOpen: (id) => Navigator.of(context).push(itemRoute(id))),
                       ],
                     ),
-                    Positioned(
-                      left: 12,
-                      right: 12,
-                      bottom: _dockGap + bottom,
-                      child: AnimatedSwitcher(
-                        duration: Motion.medium,
-                        child: _editing
-                            ? Column(
-                                key: const ValueKey('edit-dock'),
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // та же полоса разметки, что в строке на весь экран
-                                  Container(
-                                    height: _markdownStrip,
-                                    decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(_markdownStrip / 2)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                                    alignment: Alignment.center,
-                                    child: MarkdownBar(onAction: _markdown, field: _body),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  ValueListenableBuilder(
-                                    valueListenable: _undo,
-                                    builder: (context, history, _) => _Dock(
-                                      height: 64,
-                                      buttons: [
-                                        _DockButton(icon: 'add_photo_alternate', tooltip: l.itemAddPhoto, onTap: _addPhotos),
-                                        _DockButton(icon: 'undo', tooltip: l.mdUndo, onTap: history.canUndo ? _undo.undo : null),
-                                        _DockButton(icon: 'redo', tooltip: l.mdRedo, onTap: history.canRedo ? _undo.redo : null),
-                                      ],
-                                      accentIcon: 'check',
-                                      accentLabel: l.itemEditDone,
-                                      onAccent: _finish,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                key: const ValueKey('view-dock'),
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // значки панели без подписей: один раз сказать, что они делают
-                                  const HintBanner(tip: Tip.noteBar, padding: EdgeInsets.only(bottom: 8)),
-                                  _Dock(
-                                height: _dockHeight,
-                                buttons: [
-                                  _DockButton(
-                                    icon: item.reminderAt != null || item.remindPlace != null ? 'alarm' : 'add_alarm',
-                                    tooltip: l.itemRemind,
-                                    active: item.reminderAt != null || item.remindPlace != null,
-                                    onTap: () => item.reminderAt != null
-                                        ? _reminderMenu(item.reminderAt!)
-                                        : item.remindPlace != null
-                                        ? _placeMenu(_placeOf(item)!)
-                                        : _remindSheet(),
-                                  ),
-                                  _DockButton(icon: 'tag', tooltip: l.tagAdd, onTap: _addTag),
-                                  // у ссылки главное — открыть, поэтому дописать мысль уходит в панель
-                                  if (linkLike)
-                                    _DockButton(icon: 'edit_note', tooltip: l.itemAppend, onTap: () => _startEditing(item, append: true))
-                                  else
-                                    _DockButton(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
-                                  _DockButton(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
-                                ],
-                                accentIcon: videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add'),
-                                accentLabel: videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend),
-                                onAccent: linkLike || videoFile != null ? openMain : () => _startEditing(item, append: true),
-                              ),
-                                ],
-                              ),
-                      ),
-                    ),
+                    // на телефоне панель плавает внизу; на широком экране низ у общей строки — панель под шапкой
+                    if (!desk) Positioned(left: 12, right: 12, bottom: _dockGap + bottom, child: dock),
                     // курсор в [[…: заметки по словам набранного прямо над строкой с курсором,
                     // у верха экрана — под ней; набранное и курсор не закрываются
                     if (_editing)
@@ -1286,8 +1295,12 @@ class _RoundButton extends StatelessWidget {
 
 /// Шапка как у поста Togetherly: «назад», пилюля с папкой и днём, справа
 /// сцепленные «править» и «ещё». Касание по пилюле перекладывает вещь.
+/// Колонка текста заметки на широком экране, как `.doc` в макете веба.
+const _deskColumn = 760.0;
+
 class _Header extends StatelessWidget {
   const _Header({
+    this.side = 10,
     required this.folder,
     required this.folderName,
     required this.subtitle,
@@ -1298,6 +1311,8 @@ class _Header extends StatelessWidget {
     required this.onMore,
   });
 
+  /// Отступ слева и справа: на широком экране шапка шириной с колонку текста.
+  final double side;
   final FolderCard? folder;
   final String folderName;
   final String subtitle;
@@ -1311,7 +1326,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+      padding: EdgeInsets.fromLTRB(side, 10, side, 6),
       child: Row(
         children: [
           // во вкладке широкого экрана заметка открыта первой: возвращаться некуда

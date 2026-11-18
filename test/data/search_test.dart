@@ -44,6 +44,21 @@ void main() {
   Future<List<SearchResult>> find(String text, {List<String> tags = const [], (double, double)? here}) async =>
       (await items.search(query: parseSearch(text, now), tags: tags, now: now, here: here)).results;
 
+  test('поиск строки порциями находит то же, что целиком; устаревший — бросается', () async {
+    final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => now);
+    for (var index = 0; index < 200; index++) {
+      await capture.capture(CaptureInput(text: 'Лекция $index про ${index.isEven ? 'пароли' : 'домофоны'}'));
+    }
+    final query = parseSearch('пароль', now);
+    final whole = (await items.search(query: query, now: now)).results.map((one) => one.card.id).toList();
+    final chunked = (await items.search(query: query, now: now, stale: () => false)).results.map((one) => one.card.id).toList();
+    expect(chunked, whole);
+    expect(whole, isNotEmpty);
+    var checks = 0;
+    final dropped = await items.search(query: query, now: now, stale: () => ++checks > 1);
+    expect(dropped.results, isEmpty);
+  });
+
   test('ищет по началу слова, отдаёт карточку с папкой и подсветкой', () async {
     final found = await find('паро');
     expect(found.first.card.title, 'Пароль от Wi-Fi');

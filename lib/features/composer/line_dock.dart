@@ -334,7 +334,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       // «рядом» спрашивает, где телефон, только когда его попросили
       final here = search.near ? await ref.read(searchHereProvider)() : null;
       if (!mounted || run != _searchRun) return;
-      final found = await ref.read(itemsRepositoryProvider).search(query: search, tags: _line.tags, folderId: _line.folder?.id, now: _now, here: here);
+      final found = await ref.read(itemsRepositoryProvider).search(query: search, tags: _line.tags, folderId: _line.folder?.id, now: _now, here: here, stale: () => !mounted || run != _searchRun);
       if (mounted && run == _searchRun) setState(() => _found = found);
     });
   }
@@ -1042,8 +1042,12 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
               ),
             ),
           ),
+          // панель и кнопки строки — часть поля ввода: в браузере и на компьютере щелчок по ним иначе
+          // считался бы щелчком мимо поля, оно теряло фокус на нажатии, панель перестраивалась, и к
+          // отпусканию «Открыть» становилась «Закинуть» — сохранялась новая заметка вместо открытия
           Positioned.fill(
-            child: SafeArea(
+            child: TextFieldTapRegion(
+              child: SafeArea(
               child: _DockColumn(
                 maxWidth: widget.maxWidth,
                 child: LayoutBuilder(
@@ -1128,6 +1132,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                   ),
                 ),
               ),
+            ),
             ),
           ),
         ],
