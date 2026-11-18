@@ -4351,4 +4351,7 @@ class LRo extends L {
 
   @override
   String get wsPanelEmpty => 'Încă gol';
+
+  @override
+  String get canvasDropHint => 'Eliberați — fișierele apar pe pânză';
 }

@@ -5056,33 +5056,61 @@
     "description": "syncSignOutHint"
   },
   "wsSections": "Sections",
-  "@wsSections": {"description": "Side panel with the main places of the app"},
+  "@wsSections": {
+    "description": "Side panel with the main places of the app"
+  },
   "wsHome": "Home",
-  "@wsHome": {"description": "Home tab"},
+  "@wsHome": {
+    "description": "Home tab"
+  },
   "wsFind": "Find or write",
-  "@wsFind": {"description": "Button in the left panel that focuses the input line"},
+  "@wsFind": {
+    "description": "Button in the left panel that focuses the input line"
+  },
   "wsSplitRight": "Split right",
-  "@wsSplitRight": {"description": "Split the window to the right"},
+  "@wsSplitRight": {
+    "description": "Split the window to the right"
+  },
   "wsSplitDown": "Split down",
-  "@wsSplitDown": {"description": "Split the window downwards"},
+  "@wsSplitDown": {
+    "description": "Split the window downwards"
+  },
   "wsCloseTab": "Close tab",
-  "@wsCloseTab": {"description": "Close a tab"},
+  "@wsCloseTab": {
+    "description": "Close a tab"
+  },
   "wsLeftDock": "Left panel",
-  "@wsLeftDock": {"description": "Show or hide the left side panel"},
+  "@wsLeftDock": {
+    "description": "Show or hide the left side panel"
+  },
   "wsRightDock": "Right panel",
-  "@wsRightDock": {"description": "Show or hide the right side panel"},
+  "@wsRightDock": {
+    "description": "Show or hide the right side panel"
+  },
   "wsYearAgo": "A year ago",
-  "@wsYearAgo": {"description": "Side panel with notes saved on this day in earlier years"},
+  "@wsYearAgo": {
+    "description": "Side panel with notes saved on this day in earlier years"
+  },
   "wsKeys": "Keyboard shortcuts",
-  "@wsKeys": {"description": "Keyboard shortcuts settings"},
+  "@wsKeys": {
+    "description": "Keyboard shortcuts settings"
+  },
   "wsTheme": "Switch theme",
-  "@wsTheme": {"description": "Toggle light and dark theme"},
+  "@wsTheme": {
+    "description": "Toggle light and dark theme"
+  },
   "wsInBrowser": "In this browser",
-  "@wsInBrowser": {"description": "Where the notes are stored in the web version"},
+  "@wsInBrowser": {
+    "description": "Where the notes are stored in the web version"
+  },
   "wsSynced": "Synced",
-  "@wsSynced": {"description": "Sync status: everything is up to date"},
+  "@wsSynced": {
+    "description": "Sync status: everything is up to date"
+  },
   "wsSyncOff": "Sync is off",
-  "@wsSyncOff": {"description": "Sync status: not signed in"},
+  "@wsSyncOff": {
+    "description": "Sync status: not signed in"
+  },
   "wsGroupNav": "Search and navigation",
   "wsGroupNotes": "Notes and folders",
   "wsGroupTabs": "Tabs and panes",
@@ -5102,13 +5130,22 @@
   "wsCmdClosePane": "Close pane",
   "wsCmdTheme": "Light or dark theme",
   "wsThen": "then",
-  "@wsThen": {"description": "Between the two keys of a two-step shortcut: G then H"},
+  "@wsThen": {
+    "description": "Between the two keys of a two-step shortcut: G then H"
+  },
   "wsKeysHint": "A single key without Ctrl or Alt works when the cursor is not in a text field, and keys are matched by their place on the keyboard in any layout.",
   "wsKeysResetAll": "Reset all",
   "wsKeysAdd": "Add shortcut",
   "wsKeysPress": "Press a shortcut · Esc to cancel",
   "wsKeysTaken": "Shortcut removed from “{name}”",
-  "@wsKeysTaken": {"description": "The new shortcut was taken from another command", "placeholders": {"name": {"type": "String"}}},
+  "@wsKeysTaken": {
+    "description": "The new shortcut was taken from another command",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "wsKeysBrowser": "The browser keeps this shortcut for itself",
   "wsKeysReset": "Reset",
   "wsKeysRemove": "Remove",
@@ -5119,5 +5156,9 @@
   "wsToRight": "Move to the right panel",
   "wsToLeft": "Move to the left panel",
   "wsHidePanel": "Remove panel",
-  "wsPanelEmpty": "Nothing here yet"
+  "wsPanelEmpty": "Nothing here yet",
+  "canvasDropHint": "Drop to put the files on the canvas",
+  "@canvasDropHint": {
+    "description": "Подпись поверх холста, пока над ним тащат файлы из системы"
+  }
 }

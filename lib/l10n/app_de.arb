@@ -928,5 +928,6 @@
   "wsToRight": "In die rechte Leiste",
   "wsToLeft": "In die linke Leiste",
   "wsHidePanel": "Leiste entfernen",
-  "wsPanelEmpty": "Noch leer"
+  "wsPanelEmpty": "Noch leer",
+  "canvasDropHint": "Loslassen — die Dateien landen auf der Leinwand"
 }

@@ -4389,4 +4389,7 @@ class LRu extends L {
 
   @override
   String get wsPanelEmpty => 'Пока пусто';
+
+  @override
+  String get canvasDropHint => 'Отпустите — файлы встанут на холст';
 }

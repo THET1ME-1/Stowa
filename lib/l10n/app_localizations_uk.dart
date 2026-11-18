@@ -4378,4 +4378,7 @@ class LUk extends L {
 
   @override
   String get wsPanelEmpty => 'Поки порожньо';
+
+  @override
+  String get canvasDropHint => 'Відпустіть — файли стануть на полотно';
 }

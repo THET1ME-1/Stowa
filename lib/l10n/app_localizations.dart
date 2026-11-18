@@ -7378,6 +7378,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Nothing here yet'**
   String get wsPanelEmpty;
+
+  /// Подпись поверх холста, пока над ним тащат файлы из системы
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to put the files on the canvas'**
+  String get canvasDropHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

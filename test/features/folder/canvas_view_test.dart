@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -393,6 +395,36 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.delete);
     await tester.pumpAndSettle();
     expect(await storedLinks(), isEmpty);
+  });
+
+
+  // файл из системы, брошенный мышью: так его отдаёт пакет перетаскивания
+  Future<void> dropFile(WidgetTester tester, Offset at, String path) async {
+    const codec = StandardMethodCodec();
+    Future<void> send(String method, Object arguments) =>
+        tester.binding.defaultBinaryMessenger.handlePlatformMessage('desktop_drop', codec.encodeMethodCall(MethodCall(method, arguments)), (_) {});
+    await send('entered', [at.dx, at.dy]);
+    await tester.pump();
+    await send('performOperation', [path]);
+    // сохранение читает файл с диска: настоящее время
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
+    await tester.pump(const Duration(seconds: 4));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('файл, брошенный мышью на холст папки, — заметка этой папки там, где отпустили', (tester) async {
+    final folder = Directory.systemTemp.createTempSync('stowa_drop');
+    addTearDown(() => folder.deleteSync(recursive: true));
+    final file = File('${folder.path}/план кухни.txt')..writeAsStringSync('плитка 20×20');
+    await openCanvas(tester);
+    final before = (await world.db.select(world.db.items).get()).length;
+    await dropFile(tester, const Offset(200, 500), file.path);
+    final all = await world.db.select(world.db.items).get();
+    expect(all, hasLength(before + 1));
+    final added = all.firstWhere((item) => !['i0', 'i1', 'i2'].contains(item.id));
+    expect(added.folderId, 'ideas');
+    expect((await spots()).map((spot) => spot.itemId), contains(added.id));
   });
 
   testWidgets('пальцем карточка не выделяется: Delete на телефоне ничего не удаляет', (tester) async {

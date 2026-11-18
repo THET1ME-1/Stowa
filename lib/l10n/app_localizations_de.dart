@@ -4337,4 +4337,8 @@ class LDe extends L {
 
   @override
   String get wsPanelEmpty => 'Noch leer';
+
+  @override
+  String get canvasDropHint =>
+      'Loslassen — die Dateien landen auf der Leinwand';
 }

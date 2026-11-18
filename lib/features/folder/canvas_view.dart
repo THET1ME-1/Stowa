@@ -21,6 +21,8 @@ import '../../domain/note_links.dart' show shownTitle, wikiTitles;
 import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../canvas/canvas_kit.dart';
+import '../composer/picked_files.dart' show pickedFromXFile;
+import 'package:desktop_drop/desktop_drop.dart' show DropItem;
 import '../../services/capture_service.dart';
 import '../composer/panel_text.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -382,7 +384,10 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     ];
     final hover = _wire?.from ?? _hoverCard;
 
-    return LayoutBuilder(
+    // файлы из системы, брошенные мышью: каждый — заметка этой папки там, где отпустили
+    return CanvasDropZone(
+      onFiles: (files, at) => _dropFiles(files, at).ignore(),
+      child: LayoutBuilder(
       builder: (context, constraints) {
         viewport = constraints.biggest;
         return Focus(
@@ -557,7 +562,23 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
         ),
         );
       },
+      ),
     );
+  }
+
+  Future<void> _dropFiles(List<DropItem> files, Offset at) async {
+    final l = L.of(context);
+    final world = transform.toScene(at);
+    final capture = ref.read(captureServiceProvider);
+    final canvas = ref.read(canvasRepositoryProvider);
+    for (final (index, file) in files.indexed) {
+      final picked = await pickedFromXFile(file);
+      final id = await capture.capture(
+        CaptureInput(files: [picked], forcedFolderId: widget.folderId, untitled: (time) => untitledFor(l, mime: picked.mime, fileName: p.basename(picked.path), at: time)),
+      );
+      // несколько файлов — лесенкой, первый под курсором
+      await canvas.save(widget.folderId, id, (x: world.dx - _origin - 120 + index * 32, y: world.dy - _origin - 90 + index * 32, width: 240));
+    }
   }
 }
 

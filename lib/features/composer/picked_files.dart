@@ -3,7 +3,11 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource, XFile;
 import 'package:mime/mime.dart';
+import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 
+import '../../core/fs/web_files.dart' show webCacheDirectory;
+import '../../core/platform.dart';
 import '../../services/capture_service.dart';
 
 const _unknownMime = 'application/octet-stream';
@@ -27,8 +31,23 @@ Future<PickedFile> pickedFrom(String path, {String? hint}) async {
 
 final _images = ImagePicker();
 
+/// Файл от галереи, выбора файлов или перетаскивания. С путём на диске — как есть; без него
+/// (браузер: у файла только байты в памяти страницы) — байтами во временную папку приложения
+/// под своим именем, дальше он идёт обычным путём вложения.
+Future<PickedFile> pickedFromXFile(XFile file, {Directory? cache, bool? hasPath}) async {
+  if (hasPath ?? (!isWeb && file.path.isNotEmpty)) return pickedFrom(file.path, hint: file.mimeType);
+  // в браузере имя у файла есть, а путь — ссылка «blob:…» в память страницы
+  final named = file.name.trim().isNotEmpty ? file.name : (file.path.isEmpty || file.path.startsWith('blob:') ? '' : file.path);
+  final name = named.trim().isEmpty ? 'file' : p.basename(named);
+  final folder = Directory(p.join((cache ?? (isWeb ? webCacheDirectory : Directory.systemTemp)).path, 'picked', const Uuid().v4()));
+  await folder.create(recursive: true);
+  final target = File(p.join(folder.path, name));
+  await target.writeAsBytes(await file.readAsBytes(), flush: true);
+  return pickedFrom(target.path, hint: file.mimeType);
+}
+
 Future<List<PickedFile>> _fromXFiles(Iterable<XFile> files) {
-  return Future.wait([for (final file in files) pickedFrom(file.path, hint: file.mimeType)]);
+  return Future.wait([for (final file in files) pickedFromXFile(file)]);
 }
 
 /// Фото и видео из галереи, сразу несколько.
@@ -47,6 +66,8 @@ Future<List<PickedFile>> pickCameraVideo() async {
 /// Любые файлы: документы, текст, архивы, всё, что даст система.
 Future<List<PickedFile>> pickAnyFiles() async {
   final files = await FilePicker.pickFiles();
-  final paths = [for (final file in files) file.path].nonNulls;
-  return Future.wait([for (final path in paths) pickedFrom(path)]);
+  return Future.wait([
+    for (final file in files)
+      if (file.path case final path? when !isWeb) pickedFrom(path) else pickedFromXFile(file.xFile),
+  ]);
 }

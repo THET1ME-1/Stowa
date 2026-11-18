@@ -928,5 +928,6 @@
   "wsToRight": "În panoul drept",
   "wsToLeft": "În panoul stâng",
   "wsHidePanel": "Elimină panoul",
-  "wsPanelEmpty": "Încă gol"
+  "wsPanelEmpty": "Încă gol",
+  "canvasDropHint": "Eliberați — fișierele apar pe pânză"
 }

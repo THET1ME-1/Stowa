@@ -928,5 +928,6 @@
   "wsToRight": "У праву панель",
   "wsToLeft": "У ліву панель",
   "wsHidePanel": "Прибрати панель",
-  "wsPanelEmpty": "Поки порожньо"
+  "wsPanelEmpty": "Поки порожньо",
+  "canvasDropHint": "Відпустіть — файли стануть на полотно"
 }

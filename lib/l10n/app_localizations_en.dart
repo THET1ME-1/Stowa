@@ -4312,4 +4312,7 @@ class LEn extends L {
 
   @override
   String get wsPanelEmpty => 'Nothing here yet';
+
+  @override
+  String get canvasDropHint => 'Drop to put the files on the canvas';
 }

@@ -928,5 +928,6 @@
   "wsToRight": "Al panel derecho",
   "wsToLeft": "Al panel izquierdo",
   "wsHidePanel": "Quitar panel",
-  "wsPanelEmpty": "Aún vacío"
+  "wsPanelEmpty": "Aún vacío",
+  "canvasDropHint": "Suelta — los archivos irán al lienzo"
 }

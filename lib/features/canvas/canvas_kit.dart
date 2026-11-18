@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../domain/json_canvas.dart' show CanvasSide;
@@ -447,4 +449,73 @@ Future<String?> askCanvasNote(BuildContext context) {
       ),
     ),
   );
+}
+
+/// Файлы из системы, брошенные мышью на холст: пока их несут — мягкая рамка с подсказкой,
+/// отпустили — [onFiles] с файлами (папки пропускаются) и точкой в координатах [child].
+class CanvasDropZone extends StatefulWidget {
+  const CanvasDropZone({super.key, required this.onFiles, required this.child, this.enabled = true});
+
+  final void Function(List<DropItem> files, Offset at) onFiles;
+  final Widget child;
+  final bool enabled;
+
+  @override
+  State<CanvasDropZone> createState() => _CanvasDropZoneState();
+}
+
+class _CanvasDropZoneState extends State<CanvasDropZone> {
+  bool _over = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return DropTarget(
+      enable: widget.enabled,
+      onDragEntered: (_) => setState(() => _over = true),
+      onDragExited: (_) => setState(() => _over = false),
+      onDragDone: (details) {
+        setState(() => _over = false);
+        final files = [for (final file in details.files) if (file is! DropItemDirectory) file];
+        if (files.isNotEmpty) widget.onFiles(files, details.localPosition);
+      },
+      child: Stack(
+        children: [
+          widget.child,
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _over ? 1 : 0,
+                duration: Motion.medium,
+                curve: Motion.emphasized,
+                child: Container(
+                  key: const ValueKey('canvas-drop'),
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Tokens.accent.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(Radii.tile),
+                    border: Border.all(color: Tokens.accent.withValues(alpha: 0.5), width: 2),
+                  ),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(14, 10, 18, 10),
+                    decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(100)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(symbolIcon('upload_file'), size: 20, color: Tokens.onSurface),
+                        const SizedBox(width: 10),
+                        Flexible(child: Text(L.of(context).canvasDropHint, style: text.labelLarge)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

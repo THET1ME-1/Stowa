@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -390,4 +392,33 @@ void main() {
     expect(WorkspaceScope.maybeOf(tester.element(line))!.workspace.focusedPane.activeTab, const WsTab.item('n'));
     expect(await world.db.select(world.db.items).get(), hasLength(2));
   }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
+
+  // файл из системы, брошенный мышью: так его отдаёт пакет перетаскивания
+  Future<void> dropFile(WidgetTester tester, Offset at, String path) async {
+    const codec = StandardMethodCodec();
+    Future<void> send(String method, Object arguments) =>
+        tester.binding.defaultBinaryMessenger.handlePlatformMessage('desktop_drop', codec.encodeMethodCall(MethodCall(method, arguments)), (_) {});
+    await send('entered', [at.dx, at.dy]);
+    await tester.pump();
+    await send('performOperation', [path]);
+    // сохранение читает файл с диска: настоящее время
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
+    await tester.pump(const Duration(seconds: 4));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('файл, брошенный мышью на холст-файл, — заметка (её разложат по папкам) и карточка там, где отпустили', (tester) async {
+    final folder = Directory.systemTemp.createTempSync('stowa_drop');
+    addTearDown(() => folder.deleteSync(recursive: true));
+    final file = File('${folder.path}/смета.txt')..writeAsStringSync('затирка 2 кг');
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await openWide(tester);
+    await dropFile(tester, const Offset(900, 600), file.path);
+    await saved(tester);
+    final note = (await world.db.select(world.db.items).get()).where((item) => item.kind != ItemKind.canvas);
+    expect(note, hasLength(1));
+    final placed = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file);
+    expect(placed, hasLength(1));
+  });
 }

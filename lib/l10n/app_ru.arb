@@ -1211,5 +1211,6 @@
   "wsToRight": "В правый док",
   "wsToLeft": "В левый док",
   "wsHidePanel": "Убрать панель",
-  "wsPanelEmpty": "Пока пусто"
+  "wsPanelEmpty": "Пока пусто",
+  "canvasDropHint": "Отпустите — файлы встанут на холст"
 }

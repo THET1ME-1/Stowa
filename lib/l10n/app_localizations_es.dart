@@ -4323,4 +4323,7 @@ class LEs extends L {
 
   @override
   String get wsPanelEmpty => 'Aún vacío';
+
+  @override
+  String get canvasDropHint => 'Suelta — los archivos irán al lienzo';
 }

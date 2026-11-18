@@ -29,6 +29,9 @@ import '../item/item_screen.dart' show itemRoute;
 import '../item/link_sheet.dart';
 import '../../services/capture_service.dart';
 import 'canvas_kit.dart';
+import '../composer/panel_text.dart' show untitledFor;
+import '../composer/picked_files.dart' show pickedFromXFile;
+import 'package:desktop_drop/desktop_drop.dart' show DropItem;
 import '../composer/line_dock.dart';
 import '../workspace/workspace_shell.dart' show CaptureTarget, WorkspaceController, WorkspaceScope, WsTabScope;
 
@@ -137,14 +140,30 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     }
   }
 
-  /// Заметки, сохранённые строкой: карточками рядом друг с другом посреди экрана.
-  Future<void> _placeSaved(List<String> ids) async {
+  /// Файлы из системы, брошенные мышью: каждый — заметка (её раскладывают по папкам как
+  /// обычно), на холсте — карточка там, где отпустили.
+  Future<void> _dropFiles(List<DropItem> files, Offset at) async {
+    if (!_editable) return;
+    final l = L.of(context);
+    final world = transform.toScene(at) - const Offset(_origin, _origin);
+    final capture = ref.read(captureServiceProvider);
+    final ids = <String>[];
+    for (final file in files) {
+      final picked = await pickedFromXFile(file);
+      ids.add(await capture.capture(CaptureInput(files: [picked], untitled: (time) => untitledFor(l, mime: picked.mime, fileName: p.basename(picked.path), at: time))));
+    }
+    if (mounted) await _placeSaved(ids, at: world);
+  }
+
+  /// Заметки, сохранённые строкой или брошенные файлами: карточками рядом друг с другом —
+  /// в точке мира [at] или посреди экрана.
+  Future<void> _placeSaved(List<String> ids, {Offset? at}) async {
     for (final (index, id) in ids.indexed) {
       final path = await _pathOf(id);
       if (path == null || !mounted || !_editable) return;
       final image = _imageExtensions.contains(p.extension(path).replaceFirst('.', '').toLowerCase());
       final (width, height) = image ? (320.0, 240.0) : (300.0, 200.0);
-      final spot = _spot(_center - Offset(width / 2, height / 2) + Offset(index * 40.0, index * 40.0), width, height);
+      final spot = _spot((at ?? _center) - Offset(width / 2, height / 2) + Offset(index * 40.0, index * 40.0), width, height);
       final next = _doc.addFile(path, x: spot.dx, y: spot.dy, width: width, height: height);
       _placed[next.nodes.last.id] = id;
       _select(next);
@@ -727,7 +746,10 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
                         _fitted = true;
                         WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? fitAll() : null);
                       }
-                      return Focus(
+                      return CanvasDropZone(
+                        enabled: _editable,
+                        onFiles: (files, at) => _dropFiles(files, at).ignore(),
+                        child: Focus(
                         focusNode: canvasFocus,
                         onKeyEvent: _onFocusKey,
                         child: Stack(
@@ -966,6 +988,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
                             ),
                           ],
                         ),
+                      ),
                       );
                     },
                   ),

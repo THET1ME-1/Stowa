@@ -928,5 +928,6 @@
   "wsToRight": "Do prawego panelu",
   "wsToLeft": "Do lewego panelu",
   "wsHidePanel": "Usuń panel",
-  "wsPanelEmpty": "Na razie pusto"
+  "wsPanelEmpty": "Na razie pusto",
+  "canvasDropHint": "Upuść — pliki trafią na płótno"
 }

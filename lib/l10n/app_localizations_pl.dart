@@ -4383,4 +4383,7 @@ class LPl extends L {
 
   @override
   String get wsPanelEmpty => 'Na razie pusto';
+
+  @override
+  String get canvasDropHint => 'Upuść — pliki trafią na płótno';
 }
