@@ -260,6 +260,10 @@ PlaceReminder? placeReminderOf(Item item) => item.remindPlace == null
 class ItemsRepository {
   ItemsRepository(this._db, {DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
 
+  /// Название и текст заметок для поиска строки, пока их не правили (сверка по времени правки
+  /// и длине): каждая буква не тянет из базы заново мегабайты текста.
+  final _texts = <String, ({DateTime edited, int size, String title, String body, String deep})>{};
+
   /// Сейчас: догадка угадывателя становится образцом через неделю ([folderDocs]).
   final DateTime Function() _clock;
 
@@ -1025,54 +1029,94 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       ids.addAll(filtered.map((row) => row.read<String>('id')));
     }
     if (ids.isEmpty) return const [];
-
+    // для ранжирования — лёгкая выборка без подзапросов карточки; название и текст — из памяти,
+    // пока заметку не правили (в браузере база в отдельном потоке, и 600 полных карточек на
+    // каждую букву шли секундами). Полные карточки — только для показанных
+    final light = await _db
+        .customSelect(
+          'SELECT items.id, items.updated_at, length(items.title) + length(items.body) AS size, items.folder_id, items.place_name, items.url, '
+          'folders.name AS folder_name, (SELECT group_concat(tags.name, char(31)) FROM item_tags JOIN tags ON tags.id = item_tags.tag_id '
+          'WHERE item_tags.item_id = items.id) AS tag_names FROM items LEFT JOIN folders ON folders.id = items.folder_id AND folders.deleted_at IS NULL '
+          'WHERE items.deleted_at IS NULL AND items.id IN (${List.filled(ids.length, '?').join(',')})',
+          variables: [for (final id in ids) Variable.withString(id)],
+          readsFrom: {_db.items, _db.folders, _db.itemTags, _db.tags},
+        )
+        .get();
+    if (_texts.length > 20000) _texts.clear();
+    final fresh = [
+      for (final row in light)
+        if (_texts[row.read<String>('id')] case final known when known == null || known.edited != row.read<DateTime>('updated_at') || known.size != row.read<int>('size'))
+          row.read<String>('id'),
+    ];
+    if (fresh.isNotEmpty) {
+      final rows = await _db
+          .customSelect(
+            'SELECT id, updated_at, length(title) + length(body) AS size, title, body, ai_description, transcript FROM items WHERE id IN (${List.filled(fresh.length, '?').join(',')})',
+            variables: [for (final id in fresh) Variable.withString(id)],
+            readsFrom: {_db.items},
+          )
+          .get();
+      for (final row in rows) {
+        _texts[row.read<String>('id')] = (
+          edited: row.read<DateTime>('updated_at'),
+          size: row.read<int>('size'),
+          title: row.read<String>('title'),
+          body: row.read<String>('body'),
+          deep: [row.readNullable<String>('ai_description'), row.readNullable<String>('transcript')].nonNulls.join('\n'),
+        );
+      }
+    }
+    if (stale?.call() ?? false) return const [];
+    final factParts = await _factParts(ids);
+    final docs = <SearchDoc>[
+      for (final row in light)
+        if (_texts[row.read<String>('id')] case final text?)
+          SearchDoc(
+            id: row.read<String>('id'),
+            title: text.title,
+            body: text.body,
+            tags: switch (row.readNullable<String>('tag_names')) {
+              final names? when names.isNotEmpty => names.split('\x1f'),
+              _ => const [],
+            },
+            folderName: row.readNullable<String>('folder_name'),
+            folderId: row.readNullable<String>('folder_id'),
+            deep: text.deep,
+            place: row.readNullable<String>('place_name') ?? '',
+            facts: factParts[row.read<String>('id')] ?? const [],
+            url: row.readNullable<String>('url') ?? '',
+            ageDays: now.difference(text.edited).inDays,
+          ),
+    ];
+    final List<SearchHit> top;
+    if (stale == null) {
+      top = rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit);
+    } else {
+      // порциями: между ними — кадр и проверка, не устарел ли поиск. Лучшие порций сводятся в одни
+      final hits = <SearchHit>[];
+      for (var start = 0; start < docs.length; start += _rankChunk) {
+        if (stale()) return const [];
+        hits.addAll(rankSearch(docs.sublist(start, math.min(start + _rankChunk, docs.length)), words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit));
+        await Future<void>.delayed(Duration.zero);
+      }
+      if (stale()) return const [];
+      hits.sort(compareHits);
+      top = hits.take(limit).toList();
+    }
+    if (top.isEmpty) return const [];
+    final shown = {for (final hit in top) hit.doc.id};
     final rows = await _db
         .customSelect(
-          '$_cardSelect AND items.id IN (${List.filled(ids.length, '?').join(',')})',
-          variables: [for (final id in ids) Variable.withString(id)],
+          '$_cardSelect AND items.id IN (${List.filled(shown.length, '?').join(',')})',
+          variables: [for (final id in shown) Variable.withString(id)],
           readsFrom: _cardTables,
         )
         .get();
-    final cards = <String, ItemCard>{};
-    final docs = <SearchDoc>[];
-    final factParts = await _factParts(ids);
-    for (final row in rows) {
-      final card = _card(row);
-      final item = _db.items.map(row.data);
-      final tagNames = row.readNullable<String>('tag_names');
-      cards[card.id] = card;
-      docs.add(
-        SearchDoc(
-          id: card.id,
-          title: card.title,
-          body: card.body,
-          tags: tagNames == null || tagNames.isEmpty ? const [] : tagNames.split('\x1f'),
-          folderName: card.folderName,
-          folderId: card.folderId,
-          deep: [item.aiDescription, item.transcript].nonNulls.join('\n'),
-          place: card.placeName ?? '',
-          facts: factParts[card.id] ?? const [],
-          url: card.url ?? '',
-          ageDays: now.difference(item.updatedAt).inDays,
-        ),
-      );
-    }
-    if (stale == null) {
-      return [
-        for (final hit in rankSearch(docs, words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit))
-          SearchResult(card: cards[hit.doc.id]!, hit: hit),
-      ];
-    }
-    // порциями: между ними — кадр и проверка, не устарел ли поиск. Лучшие порций сводятся в одни
-    final hits = <SearchHit>[];
-    for (var start = 0; start < docs.length; start += _rankChunk) {
-      if (stale()) return const [];
-      hits.addAll(rankSearch(docs.sublist(start, math.min(start + _rankChunk, docs.length)), words, tagFilters: tags, folderFilter: folderId, filtered: query.hasFilters, limit: limit));
-      await Future<void>.delayed(Duration.zero);
-    }
-    if (stale()) return const [];
-    hits.sort(compareHits);
-    return [for (final hit in hits.take(limit)) SearchResult(card: cards[hit.doc.id]!, hit: hit)];
+    final cards = {for (final row in rows) row.read<String>('id'): _card(row)};
+    return [
+      for (final hit in top)
+        if (cards[hit.doc.id] case final card?) SearchResult(card: card, hit: hit),
+    ];
   }
 
   // факты, по которым ищут: текст документов, страница ссылки, субтитры и главы ролика. Деньги,
