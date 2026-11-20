@@ -857,7 +857,7 @@
   "noticeRemove": "Usuń",
   "noticeHiddenTitle": "Przypięta notatka",
   "syncOff": "Wyłączona",
-  "syncIntro": "Skarbiec jest taki sam na wszystkich twoich telefonach i jest szyfrowany jeszcze na telefonie.",
+  "syncIntro": "Notatki są takie same na telefonie i na stronie, a szyfrowane jeszcze przed wysłaniem.",
   "syncEmail": "E-mail",
   "syncGetCode": "Wyślij kod",
   "syncCodeSent": "Kod wysłany na {email}",

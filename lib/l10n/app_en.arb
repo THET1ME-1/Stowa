@@ -4948,9 +4948,9 @@
   "@syncOff": {
     "description": "Settings row value when not signed in"
   },
-  "syncIntro": "Your vault stays the same on all your phones and is encrypted before it leaves the phone.",
+  "syncIntro": "Your notes stay the same on your phone and on the web, and are encrypted before they leave the device.",
   "@syncIntro": {
-    "description": "syncIntro"
+    "description": "Пояснение на экране Stowa Sync: что даёт синхронизация"
   },
   "syncEmail": "Email",
   "@syncEmail": {

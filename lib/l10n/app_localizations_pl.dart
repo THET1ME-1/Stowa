@@ -4157,7 +4157,7 @@ class LPl extends L {
 
   @override
   String get syncIntro =>
-      'Skarbiec jest taki sam na wszystkich twoich telefonach i jest szyfrowany jeszcze na telefonie.';
+      'Notatki są takie same na telefonie i na stronie, a szyfrowane jeszcze przed wysłaniem.';
 
   @override
   String get syncEmail => 'E-mail';

@@ -857,7 +857,7 @@
   "noticeRemove": "Quitar",
   "noticeHiddenTitle": "Nota fijada",
   "syncOff": "Desactivada",
-  "syncIntro": "Tu bóveda es igual en todos tus teléfonos y se cifra antes de salir del teléfono.",
+  "syncIntro": "Tus notas son iguales en el teléfono y en la web, y se cifran antes de salir del dispositivo.",
   "syncEmail": "Correo",
   "syncGetCode": "Recibir código",
   "syncCodeSent": "Enviamos un código a {email}",

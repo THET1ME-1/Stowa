@@ -4097,7 +4097,7 @@ class LEs extends L {
 
   @override
   String get syncIntro =>
-      'Tu bóveda es igual en todos tus teléfonos y se cifra antes de salir del teléfono.';
+      'Tus notas son iguales en el teléfono y en la web, y se cifran antes de salir del dispositivo.';
 
   @override
   String get syncEmail => 'Correo';

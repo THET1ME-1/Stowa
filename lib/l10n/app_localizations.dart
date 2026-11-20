@@ -6947,10 +6947,10 @@ abstract class L {
   /// **'Off'**
   String get syncOff;
 
-  /// syncIntro
+  /// Пояснение на экране Stowa Sync: что даёт синхронизация
   ///
   /// In en, this message translates to:
-  /// **'Your vault stays the same on all your phones and is encrypted before it leaves the phone.'**
+  /// **'Your notes stay the same on your phone and on the web, and are encrypted before they leave the device.'**
   String get syncIntro;
 
   /// syncEmail

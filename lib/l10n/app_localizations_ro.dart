@@ -4124,7 +4124,7 @@ class LRo extends L {
 
   @override
   String get syncIntro =>
-      'Seiful rămâne la fel pe toate telefoanele tale și e criptat înainte să plece de pe telefon.';
+      'Notițele rămân la fel pe telefon și pe site și sunt criptate înainte să plece de pe dispozitiv.';
 
   @override
   String get syncEmail => 'E-mail';

@@ -857,7 +857,7 @@
   "noticeRemove": "Entfernen",
   "noticeHiddenTitle": "Angeheftete Notiz",
   "syncOff": "Aus",
-  "syncIntro": "Dein Tresor bleibt auf all deinen Handys gleich und wird schon auf dem Handy verschlüsselt.",
+  "syncIntro": "Deine Notizen bleiben auf dem Handy und im Web gleich und werden schon vor dem Senden verschlüsselt.",
   "syncEmail": "E-Mail",
   "syncGetCode": "Code anfordern",
   "syncCodeSent": "Code an {email} gesendet",

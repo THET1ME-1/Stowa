@@ -857,7 +857,7 @@
   "noticeRemove": "Scoate",
   "noticeHiddenTitle": "Notiță fixată",
   "syncOff": "Oprită",
-  "syncIntro": "Seiful rămâne la fel pe toate telefoanele tale și e criptat înainte să plece de pe telefon.",
+  "syncIntro": "Notițele rămân la fel pe telefon și pe site și sunt criptate înainte să plece de pe dispozitiv.",
   "syncEmail": "E-mail",
   "syncGetCode": "Primește codul",
   "syncCodeSent": "Am trimis un cod la {email}",

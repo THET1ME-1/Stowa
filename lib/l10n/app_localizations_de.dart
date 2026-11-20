@@ -4110,7 +4110,7 @@ class LDe extends L {
 
   @override
   String get syncIntro =>
-      'Dein Tresor bleibt auf all deinen Handys gleich und wird schon auf dem Handy verschlüsselt.';
+      'Deine Notizen bleiben auf dem Handy und im Web gleich und werden schon vor dem Senden verschlüsselt.';
 
   @override
   String get syncEmail => 'E-Mail';
