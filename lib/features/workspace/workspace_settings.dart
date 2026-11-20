@@ -6,6 +6,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../settings/appearance_screen.dart';
@@ -280,9 +281,9 @@ class _KeysEditorState extends State<KeysEditor> {
       if (chord == 'Esc') return;
       try {
         final taken = controller.updateKeys((keys) => index < 0 ? keys.add(id, chord) : keys.replace(id, index, chord));
-        if (taken != null) messenger.showSnackBar(SnackBar(content: Text(l.wsKeysTaken(commandTitle(l, taken)))));
+        if (taken != null) showNote(messenger, l.wsKeysTaken(commandTitle(l, taken)));
       } on BrowserChord {
-        messenger.showSnackBar(SnackBar(content: Text(l.wsKeysBrowser)));
+        showNote(messenger, l.wsKeysBrowser);
       }
     };
   }

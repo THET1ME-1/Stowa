@@ -523,7 +523,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     try {
       _addPicked(await picker());
     } on PlatformException {
-      messenger.showSnackBar(SnackBar(content: Text(l.attachFailed)));
+      showNote(messenger, l.attachFailed);
     }
   }
 
@@ -749,7 +749,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     } catch (_) {
       // не сохранилось: строка снова такая, как её набрали
       _line.restore(text: typed.text, tags: typed.tags, folder: typed.folder, reminderDismissed: snapshot.dismissed, placeDismissed: snapshot.placeDismissed);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.saveFailed)));
+      if (mounted) showNote(ScaffoldMessenger.of(context), l.saveFailed);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -774,7 +774,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       _open(id);
     } on Object {
       _line.restore(text: typed.text, tags: typed.tags, folder: typed.folder, reminderDismissed: _line.reminderDismissed, placeDismissed: _line.placeDismissed);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.saveFailed)));
+      if (mounted) showNote(ScaffoldMessenger.of(context), l.saveFailed);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -824,7 +824,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       if (elsewhere != null) {
         _handOff(LaunchAction.voice);
       } else {
-        messenger.showSnackBar(SnackBar(content: Text(l.voiceDenied)));
+        showNote(messenger, l.voiceDenied);
       }
       return false;
     }

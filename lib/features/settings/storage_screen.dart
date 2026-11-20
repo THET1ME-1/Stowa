@@ -198,7 +198,7 @@ class _AttachmentsRowState extends ConsumerState<_AttachmentsRow> {
         final name = await showRenameSheet(context, initial, label: l.attachmentsNameLabel);
         if (name == null || !mounted) return;
         if (attachmentFolderNameError(name) != null) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.attachmentsNameBad)));
+          showNote(ScaffoldMessenger.of(context), l.attachmentsNameBad);
           return;
         }
         final clean = name.trim().replaceAll(RegExp(r'/+$'), '');
@@ -206,7 +206,7 @@ class _AttachmentsRowState extends ConsumerState<_AttachmentsRow> {
     }
     final saved = writeAttachmentSetting(ref.read(filesRootProvider), value);
     if (!mounted) return;
-    if (!saved) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.attachmentsObsidianBroken)));
+    if (!saved) showNote(ScaffoldMessenger.of(context), l.attachmentsObsidianBroken);
     setState(() {});
   }
 

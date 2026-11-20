@@ -589,7 +589,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       _body.value = insertImageLines(caret, [for (final file in files) file.name!]);
       _bodyFocus.requestFocus();
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(L.of(context).attachFailed)));
+      if (mounted) showNote(ScaffoldMessenger.of(context), L.of(context).attachFailed);
     }
   }
 
@@ -655,7 +655,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   Future<void> _copy(Item item) async {
     await Clipboard.setData(ClipboardData(text: _plainText(item)));
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(L.of(context).itemCopied)));
+    if (mounted) showNote(ScaffoldMessenger.of(context), L.of(context).itemCopied);
   }
 
   Future<void> _delete() async {

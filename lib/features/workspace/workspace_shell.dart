@@ -21,6 +21,7 @@ import '../map/map_screen.dart';
 import '../returns/return_screen.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../item/item_actions.dart';
+import 'desk_toast_host.dart';
 import 'workspace_docks.dart';
 import 'workspace_home.dart';
 import 'workspace_keys.dart';
@@ -246,7 +247,7 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
     return tab?.kind == 'item' ? tab!.id : null;
   }
 
-  void _say(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  void _say(String message) => showNote(ScaffoldMessenger.of(context), message);
 
   void _run(String id) {
     final l = L.of(context);
@@ -381,6 +382,8 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
                                       child: composer,
                                     ),
                                   ),
+                                // плашки «Отменить» и сообщения — пилюлей над общей строкой
+                                const DeskToastHost(bottom: _lineSpace + 8),
                               ],
                             ),
                           ),
