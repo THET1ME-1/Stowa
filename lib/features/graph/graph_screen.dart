@@ -1,10 +1,10 @@
-import 'dart:isolate';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
@@ -20,7 +20,7 @@ Route<void> graphRoute({String? folderId, String? tag, required String title}) =
 /// 500 точек считаются заметную долю секунды: не на потоке экрана. Функция верхнего
 /// уровня нарочно — замыкание внутри состояния утащило бы в поток весь экран, а его
 /// переслать нельзя.
-Future<Map<String, (double, double)>> _layoutApart(List<String> ids, List<(String, String)> edges) => Isolate.run(() => layoutGraph(ids, edges));
+Future<Map<String, (double, double)>> _layoutApart(List<String> ids, List<(String, String)> edges) => aside(() => layoutGraph(ids, edges));
 
 /// Поля вокруг графа, чтобы крайние подписи не резались.
 const _pad = 80.0;

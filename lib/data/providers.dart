@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -14,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
+import '../core/platform.dart' show aside;
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
@@ -304,7 +304,7 @@ final articleLoaderProvider = Provider<Future<Article?> Function(String itemId, 
     final html = await readPage(root, itemId);
     final page = Uri.tryParse(url);
     if (html == null || page == null) return null;
-    return Isolate.run(() => extractArticle(html, page));
+    return aside(() => extractArticle(html, page));
   };
 });
 final tagsRepositoryProvider = Provider((ref) => TagsRepository(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));

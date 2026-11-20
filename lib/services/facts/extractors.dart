@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:path/path.dart' as p;
 
+import '../../core/platform.dart';
 import '../../domain/contacts.dart';
 import '../../domain/document_text.dart';
 import '../../domain/image_colors.dart';
@@ -104,7 +104,11 @@ class FileTextExtractor extends Extractor {
 
 /// Документ читается в своём потоке: большой DOCX не подвешивает экран.
 /// Функция верхнего уровня: замыкание метода потянуло бы в поток весь объект.
-Future<List<DocumentPart>> readDocument(String path, String name) => Isolate.run(() => documentText(File(path).readAsBytesSync(), name: name));
+Future<List<DocumentPart>> readDocument(String path, String name) async {
+  // в браузере крупный файл разом не читается: его байты лежат в хранилище браузера, а не в памяти
+  if (isWeb) return documentText(await File(path).readAsBytes(), name: name);
+  return aside(() => documentText(File(path).readAsBytesSync(), name: name));
+}
 
 /// Дата съёмки, камера, место съёмки из EXIF; скриншот это или фото.
 class PhotoExtractor extends Extractor {
@@ -253,7 +257,7 @@ class QrExtractor extends Extractor {
       final wide = width >= height;
       final image = await _decoded(file, width: wide && width > _side ? _side : null, height: !wide && height > _side ? _side : null);
       if (image == null) continue;
-      final text = await Isolate.run(() => scanQr(image.rgba, image.width, image.height));
+      final text = await aside(() => scanQr(image.rgba, image.width, image.height));
       if (text == null || text.trim().isEmpty) continue;
       facts.add(FactDraft(FactKind.qr, text.trim(), detail: parseQr(text).kind.name));
     }

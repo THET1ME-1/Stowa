@@ -4,10 +4,11 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+
+import '../../core/platform.dart' show aside;
 
 /// Сколько открытого текста в одном куске запечатанного файла.
 const sealChunk = 1024 * 1024;
@@ -100,7 +101,7 @@ Future<SecretKey> _codeKey(String code, List<int> salt, KdfSettings kdf) async {
     return key.extractBytes();
   }
 
-  return SecretKey(kdf.memoryKib < 4096 ? await derive() : await Isolate.run(derive));
+  return SecretKey(kdf.memoryKib < 4096 ? await derive() : await aside(derive));
 }
 
 /// Новые ключи под кодом.

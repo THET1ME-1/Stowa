@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io' show Platform, pid;
+import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -10,6 +12,11 @@ bool get isWeb => kIsWeb;
 bool get isAndroid => !kIsWeb && Platform.isAndroid;
 
 bool get isIOS => !kIsWeb && Platform.isIOS;
+
+/// Тяжёлый счёт в стороне от главного потока: раскладка графа, текст документа, QR.
+/// В браузере изолятов нет, и `Isolate.run` там бросает ошибку («Граф не построился»),
+/// поэтому там счёт идёт на месте, после передышки. **Вместо `Isolate.run` звать это.**
+Future<T> aside<T>(FutureOr<T> Function() work) => kIsWeb ? Future<T>(work) : Isolate.run(work);
 
 /// Язык системы, как `Platform.localeName`: «ru_RU» на телефоне, «ru-RU» в браузере.
 String get systemLocaleName => kIsWeb ? PlatformDispatcher.instance.locale.toLanguageTag() : Platform.localeName;

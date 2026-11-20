@@ -4,20 +4,38 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/app.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/providers.dart';
+import 'package:stowa/data/repositories/canvas_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/canvas/canvas_kit.dart' show CanvasLinksPainter;
 import 'package:stowa/features/home/folder_shelf.dart';
 
 import '../../helpers/test_app.dart';
 
+/// Хранилище мест, которое помнит, кого расставляла пачкой сама расстановка новых карточек.
+class _RecordingCanvas extends CanvasRepository {
+  _RecordingCanvas(super.db);
+
+  final arranged = <String>{};
+
+  @override
+  Future<void> saveAll(String folderId, Map<String, CanvasSpot> spots) {
+    arranged.addAll(spots.keys);
+    return super.saveAll(folderId, spots);
+  }
+}
+
 void main() {
   late TestWorld world;
   setUp(() => world = TestWorld());
   tearDown(() => world.dispose());
 
-  Future<void> openCanvas(WidgetTester tester) async {
+  Future<void> openCanvas(WidgetTester tester, {List<Override> extra = const []}) async {
     final db = world.db;
     await db.into(db.folders).insert(FoldersCompanion.insert(id: 'ideas', name: 'Идеи', icon: 'lightbulb', shape: 'pill'));
     for (final (index, title) in ['Кухня', 'Свет', 'Пол'].indexed) {
@@ -30,7 +48,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     addTearDown(() => tester.pumpWidget(const SizedBox()));
-    await tester.pumpWidget(world.app());
+    await tester.pumpWidget(extra.isEmpty ? world.app() : ProviderScope(overrides: [...world.overrides, ...extra], child: const StowaApp(locale: Locale('ru'))));
     await tester.pumpAndSettle();
     await tester.tap(find.descendant(of: find.byType(FolderPill), matching: find.text('Идеи')));
     await tester.pumpAndSettle();
@@ -425,6 +443,46 @@ void main() {
     final added = all.firstWhere((item) => !['i0', 'i1', 'i2'].contains(item.id));
     expect(added.folderId, 'ideas');
     expect((await spots()).map((spot) => spot.itemId), contains(added.id));
+    // там, где отпустили, а не в ячейке справа от разложенных: расстановка новых карточек
+    // не должна затирать место, которое выбрал бросок
+    final card = tester.getRect(find.byKey(ValueKey(added.id)));
+    expect(card.contains(const Offset(200, 500)), isTrue, reason: 'карточка $card, бросили в (200, 500)');
+    final others = [for (final id in ['i0', 'i1', 'i2']) tester.getRect(find.byKey(ValueKey(id)))];
+    expect(card.top, greaterThan(others.map((rect) => rect.top).reduce((a, b) => a < b ? a : b) + 40), reason: 'не в верхнем ряду');
+  });
+
+  testWidgets('место брошенного файла не затирает расстановка новых карточек, когда места доходят до холста с опозданием', (tester) async {
+    // так в браузере: заметка уже на холсте, а её место из базы ещё в пути. Холст считал
+    // карточку неразложенной, ставил её справа от остальных и этой записью затирал место броска
+    final folder = Directory.systemTemp.createTempSync('stowa_drop_late');
+    addTearDown(() => folder.deleteSync(recursive: true));
+    final file = File('${folder.path}/план кухни.txt')..writeAsStringSync('плитка 20×20');
+    final repository = _RecordingCanvas(world.db);
+    final late = canvasSpotsProvider.overrideWith(
+      (ref, folderId) => repository.watch(folderId).asyncMap((spots) => Future.delayed(const Duration(milliseconds: 400), () => spots)),
+    );
+    await openCanvas(tester, extra: [canvasRepositoryProvider.overrideWithValue(repository), late]);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    const codec = StandardMethodCodec();
+    Future<void> send(String method, Object arguments) =>
+        tester.binding.defaultBinaryMessenger.handlePlatformMessage('desktop_drop', codec.encodeMethodCall(MethodCall(method, arguments)), (_) {});
+    await send('entered', [200.0, 500.0]);
+    await tester.pump();
+    await send('performOperation', [file.path]);
+    // заметка сохраняется и её место пишется в базу (настоящее время: файл читается с диска)
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
+    // кадры идут, заметка уже на холсте, а место ещё в пути: тут расстановка и затирала его
+    for (var frame = 0; frame < 6; frame++) {
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    }
+    await tester.pump(const Duration(seconds: 2));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pumpAndSettle();
+    final added = (await world.db.select(world.db.items).get()).firstWhere((item) => !['i0', 'i1', 'i2'].contains(item.id));
+    expect((await spots()).map((spot) => spot.itemId), contains(added.id));
+    expect(repository.arranged, isNot(contains(added.id)), reason: 'расстановка новых карточек записала место поверх выбранного броском');
   });
 
   testWidgets('пальцем карточка не выделяется: Delete на телефоне ничего не удаляет', (tester) async {

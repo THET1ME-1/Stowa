@@ -212,8 +212,23 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     if (text == null || !mounted) return null;
     final center = at ?? transform.toScene(viewport.center(Offset.zero));
     final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text, forcedFolderId: widget.folderId));
-    await ref.read(canvasRepositoryProvider).save(widget.folderId, id, (x: center.dx - _origin - 110, y: center.dy - _origin - 88, width: 220));
+    await _putAt(id, (x: center.dx - _origin - 110, y: center.dy - _origin - 88, width: 220));
     return id;
+  }
+
+  /// Место заметки, которое выбрал человек: записка на холсте, брошенный файл. Заметка
+  /// появляется на холсте раньше, чем её место доходит из базы, и расстановка новых
+  /// ([_placeMissing]) ставила её справа от остальных, затирая выбранное. Поэтому заметка
+  /// сразу числится расставленной.
+  Future<void> _putAt(String id, CanvasSpot spot) async {
+    _placing.add(id);
+    try {
+      await ref.read(canvasRepositoryProvider).save(widget.folderId, id, spot);
+    } catch (_) {
+      // место не записалось — пусть встанет хоть куда-нибудь
+      _placing.remove(id);
+      rethrow;
+    }
   }
 
   // ——— стрелки-связи ———
@@ -570,14 +585,13 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     final l = L.of(context);
     final world = transform.toScene(at);
     final capture = ref.read(captureServiceProvider);
-    final canvas = ref.read(canvasRepositoryProvider);
     for (final (index, file) in files.indexed) {
       final picked = await pickedFromXFile(file);
       final id = await capture.capture(
         CaptureInput(files: [picked], forcedFolderId: widget.folderId, untitled: (time) => untitledFor(l, mime: picked.mime, fileName: p.basename(picked.path), at: time)),
       );
       // несколько файлов — лесенкой, первый под курсором
-      await canvas.save(widget.folderId, id, (x: world.dx - _origin - 120 + index * 32, y: world.dy - _origin - 90 + index * 32, width: 240));
+      await _putAt(id, (x: world.dx - _origin - 120 + index * 32, y: world.dy - _origin - 90 + index * 32, width: 240));
     }
   }
 }

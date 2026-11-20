@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io' show File;
-import 'dart:isolate';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../core/platform.dart';
 import '../../data/db/database.dart';
 import '../../domain/article_text.dart';
 import '../../domain/document_text.dart' show documentTextLimit;
@@ -194,7 +194,7 @@ class ArticleImagesExtractor extends Extractor {
     final html = await readPage(input.filesRoot, input.item.id);
     final page = Uri.tryParse(input.item.url ?? '');
     if (html == null || page == null) return const [];
-    final sources = await Isolate.run(() => [
+    final sources = await aside(() => [
       for (final block in extractArticle(html, page)?.blocks ?? const <ArticleBlock>[])
         if (block.kind == ArticleBlockKind.image) block.src!,
     ]);
@@ -235,7 +235,7 @@ class ArticleExtractor extends Extractor {
     final html = await readPage(input.filesRoot, input.item.id);
     final page = Uri.tryParse(input.item.url ?? '');
     if (html == null || page == null) return const [];
-    final found = await Isolate.run(() {
+    final found = await aside(() {
       final article = extractArticle(html, page);
       return article == null ? null : (text: article.plainText, words: article.words, minutes: article.minutes);
     });
