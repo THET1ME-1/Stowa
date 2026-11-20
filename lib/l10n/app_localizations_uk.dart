@@ -4446,4 +4446,28 @@ class LUk extends L {
 
   @override
   String get wsEmptyRestore => 'Повернути з копії';
+
+  @override
+  String get itemPropFolder => 'Тека';
+
+  @override
+  String get itemPropTags => 'Теги';
+
+  @override
+  String get itemPropRemind => 'Нагадати';
+
+  @override
+  String get itemPropPlace => 'Місце';
+
+  @override
+  String get itemPropCreated => 'Створено';
+
+  @override
+  String get itemPropTaken => 'Знято';
+
+  @override
+  String get itemPropLinks => 'Зв’язки';
+
+  @override
+  String get itemWriteMore => 'Дописати текст…';
 }

@@ -947,5 +947,13 @@
   "wsEmptyBody": "Wirf einen Gedanken, Link oder eine Datei in die Zeile unten, Stowa sortiert sie selbst in Ordner.",
   "wsEmptyWrite": "Erste Notiz schreiben",
   "wsEmptyFolder": "Ordner anlegen",
-  "wsEmptyRestore": "Aus Sicherung holen"
+  "wsEmptyRestore": "Aus Sicherung holen",
+  "itemPropFolder": "Ordner",
+  "itemPropTags": "Tags",
+  "itemPropRemind": "Erinnern",
+  "itemPropPlace": "Ort",
+  "itemPropCreated": "Erstellt",
+  "itemPropTaken": "Aufgenommen",
+  "itemPropLinks": "Verknüpfungen",
+  "itemWriteMore": "Text ergänzen…"
 }

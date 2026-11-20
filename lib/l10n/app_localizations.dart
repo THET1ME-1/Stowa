@@ -7492,6 +7492,54 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Restore a backup'**
   String get wsEmptyRestore;
+
+  /// Свойства заметки на мониторе: строка папки
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get itemPropFolder;
+
+  /// Свойства заметки на мониторе: строка тегов
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get itemPropTags;
+
+  /// Свойства заметки на мониторе: строка напоминания
+  ///
+  /// In en, this message translates to:
+  /// **'Remind'**
+  String get itemPropRemind;
+
+  /// Свойства заметки на мониторе: где записана
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get itemPropPlace;
+
+  /// Свойства заметки на мониторе: когда записана
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get itemPropCreated;
+
+  /// Свойства заметки на мониторе: когда и чем снято фото
+  ///
+  /// In en, this message translates to:
+  /// **'Taken'**
+  String get itemPropTaken;
+
+  /// Свойства заметки на мониторе: связи с другими заметками
+  ///
+  /// In en, this message translates to:
+  /// **'Links'**
+  String get itemPropLinks;
+
+  /// Заметка из одной строки на мониторе: приглашение дописать под заголовком
+  ///
+  /// In en, this message translates to:
+  /// **'Add some text…'**
+  String get itemWriteMore;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

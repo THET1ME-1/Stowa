@@ -1230,5 +1230,13 @@
   "wsEmptyBody": "Закинь в строку снизу мысль, ссылку или файл, и Stowa сама разложит их по папкам.",
   "wsEmptyWrite": "Записать первую заметку",
   "wsEmptyFolder": "Завести папку",
-  "wsEmptyRestore": "Вернуть из копии"
+  "wsEmptyRestore": "Вернуть из копии",
+  "itemPropFolder": "Папка",
+  "itemPropTags": "Теги",
+  "itemPropRemind": "Напомнить",
+  "itemPropPlace": "Место",
+  "itemPropCreated": "Создана",
+  "itemPropTaken": "Снято",
+  "itemPropLinks": "Связи",
+  "itemWriteMore": "Дописать текст…"
 }

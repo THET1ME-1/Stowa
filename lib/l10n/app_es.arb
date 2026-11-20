@@ -947,5 +947,13 @@
   "wsEmptyBody": "Suelta en la barra de abajo una idea, un enlace o un archivo, y Stowa lo ordena en carpetas.",
   "wsEmptyWrite": "Escribir la primera nota",
   "wsEmptyFolder": "Crear una carpeta",
-  "wsEmptyRestore": "Restaurar una copia"
+  "wsEmptyRestore": "Restaurar una copia",
+  "itemPropFolder": "Carpeta",
+  "itemPropTags": "Etiquetas",
+  "itemPropRemind": "Recordar",
+  "itemPropPlace": "Lugar",
+  "itemPropCreated": "Creada",
+  "itemPropTaken": "Tomada",
+  "itemPropLinks": "Enlaces",
+  "itemWriteMore": "Añadir texto…"
 }

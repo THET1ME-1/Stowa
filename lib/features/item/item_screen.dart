@@ -16,6 +16,7 @@ import '../canvas/canvas_file_screen.dart';
 import '../drawing/drawing_screen.dart';
 import '../../core/format/reminder_format.dart';
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
@@ -785,18 +786,29 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final files = full.attachments.where((file) => !file.mime.startsWith('image/') && !file.mime.startsWith('audio/') && file != videoFile).toList();
     // адрес уже стоит в превью: строкой в тексте он не повторяется
     final shownBody = linkLike ? item.body.split('\n').where((line) => line.trim() != url).join('\n') : item.body;
-    final blocks = parseNoteBlocks(shownBody);
+    // широкий экран (вкладка рабочего пространства): текст колонкой до 760 точек посередине, как в
+    // макете, сверху тонкая строка с путём папки и действиями, низ окна отдан общей строке ввода
+    final desk = WorkspaceScope.maybeOf(context) != null;
+    final titleFromLine = titleIsFirstLine(shownBody, item.title);
+    // на мониторе заголовок документа всегда крупно сверху, как в макете: строка, из которой
+    // он сделан, в тексте под ним не повторяется, номера строк для галочек сдвигаются за ней
+    final deskTitle = desk && !_editing && !linkLike && titleFromLine;
+    final List<NoteBlock> blocks;
+    if (deskTitle) {
+      final lines = shownBody.split('\n');
+      final first = lines.indexWhere((line) => line.trim().isNotEmpty);
+      blocks = parseNoteBlocks(lines.skip(first + 1).join('\n'), lineOffset: first + 1);
+    } else {
+      blocks = parseNoteBlocks(shownBody);
+    }
     // «купить молоко, хлеб и яйца» можно одним касанием сделать галочками
     final checklist = item.kind == ItemKind.note ? shoppingChecklist(item.body) : null;
     final properties = unpackVaultProperties(item.properties);
     // заголовок из первой строки над ней же не повторяется: заметка видна, как её написали
-    final showTitle = _editing || linkLike || !titleIsFirstLine(shownBody, item.title);
+    final showTitle = _editing || linkLike || !titleFromLine || deskTitle;
     final source = url == null ? null : sourceName(Uri.tryParse(url)?.host ?? '');
     final duration = item.durationSeconds == null ? null : Duration(seconds: item.durationSeconds!);
     Future<void> openMain() => videoFile != null ? openLocalFile(context, p.join(filesRoot.path, videoFile.path), videoFile.mime) : _openLink(url!);
-    // широкий экран (вкладка рабочего пространства): текст колонкой до 760 точек посередине, как в
-    // макете, сверху тонкая строка с путём папки и действиями, низ окна отдан общей строке ввода
-    final desk = WorkspaceScope.maybeOf(context) != null;
     // на мониторе заголовок документа крупнее, как в макете веба
     final titleStyle = desk
         ? text.headlineSmall!.copyWith(fontSize: 32, height: 1.15, letterSpacing: -0.6)
@@ -1051,7 +1063,79 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
                             child: Text(item.previewAuthor!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
                           ),
+                        // монитор: свойства таблицей, как в макете, черта под ними
+                        if (desk) ...[
+                          const SizedBox(height: 18),
+                          _DeskProps(
+                            key: const ValueKey('desk-props'),
+                            rows: [
+                              _PropRow(
+                                icon: 'folder',
+                                label: l.itemPropFolder,
+                                onTap: () => _move(item, folders),
+                                child: _PropChip(
+                                  icon: folder?.icon ?? 'inbox',
+                                  label: folder?.name ?? l.folderNone,
+                                  color: folder?.color,
+                                ),
+                              ),
+                              _PropRow(
+                                icon: 'sell',
+                                label: l.itemPropTags,
+                                child: Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    for (final tag in full.tags.keys)
+                                      _TagPill(label: '#$tag', removeTooltip: l.removeChip, onRemove: _editing ? () => ref.read(tagsRepositoryProvider).unlink(_id, tag) : null),
+                                    _TagPill(label: l.tagAdd, short: l.tagAddShort, add: true, onTap: _addTag),
+                                  ],
+                                ),
+                              ),
+                              if (item.reminderAt != null)
+                                _PropRow(
+                                  icon: 'notifications',
+                                  label: l.itemPropRemind,
+                                  onTap: () => _reminderMenu(item.reminderAt!),
+                                  child: _PropChip(icon: 'event', label: _whenLabel(l, item.reminderAt!, now)),
+                                )
+                              else if (_placeOf(item) case final place?)
+                                _PropRow(
+                                  icon: 'notifications',
+                                  label: l.itemPropRemind,
+                                  onTap: () => _placeMenu(place),
+                                  child: _PropChip(icon: remindPlaceIcon(place.kind), label: remindPlaceLabel(l, place.kind, name: place.name, day: place.day)),
+                                ),
+                              if (item.latitude != null)
+                                _PropRow(
+                                  icon: 'location_on',
+                                  label: l.itemPropPlace,
+                                  onTap: () => Navigator.of(context).push(mapRoute(focusItemId: _id)),
+                                  child: _PropText(item.placeName ?? l.mapPlaceUnnamed),
+                                ),
+                              _PropRow(
+                                key: const ValueKey('item-date'),
+                                icon: 'calendar_today',
+                                label: l.itemPropCreated,
+                                onTap: () => _changeDate(item),
+                                child: _PropText(_whenLabel(l, item.createdAt, now), numbers: true),
+                              ),
+                              if (photoTakenLine(l, facts, now) case final taken?) _PropRow(icon: 'photo_camera', label: l.itemPropTaken, child: _PropText(taken)),
+                              _PropRow(
+                                icon: 'link',
+                                label: l.itemPropLinks,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _TagPill(key: const ValueKey('link-add'), label: l.linkAdd, short: l.linkAddShort, add: true, onTap: _addLink),
+                                ),
+                              ),
+                            ],
+                          ),
+                          _RepeatLine(itemId: _id, now: now),
+                          Padding(padding: const EdgeInsets.fromLTRB(6, 14, 6, 6), child: Divider(height: 1, thickness: 1, color: Tokens.outline)),
+                        ],
                         // когда и где сохранено: место открывает карту
+                        if (!desk) ...[
                         Padding(
                           padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
                           child: _WhenWhere(
@@ -1104,6 +1188,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           const SizedBox(height: 18),
                           _PlaceReminderBlock(place: place, onTap: () => _placeMenu(place)),
                         ],
+                        ],
                         // что страница сказала о себе: рецепт, товар, событие, место, статья, фильм
                         if (!_editing && PageCard.hasAny(facts)) ...[
                           const SizedBox(height: 12),
@@ -1117,13 +1202,27 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             child: VoicePlayer(path: p.join(filesRoot.path, voice.path), seedId: voice.id, large: true),
                           ),
                         ],
+                        // монитор, заметка из одной строки: под заголовком приглашение дописать
+                        if (deskTitle && blocks.isEmpty && !linkLike && videoFile == null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(6, 14, 6, 0),
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.text,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _startEditing(item, append: true),
+                                child: Text(l.itemWriteMore, style: bodyStyle.copyWith(color: Tokens.muted)),
+                              ),
+                            ),
+                          ),
                         if (_editing || blocks.isNotEmpty) ...[
-                          const SizedBox(height: 12),
+                          SizedBox(height: desk ? 4 : 12),
                           AnimatedContainer(
                             key: const ValueKey('item-body-card'),
                             duration: Motion.medium,
-                            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-                            decoration: BoxDecoration(color: _editing ? Tokens.containerHigh : Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
+                            // на мониторе текст лежит на странице, как в макете, а не в карточке
+                            padding: desk ? const EdgeInsets.fromLTRB(6, 10, 6, 10) : const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                            decoration: desk ? null : BoxDecoration(color: _editing ? Tokens.containerHigh : Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
                             child: _editing
                                 ? Focus(
                                     // Tab в формуле — к следующему полю, как в Latex Suite; вне формулы — как обычно
@@ -1649,6 +1748,131 @@ class _RepeatLine extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// День и время по-человечески: «Суббота, 21 ноября, 00:41», прошлый год — с годом.
+String _whenLabel(L l, DateTime at, DateTime now) {
+  final day = at.year == now.year ? DateFormat.MMMMEEEEd(l.localeName).format(at) : DateFormat.yMMMMEEEEd(l.localeName).format(at);
+  return '${_capitalized(day)}, ${DateFormat.jm(l.localeName).format(at)}';
+}
+
+/// Свойства заметки на мониторе таблицей, как в макете: подпись со значком слева,
+/// значение справа.
+class _DeskProps extends StatelessWidget {
+  const _DeskProps({super.key, required this.rows});
+
+  final List<Widget> rows;
+
+  @override
+  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows);
+}
+
+/// Строка свойства. Значение, которое можно поменять, под мышью проступает подложкой.
+class _PropRow extends StatefulWidget {
+  const _PropRow({super.key, required this.icon, required this.label, required this.child, this.onTap});
+
+  final String icon;
+  final String label;
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  State<_PropRow> createState() => _PropRowState();
+}
+
+class _PropRowState extends State<_PropRow> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final tappable = widget.onTap != null;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 160,
+            height: 36,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: Row(
+                children: [
+                  Icon(symbolIcon(widget.icon), size: 18, color: Tokens.muted),
+                  const SizedBox(width: 8),
+                  Flexible(child: Text(widget.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(fontSize: 14, color: Tokens.muted))),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: MouseRegion(
+              cursor: tappable ? SystemMouseCursors.click : MouseCursor.defer,
+              onEnter: tappable ? (_) => setState(() => _hover = true) : null,
+              onExit: tappable ? (_) => setState(() => _hover = false) : null,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onTap,
+                child: AnimatedContainer(
+                  duration: Motion.short,
+                  curve: Motion.emphasized,
+                  constraints: const BoxConstraints(minHeight: 36),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    color: _hover ? Tokens.container : Tokens.container.withValues(alpha: 0),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: widget.child,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Значение свойства пилюлей: значок, у папки — в её цвет.
+class _PropChip extends StatelessWidget {
+  const _PropChip({required this.icon, required this.label, this.color});
+
+  final String icon;
+  final String label;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final tint = color;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 4, 10, 4),
+      decoration: BoxDecoration(color: tint == null ? Tokens.containerHigh : FolderPalette.tint(tint, 0.16), borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(symbolIcon(icon, filled: tint != null), size: 16, color: tint == null ? Tokens.onSurfaceVariant : FolderPalette.ink(tint)),
+          const SizedBox(width: 6),
+          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14))),
+        ],
+      ),
+    );
+  }
+}
+
+/// Значение свойства строкой.
+class _PropText extends StatelessWidget {
+  const _PropText(this.text, {this.numbers = false});
+
+  final String text;
+  final bool numbers;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontSize: 14, color: Tokens.onSurface, fontFeatures: numbers ? const [FontFeature.tabularFigures()] : null),
+  );
 }
 
 class _WhenWhere extends StatelessWidget {

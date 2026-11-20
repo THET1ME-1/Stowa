@@ -4381,4 +4381,28 @@ class LEn extends L {
 
   @override
   String get wsEmptyRestore => 'Restore a backup';
+
+  @override
+  String get itemPropFolder => 'Folder';
+
+  @override
+  String get itemPropTags => 'Tags';
+
+  @override
+  String get itemPropRemind => 'Remind';
+
+  @override
+  String get itemPropPlace => 'Place';
+
+  @override
+  String get itemPropCreated => 'Created';
+
+  @override
+  String get itemPropTaken => 'Taken';
+
+  @override
+  String get itemPropLinks => 'Links';
+
+  @override
+  String get itemWriteMore => 'Add some text…';
 }

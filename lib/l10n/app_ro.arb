@@ -947,5 +947,13 @@
   "wsEmptyBody": "Aruncă în bara de jos un gând, un link sau un fișier, iar Stowa le pune singură în dosare.",
   "wsEmptyWrite": "Scrie prima notiță",
   "wsEmptyFolder": "Fă un dosar",
-  "wsEmptyRestore": "Restaurează o copie"
+  "wsEmptyRestore": "Restaurează o copie",
+  "itemPropFolder": "Dosar",
+  "itemPropTags": "Etichete",
+  "itemPropRemind": "Amintește",
+  "itemPropPlace": "Loc",
+  "itemPropCreated": "Creată",
+  "itemPropTaken": "Fotografiată",
+  "itemPropLinks": "Legături",
+  "itemWriteMore": "Adaugă text…"
 }

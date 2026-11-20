@@ -4458,4 +4458,28 @@ class LRu extends L {
 
   @override
   String get wsEmptyRestore => 'Вернуть из копии';
+
+  @override
+  String get itemPropFolder => 'Папка';
+
+  @override
+  String get itemPropTags => 'Теги';
+
+  @override
+  String get itemPropRemind => 'Напомнить';
+
+  @override
+  String get itemPropPlace => 'Место';
+
+  @override
+  String get itemPropCreated => 'Создана';
+
+  @override
+  String get itemPropTaken => 'Снято';
+
+  @override
+  String get itemPropLinks => 'Связи';
+
+  @override
+  String get itemWriteMore => 'Дописать текст…';
 }

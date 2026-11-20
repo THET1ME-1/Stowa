@@ -84,9 +84,66 @@ void main() {
     expect(find.descendant(of: bar, matching: find.text('Дописать')), findsOneWidget);
   });
 
+  // хозяин 20.11: «адаптив под сайт, а не как телефон». Страница заметки как в макете: крупный
+  // заголовок, свойства таблицей (подпись слева, значение справа), черта и текст без карточки
+  testWidgets('монитор: заголовок крупно, свойства таблицей, текст без карточки и без повтора заголовка', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'rem', name: 'Ремонт', icon: 'build', shape: 'gem'));
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Ремонт кухни', body: const Value('Ремонт кухни\nзамер 3,2 × 2,6'), folderId: const Value('rem'), createdAt: world.now, updatedAt: world.now),
+    );
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+
+    final page = find.byType(ItemScreen);
+    // RichText ловит и текст заметки: «Ремонт кухни» должно быть только одно — в заголовке
+    expect(find.descendant(of: page, matching: find.text('Ремонт кухни', findRichText: true)), findsOneWidget, reason: 'в тексте заголовок не повторяется');
+    final title = find.descendant(of: page, matching: find.text('Ремонт кухни'));
+    expect(tester.widget<Text>(title).style!.fontSize, greaterThanOrEqualTo(30));
+    expect(find.descendant(of: page, matching: find.textContaining('замер 3,2', findRichText: true)), findsOneWidget);
+
+    final props = find.byKey(const ValueKey('desk-props'));
+    for (final label in ['Папка', 'Теги', 'Создана', 'Связи']) {
+      expect(find.descendant(of: props, matching: find.text(label)), findsOneWidget, reason: label);
+    }
+    expect(find.descendant(of: props, matching: find.text('Ремонт')), findsOneWidget);
+    expect(tester.getRect(props).top, greaterThan(tester.getRect(title).bottom), reason: 'свойства под заголовком');
+
+    final body = tester.widget<AnimatedContainer>(find.byKey(const ValueKey('item-body-card')));
+    expect(body.decoration, isNull, reason: 'текст без карточки');
+    expect(tester.getRect(find.byKey(const ValueKey('item-body-card'))).top, greaterThan(tester.getRect(props).bottom));
+
+    // строка папки — щелчок переложить
+    await tester.tap(find.descendant(of: props, matching: find.text('Ремонт')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('desk-sheet')), findsOneWidget);
+  });
+
+  testWidgets('монитор: заметка из одной строки — заголовок и приглашение дописать, щелчок открывает правку', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Купить молоко', body: const Value('Купить молоко'), createdAt: world.now, updatedAt: world.now),
+    );
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Дописать текст…'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('desk-edit-bar')), findsOneWidget);
+  });
+
   testWidgets('широкий экран: панель заметки под шапкой, низ у общей строки, текст колонкой', (tester) async {
     await world.db.into(world.db.items).insert(
-      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Схема курсовой работы', body: const Value('Схема курсовой работы'), createdAt: world.now, updatedAt: world.now),
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Схема курсовой работы', body: const Value('Схема курсовой работы\nвведение и три главы'), createdAt: world.now, updatedAt: world.now),
     );
     tester.view.physicalSize = const Size(1600, 960);
     tester.view.devicePixelRatio = 1;

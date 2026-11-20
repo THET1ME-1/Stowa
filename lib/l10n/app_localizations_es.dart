@@ -4392,4 +4392,28 @@ class LEs extends L {
 
   @override
   String get wsEmptyRestore => 'Restaurar una copia';
+
+  @override
+  String get itemPropFolder => 'Carpeta';
+
+  @override
+  String get itemPropTags => 'Etiquetas';
+
+  @override
+  String get itemPropRemind => 'Recordar';
+
+  @override
+  String get itemPropPlace => 'Lugar';
+
+  @override
+  String get itemPropCreated => 'Creada';
+
+  @override
+  String get itemPropTaken => 'Tomada';
+
+  @override
+  String get itemPropLinks => 'Enlaces';
+
+  @override
+  String get itemWriteMore => 'Añadir texto…';
 }

@@ -947,5 +947,13 @@
   "wsEmptyBody": "Wrzuć do paska na dole myśl, link albo plik, a Stowa sama rozłoży je po folderach.",
   "wsEmptyWrite": "Zapisz pierwszą notatkę",
   "wsEmptyFolder": "Załóż folder",
-  "wsEmptyRestore": "Przywróć z kopii"
+  "wsEmptyRestore": "Przywróć z kopii",
+  "itemPropFolder": "Folder",
+  "itemPropTags": "Tagi",
+  "itemPropRemind": "Przypomnij",
+  "itemPropPlace": "Miejsce",
+  "itemPropCreated": "Utworzona",
+  "itemPropTaken": "Zrobione",
+  "itemPropLinks": "Powiązania",
+  "itemWriteMore": "Dopisz tekst…"
 }

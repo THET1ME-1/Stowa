@@ -4451,4 +4451,28 @@ class LPl extends L {
 
   @override
   String get wsEmptyRestore => 'Przywróć z kopii';
+
+  @override
+  String get itemPropFolder => 'Folder';
+
+  @override
+  String get itemPropTags => 'Tagi';
+
+  @override
+  String get itemPropRemind => 'Przypomnij';
+
+  @override
+  String get itemPropPlace => 'Miejsce';
+
+  @override
+  String get itemPropCreated => 'Utworzona';
+
+  @override
+  String get itemPropTaken => 'Zrobione';
+
+  @override
+  String get itemPropLinks => 'Powiązania';
+
+  @override
+  String get itemWriteMore => 'Dopisz tekst…';
 }

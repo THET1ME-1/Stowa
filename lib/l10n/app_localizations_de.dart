@@ -4407,4 +4407,28 @@ class LDe extends L {
 
   @override
   String get wsEmptyRestore => 'Aus Sicherung holen';
+
+  @override
+  String get itemPropFolder => 'Ordner';
+
+  @override
+  String get itemPropTags => 'Tags';
+
+  @override
+  String get itemPropRemind => 'Erinnern';
+
+  @override
+  String get itemPropPlace => 'Ort';
+
+  @override
+  String get itemPropCreated => 'Erstellt';
+
+  @override
+  String get itemPropTaken => 'Aufgenommen';
+
+  @override
+  String get itemPropLinks => 'Verknüpfungen';
+
+  @override
+  String get itemWriteMore => 'Text ergänzen…';
 }

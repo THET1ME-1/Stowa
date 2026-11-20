@@ -5253,5 +5253,37 @@
   "wsEmptyRestore": "Restore a backup",
   "@wsEmptyRestore": {
     "description": "Пустая главная: плитка, открывает настройки хранилища с восстановлением копии"
+  },
+  "itemPropFolder": "Folder",
+  "@itemPropFolder": {
+    "description": "Свойства заметки на мониторе: строка папки"
+  },
+  "itemPropTags": "Tags",
+  "@itemPropTags": {
+    "description": "Свойства заметки на мониторе: строка тегов"
+  },
+  "itemPropRemind": "Remind",
+  "@itemPropRemind": {
+    "description": "Свойства заметки на мониторе: строка напоминания"
+  },
+  "itemPropPlace": "Place",
+  "@itemPropPlace": {
+    "description": "Свойства заметки на мониторе: где записана"
+  },
+  "itemPropCreated": "Created",
+  "@itemPropCreated": {
+    "description": "Свойства заметки на мониторе: когда записана"
+  },
+  "itemPropTaken": "Taken",
+  "@itemPropTaken": {
+    "description": "Свойства заметки на мониторе: когда и чем снято фото"
+  },
+  "itemPropLinks": "Links",
+  "@itemPropLinks": {
+    "description": "Свойства заметки на мониторе: связи с другими заметками"
+  },
+  "itemWriteMore": "Add some text…",
+  "@itemWriteMore": {
+    "description": "Заметка из одной строки на мониторе: приглашение дописать под заголовком"
   }
 }

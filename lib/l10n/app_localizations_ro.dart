@@ -4419,4 +4419,28 @@ class LRo extends L {
 
   @override
   String get wsEmptyRestore => 'Restaurează o copie';
+
+  @override
+  String get itemPropFolder => 'Dosar';
+
+  @override
+  String get itemPropTags => 'Etichete';
+
+  @override
+  String get itemPropRemind => 'Amintește';
+
+  @override
+  String get itemPropPlace => 'Loc';
+
+  @override
+  String get itemPropCreated => 'Creată';
+
+  @override
+  String get itemPropTaken => 'Fotografiată';
+
+  @override
+  String get itemPropLinks => 'Legături';
+
+  @override
+  String get itemWriteMore => 'Adaugă text…';
 }
