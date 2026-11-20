@@ -5176,5 +5176,18 @@
   "tabBusyWaiting": "The other tab is closing your notes…",
   "@tabBusyWaiting": {
     "description": "Подпись вместо кнопки, пока прежняя вкладка дописывает файлы и освобождает хранилище"
+  },
+  "backupMergeAsk": "Add the notes from the copy made on {date}? Your current notes stay, files with the same name are replaced.",
+  "@backupMergeAsk": {
+    "description": "Вопрос перед восстановлением копии без снимка базы (её делает браузер): файлы копии добавляются к нынешним, ничего не стирается",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupAdd": "Add",
+  "@backupAdd": {
+    "description": "Кнопка согласия на восстановление копии без снимка базы: заметки копии добавляются к нынешним"
   }
 }

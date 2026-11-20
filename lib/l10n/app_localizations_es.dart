@@ -4339,4 +4339,12 @@ class LEs extends L {
 
   @override
   String get tabBusyWaiting => 'La otra pestaña está cerrando tus notas…';
+
+  @override
+  String backupMergeAsk(String date) {
+    return '¿Añadir las notas de la copia del $date? Las actuales se quedan y los archivos con el mismo nombre se reemplazan.';
+  }
+
+  @override
+  String get backupAdd => 'Añadir';
 }

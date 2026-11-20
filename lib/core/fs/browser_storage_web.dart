@@ -74,6 +74,57 @@ Future<bool> persistStorage() async {
   }
 }
 
+/// Файл, который браузер скачает человеку.
+abstract class BrowserDownload {
+  void add(Uint8List chunk);
+
+  void save(String name);
+}
+
+BrowserDownload startDownload() => _BlobDownload();
+
+class _BlobDownload implements BrowserDownload {
+  // Blob браузер держит у себя и большие сбрасывает на диск; куски копим пачками по
+  // несколько мегабайт, чтобы не плодить тысячи вложенных Blob
+  static const _batch = 4 * 1024 * 1024;
+
+  web.Blob _blob = web.Blob();
+  final _parts = <JSUint8Array>[];
+  var _size = 0;
+
+  @override
+  void add(Uint8List chunk) {
+    if (chunk.isEmpty) return;
+    // копия: архив переиспользует свои буферы
+    _parts.add(Uint8List.fromList(chunk).toJS);
+    _size += chunk.length;
+    if (_size >= _batch) _fold();
+  }
+
+  void _fold() {
+    if (_parts.isEmpty) return;
+    _blob = web.Blob(<JSAny>[_blob, ..._parts].toJS);
+    _parts.clear();
+    _size = 0;
+  }
+
+  @override
+  void save(String name) {
+    _fold();
+    final file = web.Blob(<JSAny>[_blob].toJS, web.BlobPropertyBag(type: 'application/zip'));
+    final url = web.URL.createObjectURL(file);
+    final link = web.HTMLAnchorElement()
+      ..href = url
+      ..download = name
+      ..style.display = 'none';
+    web.document.body!.append(link);
+    link.click();
+    link.remove();
+    // ссылку держим минуту: браузеру нужно время начать скачивание
+    Timer(const Duration(minutes: 1), () => web.URL.revokeObjectURL(url));
+  }
+}
+
 /// Личная папка сайта (OPFS): файлы хранилища лежат в `stowa-files/`, рядом с базой drift.
 class OpfsWebStore implements WebStore {
   static const _folder = 'stowa-files';

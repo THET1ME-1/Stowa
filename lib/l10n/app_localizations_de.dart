@@ -4354,4 +4354,12 @@ class LDe extends L {
 
   @override
   String get tabBusyWaiting => 'Der andere Tab schließt deine Notizen…';
+
+  @override
+  String backupMergeAsk(String date) {
+    return 'Notizen aus der Kopie vom $date hinzufügen? Deine jetzigen bleiben, gleichnamige Dateien werden ersetzt.';
+  }
+
+  @override
+  String get backupAdd => 'Hinzufügen';
 }

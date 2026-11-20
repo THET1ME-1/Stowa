@@ -933,5 +933,7 @@
   "tabBusyTitle": "Stowa ist bereits in einem anderen Tab geöffnet",
   "tabBusyHint": "Zwei Tabs gleichzeitig würden deine Notizen beschädigen, deshalb arbeitet nur einer.",
   "tabBusyOpenHere": "Hier öffnen",
-  "tabBusyWaiting": "Der andere Tab schließt deine Notizen…"
+  "tabBusyWaiting": "Der andere Tab schließt deine Notizen…",
+  "backupMergeAsk": "Notizen aus der Kopie vom {date} hinzufügen? Deine jetzigen bleiben, gleichnamige Dateien werden ersetzt.",
+  "backupAdd": "Hinzufügen"
 }

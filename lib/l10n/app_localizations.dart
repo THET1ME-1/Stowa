@@ -7408,6 +7408,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The other tab is closing your notes…'**
   String get tabBusyWaiting;
+
+  /// Вопрос перед восстановлением копии без снимка базы (её делает браузер): файлы копии добавляются к нынешним, ничего не стирается
+  ///
+  /// In en, this message translates to:
+  /// **'Add the notes from the copy made on {date}? Your current notes stay, files with the same name are replaced.'**
+  String backupMergeAsk(String date);
+
+  /// Кнопка согласия на восстановление копии без снимка базы: заметки копии добавляются к нынешним
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get backupAdd;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

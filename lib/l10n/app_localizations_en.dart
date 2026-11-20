@@ -4328,4 +4328,12 @@ class LEn extends L {
 
   @override
   String get tabBusyWaiting => 'The other tab is closing your notes…';
+
+  @override
+  String backupMergeAsk(String date) {
+    return 'Add the notes from the copy made on $date? Your current notes stay, files with the same name are replaced.';
+  }
+
+  @override
+  String get backupAdd => 'Add';
 }

@@ -4367,4 +4367,12 @@ class LRo extends L {
 
   @override
   String get tabBusyWaiting => 'Cealaltă filă închide notițele…';
+
+  @override
+  String backupMergeAsk(String date) {
+    return 'Adaugi notițele din copia din $date? Cele de acum rămân, iar fișierele cu același nume sunt înlocuite.';
+  }
+
+  @override
+  String get backupAdd => 'Adaugă';
 }

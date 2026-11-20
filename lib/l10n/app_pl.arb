@@ -933,5 +933,7 @@
   "tabBusyTitle": "Stowa jest już otwarta w innej karcie",
   "tabBusyHint": "Dwie karty naraz uszkodziłyby notatki, dlatego działa tylko jedna.",
   "tabBusyOpenHere": "Otwórz tutaj",
-  "tabBusyWaiting": "Tamta karta zamyka notatki…"
+  "tabBusyWaiting": "Tamta karta zamyka notatki…",
+  "backupMergeAsk": "Dodać notatki z kopii z {date}? Obecne zostaną, a pliki o tej samej nazwie zostaną zastąpione.",
+  "backupAdd": "Dodaj"
 }

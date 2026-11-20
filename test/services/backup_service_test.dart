@@ -7,6 +7,7 @@ import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/search_query.dart';
 import 'package:stowa/services/backup_service.dart';
+import 'package:stowa/services/zip_stream.dart';
 
 void main() {
   final now = DateTime(2026, 11, 3, 12);
@@ -108,6 +109,95 @@ void main() {
     expect(names, contains('stowa.sqlite'));
     expect(names, contains('manifest.json'));
     expect(names.where((name) => !name.startsWith('files/') && name != 'stowa.sqlite' && name != 'manifest.json'), isEmpty);
+  });
+
+  group('копия без снимка базы — такую делает браузер', () {
+    const borsch = '---\nid: a\nkind: note\n---\nсвёкла и капуста';
+
+    /// Хранилище с заметками-файлами, собранное в архив куском за куском.
+    Future<File> filesOnlyCopy() async {
+      await fill();
+      for (final (path, text) in [('Еда/Борщ.md', borsch), ('Еда/Борщ/борщ.jpg', 'jpeg'), ('.stowa/tags.json', '[]'), ('.stowa/pages/a.html.gz', 'страница'), ('Еда/.Борщ.md.tmp', 'недописано')]) {
+        File('${sourceFiles.path}/$path')
+          ..createSync(recursive: true)
+          ..writeAsStringSync(text);
+      }
+      final zip = File('${out.path}/Stowa-2026-11-03.zip');
+      final sink = zip.openWrite();
+      await BackupService(source, filesRoot: sourceFiles, vault: true, clock: () => now).exportFiles(ZipStreamWriter(sink.add));
+      await sink.close();
+      return zip;
+    }
+
+    test('в ней файлы хранилища и опись; базы, копий страниц и недописанного нет', () async {
+      final names = BackupService.entries(await filesOnlyCopy());
+      expect(names, containsAll(['manifest.json', 'files/Еда/Борщ.md', 'files/Еда/Борщ/борщ.jpg', 'files/.stowa/tags.json']));
+      expect(names, isNot(contains('stowa.sqlite')));
+      expect(names, isNot(contains('files/.stowa/pages/a.html.gz')));
+      expect(names, isNot(contains('files/Еда/.Борщ.md.tmp')));
+    });
+
+    test('опись говорит: базы нет, заметок столько-то, сделана тогда-то', () async {
+      final info = await BackupService.inspect(await filesOnlyCopy());
+      expect(info.hasDatabase, isFalse);
+      expect(info.items, 2);
+      expect(info.createdAt, now);
+    });
+
+    test('у обычной копии телефона база есть', () async {
+      await fill();
+      final zip = await BackupService(source, filesRoot: sourceFiles, vault: true, clock: () => now).export(out);
+      expect((await BackupService.inspect(zip)).hasDatabase, isTrue);
+    });
+
+    test('телефон восстанавливает её: файлы встают в хранилище, свои остаются, база ждёт пересборки из файлов', () async {
+      final zip = await filesOnlyCopy();
+      File('${targetFiles.path}/Мои/список.md')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('своё');
+      await target.into(target.items).insert(ItemsCompanion.insert(id: 'x', kind: ItemKind.note, title: 'Своё', createdAt: now, updatedAt: now));
+      final info = await BackupService(target, filesRoot: targetFiles, vault: true, clock: () => now).restore(zip);
+      expect(info.hasDatabase, isFalse, reason: 'по этому экран зовёт пересборку указателя из файлов');
+      expect(File('${targetFiles.path}/Еда/Борщ.md').readAsStringSync(), borsch);
+      expect(File('${targetFiles.path}/Еда/Борщ/борщ.jpg').readAsStringSync(), 'jpeg');
+      expect(File('${targetFiles.path}/Мои/список.md').readAsStringSync(), 'своё');
+      expect((await target.select(target.items).get()).map((item) => item.id), ['x'], reason: 'базу копия без снимка не трогает');
+    });
+
+    test('из байтов, как её отдаёт браузер: файлы на месте', () async {
+      final bytes = (await filesOnlyCopy()).readAsBytesSync();
+      expect(BackupService.inspectBytes(bytes).items, 2);
+      final info = await BackupService(target, filesRoot: targetFiles, vault: true, clock: () => now).restoreBytes(bytes);
+      expect(info.hasDatabase, isFalse);
+      expect(File('${targetFiles.path}/Еда/Борщ.md').readAsStringSync(), borsch);
+    });
+
+    test('копия телефона в браузере: снимок базы там не открыть, берутся только файлы', () async {
+      await fill();
+      File('${sourceFiles.path}/Еда/Борщ.md')
+        ..createSync(recursive: true)
+        ..writeAsStringSync(borsch);
+      final zip = await BackupService(source, filesRoot: sourceFiles, vault: true, clock: () => now).export(out);
+      final info = await BackupService(target, filesRoot: targetFiles, vault: true, clock: () => now).restoreBytes(zip.readAsBytesSync());
+      expect(info.hasDatabase, isFalse, reason: 'базу не восстанавливали: указатель собирается из файлов');
+      expect(File('${targetFiles.path}/Еда/Борщ.md').readAsStringSync(), borsch);
+      expect(await target.select(target.items).get(), isEmpty);
+    });
+
+    test('файл с путём наружу из хранилища не пишется', () async {
+      final evil = File('${out.path}/evil.zip');
+      final sink = evil.openWrite();
+      final zip = ZipStreamWriter(sink.add);
+      await zip.add('manifest.json', '{"app":"stowa","schema":1,"createdAt":"2026-11-03T12:00:00.000","items":0,"database":false}'.codeUnits);
+      await zip.add('files/../../снаружи.md', 'взлом'.codeUnits);
+      await zip.add('files/Заметка.md', 'обычная'.codeUnits);
+      await zip.close();
+      await sink.close();
+      await BackupService(target, filesRoot: targetFiles, vault: true, clock: () => now).restore(evil);
+      expect(File('${targetFiles.path}/Заметка.md').existsSync(), isTrue);
+      expect(File('${targetFiles.parent.path}/снаружи.md').existsSync(), isFalse);
+      expect(Directory(targetFiles.parent.parent.path).listSync().whereType<File>().where((file) => file.path.endsWith('снаружи.md')), isEmpty);
+    });
   });
 
   test('чужой архив не восстанавливается и ничего не трогает', () async {

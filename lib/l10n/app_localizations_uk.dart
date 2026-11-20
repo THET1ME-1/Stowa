@@ -4394,4 +4394,12 @@ class LUk extends L {
 
   @override
   String get tabBusyWaiting => 'Та вкладка закриває нотатки…';
+
+  @override
+  String backupMergeAsk(String date) {
+    return 'Додати до сховища нотатки з копії від $date? Нинішні залишаться, а однойменні файли заміняться.';
+  }
+
+  @override
+  String get backupAdd => 'Додати';
 }

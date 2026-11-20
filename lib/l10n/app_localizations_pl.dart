@@ -4399,4 +4399,12 @@ class LPl extends L {
 
   @override
   String get tabBusyWaiting => 'Tamta karta zamyka notatki…';
+
+  @override
+  String backupMergeAsk(String date) {
+    return 'Dodać notatki z kopii z $date? Obecne zostaną, a pliki o tej samej nazwie zostaną zastąpione.';
+  }
+
+  @override
+  String get backupAdd => 'Dodaj';
 }

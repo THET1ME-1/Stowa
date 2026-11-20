@@ -4405,4 +4405,12 @@ class LRu extends L {
 
   @override
   String get tabBusyWaiting => 'Та вкладка закрывает заметки…';
+
+  @override
+  String backupMergeAsk(String date) {
+    return 'Добавить в хранилище заметки из копии от $date? Нынешние останутся, а одноимённые файлы заменятся.';
+  }
+
+  @override
+  String get backupAdd => 'Добавить';
 }

@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import '../data/db/database.dart';
 import '../data/db/raw_open.dart' if (dart.library.js_interop) '../data/db/raw_open_web.dart';
+import 'zip_stream.dart';
 
 /// Папки с файлами вещей, обложками ссылок и картинками тегов.
 const _fileFolders = ['attachments', 'covers', 'tags', '.stowa/covers', '.stowa/tag-icons', '.stowa/incoming'];
@@ -28,11 +29,15 @@ class BackupError implements Exception {
 
 /// Что лежит в копии: для вопроса «заменить всё?» перед восстановлением.
 class BackupInfo {
-  const BackupInfo({required this.createdAt, required this.schema, required this.items});
+  const BackupInfo({required this.createdAt, required this.schema, required this.items, this.hasDatabase = true});
 
   final DateTime createdAt;
   final int schema;
   final int items;
+
+  /// В копии есть снимок базы. Нет — копию делал браузер (или её восстановили без базы):
+  /// в хранилище встали только файлы, и указатель надо пересобрать из них.
+  final bool hasDatabase;
 }
 
 /// Резервная копия всей Stowa одним zip: снимок базы и файлы. Ключа ИИ и настроек
@@ -98,6 +103,24 @@ class BackupService {
     }
   }
 
+  /// Копия без снимка базы, куском за куском в [zip]: опись и файлы хранилища. Так копию
+  /// делает браузер: снимок базы там не снять, а целиком в памяти вкладки архив не удержать.
+  /// Заметки лежат файлами, поэтому в файлах есть всё: телефон восстановит указатель из них.
+  /// Архив закрывается здесь же.
+  Future<void> exportFiles(ZipStreamWriter zip) async {
+    final now = _clock();
+    final items = await _db.items.count(where: (t) => t.deletedAt.isNull()).getSingle();
+    await zip.add(
+      'manifest.json',
+      utf8.encode(jsonEncode({'app': 'stowa', 'schema': _db.schemaVersion, 'createdAt': now.toIso8601String(), 'items': items, 'database': false})),
+      modified: now,
+    );
+    for (final file in _files()) {
+      await zip.add('files/${_relative(file)}', await file.readAsBytes(), modified: now);
+    }
+    await zip.close();
+  }
+
   /// Имена внутри архива.
   static List<String> entries(File zip) {
     final input = InputFileStream(zip.path);
@@ -118,21 +141,80 @@ class BackupService {
       } catch (_) {
         throw const BackupError(BackupProblem.notStowa);
       }
-      final manifest = archive.findFile('manifest.json');
-      if (manifest == null || archive.findFile('stowa.sqlite') == null) throw const BackupError(BackupProblem.notStowa);
-      final json = jsonDecode(utf8.decode(manifest.content)) as Map<String, Object?>;
-      if (json['app'] != 'stowa') throw const BackupError(BackupProblem.notStowa);
-      return BackupInfo(createdAt: DateTime.parse(json['createdAt']! as String), schema: json['schema']! as int, items: json['items']! as int);
+      return _describe(archive);
     } finally {
       input.closeSync();
     }
   }
 
+  /// [inspect] для архива из памяти: так его отдаёт браузер.
+  static BackupInfo inspectBytes(Uint8List bytes) {
+    final Archive archive;
+    try {
+      archive = ZipDecoder().decodeBytes(bytes);
+    } catch (_) {
+      throw const BackupError(BackupProblem.notStowa);
+    }
+    return _describe(archive);
+  }
+
+  // опись копии; снимка базы может не быть — тогда копия из браузера
+  static BackupInfo _describe(Archive archive) {
+    final manifest = archive.findFile('manifest.json');
+    if (manifest == null) throw const BackupError(BackupProblem.notStowa);
+    final Map<String, Object?> json;
+    try {
+      json = jsonDecode(utf8.decode(manifest.content)) as Map<String, Object?>;
+    } catch (_) {
+      throw const BackupError(BackupProblem.notStowa);
+    }
+    if (json['app'] != 'stowa') throw const BackupError(BackupProblem.notStowa);
+    final hasDatabase = archive.findFile('stowa.sqlite') != null;
+    // копия без базы должна сама об этом говорить: иначе это обрезанный архив
+    if (!hasDatabase && json['database'] != false) throw const BackupError(BackupProblem.notStowa);
+    return BackupInfo(createdAt: DateTime.parse(json['createdAt']! as String), schema: json['schema']! as int, items: json['items']! as int, hasDatabase: hasDatabase);
+  }
+
+  /// Файлы копии встают в хранилище поверх, свои файлы хранилища остаются. Имя с путём
+  /// наружу («..», от корня) не пишется: архив мог прийти откуда угодно.
+  Future<void> _restoreFiles(Archive archive) async {
+    for (final file in archive.files) {
+      if (!file.isFile || !file.name.startsWith('files/')) continue;
+      final relative = file.name.substring('files/'.length);
+      final parts = relative.split('/');
+      if (relative.isEmpty || relative.startsWith('/') || parts.any((part) => part == '..' || part.isEmpty)) continue;
+      final target = File(p.joinAll([_filesRoot.path, ...parts]));
+      await target.parent.create(recursive: true);
+      await target.writeAsBytes(file.content);
+    }
+  }
+
+  /// Восстановить из архива в памяти: так его отдаёт браузер. Берутся только файлы, даже
+  /// если копию делал телефон и в ней есть снимок базы: открыть его браузер не может.
+  /// Указатель после этого пересобирают из файлов ([BackupInfo.hasDatabase] — false).
+  Future<BackupInfo> restoreBytes(Uint8List bytes) async {
+    final info = inspectBytes(bytes);
+    if (info.schema > _db.schemaVersion) throw const BackupError(BackupProblem.tooNew);
+    await _restoreFiles(ZipDecoder().decodeBytes(bytes));
+    return BackupInfo(createdAt: info.createdAt, schema: info.schema, items: info.items, hasDatabase: false);
+  }
+
   /// Заменить всё нынешнее содержимым копии. Сперва копия проверяется и доводится
   /// до нынешней схемы отдельно, и только потом живая база переписывается одной транзакцией.
-  Future<void> restore(File zip) async {
+  /// Копия без снимка базы (из браузера) кладёт в хранилище только файлы, базу не трогает:
+  /// по [BackupInfo.hasDatabase] вызывающий пересобирает указатель из файлов.
+  Future<BackupInfo> restore(File zip) async {
     final info = await inspect(zip);
     if (info.schema > _db.schemaVersion) throw const BackupError(BackupProblem.tooNew);
+    if (!info.hasDatabase) {
+      final input = InputFileStream(zip.path);
+      try {
+        await _restoreFiles(ZipDecoder().decodeStream(input));
+      } finally {
+        input.closeSync();
+      }
+      return info;
+    }
 
     final work = await Directory.systemTemp.createTemp('stowa_restore');
     try {
@@ -171,7 +253,7 @@ class BackupService {
         await _db.delete(_db.vaultFiles).go();
         await _db.delete(_db.vaultFlags).go();
         await _db.enqueueWholeVault();
-        return;
+        return info;
       }
 
       // файлы: прежние папки уходят, на их место встают из копии
@@ -181,6 +263,7 @@ class BackupService {
         final restored = Directory(p.join(work.path, 'files', name));
         if (restored.existsSync()) await _copyFolder(restored, current);
       }
+      return info;
     } finally {
       await work.delete(recursive: true);
     }

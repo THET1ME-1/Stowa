@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'web_store.dart';
 
 /// Хранилище и журнал браузера. Вне браузера их нет: этот файл подменяется
@@ -32,3 +34,14 @@ void reloadPage() {}
 /// Попросить браузер не стирать заметки сайта, когда на диске мало места.
 /// true — браузер обещал.
 Future<bool> persistStorage() async => true;
+
+/// Файл, который браузер скачает человеку. Копится кусками на стороне браузера, а не
+/// в памяти приложения: резервная копия большого хранилища иначе не поместилась бы.
+abstract class BrowserDownload {
+  void add(Uint8List chunk);
+
+  /// Отдать накопленное под именем [name]: браузер кладёт файл в «Загрузки».
+  void save(String name);
+}
+
+BrowserDownload startDownload() => throw UnsupportedError('Скачивание файлом есть только в браузере');

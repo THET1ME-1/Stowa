@@ -933,5 +933,7 @@
   "tabBusyTitle": "Stowa este deja deschisă în altă filă",
   "tabBusyHint": "Două file deschise simultan ar strica notițele, de aceea funcționează doar una.",
   "tabBusyOpenHere": "Deschide aici",
-  "tabBusyWaiting": "Cealaltă filă închide notițele…"
+  "tabBusyWaiting": "Cealaltă filă închide notițele…",
+  "backupMergeAsk": "Adaugi notițele din copia din {date}? Cele de acum rămân, iar fișierele cu același nume sunt înlocuite.",
+  "backupAdd": "Adaugă"
 }

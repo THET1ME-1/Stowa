@@ -933,5 +933,7 @@
   "tabBusyTitle": "Stowa ya está abierta en otra pestaña",
   "tabBusyHint": "Dos pestañas a la vez dañarían tus notas, por eso solo funciona una.",
   "tabBusyOpenHere": "Abrir aquí",
-  "tabBusyWaiting": "La otra pestaña está cerrando tus notas…"
+  "tabBusyWaiting": "La otra pestaña está cerrando tus notas…",
+  "backupMergeAsk": "¿Añadir las notas de la copia del {date}? Las actuales se quedan y los archivos con el mismo nombre se reemplazan.",
+  "backupAdd": "Añadir"
 }

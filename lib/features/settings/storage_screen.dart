@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/fs/web_files.dart' show startDownload;
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/sheet_options.dart';
@@ -17,6 +19,7 @@ import '../../data/settings_repository.dart' show VaultMode;
 import '../../domain/known_vaults.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/backup_service.dart';
+import '../../services/zip_stream.dart';
 import '../../services/vault/vault_layout.dart' show attachmentFolderNameError, defaultAttachmentFolder, readAttachmentSetting, writeAttachmentSetting;
 import '../folder/folder_sheets.dart' show showRenameSheet;
 import '../privacy/markdown_export_action.dart';
@@ -407,6 +410,13 @@ Future<void> _saveBackup(BuildContext context, WidgetRef ref) async {
   try {
     // в копию идёт скрытое запечатанным: строк скрытых заметок в снимке базы быть не должно
     await ref.read(privacyServiceProvider).close();
+    if (isWeb) {
+      // в браузере копия — файлы хранилища без снимка базы: уходит браузеру кусками и скачивается файлом
+      final download = startDownload();
+      await ref.read(backupServiceProvider).exportFiles(ZipStreamWriter(download.add));
+      download.save('Stowa-${ref.read(clockProvider)().toIso8601String().substring(0, 10)}.zip');
+      return;
+    }
     final zip = await ref.read(backupServiceProvider).export(await getTemporaryDirectory());
     await SharePlus.instance.share(
       ShareParams(files: [XFile(zip.path, mimeType: 'application/zip')], sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size),
@@ -421,17 +431,22 @@ Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final picked = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['zip']).catchError((_) => <PlatformFile>[]);
-  final path = picked.firstOrNull?.path;
-  if (path == null || !context.mounted) return;
-  final zip = File(path);
+  final chosen = picked.firstOrNull;
+  if (chosen == null || !context.mounted) return;
+  // в браузере у выбранного файла нет пути на диске: архив читается в память
+  final bytes = isWeb ? await chosen.readAsBytes() : null;
+  final path = chosen.path;
+  if ((bytes == null && path == null) || !context.mounted) return;
+  final zip = File(path ?? '');
   final BackupInfo info;
   try {
-    info = await BackupService.inspect(zip);
+    info = bytes != null ? BackupService.inspectBytes(bytes) : await BackupService.inspect(zip);
   } on BackupError {
     showNote(messenger, l.backupNotStowa);
     return;
   }
   if (!context.mounted) return;
+  final merges = bytes != null || !info.hasDatabase;
   final date = DateFormat.yMMMMd(Localizations.localeOf(context).toLanguageTag()).format(info.createdAt);
   final yes = await showSettingsSheet<bool>(
     context,
@@ -442,12 +457,14 @@ Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l.backupRestoreAsk(info.items, date), style: Theme.of(context).textTheme.titleMedium),
+            // копия со снимком базы заменяет всё; без него (из браузера и в браузере) её файлы
+            // добавляются к нынешним, и стирать тут нечего
+            Text(merges ? l.backupMergeAsk(date) : l.backupRestoreAsk(info.items, date), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 20),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: Tokens.error, foregroundColor: Tokens.onError),
+              style: merges ? null : FilledButton.styleFrom(backgroundColor: Tokens.error, foregroundColor: Tokens.onError),
               onPressed: () => Navigator.pop(context, true),
-              child: Text(l.backupReplace),
+              child: Text(merges ? l.backupAdd : l.backupReplace),
             ),
             TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
           ],
@@ -458,7 +475,10 @@ Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
   if (yes != true) return;
   try {
     await ref.read(privacyServiceProvider).close();
-    await ref.read(backupServiceProvider).restore(zip);
+    final service = ref.read(backupServiceProvider);
+    final restored = bytes != null ? await service.restoreBytes(bytes) : await service.restore(zip);
+    // копия без снимка базы (из браузера) положила в хранилище только файлы: указатель собирается из них
+    if (!restored.hasDatabase && context.mounted) await rebuildIndex(context, ref);
     // в копии свой замок: код и скрытое — оттуда
     await ref.read(privacyServiceProvider).loadLock();
     // те же пути к файлам, другие картинки: кэш картинок показал бы прежние
