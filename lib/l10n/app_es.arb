@@ -939,5 +939,6 @@
   "copyNudgeFirst": "Tus notas están solo en este navegador: guarda una copia para no perderlas.",
   "copyNudgeStale": "La copia de tus notas está desactualizada: guarda una nueva.",
   "copyNudgeLater": "Más tarde",
-  "storageWeak": "El navegador no dio un almacenamiento fiable: tus notas pueden perderse al cerrar la pestaña."
+  "storageWeak": "El navegador no dio un almacenamiento fiable: tus notas pueden perderse al cerrar la pestaña.",
+  "vaultBrowserHint": "Tus notas están en el almacenamiento de este navegador y no aparecen como archivos en el disco."
 }

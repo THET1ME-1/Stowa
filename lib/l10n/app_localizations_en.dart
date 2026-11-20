@@ -4351,4 +4351,8 @@ class LEn extends L {
   @override
   String get storageWeak =>
       'The browser gave no reliable storage: your notes may be gone once the tab is closed.';
+
+  @override
+  String get vaultBrowserHint =>
+      'Your notes live in this browser\'s storage and do not show up as files on the disk.';
 }

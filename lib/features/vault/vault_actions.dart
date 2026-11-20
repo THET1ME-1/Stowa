@@ -295,6 +295,8 @@ class ProgressDialog extends StatelessWidget {
       canPop: false,
       child: Dialog(
         backgroundColor: Tokens.containerHigh,
+        // на широком экране окно не растягивается во всю ширину
+        constraints: const BoxConstraints(maxWidth: 480),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: ValueListenableBuilder(

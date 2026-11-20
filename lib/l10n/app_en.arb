@@ -5205,5 +5205,9 @@
   "storageWeak": "The browser gave no reliable storage: your notes may be gone once the tab is closed.",
   "@storageWeak": {
     "description": "Плашка на главной в браузере, когда база работает в памяти или в ненадёжном режиме (приватное окно, старый браузер)"
+  },
+  "vaultBrowserHint": "Your notes live in this browser's storage and do not show up as files on the disk.",
+  "@vaultBrowserHint": {
+    "description": "Пояснение под строкой открытого хранилища в настройках веб-версии. Одно предложение"
   }
 }

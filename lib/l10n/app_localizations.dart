@@ -7444,6 +7444,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The browser gave no reliable storage: your notes may be gone once the tab is closed.'**
   String get storageWeak;
+
+  /// Пояснение под строкой открытого хранилища в настройках веб-версии. Одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes live in this browser\'s storage and do not show up as files on the disk.'**
+  String get vaultBrowserHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -37,6 +37,7 @@ bool _insideApp(WidgetRef ref) {
 
 /// Имя открытого хранилища: имя его папки, «Внутри приложения» или, на iPhone, «Файлы» → Stowa.
 String openVaultTitle(WidgetRef ref, L l) {
+  if (ref.watch(storedInBrowserProvider)) return l.wsInBrowser;
   if (ref.watch(vaultHomeProvider) != null) return l.vaultInFiles;
   if (_insideApp(ref)) return l.vaultInsideApp;
   return vaultTitle(ref.watch(vaultRootProvider)!.path);
@@ -64,6 +65,7 @@ class StorageScreen extends ConsumerWidget {
     final l = L.of(context);
     // на iPhone папка одна: ни смены, ни других хранилищ
     final fixed = ref.watch(vaultHomeProvider) != null;
+    final inBrowser = ref.watch(storedInBrowserProvider);
     final list = ref.watch(vaultsProvider).value;
     final others = [
       if (!fixed && list != null)
@@ -77,7 +79,8 @@ class StorageScreen extends ConsumerWidget {
           children: [
             SettingsHeader(l.vaultSection),
             const SizedBox(height: 18),
-            SettingsGroup(tint: settingsTint('sky'), children: const [_SyncRow()]),
+            // в браузере синхронизация ещё не подключена
+            if (!inBrowser) SettingsGroup(tint: settingsTint('sky'), children: const [_SyncRow()]),
             SettingsSection(l.vaultsSection),
             SettingsGroup(
               tint: settingsTint('teal'),
@@ -96,7 +99,7 @@ class StorageScreen extends ConsumerWidget {
                 if (!fixed) SettingsRow(icon: 'add', title: l.vaultAdd, onTap: () => addVault(context, ref)),
               ],
             ),
-            SettingsHint(fixed ? l.vaultFilesHint : l.vaultsHint),
+            SettingsHint(inBrowser ? l.vaultBrowserHint : (fixed ? l.vaultFilesHint : l.vaultsHint)),
             SettingsSection(l.attachmentsSection),
             SettingsGroup(tint: settingsTint('amber'), children: const [_AttachmentsRow(key: ValueKey('storage-attachments'))]),
             SettingsHint(l.attachmentsHint),

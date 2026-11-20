@@ -23,6 +23,14 @@ Future<T?> showSettingsSheet<T>(BuildContext context, Widget child) => showModal
   ),
 );
 
+// разделы настроек, которым в браузере не с чем работать: синхронизация туда ещё не
+// подключена, уведомлений системы, бота Telegram и переноса выгрузок с телефона там нет
+const _noBrowserSections = {'sync', 'returns', 'outside', 'import'};
+
+/// Показывать ли раздел настроек [id]. [inBrowser] — заметки лежат в браузере
+/// (`storedInBrowserProvider`): там прячется то, что без телефона не работает.
+bool settingsSectionShown(String id, {required bool inBrowser}) => !inBrowser || !_noBrowserSections.contains(id);
+
 /// Пояснение под группой строк.
 class SettingsHint extends StatelessWidget {
   const SettingsHint(this.text, {super.key});

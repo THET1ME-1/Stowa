@@ -74,7 +74,9 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    bool show(String id) => section == null || section == id;
+    // в браузере нет того, что без телефона не работает: уведомлений, бота, переноса, места
+    final inBrowser = ref.watch(storedInBrowserProvider);
+    bool show(String id) => (section == null || section == id) && settingsSectionShown(id, inBrowser: inBrowser);
     final l = L.of(context);
     final ai = ref.watch(aiSettingsProvider).value ?? const AiSettings();
     final returns = ref.watch(returnSettingsProvider).value ?? const ReturnSettings();
@@ -124,7 +126,8 @@ class SettingsScreen extends ConsumerWidget {
               tint: settingsTint('violet'),
               children: [
                 SettingsRow(icon: 'auto_awesome', title: l.settingsAi, value: aiSummary(l, ai), onTap: () => Navigator.of(context).push(aiRoute())),
-                SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute())),
+                if (!inBrowser)
+                  SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute())),
               ],
             ),
             ],
@@ -160,6 +163,8 @@ class SettingsScreen extends ConsumerWidget {
               children: [SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute()))],
             ),
             const SizedBox(height: 8),
+            // место в браузере не пишется
+            if (!inBrowser)
             SettingsGroup(
               tint: settingsTint('mint'),
               children: [
@@ -179,7 +184,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            SettingsHint(l.placeSettingHint),
+            if (!inBrowser) SettingsHint(l.placeSettingHint),
             SettingsGroup(
               tint: settingsTint('coral'),
               children: [
@@ -204,6 +209,8 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsHint(l.titleDateHint),
+            // отчёты об ошибках из браузера не уходят: выключателю там нечего выключать
+            if (!inBrowser)
             SettingsGroup(
               tint: settingsTint('amber'),
               children: [
@@ -215,7 +222,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            SettingsHint(l.crashSettingHint),
+            if (!inBrowser) SettingsHint(l.crashSettingHint),
             const PrivacySettings(),
             SettingsSection(l.settingsArticles),
             SettingsGroup(

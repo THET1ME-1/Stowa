@@ -4421,4 +4421,8 @@ class LPl extends L {
   @override
   String get storageWeak =>
       'Przeglądarka nie dała trwałego magazynu: notatki mogą zniknąć po zamknięciu karty.';
+
+  @override
+  String get vaultBrowserHint =>
+      'Notatki są w pamięci tej przeglądarki i nie widać ich jako plików na dysku.';
 }

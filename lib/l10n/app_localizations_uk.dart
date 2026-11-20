@@ -4416,4 +4416,8 @@ class LUk extends L {
   @override
   String get storageWeak =>
       'Браузер не дав надійного сховища: нотатки можуть зникнути, коли вкладку закриють.';
+
+  @override
+  String get vaultBrowserHint =>
+      'Нотатки лежать у сховищі цього браузера, на диску їх не видно.';
 }

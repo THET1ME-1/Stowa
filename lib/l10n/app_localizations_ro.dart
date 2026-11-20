@@ -4389,4 +4389,8 @@ class LRo extends L {
   @override
   String get storageWeak =>
       'Browserul nu a oferit o stocare sigură: notițele pot dispărea la închiderea filei.';
+
+  @override
+  String get vaultBrowserHint =>
+      'Notițele sunt în stocarea acestui browser și nu apar ca fișiere pe disc.';
 }

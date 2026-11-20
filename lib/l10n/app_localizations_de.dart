@@ -4377,4 +4377,8 @@ class LDe extends L {
   @override
   String get storageWeak =>
       'Der Browser hat keinen verlässlichen Speicher bereitgestellt: Deine Notizen können beim Schließen des Tabs verschwinden.';
+
+  @override
+  String get vaultBrowserHint =>
+      'Deine Notizen liegen im Speicher dieses Browsers und sind nicht als Dateien auf der Festplatte sichtbar.';
 }

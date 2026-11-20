@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../settings/appearance_screen.dart';
 import '../settings/import_screen.dart';
@@ -40,16 +42,22 @@ final List<_Section> _sections = [
 
 /// Настройки вкладкой, как файл в редакторе: слева разделы, справа открытый. В узком
 /// окне разделы встают полосой сверху.
-class WorkspaceSettings extends StatelessWidget {
+class WorkspaceSettings extends ConsumerWidget {
   const WorkspaceSettings({super.key, required this.section});
 
   final String? section;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final controller = WorkspaceScope.of(context);
-    final current = _sections.where((one) => one.id == section).firstOrNull ?? _sections.first;
+    // в браузере нет разделов, которым там не с чем работать
+    final inBrowser = ref.watch(storedInBrowserProvider);
+    final sections = [
+      for (final one in _sections)
+        if (settingsSectionShown(one.id, inBrowser: inBrowser)) one,
+    ];
+    final current = sections.where((one) => one.id == section).firstOrNull ?? sections.first;
     void pick(String id) => controller.update((ws) => ws.open(WsTab.settings(id)));
     final content = AnimatedSwitcher(
       duration: Motion.medium,
@@ -69,7 +77,7 @@ class WorkspaceSettings extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
                   scrollDirection: Axis.horizontal,
                   children: [
-                    for (final one in _sections)
+                    for (final one in sections)
                       Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: _SectionButton(section: one, label: one.title(l), selected: one.id == current.id, compact: true, onTap: () => pick(one.id)),
@@ -89,7 +97,7 @@ class WorkspaceSettings extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(12, 18, 6, 18),
                 children: [
-                  for (final one in _sections)
+                  for (final one in sections)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: _SectionButton(section: one, label: one.title(l), selected: one.id == current.id, onTap: () => pick(one.id)),

@@ -4362,4 +4362,8 @@ class LEs extends L {
   @override
   String get storageWeak =>
       'El navegador no dio un almacenamiento fiable: tus notas pueden perderse al cerrar la pestaña.';
+
+  @override
+  String get vaultBrowserHint =>
+      'Tus notas están en el almacenamiento de este navegador y no aparecen como archivos en el disco.';
 }

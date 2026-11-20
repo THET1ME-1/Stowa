@@ -98,7 +98,9 @@ class _PanelList extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(8, left ? 4 : 10, 8, 12),
       children: [
         for (final (index, id) in panels.indexed)
-          _PanelDrop(key: ValueKey('drop-$id'), left: left, index: index, child: _Panel(key: ValueKey('panel-$id'), id: id, left: left)),
+          // в браузере синхронизация ещё не подключена: её панели там нет
+          if (!(isWeb && id == 'sync'))
+            _PanelDrop(key: ValueKey('drop-$id'), left: left, index: index, child: _Panel(key: ValueKey('panel-$id'), id: id, left: left)),
         // в конец дока — и в пустой док тоже
         _DropSlot(left: left, index: panels.length, tall: true),
       ],

@@ -939,5 +939,6 @@
   "copyNudgeFirst": "Deine Notizen liegen nur in diesem Browser: Speichere eine Kopie, damit sie nicht verloren gehen.",
   "copyNudgeStale": "Die Kopie deiner Notizen ist veraltet: Speichere eine neue.",
   "copyNudgeLater": "Später",
-  "storageWeak": "Der Browser hat keinen verlässlichen Speicher bereitgestellt: Deine Notizen können beim Schließen des Tabs verschwinden."
+  "storageWeak": "Der Browser hat keinen verlässlichen Speicher bereitgestellt: Deine Notizen können beim Schließen des Tabs verschwinden.",
+  "vaultBrowserHint": "Deine Notizen liegen im Speicher dieses Browsers und sind nicht als Dateien auf der Festplatte sichtbar."
 }

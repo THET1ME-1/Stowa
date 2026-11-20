@@ -4427,4 +4427,8 @@ class LRu extends L {
   @override
   String get storageWeak =>
       'Браузер не дал надёжного хранилища: заметки могут пропасть, когда вкладку закроют.';
+
+  @override
+  String get vaultBrowserHint =>
+      'Заметки лежат в хранилище этого браузера, на диске их не видно.';
 }
