@@ -198,14 +198,15 @@ class CaptureService {
   Future<List<String>> captureAll(List<CaptureInput> inputs) async {
     if (inputs.any((input) => input.text.trim().isEmpty && input.files.isEmpty)) throw ArgumentError('пустую вещь сохранять нечего');
     final ids = <String>[];
+    // угадыватель папок — до транзакции: внутри неё он ждал бы идущую постройку, а та ждёт
+    // конца транзакции, и встали бы оба
+    final index = inputs.every((input) => input.forcedFolderId != null || input.asIs) ? null : await _readyFolders();
     await _db.transaction(() async {
       final rules = await RulesRepository(_db).enabled();
-      FolderIndex? index;
-      Future<FolderIndex> folders() async => index ??= await ItemsRepository(_db, clock: _clock).folderIndex();
       // свои места один раз на пачку: «буду у Саши» узнаёт место «Саша»
       final places = [for (final place in await PlacesRepository(_db).all()) (id: place.id, name: place.name, kind: place.kind, label: place.label)];
       for (final input in inputs) {
-        ids.add(await _insert(input, rules, folders, places));
+        ids.add(await _insert(input, rules, index, places));
       }
     });
 
@@ -220,8 +221,18 @@ class CaptureService {
     return ids;
   }
 
-  // одна заметка внутри транзакции [captureAll]
-  Future<String> _insert(CaptureInput input, List<SortRule> enabledRules, Future<FolderIndex> Function() folders, List<KnownPlace> places) async {
+  // дольше сохранение угадыватель не ждёт
+  static const _guessWait = Duration(milliseconds: 300);
+
+  /// Угадыватель папок к сохранению. Обычно он готов сразу: строка ввода держит его свежим.
+  /// Не готов за [_guessWait] (хранилище в тысячи заметок режется на слова впервые, идёт
+  /// долгая пересборка) — null: заметка ложится без папки, сохранение не ждёт, а разбор
+  /// после сохранения ([afterCapture]) раскладывает её, как только угадыватель достроится.
+  Future<FolderIndex?> _readyFolders() =>
+      ItemsRepository(_db, clock: _clock).folderIndex().then<FolderIndex?>((index) => index).timeout(_guessWait, onTimeout: () => null);
+
+  // одна заметка внутри транзакции [captureAll]; [folders] — угадыватель, если он успел
+  Future<String> _insert(CaptureInput input, List<SortRule> enabledRules, FolderIndex? folders, List<KnownPlace> places) async {
     final text = input.text.trim();
     final id = _uuid.v4();
     final now = _clock();
@@ -253,8 +264,8 @@ class CaptureService {
     // ссылки с того же сайта и такие же фото и файлы
     final signals = itemSignals(kind: kind, url: url?.toString(), fileName: firstFile == null ? null : p.basename(firstFile.path));
     // серия — только у живого ввода: у переноса из Telegram время сообщений старое
-    final series = byHand || byRule || input.at != null ? null : await seriesFolder(_db, now);
-    final guess = byHand || byRule ? null : (await folders()).guess(text, signals: signals, series: series);
+    final series = byHand || byRule || folders == null || input.at != null ? null : await seriesFolder(_db, now);
+    final guess = byHand || byRule ? null : folders?.guess(text, signals: signals, series: series);
     final sorted = byHand || byRule || guess != null;
     await _db
         .into(_db.items)

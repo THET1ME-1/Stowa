@@ -39,6 +39,28 @@ void main() {
     return source;
   }
 
+  test('сохранение, пока угадыватель папок строится, не зависает', () async {
+    // строка ввода держит угадыватель свежим и пересобирает его после каждой правки заметок.
+    // Сохранение идёт в транзакции: если оно ждёт идущую постройку, а та ждёт конца транзакции,
+    // встают оба
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'car', name: 'Гараж', icon: 'folder', shape: 'squircle'));
+    await capture.capture(const CaptureInput(text: 'Замена масла и фильтра', forcedFolderId: 'car'));
+    for (var round = 0; round < 5; round++) {
+      final building = items.folderIndex();
+      final id = await capture.capture(CaptureInput(text: 'заметка $round без примет')).timeout(const Duration(seconds: 5));
+      await building.timeout(const Duration(seconds: 5));
+      expect((await items.get(id))!.item.body, 'заметка $round без примет');
+    }
+  });
+
+  test('угадыватель папок учится на только что сохранённом: следующая заметка ложится туда же', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'car', name: 'Гараж', icon: 'folder', shape: 'squircle'));
+    await capture.capture(const CaptureInput(text: 'zorbex лежит на полке', forcedFolderId: 'car'));
+    await capture.capture(const CaptureInput(text: 'zorbex надо почистить', forcedFolderId: 'car'));
+    final id = await capture.capture(const CaptureInput(text: 'zorbex'));
+    expect((await items.get(id))!.item.folderId, 'car');
+  });
+
   test('сохранение отдаёт id до копирования файлов и укладывается в 100 мс', () async {
     final source = await bigFile();
     // первый вызов прогревает базу и компилятор, меряем второй — как у живого телефона

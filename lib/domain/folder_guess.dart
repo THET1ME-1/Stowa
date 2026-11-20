@@ -137,14 +137,24 @@ bool _isTimeWord(String lower) => _timeWords.contains(lower) || _timeStems.any(l
 // конспектов сворачивается и режется один раз. Больше — память чистится целиком
 final _stemMemo = <String, String>{};
 const _stemMemoSize = 100000;
+// длиннее слов не бывает: это ключ, хеш или вставленный мусор, второй раз он не встретится
+const _memoWord = 40;
+
+/// Сколько слов помнит разбор: для проверки, что память не растёт от мусора.
+int get folderWordsRemembered => _stemMemo.length;
 
 String _stemFor(String original) {
+  if (original.length > _memoWord) return _stemOf(original);
   final known = _stemMemo[original];
   if (known != null) return known;
   if (_stemMemo.length >= _stemMemoSize) _stemMemo.clear();
+  return _stemMemo[original] = _stemOf(original);
+}
+
+String _stemOf(String original) {
   final lower = normalizeQuery(original);
   final skipped = lower.length < 3 || isStopWord(lower) || _isTimeWord(lower) || _number.hasMatch(lower);
-  return _stemMemo[original] = skipped ? '' : stem(lower);
+  return skipped ? '' : stem(lower);
 }
 
 // пробелы, которые снимает `trimRight`: обычные, неразрывные, переносы строк

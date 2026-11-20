@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:stowa/core/user_first.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
@@ -41,6 +42,28 @@ void main() {
     file(relative).writeAsStringSync(text);
     file(relative).setLastModifiedSync(DateTime.now().add(const Duration(minutes: 5)));
   }
+
+  test('в браузере: сверка в фоне уступает человеку, а пересборка, которую он ждёт у счётчика, — нет', () async {
+    var clock = now;
+    final gate = UserFirst(enabled: true, clock: () => clock, hold: const Duration(seconds: 2), poll: const Duration(milliseconds: 10));
+    final busy = VaultReader(db, root: root, clock: () => now, gate: gate);
+    put('Идеи.md', 'Сделать полку\n');
+    put('Схема.bin', 'не заметка и не вложение');
+    gate.touch();
+    final rebuilt = await busy.rebuild().timeout(const Duration(seconds: 5));
+    expect(rebuilt.added, greaterThan(0));
+
+    // новый файл, о котором база не знает: сверка спросит у базы, упомянут ли он в заметках
+    put('Чертёж.bin', 'ещё один файл');
+    gate.touch();
+    var done = false;
+    final running = busy.reconcile().then((_) => done = true);
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(done, isFalse, reason: 'человек занят — сверка ждёт');
+    clock = clock.add(const Duration(seconds: 3));
+    await running.timeout(const Duration(seconds: 5));
+    expect(done, isTrue);
+  });
 
   test('правка текста снаружи видна в базе и в поиске, назад в очередь не встаёт', () async {
     await note('a', 'Плитка', body: 'Плитка\nкупить клей');

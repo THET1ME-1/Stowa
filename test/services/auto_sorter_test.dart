@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/repositories/items_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/services/auto_sorter.dart';
 
@@ -152,6 +153,14 @@ void main() {
     final bread = await add('Купить батон');
     final added = await sorter.tagItems([soup, bread]);
     expect(added, {soup: ['рецепт'], bread: <String>[]});
+  });
+
+  test('раскладывать нечего — угадыватель папок не строится', () async {
+    // разбор зовут после каждого сохранения: заметка уже в папке, и резать ради неё всё хранилище незачем
+    await seed();
+    final placed = await add('Купить масло на зиму', folder: 'car', by: SortedBy.user);
+    expect(await sorter.sortInbox(onlyId: placed), isEmpty);
+    expect(ItemsRepository(db, clock: () => now).folderMemory.parsed, 0);
   });
 
   test('теги соседей второй раз: соседи заново на слова не режутся', () async {

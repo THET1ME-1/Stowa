@@ -38,7 +38,6 @@ class AutoSorter {
   /// Разложить вещи без папки, которые человек не оставлял там сам. Вернёт
   /// id переложенных: по ним «Отменить» вернёт всё как было.
   Future<List<String>> sortInbox({String? onlyId, Iterable<String> skip = const []}) async {
-    final index = await ItemsRepository(_db, clock: _clock).folderIndex();
     final rows = await _db
         .customSelect(
           'SELECT items.id, items.kind, items.url, $_itemText AS text, $_firstFile AS file_path FROM items '
@@ -47,6 +46,9 @@ class AutoSorter {
           variables: [if (onlyId != null) Variable.withString(onlyId)],
         )
         .get();
+    // раскладывать нечего — угадыватель не нужен: разбор зовут после каждого сохранения
+    if (rows.isEmpty) return const [];
+    final index = await ItemsRepository(_db, clock: _clock).folderIndex();
     final moved = <String>[];
     for (final row in rows) {
       final id = row.read<String>('id');

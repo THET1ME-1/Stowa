@@ -37,7 +37,16 @@ const conflictTag = 'конфликт';
 /// менеджер), и собирает базу из папки целиком после переустановки. Своё забранное
 /// не ставит обратно в очередь записи: правки идут под флагом `importing`.
 class VaultReader {
-  VaultReader(this._db, {required Directory? root, required DateTime Function() clock}) : _root = root, _clock = clock; // ignore: prefer_initializing_formals
+  VaultReader(this._db, {required Directory? root, required DateTime Function() clock, UserFirst? gate})
+    : _root = root, // ignore: prefer_initializing_formals
+      _clock = clock, // ignore: prefer_initializing_formals
+      _gate = gate ?? userFirst;
+
+  /// Занят ли человек: в браузере фоновая сверка ждёт, пока он не освободится.
+  final UserFirst _gate;
+
+  // пересборку человек ждёт, глядя на счётчик: она ему не уступает
+  bool _yields = true;
 
   final AppDatabase _db;
   final Directory? _root;
@@ -263,7 +272,14 @@ class VaultReader {
   }
 
   /// Собрать базу из папки: служебное из `.stowa/`, заметки, корзину, добытое о вещах.
-  Future<VaultScan> rebuild({void Function(int done, int total)? progress}) => _exclusively(() => _rebuild(progress: progress));
+  Future<VaultScan> rebuild({void Function(int done, int total)? progress}) => _exclusively(() async {
+    _yields = false;
+    try {
+      return await _rebuild(progress: progress);
+    } finally {
+      _yields = true;
+    }
+  });
 
   Future<VaultScan> _rebuild({void Function(int done, int total)? progress}) async {
     if (_root == null || !await _root.exists()) return VaultScan();
@@ -475,8 +491,8 @@ class VaultReader {
       if (names.contains(name.toLowerCase()) || noteDirs.contains(p.posix.dirname(relative).toLowerCase())) continue;
       // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл
       // рядом, карточка холста или картинка рисунка Excalidraw. Запрос просматривает текст всех
-      // заметок, и так на каждый файл: в браузере он уступает человеку
-      await userFirst.calm();
+      // заметок, и так на каждый файл: в браузере фоновая сверка уступает человеку
+      if (_yields) await _gate.calm();
       final mentioned = await _db
           .customSelect('SELECT 1 FROM items WHERE instr(body, ?1) > 0 OR instr(coalesce(document, \'\'), ?1) > 0 LIMIT 1', variables: [Variable.withString(name)])
           .getSingleOrNull();

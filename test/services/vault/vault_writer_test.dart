@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:stowa/core/user_first.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/domain/vault_note.dart';
@@ -33,6 +34,37 @@ void main() {
   File file(String relative) => File(p.join(root.path, relative));
   Future<String?> pathOf(String id) async => (await (db.select(db.vaultFiles)..where((t) => t.itemId.equals(id))).getSingleOrNull())?.path;
   Future<List<String>> queue() async => [for (final row in await db.select(db.vaultQueue).get()) row.target];
+
+  group('в браузере писатель уступает человеку', () {
+    Future<List<String>> waiting() async => (await queue()).where((target) => !target.startsWith('meta:')).toList();
+
+    test('человек занят: заметка ложится в файл сразу, её факты ждут и дописываются, когда он освободится', () async {
+      var clock = now;
+      final gate = UserFirst(enabled: true, clock: () => clock, hold: const Duration(milliseconds: 150));
+      final busy = VaultWriter(db, root: root, clock: () => now, gate: gate);
+      addTearDown(busy.dispose);
+      await note('a', 'Идеи');
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'f', itemId: 'a', extractor: 'text', kind: FactKind.price, value: '120 лей'));
+      expect(await waiting(), containsAll(['item:a', 'facts:a']));
+      gate.touch();
+      await busy.drain();
+      expect(file('Идеи.md').existsSync(), isTrue);
+      expect(await waiting(), ['facts:a']);
+      // человек отпустил клавиши: писатель возвращается к отложенному сам
+      clock = now.add(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      expect(await waiting(), isEmpty);
+    });
+
+    test('служебные файлы хранилища не ждут: в них имена и порядок папок', () async {
+      final gate = UserFirst(enabled: true, clock: () => now, hold: const Duration(seconds: 2));
+      final busy = VaultWriter(db, root: root, clock: () => now, gate: gate);
+      addTearDown(busy.dispose);
+      gate.touch();
+      await busy.drain();
+      expect((await queue()).where((target) => target.startsWith('meta:')), isEmpty);
+    });
+  });
 
   test('заметка с очень длинным русским названием пишется: временный файл не выходит за 255 байт', () async {
     // как семинар в College (248 байт имени файла) и чуть длиннее: 254 байта с «.md»

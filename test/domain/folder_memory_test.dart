@@ -165,6 +165,17 @@ void main() {
     });
   });
 
+  test('длинная строка без пробелов (ключ, хеш, вставленный мусор) в память слов не ложится', () {
+    meaningfulWords('обычное слово');
+    final before = folderWordsRemembered;
+    final words = meaningfulWords('${'x' * 50000} ${'ключ' * 30}');
+    expect(words.map((word) => word.original.length), [50000, 120]);
+    expect(folderWordsRemembered, before);
+    // а обычное слово помнится
+    meaningfulWords('небывалослово');
+    expect(folderWordsRemembered, before + 1);
+  });
+
   group('слова заметки', () {
     // «милтон» есть только в книге, и заметок хватает, чтобы слово решало и без веса имени
     final index = FolderIndex(const [

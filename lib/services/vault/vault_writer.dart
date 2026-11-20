@@ -21,10 +21,20 @@ import 'vault_meta.dart';
 /// триггеры базы; писатель забирает задачу арендой, как хранитель файлов, поэтому
 /// главное окно, «Поделиться» и фон не пишут один файл вдвоём.
 class VaultWriter {
-  VaultWriter(this._db, {required Directory? root, required DateTime Function() clock, Future<void> Function(File temp, File target)? commit, this.attachmentsDefault})
-    : _root = root, // ignore: prefer_initializing_formals
-      _clock = clock, // ignore: prefer_initializing_formals
-      _commit = commit ?? _rename;
+  VaultWriter(
+    this._db, {
+    required Directory? root,
+    required DateTime Function() clock,
+    Future<void> Function(File temp, File target)? commit,
+    this.attachmentsDefault,
+    UserFirst? gate,
+  }) : _root = root, // ignore: prefer_initializing_formals
+       _clock = clock, // ignore: prefer_initializing_formals
+       _commit = commit ?? _rename,
+       _gate = gate ?? userFirst;
+
+  /// Занят ли человек: в браузере факты и история ждут, пока он не освободится.
+  final UserFirst _gate;
 
   /// Имя общей папки вложений, если в хранилище нет ни Obsidian, ни выбора: «Вложения» на
   /// языке приложения. Записывается при первом проходе — хранилище, созданное только что,
@@ -89,11 +99,12 @@ class VaultWriter {
         // сперва вещи, потом их факты, служебное последним
         tasks.sort((a, b) => _order(a.target).compareTo(_order(b.target)));
         for (final task in tasks) {
-          // в браузере база одна на всё: заметки пишутся в файлы сразу, а факты, история и
-          // служебное ждут, пока человек набирает или листает. Задачи остаются в очереди
-          if (userFirst.busy && _order(task.target) > 0) {
+          // в браузере база одна на всё: заметки и служебное (имена и порядок папок) пишутся
+          // в файлы сразу, а факты и история ждут, пока человек набирает или листает.
+          // Отложенное остаётся в очереди
+          if (_gate.busy && _order(task.target) == 1) {
             postponed = true;
-            break;
+            continue;
           }
           if (!await _claim(task)) continue;
           try {
@@ -116,7 +127,7 @@ class VaultWriter {
       if (postponed) {
         // человек занят: вернёмся к отложенному, когда он отпустит клавиши
         _retry?.cancel();
-        _retry = Timer(userFirst.hold, () => drain().ignore());
+        _retry = Timer(_gate.hold, () => drain().ignore());
       } else {
         await _retryClaimed();
       }

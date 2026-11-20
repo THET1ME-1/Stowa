@@ -347,7 +347,9 @@ final captureServiceProvider = Provider((ref) {
   )
     // теги соседей и разбор ИИ идут после сохранения: строка не ждёт ни того, ни другого
     ..afterCapture = (id) {
-      sorter.tagItem(id).ignore();
+      // угадыватель папок не успел к сохранению (большое хранилище режется на слова впервые) —
+      // заметка легла без папки: раскладываем, как только он готов. Теги соседей — следом
+      sorter.sortInbox(onlyId: id).then((_) => sorter.tagItem(id)).ignore();
       drain().ignore();
       // деньги, телефоны и ссылки из текста — сразу; из файлов — когда они лягут
       facts.runItem(id).ignore();
