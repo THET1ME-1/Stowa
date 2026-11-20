@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/composer/line_dock.dart';
+import 'package:stowa/features/folder/folder_cards.dart' show BoardTile;
+import 'package:stowa/features/home/note_timeline.dart' show NoteCard;
 import 'package:stowa/features/returns/return_screen.dart';
 import 'package:stowa/features/workspace/workspace_model.dart';
 import 'package:stowa/features/workspace/workspace_shell.dart';
@@ -50,6 +52,26 @@ void main() {
       final button = tester.getRect(find.descendant(of: header, matching: find.byTooltip(tip)));
       expect(button.height, lessThanOrEqualTo(40), reason: tip);
     }
+  });
+
+  // хозяин 20.11 с макетом папки: «что сложного повторить» — заметки плиткой, а не столбиком
+  testWidgets('монитор: заметки папки плиткой в несколько колонок — и списком, и доской', (tester) async {
+    for (var i = 0; i < 8; i++) {
+      await world.db.into(world.db.items).insert(
+        ItemsCompanion.insert(id: 'n$i', kind: ItemKind.note, title: 'Конспект $i', body: Value('Конспект $i\nтемы урока'), folderId: const Value('k'), createdAt: world.now, updatedAt: world.now),
+      );
+    }
+    final shell = await open(tester);
+    Set<double> columnsOf(Finder cards) => {for (final element in cards.evaluate()) tester.getRect(find.byWidget(element.widget)).left.roundToDouble()};
+
+    await world.db.customUpdate("UPDATE folders SET view = 'list' WHERE id = 'k'", updates: {world.db.folders});
+    await tester.pumpAndSettle();
+    expect(columnsOf(find.byType(NoteCard)).length, greaterThanOrEqualTo(3), reason: 'лента — колонками, как главная');
+
+    await world.db.customUpdate("UPDATE folders SET view = 'board' WHERE id = 'k'", updates: {world.db.folders});
+    await tester.pumpAndSettle();
+    expect(columnsOf(find.byType(BoardTile)).length, greaterThanOrEqualTo(3), reason: 'доска — колонками, как в макете');
+    expect(shell.workspace.panes, isNotEmpty);
   });
 
   testWidgets('монитор: «Посмотреть потом» с крупным заголовком, как у папки, а не мелким телефонным', (tester) async {

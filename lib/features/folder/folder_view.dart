@@ -33,6 +33,21 @@ double boardTileHeight(ItemCard card) => (card.thumbPath == null ? 0.75 : card.t
   return (left: left, right: right);
 }
 
+/// Доска в [count] колонок (монитор): та же раскладка — плитка в самую короткую колонку.
+List<List<ItemCard>> boardColumnsOf(List<ItemCard> cards, int count) {
+  final columns = List.generate(count, (_) => <ItemCard>[]);
+  final heights = List.filled(count, 0.0);
+  for (final card in cards) {
+    var shortest = 0;
+    for (var index = 1; index < count; index++) {
+      if (heights[index] < heights[shortest]) shortest = index;
+    }
+    columns[shortest].add(card);
+    heights[shortest] += boardTileHeight(card);
+  }
+  return columns;
+}
+
 enum FolderOrder { newest, oldest, name, color }
 
 /// Порядок карточек по кнопке в шапке папки.

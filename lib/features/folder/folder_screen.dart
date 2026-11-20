@@ -33,6 +33,7 @@ import '../item/item_screen.dart';
 import '../sort/sort_screen.dart';
 import '../privacy/privacy_flows.dart';
 import '../tags/tag_picker.dart';
+import '../workspace/workspace_home.dart' show NoteMasonry;
 import '../workspace/workspace_model.dart' show WsTab;
 import '../workspace/workspace_shell.dart' show WorkspaceScope;
 import 'canvas_view.dart';
@@ -549,8 +550,11 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                     )
                   else if (board)
                     SliverToBoxAdapter(
-                      child: _Board(cards: shown, filesRoot: filesRoot, selected: _selected, onTap: _tap, onAct: _act),
+                      child: _Board(cards: shown, filesRoot: filesRoot, selected: _selected, onTap: _tap, onAct: _act, wide: deskHeader != null),
                     )
+                  // монитор: лента — та же плитка, что на главной
+                  else if (deskHeader != null)
+                    NoteMasonry(cards: shown, side: 24, onOpen: (id) => _tap(shown.firstWhere((card) => card.id == id)))
                   else
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: Space.screen),
@@ -995,7 +999,7 @@ class _FilterChip extends StatelessWidget {
 
 /// Доска в две колонки: картинки в своих пропорциях, по очереди слева и справа.
 class _Board extends StatelessWidget {
-  const _Board({required this.cards, required this.filesRoot, required this.selected, required this.onTap, required this.onAct});
+  const _Board({required this.cards, required this.filesRoot, required this.selected, required this.onTap, required this.onAct, this.wide = false});
 
   final List<ItemCard> cards;
   final Directory filesRoot;
@@ -1003,14 +1007,18 @@ class _Board extends StatelessWidget {
   final ValueChanged<ItemCard> onTap;
   final ValueChanged<ItemCard> onAct;
 
+  /// Монитор: колонок столько, сколько помещается плиток по 220 точек, как в макете веба.
+  final bool wide;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Space.screen),
+      padding: EdgeInsets.symmetric(horizontal: wide ? 24 : Space.screen),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final width = (constraints.maxWidth - 8) / 2;
-          final columns = boardColumns(cards);
+          final count = wide ? ((constraints.maxWidth + 8) / (220 + 8)).floor().clamp(2, 6) : 2;
+          final width = (constraints.maxWidth - 8 * (count - 1)) / count;
+          final columns = count == 2 ? [boardColumns(cards).left, boardColumns(cards).right] : boardColumnsOf(cards, count);
           Widget column(List<ItemCard> side) => Expanded(
             child: Column(
               children: [
@@ -1031,7 +1039,12 @@ class _Board extends StatelessWidget {
               ],
             ),
           );
-          return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [column(columns.left), const SizedBox(width: 8), column(columns.right)]);
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (index, side) in columns.indexed) ...[if (index > 0) const SizedBox(width: 8), column(side)],
+            ],
+          );
         },
       ),
     );

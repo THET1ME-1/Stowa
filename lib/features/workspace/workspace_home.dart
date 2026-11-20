@@ -95,11 +95,11 @@ class WorkspaceHome extends ConsumerWidget {
               ),
             if (pinned.isNotEmpty) ...[
               _DayTitle(name: l.homePinned, side: side),
-              _Masonry(cards: pinned, columns: columns, side: side, dated: true, onOpen: onOpen),
+              NoteMasonry(cards: pinned, columns: columns, side: side, dated: true, onOpen: onOpen),
             ],
             for (final MapEntry(key: day, value: cards) in days.entries) ...[
               _DayTitle(name: dayLabel(l, day, now).$1, date: dayLabel(l, day, now).$2, side: side),
-              _Masonry(cards: cards, columns: columns, side: side, onOpen: onOpen),
+              NoteMasonry(cards: cards, columns: columns, side: side, onOpen: onOpen),
             ],
             SliverToBoxAdapter(child: SizedBox(height: bottomSpace)),
           ],
@@ -139,12 +139,13 @@ class _DayTitle extends StatelessWidget {
 }
 
 /// Карточки в колонки: каждая ложится в самую короткую колонку. Высота заранее — прикидкой
-/// по содержимому, этого хватает, чтобы колонки не разъезжались.
-class _Masonry extends ConsumerWidget {
-  const _Masonry({required this.cards, required this.columns, required this.side, required this.onOpen, this.dated = false});
+/// по содержимому, этого хватает, чтобы колонки не разъезжались. Плитка главной и папки на
+/// мониторе. [columns] null — сколько колонок по 200 точек помещается.
+class NoteMasonry extends ConsumerWidget {
+  const NoteMasonry({super.key, required this.cards, this.columns, required this.side, required this.onOpen, this.dated = false});
 
   final List<ItemCard> cards;
-  final int columns;
+  final int? columns;
   final double side;
   final bool dated;
   final ValueChanged<String> onOpen;
@@ -172,6 +173,7 @@ class _Masonry extends ConsumerWidget {
       padding: EdgeInsets.symmetric(horizontal: side),
       sliver: SliverLayoutBuilder(
         builder: (context, constraints) {
+          final columns = this.columns ?? math.max(1, ((constraints.crossAxisExtent + _gap) / (_column + _gap)).floor()).clamp(1, 6);
           final width = (constraints.crossAxisExtent - _gap * (columns - 1)) / columns;
           final heights = List.filled(columns, 0.0);
           final placed = List.generate(columns, (_) => <ItemCard>[]);
