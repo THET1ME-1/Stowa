@@ -45,6 +45,68 @@ class QuoteBlock extends NoteBlock {
   final String text;
 }
 
+/// Вид выноски Obsidian: свой цвет и значок. Синонимы сводятся к виду, как в Obsidian.
+enum CalloutKind { note, abstract, info, todo, tip, success, question, warning, failure, danger, bug, example, quote }
+
+const _calloutKinds = {
+  'note': CalloutKind.note,
+  'abstract': CalloutKind.abstract,
+  'summary': CalloutKind.abstract,
+  'tldr': CalloutKind.abstract,
+  'info': CalloutKind.info,
+  'todo': CalloutKind.todo,
+  'tip': CalloutKind.tip,
+  'hint': CalloutKind.tip,
+  'important': CalloutKind.tip,
+  'success': CalloutKind.success,
+  'check': CalloutKind.success,
+  'done': CalloutKind.success,
+  'question': CalloutKind.question,
+  'help': CalloutKind.question,
+  'faq': CalloutKind.question,
+  'warning': CalloutKind.warning,
+  'caution': CalloutKind.warning,
+  'attention': CalloutKind.warning,
+  'failure': CalloutKind.failure,
+  'fail': CalloutKind.failure,
+  'missing': CalloutKind.failure,
+  'danger': CalloutKind.danger,
+  'error': CalloutKind.danger,
+  'bug': CalloutKind.bug,
+  'example': CalloutKind.example,
+  'quote': CalloutKind.quote,
+  'cite': CalloutKind.quote,
+};
+
+/// Выноска Obsidian: строка `> [!вид]± Заголовок`, под ней строки `> …`. Внутри — обычный
+/// текст заметки своими блоками, в том числе другая выноска.
+class CalloutBlock extends NoteBlock {
+  const CalloutBlock({required this.type, required this.title, required this.fold, required this.blocks});
+
+  /// Вид, как написан: `abstract`, `FAQ`, свой.
+  final String type;
+
+  /// Свой заголовок; null — заголовка нет, на экране имя вида.
+  final String? title;
+
+  /// `-` — свёрнута, `+` — раскрыта и сворачивается, null — не сворачивается.
+  final String? fold;
+  final List<NoteBlock> blocks;
+
+  /// Неизвестный вид рисуется как заметка, с его именем.
+  CalloutKind get kind => _calloutKinds[type.toLowerCase()] ?? CalloutKind.note;
+
+  String get shownTitle => title ?? calloutTypeTitle(type);
+}
+
+/// Заголовок выноски без своего: имя вида с заглавной, как в Obsidian («Faq», «Рецепт»).
+String calloutTypeTitle(String type) => type.isEmpty ? type : '${type[0].toUpperCase()}${type.substring(1).toLowerCase()}';
+
+/// Первая строка выноски: вид, знак сворачивания, заголовок.
+final calloutHead = RegExp(r'^>\s?\[!([^\]\s]+)\]([+-]?)\s*(.*)$');
+final _quoteSign = RegExp(r'^> ?');
+final _calloutMark = RegExp(r'^\[!([^\]\s]+)\][+-]?\s*');
+
 /// Картинка между абзацами: строка `![[имя]]`, как пишет Obsidian. [name] — короткое
 /// имя файла вложения или путь от корня хранилища.
 class ImageBlock extends NoteBlock {
@@ -162,8 +224,9 @@ final _bullet = RegExp(r'^\s*[-*•] (.+)$');
 final _numbered = RegExp(r'^\s*(\d{1,3})[.)] (.+)$');
 final _quote = RegExp(r'^> ?(.*)$');
 
-/// Текст заметки в блоки, все строки как написаны.
-List<NoteBlock> parseNoteBlocks(String body) {
+/// Текст заметки в блоки, все строки как написаны. [lineOffset] — номер первой строки [body]
+/// в тексте заметки: у текста внутри выноски галочка переключает свою строку всего текста.
+List<NoteBlock> parseNoteBlocks(String body, {int lineOffset = 0}) {
   final lines = body.split('\n');
   final blocks = <NoteBlock>[];
   final paragraph = <String>[];
@@ -201,7 +264,7 @@ List<NoteBlock> parseNoteBlocks(String body) {
       blocks.add(ImageBlock(embed.group(1)!.trim()));
     } else if (checkLine.firstMatch(line) case final check?) {
       flush();
-      blocks.add(CheckBlock(text: check.group(2)!, done: check.group(1) != ' ', line: index));
+      blocks.add(CheckBlock(text: check.group(2)!, done: check.group(1) != ' ', line: lineOffset + index));
     } else if (_heading.firstMatch(line) case final heading?) {
       flush();
       blocks.add(HeadingBlock(heading.group(1)!.length, heading.group(2)!));
@@ -211,6 +274,24 @@ List<NoteBlock> parseNoteBlocks(String body) {
     } else if (_numbered.firstMatch(line) case final numbered?) {
       flush();
       blocks.add(NumberedBlock(int.parse(numbered.group(1)!), numbered.group(2)!));
+    } else if (calloutHead.firstMatch(line) case final head?) {
+      flush();
+      // строки выноски — подряд идущие с «>»; знак снимается один раз, внутри бывает своя выноска
+      var end = index;
+      while (end + 1 < lines.length && lines[end + 1].trimLeft().startsWith('>')) {
+        end++;
+      }
+      final inner = [for (var at = index + 1; at <= end; at++) lines[at].trimLeft().replaceFirst(_quoteSign, '')];
+      final title = head.group(3)!.trim();
+      blocks.add(
+        CalloutBlock(
+          type: head.group(1)!,
+          title: title.isEmpty ? null : title,
+          fold: head.group(2)!.isEmpty ? null : head.group(2),
+          blocks: parseNoteBlocks(inner.join('\n'), lineOffset: lineOffset + index + 1),
+        ),
+      );
+      skipTo = end;
     } else if (_quote.firstMatch(line) case final quote?) {
       flush();
       blocks.add(QuoteBlock(quote.group(1)!));
@@ -263,7 +344,8 @@ List<NoteLine> noteLinesUnderTitle(String body, String title) {
   ];
 }
 
-final _checkMark = RegExp(r'^(\s*[-*] \[)([ xX])(\] .*)$');
+// галочка бывает и внутри выноски: «> - [ ] дело»
+final _checkMark = RegExp(r'^((?:\s*> ?)*\s*[-*] \[)([ xX])(\] .*)$');
 
 /// Текст с переключённой галочкой в строке [index]; отступ и значок пункта как были.
 String toggleCheckLine(String body, int index) {
@@ -329,7 +411,18 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
       }
       at = from + sign.length;
     }
+    // выноска: вместо «[!abstract]» — её заголовок жирным, без него — имя вида
+    var calloutTitle = '';
+    if (lead != null && lead.group(0)!.startsWith('>')) {
+      if (_calloutMark.firstMatch(line.substring(at - from)) case final mark?) {
+        drop(at, at + mark.end);
+        at += mark.end;
+        if (line.substring(at - from).trim().isEmpty) calloutTitle = calloutTypeTitle(mark.group(1)!);
+        lineStyle = MarkupStyle.bold;
+      }
+    }
     final lineStart = out.length;
+    out.write(calloutTitle);
     // разметка и [[ссылки]] по порядку; наложившиеся не берутся
     final found = <(int start, int end, int innerStart, int innerEnd, MarkupStyle? style)>[
       for (final match in inlineMarks.allMatches(line, at - from))

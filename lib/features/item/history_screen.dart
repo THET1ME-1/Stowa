@@ -95,6 +95,8 @@ class HistoryScreen extends ConsumerWidget {
       final line = switch (block) {
         ParagraphBlock(:final text) || HeadingBlock(:final text) || BulletBlock(:final text) || NumberedBlock(:final text) || CheckBlock(:final text) || QuoteBlock(:final text) => text,
         ImageBlock() => '',
+        // у выноски первая строка — её заголовок
+        CalloutBlock(:final shownTitle) => shownTitle,
         // первая строка кода, без подсветки и разметки
         CodeBlock(:final code) => code.split('\n').firstWhere((one) => one.trim().isNotEmpty, orElse: () => ''),
         MathBlock(:final tex) => tex.split('\n').first,

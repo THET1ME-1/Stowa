@@ -206,4 +206,55 @@ void main() {
   test('строки ленты без картинок из текста', () {
     expect([for (final line in noteLinesUnderTitle('Плитка\n![[a.jpg]]\nклей', 'Плитка')) line.text], ['клей']);
   });
+
+  // хозяин 20.11 со снимка ленты: «[!abstract] Описание … сейчас это просто код»
+  group('выноски Obsidian', () {
+    test('заголовок, вид и текст внутри разбираются, текст после выноски — свой', () {
+      final blocks = parseNoteBlocks('> [!abstract] Описание\n> Добро пожаловать в **Рапгар**!\n> - город торговцев\nДальше обычный текст');
+      expect(blocks.map((block) => block.runtimeType), [CalloutBlock, ParagraphBlock]);
+      final callout = blocks.first as CalloutBlock;
+      expect(callout.kind, CalloutKind.abstract);
+      expect(callout.title, 'Описание');
+      expect(callout.fold, isNull);
+      expect(callout.blocks.map((block) => block.runtimeType), [ParagraphBlock, BulletBlock]);
+      expect((callout.blocks.first as ParagraphBlock).text, 'Добро пожаловать в **Рапгар**!');
+    });
+
+    test('синонимы видов, регистр, сворачивание; без заголовка — имя вида', () {
+      final faq = parseNoteBlocks('> [!FAQ]- \n> Ответ').single as CalloutBlock;
+      expect(faq.kind, CalloutKind.question);
+      expect(faq.fold, '-');
+      expect(faq.title, isNull);
+      expect(faq.shownTitle, 'Faq');
+      expect((parseNoteBlocks('> [!tldr]+ Коротко').single as CalloutBlock).kind, CalloutKind.abstract);
+      expect((parseNoteBlocks('> [!caution]').single as CalloutBlock).kind, CalloutKind.warning);
+      expect((parseNoteBlocks('> [!error]').single as CalloutBlock).kind, CalloutKind.danger);
+      expect((parseNoteBlocks('> [!cite]').single as CalloutBlock).kind, CalloutKind.quote);
+      // неизвестный вид — как заметка, с его именем
+      final own = parseNoteBlocks('> [!рецепт]').single as CalloutBlock;
+      expect(own.kind, CalloutKind.note);
+      expect(own.shownTitle, 'Рецепт');
+    });
+
+    test('выноска в выноске, обычная цитата остаётся цитатой', () {
+      final outer = parseNoteBlocks('> [!note] Снаружи\n> текст\n> > [!tip] Внутри\n> > совет').single as CalloutBlock;
+      expect(outer.blocks.map((block) => block.runtimeType), [ParagraphBlock, CalloutBlock]);
+      expect((outer.blocks.last as CalloutBlock).title, 'Внутри');
+      expect(parseNoteBlocks('> просто цитата').single, isA<QuoteBlock>());
+    });
+
+    test('галочка внутри выноски переключает свою строку текста', () {
+      const body = 'Дела\n> [!todo] На неделю\n> - [ ] позвонить\n> - [x] купить';
+      final todo = parseNoteBlocks(body)[1] as CalloutBlock;
+      final call = todo.blocks.first as CheckBlock;
+      expect(call.line, 2);
+      expect(toggleCheckLine(body, call.line), 'Дела\n> [!todo] На неделю\n> - [x] позвонить\n> - [x] купить');
+    });
+
+    test('в ленте вместо «[!abstract]» — заголовок выноски, без него — имя вида', () {
+      final shown = renderMarkup('> [!abstract] Описание\n> Добро пожаловать', const []);
+      expect(shown.text, 'Описание\nДобро пожаловать');
+      expect(renderMarkup('> [!tip]', const []).text, 'Tip');
+    });
+  });
 }

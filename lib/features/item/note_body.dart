@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/folder_palette.dart';
+import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../domain/note_blocks.dart';
 import '../../domain/note_links.dart' show noteLinkScheme;
@@ -116,6 +118,14 @@ class NoteBody extends StatelessWidget {
       ImageBlock(:final name) => image?.call(name) ?? MissingImage(name: name),
       CodeBlock(:final code, :final language) => CodeBlockView(code: code, language: language, onTap: onEdit),
       MathBlock(:final tex) => MathBlockView(tex: tex, onTap: onEdit),
+      // текст внутри выноски — те же блоки и те же касания, что у всей заметки
+      CalloutBlock() => CalloutView(
+        block: block,
+        body: body,
+        onEdit: onEdit,
+        onLink: onLink,
+        inner: (blocks) => NoteBody(blocks: blocks, onToggle: onToggle, onEdit: onEdit, onLink: onLink, image: image),
+      ),
       QuoteBlock(text: final value) => GestureDetector(
         onTap: onEdit,
         child: Container(
@@ -125,6 +135,93 @@ class NoteBody extends StatelessWidget {
         ),
       ),
     };
+  }
+}
+
+/// Значок и цвет вида выноски, как у Obsidian: синие заметка, сведения и дела, бирюзовые
+/// кратко и совет, зелёный успех, жёлтый вопрос, оранжевое предупреждение, красные сбой,
+/// опасность и ошибка, фиолетовый пример. Цвета — из палитры папок, цитата — без цвета.
+(String icon, String? color) _calloutLook(CalloutKind kind) => switch (kind) {
+  CalloutKind.note => ('edit', 'blue'),
+  CalloutKind.abstract => ('assignment', 'teal'),
+  CalloutKind.info => ('info', 'sky'),
+  CalloutKind.todo => ('check_circle', 'blue'),
+  CalloutKind.tip => ('local_fire_department', 'teal'),
+  CalloutKind.success => ('check', 'mint'),
+  CalloutKind.question => ('help', 'amber'),
+  CalloutKind.warning => ('warning', 'tangerine'),
+  CalloutKind.failure => ('close', 'coral'),
+  CalloutKind.danger => ('bolt', 'coral'),
+  CalloutKind.bug => ('bug_report', 'coral'),
+  CalloutKind.example => ('list', 'violet'),
+  CalloutKind.quote => ('format_quote', null),
+};
+
+/// Выноска Obsidian на странице заметки: подложка в цвет вида, значок и заголовок, ниже текст.
+/// Сворачиваемая (`-`, `+`) раскрывается касанием заголовка, мягко, без рывка.
+class CalloutView extends StatefulWidget {
+  const CalloutView({super.key, required this.block, required this.body, required this.onEdit, required this.onLink, required this.inner});
+
+  final CalloutBlock block;
+  final TextStyle body;
+  final VoidCallback onEdit;
+  final ValueChanged<String> onLink;
+  final Widget Function(List<NoteBlock> blocks) inner;
+
+  @override
+  State<CalloutView> createState() => _CalloutViewState();
+}
+
+class _CalloutViewState extends State<CalloutView> {
+  late bool _open = widget.block.fold != '-';
+
+  @override
+  Widget build(BuildContext context) {
+    final block = widget.block;
+    final (icon, key) = _calloutLook(block.kind);
+    final hue = key == null ? null : FolderPalette.colors[key];
+    final ink = hue == null ? Tokens.onSurfaceVariant : FolderPalette.ink(hue);
+    final foldable = block.fold != null;
+    final header = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(padding: const EdgeInsets.only(top: 2), child: Icon(symbolIcon(icon, filled: true), size: 20, color: ink)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: RichLine(text: block.shownTitle, style: widget.body.copyWith(fontWeight: FontWeight.w700, color: ink), onLink: widget.onLink),
+        ),
+        if (foldable)
+          AnimatedRotation(
+            turns: _open ? 0 : -0.25,
+            duration: Motion.medium,
+            curve: Motion.emphasized,
+            child: Icon(symbolIcon('expand_more'), size: 22, color: ink),
+          ),
+      ],
+    );
+    return Container(
+      key: ValueKey('callout-${block.kind.name}'),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(color: hue == null ? Tokens.container : FolderPalette.tint(hue, 0.14), borderRadius: BorderRadius.circular(Radii.tile)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: foldable ? () => setState(() => _open = !_open) : widget.onEdit,
+            child: header,
+          ),
+          AnimatedSize(
+            duration: Motion.medium,
+            curve: Motion.emphasized,
+            alignment: Alignment.topCenter,
+            child: _open && block.blocks.isNotEmpty
+                ? Padding(padding: const EdgeInsets.only(top: 8), child: widget.inner(block.blocks))
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
+    );
   }
 }
 
