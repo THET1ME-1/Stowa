@@ -4220,7 +4220,7 @@ class LRu extends L {
 
   @override
   String get syncMassDelete =>
-      'Пропало много файлов разом, поэтому на других телефонах они не удалены';
+      'Пропало много файлов разом, поэтому на других устройствах они не удалены';
 
   @override
   String get syncVaultUnreadable => 'Не удалось прочитать папку хранилища';
@@ -4238,7 +4238,8 @@ class LRu extends L {
   String get syncSignOut => 'Выйти';
 
   @override
-  String get syncSignOutHint => 'Заметки на этом телефоне останутся на месте.';
+  String get syncSignOutHint =>
+      'Заметки на этом устройстве останутся на месте.';
 
   @override
   String get wsSections => 'Разделы';

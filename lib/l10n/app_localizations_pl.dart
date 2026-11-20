@@ -4213,7 +4213,7 @@ class LPl extends L {
 
   @override
   String get syncMassDelete =>
-      'Zniknęło naraz wiele plików, więc nie usunięto ich na innych telefonach';
+      'Zniknęło naraz wiele plików, więc nie usunięto ich na innych urządzeniach';
 
   @override
   String get syncVaultUnreadable => 'Nie udało się odczytać folderu skarbca';
@@ -4232,7 +4232,7 @@ class LPl extends L {
   String get syncSignOut => 'Wyloguj';
 
   @override
-  String get syncSignOutHint => 'Notatki zostaną na tym telefonie.';
+  String get syncSignOutHint => 'Notatki zostaną na tym urządzeniu.';
 
   @override
   String get wsSections => 'Sekcje';

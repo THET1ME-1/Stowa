@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
+import '../core/fs/web_files.dart' show watchAutofill;
 import '../core/platform.dart' show aside, isWeb;
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart' show lookupL;
@@ -833,11 +834,38 @@ final pinnedItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryPro
 /// папке человека, и напоминать о копии там незачем. Тесты подменяют.
 final storedInBrowserProvider = Provider((ref) => isWeb);
 
+/// Слежка за подстановкой менеджера паролей: подсказка поля («email») и что делать со значением;
+/// возвращает, чем перестать следить. В браузере — по полям страницы, вне его — ничего.
+typedef AutofillWatch = void Function() Function(String hint, void Function(String value) onFill);
+
+final autofillWatchProvider = Provider<AutofillWatch>((ref) => watchAutofill);
+
 final copyReminderProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchCopyReminder());
 
 /// Пора ли напомнить о резервной копии: копии ещё не было, или она устарела.
+/// Вошли ли в Stowa Sync. Следит за состоянием службы: вход, выход и проходы его меняют.
+final syncSignedInProvider = StreamProvider<bool>((ref) {
+  final service = ref.watch(syncServiceProvider);
+  final out = StreamController<bool>();
+  void send() {
+    if (!out.isClosed) out.add(service.status.value.email != null);
+  }
+
+  service.status.addListener(send);
+  service.account().then((_) => send(), onError: (Object _) => out.isClosed ? null : out.add(false));
+  ref.onDispose(() {
+    service.status.removeListener(send);
+    out.close();
+  });
+  return out.stream.distinct();
+});
+
 final copyNudgeProvider = StreamProvider<BackupNudge>((ref) {
   if (!ref.watch(storedInBrowserProvider)) return Stream.value(BackupNudge.none);
+  // вошли в Stowa Sync — заметки лежат и на сервере: пугать «только в этом браузере» незачем
+  final signedIn = ref.watch(syncSignedInProvider).value;
+  if (signedIn == null) return const Stream.empty();
+  if (signedIn) return Stream.value(BackupNudge.none);
   final reminder = ref.watch(copyReminderProvider).value;
   if (reminder == null) return const Stream.empty();
   final db = ref.watch(databaseProvider);

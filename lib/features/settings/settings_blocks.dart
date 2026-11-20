@@ -11,7 +11,26 @@ Color settingsTint(String key) => FolderPalette.colors[key]!;
 
 /// Экран настроек вырастает из нажатой строки (переход темы). Раздел длиннее
 /// пяти строк живёт на своём экране.
-Route<void> settingsPageRoute(Widget page) => MaterialPageRoute(builder: (_) => page);
+Route<void> settingsPageRoute(Widget page) => MaterialPageRoute(builder: (context) => DeskMode.of(context) ? _DeskPage(child: page) : page);
+
+/// Экран настроек на мониторе: колонкой не шире 760 точек по центру окна, как текст заметки,
+/// а не полями и кнопками во всю ширину вкладки.
+class _DeskPage extends StatelessWidget {
+  const _DeskPage({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760), child: child),
+      ),
+    );
+  }
+}
 
 /// Лист настроек снизу: поднимается над клавиатурой. На мониторе — окном у верха экрана.
 Future<T?> showSettingsSheet<T>(BuildContext context, Widget child) => showStowaSheet<T>(context, builder: (_) => child, maxHeightFactor: null);

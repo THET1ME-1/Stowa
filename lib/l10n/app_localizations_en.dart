@@ -4142,7 +4142,7 @@ class LEn extends L {
 
   @override
   String get syncMassDelete =>
-      'Many files disappeared at once, so they weren\'t deleted on your other phones';
+      'Many files disappeared at once, so they weren\'t deleted on your other devices';
 
   @override
   String get syncVaultUnreadable => 'Couldn\'t read the vault folder';
@@ -4161,7 +4161,7 @@ class LEn extends L {
   String get syncSignOut => 'Sign out';
 
   @override
-  String get syncSignOutHint => 'Your notes stay on this phone.';
+  String get syncSignOutHint => 'Your notes stay on this device.';
 
   @override
   String get wsSections => 'Sections';

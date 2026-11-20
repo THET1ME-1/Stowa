@@ -4153,7 +4153,7 @@ class LEs extends L {
 
   @override
   String get syncMassDelete =>
-      'Desaparecieron muchos archivos a la vez, así que no se borraron en tus otros teléfonos';
+      'Desaparecieron muchos archivos a la vez, así que no se borraron en tus otros dispositivos';
 
   @override
   String get syncVaultUnreadable => 'No se pudo leer la carpeta de la bóveda';
@@ -4172,7 +4172,7 @@ class LEs extends L {
   String get syncSignOut => 'Cerrar sesión';
 
   @override
-  String get syncSignOutHint => 'Tus notas se quedan en este teléfono.';
+  String get syncSignOutHint => 'Tus notas se quedan en este dispositivo.';
 
   @override
   String get wsSections => 'Secciones';

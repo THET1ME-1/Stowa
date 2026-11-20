@@ -4180,7 +4180,7 @@ class LRo extends L {
 
   @override
   String get syncMassDelete =>
-      'Au dispărut multe fișiere deodată, așa că nu au fost șterse pe celelalte telefoane';
+      'Au dispărut multe fișiere deodată, așa că nu au fost șterse pe celelalte dispozitive';
 
   @override
   String get syncVaultUnreadable => 'Nu am putut citi dosarul seifului';
@@ -4199,7 +4199,7 @@ class LRo extends L {
   String get syncSignOut => 'Ieși';
 
   @override
-  String get syncSignOutHint => 'Notițele rămân pe acest telefon.';
+  String get syncSignOutHint => 'Notițele rămân pe acest dispozitiv.';
 
   @override
   String get wsSections => 'Secțiuni';

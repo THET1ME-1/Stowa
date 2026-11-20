@@ -66,6 +66,22 @@ void onTabTakenOver(Future<void> Function() leave) {
 
 void reloadPage() => web.window.location.reload();
 
+void Function() watchAutofill(String hint, void Function(String value) onFill) {
+  // слушает весь документ: поле подстановки Flutter заводит и убирает сам
+  final listener = ((web.Event event) {
+    final target = event.target;
+    if (target == null || !target.isA<web.HTMLInputElement>()) return;
+    final input = target as web.HTMLInputElement;
+    if ((input.getAttribute('autocomplete') ?? '').contains(hint)) onFill(input.value);
+  }).toJS;
+  web.document.addEventListener('input', listener, true.toJS);
+  web.document.addEventListener('change', listener, true.toJS);
+  return () {
+    web.document.removeEventListener('input', listener, true.toJS);
+    web.document.removeEventListener('change', listener, true.toJS);
+  };
+}
+
 Future<bool> persistStorage() async {
   try {
     return (await web.window.navigator.storage.persist().toDart).toDart;

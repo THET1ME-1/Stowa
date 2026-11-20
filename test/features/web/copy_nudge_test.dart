@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/core/theme/app_theme.dart';
+import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/backup_nudge.dart';
+import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/web/copy_nudge.dart';
 import 'package:stowa/l10n/app_localizations.dart';
+import 'package:stowa/services/sync/sync_service.dart';
+
+import '../../helpers/test_app.dart';
 
 void main() {
   Future<void> show(WidgetTester tester, {required BackupNudge nudge, bool weak = false, VoidCallback? onSave, VoidCallback? onLater, double width = 900}) async {
@@ -56,5 +63,36 @@ void main() {
     await show(tester, nudge: BackupNudge.first, weak: true, width: 320);
     expect(tester.takeException(), isNull);
     expect(find.text('Сохранить копию'), findsOneWidget);
+  });
+
+  // хозяин 20.11, вошедший в Stowa Sync: «у меня платная подписка, синхронизация должна быть серверная»
+  group('на главной в браузере', () {
+    late TestWorld world;
+    setUp(() => world = TestWorld()..inBrowser = true);
+    tearDown(() => world.dispose());
+
+    Future<void> home(WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      world.settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Мысль', createdAt: world.now, updatedAt: world.now));
+      tester.view.physicalSize = const Size(400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      addTearDown(() => tester.pumpWidget(const SizedBox()));
+      await tester.pumpWidget(world.app());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('не вошли в Stowa Sync — плашка о копии есть', (tester) async {
+      await home(tester);
+      expect(find.textContaining('только в этом браузере'), findsOneWidget);
+    });
+
+    testWidgets('вошли в Stowa Sync — заметки и на сервере, плашки о копии нет', (tester) async {
+      await world.syncAccount.write(SyncAccount(email: 'me@x.io', token: 't', key: List.filled(32, 1), vaultDb: 'stowa').toJson());
+      await home(tester);
+      expect(find.textContaining('только в этом браузере'), findsNothing);
+      expect(find.text('Сохранить копию'), findsNothing);
+    });
   });
 }

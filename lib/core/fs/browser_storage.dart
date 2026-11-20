@@ -31,6 +31,12 @@ void onTabTakenOver(Future<void> Function() leave) {}
 /// Перезагрузить вкладку: замок хранилища при этом снимается.
 void reloadPage() {}
 
+/// Следить за подстановкой менеджера паролей в поле страницы с `autocomplete` [hint]
+/// («email»). Менеджер забирает фокус в своё окошко, Flutter закрывает ввод, и значение,
+/// записанное потом прямо в поле страницы, до приложения не доходит. Вне браузера — ничего.
+/// Возвращает, чем перестать следить.
+void Function() watchAutofill(String hint, void Function(String value) onFill) => () {};
+
 /// Попросить браузер не стирать заметки сайта, когда на диске мало места.
 /// true — браузер обещал.
 Future<bool> persistStorage() async => true;

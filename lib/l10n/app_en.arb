@@ -5027,9 +5027,9 @@
   "@syncInactive": {
     "description": "syncInactive"
   },
-  "syncMassDelete": "Many files disappeared at once, so they weren't deleted on your other phones",
+  "syncMassDelete": "Many files disappeared at once, so they weren't deleted on your other devices",
   "@syncMassDelete": {
-    "description": "syncMassDelete"
+    "description": "Stowa Sync не стал удалять разом много файлов на других устройствах"
   },
   "syncVaultUnreadable": "Couldn't read the vault folder",
   "@syncVaultUnreadable": {
@@ -5051,9 +5051,9 @@
   "@syncSignOut": {
     "description": "syncSignOut"
   },
-  "syncSignOutHint": "Your notes stay on this phone.",
+  "syncSignOutHint": "Your notes stay on this device.",
   "@syncSignOutHint": {
-    "description": "syncSignOutHint"
+    "description": "Под кнопкой «Выйти» из Stowa Sync: заметки на телефоне или в браузере не пропадут"
   },
   "wsSections": "Sections",
   "@wsSections": {

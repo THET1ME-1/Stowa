@@ -4167,7 +4167,7 @@ class LDe extends L {
 
   @override
   String get syncMassDelete =>
-      'Viele Dateien sind auf einmal verschwunden, deshalb wurden sie auf deinen anderen Handys nicht gelöscht';
+      'Viele Dateien sind auf einmal verschwunden, deshalb wurden sie auf deinen anderen Geräten nicht gelöscht';
 
   @override
   String get syncVaultUnreadable => 'Tresorordner konnte nicht gelesen werden';
@@ -4186,7 +4186,7 @@ class LDe extends L {
   String get syncSignOut => 'Abmelden';
 
   @override
-  String get syncSignOutHint => 'Deine Notizen bleiben auf diesem Handy.';
+  String get syncSignOutHint => 'Deine Notizen bleiben auf diesem Gerät.';
 
   @override
   String get wsSections => 'Bereiche';

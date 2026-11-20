@@ -229,7 +229,11 @@ class TestWorld {
         // тесты в сеть не ходят: без своего сервера — поддельный, который всем отказывает
         syncHttpProvider.overrideWithValue(syncHttp ?? MockClient((_) async => http.Response('', 401))),
         if (vaultRoot case final vaultRoot?) vaultRootProvider.overrideWith(() => VaultRootNotifier(vaultRoot)),
+        if (autofill case final autofill?) autofillWatchProvider.overrideWithValue(autofill),
       ];
+
+  /// Подстановка менеджера паролей в поле страницы (только браузер): тест отдаёт значение сам.
+  AutofillWatch? autofill;
 
   /// Аккаунт синхронизации: по умолчанию не вошли.
   final syncAccount = MemoryKeyStore();

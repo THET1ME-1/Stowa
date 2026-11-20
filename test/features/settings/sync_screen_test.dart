@@ -53,6 +53,39 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // хозяин 20.11 со снимка: «автоподстановка не работает». Менеджер паролей забирает фокус в своё
+  // окошко, Flutter закрывает ввод, а значение потом пишется прямо в поле страницы
+  testWidgets('менеджер паролей подставил почту, когда фокус ушёл в его окошко, — почта в поле', (tester) async {
+    void Function(String value)? fill;
+    world.autofill = (hint, onFill) {
+      if (hint == 'email') fill = onFill;
+      return () {};
+    };
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('sync-email')));
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    fill!('me@x.io');
+    await tester.pump();
+    expect(find.text('me@x.io'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.byKey(const ValueKey('sync-get-code'))).onPressed, isNotNull);
+  });
+
+  testWidgets('пока человек печатает сам, подстановка поле не перебивает', (tester) async {
+    void Function(String value)? fill;
+    world.autofill = (hint, onFill) {
+      fill = onFill;
+      return () {};
+    };
+    await open(tester);
+    await tester.enterText(find.byKey(const ValueKey('sync-email')), 'me@');
+    await tester.pump();
+    fill!('other@x.io');
+    await tester.pump();
+    expect(find.text('me@'), findsOneWidget);
+  });
+
   Future<void> askCode(WidgetTester tester) async {
     await tester.enterText(find.byKey(const ValueKey('sync-email')), 'me@x.io');
     await tester.pump();

@@ -25,7 +25,9 @@ class SyncScreen extends ConsumerStatefulWidget {
 
 class _SyncScreenState extends ConsumerState<SyncScreen> {
   final _email = TextEditingController();
+  final _emailFocus = FocusNode();
   final _code = TextEditingController();
+  late final void Function() _stopAutofill;
 
   /// Почта, на которую ушёл код; null — шаг ввода почты.
   String? _sentTo;
@@ -52,14 +54,24 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     });
     _email.addListener(() => setState(() => _error = null));
     _code.addListener(_onCode);
+    _stopAutofill = ref.read(autofillWatchProvider)('email', _autofilled);
   }
 
   @override
   void dispose() {
+    _stopAutofill();
     _tick?.cancel();
     _email.dispose();
+    _emailFocus.dispose();
     _code.dispose();
     super.dispose();
+  }
+
+  // менеджер паролей подставил почту, когда фокус ушёл в его окошко: Flutter ввод уже закрыл,
+  // значение берётся из поля страницы. Пока человек печатает сам, поле не перебивается
+  void _autofilled(String value) {
+    if (!mounted || _emailFocus.hasFocus || _sentTo != null || value == _email.text) return;
+    _email.value = TextEditingValue(text: value, selection: TextSelection.collapsed(offset: value.length));
   }
 
   void _onCode() {
@@ -183,11 +195,13 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     List<String> autofill = const [],
     bool code = false,
     VoidCallback? onDone,
+    FocusNode? focusNode,
   }) {
     final style = Theme.of(context).textTheme.bodyLarge!;
     return TextField(
       key: key,
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboard,
       autofillHints: autofill,
       autocorrect: false,
@@ -225,7 +239,15 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     key: const ValueKey('sync-email-step'),
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      _field(key: const ValueKey('sync-email'), controller: _email, hint: l.syncEmail, keyboard: TextInputType.emailAddress, autofill: const [AutofillHints.email], onDone: _requestCode),
+      _field(
+        key: const ValueKey('sync-email'),
+        controller: _email,
+        focusNode: _emailFocus,
+        hint: l.syncEmail,
+        keyboard: TextInputType.emailAddress,
+        autofill: const [AutofillHints.email],
+        onDone: _requestCode,
+      ),
       const SizedBox(height: 16),
       _button(key: const ValueKey('sync-get-code'), label: l.syncGetCode, onPressed: _email.text.contains('@') && !_busy ? _requestCode : null),
       if (_error != null) _errorLine(),

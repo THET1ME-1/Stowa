@@ -4208,7 +4208,7 @@ class LUk extends L {
 
   @override
   String get syncMassDelete =>
-      'Зникло багато файлів одразу, тож на інших телефонах їх не видалено';
+      'Зникло багато файлів одразу, тож на інших пристроях їх не видалено';
 
   @override
   String get syncVaultUnreadable => 'Не вдалося прочитати теку сховища';
@@ -4227,7 +4227,7 @@ class LUk extends L {
   String get syncSignOut => 'Вийти';
 
   @override
-  String get syncSignOutHint => 'Нотатки на цьому телефоні залишаться.';
+  String get syncSignOutHint => 'Нотатки на цьому пристрої залишаться.';
 
   @override
   String get wsSections => 'Розділи';

@@ -7043,10 +7043,10 @@ abstract class L {
   /// **'Sync isn\'t turned on for this account'**
   String get syncInactive;
 
-  /// syncMassDelete
+  /// Stowa Sync не стал удалять разом много файлов на других устройствах
   ///
   /// In en, this message translates to:
-  /// **'Many files disappeared at once, so they weren\'t deleted on your other phones'**
+  /// **'Many files disappeared at once, so they weren\'t deleted on your other devices'**
   String get syncMassDelete;
 
   /// syncVaultUnreadable
@@ -7079,10 +7079,10 @@ abstract class L {
   /// **'Sign out'**
   String get syncSignOut;
 
-  /// syncSignOutHint
+  /// Под кнопкой «Выйти» из Stowa Sync: заметки на телефоне или в браузере не пропадут
   ///
   /// In en, this message translates to:
-  /// **'Your notes stay on this phone.'**
+  /// **'Your notes stay on this device.'**
   String get syncSignOutHint;
 
   /// Side panel with the main places of the app
