@@ -496,11 +496,15 @@ class VaultReader {
       final name = p.posix.basename(relative);
       if (names.contains(name.toLowerCase()) || noteDirs.contains(p.posix.dirname(relative).toLowerCase())) continue;
       // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл
-      // рядом, карточка холста или картинка рисунка Excalidraw. Запрос просматривает текст всех
-      // заметок, и так на каждый файл: в браузере фоновая сверка уступает человеку
+      // рядом, свойство в шапке (обложка книги: `Обложка: "[[Обложки/1984.jpg]]"`), карточка холста или
+      // картинка рисунка Excalidraw. Запрос просматривает текст всех заметок, и так на каждый файл:
+      // в браузере фоновая сверка уступает человеку
       if (_yields) await _gate.calm();
       final mentioned = await _db
-          .customSelect('SELECT 1 FROM items WHERE instr(body, ?1) > 0 OR instr(coalesce(document, \'\'), ?1) > 0 LIMIT 1', variables: [Variable.withString(name)])
+          .customSelect(
+            'SELECT 1 FROM items WHERE instr(body, ?1) > 0 OR instr(coalesce(document, \'\'), ?1) > 0 OR instr(coalesce(properties, \'\'), ?1) > 0 LIMIT 1',
+            variables: [Variable.withString(name)],
+          )
           .getSingleOrNull();
       if (mentioned != null) continue;
       fresh.add(relative);
