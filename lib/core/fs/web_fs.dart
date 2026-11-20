@@ -109,10 +109,11 @@ class WebFileSystem extends ForwardingFileSystem {
       delegate.directory(entry.path).createSync(recursive: true);
     }
     final files = entries.where((entry) => !entry.directory).toList();
-    // мелкие читаются пачками: тысячи заметок по одной шли бы долго
-    for (var start = 0; start < files.length; start += 16) {
+    // мелкие читаются пачками: тысячи заметок по одной шли бы долго, а пачка в 16 ждала
+    // предыдущую полторы сотни раз подряд
+    for (var start = 0; start < files.length; start += 64) {
       await Future.wait([
-        for (final entry in files.skip(start).take(16))
+        for (final entry in files.skip(start).take(64))
           () async {
             final target = delegate.file(entry.path)..parent.createSync(recursive: true);
             if (entry.size > lazyFrom && !_text(entry.path)) {

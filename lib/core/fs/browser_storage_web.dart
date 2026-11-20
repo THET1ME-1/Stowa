@@ -171,20 +171,33 @@ class OpfsWebStore implements WebStore {
     return dir.getFileHandle(parts.last, web.FileSystemGetFileOptions(create: create)).toDart;
   }
 
+  // файлы, найденные обходом: чтение сразу после него не ищет их заново от корня папка за
+  // папкой. Каждый читается один раз и забывается; запись и удаление забывают его сразу
+  final _found = <String, web.File>{};
+
+  void _forget(String path) => _found.removeWhere((key, _) => key == path || key.startsWith('$path/'));
+
   @override
   Future<List<StoredEntry>> list() async {
     final out = <StoredEntry>[];
+    _found.clear();
+    // содержимое папки — разом, а не по файлу: тысяча заметок по очереди — это секунды до
+    // первого кадра
     Future<void> walk(web.FileSystemDirectoryHandle dir, String prefix) async {
-      for (final handle in await _children(dir)) {
-        final path = '$prefix/${handle.name}';
-        if (handle.kind == 'directory') {
-          out.add(StoredEntry(path, directory: true));
-          await walk(handle as web.FileSystemDirectoryHandle, path);
-        } else {
-          final file = await (handle as web.FileSystemFileHandle).getFile().toDart;
-          out.add(StoredEntry(path, directory: false, size: file.size, modified: DateTime.fromMillisecondsSinceEpoch(file.lastModified)));
-        }
-      }
+      await Future.wait([
+        for (final handle in await _children(dir))
+          () async {
+            final path = '$prefix/${handle.name}';
+            if (handle.kind == 'directory') {
+              out.add(StoredEntry(path, directory: true));
+              await walk(handle as web.FileSystemDirectoryHandle, path);
+            } else {
+              final file = await (handle as web.FileSystemFileHandle).getFile().toDart;
+              _found[path] = file;
+              out.add(StoredEntry(path, directory: false, size: file.size, modified: DateTime.fromMillisecondsSinceEpoch(file.lastModified)));
+            }
+          }(),
+      ]);
     }
 
     await walk(await root, '');
@@ -193,13 +206,14 @@ class OpfsWebStore implements WebStore {
 
   @override
   Future<Uint8List> read(String path) async {
-    final file = await (await _file(path, create: false)).getFile().toDart;
+    final file = _found.remove(path) ?? await (await _file(path, create: false)).getFile().toDart;
     final buffer = await file.arrayBuffer().toDart;
     return buffer.toDart.asUint8List();
   }
 
   @override
   Future<void> write(String path, Uint8List bytes) async {
+    _forget(path);
     final handle = await _file(path, create: true);
     await _writeHandle(handle, bytes);
   }
@@ -222,6 +236,7 @@ class OpfsWebStore implements WebStore {
 
   @override
   Future<void> delete(String path) async {
+    _forget(path);
     final parts = _parts(path);
     if (parts.isEmpty) return;
     try {
