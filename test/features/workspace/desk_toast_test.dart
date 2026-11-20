@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/core/widgets/undo_snack.dart';
+import 'package:stowa/data/hints_repository.dart';
 import 'package:stowa/features/composer/line_dock.dart';
+import 'package:stowa/features/composer/start_card.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -37,6 +39,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(undone, isTrue);
     expect(find.byKey(const ValueKey('desk-toast')), findsNothing);
+  });
+
+  testWidgets('на мониторе плашка встаёт над подсказкой знакомства, а не на неё', (tester) async {
+    world.hints = HintsRepository.memory();
+    await open(tester, const Size(1600, 960));
+    expect(find.byType(StartCard), findsOneWidget);
+    showNote(ScaffoldMessenger.of(tester.element(find.byType(LineDock))), 'Закрепил наверху главной');
+    await tester.pumpAndSettle();
+    final toast = tester.getRect(find.byKey(const ValueKey('desk-toast')));
+    expect(toast.bottom, lessThanOrEqualTo(tester.getRect(find.byType(StartCard)).top));
   });
 
   testWidgets('на мониторе плашка уходит сама, новая сменяет прежнюю', (tester) async {

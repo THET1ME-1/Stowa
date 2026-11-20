@@ -55,6 +55,7 @@ import 'start_card.dart';
 import 'picked_files.dart';
 import 'voice_session.dart';
 import 'voice_wave.dart';
+import '../workspace/desk_toast_host.dart';
 import '../workspace/workspace_shell.dart' show WorkspaceScope;
 
 const _toastTime = Duration(milliseconds: 3400);
@@ -1076,6 +1077,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // на мониторе плашки приложения — пилюлей над всем, что строка показывает сверху
+                      if (!_full && WorkspaceScope.maybeOf(context) != null) const DeskToastHost(),
                       if (!_full) _toastView(),
                       // в редакторе на весь экран панели нет, строка забирает всю высоту
                       if (!_full)
