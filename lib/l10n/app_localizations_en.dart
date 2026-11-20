@@ -4355,4 +4355,14 @@ class LEn extends L {
   @override
   String get vaultBrowserHint =>
       'Your notes live in this browser\'s storage and do not show up as files on the disk.';
+
+  @override
+  String vaultBuildingFiles(int done, int total) {
+    return 'Checking files: $done of $total';
+  }
+
+  @override
+  String vaultBuildingExtras(int done, int total) {
+    return 'Finishing the index: $done of $total';
+  }
 }

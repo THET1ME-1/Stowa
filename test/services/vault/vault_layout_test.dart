@@ -130,4 +130,21 @@ void main() {
     expect(defaultAttachmentFolder('de_DE'), 'Anhänge');
     expect(defaultAttachmentFolder('fr_FR'), 'Attachments');
   });
+
+  test('упомянутые имена файлов: как поиск подстроки, с учётом регистра, не через стык двух заметок', () {
+    const texts = 'Схема в ![[Pasted image 2024.png]]\u0000Обложка: "[[Книги/1984.jpg|1984.jpg]]"\u0000см. архив.tar.gz и README\u0000конец a.p\u0000ng';
+    final names = ['Pasted image 2024.png', '1984.jpg', 'архив.tar.gz', 'README', 'readme', 'image 2024.png', 'Скан.png', 'a.png', 'PASTED IMAGE 2024.PNG'];
+    expect(mentionedNames(texts, names), {'Pasted image 2024.png', '1984.jpg', 'архив.tar.gz', 'README', 'image 2024.png'});
+  });
+
+  test('упомянутые имена на большом хранилище — один проход по тексту, а не поиск на каждое имя', () {
+    // 8 МБ текста College и 222 файла без заметки: поиск на каждое имя шёл 24 с
+    final texts = List.filled(40000, 'Конспект лекции, схема ![[Вложения/схема сети.png]] и таблица.\u0000').join();
+    final names = [for (var i = 0; i < 600; i++) 'Скан документа $i.png'];
+    final watch = Stopwatch()..start();
+    final found = mentionedNames(texts, [...names, 'схема сети.png']);
+    expect(found, {'схема сети.png'});
+    // поиском на каждое имя выходило 3,4 с, одним проходом — 0,1 с
+    expect(watch.elapsedMilliseconds, lessThan(1000));
+  });
 }

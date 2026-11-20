@@ -24,7 +24,7 @@ Future<AppDatabase> prepareVaultDatabase(
   KnownVault target, {
   required AppDatabase Function(String name) open,
   required DateTime Function() clock,
-  void Function(int done, int total)? progress,
+  RebuildProgress? progress,
 }) async {
   final db = open(target.db);
   try {

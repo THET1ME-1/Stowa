@@ -5209,5 +5209,29 @@
   "vaultBrowserHint": "Your notes live in this browser's storage and do not show up as files on the disk.",
   "@vaultBrowserHint": {
     "description": "Пояснение под строкой открытого хранилища в настройках веб-версии. Одно предложение"
+  },
+  "vaultBuildingFiles": "Checking files: {done} of {total}",
+  "@vaultBuildingFiles": {
+    "description": "Ход сборки указателя: файлы хранилища без своей заметки",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultBuildingExtras": "Finishing the index: {done} of {total}",
+  "@vaultBuildingExtras": {
+    "description": "Ход сборки указателя: добытое о заметках и история правок из служебной папки",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

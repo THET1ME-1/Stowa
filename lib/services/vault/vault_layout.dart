@@ -28,6 +28,40 @@ String notePath({List<String> folders = const [], required String fileName}) => 
 /// до 16.11.2026; новые кладутся по [attachmentFolderFor], старые читаются и остаются на месте.
 String attachmentsDir(String notePath) => notePath.endsWith('.md') ? notePath.substring(0, notePath.length - 3) : notePath;
 
+/// Какие из [names] встречаются в [texts] (текст всех заметок одной строкой) — как
+/// `texts.contains(name)`, с учётом регистра. Не поиском на каждое имя: 222 файла College на
+/// 16 МБ текста искались 24 с. Текст проходится по разу на каждое расширение (`.png`, `.jpg`),
+/// у найденного места сверяется начало имени.
+Set<String> mentionedNames(String texts, Iterable<String> names) {
+  final found = <String>{};
+  final byExtension = <String, List<String>>{};
+  for (final name in names) {
+    final dot = name.lastIndexOf('.');
+    if (dot <= 0) {
+      // без расширения — поиском целиком: таких файлов единицы
+      if (texts.contains(name)) found.add(name);
+      continue;
+    }
+    byExtension.putIfAbsent(name.substring(dot), () => []).add(name);
+  }
+  for (final MapEntry(key: extension, value: candidates) in byExtension.entries) {
+    // у места расширения берётся кусок длиной с имя и ищется среди имён этой длины
+    final byLength = <int, Set<String>>{};
+    for (final name in candidates) {
+      byLength.putIfAbsent(name.length, () => {}).add(name);
+    }
+    for (var at = texts.indexOf(extension); at >= 0; at = texts.indexOf(extension, at + 1)) {
+      final end = at + extension.length;
+      for (final MapEntry(key: length, value: same) in byLength.entries) {
+        if (length > end) continue;
+        final piece = texts.substring(end - length, end);
+        if (same.contains(piece)) found.add(piece);
+      }
+    }
+  }
+  return found;
+}
+
 String _obsidianApp(Directory root) => p.join(root.path, '.obsidian', 'app.json');
 
 String _stowaChoice(Directory root) => p.join(root.path, serviceFolder, 'attachments.json');

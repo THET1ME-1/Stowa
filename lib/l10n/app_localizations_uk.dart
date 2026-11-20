@@ -4420,4 +4420,14 @@ class LUk extends L {
   @override
   String get vaultBrowserHint =>
       'Нотатки лежать у сховищі цього браузера, на диску їх не видно.';
+
+  @override
+  String vaultBuildingFiles(int done, int total) {
+    return 'Звіряю файли: $done з $total';
+  }
+
+  @override
+  String vaultBuildingExtras(int done, int total) {
+    return 'Доробляю покажчик: $done з $total';
+  }
 }

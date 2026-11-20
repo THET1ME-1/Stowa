@@ -22,6 +22,12 @@ import '../file_keeper.dart' show imageSizeOfFile;
 import 'vault_layout.dart';
 import 'vault_meta.dart';
 
+/// Шаг пересборки для окна хода: заметки, файлы без своей заметки, добытое о заметках
+/// и история правок из `.stowa/`.
+enum RebuildStep { notes, files, extras }
+
+typedef RebuildProgress = void Function(RebuildStep step, int done, int total);
+
 /// Что нашёл проход по хранилищу.
 class VaultScan {
   int added = 0;
@@ -131,7 +137,8 @@ class VaultReader {
     return changed > 0;
   }
 
-  Future<VaultScan> _reconcile({void Function(int done, int total)? progress}) async {
+  /// [files] — ход разбора файлов без своей заметки (картинки, PDF), он идёт после заметок.
+  Future<VaultScan> _reconcile({void Function(int done, int total)? progress, void Function(int done, int total)? files}) async {
     final scan = VaultScan();
     if (_root == null || !await _root.exists()) return scan;
     // настройка вложений Obsidian и указатель имён — свежие на каждый проход
@@ -218,7 +225,7 @@ class VaultReader {
       await (_db.delete(_db.vaultQueue)..where((t) => t.target.equals('item:${one.id}'))).go();
     }
     progress?.call(total, total);
-    final loose = await _looseFiles(byPath, seen, scan);
+    final loose = await _looseFiles(byPath, seen, scan, progress: files);
 
     // файла нет ни среди заметок, ни на своём месте (корзина, служебное): удалили снаружи
     final gone = [...loose];
@@ -278,7 +285,8 @@ class VaultReader {
   }
 
   /// Собрать базу из папки: служебное из `.stowa/`, заметки, корзину, добытое о вещах.
-  Future<VaultScan> rebuild({void Function(int done, int total)? progress}) => _exclusively(() async {
+  /// [progress] называет шаг: окно хода не стоит на «N из N», пока доделывается остальное.
+  Future<VaultScan> rebuild({RebuildProgress? progress}) => _exclusively(() async {
     _yields = false;
     try {
       return await _rebuild(progress: progress);
@@ -287,13 +295,16 @@ class VaultReader {
     }
   });
 
-  Future<VaultScan> _rebuild({void Function(int done, int total)? progress}) async {
+  Future<VaultScan> _rebuild({RebuildProgress? progress}) async {
     if (_root == null || !await _root.exists()) return VaultScan();
     // папки, теги и правила — до заметок: заметки ищут свою папку по имени
     for (final name in ['folders', 'tags', 'rules']) {
       await _restoreMeta(name);
     }
-    final scan = await _reconcile(progress: progress);
+    final scan = await _reconcile(
+      progress: progress == null ? null : (done, total) => progress(RebuildStep.notes, done, total),
+      files: progress == null ? null : (done, total) => progress(RebuildStep.files, done, total),
+    );
     final ids = {for (final row in await (_db.selectOnly(_db.items)..addColumns([_db.items.id])).get()) row.read(_db.items.id)!};
     final trashed = <_Incoming>[];
     for (final relative in await _notes(trash: true)) {
@@ -332,32 +343,96 @@ class VaultReader {
     for (final name in ['links', 'learned', 'canvas']) {
       await _restoreMeta(name);
     }
-    await _restoreFacts();
-    await _restoreHistory();
+    await _restoreExtras(progress);
     return scan;
   }
 
-  /// Снимки заметок из `.stowa/history/<id>.json`: история переживает переустановку.
-  Future<void> _restoreHistory() async {
-    final dir = Directory(_absolute('$serviceFolder/history'));
-    if (!await dir.exists()) return;
-    await for (final entity in dir.list()) {
-      if (entity is! File || !entity.path.endsWith('.json')) continue;
-      await _keepLease();
-      await _restoreHistoryFile(entity);
+  /// Добытое о заметках (`.stowa/facts/<id>.json`) и снимки истории (`.stowa/history/<id>.json`)
+  /// пачками по [_batch] файлов в транзакции. В браузере каждая транзакция — запись на диск:
+  /// 1062 файла College по одному в транзакции шли 11 минут, и окно хода всё это время
+  /// стояло на «1999 из 1999».
+  Future<void> _restoreExtras(RebuildProgress? progress) async {
+    final facts = await _jsonFiles('$serviceFolder/facts');
+    final history = await _jsonFiles('$serviceFolder/history');
+    final total = facts.length + history.length;
+    progress?.call(RebuildStep.extras, 0, total);
+    final ids = {for (final row in await (_db.selectOnly(_db.items)..addColumns([_db.items.id])).get()) row.read(_db.items.id)!};
+    var done = 0;
+    for (final (files, apply) in [(facts, _applyFacts), (history, _applyHistory)]) {
+      for (var start = 0; start < files.length; start += _batch) {
+        final chunk = files.sublist(start, min(start + _batch, files.length));
+        await _keepLease();
+        // файлы читаются до транзакции: битый файл пропускается, остальные из пачки ложатся
+        final read = <(String, Map<String, Object?>)>[];
+        for (final file in chunk) {
+          final id = p.basenameWithoutExtension(file.path);
+          if (!ids.contains(id)) continue;
+          if (await _readJson(file) case final json?) read.add((id, json));
+        }
+        await _quietly(() async {
+          for (final (id, json) in read) {
+            await apply(id, json);
+          }
+        });
+        done += chunk.length;
+        progress?.call(RebuildStep.extras, done, total);
+      }
+    }
+  }
+
+  // файлы .json одного каталога служебной папки, по имени
+  Future<List<File>> _jsonFiles(String relative) async {
+    final dir = Directory(_absolute(relative));
+    if (!await dir.exists()) return const [];
+    final found = [
+      await for (final entity in dir.list())
+        if (entity is File && entity.path.endsWith('.json')) entity,
+    ];
+    return found..sort((a, b) => a.path.compareTo(b.path));
+  }
+
+  /// Текст, шапка и исходник (холст, база, рисунок) всех заметок одной строкой: в ней ищется
+  /// упоминание файла. Нулевой знак между заметками не даёт совпасть стыку двух соседних.
+  /// В браузере фоновая сверка сперва уступает человеку: выборка большая.
+  Future<String> _allTexts() async {
+    if (_yields) await _gate.calm();
+    final rows = await _db.customSelect("SELECT body, coalesce(document, '') AS document, coalesce(properties, '') AS properties FROM items").get();
+    final text = StringBuffer();
+    for (final row in rows) {
+      text
+        ..write(row.read<String>('body'))
+        ..write('\u0000')
+        ..write(row.read<String>('document'))
+        ..write('\u0000')
+        ..write(row.read<String>('properties'))
+        ..write('\u0000');
+    }
+    return text.toString();
+  }
+
+  // содержимое служебного файла; пропал или испорчен — null
+  Future<Map<String, Object?>?> _readJson(File file) async {
+    try {
+      return jsonDecode(await file.readAsString()) as Map<String, Object?>;
+    } on Object {
+      return null;
     }
   }
 
   Future<void> _restoreHistoryFile(File file) async {
     final id = p.basenameWithoutExtension(file.path);
     if (!await file.exists() || await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) return;
-    final json = jsonDecode(await file.readAsString()) as Map<String, Object?>;
-    await _quietly(() async {
-      await (_db.delete(_db.noteVersions)..where((t) => t.itemId.equals(id))).go();
-      for (final row in (json['versions'] as List? ?? const []).whereType<Map<String, Object?>>()) {
-        await _insertRow('note_versions', row);
-      }
-    });
+    final json = await _readJson(file);
+    if (json == null) return;
+    await _quietly(() => _applyHistory(id, json));
+  }
+
+  // снимки заметки из её файла истории; зовётся внутри транзакции
+  Future<void> _applyHistory(String id, Map<String, Object?> json) async {
+    await (_db.delete(_db.noteVersions)..where((t) => t.itemId.equals(id))).go();
+    for (final row in (json['versions'] as List? ?? const []).whereType<Map<String, Object?>>()) {
+      await _insertRow('note_versions', row);
+    }
   }
 
   /// Служебное, пришедшее синхронизацией с другого телефона. [meta] — метки, папки,
@@ -443,7 +518,7 @@ class VaultReader {
   /// вложения заметок (по пути и по имени: Obsidian ссылается коротким именем на файл в
   /// любой папке), папки вложений и служебное. Отдаёт заметки, чей файл стал вложением
   /// другой заметки: они уходят в корзину, файл не трогается.
-  Future<List<String>> _looseFiles(Map<String, VaultFile> byPath, Set<String> notes, VaultScan scan) async {
+  Future<List<String>> _looseFiles(Map<String, VaultFile> byPath, Set<String> notes, VaultScan scan, {void Function(int done, int total)? progress}) async {
     final attached = <String>{};
     final names = <String>{};
     final owners = <String, String>{};
@@ -473,7 +548,10 @@ class VaultReader {
 
     final trashed = <String>[];
     final fresh = <String>[];
-    for (final relative in found) {
+    // файлы, которые не вложения и не по имени вложений: их ищем в тексте заметок
+    final unknown = <String>[];
+    for (final (index, relative) in found.indexed) {
+      if (index % 25 == 0) progress?.call(index, found.length);
       final before = byPath[relative];
       if (before != null) {
         // файл стал вложением другой заметки: отдельная заметка больше не нужна
@@ -495,21 +573,20 @@ class VaultReader {
       if (attached.contains(relative)) continue;
       final name = p.posix.basename(relative);
       if (names.contains(name.toLowerCase()) || noteDirs.contains(p.posix.dirname(relative).toLowerCase())) continue;
-      // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл
-      // рядом, свойство в шапке (обложка книги: `Обложка: "[[Обложки/1984.jpg]]"`), карточка холста или
-      // картинка рисунка Excalidraw. Запрос просматривает текст всех заметок, и так на каждый файл:
-      // в браузере фоновая сверка уступает человеку
-      if (_yields) await _gate.calm();
-      final mentioned = await _db
-          .customSelect(
-            'SELECT 1 FROM items WHERE instr(body, ?1) > 0 OR instr(coalesce(document, \'\'), ?1) > 0 OR instr(coalesce(properties, \'\'), ?1) > 0 LIMIT 1',
-            variables: [Variable.withString(name)],
-          )
-          .getSingleOrNull();
-      if (mentioned != null) continue;
-      fresh.add(relative);
+      unknown.add(relative);
     }
-    if (fresh.isEmpty) return trashed;
+    // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл
+    // рядом, свойство в шапке (обложка книги: `Обложка: "[[Обложки/1984.jpg]]"`), карточка холста или
+    // картинка рисунка Excalidraw. Текст всех заметок читается один раз и только когда такие файлы
+    // есть; запрос на каждый файл просматривал всю базу (222 файла College — 20 с)
+    if (unknown.isNotEmpty) {
+      final mentioned = mentionedNames(await _allTexts(), unknown.map(p.posix.basename));
+      fresh.addAll(unknown.where((relative) => !mentioned.contains(p.posix.basename(relative))));
+    }
+    if (fresh.isEmpty) {
+      progress?.call(found.length, found.length);
+      return trashed;
+    }
 
     final folders = await _folderKeys();
     final created = <String>{};
@@ -560,6 +637,7 @@ class VaultReader {
     for (final target in created) {
       await _db.customStatement("INSERT INTO vault_queue (target) VALUES ('$target') ON CONFLICT(target) DO UPDATE SET version = version + 1, claimed_until = NULL");
     }
+    progress?.call(found.length, found.length);
     return trashed;
   }
 
@@ -836,34 +914,28 @@ class VaultReader {
     });
   }
 
-  Future<void> _restoreFacts() async {
-    final dir = Directory(_absolute('$serviceFolder/facts'));
-    if (!await dir.exists()) return;
-    await for (final entity in dir.list()) {
-      if (entity is! File || !entity.path.endsWith('.json')) continue;
-      await _keepLease();
-      await _restoreFactsFile(entity);
-    }
-  }
-
   Future<void> _restoreFactsFile(File file) async {
     final id = p.basenameWithoutExtension(file.path);
     if (!await file.exists() || await (_db.select(_db.items)..where((t) => t.id.equals(id))).getSingleOrNull() == null) return;
-    final json = jsonDecode(await file.readAsString()) as Map<String, Object?>;
-    await _quietly(() async {
-      await (_db.delete(_db.facts)..where((t) => t.itemId.equals(id))).go();
-      await (_db.delete(_db.extractorRuns)..where((t) => t.itemId.equals(id))).go();
-      for (final row in (json['facts'] as List? ?? const []).whereType<Map<String, Object?>>()) {
-        await _insertRow('facts', row);
-      }
-      for (final row in (json['runs'] as List? ?? const []).whereType<Map<String, Object?>>()) {
-        await _insertRow('extractor_runs', row);
-      }
-      await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
-        ItemsCompanion(transcript: Value(json['transcript'] as String?), aiDescription: Value(json['ai_description'] as String?)),
-      );
-      await refreshFactsText(_db, id);
-    });
+    final json = await _readJson(file);
+    if (json == null) return;
+    await _quietly(() => _applyFacts(id, json));
+  }
+
+  // добытое о заметке из её файла: факты, прогоны правил, расшифровка; зовётся внутри транзакции
+  Future<void> _applyFacts(String id, Map<String, Object?> json) async {
+    await (_db.delete(_db.facts)..where((t) => t.itemId.equals(id))).go();
+    await (_db.delete(_db.extractorRuns)..where((t) => t.itemId.equals(id))).go();
+    for (final row in (json['facts'] as List? ?? const []).whereType<Map<String, Object?>>()) {
+      await _insertRow('facts', row);
+    }
+    for (final row in (json['runs'] as List? ?? const []).whereType<Map<String, Object?>>()) {
+      await _insertRow('extractor_runs', row);
+    }
+    await (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
+      ItemsCompanion(transcript: Value(json['transcript'] as String?), aiDescription: Value(json['ai_description'] as String?)),
+    );
+    await refreshFactsText(_db, id);
   }
 
   // строка таблицы как её записал писатель: поля как есть

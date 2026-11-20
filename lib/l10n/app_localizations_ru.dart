@@ -4431,4 +4431,14 @@ class LRu extends L {
   @override
   String get vaultBrowserHint =>
       'Заметки лежат в хранилище этого браузера, на диске их не видно.';
+
+  @override
+  String vaultBuildingFiles(int done, int total) {
+    return 'Сверяю файлы: $done из $total';
+  }
+
+  @override
+  String vaultBuildingExtras(int done, int total) {
+    return 'Доделываю указатель: $done из $total';
+  }
 }

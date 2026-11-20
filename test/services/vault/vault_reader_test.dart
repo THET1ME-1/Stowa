@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show ApplyInterceptor, QueryExecutor, QueryInterceptor, TransactionExecutor, Value;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/core/user_first.dart';
@@ -237,7 +238,7 @@ void main() {
     final fresh = AppDatabase.memory();
     addTearDown(fresh.close);
     var steps = 0;
-    await reader(fresh).rebuild(progress: (done, total) => steps++);
+    await reader(fresh).rebuild(progress: (step, done, total) => steps++);
     expect(steps, greaterThan(0));
     final restored = await (fresh.select(fresh.items)..where((t) => t.id.equals('a'))).getSingle();
     expect(restored.folderId, 'f');
@@ -311,11 +312,63 @@ void main() {
       put('$name.md', 'заметка $name');
     }
     final seen = <(int, int)>[];
-    await reader().rebuild(progress: (done, total) => seen.add((done, total)));
+    await reader().rebuild(progress: (step, done, total) => step == RebuildStep.notes ? seen.add((done, total)) : null);
     expect(seen.map((step) => step.$2).toSet(), {3});
     expect(seen.first.$1, 0);
     expect(seen.last, (3, 3));
     expect([for (final step in seen) step.$1], orderedEquals([...seen.map((step) => step.$1)]..sort()), reason: 'счётчик не откатывается назад');
+  });
+
+  test('после заметок ход идёт дальше по шагам: файлы, потом добытое о заметках, до «N из N»', () async {
+    for (final id in ['a', 'b', 'c']) {
+      await note(id, 'Заметка $id');
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'x$id', itemId: id, extractor: 'file_text', kind: FactKind.fileText, value: 'текст $id'));
+    }
+    put('Хлам/схема.png', 'png');
+    await writer().drain();
+
+    final fresh = AppDatabase.memory();
+    addTearDown(fresh.close);
+    final seen = <(RebuildStep, int, int)>[];
+    await reader(fresh).rebuild(progress: (step, done, total) => seen.add((step, done, total)));
+    expect(seen.map((one) => one.$1).toSet().toList(), [RebuildStep.notes, RebuildStep.files, RebuildStep.extras], reason: 'шаги по порядку, назад не возвращаются');
+    expect(seen.last, (RebuildStep.extras, 3, 3));
+    final files = [for (final one in seen) if (one.$1 == RebuildStep.files) one];
+    expect(files.last.$2, files.last.$3, reason: 'файлы дошли до конца');
+  });
+
+  test('файлы без своей заметки сверяются с текстом заметок один раз, а не запросом на каждый файл', () async {
+    // запрос на файл просматривал текст всех заметок: 222 файла College — 20 с вне браузера
+    for (var i = 0; i < 60; i++) {
+      put('Хлам/скан $i.png', 'png');
+    }
+    put('Хлам/упомянутый.png', 'png');
+    put('Заметка.md', 'Скан лежит в упомянутый.png, переложить');
+    final counter = _Selects();
+    final counted = AppDatabase(NativeDatabase.memory().interceptWith(counter));
+    addTearDown(counted.close);
+    await reader(counted).reconcile();
+    final titles = [for (final one in await counted.select(counted.items).get()) one.title];
+    expect(titles, hasLength(61), reason: 'шестьдесят сканов и заметка');
+    expect(titles, isNot(contains('упомянутый')), reason: 'упомянутый в тексте файл — не заметка');
+    expect(counter.count, lessThan(40));
+  });
+
+  test('добытое о заметках возвращается пачками, а не транзакцией на каждую заметку', () async {
+    // в браузере каждая транзакция — запись на диск: 1062 файла College шли по одной 11 минут
+    for (var i = 0; i < 120; i++) {
+      await note('n$i', 'Заметка $i');
+      await db.into(db.facts).insert(FactsCompanion.insert(id: 'x$i', itemId: 'n$i', extractor: 'file_text', kind: FactKind.fileText, value: 'текст $i'));
+    }
+    await writer().drain();
+
+    final counter = _Transactions();
+    final fresh = AppDatabase(NativeDatabase.memory().interceptWith(counter));
+    addTearDown(fresh.close);
+    await reader(fresh).rebuild();
+    expect(await fresh.select(fresh.facts).get(), hasLength(120));
+    expect(await fresh.searchIds('текст'), hasLength(120), reason: 'текст добытого сразу в поиске');
+    expect(counter.count, lessThan(30));
   });
 
   test('счётчик сверки — только изменённые заметки, не вся папка', () async {
@@ -377,4 +430,26 @@ void main() {
     expect(scan.added, 0);
     expect(await items(), isEmpty);
   });
+}
+
+// сколько запросов на чтение ушло в базу
+class _Selects extends QueryInterceptor {
+  var count = 0;
+
+  @override
+  Future<List<Map<String, Object?>>> runSelect(QueryExecutor executor, String statement, List<Object?> args) {
+    count++;
+    return super.runSelect(executor, statement, args);
+  }
+}
+
+// сколько транзакций открыла база
+class _Transactions extends QueryInterceptor {
+  var count = 0;
+
+  @override
+  TransactionExecutor beginTransaction(QueryExecutor parent) {
+    count++;
+    return super.beginTransaction(parent);
+  }
 }

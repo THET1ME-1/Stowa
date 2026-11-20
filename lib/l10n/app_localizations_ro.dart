@@ -4393,4 +4393,14 @@ class LRo extends L {
   @override
   String get vaultBrowserHint =>
       'Notițele sunt în stocarea acestui browser și nu apar ca fișiere pe disc.';
+
+  @override
+  String vaultBuildingFiles(int done, int total) {
+    return 'Verific fișierele: $done din $total';
+  }
+
+  @override
+  String vaultBuildingExtras(int done, int total) {
+    return 'Termin indexul: $done din $total';
+  }
 }

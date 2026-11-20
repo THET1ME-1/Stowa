@@ -4381,4 +4381,14 @@ class LDe extends L {
   @override
   String get vaultBrowserHint =>
       'Deine Notizen liegen im Speicher dieses Browsers und sind nicht als Dateien auf der Festplatte sichtbar.';
+
+  @override
+  String vaultBuildingFiles(int done, int total) {
+    return 'Prüfe Dateien: $done von $total';
+  }
+
+  @override
+  String vaultBuildingExtras(int done, int total) {
+    return 'Index wird fertig: $done von $total';
+  }
 }

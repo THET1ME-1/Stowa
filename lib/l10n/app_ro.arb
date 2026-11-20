@@ -940,5 +940,7 @@
   "copyNudgeStale": "Copia notițelor este veche: salvează una nouă.",
   "copyNudgeLater": "Mai târziu",
   "storageWeak": "Browserul nu a oferit o stocare sigură: notițele pot dispărea la închiderea filei.",
-  "vaultBrowserHint": "Notițele sunt în stocarea acestui browser și nu apar ca fișiere pe disc."
+  "vaultBrowserHint": "Notițele sunt în stocarea acestui browser și nu apar ca fișiere pe disc.",
+  "vaultBuildingFiles": "Verific fișierele: {done} din {total}",
+  "vaultBuildingExtras": "Termin indexul: {done} din {total}"
 }

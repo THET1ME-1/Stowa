@@ -22,12 +22,14 @@ void main() {
     addTearDown(db.close);
     final reader = VaultReader(db, root: root, clock: DateTime.now);
     final watch = Stopwatch()..start();
-    var lastDone = -1;
-    Duration? notesRead;
+    // когда начался каждый шаг пересборки
+    final started = <RebuildStep, Duration>{};
+    // когда шаг дошёл до «N из N»
+    final finished = <RebuildStep, Duration>{};
     await reader.rebuild(
-      progress: (done, total) {
-        if (done == total && total > 0 && done != lastDone) notesRead = watch.elapsed;
-        lastDone = done;
+      progress: (step, done, total) {
+        started.putIfAbsent(step, () => watch.elapsed);
+        if (done == total) finished[step] = watch.elapsed;
       },
     );
     final all = watch.elapsed;
@@ -59,7 +61,9 @@ void main() {
     final attachments = await db.customSelect('SELECT count(*) AS n FROM attachments').getSingle();
 
     // ignore: avoid_print
-    print('заметки прочитаны за ${notesRead?.inSeconds} с, всё — за ${all.inSeconds} с');
+    print(
+      'шаги (начало–конец): ${[for (final MapEntry(:key, :value) in started.entries) '${key.name} ${value.inMilliseconds / 1000}–${(finished[key]?.inMilliseconds ?? 0) / 1000} с'].join(', ')}; всё — за ${all.inMilliseconds / 1000} с',
+    );
     // ignore: avoid_print
     print('по видам: ${[for (final row in kinds) '${row.read<String>('kind')} ${row.read<int>('n')}'].join(', ')}');
     // ignore: avoid_print

@@ -7450,6 +7450,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Your notes live in this browser\'s storage and do not show up as files on the disk.'**
   String get vaultBrowserHint;
+
+  /// Ход сборки указателя: файлы хранилища без своей заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Checking files: {done} of {total}'**
+  String vaultBuildingFiles(int done, int total);
+
+  /// Ход сборки указателя: добытое о заметках и история правок из служебной папки
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing the index: {done} of {total}'**
+  String vaultBuildingExtras(int done, int total);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

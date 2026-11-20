@@ -89,7 +89,7 @@ Future<bool> moveVault(BuildContext context, WidgetRef ref, Directory target, Va
   unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
   try {
     if (openExisting) {
-      await VaultReader(db, root: target, clock: clock).rebuild(progress: (done, total) => report(l.vaultBuilding, done, total));
+      await VaultReader(db, root: target, clock: clock).rebuild(progress: (step, done, total) => report((done, total) => rebuildLabel(l, step, done, total), done, total));
     }
     final result = await VaultMove(db, settings: settings, from: from, fromInsideApp: fromInsideApp, clock: clock).moveTo(
       target,
@@ -157,6 +157,13 @@ Future<bool> keepInsideApp(BuildContext context, WidgetRef ref) async {
 }
 
 /// «Пересобрать указатель»: служебная база поиска заново из папки.
+/// Подпись окна хода пересборки: что делается сейчас и сколько из скольких.
+String rebuildLabel(L l, RebuildStep step, int done, int total) => switch (step) {
+  RebuildStep.notes => l.vaultBuilding(done, total),
+  RebuildStep.files => l.vaultBuildingFiles(done, total),
+  RebuildStep.extras => l.vaultBuildingExtras(done, total),
+};
+
 Future<void> rebuildIndex(BuildContext context, WidgetRef ref) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
@@ -164,7 +171,7 @@ Future<void> rebuildIndex(BuildContext context, WidgetRef ref) async {
   final status = ValueNotifier<(String, double?)>((l.vaultBuilding(0, 0), null));
   unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
   try {
-    await ref.read(vaultReaderProvider).rebuild(progress: (done, total) => status.value = (l.vaultBuilding(done, total), total == 0 ? null : done / total));
+    await ref.read(vaultReaderProvider).rebuild(progress: (step, done, total) => status.value = (rebuildLabel(l, step, done, total), total == 0 ? null : done / total));
     showNote(messenger, l.vaultRebuilt);
   } finally {
     navigator.pop();
@@ -270,7 +277,7 @@ Future<void> switchVault(BuildContext context, WidgetRef ref, KnownVault target)
       target,
       open: ref.read(vaultDatabaseProvider),
       clock: ref.read(clockProvider),
-      progress: (done, total) => status.value = (l.vaultBuilding(done, total), total == 0 ? null : done / total),
+      progress: (step, done, total) => status.value = (rebuildLabel(l, step, done, total), total == 0 ? null : done / total),
     );
     await settings.openKnownVault(target, notesHere: notes);
     // уведомления старого хранилища: их заметок в новой базе нет

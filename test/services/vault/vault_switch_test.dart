@@ -35,7 +35,7 @@ void main() {
     put('Дом/Купить плитку.md', 'Купить плитку\nи клей');
     put('Идеи.md', 'Идея');
     var reported = false;
-    final db = await prepareVaultDatabase(target(), open: open, clock: () => now, progress: (done, total) => reported = true);
+    final db = await prepareVaultDatabase(target(), open: open, clock: () => now, progress: (step, done, total) => reported = true);
     final titles = [for (final item in await db.select(db.items).get()) item.title]..sort();
     expect(titles, ['Идеи', 'Купить плитку']);
     expect((await db.select(db.folders).get()).single.name, 'Дом');

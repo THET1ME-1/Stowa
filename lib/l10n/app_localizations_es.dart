@@ -4366,4 +4366,14 @@ class LEs extends L {
   @override
   String get vaultBrowserHint =>
       'Tus notas están en el almacenamiento de este navegador y no aparecen como archivos en el disco.';
+
+  @override
+  String vaultBuildingFiles(int done, int total) {
+    return 'Revisando archivos: $done de $total';
+  }
+
+  @override
+  String vaultBuildingExtras(int done, int total) {
+    return 'Terminando el índice: $done de $total';
+  }
 }

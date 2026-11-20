@@ -4425,4 +4425,14 @@ class LPl extends L {
   @override
   String get vaultBrowserHint =>
       'Notatki są w pamięci tej przeglądarki i nie widać ich jako plików na dysku.';
+
+  @override
+  String vaultBuildingFiles(int done, int total) {
+    return 'Sprawdzam pliki: $done z $total';
+  }
+
+  @override
+  String vaultBuildingExtras(int done, int total) {
+    return 'Kończę indeks: $done z $total';
+  }
 }
