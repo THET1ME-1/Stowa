@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/composer/line_dock.dart';
-import 'package:stowa/features/workspace/workspace_model.dart';
 import 'package:stowa/features/workspace/workspace_shell.dart';
 
 import '../../helpers/test_app.dart';

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,6 +35,10 @@ import 'workspace_settings.dart';
 const workspaceFrom = 1000.0;
 
 const _gap = 8.0;
+
+/// Меньше этого середине не оставляем: заметке нужна колонка для чтения. Док, которому
+/// с ней не хватает места, выезжает поверх.
+const _centerMin = 620.0;
 
 /// Место общей строки внизу центра: капсула 60 и отступы вокруг.
 const _lineSpace = 80.0;
@@ -181,14 +186,49 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
     }
   }
 
+  // док, которому нет места в строку, выехал поверх: 'left', 'right' или никакой
+  String? _drawer;
+  String? _activeKey;
+
   @override
   void initState() {
     super.initState();
     HardwareKeyboard.instance.addHandler(_onKey);
+    _controller.addListener(_closeDrawerOnOpen);
+  }
+
+  // выбрал в выехавшем доке раздел или заметку — док уезжает, как шторка в браузере
+  void _closeDrawerOnOpen() {
+    final active = _controller.workspace.focusedPane.activeTab?.key;
+    if (active != _activeKey && _drawer != null && mounted) setState(() => _drawer = null);
+    _activeKey = active;
+  }
+
+  /// Каким докам есть место в строку: середине остаётся не меньше [_centerMin].
+  /// Левый в приоритете — в нём навигация.
+  ({bool left, bool right}) _fits(double width, Workspace ws) {
+    final room = width - 2 * _gap;
+    final left = room - (ws.leftWidth + _gap) >= _centerMin;
+    final leftTaken = ws.leftOpen && left ? ws.leftWidth + _gap : 0.0;
+    final right = room - leftTaken - (ws.rightWidth + _gap) >= _centerMin;
+    return (left: left, right: right);
+  }
+
+  /// Кнопка дока: есть место — прячет и показывает его в строку, нет — выдвигает поверх.
+  void _toggleDock(bool left) {
+    final fits = _fits(MediaQuery.sizeOf(context).width, _controller.workspace);
+    if (left ? fits.left : fits.right) {
+      setState(() => _drawer = null);
+      _controller.update((ws) => left ? ws.leftOpen = !ws.leftOpen : ws.rightOpen = !ws.rightOpen);
+      return;
+    }
+    final side = left ? 'left' : 'right';
+    setState(() => _drawer = _drawer == side ? null : side);
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_closeDrawerOnOpen);
     HardwareKeyboard.instance.removeHandler(_onKey);
     _sequenceTimer?.cancel();
     _controller.dispose();
@@ -314,9 +354,9 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
           });
         }
       case 'left':
-        _controller.update((ws) => ws.leftOpen = !ws.leftOpen);
+        _toggleDock(true);
       case 'right':
-        _controller.update((ws) => ws.rightOpen = !ws.rightOpen);
+        _toggleDock(false);
       case 'theme':
         _toggleTheme();
     }
@@ -346,24 +386,45 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
           // вкладки, которых больше нет, отпускают свои навигаторы
           final open = {for (final pane in ws.panes) ...pane.tabs.map((tab) => tab.key)};
           _navigators.removeWhere((key, _) => !open.contains(key));
+          // адаптив как в макете: док в строку, только пока середине хватает места,
+          // иначе он выезжает поверх по кнопке и не сжимает заметку
+          final width = MediaQuery.sizeOf(context).width;
+          final fits = _fits(width, ws);
+          final leftInline = ws.leftOpen && fits.left;
+          final rightInline = ws.rightOpen && fits.right;
+          // окно стало шире — выехавший док встаёт на место сам
+          final drawer = switch (_drawer) {
+            'left' when !fits.left => 'left',
+            'right' when !fits.right => 'right',
+            _ => null,
+          };
+          final drawerWidth = math.min(340.0, width * 0.86);
           return ColoredBox(
             color: _page,
             child: SafeArea(
               child: Column(
                 children: [
-                  _TopBar(controller: _controller),
+                  _TopBar(
+                    controller: _controller,
+                    leftOn: leftInline || drawer == 'left',
+                    rightOn: rightInline || drawer == 'right',
+                    onLeft: () => _toggleDock(true),
+                    onRight: () => _toggleDock(false),
+                  ),
                   Expanded(
-                    child: Padding(
+                    child: Stack(
+                      children: [
+                    Padding(
                       padding: const EdgeInsets.fromLTRB(_gap, 0, _gap, _gap),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _SideDock(
-                            open: ws.leftOpen,
+                            open: leftInline,
                             width: ws.leftWidth,
                             left: true,
                             onResize: (width) => _controller.update((ws) => ws.leftWidth = width.clamp(220, 420)),
-                            child: LeftDock(onFind: _find, onTheme: _toggleTheme),
+                            child: leftInline ? LeftDock(onFind: _find, onTheme: _toggleTheme) : const SizedBox.shrink(),
                           ),
                           // окна и одна общая строка под ними: она ищет по всему хранилищу
                           // и записывает новое, сколько бы окон ни было открыто
@@ -388,14 +449,43 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
                             ),
                           ),
                           _SideDock(
-                            open: ws.rightOpen,
+                            open: rightInline,
                             width: ws.rightWidth,
                             left: false,
                             onResize: (width) => _controller.update((ws) => ws.rightWidth = width.clamp(240, 460)),
-                            child: const RightDock(),
+                            child: rightInline ? const RightDock() : const SizedBox.shrink(),
                           ),
                         ],
                       ),
+                    ),
+                        // выехавший док: затемнение под ним, щелчок мимо убирает
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            ignoring: drawer == null,
+                            child: GestureDetector(
+                              key: const ValueKey('drawer-scrim'),
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => setState(() => _drawer = null),
+                              child: AnimatedOpacity(
+                                duration: Motion.medium,
+                                curve: Motion.emphasized,
+                                opacity: drawer == null ? 0 : 1,
+                                child: ColoredBox(color: Tokens.palette.scrim.withValues(alpha: 0.45)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (!fits.left)
+                          _Drawer(
+                            key: const ValueKey('drawer-left'),
+                            open: drawer == 'left',
+                            left: true,
+                            width: drawerWidth,
+                            child: LeftDock(onFind: _find, onTheme: _toggleTheme),
+                          ),
+                        if (!fits.right)
+                          _Drawer(key: const ValueKey('drawer-right'), open: drawer == 'right', left: false, width: drawerWidth, child: const RightDock()),
+                      ],
                     ),
                   ),
                 ],
@@ -412,25 +502,30 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
 /// Верхняя полоса: показать и спрятать доки, сочетания клавиш. Раскладку окон человек
 /// собирает сам, перетаскивая вкладки.
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.controller});
+  const _TopBar({required this.controller, required this.leftOn, required this.rightOn, required this.onLeft, required this.onRight});
 
   final WorkspaceController controller;
+
+  /// Док виден: в строку или выехавшим поверх.
+  final bool leftOn;
+  final bool rightOn;
+  final VoidCallback onLeft;
+  final VoidCallback onRight;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final ws = controller.workspace;
     return SizedBox(
       height: 48,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: _gap),
         child: Row(
           children: [
-            _BarIcon(icon: 'left_panel_open', tooltip: l.wsLeftDock, on: ws.leftOpen, onTap: () => controller.update((ws) => ws.leftOpen = !ws.leftOpen)),
+            _BarIcon(icon: 'left_panel_open', tooltip: l.wsLeftDock, on: leftOn, onTap: onLeft),
             const Spacer(),
             _BarIcon(icon: 'keyboard', tooltip: l.wsKeys, onTap: () => controller.open(const WsTab.settings('keys'))),
             const SizedBox(width: 4),
-            _BarIcon(icon: 'right_panel_open', tooltip: l.wsRightDock, on: ws.rightOpen, onTap: () => controller.update((ws) => ws.rightOpen = !ws.rightOpen)),
+            _BarIcon(icon: 'right_panel_open', tooltip: l.wsRightDock, on: rightOn, onTap: onRight),
           ],
         ),
       ),
@@ -438,7 +533,8 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-class _BarIcon extends StatelessWidget {
+/// Значок верхней полосы: включённый — на подложке, под мышью подложка проступает.
+class _BarIcon extends StatefulWidget {
   const _BarIcon({required this.icon, required this.tooltip, required this.onTap, this.on = false});
 
   final String icon;
@@ -447,20 +543,33 @@ class _BarIcon extends StatelessWidget {
   final bool on;
 
   @override
+  State<_BarIcon> createState() => _BarIconState();
+}
+
+class _BarIconState extends State<_BarIcon> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
+    final on = widget.on;
     return Tooltip(
-      message: tooltip,
+      message: widget.tooltip,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: widget.onTap,
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _hover = true),
+          onExit: (_) => setState(() => _hover = false),
           child: AnimatedContainer(
-            duration: Motion.medium,
+            duration: Motion.short,
             curve: Motion.emphasized,
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: on ? Tokens.containerHigh : Colors.transparent, borderRadius: BorderRadius.circular(12)),
-            child: Icon(symbolIcon(icon), size: 20, color: on ? Tokens.onSurface : Tokens.onSurfaceVariant),
+            decoration: BoxDecoration(
+              color: on ? Tokens.containerHigh : (_hover ? Tokens.container : Tokens.container.withValues(alpha: 0)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(symbolIcon(widget.icon), size: 20, color: on || _hover ? Tokens.onSurface : Tokens.onSurfaceVariant),
           ),
         ),
       ),
@@ -502,13 +611,61 @@ class _SideDock extends StatelessWidget {
       enabled: open,
       onDrag: (delta) => onResize(width + (left ? delta : -delta)),
     );
+    // пока док сворачивается, ширина проходит через значения меньше зазора: строка внутри
+    // всегда своей полной ширины и обрезается краем, а не вылезает за него
     return AnimatedContainer(
       duration: Motion.long,
       curve: Motion.emphasized,
       width: open ? width + _gap : 0,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: left ? [Expanded(child: block), gutter] : [gutter, Expanded(child: block)],
+      child: ClipRect(
+        child: OverflowBox(
+          alignment: left ? Alignment.centerLeft : Alignment.centerRight,
+          minWidth: width + _gap,
+          maxWidth: width + _gap,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: left ? [Expanded(child: block), gutter] : [gutter, Expanded(child: block)],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Док, которому нет места в строку: выезжает поверх окон со своей стороны и
+/// уезжает обратно. Спрятанный не ловит касания.
+class _Drawer extends StatelessWidget {
+  const _Drawer({super.key, required this.open, required this.left, required this.width, required this.child});
+
+  final bool open;
+  final bool left;
+  final double width;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      bottom: _gap,
+      left: left ? _gap : null,
+      right: left ? null : _gap,
+      width: width,
+      child: IgnorePointer(
+        ignoring: !open,
+        child: AnimatedSlide(
+          duration: Motion.medium,
+          curve: Motion.emphasized,
+          offset: open ? Offset.zero : Offset(left ? -1.08 : 1.08, 0),
+          child: AnimatedOpacity(
+            duration: Motion.short,
+            curve: Motion.emphasized,
+            opacity: open ? 1 : 0,
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: _block, borderRadius: BorderRadius.circular(_blockRadius)),
+              child: ClipRRect(borderRadius: BorderRadius.circular(_blockRadius), child: child),
+            ),
+          ),
+        ),
       ),
     );
   }

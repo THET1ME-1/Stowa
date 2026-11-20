@@ -160,7 +160,11 @@ class _DeskEmpty extends ConsumerWidget {
           const SizedBox(height: 12),
           RiseIn(
             delay: 1,
-            child: Text(l.wsEmptyBody, textAlign: TextAlign.center, style: text.bodyLarge!.copyWith(color: Tokens.onSurfaceVariant, height: 1.5)),
+            // уже заголовка: две ровные строки, а не одно слово на второй
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: Text(l.wsEmptyBody, textAlign: TextAlign.center, style: text.bodyLarge!.copyWith(color: Tokens.onSurfaceVariant, height: 1.5)),
+            ),
           ),
           const SizedBox(height: 32),
           Wrap(
