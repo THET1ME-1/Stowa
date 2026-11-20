@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -69,5 +70,33 @@ void main() {
   test('пустой граф и одна точка', () {
     expect(layoutGraph(const [], const []), isEmpty);
     expect(layoutGraph(const ['one'], const []), {'one': (0.0, 0.0)});
+  });
+
+  group('раскладка с передышками (в браузере она идёт на потоке экрана)', () {
+    test('картинка та же, что у обычной', () async {
+      final plain = layoutGraph(nodes, edges, seed: 7);
+      final paced = await layoutGraphPaced(nodes, edges, seed: 7);
+      for (final node in nodes) {
+        expect(paced[node], plain[node]);
+      }
+    });
+
+    test('большой граф не держит поток: таймер срабатывает до конца раскладки', () async {
+      final many = [for (var index = 0; index < 3000; index++) 'm$index'];
+      final random = Random(3);
+      final links = [for (var index = 0; index < 4000; index++) ('m${random.nextInt(3000)}', 'm${random.nextInt(3000)}')];
+      var done = false;
+      var breathed = false;
+      Timer.run(() => breathed = !done);
+      final places = await layoutGraphPaced(many, links);
+      done = true;
+      expect(places, hasLength(3000));
+      expect(breathed, isTrue);
+    });
+
+    test('пустой граф и одна точка', () async {
+      expect(await layoutGraphPaced(const [], const []), isEmpty);
+      expect(await layoutGraphPaced(const ['one'], const []), {'one': (0.0, 0.0)});
+    });
   });
 }

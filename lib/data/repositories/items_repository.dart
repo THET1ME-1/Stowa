@@ -615,7 +615,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
   /// порядке, каждая заметка один раз. Отклонённые человеком не показываются.
   /// Пересчитываются, когда меняются заметки или связи.
   Stream<List<LinkedNote>> watchLinked(String id) {
-    return _db.changesOf([_db.items, _db.links]).asyncMap((_) async {
+    // без очереди: пересчёт читает текст всех заметок, а фон пишет в них по одной
+    return recomputeOn(_db.changesOf([_db.items, _db.links]), () async {
       final rows = await _db
           .customSelect(
             "SELECT items.id, items.url, items.title, items.body, items.title || ' ' || items.body || ' ' || coalesce(items.transcript, '') || ' ' || "
@@ -660,7 +661,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
         final other = link.fromId == id ? link.toId : link.fromId;
         if (!refused.contains(other)) put(other, LinkKind.ai, reason: link.reason);
       }
-      for (final one in findRelated(id, docs, rejected: {...refused, ...found.keys})) {
+      // с передышками: слова всего хранилища режутся, пока открыта страница заметки
+      for (final one in (await RelatedIndex.build(docs)).related(id, rejected: {...refused, ...found.keys})) {
         put(one.id, LinkKind.similar, why: one);
       }
       if (found.isEmpty) return const <LinkedNote>[];
@@ -775,10 +777,17 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
           },
         ),
     ];
+    // слова режутся один раз на весь граф, с передышками: в браузере счёт идёт на потоке экрана
+    final related = await RelatedIndex.build(docs);
+    final busy = Stopwatch()..start();
     for (final card in cards) {
-      for (final one in findRelated(card.id, docs, limit: 3)) {
+      for (final one in related.related(card.id, limit: 3)) {
         final pair = _pair(card.id, one.id);
         if (inside.contains(one.id) && !refused.contains(pair)) edges.add(pair);
+      }
+      if (busy.elapsedMilliseconds > 8) {
+        await Future<void>.delayed(Duration.zero);
+        busy.reset();
       }
     }
     return GraphData(

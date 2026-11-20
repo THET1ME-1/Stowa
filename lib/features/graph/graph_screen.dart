@@ -20,7 +20,9 @@ Route<void> graphRoute({String? folderId, String? tag, required String title}) =
 /// 500 точек считаются заметную долю секунды: не на потоке экрана. Функция верхнего
 /// уровня нарочно — замыкание внутри состояния утащило бы в поток весь экран, а его
 /// переслать нельзя.
-Future<Map<String, (double, double)>> _layoutApart(List<String> ids, List<(String, String)> edges) => aside(() => layoutGraph(ids, edges));
+/// В браузере потоков нет: там раскладка идёт на месте, с передышками между кругами.
+Future<Map<String, (double, double)>> _layoutApart(List<String> ids, List<(String, String)> edges) =>
+    isWeb ? layoutGraphPaced(ids, edges) : aside(() => layoutGraph(ids, edges));
 
 /// Поля вокруг графа, чтобы крайние подписи не резались.
 const _pad = 80.0;

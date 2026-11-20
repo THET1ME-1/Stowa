@@ -339,7 +339,7 @@ class AiWorker {
         .get();
     final docs = [for (final row in docRows) RelatedDoc(id: row.read<String>('id'), text: row.read<String>('text'))];
     final titles = {for (final row in docRows) row.read<String>('id'): (row.read<String>('title'), row.read<String>('text'))};
-    final candidates = findRelated(item.id, docs, limit: 25, minScore: 0.5);
+    final candidates = (await RelatedIndex.build(docs)).related(item.id, limit: 25, minScore: 0.5);
 
     String? image;
     final root = _filesRoot;
