@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/composer/line_dock.dart';
+import 'package:stowa/features/returns/return_screen.dart';
 import 'package:stowa/features/workspace/workspace_model.dart';
 import 'package:stowa/features/workspace/workspace_shell.dart';
 
@@ -49,6 +50,14 @@ void main() {
       final button = tester.getRect(find.descendant(of: header, matching: find.byTooltip(tip)));
       expect(button.height, lessThanOrEqualTo(40), reason: tip);
     }
+  });
+
+  testWidgets('монитор: «Посмотреть потом» с крупным заголовком, как у папки, а не мелким телефонным', (tester) async {
+    final shell = await open(tester);
+    shell.open(const WsTab.later());
+    await tester.pumpAndSettle();
+    final title = tester.widget<Text>(find.descendant(of: find.byType(ReturnScreen), matching: find.text('Посмотреть потом')));
+    expect(title.style!.fontSize, greaterThanOrEqualTo(28));
   });
 
   testWidgets('монитор: вложенная папка — небольшая метка, касание открывает её вкладкой', (tester) async {

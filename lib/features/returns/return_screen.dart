@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/return_repository.dart';
 import '../../domain/return_plan.dart';
@@ -51,10 +52,12 @@ class ReturnScreen extends ConsumerWidget {
       ReturnKind.shopping => _shopping(l, ref.watch(shoppingProvider).value),
     };
 
+    // монитор: заголовок крупно, как у папки в макете веба, поля шире
+    final desk = DeskMode.of(context);
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
+          padding: desk ? const EdgeInsets.fromLTRB(24, 18, 24, 40) : const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             Row(
               children: [
@@ -68,7 +71,12 @@ class ReturnScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 12),
                 ],
-                Expanded(child: Text(title, style: text.titleLarge!.copyWith(fontSize: 18))),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: desk ? text.headlineMedium!.copyWith(fontSize: 32, height: 1.15, letterSpacing: -0.6) : text.titleLarge!.copyWith(fontSize: 18),
+                  ),
+                ),
               ],
             ),
             if (summary != null) ...[
