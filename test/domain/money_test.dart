@@ -77,6 +77,16 @@ void main() {
     expect(text.substring(found.last.start, found.last.end), '€20');
   });
 
+  // 21.11 College: в шапке папки конспектов «Всего $362 719 378,87» — числа из кода
+  test('код — не цены: блоки, код в строке и вставки шаблонов пропускаются, места сумм те же', () {
+    const text = 'Обед 350 лей\n```js\nconst price = "\$100";\n```\nстрока `\$5` и <%* tR += "\$7" %> и кофе €3';
+    final clean = withoutCode(text);
+    expect(clean.length, text.length);
+    final found = findMoney(clean);
+    expect([for (final one in found) (one.amount, one.currency)], [(350.0, 'MDL'), (3.0, 'EUR')]);
+    expect(text.substring(found.last.start, found.last.end), '€3');
+  });
+
   test('валюта перед суммой — только целым словом и в начале текста тоже', () {
     expect(findMoney('руб 50').single.start, 0);
     expect(findMoney('клуб 50'), isEmpty);

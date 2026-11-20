@@ -4408,4 +4408,18 @@ class LEn extends L {
 
   @override
   String get graphLoading => 'Laying out the links…';
+
+  @override
+  String folderSubAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folders',
+      one: '$count folder',
+    );
+    return 'All $_temp0';
+  }
+
+  @override
+  String get folderSubLess => 'Show less';
 }

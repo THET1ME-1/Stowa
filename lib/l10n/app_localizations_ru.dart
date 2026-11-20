@@ -4485,4 +4485,20 @@ class LRu extends L {
 
   @override
   String get graphLoading => 'Раскладываю связи…';
+
+  @override
+  String folderSubAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count папки',
+      many: '$count папок',
+      few: '$count папки',
+      one: '$count папка',
+    );
+    return 'Все $_temp0';
+  }
+
+  @override
+  String get folderSubLess => 'Свернуть';
 }

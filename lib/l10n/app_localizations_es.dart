@@ -4419,4 +4419,18 @@ class LEs extends L {
 
   @override
   String get graphLoading => 'Colocando los enlaces…';
+
+  @override
+  String folderSubAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count carpetas',
+      one: '$count carpeta',
+    );
+    return 'Las $_temp0';
+  }
+
+  @override
+  String get folderSubLess => 'Mostrar menos';
 }

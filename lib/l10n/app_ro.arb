@@ -956,5 +956,7 @@
   "itemPropTaken": "Fotografiată",
   "itemPropLinks": "Legături",
   "itemWriteMore": "Adaugă text…",
-  "graphLoading": "Așez legăturile…"
+  "graphLoading": "Așez legăturile…",
+  "folderSubAll": "Toate {count, plural, one{{count} dosar} few{{count} dosare} other{{count} de dosare}}",
+  "folderSubLess": "Restrânge"
 }

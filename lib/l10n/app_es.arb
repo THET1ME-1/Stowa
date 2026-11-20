@@ -956,5 +956,7 @@
   "itemPropTaken": "Tomada",
   "itemPropLinks": "Enlaces",
   "itemWriteMore": "Añadir texto…",
-  "graphLoading": "Colocando los enlaces…"
+  "graphLoading": "Colocando los enlaces…",
+  "folderSubAll": "Las {count, plural, one{{count} carpeta} other{{count} carpetas}}",
+  "folderSubLess": "Mostrar menos"
 }

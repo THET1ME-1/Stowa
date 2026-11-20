@@ -28,8 +28,9 @@ class TextExtractor extends Extractor {
   @override
   String get name => 'text';
   // 2: адрес, трек-номер, промокод, пароль, карта лояльности
+  // 3: цены не из кода (в конспектах «$1» и «${…}» давали «Всего $362 719 378»)
   @override
-  int get version => 2;
+  int get version => 3;
   @override
   String get stampSql => "items.updated_at || '|' || coalesce(length(items.transcript), 0)";
 
@@ -39,7 +40,8 @@ class TextExtractor extends Extractor {
     // заголовок обычно повторяет первую строку текста: берём его, только если он свой
     final text = [if (!item.body.startsWith(item.title)) item.title, item.body, ?item.transcript].join('\n');
     final facts = <FactDraft>[];
-    for (final money in findMoney(text)) {
+    // в коде конспектов «$1» и «${…}» — не цены: суммы ищутся в тексте без кода
+    for (final money in findMoney(withoutCode(text))) {
       facts.add(FactDraft(FactKind.price, text.substring(money.start, money.end).trim(), detail: money.currency, number: money.amount));
     }
     final places = findTextPlaces(text);

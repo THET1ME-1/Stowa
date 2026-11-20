@@ -767,11 +767,7 @@ class _DeskFolderHeader extends StatelessWidget {
           Text(subtitle, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: Tokens.muted)),
           if (children.isNotEmpty) ...[
             const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [for (final child in children) _SubfolderChip(folder: child, onTap: () => onChild(child))],
-            ),
+            _SubfolderShelf(children: children, onChild: onChild),
           ],
         ],
       ),
@@ -797,6 +793,66 @@ class _DeskIconButton extends StatelessWidget {
         hoverColor: Tokens.containerHigh,
         child: SizedBox.square(dimension: 36, child: Icon(symbolIcon(icon), size: 20, color: Tokens.onSurfaceVariant)),
       ),
+    );
+  }
+}
+
+/// Метки вложенных папок. Много — видны две строки и «Все N папок»: десятки меток
+/// иначе уводят заметки за край экрана. Раскрываются и сворачиваются плавно.
+class _SubfolderShelf extends StatefulWidget {
+  const _SubfolderShelf({required this.children, required this.onChild});
+
+  final List<FolderCard> children;
+  final ValueChanged<FolderCard> onChild;
+
+  @override
+  State<_SubfolderShelf> createState() => _SubfolderShelfState();
+}
+
+class _SubfolderShelfState extends State<_SubfolderShelf> {
+  // две строки меток по 32 точки и зазор между ними
+  static const _twoRows = 76.0;
+  static const _foldFrom = 10;
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final many = widget.children.length > _foldFrom;
+    final chips = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [for (final child in widget.children) _SubfolderChip(folder: child, onTap: () => widget.onChild(child))],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedSize(
+          key: const ValueKey('desk-subfolders'),
+          duration: Motion.medium,
+          curve: Motion.emphasized,
+          alignment: Alignment.topLeft,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: many && !_open ? _twoRows : double.infinity),
+            child: ClipRect(child: chips),
+          ),
+        ),
+        if (many)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: TextButton.icon(
+              onPressed: () => setState(() => _open = !_open),
+              style: TextButton.styleFrom(foregroundColor: Tokens.onSurfaceVariant, padding: const EdgeInsets.symmetric(horizontal: 10), minimumSize: const Size(0, 32)),
+              icon: AnimatedRotation(
+                turns: _open ? 0.5 : 0,
+                duration: Motion.medium,
+                curve: Motion.emphasized,
+                child: Icon(symbolIcon('expand_more'), size: 18),
+              ),
+              label: Text(_open ? l.folderSubLess : l.folderSubAll(widget.children.length), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -4434,4 +4434,18 @@ class LDe extends L {
 
   @override
   String get graphLoading => 'Verknüpfungen werden gelegt…';
+
+  @override
+  String folderSubAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ordner',
+      one: '$count Ordner',
+    );
+    return 'Alle $_temp0';
+  }
+
+  @override
+  String get folderSubLess => 'Weniger';
 }

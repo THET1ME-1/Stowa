@@ -88,6 +88,14 @@ double? parseAmount(String raw) {
   return double.tryParse('$whole.${text.substring(last + 1)}');
 }
 
+// код: блок ```…``` (и недописанный), `…` в строке, вставка шаблона <% … %>
+final _code = RegExp(r'```[\s\S]*?(?:```|$)|`[^`\n]*`|<%[\s\S]*?(?:%>|$)');
+final _notNewline = RegExp(r'[^\n]');
+
+/// Текст, где код заменён пробелами той же длины: числа в коде — не цены, а места
+/// сумм в тексте не сдвигаются.
+String withoutCode(String text) => text.replaceAllMapped(_code, (match) => match.group(0)!.replaceAll(_notNewline, ' '));
+
 /// Все суммы с валютой в тексте, по порядку.
 List<Money> findMoney(String text) {
   final found = <Money>[];

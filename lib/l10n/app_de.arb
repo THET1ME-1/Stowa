@@ -956,5 +956,7 @@
   "itemPropTaken": "Aufgenommen",
   "itemPropLinks": "Verknüpfungen",
   "itemWriteMore": "Text ergänzen…",
-  "graphLoading": "Verknüpfungen werden gelegt…"
+  "graphLoading": "Verknüpfungen werden gelegt…",
+  "folderSubAll": "Alle {count, plural, one{{count} Ordner} other{{count} Ordner}}",
+  "folderSubLess": "Weniger"
 }

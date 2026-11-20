@@ -100,6 +100,25 @@ void main() {
     expect(title.style!.fontSize, greaterThanOrEqualTo(28));
   });
 
+  // 21.11 проход по College: 43 вложенные папки занимали две трети экрана, заметки — за краем
+  testWidgets('монитор: много вложенных папок — две строки меток и «Все N папок», раскрываются плавно', (tester) async {
+    for (var i = 0; i < 30; i++) {
+      await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 's$i', name: 'Предмет номер $i', icon: 'school', shape: 'gem', parentId: const Value('k')));
+    }
+    await open(tester);
+    final header = find.byKey(const ValueKey('desk-folder-header'));
+    final shelf = tester.getRect(find.byKey(const ValueKey('desk-subfolders')));
+    expect(shelf.height, lessThanOrEqualTo(84), reason: 'две строки меток');
+    final more = find.descendant(of: header, matching: find.text('Все 31 папка'));
+    expect(more, findsOneWidget);
+    await tester.tap(more);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(find.byKey(const ValueKey('desk-subfolders'))).height, greaterThan(84));
+    await tester.tap(find.descendant(of: header, matching: find.text('Свернуть')));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(find.byKey(const ValueKey('desk-subfolders'))).height, lessThanOrEqualTo(84));
+  });
+
   testWidgets('монитор: вложенная папка — небольшая метка, касание открывает её вкладкой', (tester) async {
     final shell = await open(tester);
     final chip = find.byKey(const ValueKey('desk-subfolder-g'));

@@ -7546,6 +7546,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Laying out the links…'**
   String get graphLoading;
+
+  /// Шапка папки на мониторе: вложенных папок много, две строки меток, кнопка показать все
+  ///
+  /// In en, this message translates to:
+  /// **'All {count, plural, one{{count} folder} other{{count} folders}}'**
+  String folderSubAll(int count);
+
+  /// Шапка папки на мониторе: свернуть метки вложенных папок обратно в две строки
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get folderSubLess;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

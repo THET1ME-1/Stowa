@@ -4446,4 +4446,19 @@ class LRo extends L {
 
   @override
   String get graphLoading => 'Așez legăturile…';
+
+  @override
+  String folderSubAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de dosare',
+      few: '$count dosare',
+      one: '$count dosar',
+    );
+    return 'Toate $_temp0';
+  }
+
+  @override
+  String get folderSubLess => 'Restrânge';
 }

@@ -4478,4 +4478,20 @@ class LPl extends L {
 
   @override
   String get graphLoading => 'Układam powiązania…';
+
+  @override
+  String folderSubAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folderu',
+      many: '$count folderów',
+      few: '$count foldery',
+      one: '$count folder',
+    );
+    return 'Wszystkie $_temp0';
+  }
+
+  @override
+  String get folderSubLess => 'Zwiń';
 }

@@ -1239,5 +1239,7 @@
   "itemPropTaken": "Снято",
   "itemPropLinks": "Связи",
   "itemWriteMore": "Дописать текст…",
-  "graphLoading": "Раскладываю связи…"
+  "graphLoading": "Раскладываю связи…",
+  "folderSubAll": "Все {count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}",
+  "folderSubLess": "Свернуть"
 }

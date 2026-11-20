@@ -4473,4 +4473,20 @@ class LUk extends L {
 
   @override
   String get graphLoading => 'Розкладаю зв’язки…';
+
+  @override
+  String folderSubAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count теки',
+      many: '$count тек',
+      few: '$count теки',
+      one: '$count тека',
+    );
+    return 'Усі $_temp0';
+  }
+
+  @override
+  String get folderSubLess => 'Згорнути';
 }

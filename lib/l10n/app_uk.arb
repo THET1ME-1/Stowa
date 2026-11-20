@@ -956,5 +956,7 @@
   "itemPropTaken": "Знято",
   "itemPropLinks": "Зв’язки",
   "itemWriteMore": "Дописати текст…",
-  "graphLoading": "Розкладаю зв’язки…"
+  "graphLoading": "Розкладаю зв’язки…",
+  "folderSubAll": "Усі {count, plural, one{{count} тека} few{{count} теки} many{{count} тек} other{{count} теки}}",
+  "folderSubLess": "Згорнути"
 }

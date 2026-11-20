@@ -5289,5 +5289,18 @@
   "graphLoading": "Laying out the links…",
   "@graphLoading": {
     "description": "Граф связей строится: подпись под крутящимся кругом"
+  },
+  "folderSubAll": "All {count, plural, one{{count} folder} other{{count} folders}}",
+  "@folderSubAll": {
+    "description": "Шапка папки на мониторе: вложенных папок много, две строки меток, кнопка показать все",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "folderSubLess": "Show less",
+  "@folderSubLess": {
+    "description": "Шапка папки на мониторе: свернуть метки вложенных папок обратно в две строки"
   }
 }
