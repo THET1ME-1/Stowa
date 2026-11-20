@@ -4392,4 +4392,17 @@ class LRu extends L {
 
   @override
   String get canvasDropHint => 'Отпустите — файлы встанут на холст';
+
+  @override
+  String get tabBusyTitle => 'Stowa уже открыта в другой вкладке';
+
+  @override
+  String get tabBusyHint =>
+      'Две вкладки разом испортили бы заметки, поэтому работает одна.';
+
+  @override
+  String get tabBusyOpenHere => 'Открыть здесь';
+
+  @override
+  String get tabBusyWaiting => 'Та вкладка закрывает заметки…';
 }

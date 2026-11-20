@@ -24,6 +24,7 @@ import 'features/edge/sticker_host.dart';
 import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
+import 'features/web/tab_busy_screen.dart';
 import 'services/background.dart';
 import 'services/crash_reporter.dart';
 import 'services/privacy/privacy_service.dart';
@@ -36,8 +37,13 @@ import 'services/vault/vault_writer.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (isWeb) {
+    // одна вкладка на хранилище: две разом испортили бы файлы и базу
+    if (!await claimTab()) await _waitForTab();
     // в браузере файлы — свои, поверх личной папки сайта: ставятся до первого File(...)
     await startWebFiles();
+    leaveWhenAsked();
+    // просим браузер не стирать заметки, когда на диске мало места
+    unawaited(persistStorage());
     await _run(const StowaApp(), null, 'web');
     return;
   }
@@ -78,6 +84,24 @@ Future<void> edgeMain() async {
 Future<void> stickerMain(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await _run(StowaApp(home: StickerHost(noteId: args.first), lockable: false), reminderPort(), 'sticker');
+}
+
+/// Хранилище занято другой вкладкой: экран об этом, пока та вкладка не закроется сама или
+/// по просьбе «Открыть здесь». Возвращается, когда хранилище наше.
+Future<void> _waitForTab() async {
+  final prefs = await SharedPreferences.getInstance();
+  final appearance = SettingsRepository(prefs, const SecureKeyStore()).appearance;
+  Tokens.use(paletteFor(appearance, brightnessFor(appearance, PlatformDispatcher.instance.platformBrightness, DateTime.now())));
+  final ours = waitForTab();
+  runApp(
+    TabBusyApp(
+      onOpenHere: () {
+        askTabToLeave();
+        return ours;
+      },
+    ),
+  );
+  await ours;
 }
 
 /// [window] — какое окно запущено: с ним ошибка уходит в отчёт. [notifications] нет

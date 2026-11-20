@@ -4381,4 +4381,17 @@ class LUk extends L {
 
   @override
   String get canvasDropHint => 'Відпустіть — файли стануть на полотно';
+
+  @override
+  String get tabBusyTitle => 'Stowa вже відкрита в іншій вкладці';
+
+  @override
+  String get tabBusyHint =>
+      'Дві вкладки разом зіпсували б нотатки, тому працює одна.';
+
+  @override
+  String get tabBusyOpenHere => 'Відкрити тут';
+
+  @override
+  String get tabBusyWaiting => 'Та вкладка закриває нотатки…';
 }

@@ -929,5 +929,9 @@
   "wsToLeft": "Do lewego panelu",
   "wsHidePanel": "Usuń panel",
   "wsPanelEmpty": "Na razie pusto",
-  "canvasDropHint": "Upuść — pliki trafią na płótno"
+  "canvasDropHint": "Upuść — pliki trafią na płótno",
+  "tabBusyTitle": "Stowa jest już otwarta w innej karcie",
+  "tabBusyHint": "Dwie karty naraz uszkodziłyby notatki, dlatego działa tylko jedna.",
+  "tabBusyOpenHere": "Otwórz tutaj",
+  "tabBusyWaiting": "Tamta karta zamyka notatki…"
 }

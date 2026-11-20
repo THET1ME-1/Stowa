@@ -4315,4 +4315,17 @@ class LEn extends L {
 
   @override
   String get canvasDropHint => 'Drop to put the files on the canvas';
+
+  @override
+  String get tabBusyTitle => 'Stowa is already open in another tab';
+
+  @override
+  String get tabBusyHint =>
+      'Two tabs at once would damage your notes, so only one works.';
+
+  @override
+  String get tabBusyOpenHere => 'Open here';
+
+  @override
+  String get tabBusyWaiting => 'The other tab is closing your notes…';
 }

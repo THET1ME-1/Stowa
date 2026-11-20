@@ -4341,4 +4341,17 @@ class LDe extends L {
   @override
   String get canvasDropHint =>
       'Loslassen — die Dateien landen auf der Leinwand';
+
+  @override
+  String get tabBusyTitle => 'Stowa ist bereits in einem anderen Tab geöffnet';
+
+  @override
+  String get tabBusyHint =>
+      'Zwei Tabs gleichzeitig würden deine Notizen beschädigen, deshalb arbeitet nur einer.';
+
+  @override
+  String get tabBusyOpenHere => 'Hier öffnen';
+
+  @override
+  String get tabBusyWaiting => 'Der andere Tab schließt deine Notizen…';
 }

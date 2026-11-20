@@ -730,15 +730,18 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     ];
   }
 
-  /// Граф папки или тега: вещи точками, связи — от ИИ, ручные и похожие по словам,
-  /// как в «Связано». Отклонённые человеком не рисуются.
+  /// Граф папки, тега или всей базы (без папки и тега): вещи точками, связи — от ИИ,
+  /// ручные и похожие по словам, как в «Связано». Отклонённые человеком не рисуются.
   Future<GraphData> graph({String? folderId, String? tag}) async {
     final scope = await _db
         .customSelect(
           folderId != null
               ? '$_cardSelect AND items.folder_id = ?'
-              : '$_cardSelect AND items.id IN (SELECT item_tags.item_id FROM item_tags JOIN tags ON tags.id = item_tags.tag_id WHERE tags.name = ?)',
-          variables: [Variable.withString(folderId ?? tag!)],
+              : tag != null
+              ? '$_cardSelect AND items.id IN (SELECT item_tags.item_id FROM item_tags JOIN tags ON tags.id = item_tags.tag_id WHERE tags.name = ?)'
+              // ни папки, ни тега — граф всей базы: вкладка «Граф связей» на широком экране
+              : _cardSelect,
+          variables: [if (folderId ?? tag case final value?) Variable.withString(value)],
         )
         .get();
     final cards = [for (final row in scope) _card(row)];

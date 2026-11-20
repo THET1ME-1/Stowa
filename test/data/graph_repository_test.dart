@@ -34,6 +34,23 @@ void main() {
     expect(pairs.any((pair) => pair.contains('x')), isFalse);
   });
 
+  test('граф всей базы (вкладка «Граф связей» на широком экране): без папки и тега — все заметки, и из корзины ни одной', () async {
+    await db.into(db.folders).insert(FoldersCompanion.insert(id: 'garden', name: 'Огород', icon: 'yard', shape: 'pill'));
+    await add('a', 'рассада томатов черри', folder: 'garden');
+    await add('b', 'подкормка рассады томатов', folder: 'garden');
+    await add('x', 'томаты на ужин');
+    for (var index = 0; index < 6; index++) {
+      await add('z$index', 'посторонняя заметка $index');
+    }
+    await add('gone', 'рассада в корзине');
+    await (db.update(db.items)..where((t) => t.id.equals('gone'))).write(ItemsCompanion(deletedAt: Value(now)));
+
+    final graph = await ItemsRepository(db).graph();
+    expect(graph.nodes.map((card) => card.id), unorderedEquals(['a', 'b', 'x', for (var index = 0; index < 6; index++) 'z$index']));
+    final pairs = {for (final (a, b) in graph.edges) ([a, b]..sort()).join('|')};
+    expect(pairs, contains('a|b'));
+  });
+
   test('отклонённая человеком связь в граф не попадает', () async {
     await db.into(db.folders).insert(FoldersCompanion.insert(id: 'garden', name: 'Огород', icon: 'yard', shape: 'pill'));
     await add('a', 'рассада томатов черри', folder: 'garden');

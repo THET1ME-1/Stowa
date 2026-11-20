@@ -7384,6 +7384,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Drop to put the files on the canvas'**
   String get canvasDropHint;
+
+  /// Заголовок экрана во второй вкладке браузера: хранилище занято первой вкладкой
+  ///
+  /// In en, this message translates to:
+  /// **'Stowa is already open in another tab'**
+  String get tabBusyTitle;
+
+  /// Одно предложение под заголовком экрана второй вкладки: почему Stowa здесь не открылась
+  ///
+  /// In en, this message translates to:
+  /// **'Two tabs at once would damage your notes, so only one works.'**
+  String get tabBusyHint;
+
+  /// Кнопка на экране второй вкладки: перенести работу в эту вкладку, прежняя закроет заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Open here'**
+  String get tabBusyOpenHere;
+
+  /// Подпись вместо кнопки, пока прежняя вкладка дописывает файлы и освобождает хранилище
+  ///
+  /// In en, this message translates to:
+  /// **'The other tab is closing your notes…'**
+  String get tabBusyWaiting;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

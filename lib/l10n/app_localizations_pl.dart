@@ -4386,4 +4386,17 @@ class LPl extends L {
 
   @override
   String get canvasDropHint => 'Upuść — pliki trafią na płótno';
+
+  @override
+  String get tabBusyTitle => 'Stowa jest już otwarta w innej karcie';
+
+  @override
+  String get tabBusyHint =>
+      'Dwie karty naraz uszkodziłyby notatki, dlatego działa tylko jedna.';
+
+  @override
+  String get tabBusyOpenHere => 'Otwórz tutaj';
+
+  @override
+  String get tabBusyWaiting => 'Tamta karta zamyka notatki…';
 }

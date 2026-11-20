@@ -5160,5 +5160,21 @@
   "canvasDropHint": "Drop to put the files on the canvas",
   "@canvasDropHint": {
     "description": "Подпись поверх холста, пока над ним тащат файлы из системы"
+  },
+  "tabBusyTitle": "Stowa is already open in another tab",
+  "@tabBusyTitle": {
+    "description": "Заголовок экрана во второй вкладке браузера: хранилище занято первой вкладкой"
+  },
+  "tabBusyHint": "Two tabs at once would damage your notes, so only one works.",
+  "@tabBusyHint": {
+    "description": "Одно предложение под заголовком экрана второй вкладки: почему Stowa здесь не открылась"
+  },
+  "tabBusyOpenHere": "Open here",
+  "@tabBusyOpenHere": {
+    "description": "Кнопка на экране второй вкладки: перенести работу в эту вкладку, прежняя закроет заметки"
+  },
+  "tabBusyWaiting": "The other tab is closing your notes…",
+  "@tabBusyWaiting": {
+    "description": "Подпись вместо кнопки, пока прежняя вкладка дописывает файлы и освобождает хранилище"
   }
 }

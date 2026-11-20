@@ -4354,4 +4354,17 @@ class LRo extends L {
 
   @override
   String get canvasDropHint => 'Eliberați — fișierele apar pe pânză';
+
+  @override
+  String get tabBusyTitle => 'Stowa este deja deschisă în altă filă';
+
+  @override
+  String get tabBusyHint =>
+      'Două file deschise simultan ar strica notițele, de aceea funcționează doar una.';
+
+  @override
+  String get tabBusyOpenHere => 'Deschide aici';
+
+  @override
+  String get tabBusyWaiting => 'Cealaltă filă închide notițele…';
 }

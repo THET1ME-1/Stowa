@@ -929,5 +929,9 @@
   "wsToLeft": "In die linke Leiste",
   "wsHidePanel": "Leiste entfernen",
   "wsPanelEmpty": "Noch leer",
-  "canvasDropHint": "Loslassen — die Dateien landen auf der Leinwand"
+  "canvasDropHint": "Loslassen — die Dateien landen auf der Leinwand",
+  "tabBusyTitle": "Stowa ist bereits in einem anderen Tab geöffnet",
+  "tabBusyHint": "Zwei Tabs gleichzeitig würden deine Notizen beschädigen, deshalb arbeitet nur einer.",
+  "tabBusyOpenHere": "Hier öffnen",
+  "tabBusyWaiting": "Der andere Tab schließt deine Notizen…"
 }

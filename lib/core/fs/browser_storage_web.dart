@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
@@ -27,6 +29,49 @@ void warnBeforeLeave(bool Function() pending) {
       if (pending()) event.preventDefault();
     }).toJS,
   );
+}
+
+const _tabLock = 'stowa-vault';
+const _tabChannel = 'stowa-tab';
+const _leave = 'leave';
+
+// замок Web Locks живёт, пока не завершится обещание из его обработчика: это — никогда
+final _held = Completer<void>();
+
+/// Запросить замок хранилища. С [wait] ждёт, пока его отпустит другая вкладка.
+Future<bool> _lockVault({required bool wait}) {
+  // старый браузер без Web Locks: работаем как раньше, без замка
+  if (!web.window.navigator.has('locks')) return Future.value(true);
+  final got = Completer<bool>();
+  JSPromise<JSAny?>? granted(web.Lock? lock) {
+    if (!got.isCompleted) got.complete(lock != null);
+    return lock == null ? null : _held.future.toJS;
+  }
+
+  web.window.navigator.locks.request(_tabLock, web.LockOptions(ifAvailable: !wait), granted.toJS);
+  return got.future;
+}
+
+Future<bool> claimTab() => _lockVault(wait: false);
+
+Future<void> waitForTab() => _lockVault(wait: true);
+
+void askTabToLeave() => web.BroadcastChannel(_tabChannel).postMessage(_leave.toJS);
+
+void onTabTakenOver(Future<void> Function() leave) {
+  web.BroadcastChannel(_tabChannel).onmessage = ((web.MessageEvent event) {
+    if (event.data.dartify() == _leave) leave();
+  }).toJS;
+}
+
+void reloadPage() => web.window.location.reload();
+
+Future<bool> persistStorage() async {
+  try {
+    return (await web.window.navigator.storage.persist().toDart).toDart;
+  } catch (_) {
+    return false;
+  }
 }
 
 /// Личная папка сайта (OPFS): файлы хранилища лежат в `stowa-files/`, рядом с базой drift.

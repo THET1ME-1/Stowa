@@ -4326,4 +4326,17 @@ class LEs extends L {
 
   @override
   String get canvasDropHint => 'Suelta — los archivos irán al lienzo';
+
+  @override
+  String get tabBusyTitle => 'Stowa ya está abierta en otra pestaña';
+
+  @override
+  String get tabBusyHint =>
+      'Dos pestañas a la vez dañarían tus notas, por eso solo funciona una.';
+
+  @override
+  String get tabBusyOpenHere => 'Abrir aquí';
+
+  @override
+  String get tabBusyWaiting => 'La otra pestaña está cerrando tus notas…';
 }

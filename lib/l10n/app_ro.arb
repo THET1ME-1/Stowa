@@ -929,5 +929,9 @@
   "wsToLeft": "În panoul stâng",
   "wsHidePanel": "Elimină panoul",
   "wsPanelEmpty": "Încă gol",
-  "canvasDropHint": "Eliberați — fișierele apar pe pânză"
+  "canvasDropHint": "Eliberați — fișierele apar pe pânză",
+  "tabBusyTitle": "Stowa este deja deschisă în altă filă",
+  "tabBusyHint": "Două file deschise simultan ar strica notițele, de aceea funcționează doar una.",
+  "tabBusyOpenHere": "Deschide aici",
+  "tabBusyWaiting": "Cealaltă filă închide notițele…"
 }

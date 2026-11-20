@@ -929,5 +929,9 @@
   "wsToLeft": "Al panel izquierdo",
   "wsHidePanel": "Quitar panel",
   "wsPanelEmpty": "Aún vacío",
-  "canvasDropHint": "Suelta — los archivos irán al lienzo"
+  "canvasDropHint": "Suelta — los archivos irán al lienzo",
+  "tabBusyTitle": "Stowa ya está abierta en otra pestaña",
+  "tabBusyHint": "Dos pestañas a la vez dañarían tus notas, por eso solo funciona una.",
+  "tabBusyOpenHere": "Abrir aquí",
+  "tabBusyWaiting": "La otra pestaña está cerrando tus notas…"
 }
