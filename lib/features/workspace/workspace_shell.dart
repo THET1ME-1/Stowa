@@ -717,15 +717,17 @@ class _TabLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // затухание стоит над TickerMode: под выключенными часами оно застывало, и ушедшая
+    // вкладка, лежащая в стопке выше, оставалась видна поверх открытой
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: !visible,
-        child: TickerMode(
-          enabled: visible,
-          child: AnimatedOpacity(
-            duration: Motion.medium,
-            curve: Motion.emphasized,
-            opacity: visible ? 1 : 0,
+        child: AnimatedOpacity(
+          duration: Motion.medium,
+          curve: Motion.emphasized,
+          opacity: visible ? 1 : 0,
+          child: TickerMode(
+            enabled: visible,
             child: ExcludeFocus(excluding: !visible, child: child),
           ),
         ),
