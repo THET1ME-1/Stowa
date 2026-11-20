@@ -61,4 +61,25 @@ void main() {
     expect(plain(formatTotal([(19.5, 'USD'), (300, 'UAH')], 'en')), r'$19.50 · 300 ₴');
     expect(formatTotal(const [], 'ru'), '');
   });
+
+  // на сайте заметка-конспект с тысячами чисел открывалась секундами: для каждого числа
+  // слово перед ним искалось по всему тексту от начала
+  test('длинная заметка с тысячами чисел разбирается быстро, суммы на своих местах', () {
+    final text = '${List.filled(2000, 'шаг 12 из 400,').join(' ')} итого 35 лей и вход €20';
+    // выражения с буквами всех языков собираются при первом вызове: это разовая цена, не рост
+    findMoney('вход €20');
+    final watch = Stopwatch()..start();
+    final found = findMoney(text);
+    watch.stop();
+    // по всему тексту от начала было 113 с; порог с запасом на занятую машину
+    expect(watch.elapsedMilliseconds, lessThan(2000));
+    expect([for (final one in found) (one.amount, one.currency)], [(35.0, 'MDL'), (20.0, 'EUR')]);
+    expect(text.substring(found.last.start, found.last.end), '€20');
+  });
+
+  test('валюта перед суммой — только целым словом и в начале текста тоже', () {
+    expect(findMoney('руб 50').single.start, 0);
+    expect(findMoney('клуб 50'), isEmpty);
+    expect(findMoney('${'а' * 60} руб 50').single.currency, 'RUB');
+  });
 }

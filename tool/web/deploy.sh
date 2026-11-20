@@ -37,7 +37,10 @@ rsync -a --delete -e "${ssh_command[*]}" build/web/ "$STOWA_WEB_SSH:$dir.next/"
 headers=$(curl -fsS -m 20 -D - -o /dev/null "$url/")
 echo "$headers" | grep -qi '^cross-origin-opener-policy: same-origin' || { echo 'нет заголовка Cross-Origin-Opener-Policy' >&2; exit 1; }
 echo "$headers" | grep -qi '^cross-origin-embedder-policy: require-corp' || { echo 'нет заголовка Cross-Origin-Embedder-Policy' >&2; exit 1; }
-curl -fsS -m 20 -D - -o /dev/null "$url/sqlite3.wasm" | grep -qi '^content-type: application/wasm' || { echo 'sqlite3.wasm отдаётся не как application/wasm' >&2; exit 1; }
+for file in sqlite3.wasm main.dart.wasm; do
+  curl -fsS -m 20 -D - -o /dev/null "$url/$file" | grep -qi '^content-type: application/wasm' || { echo "$file отдаётся не как application/wasm" >&2; exit 1; }
+done
+curl -fsS -m 20 -D - -o /dev/null "$url/main.dart.mjs" | grep -qi '^content-type: text/javascript' || { echo 'main.dart.mjs отдаётся не как text/javascript' >&2; exit 1; }
 local_version=$(cat build/web/version.json)
 remote_version=$(curl -fsS -m 20 "$url/version.json")
 [ "$local_version" = "$remote_version" ] || { echo "на сайте другая сборка: $remote_version" >&2; exit 1; }

@@ -3,6 +3,8 @@
 /// Сумма без валюты деньгами не считается: «500» может быть чем угодно.
 library;
 
+import 'dart:math';
+
 import 'package:intl/intl.dart';
 
 import 'word_forms.dart';
@@ -60,6 +62,15 @@ final _wordAfter = RegExp(r'^[   ]?([$€£₽₴]|[\p{L}]+\.?)', unicode: tr
 final _wordBefore = RegExp(r'([$€£₽₴]|[\p{L}]+)[   ]?$', unicode: true);
 final _letterOrDigit = RegExp(r'[\p{L}\p{N}]', unicode: true);
 
+final _separators = RegExp('[.,]');
+
+// валюта стоит вплотную к сумме: слово до и после ищется в этих пределах, а не во всём тексте.
+// Иначе на каждое число уходит весь текст до него, и конспект с тысячами чисел разбирается минутами.
+// Слово перед суммой ищется выражением с якорем в конце, оно перебирает каждую позицию окна:
+// окно узкое, длиннее «долларами» валютное слово не бывает
+const _near = 40;
+const _nearBefore = 16;
+
 /// Сумма из записи числа: последний разделитель с одной-двумя цифрами после — дробь,
 /// остальные — тысячи. «1.500» и «1,500» — тысяча пятьсот.
 double? parseAmount(String raw) {
@@ -72,8 +83,8 @@ double? parseAmount(String raw) {
   final tail = text.length - last - 1;
   final once = separator.allMatches(text).length == 1;
   final decimal = (lastDot >= 0 && lastComma >= 0) || (once && tail >= 1 && tail <= 2);
-  if (!decimal) return double.tryParse(text.replaceAll(RegExp('[.,]'), ''));
-  final whole = text.substring(0, last).replaceAll(RegExp('[.,]'), '');
+  if (!decimal) return double.tryParse(text.replaceAll(_separators, ''));
+  final whole = text.substring(0, last).replaceAll(_separators, '');
   return double.tryParse('$whole.${text.substring(last + 1)}');
 }
 
@@ -85,17 +96,19 @@ List<Money> findMoney(String text) {
     if (match.start > 0 && _letterOrDigit.hasMatch(text[match.start - 1])) continue;
     final amount = parseAmount(match.group(0)!);
     if (amount == null) continue;
-    final after = _wordAfter.firstMatch(text.substring(match.end));
+    final after = _wordAfter.firstMatch(text.substring(match.end, min(text.length, match.end + _near)));
     final afterCurrency = after == null ? null : currencyOf(after.group(1)!);
     if (afterCurrency != null) {
       found.add(Money(amount: amount, currency: afterCurrency, start: match.start, end: match.end + after!.group(0)!.length));
       continue;
     }
-    final before = _wordBefore.firstMatch(text.substring(0, match.start));
+    final from = max(0, match.start - _nearBefore);
+    final before = _wordBefore.firstMatch(text.substring(from, match.start));
     final beforeCurrency = before == null ? null : currencyOf(before.group(1)!);
+    final beforeStart = from + (before?.start ?? 0);
     // перед суммой валюта только целым словом: «вход €20», но не «руб» внутри «клуб»
-    if (beforeCurrency != null && (before!.start == 0 || !_letterOrDigit.hasMatch(text[before.start - 1]))) {
-      found.add(Money(amount: amount, currency: beforeCurrency, start: before.start, end: match.end));
+    if (beforeCurrency != null && (beforeStart == 0 || !_letterOrDigit.hasMatch(text[beforeStart - 1]))) {
+      found.add(Money(amount: amount, currency: beforeCurrency, start: beforeStart, end: match.end));
     }
   }
   return found;

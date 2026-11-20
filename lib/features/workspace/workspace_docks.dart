@@ -15,15 +15,6 @@ import '../../services/return_service.dart' show returnText;
 import 'workspace_model.dart';
 import 'workspace_shell.dart';
 
-/// Вошёл ли человек в Stowa Sync: подпись под именем хранилища и панель справа.
-final _syncSignedInProvider = FutureProvider.autoDispose<bool>((ref) async {
-  try {
-    return await ref.watch(syncServiceProvider).account() != null;
-  } on Object {
-    return false;
-  }
-});
-
 /// Левый док: хранилище и «Найти или записать» сверху, ниже — панели, внизу тема и настройки.
 class LeftDock extends StatelessWidget {
   const LeftDock({super.key, required this.onFind, required this.onTheme});
@@ -299,7 +290,8 @@ class _PanelBody extends ConsumerWidget {
                 ),
               ];
       default:
-        final signedIn = ref.watch(_syncSignedInProvider).value ?? false;
+        // следит за входом и выходом, а не спрашивает один раз при показе панели
+        final signedIn = ref.watch(syncSignedInProvider).value ?? false;
         rows = [
           _NavRow(icon: signedIn ? 'cloud_done' : 'cloud_off', label: signedIn ? l.wsSynced : l.wsSyncOff, selected: false, onTap: () => ws.open(const WsTab.settings('sync'))),
         ];
@@ -315,7 +307,7 @@ class _VaultCard extends ConsumerWidget {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final root = ref.watch(vaultRootProvider);
-    final signedIn = ref.watch(_syncSignedInProvider).value ?? false;
+    final signedIn = ref.watch(syncSignedInProvider).value ?? false;
     final name = isWeb || root == null ? l.appName : p.basename(root.path);
     final where = signedIn ? l.wsSynced : (isWeb ? l.wsInBrowser : root?.path ?? '');
     return Padding(
