@@ -69,6 +69,7 @@ import 'photo_viewer.dart';
 import 'properties_block.dart';
 import 'link_sheet.dart';
 import 'related_block.dart';
+import '../workspace/workspace_model.dart' show WsTab;
 import '../workspace/workspace_shell.dart' show WorkspaceScope;
 
 /// Страница вырастает из нажатой карточки и складывается в неё (переход темы);
@@ -707,6 +708,16 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     }
   }
 
+  /// Путь папки заметки для строки на мониторе: от верхней папки до своей.
+  List<(String?, String)> _deskPath(L l, FolderCard? folder, List<FolderCard> folders) {
+    if (folder == null) return [(null, l.folderNone)];
+    final chain = <FolderCard>[];
+    for (FolderCard? at = folder; at != null && chain.length < 12; at = folders.where((one) => one.id == at!.parentId).firstOrNull) {
+      chain.insert(0, at);
+    }
+    return [for (final one in chain) (one.id, one.name)];
+  }
+
   /// История правок. Вернули версию — плашка «Отменить» возвращает то, что было до неё:
   /// оно лежит в истории самым свежим снимком.
   Future<void> _history() async {
@@ -783,12 +794,15 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final source = url == null ? null : sourceName(Uri.tryParse(url)?.host ?? '');
     final duration = item.durationSeconds == null ? null : Duration(seconds: item.durationSeconds!);
     Future<void> openMain() => videoFile != null ? openLocalFile(context, p.join(filesRoot.path, videoFile.path), videoFile.mime) : _openLink(url!);
-    final titleStyle = text.headlineSmall!.copyWith(fontSize: 25, height: 1.2, letterSpacing: -0.4);
+    // широкий экран (вкладка рабочего пространства): текст колонкой до 760 точек посередине, как в
+    // макете, сверху тонкая строка с путём папки и действиями, низ окна отдан общей строке ввода
+    final desk = WorkspaceScope.maybeOf(context) != null;
+    // на мониторе заголовок документа крупнее, как в макете веба
+    final titleStyle = desk
+        ? text.headlineSmall!.copyWith(fontSize: 32, height: 1.15, letterSpacing: -0.6)
+        : text.headlineSmall!.copyWith(fontSize: 25, height: 1.2, letterSpacing: -0.4);
     final bodyStyle = text.bodyLarge!.copyWith(fontSize: 16, height: 1.5, color: Tokens.onSurface);
     final bottom = MediaQuery.paddingOf(context).bottom;
-    // широкий экран (вкладка рабочего пространства): текст колонкой до 760 точек посередине, как в
-    // макете, панель действий — под шапкой той же ширины, низ окна отдан общей строке ввода
-    final desk = WorkspaceScope.maybeOf(context) != null;
     final side = desk ? math.max(12.0, (MediaQuery.sizeOf(context).width - _deskColumn) / 2) : 12.0;
     final cover = gallery.isEmpty ? null : gallery[_cover.clamp(0, gallery.length - 1)];
     // картинка из текста по имени; касание открывает просмотр всех фото заметки на ней
@@ -888,18 +902,53 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
           bottom: false,
           child: Column(
             children: [
-              _Header(
-                side: desk ? side - 2 : 10,
-                folder: folder,
-                folderName: folder?.name ?? l.folderNone,
-                subtitle: subtitle,
-                editing: _editing,
-                onBack: () => Navigator.maybePop(context),
-                onFolder: () => _move(item, folders),
-                onEdit: () => _startEditing(item),
-                onMore: () => _menu(item),
-              ),
               if (desk)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(side - 6, 8, side - 6, 4),
+                  child: _DeskBar(
+                    path: _deskPath(l, folder, folders),
+                    onPath: (id) => WorkspaceScope.maybeOf(context)?.open(id == null ? const WsTab.inbox() : WsTab.folder(id)),
+                    actions: [
+                      if (!_editing) ...[
+                        _DeskAction(
+                          icon: item.reminderAt != null || item.remindPlace != null ? 'alarm' : 'add_alarm',
+                          tooltip: l.itemRemind,
+                          active: item.reminderAt != null || item.remindPlace != null,
+                          onTap: () => item.reminderAt != null
+                              ? _reminderMenu(item.reminderAt!)
+                              : item.remindPlace != null
+                              ? _placeMenu(_placeOf(item)!)
+                              : _remindSheet(),
+                        ),
+                        _DeskAction(icon: 'tag', tooltip: l.tagAdd, onTap: _addTag),
+                        if (linkLike)
+                          _DeskAction(icon: 'edit_note', tooltip: l.itemAppend, onTap: () => _startEditing(item, append: true))
+                        else
+                          _DeskAction(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
+                        _DeskAction(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
+                        _DeskAction(icon: 'edit', tooltip: l.itemEdit, onTap: () => _startEditing(item)),
+                      ],
+                      _DeskAction(icon: 'more_vert', tooltip: l.itemMore, onTap: () => _menu(item)),
+                    ],
+                    // в правке главное действие — «Готово» в полосе правки ниже
+                    accentIcon: _editing ? null : (videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add')),
+                    accentLabel: _editing ? null : (videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend)),
+                    onAccent: _editing ? null : (linkLike || videoFile != null ? openMain : () => _startEditing(item, append: true)),
+                  ),
+                )
+              else
+                _Header(
+                  folder: folder,
+                  folderName: folder?.name ?? l.folderNone,
+                  subtitle: subtitle,
+                  editing: _editing,
+                  onBack: () => Navigator.maybePop(context),
+                  onFolder: () => _move(item, folders),
+                  onEdit: () => _startEditing(item),
+                  onMore: () => _menu(item),
+                ),
+              // на мониторе в правке — полоса разметки и «Готово» под строкой; в чтении панели нет
+              if (desk && _editing)
                 Padding(
                   padding: EdgeInsets.fromLTRB(side, 4, side, 8),
                   child: dock,
@@ -1298,9 +1347,119 @@ class _RoundButton extends StatelessWidget {
 /// Колонка текста заметки на широком экране, как `.doc` в макете веба.
 const _deskColumn = 760.0;
 
+/// Действие строки заметки на мониторе: значок с подсказкой.
+class _DeskAction {
+  const _DeskAction({required this.icon, required this.tooltip, required this.onTap, this.active = false});
+
+  final String icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  /// Действие уже стоит (напоминание есть): значок залит.
+  final bool active;
+}
+
+/// Строка заметки на мониторе вместо телефонной шапки и панели (макет веба, `.crumbs`):
+/// слева путь папки, каждая часть открывает свою папку; справа значки действий с
+/// подсказками и небольшая кнопка главного действия («Дописать», «Открыть», «Смотреть»).
+class _DeskBar extends StatelessWidget {
+  const _DeskBar({required this.path, required this.onPath, required this.actions, this.accentIcon, this.accentLabel, this.onAccent});
+
+  /// Папки от верхней до своей: (id, имя); id null — «Без папки».
+  final List<(String?, String)> path;
+  final void Function(String? folderId) onPath;
+  final List<_DeskAction> actions;
+  final String? accentIcon;
+  final String? accentLabel;
+  final VoidCallback? onAccent;
+
+  @override
+  Widget build(BuildContext context) {
+    final crumb = TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.muted);
+    return SizedBox(
+      key: const ValueKey('desk-bar'),
+      height: 44,
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                for (final (index, (id, name)) in path.indexed) ...[
+                  if (index > 0) Icon(symbolIcon('chevron_right'), size: 16, color: Tokens.muted),
+                  Flexible(child: _Crumb(label: name, style: crumb, onTap: () => onPath(id))),
+                ],
+              ],
+            ),
+          ),
+          for (final action in actions) _DeskIcon(action: action),
+          if (accentLabel != null && onAccent != null) ...[
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              onPressed: onAccent,
+              icon: Icon(symbolIcon(accentIcon ?? 'add'), size: 18),
+              label: Text(accentLabel!),
+              style: FilledButton.styleFrom(
+                backgroundColor: Tokens.accent,
+                foregroundColor: Tokens.onAccent,
+                minimumSize: const Size(0, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Часть пути: подсвечивается под мышью, нажатие открывает папку.
+class _Crumb extends StatelessWidget {
+  const _Crumb({required this.label, required this.style, required this.onTap});
+
+  final String label;
+  final TextStyle style;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      hoverColor: Tokens.container,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+      ),
+    );
+  }
+}
+
+/// Значок действия: без подложки, под мышью — мягкая подложка.
+class _DeskIcon extends StatelessWidget {
+  const _DeskIcon({required this.action});
+
+  final _DeskAction action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: action.tooltip,
+      child: InkWell(
+        onTap: action.onTap,
+        borderRadius: BorderRadius.circular(10),
+        hoverColor: Tokens.containerHigh,
+        child: SizedBox.square(
+          dimension: 36,
+          child: Icon(symbolIcon(action.icon, filled: action.active), size: 20, color: action.active ? Tokens.onSurface : Tokens.onSurfaceVariant),
+        ),
+      ),
+    );
+  }
+}
+
 class _Header extends StatelessWidget {
   const _Header({
-    this.side = 10,
     required this.folder,
     required this.folderName,
     required this.subtitle,
@@ -1311,8 +1470,6 @@ class _Header extends StatelessWidget {
     required this.onMore,
   });
 
-  /// Отступ слева и справа: на широком экране шапка шириной с колонку текста.
-  final double side;
   final FolderCard? folder;
   final String folderName;
   final String subtitle;
@@ -1326,10 +1483,10 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     return Padding(
-      padding: EdgeInsets.fromLTRB(side, 10, side, 6),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
       child: Row(
         children: [
-          // во вкладке широкого экрана заметка открыта первой: возвращаться некуда
+          // заметка открыта первой (окно «Поделиться», виджет): возвращаться некуда
           if (Navigator.of(context).canPop()) ...[
             _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: onBack),
             const SizedBox(width: 8),
