@@ -79,8 +79,7 @@ class StorageScreen extends ConsumerWidget {
           children: [
             SettingsHeader(l.vaultSection),
             const SizedBox(height: 18),
-            // в браузере синхронизация ещё не подключена
-            if (!inBrowser) SettingsGroup(tint: settingsTint('sky'), children: const [_SyncRow()]),
+            SettingsGroup(tint: settingsTint('sky'), children: const [_SyncRow()]),
             SettingsSection(l.vaultsSection),
             SettingsGroup(
               tint: settingsTint('teal'),

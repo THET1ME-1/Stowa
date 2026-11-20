@@ -36,11 +36,12 @@ void main() {
   }
 
   test('в браузере нет разделов, которым там не с чем работать; остальные на месте', () {
-    for (final id in ['sync', 'returns', 'outside', 'import']) {
+    for (final id in ['returns', 'outside', 'import']) {
       expect(settingsSectionShown(id, inBrowser: true), isFalse, reason: id);
       expect(settingsSectionShown(id, inBrowser: false), isTrue, reason: id);
     }
-    for (final id in ['vault', 'look', 'ai', 'order', 'data', 'line', 'keys', 'start', 'language', 'help']) {
+    // Stowa Sync в браузере есть: тот же аккаунт, что на телефоне
+    for (final id in ['vault', 'sync', 'look', 'ai', 'order', 'data', 'line', 'keys', 'start', 'language', 'help']) {
       expect(settingsSectionShown(id, inBrowser: true), isTrue, reason: id);
     }
   });
@@ -58,9 +59,9 @@ void main() {
     expect(find.text('Отчёты об ошибках'), findsOneWidget);
   });
 
-  testWidgets('«Хранилище» в браузере: без Stowa Sync и без слов про приложение «Файлы»', (tester) async {
+  testWidgets('«Хранилище» в браузере: со Stowa Sync и без слов про приложение «Файлы»', (tester) async {
     await show(tester, const StorageScreen(), inBrowser: true);
-    expect(find.text('Stowa Sync'), findsNothing);
+    expect(find.text('Stowa Sync'), findsOneWidget);
     expect(find.text('В этом браузере'), findsOneWidget);
     expect(find.text('Заметки лежат в хранилище этого браузера, на диске их не видно.'), findsOneWidget);
     expect(find.text('Сохранить копию'), findsOneWidget);
