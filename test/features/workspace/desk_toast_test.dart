@@ -31,7 +31,7 @@ void main() {
     final toast = tester.getRect(find.byKey(const ValueKey('desk-toast')));
     final line = tester.getRect(find.descendant(of: find.byType(LineDock), matching: find.textContaining('Закинь')).first);
     expect(toast.width, lessThan(560), reason: 'по тексту, а не во всю ширину окна');
-    expect(toast.bottom, lessThan(line.top), reason: 'над строкой, не на ней');
+    expect(line.top - toast.bottom, inInclusiveRange(0, 40), reason: 'прямо над строкой, не на ней и не у верха окна');
     // строка стоит по центру своей колонки, колонка — вся ширина между доками
     expect((toast.center.dx - tester.getRect(find.byType(LineDock)).center.dx).abs(), lessThan(2), reason: 'по центру над строкой');
 
@@ -41,14 +41,20 @@ void main() {
     expect(find.byKey(const ValueKey('desk-toast')), findsNothing);
   });
 
-  testWidgets('на мониторе плашка встаёт над подсказкой знакомства, а не на неё', (tester) async {
+  testWidgets('на мониторе плашка на время сменяет подсказку знакомства у строки', (tester) async {
     world.hints = HintsRepository.memory();
     await open(tester, const Size(1600, 960));
     expect(find.byType(StartCard), findsOneWidget);
     showNote(ScaffoldMessenger.of(tester.element(find.byType(LineDock))), 'Закрепил наверху главной');
     await tester.pumpAndSettle();
+    expect(find.byType(StartCard), findsNothing, reason: 'как у плашки «Закинул»: подсказка уступает место');
     final toast = tester.getRect(find.byKey(const ValueKey('desk-toast')));
-    expect(toast.bottom, lessThanOrEqualTo(tester.getRect(find.byType(StartCard)).top));
+    final line = tester.getRect(find.descendant(of: find.byType(LineDock), matching: find.textContaining('Закинь')).first);
+    expect(line.top - toast.bottom, inInclusiveRange(0, 40), reason: 'прямо над строкой, а не у верха окна');
+
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+    expect(find.byType(StartCard), findsOneWidget);
   });
 
   testWidgets('на мониторе плашка уходит сама, новая сменяет прежнюю', (tester) async {

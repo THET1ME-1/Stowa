@@ -36,7 +36,7 @@ import '../../domain/search_query.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart';
 import '../../services/launch_actions.dart' show LaunchAction;
-import '../../core/widgets/undo_snack.dart' show showNote;
+import '../../core/widgets/undo_snack.dart' show deskToasts, showNote;
 import '../folder/folder_sheets.dart';
 import '../home/saved_toast.dart';
 import '../places/reminder_permissions.dart';
@@ -218,6 +218,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _line.chooseFolder(widget.homeFolder);
     _line.addListener(_onLine);
     _focus.addListener(_onFocus);
+    deskToasts.addListener(_onDeskToast);
     unawaited(_cleanVoiceDrafts().catchError((_) {}));
     // в браузере первый поиск иначе сам режет на слова сотни последних заметок: это больше секунды
     if (userFirst.enabled && !widget.writeOnly && !_searchWarmed) {
@@ -253,6 +254,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   @override
   void dispose() {
+    deskToasts.removeListener(_onDeskToast);
     _searchTimer?.cancel();
     _warmTimer?.cancel();
     _toastTimer?.cancel();
@@ -286,6 +288,11 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     if (widget.writeOnly) return null;
     final folders = ref.read(foldersProvider).value ?? const [];
     return folders.where((folder) => normalizeQuery(folder.name) == name).firstOrNull;
+  }
+
+  // плашка монитора над строкой: пока она видна, подсказка знакомства уступает ей место
+  void _onDeskToast() {
+    if (mounted && WorkspaceScope.maybeOf(context) != null) setState(() {});
   }
 
   void _onFocus() {
@@ -1019,7 +1026,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     // шаг знакомства — пока строка пуста и над ней ничего нет; набор, плашка и голос его прячут
     final hints = widget.onboarding ? ref.watch(hintsProvider).value : null;
     final step = hints == null ? null : visibleStep(hints);
-    final showStep = step != null && !showPanel && !_full && _voice == null && _toast == null && !_sending && !_hasContent;
+    final deskToast = WorkspaceScope.maybeOf(context) != null && deskToasts.value != null;
+    final showStep = step != null && !showPanel && !_full && _voice == null && _toast == null && !deskToast && !_sending && !_hasContent;
     // нашлось то, что человек набрал сам, — шаг «поиск» сделан
     if (rows.any((row) => row is ResultRow) && !ref.read(hintsRepositoryProvider).state.done.contains(StartEvent.found)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
