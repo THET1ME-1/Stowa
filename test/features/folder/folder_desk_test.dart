@@ -74,6 +74,24 @@ void main() {
     expect(shell.workspace.panes, isNotEmpty);
   });
 
+  // хозяин 20.11: «пролистывание главной и папок слишком медленное, лагает в 30 фпс». Плитка
+  // строила, раскладывала и рисовала все карточки папки разом, а видно десяток
+  testWidgets('монитор: в папке на 400 заметок строится только то, что видно, — и лента, и доска', (tester) async {
+    for (var i = 0; i < 400; i++) {
+      await world.db.into(world.db.items).insert(
+        ItemsCompanion.insert(id: 'n$i', kind: ItemKind.note, title: 'Конспект $i', body: Value('Конспект $i\nтемы урока'), folderId: const Value('k'), createdAt: world.now, updatedAt: world.now),
+      );
+    }
+    await open(tester);
+    await world.db.customUpdate("UPDATE folders SET view = 'list' WHERE id = 'k'", updates: {world.db.folders});
+    await tester.pumpAndSettle();
+    expect(find.byType(NoteCard).evaluate().length, inInclusiveRange(4, 80), reason: 'лента');
+
+    await world.db.customUpdate("UPDATE folders SET view = 'board' WHERE id = 'k'", updates: {world.db.folders});
+    await tester.pumpAndSettle();
+    expect(find.byType(BoardTile).evaluate().length, inInclusiveRange(4, 80), reason: 'доска');
+  });
+
   testWidgets('монитор: «Посмотреть потом» с крупным заголовком, как у папки, а не мелким телефонным', (tester) async {
     final shell = await open(tester);
     shell.open(const WsTab.later());

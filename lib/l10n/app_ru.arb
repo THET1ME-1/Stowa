@@ -1225,5 +1225,10 @@
   "storageWeak": "Браузер не дал надёжного хранилища: заметки могут пропасть, когда вкладку закроют.",
   "vaultBrowserHint": "Заметки лежат в хранилище этого браузера, на диске их не видно.",
   "vaultBuildingFiles": "Сверяю файлы: {done} из {total}",
-  "vaultBuildingExtras": "Доделываю указатель: {done} из {total}"
+  "vaultBuildingExtras": "Доделываю указатель: {done} из {total}",
+  "wsEmptyTitle": "Здесь будут твои заметки",
+  "wsEmptyBody": "Закинь в строку снизу мысль, ссылку или файл, и Stowa сама разложит их по папкам.",
+  "wsEmptyWrite": "Записать первую заметку",
+  "wsEmptyFolder": "Завести папку",
+  "wsEmptyRestore": "Вернуть из копии"
 }

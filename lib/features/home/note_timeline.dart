@@ -718,6 +718,7 @@ class NoteCard extends StatelessWidget {
       onTap: onOpen,
       onLongPress: onAct,
       pressedScale: 0.98,
+      radius: BorderRadius.circular(_cardRadius),
       child: Container(
         decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(_cardRadius)),
         clipBehavior: Clip.antiAlias,

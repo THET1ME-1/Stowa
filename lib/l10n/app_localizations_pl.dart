@@ -4435,4 +4435,20 @@ class LPl extends L {
   String vaultBuildingExtras(int done, int total) {
     return 'Kończę indeks: $done z $total';
   }
+
+  @override
+  String get wsEmptyTitle => 'Tu będą twoje notatki';
+
+  @override
+  String get wsEmptyBody =>
+      'Wrzuć do paska na dole myśl, link albo plik, a Stowa sama rozłoży je po folderach.';
+
+  @override
+  String get wsEmptyWrite => 'Zapisz pierwszą notatkę';
+
+  @override
+  String get wsEmptyFolder => 'Załóż folder';
+
+  @override
+  String get wsEmptyRestore => 'Przywróć z kopii';
 }

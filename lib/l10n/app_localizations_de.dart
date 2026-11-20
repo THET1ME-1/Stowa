@@ -4391,4 +4391,20 @@ class LDe extends L {
   String vaultBuildingExtras(int done, int total) {
     return 'Index wird fertig: $done von $total';
   }
+
+  @override
+  String get wsEmptyTitle => 'Hier landen deine Notizen';
+
+  @override
+  String get wsEmptyBody =>
+      'Wirf einen Gedanken, Link oder eine Datei in die Zeile unten, Stowa sortiert sie selbst in Ordner.';
+
+  @override
+  String get wsEmptyWrite => 'Erste Notiz schreiben';
+
+  @override
+  String get wsEmptyFolder => 'Ordner anlegen';
+
+  @override
+  String get wsEmptyRestore => 'Aus Sicherung holen';
 }

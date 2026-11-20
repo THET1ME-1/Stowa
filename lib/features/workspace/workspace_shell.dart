@@ -723,16 +723,24 @@ class _TabLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     // затухание стоит над TickerMode: под выключенными часами оно застывало, и ушедшая
     // вкладка, лежащая в стопке выше, оставалась видна поверх открытой
+    // входящая вкладка поднимается на место с 10 точек ниже и проявляется, уходящая
+    // гаснет и чуть оседает: смена видна, но не мельтешит
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: !visible,
-        child: AnimatedOpacity(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(end: visible ? 0 : 10),
           duration: Motion.medium,
-          curve: Motion.emphasized,
-          opacity: visible ? 1 : 0,
-          child: TickerMode(
-            enabled: visible,
-            child: ExcludeFocus(excluding: !visible, child: child),
+          curve: Motion.emphasizedDecelerate,
+          builder: (context, drop, child) => Transform.translate(offset: Offset(0, drop), child: child),
+          child: AnimatedOpacity(
+            duration: Motion.medium,
+            curve: Motion.emphasized,
+            opacity: visible ? 1 : 0,
+            child: TickerMode(
+              enabled: visible,
+              child: ExcludeFocus(excluding: !visible, child: child),
+            ),
           ),
         ),
       ),
@@ -1003,7 +1011,7 @@ class _TabStrip extends ConsumerWidget {
   }
 }
 
-class _TabChip extends ConsumerWidget {
+class _TabChip extends ConsumerStatefulWidget {
   const _TabChip({required this.tab, required this.active, required this.first, required this.onTap, required this.onClose});
 
   final WsTab tab;
@@ -1014,8 +1022,25 @@ class _TabChip extends ConsumerWidget {
   final VoidCallback onTap;
   final VoidCallback onClose;
 
+  /// Значок, подпись и цвет значка вкладки (у папки — её цвет).
+  static (String, String, Color?) lookOf(L l, WidgetRef ref, WsTab tab) => _TabChipState.lookOf(l, ref, tab);
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TabChip> createState() => _TabChipState();
+}
+
+class _TabChipState extends ConsumerState<_TabChip> {
+  // мышь над закрытой вкладкой: подложка проступает, как в макете
+  bool _hover = false;
+
+  WsTab get tab => widget.tab;
+  bool get active => widget.active;
+  bool get first => widget.first;
+  VoidCallback get onTap => widget.onTap;
+  VoidCallback get onClose => widget.onClose;
+
+  @override
+  Widget build(BuildContext context) {
     final l = L.of(context);
     final (icon, label, color) = lookOf(l, ref, tab);
     return GestureDetector(
@@ -1024,6 +1049,8 @@ class _TabChip extends ConsumerWidget {
       onTertiaryTapUp: (_) => onClose(),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
         // у открытой вкладки по бокам место под вогнутые дуги
         child: AnimatedPadding(
           duration: Motion.medium,
@@ -1054,20 +1081,20 @@ class _TabChip extends ConsumerWidget {
           margin: EdgeInsets.only(bottom: active ? 0 : 4),
           padding: const EdgeInsets.only(left: 12, right: 6),
           decoration: BoxDecoration(
-            color: active ? _block : Colors.transparent,
+            color: active ? _block : (_hover ? Tokens.container : Tokens.container.withValues(alpha: 0)),
             borderRadius: active ? const BorderRadius.vertical(top: Radius.circular(14)) : BorderRadius.circular(12),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(symbolIcon(icon, filled: color != null), size: 18, color: color ?? (active ? Tokens.onSurface : Tokens.onSurfaceVariant)),
+              Icon(symbolIcon(icon, filled: color != null), size: 18, color: color ?? (active || _hover ? Tokens.onSurface : Tokens.onSurfaceVariant)),
               const SizedBox(width: 8),
               Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.labelLarge!.copyWith(color: active ? Tokens.onSurface : Tokens.onSurfaceVariant, fontWeight: active ? FontWeight.w700 : FontWeight.w500),
+                child: AnimatedDefaultTextStyle(
+                  duration: Motion.short,
+                  curve: Motion.emphasized,
+                  style: text.labelLarge!.copyWith(color: active || _hover ? Tokens.onSurface : Tokens.onSurfaceVariant, fontWeight: active ? FontWeight.w700 : FontWeight.w500),
+                  child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ),
               const SizedBox(width: 4),

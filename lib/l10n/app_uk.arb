@@ -942,5 +942,10 @@
   "storageWeak": "Браузер не дав надійного сховища: нотатки можуть зникнути, коли вкладку закриють.",
   "vaultBrowserHint": "Нотатки лежать у сховищі цього браузера, на диску їх не видно.",
   "vaultBuildingFiles": "Звіряю файли: {done} з {total}",
-  "vaultBuildingExtras": "Доробляю покажчик: {done} з {total}"
+  "vaultBuildingExtras": "Доробляю покажчик: {done} з {total}",
+  "wsEmptyTitle": "Тут будуть твої нотатки",
+  "wsEmptyBody": "Закинь у рядок знизу думку, посилання чи файл, і Stowa сама розкладе їх по теках.",
+  "wsEmptyWrite": "Записати першу нотатку",
+  "wsEmptyFolder": "Створити теку",
+  "wsEmptyRestore": "Повернути з копії"
 }

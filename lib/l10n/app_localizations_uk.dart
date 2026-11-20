@@ -4430,4 +4430,20 @@ class LUk extends L {
   String vaultBuildingExtras(int done, int total) {
     return 'Доробляю покажчик: $done з $total';
   }
+
+  @override
+  String get wsEmptyTitle => 'Тут будуть твої нотатки';
+
+  @override
+  String get wsEmptyBody =>
+      'Закинь у рядок знизу думку, посилання чи файл, і Stowa сама розкладе їх по теках.';
+
+  @override
+  String get wsEmptyWrite => 'Записати першу нотатку';
+
+  @override
+  String get wsEmptyFolder => 'Створити теку';
+
+  @override
+  String get wsEmptyRestore => 'Повернути з копії';
 }

@@ -44,4 +44,34 @@ void main() {
     expect(shown(tester, 'item:n'), 1);
     expect(shown(tester, 'settings'), 0, reason: 'настройки лежат в стопке выше заметки и закрывали бы её');
   });
+
+  // хозяин 20.11 про сайт: «переходы экранов». Вкладка не подменяется: входящая мягко
+  // поднимается на место и проявляется
+  testWidgets('смена вкладки: входящая поднимается на место, а не появляется сразу', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Схема курсовой', body: const Value('Схема курсовой'), createdAt: world.now, updatedAt: world.now),
+    );
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final shell = WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!;
+    shell.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    final settled = tester.getRect(find.byKey(const ValueKey('tab-item:n'))).top;
+    shell.open(const WsTab.settings());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('chip-item:n')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final layer = find.descendant(of: find.byKey(const ValueKey('tab-item:n')), matching: find.byType(AnimatedOpacity)).first;
+    final midway = tester.getRect(layer).top;
+    expect(midway, greaterThan(settled), reason: 'ещё ниже своего места');
+    expect(midway - settled, lessThanOrEqualTo(16), reason: 'сдвиг едва заметный');
+    await tester.pumpAndSettle();
+    expect(tester.getRect(layer).top, settled);
+  });
 }

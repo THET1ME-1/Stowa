@@ -4365,4 +4365,20 @@ class LEn extends L {
   String vaultBuildingExtras(int done, int total) {
     return 'Finishing the index: $done of $total';
   }
+
+  @override
+  String get wsEmptyTitle => 'Your notes will live here';
+
+  @override
+  String get wsEmptyBody =>
+      'Drop a thought, link or file into the line below, and Stowa sorts it into folders.';
+
+  @override
+  String get wsEmptyWrite => 'Write the first note';
+
+  @override
+  String get wsEmptyFolder => 'Make a folder';
+
+  @override
+  String get wsEmptyRestore => 'Restore a backup';
 }

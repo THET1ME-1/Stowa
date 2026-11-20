@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import '../motion/desk_axis.dart';
 import '../motion/stowa_slide.dart';
 import '../motion/unfold/unfold_route.dart';
 import 'palette.dart';
@@ -88,14 +90,25 @@ ThemeData buildAppTheme([StowaPalette? palette]) {
     scaffoldBackgroundColor: scheme.surface,
     shadowColor: Colors.transparent,
     // экран вырастает из нажатой карточки или кнопки и складывается обратно в неё,
-    // как в Togetherly; открытый не касанием въезжает прежним сдвигом
+    // как в Togetherly; открытый не касанием въезжает прежним сдвигом. На компьютере
+    // (сайт) — общая ось: короткий сдвиг сбоку со сквозным затуханием
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: <TargetPlatform, PageTransitionsBuilder>{
         TargetPlatform.android: UnfoldPageTransitionsBuilder(fallback: StowaSlideTransitionsBuilder(), fill: _screenFill),
         TargetPlatform.iOS: UnfoldPageTransitionsBuilder(fallback: StowaSlideTransitionsBuilder(), fill: _screenFill),
+        TargetPlatform.linux: DeskAxisTransitionsBuilder(),
+        TargetPlatform.windows: DeskAxisTransitionsBuilder(),
+        TargetPlatform.macOS: DeskAxisTransitionsBuilder(),
+        TargetPlatform.fuchsia: DeskAxisTransitionsBuilder(),
       },
     ),
-    splashFactory: InkSparkle.splashFactory,
+    // на сайте — мягкая волна: искры рисуются шейдером, и первое нажатие ждёт его сборки
+    splashFactory: kIsWeb ? InkRipple.splashFactory : InkSparkle.splashFactory,
+    // наведение мыши и фокус клавиатуры заметны, как подсветка строк в макете сайта,
+    // а не прозрачные 4 % по умолчанию
+    hoverColor: scheme.onSurface.withValues(alpha: 0.07),
+    focusColor: scheme.onSurface.withValues(alpha: 0.12),
+    highlightColor: scheme.onSurface.withValues(alpha: 0.06),
     appBarTheme: AppBarTheme(
       elevation: 0,
       scrolledUnderElevation: 0,

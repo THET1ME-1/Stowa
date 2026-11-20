@@ -942,5 +942,10 @@
   "storageWeak": "Przeglądarka nie dała trwałego magazynu: notatki mogą zniknąć po zamknięciu karty.",
   "vaultBrowserHint": "Notatki są w pamięci tej przeglądarki i nie widać ich jako plików na dysku.",
   "vaultBuildingFiles": "Sprawdzam pliki: {done} z {total}",
-  "vaultBuildingExtras": "Kończę indeks: {done} z {total}"
+  "vaultBuildingExtras": "Kończę indeks: {done} z {total}",
+  "wsEmptyTitle": "Tu będą twoje notatki",
+  "wsEmptyBody": "Wrzuć do paska na dole myśl, link albo plik, a Stowa sama rozłoży je po folderach.",
+  "wsEmptyWrite": "Zapisz pierwszą notatkę",
+  "wsEmptyFolder": "Załóż folder",
+  "wsEmptyRestore": "Przywróć z kopii"
 }

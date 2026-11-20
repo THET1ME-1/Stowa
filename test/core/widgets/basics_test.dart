@@ -15,8 +15,8 @@ void main() {
     expect(find.byIcon(Icons.alarm), findsOneWidget);
   });
 
-  double scaleOf(WidgetTester tester) =>
-      tester.widget<ScaleTransition>(find.descendant(of: find.byType(Pressable), matching: find.byType(ScaleTransition))).scale.value;
+  // насколько сжат: видимая ширина содержимого против его настоящих 100 точек
+  double scaleOf(WidgetTester tester) => tester.getRect(find.descendant(of: find.byType(Pressable), matching: find.byType(SizedBox)).last).width / 100;
 
   testWidgets('касание даёт толчок: сжался и вернулся, обработчик позван', (tester) async {
     var taps = 0;

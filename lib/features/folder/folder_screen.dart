@@ -15,6 +15,7 @@ import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/sheet_options.dart';
+import '../../core/widgets/sliver_by_width.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -549,9 +550,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                       ),
                     )
                   else if (board)
-                    SliverToBoxAdapter(
-                      child: _Board(cards: shown, filesRoot: filesRoot, selected: _selected, onTap: _tap, onAct: _act, wide: deskHeader != null),
-                    )
+                    _Board(cards: shown, filesRoot: filesRoot, selected: _selected, onTap: _tap, onAct: _act, wide: deskHeader != null)
                   // монитор: лента — та же плитка, что на главной
                   else if (deskHeader != null)
                     NoteMasonry(cards: shown, side: 24, onOpen: (id) => _tap(shown.firstWhere((card) => card.id == id)))
@@ -1012,37 +1011,50 @@ class _Board extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    // место карточки в папке: от него зависят задержка появления и тёмная метка
+    final order = {for (final (index, card) in cards.indexed) card.id: index};
+    return SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: wide ? 24 : Space.screen),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final count = wide ? ((constraints.maxWidth + 8) / (220 + 8)).floor().clamp(2, 6) : 2;
-          final width = (constraints.maxWidth - 8 * (count - 1)) / count;
+      // раскладка по колонкам — только при смене ширины, а не на каждый кадр прокрутки
+      sliver: SliverByWidth(
+        builder: (context, extent) {
+          final count = wide ? ((extent + 8) / (220 + 8)).floor().clamp(2, 6) : 2;
+          final width = (extent - 8 * (count - 1)) / count;
           final columns = count == 2 ? [boardColumns(cards).left, boardColumns(cards).right] : boardColumnsOf(cards, count);
-          Widget column(List<ItemCard> side) => Expanded(
-            child: Column(
-              children: [
-                for (final card in side)
-                  if (cards.indexOf(card) case final index)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: RiseIn(
-                        key: ValueKey(card.id),
-                        delay: index.clamp(0, 8),
-                        child: _Selectable(
-                          selecting: selected.isNotEmpty,
-                          selected: selected.contains(card.id),
-                          child: BoardTile(card: card, filesRoot: filesRoot, width: width, darkPill: index % 3 == 1, onTap: () => onTap(card), onLongPress: () => onAct(card)),
-                        ),
-                      ),
-                    ),
+          Widget tile(ItemCard card) {
+            final index = order[card.id]!;
+            return Padding(
+              key: ValueKey(card.id),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: RiseIn(
+                delay: index.clamp(0, 8),
+                child: _Selectable(
+                  selecting: selected.isNotEmpty,
+                  selected: selected.contains(card.id),
+                  child: BoardTile(card: card, filesRoot: filesRoot, width: width, darkPill: index % 3 == 1, onTap: () => onTap(card), onLongPress: () => onAct(card)),
+                ),
+              ),
+            );
+          }
+
+          // каждая колонка — свой ленивый список: строится только то, что на экране
+          return SliverCrossAxisGroup(
+            slivers: [
+              for (final (index, side) in columns.indexed) ...[
+                if (index > 0) const SliverConstrainedCrossAxis(maxExtent: 8, sliver: SliverToBoxAdapter()),
+                SliverCrossAxisExpanded(
+                  flex: 1,
+                  sliver: SliverList.builder(
+                    itemCount: side.length,
+                    findChildIndexCallback: (key) {
+                      final id = (key as ValueKey<String>).value;
+                      final at = side.indexWhere((card) => card.id == id);
+                      return at < 0 ? null : at;
+                    },
+                    itemBuilder: (context, at) => tile(side[at]),
+                  ),
+                ),
               ],
-            ),
-          );
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final (index, side) in columns.indexed) ...[if (index > 0) const SizedBox(width: 8), column(side)],
             ],
           );
         },

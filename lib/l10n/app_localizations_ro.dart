@@ -4403,4 +4403,20 @@ class LRo extends L {
   String vaultBuildingExtras(int done, int total) {
     return 'Termin indexul: $done din $total';
   }
+
+  @override
+  String get wsEmptyTitle => 'Aici vor sta notițele tale';
+
+  @override
+  String get wsEmptyBody =>
+      'Aruncă în bara de jos un gând, un link sau un fișier, iar Stowa le pune singură în dosare.';
+
+  @override
+  String get wsEmptyWrite => 'Scrie prima notiță';
+
+  @override
+  String get wsEmptyFolder => 'Fă un dosar';
+
+  @override
+  String get wsEmptyRestore => 'Restaurează o copie';
 }

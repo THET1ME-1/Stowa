@@ -942,5 +942,10 @@
   "storageWeak": "El navegador no dio un almacenamiento fiable: tus notas pueden perderse al cerrar la pestaña.",
   "vaultBrowserHint": "Tus notas están en el almacenamiento de este navegador y no aparecen como archivos en el disco.",
   "vaultBuildingFiles": "Revisando archivos: {done} de {total}",
-  "vaultBuildingExtras": "Terminando el índice: {done} de {total}"
+  "vaultBuildingExtras": "Terminando el índice: {done} de {total}",
+  "wsEmptyTitle": "Aquí vivirán tus notas",
+  "wsEmptyBody": "Suelta en la barra de abajo una idea, un enlace o un archivo, y Stowa lo ordena en carpetas.",
+  "wsEmptyWrite": "Escribir la primera nota",
+  "wsEmptyFolder": "Crear una carpeta",
+  "wsEmptyRestore": "Restaurar una copia"
 }

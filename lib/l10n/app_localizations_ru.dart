@@ -4442,4 +4442,20 @@ class LRu extends L {
   String vaultBuildingExtras(int done, int total) {
     return 'Доделываю указатель: $done из $total';
   }
+
+  @override
+  String get wsEmptyTitle => 'Здесь будут твои заметки';
+
+  @override
+  String get wsEmptyBody =>
+      'Закинь в строку снизу мысль, ссылку или файл, и Stowa сама разложит их по папкам.';
+
+  @override
+  String get wsEmptyWrite => 'Записать первую заметку';
+
+  @override
+  String get wsEmptyFolder => 'Завести папку';
+
+  @override
+  String get wsEmptyRestore => 'Вернуть из копии';
 }

@@ -141,6 +141,7 @@ class _VideoCard extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       pressedScale: 0.98,
+      radius: BorderRadius.circular(Radii.card),
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
@@ -233,6 +234,7 @@ class _PhotoCard extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       pressedScale: 0.98,
+      radius: BorderRadius.circular(Radii.card),
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
@@ -282,6 +284,7 @@ class _NoteCard extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       pressedScale: 0.98,
+      radius: BorderRadius.circular(Radii.tile),
       child: Container(
         padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 16),
         decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
@@ -321,6 +324,7 @@ class _RowCard extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       pressedScale: 0.98,
+      radius: BorderRadius.circular(Radii.tile),
       child: Container(
         padding: const EdgeInsets.all(Space.tile),
         decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
@@ -384,6 +388,7 @@ class _VoiceCard extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       pressedScale: 0.98,
+      radius: BorderRadius.circular(Radii.tile),
       child: Container(
         padding: const EdgeInsets.all(Space.tile),
         decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
@@ -425,6 +430,7 @@ class BoardTile extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       pressedScale: 0.97,
+      radius: BorderRadius.circular(Radii.photo),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(Radii.photo),
         child: thumb == null

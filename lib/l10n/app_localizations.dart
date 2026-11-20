@@ -7462,6 +7462,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Finishing the index: {done} of {total}'**
   String vaultBuildingExtras(int done, int total);
+
+  /// Пустая главная на сайте: заголовок
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes will live here'**
+  String get wsEmptyTitle;
+
+  /// Пустая главная на сайте: одно предложение под заголовком
+  ///
+  /// In en, this message translates to:
+  /// **'Drop a thought, link or file into the line below, and Stowa sorts it into folders.'**
+  String get wsEmptyBody;
+
+  /// Пустая главная: плитка, ставит курсор в строку
+  ///
+  /// In en, this message translates to:
+  /// **'Write the first note'**
+  String get wsEmptyWrite;
+
+  /// Пустая главная: плитка, создаёт папку
+  ///
+  /// In en, this message translates to:
+  /// **'Make a folder'**
+  String get wsEmptyFolder;
+
+  /// Пустая главная: плитка, открывает настройки хранилища с восстановлением копии
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup'**
+  String get wsEmptyRestore;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

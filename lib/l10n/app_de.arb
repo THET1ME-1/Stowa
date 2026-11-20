@@ -942,5 +942,10 @@
   "storageWeak": "Der Browser hat keinen verlässlichen Speicher bereitgestellt: Deine Notizen können beim Schließen des Tabs verschwinden.",
   "vaultBrowserHint": "Deine Notizen liegen im Speicher dieses Browsers und sind nicht als Dateien auf der Festplatte sichtbar.",
   "vaultBuildingFiles": "Prüfe Dateien: {done} von {total}",
-  "vaultBuildingExtras": "Index wird fertig: {done} von {total}"
+  "vaultBuildingExtras": "Index wird fertig: {done} von {total}",
+  "wsEmptyTitle": "Hier landen deine Notizen",
+  "wsEmptyBody": "Wirf einen Gedanken, Link oder eine Datei in die Zeile unten, Stowa sortiert sie selbst in Ordner.",
+  "wsEmptyWrite": "Erste Notiz schreiben",
+  "wsEmptyFolder": "Ordner anlegen",
+  "wsEmptyRestore": "Aus Sicherung holen"
 }

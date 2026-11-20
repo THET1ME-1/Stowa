@@ -4376,4 +4376,20 @@ class LEs extends L {
   String vaultBuildingExtras(int done, int total) {
     return 'Terminando el índice: $done de $total';
   }
+
+  @override
+  String get wsEmptyTitle => 'Aquí vivirán tus notas';
+
+  @override
+  String get wsEmptyBody =>
+      'Suelta en la barra de abajo una idea, un enlace o un archivo, y Stowa lo ordena en carpetas.';
+
+  @override
+  String get wsEmptyWrite => 'Escribir la primera nota';
+
+  @override
+  String get wsEmptyFolder => 'Crear una carpeta';
+
+  @override
+  String get wsEmptyRestore => 'Restaurar una copia';
 }

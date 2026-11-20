@@ -5233,5 +5233,25 @@
         "type": "int"
       }
     }
+  },
+  "wsEmptyTitle": "Your notes will live here",
+  "@wsEmptyTitle": {
+    "description": "Пустая главная на сайте: заголовок"
+  },
+  "wsEmptyBody": "Drop a thought, link or file into the line below, and Stowa sorts it into folders.",
+  "@wsEmptyBody": {
+    "description": "Пустая главная на сайте: одно предложение под заголовком"
+  },
+  "wsEmptyWrite": "Write the first note",
+  "@wsEmptyWrite": {
+    "description": "Пустая главная: плитка, ставит курсор в строку"
+  },
+  "wsEmptyFolder": "Make a folder",
+  "@wsEmptyFolder": {
+    "description": "Пустая главная: плитка, создаёт папку"
+  },
+  "wsEmptyRestore": "Restore a backup",
+  "@wsEmptyRestore": {
+    "description": "Пустая главная: плитка, открывает настройки хранилища с восстановлением копии"
   }
 }
