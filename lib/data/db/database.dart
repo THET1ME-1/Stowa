@@ -261,8 +261,19 @@ class AppDatabase extends _$AppDatabase {
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
+      await _createLookupIndexes();
     },
   );
+
+  // частые выборки: первое вложение заметки (в каждой карточке ленты), заметки папки и заметки
+  // тега (счётчики). Без индекса каждая перебирала всю таблицу на каждую строку: на хранилище
+  // в две тысячи заметок запрос ленты обходил миллионы строк. Ставятся при каждом открытии
+  // (`IF NOT EXISTS`), чтобы появиться и в уже стоящих базах без смены версии схемы
+  Future<void> _createLookupIndexes() async {
+    await customStatement('CREATE INDEX IF NOT EXISTS attachments_item ON attachments (item_id, position)');
+    await customStatement('CREATE INDEX IF NOT EXISTS items_folder ON items (folder_id)');
+    await customStatement('CREATE INDEX IF NOT EXISTS item_tags_tag ON item_tags (tag_id)');
+  }
 
   // прежняя правка уносила первую строку заметки в заголовок и сохраняла текст без неё.
   // Заметки без файлов получают её обратно; у ссылок и файлов заголовок свой, их не трогаем

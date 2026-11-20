@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/user_first.dart';
 import '../../data/db/database.dart';
 import '../../data/repositories/items_repository.dart' show placeReminderOf;
 import '../../domain/folder_tree.dart';
@@ -79,6 +80,7 @@ class VaultWriter {
     _ensureAttachmentChoice();
     sawExternalEdit = false;
     var done = 0;
+    var postponed = false;
     try {
       do {
         _again = false;
@@ -87,6 +89,12 @@ class VaultWriter {
         // сперва вещи, потом их факты, служебное последним
         tasks.sort((a, b) => _order(a.target).compareTo(_order(b.target)));
         for (final task in tasks) {
+          // в браузере база одна на всё: заметки пишутся в файлы сразу, а факты, история и
+          // служебное ждут, пока человек набирает или листает. Задачи остаются в очереди
+          if (userFirst.busy && _order(task.target) > 0) {
+            postponed = true;
+            break;
+          }
           if (!await _claim(task)) continue;
           try {
             await _run(task.target);
@@ -105,7 +113,13 @@ class VaultWriter {
           done++;
         }
       } while (_again);
-      await _retryClaimed();
+      if (postponed) {
+        // человек занят: вернёмся к отложенному, когда он отпустит клавиши
+        _retry?.cancel();
+        _retry = Timer(userFirst.hold, () => drain().ignore());
+      } else {
+        await _retryClaimed();
+      }
     } finally {
       _running = false;
     }

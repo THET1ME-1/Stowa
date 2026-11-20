@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show TableUpdateQuery, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:stowa/data/db/database.dart';
@@ -102,6 +102,31 @@ void main() {
   Future<String> factsText(String id) async => (await (db.select(db.items)..where((t) => t.id.equals(id))).getSingle()).factsText;
 
   group('конвейер', () {
+    test('заметка без фактов: разбор не будит тех, кто следит за заметками', () async {
+      // после первой загрузки хранилища разбор идёт по тысячам заметок, и у большинства фактов нет:
+      // пустая запись в заметку на каждую заставляла все списки на экране перечитывать базу
+      await note('a', 'просто мысль без чисел и ссылок');
+      await note('b', 'ещё одна');
+      var woken = 0;
+      final watching = db.tableUpdates(TableUpdateQuery.onTable(db.items)).listen((_) => woken++);
+      addTearDown(watching.cancel);
+      await pipeline(defaultExtractors()).sweep();
+      await pumpEventQueue();
+      expect(await factsOf('a'), isEmpty);
+      expect(woken, 0);
+    });
+
+    test('у заметки появились факты — те, кто следит за заметками, узнают: текст фактов ищется', () async {
+      await note('a', 'текст');
+      var woken = 0;
+      final watching = db.tableUpdates(TableUpdateQuery.onTable(db.items)).listen((_) => woken++);
+      addTearDown(watching.cancel);
+      await pipeline([CountingExtractor(), CountingExtractor(name: 'second')]).runItem('a');
+      await pumpEventQueue();
+      expect(await factsText('a'), isNotEmpty);
+      expect(woken, greaterThan(0));
+    });
+
     test('прогоняет вещь один раз, пока она не изменилась', () async {
       await note('a', 'текст');
       final counting = CountingExtractor();

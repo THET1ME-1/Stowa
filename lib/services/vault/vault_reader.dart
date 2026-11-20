@@ -8,6 +8,7 @@ import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../core/user_first.dart';
 import '../../data/db/database.dart';
 import '../../domain/excalidraw.dart' show isExcalidrawText;
 import '../../domain/folder_tree.dart';
@@ -473,7 +474,9 @@ class VaultReader {
       final name = p.posix.basename(relative);
       if (names.contains(name.toLowerCase()) || noteDirs.contains(p.posix.dirname(relative).toLowerCase())) continue;
       // на файл ссылается текст заметки (`![[фото.jpg]]`, `![](Вложения/фото.jpg)`), которую читатель не нашёл
-      // рядом, карточка холста или картинка рисунка Excalidraw
+      // рядом, карточка холста или картинка рисунка Excalidraw. Запрос просматривает текст всех
+      // заметок, и так на каждый файл: в браузере он уступает человеку
+      await userFirst.calm();
       final mentioned = await _db
           .customSelect('SELECT 1 FROM items WHERE instr(body, ?1) > 0 OR instr(coalesce(document, \'\'), ?1) > 0 LIMIT 1', variables: [Variable.withString(name)])
           .getSingleOrNull();

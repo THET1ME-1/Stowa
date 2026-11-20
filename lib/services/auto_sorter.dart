@@ -28,6 +28,13 @@ class AutoSorter {
   /// Что человек вернул «Отменить» в этом запуске: второй раз не тащим.
   final _undone = <String>{};
 
+  // разрезанные на слова соседи каждой базы: теги ставятся после каждого сохранения, а резать
+  // заново нужно только новое. Память своя, не угадывателя папок: у того в тексте ещё и теги
+  static final _tagMemories = Expando<FolderMemory>();
+
+  /// Память тегов соседей этой базы: какие заметки уже разрезаны на слова.
+  FolderMemory get tagMemory => _tagMemories[_db] ??= FolderMemory();
+
   /// Разложить вещи без папки, которые человек не оставлял там сам. Вернёт
   /// id переложенных: по ним «Отменить» вернёт всё как было.
   Future<List<String>> sortInbox({String? onlyId, Iterable<String> skip = const []}) async {
@@ -87,7 +94,7 @@ class AutoSorter {
     // иначе слово, общее для двух вещей с тегом, выглядело бы общим вообще
     final docs = await _db
         .customSelect(
-          "SELECT coalesce(tags.name, '') AS tag, items.kind, items.url, $_itemText AS text, $_firstFile AS file_path "
+          "SELECT items.id AS id, coalesce(tags.name, '') AS tag, items.kind, items.url, $_itemText AS text, $_firstFile AS file_path "
           "FROM items LEFT JOIN item_tags ON item_tags.item_id = items.id AND item_tags.source != 'similar' "
           'LEFT JOIN tags ON tags.id = item_tags.tag_id '
           'WHERE items.deleted_at IS NULL AND items.id NOT IN (${List.filled(ids.length, '?').join(', ')})',
@@ -95,14 +102,16 @@ class AutoSorter {
         )
         .get();
     if (docs.every((row) => row.read<String>('tag').isEmpty)) return {for (final id in ids) id: const <String>[]};
-    final index = FolderIndex([
+    // с передышками и памятью: на хранилище в тысячи заметок постройка разом держала поток секунды
+    final index = await FolderIndex.build([
       for (final row in docs)
         FolderDoc(
+          id: row.read<String>('id'),
           folderId: row.read<String>('tag'),
           text: row.read<String>('text'),
           signals: itemSignals(kind: ItemKind.values.byName(row.read<String>('kind')), url: row.readNullable<String>('url'), fileName: row.readNullable<String>('file_path')),
         ),
-    ]);
+    ], memory: tagMemory);
     final added = <String, List<String>>{};
     for (final id in ids) {
       final target = await _db

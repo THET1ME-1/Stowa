@@ -44,6 +44,21 @@ void main() {
   Future<List<SearchResult>> find(String text, {List<String> tags = const [], (double, double)? here}) async =>
       (await items.search(query: parseSearch(text, now), tags: tags, now: now, here: here)).results;
 
+  test('прогрев: последние заметки режутся на слова заранее, первый поиск их уже не режет', () async {
+    final before = searchTextsCut;
+    await items.warmSearch(now: now);
+    final warmed = searchTextsCut;
+    expect(warmed, greaterThan(before), reason: 'прогрев разрезал тексты');
+    expect((await find('домофон')).single.card.title, contains('домофона'));
+    expect(searchTextsCut, warmed, reason: 'поиск взял разрезанное из памяти');
+  });
+
+  test('прогрев бросается, как только человек занялся делом', () async {
+    final before = searchTextsCut;
+    await items.warmSearch(now: now, stale: () => true);
+    expect(searchTextsCut, before);
+  });
+
   test('поиск строки порциями находит то же, что целиком; устаревший — бросается', () async {
     final capture = CaptureService(db, tags: TagsRepository(db), filesRoot: home, clock: () => now);
     for (var index = 0; index < 200; index++) {

@@ -12,6 +12,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/user_first.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
@@ -217,6 +218,22 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _line.addListener(_onLine);
     _focus.addListener(_onFocus);
     unawaited(_cleanVoiceDrafts().catchError((_) {}));
+    // в браузере первый поиск иначе сам режет на слова сотни последних заметок: это больше секунды
+    if (userFirst.enabled && !widget.writeOnly && !_searchWarmed) {
+      _searchWarmed = true;
+      _warmTimer = Timer(const Duration(seconds: 3), () => _warmSearch().catchError((_) {}));
+    }
+  }
+
+  // прогрев поиска — один на приложение, сколько бы строк ни открывали
+  static bool _searchWarmed = false;
+  Timer? _warmTimer;
+
+  Future<void> _warmSearch() async {
+    await userFirst.calm();
+    if (!mounted) return;
+    // человек начал искать сам — поиск прогреет нужное, прогрев уходит с дороги
+    await ref.read(itemsRepositoryProvider).warmSearch(now: _now, stale: () => !mounted || userFirst.busy);
   }
 
   @override
@@ -236,6 +253,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   @override
   void dispose() {
     _searchTimer?.cancel();
+    _warmTimer?.cancel();
     _toastTimer?.cancel();
     _morph.dispose();
     // строку убрали посреди записи (полку закрыли): службе микрофон больше не нужен
@@ -334,7 +352,10 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
       // «рядом» спрашивает, где телефон, только когда его попросили
       final here = search.near ? await ref.read(searchHereProvider)() : null;
       if (!mounted || run != _searchRun) return;
-      final found = await ref.read(itemsRepositoryProvider).search(query: search, tags: _line.tags, folderId: _line.folder?.id, now: _now, here: here, stale: () => !mounted || run != _searchRun);
+      // в браузере фон ждёт, пока поиск не ответит: база у них одна
+      final found = await userFirst.during(
+        ref.read(itemsRepositoryProvider).search(query: search, tags: _line.tags, folderId: _line.folder?.id, now: _now, here: here, stale: () => !mounted || run != _searchRun),
+      );
       if (mounted && run == _searchRun) setState(() => _found = found);
     });
   }

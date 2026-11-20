@@ -30,6 +30,21 @@ void main() {
     test('украинские буквы остаются собой', () {
       expect(foldText('їжак і євро ґанок'), 'їжак і євро ґанок');
     });
+
+    test('смешанный текст: заглавные, «ё», знаки над буквами, цифры, значки и эмодзи', () {
+      const text = 'Ёлка ЁЖИК Häuser ZDJĘCIE țărilor Niños ŁÓDŹ 12 кофе ☕ 😀 їжак Straße — «Ёмкость» Ýmir';
+      expect(foldText(text), 'елка ежик hauser zdjecie tarilor ninos lodz 12 кофе ☕ 😀 їжак straße — «емкость» ymir');
+      expect(foldText(text).length, text.length);
+    });
+
+    test('пустая строка и строка без единой особой буквы', () {
+      expect(foldText(''), '');
+      expect(foldText('plain ascii text 123'), 'plain ascii text 123');
+      expect(foldText('обычный русский текст'), 'обычный русский текст');
+      expect(foldText('ё'), 'е');
+      expect(foldText('аё'), 'ае');
+      expect(foldText('ёа'), 'еа');
+    });
   });
 
   group('формы слов', () {

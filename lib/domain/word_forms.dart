@@ -23,14 +23,32 @@ const _latinFold = {
   'ź': 'z', 'ż': 'z', 'ý': 'y',
 };
 
+// те же замены по коду буквы и «ё» → «е»
+final _foldUnits = {for (final MapEntry(:key, :value) in _latinFold.entries) key.codeUnitAt(0): value.codeUnitAt(0), 0x451: 0x435};
+
 /// Нижний регистр, «ё» как «е», латиница без знаков над буквами. Украинские
 /// і, ї, є, ґ остаются: это отдельные буквы, а не «и» со значком.
+///
+/// Сворачивается текст каждой заметки, которую поиск видит впервые, поэтому на счету каждая
+/// буква: идём по кодам и собираем новую строку, только когда есть что менять. Прежний
+/// разбор по букве со своей строкой на каждую стоил первому поиску больше секунды.
 String foldText(String text) {
   final lower = text.toLowerCase();
-  final out = StringBuffer();
-  for (final char in lower.split('')) {
-    out.write(char == 'ё' ? 'е' : (_latinFold[char] ?? char));
+  StringBuffer? out;
+  var kept = 0;
+  for (var at = 0; at < lower.length; at++) {
+    final unit = lower.codeUnitAt(at);
+    // латиница без знаков, цифры, пробелы и кириллица кроме «ё» остаются как есть
+    if (unit < 0xC0 || (unit > 0x24F && unit != 0x451)) continue;
+    final folded = _foldUnits[unit];
+    if (folded == null) continue;
+    (out ??= StringBuffer())
+      ..write(lower.substring(kept, at))
+      ..writeCharCode(folded);
+    kept = at + 1;
   }
+  if (out == null) return lower;
+  out.write(lower.substring(kept));
   return out.toString();
 }
 

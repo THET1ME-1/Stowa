@@ -154,6 +154,23 @@ void main() {
     expect(added, {soup: ['рецепт'], bread: <String>[]});
   });
 
+  test('теги соседей второй раз: соседи заново на слова не режутся', () async {
+    await add('Борщ с говядиной, рецепт бабушки', tags: [('рецепт', TagSource.user)]);
+    await add('Рецепт борща на скорую руку', tags: [('рецепт', TagSource.user)]);
+    for (final note in ['Купить хлеб', 'Позвонить в банк', 'Забрать посылку', 'Счёт за свет', 'Записаться к врачу', 'Идея для подарка']) {
+      await add(note);
+    }
+    final soup = await add('Постный борщ без мяса');
+    expect(await sorter.tagItem(soup), ['рецепт']);
+    final parsed = sorter.tagMemory.parsed;
+    expect(parsed, 8);
+    // другой экземпляр над той же базой, как после следующего сохранения
+    final stew = await add('Зелёный борщ со щавелем');
+    expect(await AutoSorter(db, clock: () => now).tagItem(stew), ['рецепт']);
+    // к соседям прибавился только прошлый суп
+    expect(sorter.tagMemory.parsed, parsed + 1);
+  });
+
   test('тег одной вещи ещё не повод ставить его другим', () async {
     await add('Борщ с говядиной', tags: [('рецепт', TagSource.user)]);
     await add('Купить хлеб');

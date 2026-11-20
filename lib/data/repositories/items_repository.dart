@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:drift/drift.dart';
 
@@ -22,6 +23,7 @@ import '../../domain/word_forms.dart';
 import '../../services/notice_service.dart' show Notice, noticeText;
 import '../../services/reminder_service.dart' show Reminder, hiddenReminderPayload, reminderText;
 import '../db/database.dart';
+import '../recompute.dart';
 
 /// Вещь целиком: запись, теги с источником и вложения по порядку.
 class ItemFull {
@@ -257,6 +259,18 @@ PlaceReminder? placeReminderOf(Item item) => item.remindPlace == null
         day: item.remindPlaceDay,
       );
 
+/// Угадыватель папки одной базы между вызовами: что уже разрезано на слова и что собрано.
+class _FolderGuess {
+  final memory = FolderMemory();
+
+  /// Из чего собран [index]: заметки папок с отметками правки, имена папок, вынутое человеком.
+  String? signature;
+  FolderIndex? index;
+
+  /// Конец идущей постройки: следующая ждёт его.
+  Future<void> turn = Future<void>.value();
+}
+
 class ItemsRepository {
   ItemsRepository(this._db, {DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
 
@@ -431,12 +445,23 @@ class ItemsRepository {
     });
   }
 
-  static const _folderDocsSql = '''
-SELECT items.folder_id AS folder_id, items.kind AS kind, items.url AS url,
-  items.title || ' ' || items.body || ' ' || coalesce(items.ai_description, '') || ' ' || coalesce(items.transcript, '') || ' ' ||
-  coalesce(items.preview_text, '') || ' ' ||
-  coalesce((SELECT group_concat(tags.name, ' ') FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
-    WHERE item_tags.item_id = items.id), '') AS text,
+  static const _itemTags = '''
+coalesce((SELECT group_concat(tags.name, ' ') FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
+    WHERE item_tags.item_id = items.id), '')''';
+
+  // текст заметки глазами угадывателя: название, текст, описание ИИ, расшифровка, превью страницы и теги
+  static const _folderText = '''
+items.title || ' ' || items.body || ' ' || coalesce(items.ai_description, '') || ' ' || coalesce(items.transcript, '') || ' ' ||
+  coalesce(items.preview_text, '') || ' ' || $_itemTags''';
+
+  // всё про заметки папок, кроме самого текста: менялся ли он, видно по времени правки,
+  // длине и тегам. Мегабайты текста на каждую запись в базу из неё не тянутся
+  static const _folderNotesSql = '''
+SELECT items.id AS id, items.folder_id AS folder_id, items.kind AS kind, items.url AS url,
+  items.updated_at AS updated_at,
+  length(items.title) + length(items.body) + length(coalesce(items.ai_description, '')) +
+    length(coalesce(items.transcript, '')) + length(coalesce(items.preview_text, '')) AS size,
+  $_itemTags AS tags,
   (SELECT attachments.path FROM attachments WHERE attachments.item_id = items.id ORDER BY attachments.position LIMIT 1) AS file_path,
   -- кто разложил и подтвердил ли человек: догадки угадывателя образцом идут не сразу
   items.sorted_by AS sorted_by, items.opened_at AS opened_at, items.created_at AS created_at
@@ -455,12 +480,6 @@ WHERE items.deleted_at IS NULL''';
     return now.difference(created) >= _confirmAfter;
   }
 
-  FolderDoc _folderDoc(QueryRow row) => FolderDoc(
-    folderId: row.read<String>('folder_id'),
-    text: row.read<String>('text'),
-    signals: itemSignals(kind: ItemKind.values.byName(row.read<String>('kind')), url: row.readNullable<String>('url'), fileName: row.readNullable<String>('file_path')),
-  );
-
   /// Имена живых папок: по ним угадыватель видит тему ещё пустой папки.
   Future<List<FolderLabel>> folderLabels() async => [
     for (final folder in await (_db.select(_db.folders)..where((t) => t.deletedAt.isNull())).get()) FolderLabel(folder.id, folder.name),
@@ -477,34 +496,116 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     for (final row in await _db.customSelect(_rejectedSql).get()) FolderDoc(folderId: row.read<String>('folder_id'), text: row.read<String>('text')),
   ];
 
+  // угадыватель каждой базы: репозиторий создают и на один вызов (разбор после сохранения,
+  // сохранение из «Поделиться»), а память и последняя постройка у них общие
+  static final _folderGuesses = Expando<_FolderGuess>();
+
+  _FolderGuess get _folderGuess => _folderGuesses[_db] ??= _FolderGuess();
+
+  /// Память угадывателя этой базы: какие заметки уже разрезаны на слова.
+  FolderMemory get folderMemory => _folderGuess.memory;
+
   /// Угадыватель целиком: заметки папок, их имена и вынутое человеком.
-  Future<FolderIndex> folderIndex() async => FolderIndex(await folderDocs(), labels: await folderLabels(), rejected: await rejectedDocs());
-
-  /// [folderIndex], пересобранный при правке заметок, папок и исправлениях: строка ввода
-  /// показывает, куда ляжет заметка, ещё до «Закинуть». Поток смотрит на сами строки
-  /// всех трёх источников: одинаковый результат drift не повторяет.
-  Stream<FolderIndex> watchFolderIndex() => _db
-      .customSelect(
-        'SELECT (SELECT count(*) FROM items WHERE deleted_at IS NULL) AS alive, (SELECT max(updated_at) FROM items) AS edited, '
-        '(SELECT group_concat(id || name || coalesce(deleted_at, \'\')) FROM folders) AS folders, (SELECT count(*) FROM corrections) AS corrected',
-        readsFrom: {_db.items, _db.folders, _db.corrections, _db.itemTags},
-      )
-      .watch()
-      .asyncMap((_) => folderIndex());
-
-  /// Всё, что уже разложено по живым папкам: из этого учится угадыватель папки.
-  Future<List<FolderDoc>> folderDocs() async {
-    final now = _clock();
-    return [for (final row in await _db.customSelect(_folderDocsSql).get()) if (_isSample(row, now)) _folderDoc(row)];
+  ///
+  /// Запись в базу, которая слов и папок не касается (разбор фактов пишет по заметке за раз,
+  /// тысячи раз после первой загрузки хранилища), отдаёт прошлый угадыватель как есть. Иначе
+  /// из базы тянется текст только правленых заметок, остальные помнит [folderMemory], а
+  /// постройка идёт с передышками. Постройки одной базы — по одной: две разом резали бы
+  /// одно и то же дважды.
+  Future<FolderIndex> folderIndex() {
+    final guess = _folderGuess;
+    final before = guess.turn;
+    final done = Completer<void>();
+    guess.turn = done.future;
+    return before.then((_) => _buildFolderIndex(guess)).whenComplete(done.complete);
   }
 
-  Stream<List<FolderDoc>> watchFolderDocs() => _db
-      .customSelect(_folderDocsSql, readsFrom: {_db.items, _db.folders, _db.itemTags, _db.tags})
-      .watch()
-      .map((rows) {
-        final now = _clock();
-        return [for (final row in rows) if (_isSample(row, now)) _folderDoc(row)];
-      });
+  Future<FolderIndex> _buildFolderIndex(_FolderGuess guess) async {
+    final now = _clock();
+    final notes = [
+      for (final row in await _db.customSelect(_folderNotesSql).get())
+        if (_isSample(row, now))
+          (
+            id: row.read<String>('id'),
+            folderId: row.read<String>('folder_id'),
+            signals: itemSignals(kind: ItemKind.values.byName(row.read<String>('kind')), url: row.readNullable<String>('url'), fileName: row.readNullable<String>('file_path')),
+            // отметка правки: время, длина всех полей текста и теги
+            stamp: (row.data['updated_at'], row.read<int>('size'), row.read<String>('tags')),
+          ),
+    ];
+    final labels = await folderLabels();
+    final rejected = await rejectedDocs();
+
+    // из чего угадыватель собран: то же самое — тот же угадыватель
+    final made = StringBuffer();
+    for (final note in notes) {
+      made
+        ..writeAll([note.id, note.folderId, note.signals.join(' '), note.stamp.$1, note.stamp.$2, note.stamp.$3], '\x1f')
+        ..write('\x1e');
+    }
+    for (final label in labels) {
+      made.write('${label.id}\x1f${label.name}\x1e');
+    }
+    for (final doc in rejected) {
+      made.write('${doc.folderId}\x1f${doc.text}\x1e');
+    }
+    final signature = made.toString();
+    if (guess.index case final index? when guess.signature == signature) return index;
+
+    final texts = await _folderTexts([for (final note in notes) if (!guess.memory.knows(note.id, note.stamp)) note.id]);
+    final index = await FolderIndex.build(
+      [
+        for (final note in notes)
+          if (texts[note.id] case final text?)
+            FolderDoc(id: note.id, folderId: note.folderId, text: text, signals: note.signals, stamp: note.stamp)
+          else
+            FolderDoc.remembered(id: note.id, folderId: note.folderId, signals: note.signals, stamp: note.stamp),
+      ],
+      labels: labels,
+      rejected: rejected,
+      memory: guess.memory,
+    );
+    guess
+      ..signature = signature
+      ..index = index;
+    return index;
+  }
+
+  // столько заметок за один запрос текста: предел переменных SQLite далеко, а короткий
+  // запрос не держит базу, пока хранилище режется на слова впервые
+  static const _textChunk = 300;
+
+  /// Тексты заметок [ids] глазами угадывателя.
+  Future<Map<String, String>> _folderTexts(List<String> ids) async {
+    final texts = <String, String>{};
+    for (var start = 0; start < ids.length; start += _textChunk) {
+      final chunk = ids.sublist(start, math.min(start + _textChunk, ids.length));
+      final rows = await _db
+          .customSelect(
+            'SELECT items.id AS id, $_folderText AS text FROM items WHERE items.id IN (${List.filled(chunk.length, '?').join(', ')})',
+            variables: [for (final id in chunk) Variable.withString(id)],
+          )
+          .get();
+      for (final row in rows) {
+        texts[row.read<String>('id')] = row.read<String>('text');
+      }
+    }
+    return texts;
+  }
+
+  // от этого веса угадывателя (слов во всех заметках) пересборка заметна: между двумя — передышка
+  static const _heavyIndex = 50000;
+  static const _indexRest = Duration(seconds: 1);
+
+  /// [folderIndex], пересобранный при правке заметок, папок и исправлениях: строка ввода
+  /// показывает, куда ляжет заметка, ещё до «Закинуть». Записи, пришедшие за время
+  /// пересборки, сливаются в одну следующую; на большом хранилище между пересборками
+  /// передышка, иначе сверка и перенос, которые пишут пачками, держали поток занятым без остановки.
+  Stream<FolderIndex> watchFolderIndex() => recomputeOn(
+    _db.changesOf([_db.items, _db.folders, _db.corrections, _db.itemTags, _db.tags, _db.attachments]),
+    folderIndex,
+    rest: (index) => index.weight >= _heavyIndex ? _indexRest : Duration.zero,
+  );
 
   /// Все связи заметки [id] для «Связано»: из её текста (`[[…]]`), обратные (её упоминают
   /// в своём `[[…]]`), ручные («+ Связь»), от ИИ и похожие по словам или сайту — в этом
@@ -883,6 +984,17 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
   /// Вернуть удалённое, пока человек жмёт «Отменить».
   Future<void> restore(String id) {
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(deletedAt: Value(null)));
+  }
+
+  // слово, которого нет ни в одной заметке: поиск по нему проходит весь путь и ничего не находит
+  static const _warmWord = 'ъъъъъъ';
+
+  /// Прогреть поиск строки: тексты последних заметок режутся на слова заранее, пока человек
+  /// ничего не набирает. Иначе за это платит первый поиск после запуска: на хранилище с
+  /// длинными конспектами в браузере — больше секунды. Идёт тем же путём, что настоящий
+  /// поиск, порциями; [stale] — человек занялся делом, прогрев бросается.
+  Future<void> warmSearch({required DateTime now, bool Function()? stale}) async {
+    await _searchOnce(parseSearch(_warmWord, now), tags: const [], now: now, limit: 1, stale: stale ?? () => false);
   }
 
   /// Поиск строки ввода. Фильтры запроса (дата, вид, сайт, длина, «рядом»)

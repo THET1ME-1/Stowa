@@ -7,11 +7,25 @@ import 'topics.dart';
 /// Вещь в папке глазами угадывателя: весь её текст одной строкой и приметы,
 /// которых в тексте нет: сайт ссылки, вид вещи, тип файла ([itemSignals]).
 class FolderDoc {
-  const FolderDoc({required this.folderId, required this.text, this.signals = const []});
+  const FolderDoc({required this.folderId, required String this.text, this.signals = const [], this.id, this.stamp});
+
+  /// Заметка, которую [FolderMemory] уже резала на слова с той же отметкой
+  /// ([FolderMemory.knows]): её текст из базы не тянут.
+  const FolderDoc.remembered({required String this.id, required this.folderId, required Object this.stamp, this.signals = const []}) : text = null;
 
   final String folderId;
-  final String text;
+
+  /// Текст заметки; null — только у [FolderDoc.remembered].
+  final String? text;
   final List<String> signals;
+
+  /// Чья это заметка: по id [FolderMemory] узнаёт текст, который уже резала на слова.
+  /// Без id заметка режется при каждой постройке.
+  final String? id;
+
+  /// Отметка правки из базы (время, длина, теги): с ней память сверяет заметку, не глядя
+  /// в текст. Без отметки текст сверяется по длине и хешу.
+  final Object? stamp;
 }
 
 /// Приметы вещи кроме слов. Сайт тянет так же сильно, как редкое слово: все
@@ -85,8 +99,12 @@ class FolderGuess {
   final double score;
 }
 
+// выражения собираются один раз: слова режутся у каждой заметки хранилища
 final _token = RegExp(r'[\p{L}\p{N}]+', unicode: true);
-final _sentenceEnd = RegExp(r'[.!?\n:;«"(—–-]');
+final _address = RegExp(r'https?://\S+|www\.\S+', caseSensitive: false);
+final _number = RegExp(r'^\d+$');
+// знаки, после которых слово начинает фразу
+const _sentenceEnds = '.!?:;«"(—–-';
 
 // меньше этого — уверенности нет, папку не выбираем
 const _minScore = 1.0;
@@ -114,19 +132,58 @@ const _timeWords = {
 
 bool _isTimeWord(String lower) => _timeWords.contains(lower) || _timeStems.any(lower.startsWith);
 
+// слово, как написано, → его основа; пустая строка — слово папку не решает (служебное,
+// короткое, время, число). Слова повторяются из заметки в заметку: «лекция» из тысячи
+// конспектов сворачивается и режется один раз. Больше — память чистится целиком
+final _stemMemo = <String, String>{};
+const _stemMemoSize = 100000;
+
+String _stemFor(String original) {
+  final known = _stemMemo[original];
+  if (known != null) return known;
+  if (_stemMemo.length >= _stemMemoSize) _stemMemo.clear();
+  final lower = normalizeQuery(original);
+  final skipped = lower.length < 3 || isStopWord(lower) || _isTimeWord(lower) || _number.hasMatch(lower);
+  return _stemMemo[original] = skipped ? '' : stem(lower);
+}
+
+// пробелы, которые снимает `trimRight`: обычные, неразрывные, переносы строк
+bool _isSpace(int unit) =>
+    unit == 0x20 ||
+    (unit >= 0x09 && unit <= 0x0D) ||
+    unit == 0x85 ||
+    unit == 0xA0 ||
+    unit == 0x1680 ||
+    (unit >= 0x2000 && unit <= 0x200A) ||
+    unit == 0x2028 ||
+    unit == 0x2029 ||
+    unit == 0x202F ||
+    unit == 0x205F ||
+    unit == 0x3000 ||
+    unit == 0xFEFF;
+
+/// Слово с места [start] начинает фразу: перед ним, не считая пробелов, ничего нет или стоит
+/// знак конца фразы. Идём назад от слова: копия всего текста до него на каждое слово
+/// стоила секунд на конспекте в двадцать тысяч знаков.
+bool _startsSentence(String text, int start) {
+  var at = start - 1;
+  while (at >= 0 && _isSpace(text.codeUnitAt(at))) {
+    at--;
+  }
+  return at < 0 || _sentenceEnds.contains(text[at]);
+}
+
 /// Слова текста без служебных и без адресов; имя — слово с заглавной не в начале предложения.
 List<_Word> _words(String raw) {
   // адрес — не слова: «youtube», «watch», «recipes» из ссылки связали бы что угодно с чем угодно
-  final text = raw.replaceAll(RegExp(r'https?://\S+|www\.\S+', caseSensitive: false), ' ');
+  final text = raw.replaceAll(_address, ' ');
   final words = <_Word>[];
   for (final match in _token.allMatches(text)) {
     final original = match.group(0)!;
-    final lower = normalizeQuery(original);
-    if (lower.length < 3 || isStopWord(lower) || _isTimeWord(lower) || RegExp(r'^\d+$').hasMatch(lower)) continue;
+    final base = _stemFor(original);
+    if (base.isEmpty) continue;
     final capital = original[0] != original[0].toLowerCase();
-    final before = text.substring(0, match.start).trimRight();
-    final startsSentence = before.isEmpty || _sentenceEnd.hasMatch(before[before.length - 1]);
-    words.add((stem: stem(lower), original: original, name: capital && !startsSentence));
+    words.add((stem: base, original: original, name: capital && !_startsSentence(text, match.start)));
   }
   return words;
 }
@@ -142,30 +199,166 @@ bool _continues(String text) {
 /// Значимые слова текста: основа для сравнения и слово, как написано.
 List<({String stem, String original})> meaningfulWords(String text) => [for (final word in _words(text)) (stem: word.stem, original: word.original)];
 
+/// Заметка, разрезанная на слова: основы без повторов и тема, у которой больше всего слов.
+typedef _Parsed = ({List<String> stems, Topic? topic});
+
+_Parsed _parse(String text) {
+  final words = _words(text);
+  return (stems: {for (final word in words) word.stem}.toList(growable: false), topic: FolderIndex._mainTopic(words));
+}
+
+const _Parsed _noWords = (stems: <String>[], topic: null);
+
+/// Заметки, уже разрезанные на слова. Угадыватель пересобирается после каждой правки в
+/// базе, а резать заново нужно только то, что поменялось: на хранилище в тысячи конспектов
+/// полная постройка шла секундами на каждую запись. Заметка сверяется по отметке из базы
+/// ([FolderDoc.stamp]), а без неё по длине и хешу текста, как в поиске.
+class FolderMemory {
+  final _known = <String, (Object, _Parsed)>{};
+
+  /// Сколько раз заметку пришлось резать на слова; взятое из памяти не считается.
+  int parsed = 0;
+
+  /// Сколько заметок помнится.
+  int get size => _known.length;
+
+  /// Помнится ли заметка [id] с отметкой [stamp]: тогда её текст из базы тянуть незачем.
+  bool knows(String id, Object stamp) => _known[id]?.$1 == stamp;
+
+  // [asked] — кого спросила эта постройка: остальных в хранилище больше нет
+  _Parsed _of(FolderDoc doc, Set<String> asked) {
+    final id = doc.id;
+    final text = doc.text;
+    if (id == null) {
+      parsed++;
+      return _parse(text ?? '');
+    }
+    final stamp = doc.stamp ?? (text == null ? null : (text.length, text.hashCode));
+    final known = _known[id];
+    if (known != null && known.$1 == stamp) {
+      asked.add(id);
+      return known.$2;
+    }
+    // обещали, что память заметку знает, а её там уже нет: слов не выдумываем и пустоту
+    // не запоминаем — следующая постройка спросит текст заново
+    if (text == null || stamp == null) return _noWords;
+    asked.add(id);
+    parsed++;
+    final fresh = _parse(text);
+    _known[id] = (stamp, fresh);
+    return fresh;
+  }
+
+  // постройка кончилась: заметки, о которых она не спросила, забываются
+  void _settle(Set<String> asked) {
+    if (asked.length != _known.length) _known.removeWhere((id, _) => !asked.contains(id));
+  }
+}
+
+// во что обходится слово из памяти рядом со знаком текста, который ещё резать
+const _stemCost = 4;
+// на часы смотрим не чаще, чем через столько работы: небольшой набор строится без передышек
+const _paceStep = 20000;
+// дольше этого подряд поток не держим: кадр и чужие события ждут своей очереди
+const _paceBudget = Duration(milliseconds: 8);
+
+/// Счёт работы постройки: когда пора дать потоку передышку.
+class _Pace {
+  final _busy = Stopwatch()..start();
+  var _work = 0;
+
+  /// Работы прибавилось на [cost]; true — пора отдохнуть.
+  bool spent(int cost) {
+    _work += cost;
+    if (_work < _paceStep) return false;
+    _work = 0;
+    return _busy.elapsed > _paceBudget;
+  }
+
+  Future<void> rest() async {
+    await Future<void>.delayed(Duration.zero);
+    _busy.reset();
+  }
+}
+
 /// Умный разбор без сети: какие слова уже живут в какой папке. Слово, которое
 /// есть только в одной папке, тянет туда сильно, общее для всех — почти никак,
 /// имя героя — вдвое сильнее обычного слова.
 class FolderIndex {
   /// [labels] — имена папок: по ним темы и совпадение с именем. [rejected] — заметки,
-  /// которые человек вынул из этих папок: их слова от папки отталкивают.
-  FolderIndex(List<FolderDoc> docs, {List<FolderLabel> labels = const [], List<FolderDoc> rejected = const []}) : _docs = docs.length {
-    final docTopics = <String, Map<Topic, int>>{};
+  /// которые человек вынул из этих папок: их слова от папки отталкивают. [memory] —
+  /// заметки, разрезанные на слова прошлой постройкой: заново режутся только правленые.
+  ///
+  /// Считает всё разом и держит поток: для небольших наборов. Всё хранилище — [build].
+  FolderIndex(List<FolderDoc> docs, {List<FolderLabel> labels = const [], List<FolderDoc> rejected = const [], FolderMemory? memory}) : _docs = docs.length {
+    final asked = <String>{};
     for (final doc in docs) {
-      _sizes[doc.folderId] = (_sizes[doc.folderId] ?? 0) + 1;
-      final words = _words(doc.text);
-      // приметы живут рядом со словами: с двоеточием они ни с одной основой не совпадут
-      final stems = {for (final word in words) word.stem, ...doc.signals};
-      for (final stem in stems) {
-        _spread[stem] = (_spread[stem] ?? 0) + 1;
-        final hits = _hits.putIfAbsent(doc.folderId, () => {});
-        hits[stem] = (hits[stem] ?? 0) + 1;
-      }
-      if (_mainTopic(words) case final topic?) {
-        final counts = docTopics.putIfAbsent(doc.folderId, () => {});
-        counts[topic] = (counts[topic] ?? 0) + 1;
-      }
+      _learn(doc, memory, asked);
     }
-    // тема папки — по имени, а без него по тому, про что её заметки
+    memory?._settle(asked);
+    _nameFolders(labels);
+    for (final doc in rejected) {
+      _pushAway(doc);
+    }
+  }
+
+  FolderIndex._(this._docs);
+
+  /// То же, что конструктор, но с передышками: хранилище в тысячи конспектов режется на
+  /// слова секундами, и всё это время строка ввода и поиск должны отвечать. Небольшой набор
+  /// строится без единой передышки.
+  static Future<FolderIndex> build(
+    List<FolderDoc> docs, {
+    List<FolderLabel> labels = const [],
+    List<FolderDoc> rejected = const [],
+    FolderMemory? memory,
+  }) async {
+    final index = FolderIndex._(docs.length);
+    final asked = <String>{};
+    final pace = _Pace();
+    for (final doc in docs) {
+      if (pace.spent(index._learn(doc, memory, asked))) await pace.rest();
+    }
+    memory?._settle(asked);
+    index._nameFolders(labels);
+    for (final doc in rejected) {
+      if (pace.spent(index._pushAway(doc))) await pace.rest();
+    }
+    return index;
+  }
+
+  // сколько заметок папки про какую тему: нужно только до [_nameFolders]
+  final _docTopics = <String, Map<Topic, int>>{};
+
+  /// Заметка папки: её слова и приметы идут в счёт папки. Отдаёт, сколько работы это стоило.
+  int _learn(FolderDoc doc, FolderMemory? memory, Set<String> asked) {
+    _sizes[doc.folderId] = (_sizes[doc.folderId] ?? 0) + 1;
+    final text = doc.text ?? '';
+    final cutBefore = memory?.parsed;
+    final parsed = memory == null ? _parse(text) : memory._of(doc, asked);
+    final cut = memory == null || memory.parsed != cutBefore;
+    Map<String, int>? hits;
+    void count(String stem) {
+      _spread[stem] = (_spread[stem] ?? 0) + 1;
+      final inFolder = hits ??= _hits.putIfAbsent(doc.folderId, () => {});
+      inFolder[stem] = (inFolder[stem] ?? 0) + 1;
+    }
+
+    parsed.stems.forEach(count);
+    // приметы живут рядом со словами: с двоеточием они ни с одной основой не совпадут
+    for (final signal in doc.signals.toSet()) {
+      if (signal.contains(':') || !parsed.stems.contains(signal)) count(signal);
+    }
+    if (parsed.topic case final topic?) {
+      final counts = _docTopics.putIfAbsent(doc.folderId, () => {});
+      counts[topic] = (counts[topic] ?? 0) + 1;
+    }
+    weight += parsed.stems.length;
+    return parsed.stems.length * _stemCost + (cut ? text.length : 0);
+  }
+
+  /// Тема папки — по имени, а без него по тому, про что её заметки.
+  void _nameFolders(List<FolderLabel> labels) {
     for (final label in labels) {
       _nameStems[label.id] = {for (final word in _words(label.name)) if (word.stem.length >= 3) word.stem};
       _nameForms[label.id] = {for (final word in _words(label.name)) normalizeQuery(word.original)};
@@ -173,7 +366,7 @@ class FolderIndex {
         _topics.putIfAbsent(label.id, () => {})[topic] = 1.0;
       }
     }
-    for (final MapEntry(key: folder, value: counts) in docTopics.entries) {
+    for (final MapEntry(key: folder, value: counts) in _docTopics.entries) {
       final size = _sizes[folder] ?? 0;
       if (size < 2) continue;
       for (final MapEntry(key: topic, value: count) in counts.entries) {
@@ -182,13 +375,22 @@ class FolderIndex {
         if (share >= _topicShare && share > (topics[topic] ?? 0)) topics[topic] = share;
       }
     }
-    for (final doc in rejected) {
-      final pushes = _rejected.putIfAbsent(doc.folderId, () => {});
-      for (final stem in {for (final word in _words(doc.text)) word.stem}) {
-        pushes[stem] = (pushes[stem] ?? 0) + 1;
-      }
-    }
+    _docTopics.clear();
   }
+
+  /// Заметка, которую человек из папки вынул: её слова от папки отталкивают.
+  int _pushAway(FolderDoc doc) {
+    final text = doc.text ?? '';
+    final pushes = _rejected.putIfAbsent(doc.folderId, () => {});
+    for (final stem in {for (final word in _words(text)) word.stem}) {
+      pushes[stem] = (pushes[stem] ?? 0) + 1;
+    }
+    return text.length;
+  }
+
+  /// Сколько слов заметок сложено в угадыватель: мера того, во что обходится постройка.
+  /// По ней поток решает, давать ли передышку перед следующей пересборкой.
+  int weight = 0;
 
   // про что заметка: тема, у которой больше всего слов; ничьей и пустоты нет
   static Topic? _mainTopic(List<_Word> words) {

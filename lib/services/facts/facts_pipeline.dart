@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../core/user_first.dart';
 import '../../data/db/database.dart';
 import '../../domain/document_text.dart';
 import '../../domain/models.dart';
@@ -94,6 +95,8 @@ class FactsPipeline {
         final stale = await _stale(extractor, limit: _batch);
         if (stale.isEmpty) break;
         for (final one in stale) {
+          // в браузере база одна на всё: пока человек набирает или листает, проход ждёт
+          await userFirst.calm();
           await _run(extractor, one.id, one.stamp);
         }
         done += stale.length;
@@ -107,6 +110,7 @@ class FactsPipeline {
     if (network.isEmpty || !await _online()) return;
     for (final extractor in network) {
       for (final one in await _stale(extractor, limit: _batch)) {
+        await userFirst.calm();
         await _run(extractor, one.id, one.stamp);
       }
     }
@@ -259,5 +263,7 @@ Future<void> refreshFactsText(AppDatabase db, String itemId) async {
     for (final fact in facts) fact.value,
   ].join('\n');
   if (text.length > documentTextLimit) text = text.substring(0, documentTextLimit);
-  await (db.update(db.items)..where((t) => t.id.equals(itemId))).write(ItemsCompanion(factsText: Value(text)));
+  // тот же текст не пишем: запись в заметку будит всё, что за заметками следит (ленты, счётчики,
+  // сводки), а у большинства заметок фактов нет и текст как был пустым, так и остался
+  await (db.update(db.items)..where((t) => t.id.equals(itemId) & t.factsText.equals(text).not())).write(ItemsCompanion(factsText: Value(text)));
 }

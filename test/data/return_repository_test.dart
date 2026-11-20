@@ -140,6 +140,23 @@ void main() {
     });
   });
 
+  test('двадцать записей подряд не дают двадцати пересчётов по всем заметкам', () async {
+    var computed = 0;
+    final seen = <int>[];
+    final watching = returns.watch(() async {
+      computed++;
+      return (await returns.watchLater(now)).length;
+    }, clock: () => now).listen(seen.add);
+    addTearDown(watching.cancel);
+    await pumpEventQueue();
+    expect(computed, 1);
+    // так пишет фон: по записи на заметку
+    await Future.wait([for (var index = 0; index < 20; index++) note('n$index', now, kind: ItemKind.video, seconds: 600)]);
+    await pumpEventQueue();
+    expect(computed, lessThan(8), reason: 'пересчётов: $computed');
+    expect(seen.last, 20);
+  });
+
   test('после полуночи пересчитывает без правок в базе: приложение открыто сутками', () async {
     await note('Борщ', DateTime(2025, 11, 7, 9));
     var clock = DateTime(2026, 11, 6, 23, 59);

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/palette.dart';
 import 'core/theme/tokens.dart';
+import 'core/user_first.dart';
 import 'data/providers.dart';
 import 'domain/appearance.dart';
 import 'features/privacy/privacy_gate.dart';
@@ -42,13 +43,35 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (userFirst.enabled) HardwareKeyboard.instance.addHandler(_onAnyKey);
   }
 
   @override
   void dispose() {
     _switch?.cancel();
     WidgetsBinding.instance.removeObserver(this);
+    if (userFirst.enabled) HardwareKeyboard.instance.removeHandler(_onAnyKey);
     super.dispose();
+  }
+
+  // клавишу не забираем: только отмечаем, что человек занят
+  bool _onAnyKey(KeyEvent event) {
+    userFirst.touch();
+    return false;
+  }
+
+  /// В браузере фон уступает человеку: нажатие, прокрутка и клавиша отмечают, что он занят.
+  Widget _attentive(Widget child) {
+    if (!userFirst.enabled) return child;
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => userFirst.touch(),
+      onPointerMove: (_) => userFirst.touch(),
+      onPointerHover: (_) => userFirst.touch(),
+      onPointerSignal: (_) => userFirst.touch(),
+      onPointerPanZoomUpdate: (_) => userFirst.touch(),
+      child: child,
+    );
   }
 
   @override
@@ -117,7 +140,7 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarContrastEnforced: false,
         ),
-        child: widget.lockable ? PrivacyGate(child: child!) : child!,
+        child: _attentive(widget.lockable ? PrivacyGate(child: child!) : child!),
       ),
       home: widget.home,
     );

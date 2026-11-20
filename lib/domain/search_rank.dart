@@ -179,6 +179,10 @@ _Tokens _tokens(String text) {
 /// и язык заметки помнятся, пока текст тот же (сверка по длине и хешу). Память — границы
 /// слов числами, без копий слов.
 final _fieldMemory = <(String, SearchField), (int, int, _Tokens)>{};
+
+/// Сколько текстов разрезано на слова с запуска (взятое из памяти не считается): по нему
+/// видно, что прогрев поиска сделал своё дело.
+int searchTextsCut = 0;
 final _languageMemory = <String, (int, int, String?)>{};
 const _memoryLimit = 20000;
 
@@ -189,6 +193,7 @@ _Tokens _fieldTokens(SearchDoc doc, SearchField field) {
   if (known != null && known.$1 == text.length && known.$2 == text.hashCode) return known.$3;
   if (_fieldMemory.length > _memoryLimit) _fieldMemory.clear();
   final tokens = _tokens(text);
+  searchTextsCut++;
   _fieldMemory[key] = (text.length, text.hashCode, tokens);
   return tokens;
 }
