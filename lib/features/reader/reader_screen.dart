@@ -14,6 +14,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
@@ -154,16 +155,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Future<void> _openHighlight(Highlight highlight) async {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final action = await showModalBottomSheet<_HighlightAction>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: SafeArea(top: false, child: _HighlightSheet(highlight: highlight)),
-      ),
-    );
+    final action = await showStowaSheet<_HighlightAction>(context, maxHeightFactor: null, builder: (context) => _HighlightSheet(highlight: highlight));
     if (action == null) return;
     switch (action) {
       case _SaveNote(:final note):

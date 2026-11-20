@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../data/providers.dart';
 import '../../domain/note_properties.dart';
 import '../../l10n/app_localizations.dart';
@@ -42,16 +43,11 @@ String _shown(L l, Object? value) {
 
 /// Лист свойства: новое или правка [name]. Возвращает набор после правки, закрыли без неё — null.
 Future<Map<String, Object?>?> editProperty(BuildContext context, Map<String, Object?> properties, {String? name}) {
-  return showModalBottomSheet<Map<String, Object?>>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    isScrollControlled: true,
+  return showStowaSheet<Map<String, Object?>>(
+    context,
     backgroundColor: Tokens.containerLow,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(top: false, child: _PropertySheet(properties: properties, name: name)),
-    ),
+    maxHeightFactor: null,
+    builder: (context) => _PropertySheet(properties: properties, name: name),
   );
 }
 

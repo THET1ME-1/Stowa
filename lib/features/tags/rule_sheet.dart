@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -16,18 +17,8 @@ import '../folder/folder_sheets.dart';
 
 /// Лист правила «если — то»: новое или правка старого.
 Future<void> showRuleSheet(BuildContext context, {Rule? rule}) {
-  return showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    isScrollControlled: true,
-    backgroundColor: Tokens.containerLow,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      // кнопка внизу не ложится на полоску жестов
-      child: SafeArea(top: false, child: RuleSheet(rule: rule)),
-    ),
-  );
+  // кнопка внизу не ложится на полоску жестов: шторка сама держит безопасную зону
+  return showStowaSheet<void>(context, backgroundColor: Tokens.containerLow, maxHeightFactor: null, builder: (context) => RuleSheet(rule: rule));
 }
 
 class RuleSheet extends ConsumerStatefulWidget {

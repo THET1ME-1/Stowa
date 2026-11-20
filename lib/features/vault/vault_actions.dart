@@ -26,9 +26,10 @@ Future<bool> ensureFileAccess(BuildContext context, WidgetRef ref) async {
   if (await channel.hasAllFiles()) return true;
   if (!context.mounted) return false;
   final l = L.of(context);
-  final go = await showModalBottomSheet<bool>(
-    context: context,
+  final go = await showStowaSheet<bool>(
+    context,
     backgroundColor: Tokens.container,
+    maxHeightFactor: null,
     builder: (context) {
       final text = Theme.of(context).textTheme;
       return SafeArea(
@@ -110,12 +111,7 @@ Future<bool> moveVault(BuildContext context, WidgetRef ref, Directory target, Va
 
 /// «Создать хранилище»: имя и место, разрешение, перенос.
 Future<bool> createVault(BuildContext context, WidgetRef ref) async {
-  final place = await showModalBottomSheet<String>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Tokens.container,
-    builder: (context) => const _CreateSheet(),
-  );
+  final place = await showStowaSheet<String>(context, backgroundColor: Tokens.container, maxHeightFactor: null, builder: (context) => const _CreateSheet());
   if (place == null || !context.mounted) return false;
   if (!await ensureFileAccess(context, ref) || !context.mounted) return false;
   final target = Directory(place);
@@ -235,7 +231,7 @@ Future<void> addVault(BuildContext context, WidgetRef ref) async {
   );
   if (create == null || !context.mounted) return;
   final path = create
-      ? await showModalBottomSheet<String>(context: context, isScrollControlled: true, backgroundColor: Tokens.container, builder: (context) => const _CreateSheet())
+      ? await showStowaSheet<String>(context, backgroundColor: Tokens.container, maxHeightFactor: null, builder: (context) => const _CreateSheet())
       : await ref.read(vaultPickerProvider)();
   if (path == null || !context.mounted) return;
   if (sameVaultPath(path, _openPath(ref))) {

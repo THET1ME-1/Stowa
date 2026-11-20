@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/pressable.dart';
 import '../../domain/json_canvas.dart' show CanvasSide;
 import '../../l10n/app_localizations.dart';
@@ -413,15 +414,12 @@ class CanvasTools extends StatelessWidget {
 Future<String?> askCanvasNote(BuildContext context) {
   final l = L.of(context);
   final field = TextEditingController();
-  return showModalBottomSheet<String>(
-    context: context,
-    useSafeArea: true,
-    isScrollControlled: true,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: Padding(
+  return showStowaSheet<String>(
+    context,
+    maxHeightFactor: null,
+    builder: (context) => SafeArea(
+      top: false,
+      child: Padding(
           padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -446,7 +444,6 @@ Future<String?> askCanvasNote(BuildContext context) {
             ],
           ),
         ),
-      ),
     ),
   );
 }

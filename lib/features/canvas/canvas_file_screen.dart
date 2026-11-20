@@ -1462,13 +1462,11 @@ class _Banner extends StatelessWidget {
 Future<String?> _askText(BuildContext context, {required String hint, String? initial, bool multiline = true}) {
   final l = L.of(context);
   final field = TextEditingController(text: initial ?? '');
-  return showModalBottomSheet<String>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    isScrollControlled: true,
+  return showStowaSheet<String>(
+    context,
+    maxHeightFactor: null,
     builder: (sheet) => Padding(
-      padding: EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, MediaQuery.viewInsetsOf(sheet).bottom + Space.screen),
+      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1505,10 +1503,9 @@ Future<String?> _askText(BuildContext context, {required String hint, String? in
 /// Цвет узла или стрелки: «без цвета» (пустая строка) и шесть готовых Obsidian.
 Future<String?> _pickColor(BuildContext context, String? current) {
   final l = L.of(context);
-  return showModalBottomSheet<String>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
+  return showStowaSheet<String>(
+    context,
+    maxHeightFactor: null,
     builder: (sheet) => Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen * 2),
       child: Wrap(

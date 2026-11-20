@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -24,9 +25,9 @@ class TrashScreen extends ConsumerWidget {
   Future<void> _purgeAll(BuildContext context, WidgetRef ref, int count) async {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final yes = await showModalBottomSheet<bool>(
-      context: context,
-      useSafeArea: true,
+    final yes = await showStowaSheet<bool>(
+      context,
+      maxHeightFactor: null,
       builder: (context) => SafeArea(
         top: false,
         child: Padding(

@@ -4,6 +4,7 @@ import 'package:local_auth/local_auth.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -252,10 +253,9 @@ class _ChangeCodeState extends ConsumerState<_ChangeCode> {
 Future<bool> forgetCodeFlow(BuildContext context, WidgetRef ref) async {
   final l = L.of(context);
   final text = Theme.of(context).textTheme;
-  final sure = await showModalBottomSheet<bool>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
+  final sure = await showStowaSheet<bool>(
+    context,
+    maxHeightFactor: null,
     builder: (sheet) => SafeArea(
       top: false,
       child: Padding(

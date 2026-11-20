@@ -9,6 +9,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/color_picker_sheet.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../data/repositories/folders_repository.dart';
@@ -251,12 +252,10 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
   List<String> get _iconRow => {_icon, ..._forName, ...pickableSymbols}.take(5).toList();
 
   Future<void> _searchIcons() async {
-    final picked = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
+    final picked = await showStowaSheet<String>(
+      context,
       backgroundColor: Tokens.container,
+      maxHeightFactor: null,
       builder: (sheet) => SizedBox(
         height: MediaQuery.sizeOf(sheet).height * 0.85,
         child: _IconSheet(current: _icon, fill: _fill, forName: _forName),

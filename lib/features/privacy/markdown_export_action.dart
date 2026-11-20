@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -24,10 +25,9 @@ Future<void> exportMarkdownFlow(BuildContext context, WidgetRef ref) async {
   if (!await ensureFileAccess(context, ref) || !context.mounted) return;
   var includeHidden = false;
   if (ref.read(privacyServiceProvider).isOpen) {
-    final answer = await showModalBottomSheet<bool>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
+    final answer = await showStowaSheet<bool>(
+      context,
+      maxHeightFactor: null,
       builder: (sheet) => SafeArea(
         top: false,
         child: Padding(

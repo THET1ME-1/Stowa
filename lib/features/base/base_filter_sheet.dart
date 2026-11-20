@@ -49,22 +49,11 @@ Future<void> showBaseFilterSheet(
   required List<String> properties,
   required String Function(String property) label,
   required void Function(bool forAll, BaseFilter? filter) onChanged,
-}) => showModalBottomSheet<void>(
-  context: context,
-  showDragHandle: true,
-  useSafeArea: true,
-  isScrollControlled: true,
+}) => showStowaSheet<void>(
+  context,
   backgroundColor: Tokens.container,
-  builder: (sheet) => Padding(
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(sheet).bottom),
-    child: ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.9),
-      child: SafeArea(
-        top: false,
-        child: _FilterSheet(all: all, view: view, properties: properties, label: label, onChanged: onChanged),
-      ),
-    ),
-  ),
+  maxHeightFactor: 0.9,
+  builder: (sheet) => _FilterSheet(all: all, view: view, properties: properties, label: label, onChanged: onChanged),
 );
 
 class _FilterSheet extends StatefulWidget {

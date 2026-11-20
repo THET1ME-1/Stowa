@@ -7,6 +7,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/pill_segments.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
@@ -132,10 +133,9 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
 
   Future<bool> _confirmDelete(TagCard tag) async {
     final l = L.of(context);
-    final yes = await showModalBottomSheet<bool>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
+    final yes = await showStowaSheet<bool>(
+      context,
+      maxHeightFactor: null,
       builder: (context) => SafeArea(
         top: false,
         child: Padding(

@@ -4,15 +4,11 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../theme/tokens.dart';
+import 'desk_mode.dart';
 
 /// Свой цвет листом снизу: круг оттенков, ползунок яркости, HEX и R, G, B числами. Отмена — null.
 Future<Color?> showColorPickerSheet(BuildContext context, {required Color initial, required String title}) {
-  return showModalBottomSheet<Color>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (context) => _ColorPickerSheet(initial: initial, title: title),
-  );
+  return showStowaSheet<Color>(context, maxHeightFactor: null, builder: (context) => _ColorPickerSheet(initial: initial, title: title));
 }
 
 class _ColorPickerSheet extends StatefulWidget {

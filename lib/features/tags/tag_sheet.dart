@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/pill_segments.dart';
 import '../../core/icons/icon_words.dart';
 import '../../core/widgets/tag_tile.dart';
@@ -24,18 +25,8 @@ import '../graph/graph_screen.dart';
 
 /// Лист тега, как экран 11 макета: новый или правка старого.
 Future<void> showTagSheet(BuildContext context, {TagCard? tag, bool pin = false}) {
-  return showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    isScrollControlled: true,
-    backgroundColor: Tokens.containerLow,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      // кнопка внизу не ложится на полоску жестов
-      child: SafeArea(top: false, child: TagSheet(tag: tag, pin: pin)),
-    ),
-  );
+  // кнопка внизу не ложится на полоску жестов: шторка сама держит безопасную зону
+  return showStowaSheet<void>(context, backgroundColor: Tokens.containerLow, maxHeightFactor: null, builder: (context) => TagSheet(tag: tag, pin: pin));
 }
 
 class TagSheet extends ConsumerStatefulWidget {

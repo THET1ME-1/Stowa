@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../data/repositories/tags_repository.dart';
@@ -14,15 +15,7 @@ import '../../l10n/app_localizations.dart';
 /// Своё имя в поле — новый тег, если [allowNew]. Снимать теги новым именем
 /// бессмысленно, поэтому там поле только ищет.
 Future<String?> showTagPicker(BuildContext context, {required List<TagCard> tags, required Directory filesRoot, bool allowNew = true}) {
-  return showModalBottomSheet<String>(
-    context: context,
-    useSafeArea: true,
-    isScrollControlled: true,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(top: false, child: _TagPicker(tags: tags, filesRoot: filesRoot, allowNew: allowNew)),
-    ),
-  );
+  return showStowaSheet<String>(context, maxHeightFactor: null, builder: (context) => _TagPicker(tags: tags, filesRoot: filesRoot, allowNew: allowNew));
 }
 
 class _TagPicker extends StatefulWidget {

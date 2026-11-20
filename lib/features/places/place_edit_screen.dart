@@ -130,12 +130,10 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
   }
 
   Future<void> _pickIcon() async {
-    final picked = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      isScrollControlled: true,
+    final picked = await showStowaSheet<String>(
+      context,
       backgroundColor: Tokens.container,
+      maxHeightFactor: null,
       builder: (sheet) => _IconSheet(name: _name.text, current: _shownIcon),
     );
     if (picked == null || !mounted) return;
