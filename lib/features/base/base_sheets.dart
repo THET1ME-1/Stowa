@@ -24,20 +24,8 @@ String basePropertyIcon(String property) => property.startsWith('file.')
     ? 'functions'
     : 'list_alt';
 
-Future<T?> _sheet<T>(BuildContext context, Widget Function(BuildContext sheet) builder) => showModalBottomSheet<T>(
-  context: context,
-  showDragHandle: true,
-  useSafeArea: true,
-  isScrollControlled: true,
-  backgroundColor: Tokens.container,
-  builder: (sheet) => Padding(
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(sheet).bottom),
-    child: ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.85),
-      child: SafeArea(top: false, child: builder(sheet)),
-    ),
-  ),
-);
+Future<T?> _sheet<T>(BuildContext context, Widget Function(BuildContext sheet) builder) =>
+    showStowaSheet<T>(context, builder: builder, backgroundColor: Tokens.container, maxHeightFactor: 0.85);
 
 /// Заголовок листа: крупно, с полем экрана.
 class BaseSheetTitle extends StatelessWidget {

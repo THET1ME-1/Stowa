@@ -19,6 +19,7 @@ import '../graph/graph_screen.dart';
 import '../item/item_screen.dart';
 import '../map/map_screen.dart';
 import '../returns/return_screen.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../item/item_actions.dart';
 import 'workspace_docks.dart';
@@ -335,10 +336,12 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
   Widget build(BuildContext context) {
     _controller.composer = widget.composer((id) => _controller.open(WsTab.item(id)));
     _controller.find = _find;
+    // под оболочкой — монитор: шторки открываются окнами, плашки — пилюлей над строкой
     return WorkspaceScope(
       controller: _controller,
-      child: Builder(
-        builder: (context) {
+      child: DeskMode(
+        child: Builder(
+          builder: (context) {
           final ws = WorkspaceScope.of(context).workspace;
           // вкладки, которых больше нет, отпускают свои навигаторы
           final open = {for (final pane in ws.panes) ...pane.tabs.map((tab) => tab.key)};
@@ -399,7 +402,8 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
               ),
             ),
           );
-        },
+          },
+        ),
       ),
     );
   }

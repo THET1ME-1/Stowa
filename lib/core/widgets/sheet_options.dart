@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../icons/icon_registry.dart';
 import '../theme/tokens.dart';
+import 'desk_mode.dart';
+
+export 'desk_mode.dart' show DeskMode, showStowaSheet;
 
 /// Листы снизу со списком — как меню «⋮» заметки: каждая строка свой блок, круглый значок,
 /// подпись крупно. Устройство — `docs/specs/2026-11-13-sheet-options-design.md`.
@@ -52,21 +55,10 @@ Future<T?> showOptionsSheet<T>(BuildContext context, {String? title, required Li
   );
 }
 
-/// Тот же лист со своим содержимым: поиск над строками, строки из базы.
-Future<T?> showOptionsSheetWith<T>(BuildContext context, Widget Function(BuildContext sheet) builder) => showModalBottomSheet<T>(
-  context: context,
-  showDragHandle: true,
-  useSafeArea: true,
-  isScrollControlled: true,
-  backgroundColor: Tokens.container,
-  builder: (sheet) => Padding(
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(sheet).bottom),
-    child: ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.75),
-      child: SafeArea(top: false, child: builder(sheet)),
-    ),
-  ),
-);
+/// Тот же лист со своим содержимым: поиск над строками, строки из базы. На мониторе —
+/// окном у верха экрана (`showStowaSheet`).
+Future<T?> showOptionsSheetWith<T>(BuildContext context, Widget Function(BuildContext sheet) builder) =>
+    showStowaSheet<T>(context, builder: builder, backgroundColor: Tokens.container);
 
 /// Заголовок и строки блоками; листается, если не помещается.
 class SheetOptionsBody extends StatelessWidget {

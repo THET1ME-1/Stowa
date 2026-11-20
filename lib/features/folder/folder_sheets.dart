@@ -18,17 +18,8 @@ Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref, {String? p
   return ref.read(foldersRepositoryProvider).create(name, parentId: parentId);
 }
 
-Future<T?> _sheet<T>(BuildContext context, Widget child) => showModalBottomSheet<T>(
-  context: context,
-  showDragHandle: true,
-  useSafeArea: true,
-  isScrollControlled: true,
-  builder: (context) => Padding(
-    // лист поднимается над клавиатурой
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-    child: SafeArea(top: false, child: child),
-  ),
-);
+// лист поднимается над клавиатурой; на мониторе — окно у верха экрана
+Future<T?> _sheet<T>(BuildContext context, Widget child) => showStowaSheet<T>(context, builder: (_) => child, maxHeightFactor: null);
 
 /// Меню папки снизу. Сверху одной строкой плитки «Создать внутри»: папку, холст, базу;
 /// ниже строки: название и вид (имя, цвет, значок на одном экране), переложить, связи,

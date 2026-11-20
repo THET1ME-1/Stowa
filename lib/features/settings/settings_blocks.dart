@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/pressable.dart';
 
 /// Цвет значков группы из палитры папок: разделы различаются с первого взгляда.
@@ -12,16 +13,8 @@ Color settingsTint(String key) => FolderPalette.colors[key]!;
 /// пяти строк живёт на своём экране.
 Route<void> settingsPageRoute(Widget page) => MaterialPageRoute(builder: (_) => page);
 
-/// Лист настроек снизу: поднимается над клавиатурой.
-Future<T?> showSettingsSheet<T>(BuildContext context, Widget child) => showModalBottomSheet<T>(
-  context: context,
-  useSafeArea: true,
-  isScrollControlled: true,
-  builder: (context) => Padding(
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-    child: SafeArea(top: false, child: child),
-  ),
-);
+/// Лист настроек снизу: поднимается над клавиатурой. На мониторе — окном у верха экрана.
+Future<T?> showSettingsSheet<T>(BuildContext context, Widget child) => showStowaSheet<T>(context, builder: (_) => child, maxHeightFactor: null);
 
 // разделы настроек, которым в браузере не с чем работать: синхронизация туда ещё не
 // подключена, уведомлений системы, бота Telegram и переноса выгрузок с телефона там нет
