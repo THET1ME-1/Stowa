@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/core/theme/app_theme.dart';
-import 'package:stowa/data/providers.dart';
 import 'package:stowa/features/settings/settings_blocks.dart';
 import 'package:stowa/features/settings/settings_screen.dart';
 import 'package:stowa/features/settings/storage_screen.dart';
@@ -20,9 +19,10 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     addTearDown(() => tester.pumpWidget(const SizedBox()));
+    world.inBrowser = inBrowser;
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [...world.overrides, storedInBrowserProvider.overrideWithValue(inBrowser)],
+        overrides: world.overrides,
         child: MaterialApp(
           theme: buildAppTheme(),
           locale: const Locale('ru'),

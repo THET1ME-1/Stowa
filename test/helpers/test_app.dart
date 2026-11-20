@@ -56,6 +56,9 @@ class TestWorld {
   /// Место хранилища уже выбрано: по умолчанию сразу главная, без экрана первого запуска.
   var vaultAsked = true;
 
+  /// Заметки лежат в браузере (`storedInBrowserProvider`): там прячется то, что без телефона не работает.
+  var inBrowser = false;
+
   /// Знакомство и подсказки. По умолчанию выключены: старые тесты не ждут карточек над строкой.
   /// Тесты знакомства ставят `HintsRepository.memory()` до `app()`.
   HintsRepository hints = HintsRepository.memory(const HintsState(off: true));
@@ -123,6 +126,7 @@ class TestWorld {
   final biometrics = FakeBiometrics();
 
   List<Override> get overrides => [
+        storedInBrowserProvider.overrideWithValue(inBrowser),
         notificationPortProvider.overrideWithValue(notifications),
         placeGrantedProvider.overrideWith((ref) async => placeGranted),
         askPlaceProvider.overrideWithValue(() async {

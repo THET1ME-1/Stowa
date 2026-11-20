@@ -74,6 +74,15 @@ void main() {
     expect(world.settings!.returnsAsked, isTrue);
   });
 
+  testWidgets('в браузере карточки «Возвращать сохранённое?» нет: уведомлений там нет', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    world.settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+    world.inBrowser = true;
+    await note('Мысль', world.now);
+    await open(tester);
+    expect(find.text('Возвращать сохранённое?'), findsNothing);
+  });
+
   testWidgets('пустое приложение карточку не показывает', (tester) async {
     SharedPreferences.setMockInitialValues({});
     world.settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());

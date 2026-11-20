@@ -474,8 +474,9 @@ class _Feed extends ConsumerWidget {
               onOpen: (next) => onOpen(next.id),
             ),
           ),
-        // спросить про уведомления один раз, когда уже есть что возвращать
-        if (recent.isNotEmpty && ref.watch(returnsAskedProvider).value == false) const SliverToBoxAdapter(child: ReturnsAskCard()),
+        // спросить про уведомления один раз, когда уже есть что возвращать; в браузере уведомлений нет
+        if (recent.isNotEmpty && ref.watch(returnsAskedProvider).value == false && !ref.watch(storedInBrowserProvider))
+          const SliverToBoxAdapter(child: ReturnsAskCard()),
         // «12 ссылок с habr.com без папки — сделать папку?»
         if (ref.watch(folderSuggestionProvider).value case final suggestion?) SliverToBoxAdapter(child: FolderSuggestCard(suggestion: suggestion)),
         // напоминание по месту поставлено, а без места «всегда» оно не сработает
