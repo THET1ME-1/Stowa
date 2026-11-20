@@ -9,6 +9,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/items_repository.dart';
+import '../../domain/graph_labels.dart';
 import '../../domain/graph_layout.dart';
 import '../../l10n/app_localizations.dart';
 import '../item/item_screen.dart';
@@ -193,6 +194,9 @@ class _GraphScreenState extends ConsumerState<GraphScreen> {
   }
 }
 
+// сколько места на экране занимает буква подписи: с запасом, подписи не должны касаться
+const _labelLetter = 7.2;
+
 class _GraphPainter extends CustomPainter {
   _GraphPainter(this.layout, this.transform, this.style) : super(repaint: transform);
 
@@ -212,14 +216,26 @@ class _GraphPainter extends CustomPainter {
       if (from != null && to != null) canvas.drawLine(from, to, line);
     }
     final titles = {for (final card in layout.data.nodes) card.id: card.title};
+    // подписи — только тем, кто на экране, и только те, что не наезжают друг на друга:
+    // на графе всей базы две тысячи подписей иначе сливались в пятно
+    final visible = canvas.getLocalClipBounds().inflate(160 / scale);
+    final candidates = <GraphLabel>[];
     for (final MapEntry(key: id, value: place) in layout.places.entries) {
       final degree = layout.degree[id] ?? 0;
       final radius = 6 + 2.5 * sqrt(degree);
       // одиночки тусклые, узлы со многими связями светлые
       final color = degree == 0 ? Tokens.graphite : (degree >= 3 ? Tokens.accent : Tokens.onSurfaceVariant);
       canvas.drawCircle(place, radius, Paint()..color = color);
-      // подписи постоянного размера на экране; издалека — только у узлов
-      if (scale < 0.45 && degree < 3) continue;
+      if (!visible.contains(place)) continue;
+      final length = min((titles[id] ?? '').length, 32);
+      if (length == 0) continue;
+      // места подписей — в точках экрана: размер букв на экране постоянный
+      candidates.add((id: id, x: place.dx * scale, y: (place.dy + radius) * scale + 4, width: length * _labelLetter + 12, degree: degree));
+    }
+    for (final id in pickGraphLabels(candidates)) {
+      final place = layout.places[id]!;
+      final degree = layout.degree[id] ?? 0;
+      final radius = 6 + 2.5 * sqrt(degree);
       final title = titles[id] ?? '';
       final painter = TextPainter(
         text: TextSpan(text: title.length > 32 ? '${title.substring(0, 31)}…' : title, style: style.copyWith(fontSize: 12 / scale, color: degree == 0 ? Tokens.muted : Tokens.onSurfaceVariant)),
