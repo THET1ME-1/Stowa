@@ -7540,6 +7540,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Add some text…'**
   String get itemWriteMore;
+
+  /// Граф связей строится: подпись под крутящимся кругом
+  ///
+  /// In en, this message translates to:
+  /// **'Laying out the links…'**
+  String get graphLoading;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

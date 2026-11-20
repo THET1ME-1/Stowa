@@ -203,7 +203,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         itemBuilder: (context, index) => RecentCard(
                           item: selectedCards[index],
                           filesRoot: filesRoot,
-                          onTap: () => Navigator.of(context).push(itemRoute(selectedCards[index].id)),
+                          onTap: () => openItem(context, selectedCards[index].id),
                         ),
                       ),
                     ),

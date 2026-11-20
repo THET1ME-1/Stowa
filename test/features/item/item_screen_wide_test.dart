@@ -124,6 +124,33 @@ void main() {
     expect(find.byKey(const ValueKey('desk-sheet')), findsOneWidget);
   });
 
+  // 21.11 проход по сайту: заметка из графа, «Посмотреть потом», связанных открывалась
+  // телефонным экраном поверх вкладки, а кнопки «назад» на мониторе нет — тупик
+  testWidgets('монитор: openItem открывает заметку своей вкладкой, телефон — экраном', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Схема курсовой', body: const Value('Схема курсовой'), createdAt: world.now, updatedAt: world.now),
+    );
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final shell = WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!;
+    shell.open(const WsTab.later());
+    await tester.pumpAndSettle();
+    final inLater = tester.element(find.byKey(const ValueKey('tab-later:')));
+    openItem(inLater, 'n').ignore();
+    await tester.pumpAndSettle();
+    expect(shell.workspace.focusedPane.activeTab?.key, 'item:n', reason: 'своя вкладка');
+
+    tester.view.physicalSize = const Size(400, 900);
+    await tester.pumpAndSettle();
+    openItem(tester.element(find.byType(LineDock)), 'n').ignore();
+    await tester.pumpAndSettle();
+    expect(find.byType(ItemScreen), findsOneWidget, reason: 'телефон — экраном');
+  });
+
   testWidgets('монитор: заметка из одной строки — заголовок и приглашение дописать, щелчок открывает правку', (tester) async {
     await world.db.into(world.db.items).insert(
       ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Купить молоко', body: const Value('Купить молоко'), createdAt: world.now, updatedAt: world.now),

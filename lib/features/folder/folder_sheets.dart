@@ -7,7 +7,7 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../domain/models.dart' show ItemKind;
 import '../../l10n/app_localizations.dart';
-import '../item/item_screen.dart' show itemRoute;
+import '../item/item_screen.dart' show openItem;
 
 enum FolderAction { graph, newCanvas, newBase, nest, move, edit, hide, unhide, delete }
 
@@ -78,7 +78,7 @@ Future<void> askNewDocument(BuildContext context, WidgetRef ref, ItemKind kind, 
   final name = await showRenameSheet(context, kind == ItemKind.base ? l.baseDefaultName : l.canvasDefaultName, label: l.baseColName, action: l.actionCreate);
   if (name == null || name.trim().isEmpty || !context.mounted) return;
   final id = await ref.read(documentsRepositoryProvider).create(kind, title: name.trim(), folderId: folderId);
-  if (context.mounted) await Navigator.of(context).push(itemRoute(id));
+  if (context.mounted) await openItem(context, id);
 }
 
 /// Новое имя папки или null, если передумал. [label] и [action] — подпись поля и кнопки

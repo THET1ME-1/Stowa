@@ -4475,4 +4475,7 @@ class LPl extends L {
 
   @override
   String get itemWriteMore => 'Dopisz tekst…';
+
+  @override
+  String get graphLoading => 'Układam powiązania…';
 }

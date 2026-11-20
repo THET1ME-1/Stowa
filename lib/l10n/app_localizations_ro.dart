@@ -4443,4 +4443,7 @@ class LRo extends L {
 
   @override
   String get itemWriteMore => 'Adaugă text…';
+
+  @override
+  String get graphLoading => 'Așez legăturile…';
 }

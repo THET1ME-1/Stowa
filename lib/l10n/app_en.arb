@@ -5285,5 +5285,9 @@
   "itemWriteMore": "Add some text…",
   "@itemWriteMore": {
     "description": "Заметка из одной строки на мониторе: приглашение дописать под заголовком"
+  },
+  "graphLoading": "Laying out the links…",
+  "@graphLoading": {
+    "description": "Граф связей строится: подпись под крутящимся кругом"
   }
 }

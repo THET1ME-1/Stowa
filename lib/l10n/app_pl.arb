@@ -955,5 +955,6 @@
   "itemPropCreated": "Utworzona",
   "itemPropTaken": "Zrobione",
   "itemPropLinks": "Powiązania",
-  "itemWriteMore": "Dopisz tekst…"
+  "itemWriteMore": "Dopisz tekst…",
+  "graphLoading": "Układam powiązania…"
 }

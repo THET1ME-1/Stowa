@@ -955,5 +955,6 @@
   "itemPropCreated": "Creată",
   "itemPropTaken": "Fotografiată",
   "itemPropLinks": "Legături",
-  "itemWriteMore": "Adaugă text…"
+  "itemWriteMore": "Adaugă text…",
+  "graphLoading": "Așez legăturile…"
 }

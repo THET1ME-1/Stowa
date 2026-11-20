@@ -13,6 +13,7 @@ import '../../domain/graph_labels.dart';
 import '../../domain/graph_layout.dart';
 import '../../l10n/app_localizations.dart';
 import '../item/item_screen.dart';
+import '../workspace/workspace_shell.dart' show WorkspaceScope;
 
 /// Граф связей папки или тега.
 Route<void> graphRoute({String? folderId, String? tag, required String title}) =>
@@ -103,19 +104,22 @@ class _GraphScreenState extends ConsumerState<GraphScreen> {
         hit = id;
       }
     }
-    if (hit != null) Navigator.of(context).push(itemRoute(hit));
+    if (hit != null) openItem(context, hit).ignore();
   }
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
+    // на мониторе шапка как у главной и папок: крупное имя, под ним — чей граф, если не всей базы
+    final desk = WorkspaceScope.maybeOf(context) != null;
+    final scope = widget.title == l.graphTitle ? null : widget.title;
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 8),
+              padding: desk ? const EdgeInsets.fromLTRB(28, 26, 28, 12) : const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 8),
               child: Row(
                 children: [
                   // во вкладке широкого экрана возвращаться некуда
@@ -139,8 +143,12 @@ class _GraphScreenState extends ConsumerState<GraphScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l.graphTitle, style: text.titleLarge!.copyWith(fontSize: 18)),
-                        Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+                        Text(l.graphTitle, style: desk ? text.displaySmall!.copyWith(fontSize: 30, height: 1.15) : text.titleLarge!.copyWith(fontSize: 18)),
+                        if (scope != null)
+                          Padding(
+                            padding: EdgeInsets.only(top: desk ? 6 : 0),
+                            child: Text(scope, maxLines: 1, overflow: TextOverflow.ellipsis, style: (desk ? text.bodyMedium! : text.bodySmall!).copyWith(color: Tokens.muted)),
+                          ),
                       ],
                     ),
                   ),
@@ -155,7 +163,19 @@ class _GraphScreenState extends ConsumerState<GraphScreen> {
                   if (snapshot.hasError) {
                     return Center(child: Text(l.graphFailed, style: text.bodyLarge!.copyWith(color: Tokens.muted)));
                   }
-                  if (layout == null) return const Center(child: CircularProgressIndicator());
+                  // большая база раскладывается секундами: под кругом сказано, что идёт
+                  if (layout == null) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 2.6)),
+                          const SizedBox(height: 16),
+                          Text(l.graphLoading, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
+                        ],
+                      ),
+                    );
+                  }
                   if (layout.data.edges.isEmpty) {
                     return Center(
                       child: Padding(

@@ -4416,4 +4416,7 @@ class LEs extends L {
 
   @override
   String get itemWriteMore => 'Añadir texto…';
+
+  @override
+  String get graphLoading => 'Colocando los enlaces…';
 }

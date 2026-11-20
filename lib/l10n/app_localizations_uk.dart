@@ -4470,4 +4470,7 @@ class LUk extends L {
 
   @override
   String get itemWriteMore => 'Дописати текст…';
+
+  @override
+  String get graphLoading => 'Розкладаю зв’язки…';
 }

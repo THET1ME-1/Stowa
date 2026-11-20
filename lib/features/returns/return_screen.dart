@@ -164,7 +164,7 @@ class _Cards extends ConsumerWidget {
         for (final card in cards)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: FolderItemCard(card: card, filesRoot: filesRoot, now: now, onTap: () => Navigator.of(context).push(itemRoute(card.id))),
+            child: FolderItemCard(card: card, filesRoot: filesRoot, now: now, onTap: () => openItem(context, card.id)),
           ),
       ],
     );

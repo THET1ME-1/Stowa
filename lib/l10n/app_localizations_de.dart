@@ -4431,4 +4431,7 @@ class LDe extends L {
 
   @override
   String get itemWriteMore => 'Text ergänzen…';
+
+  @override
+  String get graphLoading => 'Verknüpfungen werden gelegt…';
 }

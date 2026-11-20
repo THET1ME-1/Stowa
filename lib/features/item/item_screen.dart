@@ -77,6 +77,22 @@ import '../workspace/workspace_shell.dart' show WorkspaceScope;
 /// открытая уведомлением или ссылкой — въезжает справа.
 Route<void> itemRoute(String id) => MaterialPageRoute(builder: (_) => ItemScreen(id: id));
 
+/// Открыть заметку. На компьютере — своей вкладкой рабочего пространства: экран поверх
+/// вкладки был бы тупиком, кнопки «назад» там нет. На телефоне — экраном.
+Future<void> openItem(BuildContext context, String id) async {
+  final workspace = WorkspaceScope.maybeOf(context);
+  if (workspace != null) return workspace.open(WsTab.item(id));
+  await Navigator.of(context).push(itemRoute(id));
+}
+
+/// То же, что [openItem], но куда открывать, запоминается сейчас: открыть можно и после
+/// ожидания, когда спросивший экран уже закрылся.
+void Function(String id) itemOpener(BuildContext context) {
+  final workspace = WorkspaceScope.maybeOf(context);
+  final navigator = Navigator.of(context);
+  return (id) => workspace != null ? workspace.open(WsTab.item(id)) : navigator.push(itemRoute(id)).ignore();
+}
+
 /// Пауза в наборе, после которой правка сохраняется сама.
 const _autosaveDelay = Duration(milliseconds: 700);
 
@@ -559,10 +575,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   Future<void> _shoppingList(Item item, List<String> ingredients) async {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
+    final open = itemOpener(context);
     final text = '${l.shoppingFor(item.title)}\n${[for (final ingredient in ingredients) '- [ ] $ingredient'].join('\n')}';
     final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text, detectReminder: false));
-    showUndo(messenger, message: l.shoppingReady, label: l.actionOpen, onUndo: () => navigator.push(itemRoute(id)), overDock: true);
+    showUndo(messenger, message: l.shoppingReady, label: l.actionOpen, onUndo: () => open(id), overDock: true);
   }
 
   /// Фото в правке встают в текст на место курсора строками `![[имя]]`, как в Obsidian.
@@ -612,7 +628,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       if (target == null) {
         // как в Obsidian: ссылка на то, чего ещё нет, заводит заметку
         final l = L.of(context);
-        final navigator = Navigator.of(context);
+        final open = itemOpener(context);
         showUndo(
           messenger,
           message: l.linkMissing(title),
@@ -620,12 +636,12 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
           overDock: true,
           onUndo: () async {
             final id = await _createNote(title);
-            if (mounted) await navigator.push(itemRoute(id));
+            if (mounted) open(id);
           },
         );
         return;
       }
-      await Navigator.of(context).push(itemRoute(target));
+      await openItem(context, target);
       return;
     }
     final message = L.of(context).linkOpenFailed;
@@ -1295,7 +1311,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                         // описание от ИИ нужно поиску; читать его стоит только у картинки, у заметки оно пересказ её же текста
                         if (images.isNotEmpty && item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
                         for (final file in files) FileTile(file: file, filesRoot: filesRoot),
-                        if (!_editing) RelatedBlock(itemId: _id, onOpen: (id) => Navigator.of(context).push(itemRoute(id))),
+                        if (!_editing) RelatedBlock(itemId: _id, onOpen: (id) => openItem(context, id)),
                       ],
                     ),
                     // на телефоне панель плавает внизу; на широком экране низ у общей строки — панель под шапкой
@@ -1735,7 +1751,7 @@ class _RepeatLine extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.of(context).push(itemRoute(repeat.id)),
+        onTap: () => openItem(context, repeat.id),
         child: Row(
           children: [
             Icon(symbolIcon('content_copy'), size: 17, color: Tokens.accent),

@@ -15,7 +15,7 @@ import '../../domain/base_filter_rows.dart';
 import '../../domain/obsidian_base.dart';
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
-import '../item/item_screen.dart' show itemRoute;
+import '../item/item_screen.dart' show openItem;
 import '../item/properties_block.dart' show editProperty;
 import 'base_filter_sheet.dart';
 import 'base_sheets.dart';
@@ -118,7 +118,7 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
     final actions = BaseViewActions(
       label: label,
       show: (note, property) => formatBaseValue(l, read(note, property), property),
-      open: (note) => Navigator.of(context).push(itemRoute(note.id)),
+      open: (note) => openItem(context, note.id),
       editCell: _editCell,
       columnMenu: (property) => _columnMenu(base, index, property, label),
       resize: (property, width) => _edit((editor) => editor.setColumnSize(index, property, width)),
@@ -504,7 +504,7 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
     for (final tag in defaults.tags) {
       await ref.read(tagsRepositoryProvider).link(id, tag);
     }
-    if (mounted) await Navigator.of(context).push(itemRoute(id));
+    if (mounted) await openItem(context, id);
   }
 
   /// Карточку доски перенесли: новое значение свойства или папка.

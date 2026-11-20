@@ -375,7 +375,7 @@ class _NoteRow extends ConsumerWidget {
     final now = ref.read(clockProvider)();
     final date = card.createdAt.year == now.year ? DateFormat.MMMd(l.localeName).format(card.createdAt) : DateFormat.yMMMd(l.localeName).format(card.createdAt);
     return InkWell(
-      onTap: () => Navigator.of(context).push(itemRoute(card.id)),
+      onTap: () => openItem(context, card.id),
       onLongPress: () => showItemActions(context, ref, card),
       child: SizedBox(
         height: _noteRow,

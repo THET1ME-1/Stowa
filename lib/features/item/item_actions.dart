@@ -66,7 +66,7 @@ Future<void> moveItemById(BuildContext context, WidgetRef ref, {required String 
 Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
-  final navigator = Navigator.of(context);
+  final open = itemOpener(context);
   final noticed = await ref.read(itemsRepositoryProvider).isNoticed(card.id);
   if (!context.mounted) return;
   final action = await showOptionsSheet<_Action>(
@@ -85,7 +85,7 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
   final now = ref.read(clockProvider)();
   switch (action) {
     case _Action.open:
-      await navigator.push(itemRoute(card.id));
+      open(card.id);
     case _Action.pin:
       await togglePinned(context, ref, id: card.id, pinned: card.pinned);
     case _Action.notice:

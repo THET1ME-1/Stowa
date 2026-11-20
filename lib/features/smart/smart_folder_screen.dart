@@ -12,7 +12,7 @@ import '../../domain/money.dart' show formatTotal;
 import '../../l10n/app_localizations.dart';
 import '../folder/folder_cards.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
-import '../item/item_screen.dart' show itemRoute;
+import '../item/item_screen.dart' show openItem;
 
 Route<void> smartFolderRoute(String id) => MaterialPageRoute(builder: (_) => SmartFolderScreen(id: id));
 
@@ -130,7 +130,7 @@ class SmartFolderScreen extends ConsumerWidget {
                 itemCount: cards.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) =>
-                    FolderItemCard(card: cards[index], filesRoot: filesRoot, now: now, onTap: () => Navigator.of(context).push(itemRoute(cards[index].id))),
+                    FolderItemCard(card: cards[index], filesRoot: filesRoot, now: now, onTap: () => openItem(context, cards[index].id)),
               ),
             ),
           ],

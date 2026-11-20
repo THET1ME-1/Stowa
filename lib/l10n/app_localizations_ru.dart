@@ -4482,4 +4482,7 @@ class LRu extends L {
 
   @override
   String get itemWriteMore => 'Дописать текст…';
+
+  @override
+  String get graphLoading => 'Раскладываю связи…';
 }

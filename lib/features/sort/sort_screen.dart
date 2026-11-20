@@ -166,7 +166,7 @@ class _SortScreenState extends ConsumerState<SortScreen> {
                                     ),
                                   SizedBox(
                                     width: double.infinity,
-                                    child: FolderItemCard(card: card, filesRoot: filesRoot, now: now, onTap: () => Navigator.of(context).push(itemRoute(card.id))),
+                                    child: FolderItemCard(card: card, filesRoot: filesRoot, now: now, onTap: () => openItem(context, card.id)),
                                   ),
                                 ],
                               ),

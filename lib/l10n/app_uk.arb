@@ -955,5 +955,6 @@
   "itemPropCreated": "Створено",
   "itemPropTaken": "Знято",
   "itemPropLinks": "Зв’язки",
-  "itemWriteMore": "Дописати текст…"
+  "itemWriteMore": "Дописати текст…",
+  "graphLoading": "Розкладаю зв’язки…"
 }

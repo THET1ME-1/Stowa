@@ -25,7 +25,7 @@ import '../../domain/note_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
-import '../item/item_screen.dart' show itemRoute;
+import '../item/item_screen.dart' show openItem;
 import '../item/link_sheet.dart';
 import '../../services/capture_service.dart';
 import 'canvas_kit.dart';
@@ -564,7 +564,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     final file = node.file;
     if (file == null) return;
     final id = await ref.read(documentsRepositoryProvider).itemAt(file);
-    if (id != null && mounted) await Navigator.of(context).push(itemRoute(id));
+    if (id != null && mounted) await openItem(context, id);
   }
 
   Future<void> _color({CanvasNode? node, CanvasEdge? edge}) async {
@@ -998,7 +998,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
           ),
           if (ownLine)
             Positioned.fill(
-              child: LineDock(key: _dock, onOpenItem: (id) => Navigator.of(context).push(itemRoute(id)), onSaved: (ids) => _placeSaved(ids).ignore()),
+              child: LineDock(key: _dock, onOpenItem: (id) => openItem(context, id), onSaved: (ids) => _placeSaved(ids).ignore()),
             ),
         ],
       ),

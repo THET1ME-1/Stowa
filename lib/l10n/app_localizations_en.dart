@@ -4405,4 +4405,7 @@ class LEn extends L {
 
   @override
   String get itemWriteMore => 'Add some text…';
+
+  @override
+  String get graphLoading => 'Laying out the links…';
 }

@@ -955,5 +955,6 @@
   "itemPropCreated": "Erstellt",
   "itemPropTaken": "Aufgenommen",
   "itemPropLinks": "Verknüpfungen",
-  "itemWriteMore": "Text ergänzen…"
+  "itemWriteMore": "Text ergänzen…",
+  "graphLoading": "Verknüpfungen werden gelegt…"
 }

@@ -102,7 +102,7 @@ class _DeadLinksScreenState extends ConsumerState<DeadLinksScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _DeadRow(
                   card: card,
-                  onOpen: () => Navigator.of(context).push(itemRoute(card.id)),
+                  onOpen: () => openItem(context, card.id),
                   onKeep: () => ref.read(itemsRepositoryProvider).keepDeadLink(card.id),
                   onDelete: () => _delete(card),
                 ),

@@ -1238,5 +1238,6 @@
   "itemPropCreated": "Создана",
   "itemPropTaken": "Снято",
   "itemPropLinks": "Связи",
-  "itemWriteMore": "Дописать текст…"
+  "itemWriteMore": "Дописать текст…",
+  "graphLoading": "Раскладываю связи…"
 }
