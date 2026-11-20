@@ -50,6 +50,20 @@ void main() {
     expect(find.byKey(const ValueKey('desk-sheet')), findsNothing);
   });
 
+  testWidgets('монитор: окно из окна — тоже окно («Переложить» → «Новая папка»)', (tester) async {
+    await note();
+    await show(tester, const Size(1600, 960));
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('desk-bar')), matching: find.byTooltip('Переложить в папку')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('desk-sheet')), findsOneWidget);
+    await tester.tap(find.text('Новая папка'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing, reason: 'вложенный выбор не выезжает шторкой снизу');
+    expect(find.byKey(const ValueKey('desk-sheet')), findsWidgets);
+  });
+
   testWidgets('телефон: меню заметки — шторка снизу, как было', (tester) async {
     await note();
     await show(tester, const Size(400, 900));

@@ -52,6 +52,38 @@ void main() {
     expect(shell.workspace.panes.expand((pane) => pane.tabs).map((tab) => tab.key), contains('folder:dom'));
   });
 
+  testWidgets('монитор, правка: «Готово» в верхней строке, под ней одна тонкая полоса разметки', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Схема курсовой', body: const Value('Схема курсовой\nвведение'), createdAt: world.now, updatedAt: world.now),
+    );
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    final bar = find.byKey(const ValueKey('desk-bar'));
+    await tester.tap(find.descendant(of: bar, matching: find.byTooltip('Править')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('edit-dock')), findsNothing, reason: 'телефонной панели правки нет');
+    final done = find.descendant(of: bar, matching: find.text('Готово'));
+    expect(tester.getRect(done).height, lessThanOrEqualTo(40));
+    final strip = tester.getRect(find.byKey(const ValueKey('desk-edit-bar')));
+    expect(strip.height, lessThanOrEqualTo(56));
+    expect(strip.width, lessThanOrEqualTo(772));
+    for (final tip in ['Жирный', 'Отменить', 'Фото']) {
+      expect(find.descendant(of: find.byKey(const ValueKey('desk-edit-bar')), matching: find.byTooltip(tip)), findsOneWidget, reason: tip);
+    }
+
+    await tester.tap(done);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('desk-edit-bar')), findsNothing);
+    expect(find.descendant(of: bar, matching: find.text('Дописать')), findsOneWidget);
+  });
+
   testWidgets('широкий экран: панель заметки под шапкой, низ у общей строки, текст колонкой', (tester) async {
     await world.db.into(world.db.items).insert(
       ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Схема курсовой работы', body: const Value('Схема курсовой работы'), createdAt: world.now, updatedAt: world.now),

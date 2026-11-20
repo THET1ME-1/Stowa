@@ -930,10 +930,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                       ],
                       _DeskAction(icon: 'more_vert', tooltip: l.itemMore, onTap: () => _menu(item)),
                     ],
-                    // в правке главное действие — «Готово» в полосе правки ниже
-                    accentIcon: _editing ? null : (videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add')),
-                    accentLabel: _editing ? null : (videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend)),
-                    onAccent: _editing ? null : (linkLike || videoFile != null ? openMain : () => _startEditing(item, append: true)),
+                    // в правке главное действие — «Готово» на том же месте
+                    accentIcon: _editing ? 'check' : (videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add')),
+                    accentLabel: _editing ? l.itemEditDone : (videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend)),
+                    onAccent: _editing ? _finish : (linkLike || videoFile != null ? openMain : () => _startEditing(item, append: true)),
                   ),
                 )
               else
@@ -947,11 +947,22 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                   onEdit: () => _startEditing(item),
                   onMore: () => _menu(item),
                 ),
-              // на мониторе в правке — полоса разметки и «Готово» под строкой; в чтении панели нет
+              // на мониторе в правке — одна тонкая полоса разметки под строкой; в чтении панели нет
               if (desk && _editing)
                 Padding(
                   padding: EdgeInsets.fromLTRB(side, 4, side, 8),
-                  child: dock,
+                  child: Container(
+                    key: const ValueKey('desk-edit-bar'),
+                    padding: const EdgeInsets.only(left: 4, right: 4),
+                    decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(14)),
+                    child: Row(
+                      children: [
+                        Expanded(child: MarkdownBar(onAction: _markdown, undo: _undo, field: _body)),
+                        SizedBox(height: 22, child: VerticalDivider(width: 9, thickness: 1, color: Tokens.outline)),
+                        _DeskIcon(action: _DeskAction(icon: 'add_photo_alternate', tooltip: l.itemAddPhoto, onTap: _addPhotos)),
+                      ],
+                    ),
+                  ),
                 ),
               Expanded(
                 child: Stack(

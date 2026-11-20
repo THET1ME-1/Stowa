@@ -42,7 +42,9 @@ Future<T?> showStowaSheet<T>(
                 color: backgroundColor ?? Tokens.containerHigh,
                 borderRadius: BorderRadius.circular(Radii.card),
                 clipBehavior: Clip.antiAlias,
-                child: Padding(padding: const EdgeInsets.only(top: 12, bottom: 4), child: builder(dialog)),
+                // окно живёт над оболочкой: признак монитора передаётся заново, иначе выбор из окна
+                // («Переложить» → «Новая папка») выехал бы шторкой снизу
+                child: Padding(padding: const EdgeInsets.only(top: 12, bottom: 4), child: DeskMode(child: Builder(builder: builder))),
               ),
             ),
           ),
