@@ -725,7 +725,17 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
           ? (when != null ? l.savedIntoRemind(folder.name, when) : l.savedInto(folder.name))
           : (when != null ? l.savedWithReminder(when) : l.savedToast);
       _clearLine();
-      _deactivate();
+      // на компьютере курсор остаётся в строке: следующую мысль пишут сразу, как в
+      // мессенджере. На телефоне строка сворачивается и прячет клавиатуру
+      if (DeskMode.of(context)) {
+        setState(() {
+          _tray = false;
+          _full = false;
+        });
+        _focus.requestFocus();
+      } else {
+        _deactivate();
+      }
       _showToast(
         'check',
         message,

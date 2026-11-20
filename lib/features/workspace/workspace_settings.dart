@@ -60,11 +60,15 @@ class WorkspaceSettings extends ConsumerWidget {
     ];
     final current = sections.where((one) => one.id == section).firstOrNull ?? sections.first;
     void pick(String id) => controller.update((ws) => ws.open(WsTab.settings(id)));
+    // раздел сменяется, как вкладка: новый проявляется и поднимается на место
     final content = AnimatedSwitcher(
       duration: Motion.medium,
-      switchInCurve: Motion.emphasized,
-      switchOutCurve: Motion.emphasized,
-      transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+      switchInCurve: Motion.emphasizedDecelerate,
+      switchOutCurve: Motion.emphasizedAccelerate,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(position: Tween(begin: const Offset(0, 0.012), end: Offset.zero).animate(animation), child: child),
+      ),
       child: KeyedSubtree(key: ValueKey(current.id), child: _content(current, l)),
     );
     return LayoutBuilder(
@@ -107,9 +111,13 @@ class WorkspaceSettings extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760), child: content),
+              child: Padding(
+                // заголовок раздела не жмётся к вкладкам
+                padding: const EdgeInsets.only(top: 16),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760), child: content),
+                ),
               ),
             ),
           ],

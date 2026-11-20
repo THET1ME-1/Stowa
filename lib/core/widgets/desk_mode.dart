@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/motion.dart';
 import '../theme/tokens.dart';
 
 /// Под этим виджетом — рабочее пространство на мониторе. Его ставит оболочка: ширина окна
@@ -26,10 +27,30 @@ Future<T?> showStowaSheet<T>(
   double? maxHeightFactor = 0.75,
 }) {
   if (DeskMode.of(context)) {
-    return showDialog<T>(
+    // окно опускается на место с 10 точек выше, чуть вырастая и проявляясь, как в макете;
+    // закрывается быстрее, чем открывается
+    return showGeneralDialog<T>(
       context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Tokens.palette.isDark ? const Color(0xB80C0D0E) : const Color(0x6B1B1C1E),
-      builder: (dialog) {
+      transitionDuration: const Duration(milliseconds: 280),
+      transitionBuilder: (context, animation, _, child) {
+        if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return FadeTransition(opacity: animation, child: child);
+        final drop = CurvedAnimation(parent: animation, curve: Motion.emphasizedDecelerate, reverseCurve: Motion.emphasizedAccelerate);
+        return FadeTransition(
+          opacity: drop,
+          child: AnimatedBuilder(
+            animation: drop,
+            child: child,
+            builder: (context, child) => Transform.translate(
+              offset: Offset(0, -10 * (1 - drop.value)),
+              child: Transform.scale(scale: 0.98 + 0.02 * drop.value, alignment: Alignment.topCenter, child: child),
+            ),
+          ),
+        );
+      },
+      pageBuilder: (dialog, _, _) {
         final height = MediaQuery.sizeOf(dialog).height;
         return Align(
           alignment: Alignment.topCenter,

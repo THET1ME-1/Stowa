@@ -168,6 +168,32 @@ void main() {
     expect(find.byType(ItemScreen), findsOneWidget);
   }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
+  // 21.11 проход по сайту новичком: записал заметку, начал печатать вторую — а курсор уже
+  // ушёл из строки, и набранное пропало
+  testWidgets('широкий экран: после «Закинуть» курсор остаётся в строке, вторая заметка пишется сразу', (tester) async {
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await open(tester);
+    final line = find.byType(LineDock);
+    await tester.tap(find.descendant(of: line, matching: find.textContaining('Закинь')).first, kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    final field = find.descendant(of: line, matching: find.byType(TextField));
+    await tester.enterText(field, 'Купить молоко');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Закинуть').last, kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue, reason: 'курсор остался в строке');
+
+    await tester.enterText(field, 'Позвонить маме');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Закинуть').hitTestable().last, kind: PointerDeviceKind.mouse);
+    await tester.pumpAndSettle();
+    expect((await world.db.select(world.db.items).get()).map((item) => item.title), containsAll(['Купить молоко', 'Позвонить маме']));
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
+
   testWidgets('новая мысль: строка «Закинуть» с причиной и напоминанием, сохраняет и чистит', (tester) async {
     await open(tester);
     await type(tester, '23 декабря 13:00 зубной');

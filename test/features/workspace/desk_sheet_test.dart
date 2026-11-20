@@ -50,6 +50,28 @@ void main() {
     expect(find.byKey(const ValueKey('desk-sheet')), findsNothing);
   });
 
+  // хозяин 20.11: «уникальные приятные анимации, отклики и переходы». Окно как в макете:
+  // проявляется, опускаясь на место сверху, а не возникает
+  testWidgets('монитор: окно опускается на место и проявляется', (tester) async {
+    await note();
+    await show(tester, const Size(1600, 960));
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('desk-bar')), matching: find.byTooltip('Ещё')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    final midway = tester.getRect(find.byKey(const ValueKey('desk-sheet'))).top;
+    var opacity = 1.0;
+    for (final fade in tester.widgetList<FadeTransition>(find.ancestor(of: find.byKey(const ValueKey('desk-sheet')), matching: find.byType(FadeTransition)))) {
+      opacity *= fade.opacity.value;
+    }
+    expect(opacity, inExclusiveRange(0, 1), reason: 'проявляется');
+    await tester.pumpAndSettle();
+    final settled = tester.getRect(find.byKey(const ValueKey('desk-sheet'))).top;
+    expect(midway, lessThan(settled), reason: 'опускается сверху');
+    expect(settled - midway, lessThanOrEqualTo(10));
+  });
+
   testWidgets('монитор: окно из окна — тоже окно («Переложить» → «Новая папка»)', (tester) async {
     await note();
     await show(tester, const Size(1600, 960));
