@@ -811,6 +811,16 @@ class _Excerpt extends StatelessWidget {
         final hidden = painter.computeLineMetrics().length - shown;
         final line = painter.preferredLineHeight;
         painter.dispose();
+        final more = l.homeMoreLines(hidden);
+        final moreStyle = Theme.of(context).textTheme.labelMedium!.copyWith(color: Tokens.muted);
+        // подложка под подписью сплошная во всю её ширину и плавно уходит влево на 48 точек:
+        // текст строки не просвечивает сквозь «ещё N строк» даже на узкой карточке
+        final label = TextPainter(text: TextSpan(text: more, style: moreStyle), textDirection: Directionality.of(context), textScaler: MediaQuery.textScalerOf(context), maxLines: 1)
+          ..layout();
+        final solid = label.width + 6;
+        label.dispose();
+        const blend = 48.0;
+        final width = math.min(box.maxWidth, solid + blend);
         return Stack(
           children: [
             KeyedSubtree(key: ValueKey('excerpt-$id'), child: MarkedText.note(markdown, maxLines: shown, overflow: TextOverflow.clip, style: style)),
@@ -820,15 +830,12 @@ class _Excerpt extends StatelessWidget {
                 right: 0,
                 bottom: 0,
                 height: line,
-                width: math.min(box.maxWidth * 0.6, 220),
+                width: width,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [fill.withValues(alpha: 0), fill, fill], stops: const [0, 0.42, 1]),
+                    gradient: LinearGradient(colors: [fill.withValues(alpha: 0), fill, fill], stops: [0, math.max(0, 1 - solid / width), 1]),
                   ),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(l.homeMoreLines(hidden), maxLines: 1, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: Tokens.muted)),
-                  ),
+                  child: Align(alignment: Alignment.centerRight, child: Text(more, maxLines: 1, style: moreStyle)),
                 ),
               ),
           ],

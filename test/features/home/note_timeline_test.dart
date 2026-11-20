@@ -105,6 +105,12 @@ void main() {
       expect(excerpt.maxLines, 2);
       expect(find.byKey(const ValueKey('excerpt-fade-long')), findsOneWidget);
       expect(find.textContaining(RegExp(r'^ещё \d+ строк')), findsOneWidget);
+      // 21.11 на College: «брезгливо о ещё 16 строк» — текст просвечивал сквозь подпись
+      final fade = tester.getRect(find.byKey(const ValueKey('excerpt-fade-long')));
+      final box = tester.widget<DecoratedBox>(find.descendant(of: find.byKey(const ValueKey('excerpt-fade-long')), matching: find.byType(DecoratedBox)).first);
+      final stops = ((box.decoration as BoxDecoration).gradient! as LinearGradient).stops!;
+      final label = tester.getRect(find.textContaining(RegExp(r'^ещё \d+ строк')));
+      expect(fade.left + fade.width * stops[1], lessThanOrEqualTo(label.left + 0.5), reason: 'подпись целиком на сплошной подложке');
       // карточка невысокая: заголовок и две строки
       expect(cardOf(tester, 'long').height, lessThan(200));
     });
