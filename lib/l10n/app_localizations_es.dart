@@ -4347,4 +4347,19 @@ class LEs extends L {
 
   @override
   String get backupAdd => 'Añadir';
+
+  @override
+  String get copyNudgeFirst =>
+      'Tus notas están solo en este navegador: guarda una copia para no perderlas.';
+
+  @override
+  String get copyNudgeStale =>
+      'La copia de tus notas está desactualizada: guarda una nueva.';
+
+  @override
+  String get copyNudgeLater => 'Más tarde';
+
+  @override
+  String get storageWeak =>
+      'El navegador no dio un almacenamiento fiable: tus notas pueden perderse al cerrar la pestaña.';
 }

@@ -1001,6 +1001,19 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     return (_db.update(_db.items)..where((t) => t.id.equals(id))).write(const ItemsCompanion(deletedAt: Value(null)));
   }
 
+  /// Для напоминания о резервной копии: сколько заметок в хранилище и сколько из них
+  /// правили после [since] — времени последней копии. Копии ещё не было — правлены все.
+  Future<({int notes, int editedSince})> copyCounts(DateTime? since) async {
+    final row = await _db
+        .customSelect(
+          'SELECT count(*) AS notes, coalesce(sum(CASE WHEN ?1 IS NULL OR updated_at > ?1 THEN 1 ELSE 0 END), 0) AS edited '
+          'FROM items WHERE deleted_at IS NULL',
+          variables: [since == null ? const Variable<DateTime>(null) : Variable.withDateTime(since)],
+        )
+        .getSingle();
+    return (notes: row.read<int>('notes'), editedSince: row.read<int>('edited'));
+  }
+
   // слово, которого нет ни в одной заметке: поиск по нему проходит весь путь и ничего не находит
   static const _warmWord = 'ъъъъъъ';
 

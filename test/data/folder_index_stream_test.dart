@@ -100,6 +100,16 @@ void main() {
     expect(repository.folderMemory.size, 2);
   });
 
+  test('для напоминания о копии: сколько заметок всего и сколько правили после копии', () async {
+    // корзина не в счёт; без даты копии правлеными считаются все
+    await (db.update(db.items)..where((t) => t.id.equals('d'))).write(ItemsCompanion(deletedAt: Value(now)));
+    expect(await repository.copyCounts(null), (notes: 3, editedSince: 3));
+    final copied = now.add(const Duration(hours: 1));
+    expect(await repository.copyCounts(copied), (notes: 3, editedSince: 0));
+    await (db.update(db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(updatedAt: Value(copied.add(const Duration(minutes: 5)))));
+    expect(await repository.copyCounts(copied), (notes: 3, editedSince: 1));
+  });
+
   test('поток отдаёт угадыватель при подписке и новый — после правки заметок', () async {
     final seen = <FolderIndex>[];
     final sub = repository.watchFolderIndex().listen(seen.add);

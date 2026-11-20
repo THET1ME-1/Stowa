@@ -4407,4 +4407,18 @@ class LPl extends L {
 
   @override
   String get backupAdd => 'Dodaj';
+
+  @override
+  String get copyNudgeFirst =>
+      'Notatki są tylko w tej przeglądarce: zapisz kopię, żeby ich nie stracić.';
+
+  @override
+  String get copyNudgeStale => 'Kopia notatek jest nieaktualna: zapisz nową.';
+
+  @override
+  String get copyNudgeLater => 'Później';
+
+  @override
+  String get storageWeak =>
+      'Przeglądarka nie dała trwałego magazynu: notatki mogą zniknąć po zamknięciu karty.';
 }

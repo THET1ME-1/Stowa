@@ -5189,5 +5189,21 @@
   "backupAdd": "Add",
   "@backupAdd": {
     "description": "Кнопка согласия на восстановление копии без снимка базы: заметки копии добавляются к нынешним"
+  },
+  "copyNudgeFirst": "Your notes live only in this browser: save a copy so you don't lose them.",
+  "@copyNudgeFirst": {
+    "description": "Плашка на главной в браузере, пока человек ни разу не сохранял резервную копию. Одно предложение"
+  },
+  "copyNudgeStale": "Your copy of the notes is out of date: save a fresh one.",
+  "@copyNudgeStale": {
+    "description": "Плашка на главной в браузере, когда с последней резервной копии прошла неделя или набралось много правок"
+  },
+  "copyNudgeLater": "Later",
+  "@copyNudgeLater": {
+    "description": "Кнопка плашки о резервной копии: отложить напоминание на неделю"
+  },
+  "storageWeak": "The browser gave no reliable storage: your notes may be gone once the tab is closed.",
+  "@storageWeak": {
+    "description": "Плашка на главной в браузере, когда база работает в памяти или в ненадёжном режиме (приватное окно, старый браузер)"
   }
 }

@@ -4413,4 +4413,18 @@ class LRu extends L {
 
   @override
   String get backupAdd => 'Добавить';
+
+  @override
+  String get copyNudgeFirst =>
+      'Заметки лежат только в этом браузере: сохраните копию, чтобы их не потерять.';
+
+  @override
+  String get copyNudgeStale => 'Копия заметок устарела: сохраните свежую.';
+
+  @override
+  String get copyNudgeLater => 'Позже';
+
+  @override
+  String get storageWeak =>
+      'Браузер не дал надёжного хранилища: заметки могут пропасть, когда вкладку закроют.';
 }

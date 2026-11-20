@@ -4362,4 +4362,19 @@ class LDe extends L {
 
   @override
   String get backupAdd => 'Hinzufügen';
+
+  @override
+  String get copyNudgeFirst =>
+      'Deine Notizen liegen nur in diesem Browser: Speichere eine Kopie, damit sie nicht verloren gehen.';
+
+  @override
+  String get copyNudgeStale =>
+      'Die Kopie deiner Notizen ist veraltet: Speichere eine neue.';
+
+  @override
+  String get copyNudgeLater => 'Später';
+
+  @override
+  String get storageWeak =>
+      'Der Browser hat keinen verlässlichen Speicher bereitgestellt: Deine Notizen können beim Schließen des Tabs verschwinden.';
 }

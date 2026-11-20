@@ -35,6 +35,7 @@ import '../item/item_screen.dart';
 import '../tags/tag_sheet.dart';
 import '../map/map_screen.dart';
 import '../settings/settings_screen.dart';
+import '../web/copy_nudge.dart';
 import '../share/share_inbox.dart';
 import '../share/share_receiver.dart';
 import '../../domain/note_blocks.dart';
@@ -482,6 +483,8 @@ class _Feed extends ConsumerWidget {
         const SliverToBoxAdapter(child: ReturnPills()),
         // снаружи пришло много заметок (Syncthing, компьютер): видно, что приложение их забирает
         SliverToBoxAdapter(child: VaultSyncBar(sync: ref.watch(vaultSyncProvider))),
+        // в браузере на узком окне: заметки лежат только в нём, напоминание о копии
+        const SliverToBoxAdapter(child: CopyNudgeHost(padding: EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, 8))),
         // меню долгого нажатия не видно, пока не нажмёшь: сказать, когда заметок уже несколько
         SliverToBoxAdapter(
           child: HintBanner(tip: Tip.longPress, when: recent.length + pinnedNotes.length >= 5, padding: const EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, 8)),

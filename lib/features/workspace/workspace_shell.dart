@@ -25,6 +25,7 @@ import 'workspace_docks.dart';
 import 'workspace_home.dart';
 import 'workspace_keys.dart';
 import 'workspace_model.dart';
+import 'workspace_popups.dart';
 import 'workspace_settings.dart';
 
 /// От этой ширины окна — рабочее пространство, уже — телефонная главная.
@@ -71,11 +72,15 @@ class WorkspaceController extends ChangeNotifier {
     return taken;
   }
 
-  void closeTab(String paneId, int index) => update((ws) {
-    closed.add(ws.pane(paneId).tabs[index]);
-    if (closed.length > 20) closed.removeAt(0);
-    ws.close(paneId, index);
-  });
+  void closeTab(String paneId, int index) {
+    update((ws) {
+      closed.add(ws.pane(paneId).tabs[index]);
+      if (closed.length > 20) closed.removeAt(0);
+      ws.close(paneId, index);
+    });
+    // вкладку могли закрыть вместе с открытым листом: после кадра сверяем, что осталось
+    WidgetsBinding.instance.addPostFrameCallback((_) => popups.settle());
+  }
 
   void reopen() {
     if (closed.isNotEmpty) open(closed.removeLast());
@@ -83,6 +88,9 @@ class WorkspaceController extends ChangeNotifier {
 
   /// Общая строка ввода под всеми окнами.
   Widget? composer;
+
+  /// Нижние листы и диалоги, открытые во вкладках: пока есть хоть один, общая строка уходит.
+  final popups = WorkspacePopups();
 
   /// Курсор в общую строку: Ctrl K, «Найти или записать», поиск на экране папки.
   VoidCallback? find;
@@ -360,7 +368,19 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
                             child: Stack(
                               children: [
                                 Positioned.fill(child: _NodeView(node: ws.root, navigatorFor: _navigatorFor, atBottom: true)),
-                                if (_controller.composer case final composer?) Positioned.fill(child: composer),
+                                // окно вкладки (нижний лист, диалог) открывается под строкой: пока оно
+                                // на экране, строка плавно уходит и не перекрывает его кнопки
+                                if (_controller.composer case final composer?)
+                                  Positioned.fill(
+                                    child: ValueListenableBuilder<bool>(
+                                      valueListenable: _controller.popups.covering,
+                                      builder: (context, covered, line) => IgnorePointer(
+                                        ignoring: covered,
+                                        child: AnimatedOpacity(opacity: covered ? 0 : 1, duration: Motion.medium, curve: Motion.emphasized, child: line),
+                                      ),
+                                      child: composer,
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -727,6 +747,7 @@ class _TabBody extends ConsumerWidget {
     return HeroControllerScope.none(
       child: Navigator(
         key: navigatorKey,
+        observers: [controller.popups.watch()],
         onGenerateInitialRoutes: (navigator, initial) => [
           // первый экран вкладки не въезжает: начальные маршруты навигатор показывает без перехода
           MaterialPageRoute<void>(builder: (context) => _screen(context, controller)),

@@ -935,5 +935,9 @@
   "tabBusyOpenHere": "Otwórz tutaj",
   "tabBusyWaiting": "Tamta karta zamyka notatki…",
   "backupMergeAsk": "Dodać notatki z kopii z {date}? Obecne zostaną, a pliki o tej samej nazwie zostaną zastąpione.",
-  "backupAdd": "Dodaj"
+  "backupAdd": "Dodaj",
+  "copyNudgeFirst": "Notatki są tylko w tej przeglądarce: zapisz kopię, żeby ich nie stracić.",
+  "copyNudgeStale": "Kopia notatek jest nieaktualna: zapisz nową.",
+  "copyNudgeLater": "Później",
+  "storageWeak": "Przeglądarka nie dała trwałego magazynu: notatki mogą zniknąć po zamknięciu karty."
 }

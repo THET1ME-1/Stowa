@@ -935,5 +935,9 @@
   "tabBusyOpenHere": "Hier öffnen",
   "tabBusyWaiting": "Der andere Tab schließt deine Notizen…",
   "backupMergeAsk": "Notizen aus der Kopie vom {date} hinzufügen? Deine jetzigen bleiben, gleichnamige Dateien werden ersetzt.",
-  "backupAdd": "Hinzufügen"
+  "backupAdd": "Hinzufügen",
+  "copyNudgeFirst": "Deine Notizen liegen nur in diesem Browser: Speichere eine Kopie, damit sie nicht verloren gehen.",
+  "copyNudgeStale": "Die Kopie deiner Notizen ist veraltet: Speichere eine neue.",
+  "copyNudgeLater": "Später",
+  "storageWeak": "Der Browser hat keinen verlässlichen Speicher bereitgestellt: Deine Notizen können beim Schließen des Tabs verschwinden."
 }

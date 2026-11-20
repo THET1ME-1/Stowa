@@ -4336,4 +4336,19 @@ class LEn extends L {
 
   @override
   String get backupAdd => 'Add';
+
+  @override
+  String get copyNudgeFirst =>
+      'Your notes live only in this browser: save a copy so you don\'t lose them.';
+
+  @override
+  String get copyNudgeStale =>
+      'Your copy of the notes is out of date: save a fresh one.';
+
+  @override
+  String get copyNudgeLater => 'Later';
+
+  @override
+  String get storageWeak =>
+      'The browser gave no reliable storage: your notes may be gone once the tab is closed.';
 }

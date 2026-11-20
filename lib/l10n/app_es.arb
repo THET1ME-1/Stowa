@@ -935,5 +935,9 @@
   "tabBusyOpenHere": "Abrir aquí",
   "tabBusyWaiting": "La otra pestaña está cerrando tus notas…",
   "backupMergeAsk": "¿Añadir las notas de la copia del {date}? Las actuales se quedan y los archivos con el mismo nombre se reemplazan.",
-  "backupAdd": "Añadir"
+  "backupAdd": "Añadir",
+  "copyNudgeFirst": "Tus notas están solo en este navegador: guarda una copia para no perderlas.",
+  "copyNudgeStale": "La copia de tus notas está desactualizada: guarda una nueva.",
+  "copyNudgeLater": "Más tarde",
+  "storageWeak": "El navegador no dio un almacenamiento fiable: tus notas pueden perderse al cerrar la pestaña."
 }

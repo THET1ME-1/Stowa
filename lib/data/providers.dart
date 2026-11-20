@@ -13,10 +13,11 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
-import '../core/platform.dart' show aside;
+import '../core/platform.dart' show aside, isWeb;
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
+import '../domain/backup_nudge.dart';
 import '../domain/hints.dart';
 import '../domain/known_vaults.dart' show VaultList;
 import '../domain/models.dart' show FactKind;
@@ -53,6 +54,7 @@ import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
 import '../services/widget_snapshot.dart';
 import 'db/database.dart';
+import 'recompute.dart';
 import 'repositories/canvas_repository.dart';
 import 'repositories/documents_repository.dart';
 import 'repositories/folder_suggestions.dart';
@@ -827,6 +829,35 @@ final recentItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryPro
 final pinnedItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryProvider).watchPinned());
 
 /// Сколько всего живых заметок: подпись под именем приложения на главной.
+/// Заметки лежат только в браузере (личная папка сайта). На телефоне и компьютере они в
+/// папке человека, и напоминать о копии там незачем. Тесты подменяют.
+final storedInBrowserProvider = Provider((ref) => isWeb);
+
+final copyReminderProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchCopyReminder());
+
+/// Пора ли напомнить о резервной копии: копии ещё не было, или она устарела.
+final copyNudgeProvider = StreamProvider<BackupNudge>((ref) {
+  if (!ref.watch(storedInBrowserProvider)) return Stream.value(BackupNudge.none);
+  final reminder = ref.watch(copyReminderProvider).value;
+  if (reminder == null) return const Stream.empty();
+  final db = ref.watch(databaseProvider);
+  final items = ref.watch(itemsRepositoryProvider);
+  final clock = ref.watch(clockProvider);
+  return recomputeOn(db.changesOf([db.items]), () async {
+    final counts = await items.copyCounts(reminder.lastCopy);
+    return backupNudge(now: clock(), notes: counts.notes, editedSince: counts.editedSince, lastCopy: reminder.lastCopy, snoozedUntil: reminder.snoozedUntil);
+  });
+});
+
+/// База в браузере работает в памяти или в ненадёжном режиме: приватное окно, старый
+/// браузер, сайт без нужных заголовков. Режим известен, когда база открылась.
+final storageWeakProvider = FutureProvider<bool>((ref) async {
+  if (!ref.watch(storedInBrowserProvider)) return false;
+  await ref.watch(databaseProvider).customSelect('SELECT 1').get();
+  final mode = AppDatabase.webDatabaseMode;
+  return mode != null && !mode.startsWith('opfs');
+});
+
 final notesCountProvider = StreamProvider((ref) {
   final db = ref.watch(databaseProvider);
   return db.customSelect('SELECT count(*) AS n FROM items WHERE deleted_at IS NULL', readsFrom: {db.items}).watchSingle().map((row) => row.read<int>('n'));

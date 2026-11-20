@@ -104,7 +104,7 @@ class StorageScreen extends ConsumerWidget {
             SettingsGroup(
               tint: settingsTint('blue'),
               children: [
-                SettingsRow(icon: 'backup', title: l.backupSave, onTap: () => _saveBackup(context, ref)),
+                SettingsRow(icon: 'backup', title: l.backupSave, onTap: () => saveBackup(context, ref)),
                 SettingsRow(icon: 'file_export', title: l.markdownExport, onTap: () => exportMarkdownFlow(context, ref)),
                 SettingsRow(icon: 'settings_backup_restore', title: l.backupRestore, onTap: () => _restoreBackup(context, ref)),
                 SettingsRow(icon: 'manage_search', title: l.vaultRebuild, onTap: () => rebuildIndex(context, ref)),
@@ -403,7 +403,9 @@ class _PaidPill extends StatelessWidget {
 }
 
 /// Копия собирается во временную папку и уходит через «Поделиться»: в Диск, Telegram, на компьютер.
-Future<void> _saveBackup(BuildContext context, WidgetRef ref) async {
+/// В браузере — скачивается файлом. Сохранённую копию запоминают настройки: от неё
+/// считается напоминание «сохраните копию».
+Future<void> saveBackup(BuildContext context, WidgetRef ref) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final box = context.findRenderObject() as RenderBox?;
@@ -414,7 +416,9 @@ Future<void> _saveBackup(BuildContext context, WidgetRef ref) async {
       // в браузере копия — файлы хранилища без снимка базы: уходит браузеру кусками и скачивается файлом
       final download = startDownload();
       await ref.read(backupServiceProvider).exportFiles(ZipStreamWriter(download.add));
-      download.save('Stowa-${ref.read(clockProvider)().toIso8601String().substring(0, 10)}.zip');
+      final now = ref.read(clockProvider)();
+      download.save('Stowa-${now.toIso8601String().substring(0, 10)}.zip');
+      await ref.read(settingsRepositoryProvider).copySaved(now);
       return;
     }
     final zip = await ref.read(backupServiceProvider).export(await getTemporaryDirectory());

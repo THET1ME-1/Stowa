@@ -935,5 +935,9 @@
   "tabBusyOpenHere": "Deschide aici",
   "tabBusyWaiting": "Cealaltă filă închide notițele…",
   "backupMergeAsk": "Adaugi notițele din copia din {date}? Cele de acum rămân, iar fișierele cu același nume sunt înlocuite.",
-  "backupAdd": "Adaugă"
+  "backupAdd": "Adaugă",
+  "copyNudgeFirst": "Notițele sunt doar în acest browser: salvează o copie ca să nu le pierzi.",
+  "copyNudgeStale": "Copia notițelor este veche: salvează una nouă.",
+  "copyNudgeLater": "Mai târziu",
+  "storageWeak": "Browserul nu a oferit o stocare sigură: notițele pot dispărea la închiderea filei."
 }

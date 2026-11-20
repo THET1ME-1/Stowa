@@ -4402,4 +4402,18 @@ class LUk extends L {
 
   @override
   String get backupAdd => 'Додати';
+
+  @override
+  String get copyNudgeFirst =>
+      'Нотатки лежать лише в цьому браузері: збережіть копію, щоб їх не втратити.';
+
+  @override
+  String get copyNudgeStale => 'Копія нотаток застаріла: збережіть свіжу.';
+
+  @override
+  String get copyNudgeLater => 'Пізніше';
+
+  @override
+  String get storageWeak =>
+      'Браузер не дав надійного сховища: нотатки можуть зникнути, коли вкладку закриють.';
 }

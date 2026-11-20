@@ -4375,4 +4375,18 @@ class LRo extends L {
 
   @override
   String get backupAdd => 'Adaugă';
+
+  @override
+  String get copyNudgeFirst =>
+      'Notițele sunt doar în acest browser: salvează o copie ca să nu le pierzi.';
+
+  @override
+  String get copyNudgeStale => 'Copia notițelor este veche: salvează una nouă.';
+
+  @override
+  String get copyNudgeLater => 'Mai târziu';
+
+  @override
+  String get storageWeak =>
+      'Browserul nu a oferit o stocare sigură: notițele pot dispărea la închiderea filei.';
 }

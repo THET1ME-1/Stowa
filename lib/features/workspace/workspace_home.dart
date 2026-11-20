@@ -14,6 +14,7 @@ import '../../domain/note_blocks.dart' show toggleCheckLine;
 import '../../l10n/app_localizations.dart';
 import '../home/note_timeline.dart' show CardDepth, NoteCard, dayLabel;
 import '../item/item_actions.dart';
+import '../web/copy_nudge.dart';
 
 /// Ширина колонки плитки, от которой колонок становится больше.
 const _column = 200.0;
@@ -71,6 +72,8 @@ class WorkspaceHome extends ConsumerWidget {
                         style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant),
                       ),
                     ],
+                    // в браузере заметки лежат только в нём: напоминание о копии
+                    const CopyNudgeHost(padding: EdgeInsets.only(top: 16)),
                     const SizedBox(height: 22),
                   ],
                 ),

@@ -297,6 +297,25 @@ class SettingsRepository {
 
   Future<void> setCrashReports(bool on) => _set(() => _prefs.setBool(_crashReports, on));
 
+  /// Когда в последний раз сохраняли резервную копию и до какого времени человек попросил
+  /// о ней не напоминать. Нужно браузеру: заметки там лежат только в нём.
+  ({DateTime? lastCopy, DateTime? snoozedUntil}) get copyReminder =>
+      (lastCopy: DateTime.tryParse(_prefs.getString('copy_at') ?? ''), snoozedUntil: DateTime.tryParse(_prefs.getString('copy_snooze') ?? ''));
+
+  Stream<({DateTime? lastCopy, DateTime? snoozedUntil})> watchCopyReminder() async* {
+    yield copyReminder;
+    yield* _changes.stream.map((_) => copyReminder).distinct();
+  }
+
+  /// Копию сохранили: отсчёт заново, отложенное напоминание снимается.
+  Future<void> copySaved(DateTime at) => _set(() async {
+    await _prefs.setString('copy_at', at.toIso8601String());
+    return _prefs.remove('copy_snooze');
+  });
+
+  /// «Позже»: не напоминать о копии до [until].
+  Future<void> snoozeCopy(DateTime until) => _set(() => _prefs.setString('copy_snooze', until.toIso8601String()));
+
   /// Скачивать картинки статей по Wi-Fi. По умолчанию нет: картинки весят в десятки раз больше текста.
   bool get articleImages => _prefs.getBool('article_images') ?? false;
 

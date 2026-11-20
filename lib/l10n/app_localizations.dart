@@ -7420,6 +7420,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Add'**
   String get backupAdd;
+
+  /// Плашка на главной в браузере, пока человек ни разу не сохранял резервную копию. Одно предложение
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes live only in this browser: save a copy so you don\'t lose them.'**
+  String get copyNudgeFirst;
+
+  /// Плашка на главной в браузере, когда с последней резервной копии прошла неделя или набралось много правок
+  ///
+  /// In en, this message translates to:
+  /// **'Your copy of the notes is out of date: save a fresh one.'**
+  String get copyNudgeStale;
+
+  /// Кнопка плашки о резервной копии: отложить напоминание на неделю
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get copyNudgeLater;
+
+  /// Плашка на главной в браузере, когда база работает в памяти или в ненадёжном режиме (приватное окно, старый браузер)
+  ///
+  /// In en, this message translates to:
+  /// **'The browser gave no reliable storage: your notes may be gone once the tab is closed.'**
+  String get storageWeak;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
