@@ -65,6 +65,28 @@ void main() {
     expect(done, isTrue);
   });
 
+  test('пока файлы копии пишутся, сверка стоит и начинается только после них', () async {
+    // восстановление из копии пишет тысячи файлов: сверке незачем разбирать хранилище,
+    // собранное наполовину
+    final vault = reader();
+    late Future<void> woken;
+    var scanned = false;
+    await vault.withoutScans((keep) async {
+      put('Вложения/схема.png', 'png');
+      woken = vault.reconcile().then((_) => scanned = true);
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await keep();
+      expect(scanned, isFalse, reason: 'сверка ждёт конца записи');
+      put('Курсовая.md', 'Текст курсовой\n\n![[схема.png]]\n');
+    });
+    await woken;
+    expect(scanned, isTrue);
+    final all = await items();
+    expect(all.map((item) => item.title), ['Курсовая']);
+    final files = await db.select(db.attachments).get();
+    expect(files.map((file) => file.path), ['Вложения/схема.png']);
+  });
+
   test('правка текста снаружи видна в базе и в поиске, назад в очередь не встаёт', () async {
     await note('a', 'Плитка', body: 'Плитка\nкупить клей');
     await writer().drain();

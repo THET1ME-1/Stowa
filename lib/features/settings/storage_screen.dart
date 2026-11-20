@@ -483,7 +483,10 @@ Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
   try {
     await ref.read(privacyServiceProvider).close();
     final service = ref.read(backupServiceProvider);
-    final restored = bytes != null ? await service.restoreBytes(bytes) : await service.restore(zip);
+    // пока файлы копии пишутся, сверка стоит: хранилище, собранное наполовину, ей разбирать незачем
+    final restored = await ref.read(vaultReaderProvider).withoutScans(
+      (keep) => bytes != null ? service.restoreBytes(bytes, onFile: keep) : service.restore(zip, onFile: keep),
+    );
     // копия без снимка базы (из браузера) положила в хранилище только файлы: указатель собирается из них
     if (!restored.hasDatabase && context.mounted) await rebuildIndex(context, ref);
     // в копии свой замок: код и скрытое — оттуда

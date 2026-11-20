@@ -177,8 +177,9 @@ class BackupService {
 
   /// Файлы копии встают в хранилище поверх, свои файлы хранилища остаются. Имя с путём
   /// наружу («..», от корня) не пишется: архив мог прийти откуда угодно.
-  Future<void> _restoreFiles(Archive archive) async {
+  Future<void> _restoreFiles(Archive archive, {Future<void> Function()? onFile}) async {
     for (final file in archive.files) {
+      await onFile?.call();
       if (!file.isFile || !file.name.startsWith('files/')) continue;
       final relative = file.name.substring('files/'.length);
       final parts = relative.split('/');
@@ -192,10 +193,13 @@ class BackupService {
   /// Восстановить из архива в памяти: так его отдаёт браузер. Берутся только файлы, даже
   /// если копию делал телефон и в ней есть снимок базы: открыть его браузер не может.
   /// Указатель после этого пересобирают из файлов ([BackupInfo.hasDatabase] — false).
-  Future<BackupInfo> restoreBytes(Uint8List bytes) async {
+  ///
+  /// [onFile] зовётся перед каждым файлом: по нему вызывающий держит сверку хранилища
+  /// стоящей, пока запись идёт.
+  Future<BackupInfo> restoreBytes(Uint8List bytes, {Future<void> Function()? onFile}) async {
     final info = inspectBytes(bytes);
     if (info.schema > _db.schemaVersion) throw const BackupError(BackupProblem.tooNew);
-    await _restoreFiles(ZipDecoder().decodeBytes(bytes));
+    await _restoreFiles(ZipDecoder().decodeBytes(bytes), onFile: onFile);
     return BackupInfo(createdAt: info.createdAt, schema: info.schema, items: info.items, hasDatabase: false);
   }
 
@@ -203,13 +207,13 @@ class BackupService {
   /// до нынешней схемы отдельно, и только потом живая база переписывается одной транзакцией.
   /// Копия без снимка базы (из браузера) кладёт в хранилище только файлы, базу не трогает:
   /// по [BackupInfo.hasDatabase] вызывающий пересобирает указатель из файлов.
-  Future<BackupInfo> restore(File zip) async {
+  Future<BackupInfo> restore(File zip, {Future<void> Function()? onFile}) async {
     final info = await inspect(zip);
     if (info.schema > _db.schemaVersion) throw const BackupError(BackupProblem.tooNew);
     if (!info.hasDatabase) {
       final input = InputFileStream(zip.path);
       try {
-        await _restoreFiles(ZipDecoder().decodeStream(input));
+        await _restoreFiles(ZipDecoder().decodeStream(input), onFile: onFile);
       } finally {
         input.closeSync();
       }
