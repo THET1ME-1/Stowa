@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
@@ -428,6 +429,36 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
             ),
           );
 
+    // монитор: шапка как в макете веба вместо телефонных кругов, пилюль и переключателя во всю ширину
+    final deskHeader = !DeskMode.of(context) || _selecting
+        ? null
+        : _DeskFolderHeader(
+            folder: folder,
+            title: folder?.name ?? l.folderNone,
+            subtitle: [l.itemsCount(cards.length), if (folder != null && total.isNotEmpty) l.folderTotal(formatTotal(total, l.localeName))].join(' · '),
+            actions: [
+              // «Без папки»: разложить по одной карточке
+              if (widget.folderId == null && cards.isNotEmpty) ('swipe_down', l.sortMode, () => Navigator.of(context).push(sortRoute())),
+              ('search', l.folderSearch, () => WorkspaceScope.maybeOf(context)?.find?.call()),
+              if (cards.length > 1 && !canvas) ('sort', l.sortTooltip, () => _pickOrder(colored: cards.any((card) => card.mainColor != null))),
+              if (folder != null) ('more_vert', l.folderMore, () => _menu(folder)),
+            ],
+            views: folder == null || cards.isEmpty
+                ? null
+                : _DeskViews(
+                    view: shownView,
+                    labels: {FolderView.board: l.folderBoard, FolderView.canvas: l.folderCanvas, FolderView.list: l.folderList},
+                    onChanged: (view) {
+                      _clear();
+                      ref.read(foldersRepositoryProvider).setView(folder.id, view);
+                    },
+                  ),
+            children: children,
+            onChild: (child) => WorkspaceScope.maybeOf(context)?.open(WsTab.folder(child.id)),
+            parents: parents,
+            onParents: folder?.parentId == null ? null : () => WorkspaceScope.maybeOf(context)?.open(WsTab.folder(folder!.parentId!)),
+          );
+
     return PopScope(
       // «Назад» сперва снимает выбор, а не закрывает папку
       canPop: !_selecting,
@@ -440,10 +471,14 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
             if (canvas)
               Column(
                 children: [
-                  SafeArea(bottom: false, child: headerRow),
-                  titleRow,
-                  ?shelf,
-                  ?viewSwitch,
+                  if (deskHeader != null)
+                    SafeArea(bottom: false, child: deskHeader)
+                  else ...[
+                    SafeArea(bottom: false, child: headerRow),
+                    titleRow,
+                    ?shelf,
+                    ?viewSwitch,
+                  ],
                   const SizedBox(height: 12),
                   Expanded(
                     child: CanvasView(folderId: folder.id, cards: cards, onOpen: _open, bottomInset: _dockSpace + bottom),
@@ -453,11 +488,15 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
             else
               CustomScrollView(
                 slivers: [
-                  SliverSafeArea(bottom: false, sliver: SliverToBoxAdapter(child: headerRow)),
-                  SliverToBoxAdapter(child: titleRow),
-                  if (shelf != null) SliverToBoxAdapter(child: shelf),
-                  // «Без папки»: разложить по одной карточке
-                  if (widget.folderId == null && cards.isNotEmpty)
+                  if (deskHeader != null)
+                    SliverSafeArea(bottom: false, sliver: SliverToBoxAdapter(child: deskHeader))
+                  else ...[
+                    SliverSafeArea(bottom: false, sliver: SliverToBoxAdapter(child: headerRow)),
+                    SliverToBoxAdapter(child: titleRow),
+                    if (shelf != null) SliverToBoxAdapter(child: shelf),
+                  ],
+                  // «Без папки»: разложить по одной карточке; на мониторе — значком в шапке
+                  if (deskHeader == null && widget.folderId == null && cards.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(Space.screen, 14, Space.screen, 0),
@@ -471,7 +510,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                         ),
                       ),
                     ),
-                  if (viewSwitch != null) SliverToBoxAdapter(child: viewSwitch),
+                  if (deskHeader == null && viewSwitch != null) SliverToBoxAdapter(child: viewSwitch),
                   if (board ? tags.isNotEmpty : kinds.length > 1)
                     SliverToBoxAdapter(
                       child: SizedBox(
@@ -655,6 +694,188 @@ class _SelectionBar extends StatelessWidget {
       decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(100)),
       child: Row(
         children: [action('drive_file_move', l.selMove, onMove), action('sell', l.selTag, onTag), action('label_off', l.selUntag, onUntag), action('delete', l.selDelete, onDelete, danger: true)],
+      ),
+    );
+  }
+}
+
+/// Шапка папки на мониторе, как в макете веба: значок в цвет папки и крупное имя, под ними
+/// счёт и сумма; справа значки действий и компактный переключатель видов; вложенные папки —
+/// небольшими метками. Круглых кнопок и пилюль во всю ширину, как на телефоне, нет.
+class _DeskFolderHeader extends StatelessWidget {
+  const _DeskFolderHeader({
+    required this.folder,
+    required this.title,
+    required this.subtitle,
+    required this.actions,
+    this.views,
+    this.children = const [],
+    required this.onChild,
+    this.parents,
+    this.onParents,
+  });
+
+  final FolderCard? folder;
+  final String title;
+  final String subtitle;
+  final List<(String icon, String tooltip, VoidCallback onTap)> actions;
+  final Widget? views;
+  final List<FolderCard> children;
+  final ValueChanged<FolderCard> onChild;
+
+  /// Родители через «/» над именем; касание открывает ближайшего.
+  final String? parents;
+  final VoidCallback? onParents;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final folder = this.folder;
+    return Padding(
+      key: const ValueKey('desk-folder-header'),
+      padding: const EdgeInsets.fromLTRB(24, 18, 20, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (parents != null)
+            InkWell(
+              onTap: onParents,
+              borderRadius: BorderRadius.circular(8),
+              hoverColor: Tokens.container,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Text(parents!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.muted)),
+              ),
+            ),
+          Row(
+            children: [
+              if (folder != null) ...[
+                Icon(symbolIcon(folder.icon, filled: true), size: 30, color: FolderPalette.ink(folder.color)),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.headlineMedium!.copyWith(fontSize: 32, height: 1.15, letterSpacing: -0.6)),
+              ),
+              for (final (icon, tooltip, onTap) in actions) _DeskIconButton(icon: icon, tooltip: tooltip, onTap: onTap),
+              if (views != null) ...[const SizedBox(width: 12), views!],
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(subtitle, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: Tokens.muted)),
+          if (children.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [for (final child in children) _SubfolderChip(folder: child, onTap: () => onChild(child))],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Значок действия на мониторе: без подложки, под мышью — мягкая подложка.
+class _DeskIconButton extends StatelessWidget {
+  const _DeskIconButton({required this.icon, required this.tooltip, required this.onTap});
+
+  final String icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        hoverColor: Tokens.containerHigh,
+        child: SizedBox.square(dimension: 36, child: Icon(symbolIcon(icon), size: 20, color: Tokens.onSurfaceVariant)),
+      ),
+    );
+  }
+}
+
+/// Вложенная папка на мониторе: небольшая метка в цвет папки со значком и числом заметок.
+class _SubfolderChip extends StatelessWidget {
+  const _SubfolderChip({required this.folder, required this.onTap});
+
+  final FolderCard folder;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = FolderPalette.ink(folder.color);
+    return Material(
+      key: ValueKey('desk-subfolder-${folder.id}'),
+      color: FolderPalette.tint(folder.color),
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 6, 12, 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(symbolIcon(folder.icon, filled: true), size: 16, color: ink),
+              const SizedBox(width: 6),
+              Text(folder.name, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: Tokens.onSurface)),
+              const SizedBox(width: 6),
+              Text('${folder.count}', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Tokens.muted)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// «Доска · Холст · Список» на мониторе: компактный переключатель, как «Лента · Доска · Холст» в макете.
+class _DeskViews extends StatelessWidget {
+  const _DeskViews({required this.view, required this.labels, required this.onChanged});
+
+  final FolderView view;
+  final Map<FolderView, String> labels;
+  final ValueChanged<FolderView> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget segment(String icon, FolderView target) {
+      final on = view == target;
+      final color = on ? Tokens.onAccent : Tokens.onSurfaceVariant;
+      return GestureDetector(
+        onTap: () => onChanged(target),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: AnimatedContainer(
+            duration: Motion.short,
+            curve: Motion.emphasized,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(color: on ? Tokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(15)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(symbolIcon(icon), size: 17, color: color),
+                const SizedBox(width: 6),
+                Text(labels[target]!, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: color)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      key: const ValueKey('desk-views'),
+      height: 36,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(18)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [segment('grid_view', FolderView.board), segment('gesture', FolderView.canvas), segment('view_agenda', FolderView.list)],
       ),
     );
   }
