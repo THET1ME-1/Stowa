@@ -97,6 +97,8 @@ class HistoryScreen extends ConsumerWidget {
         ImageBlock() => '',
         // у выноски первая строка — её заголовок
         CalloutBlock(:final shownTitle) => shownTitle,
+        // у таблицы — шапка через «·»
+        TableBlock(:final header) => header.join(' · '),
         // первая строка кода, без подсветки и разметки
         CodeBlock(:final code) => code.split('\n').firstWhere((one) => one.trim().isNotEmpty, orElse: () => ''),
         MathBlock(:final tex) => tex.split('\n').first,

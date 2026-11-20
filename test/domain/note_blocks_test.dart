@@ -207,6 +207,40 @@ void main() {
     expect([for (final line in noteLinesUnderTitle('Плитка\n![[a.jpg]]\nклей', 'Плитка')) line.text], ['клей']);
   });
 
+  // хозяин 20.11 со снимка карточки «История физики»: «почему таблица не отформатирована как таблица»
+  group('таблицы', () {
+    test('шапка, выравнивание и строки, текст до и после — своими блоками', () {
+      final blocks = parseNoteBlocks('Расписание\n| День | Время | Кабинет |\n|---|:---:|--:|\n| Пятница | 11:30–13:00 | 122/4 |\n| Пятница | 13:15–14:45 | **2** |\nКонец');
+      expect(blocks.map((block) => block.runtimeType), [ParagraphBlock, TableBlock, ParagraphBlock]);
+      final table = blocks[1] as TableBlock;
+      expect(table.header, ['День', 'Время', 'Кабинет']);
+      expect(table.aligns, [TableAlign.left, TableAlign.center, TableAlign.right]);
+      expect(table.rows, [
+        ['Пятница', '11:30–13:00', '122/4'],
+        ['Пятница', '13:15–14:45', '**2**'],
+      ]);
+    });
+
+    test('без крайних черт, неполная строка дополняется, «\\|» — знак в ячейке', () {
+      final table = parseNoteBlocks('a | b\n--- | ---\n1 | 2 \\| 3\n| только').single as TableBlock;
+      expect(table.header, ['a', 'b']);
+      expect(table.rows, [
+        ['1', '2 | 3'],
+        ['только', ''],
+      ]);
+    });
+
+    test('черта без строки разделителя — не таблица', () {
+      expect(parseNoteBlocks('| просто | текст |').single, isA<ParagraphBlock>());
+    });
+
+    test('в ленте строка разделителя пропадает, ячейки через «·», шапка жирным', () {
+      final shown = renderMarkup('Расписание\n| День | Время |\n|---|---|\n| Пятница | 11:30 |', const []);
+      expect(shown.text, 'Расписание\nДень · Время\nПятница · 11:30');
+      expect(shown.styles.where((style) => style.$3 == MarkupStyle.bold).map((style) => shown.text.substring(style.$1, style.$1 + style.$2)), ['День · Время']);
+    });
+  });
+
   // хозяин 20.11 со снимка ленты: «[!abstract] Описание … сейчас это просто код»
   group('выноски Obsidian', () {
     test('заголовок, вид и текст внутри разбираются, текст после выноски — свой', () {

@@ -45,6 +45,68 @@ class QuoteBlock extends NoteBlock {
   final String text;
 }
 
+/// Выравнивание столбца таблицы по строке разделителя: `:---` влево, `:---:` по центру, `---:` вправо.
+enum TableAlign { left, center, right }
+
+/// Таблица Markdown, как в Obsidian: шапка, строка разделителя `|---|`, строки. Ячейки —
+/// текст со строчной разметкой; короткая строка дополнена пустыми ячейками до шапки.
+class TableBlock extends NoteBlock {
+  const TableBlock({required this.header, required this.aligns, required this.rows});
+  final List<String> header;
+  final List<TableAlign> aligns;
+  final List<List<String>> rows;
+}
+
+/// Строка разделителя таблицы: `|---|:---:|--:|`, крайние черты необязательны.
+final tableDivider = RegExp(r'^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$');
+
+/// Ячейки строки таблицы: крайние черты снимаются, `\|` — знак внутри ячейки.
+List<String> tableCells(String line) {
+  var text = line.trim();
+  if (text.startsWith('|')) text = text.substring(1);
+  if (text.endsWith('|') && !text.endsWith(r'\|')) text = text.substring(0, text.length - 1);
+  final cells = <String>[];
+  final cell = StringBuffer();
+  for (var index = 0; index < text.length; index++) {
+    if (text[index] == r'\' && index + 1 < text.length && text[index + 1] == '|') {
+      cell.write('|');
+      index++;
+    } else if (text[index] == '|') {
+      cells.add(cell.toString().trim());
+      cell.clear();
+    } else {
+      cell.write(text[index]);
+    }
+  }
+  cells.add(cell.toString().trim());
+  return cells;
+}
+
+/// Таблица, начатая шапкой в строке [index]: шапка с чертой и строка разделителя под ней.
+({TableBlock table, int end})? _tableAt(List<String> lines, int index) {
+  if (index + 1 >= lines.length || !lines[index].contains('|') || !tableDivider.hasMatch(lines[index + 1])) return null;
+  final header = tableCells(lines[index]);
+  final divider = tableCells(lines[index + 1]);
+  if (divider.length != header.length) return null;
+  final aligns = [
+    for (final mark in divider)
+      mark.startsWith(':') && mark.endsWith(':')
+          ? TableAlign.center
+          : mark.endsWith(':')
+          ? TableAlign.right
+          : TableAlign.left,
+  ];
+  final rows = <List<String>>[];
+  var end = index + 1;
+  // строки таблицы — подряд идущие строки с чертой; строка без неё — уже текст после таблицы
+  while (end + 1 < lines.length && lines[end + 1].contains('|')) {
+    final cells = tableCells(lines[end + 1]);
+    rows.add([for (var column = 0; column < header.length; column++) column < cells.length ? cells[column] : '']);
+    end++;
+  }
+  return (table: TableBlock(header: header, aligns: aligns, rows: rows), end: end);
+}
+
 /// Вид выноски Obsidian: свой цвет и значок. Синонимы сводятся к виду, как в Obsidian.
 enum CalloutKind { note, abstract, info, todo, tip, success, question, warning, failure, danger, bug, example, quote }
 
@@ -254,6 +316,12 @@ List<NoteBlock> parseNoteBlocks(String body, {int lineOffset = 0}) {
       skipTo = math.end;
       continue;
     }
+    if (_tableAt(lines, index) case final table?) {
+      flush();
+      blocks.add(table.table);
+      skipTo = table.end;
+      continue;
+    }
     final line = raw.trimRight();
     if (line.trim().isEmpty) {
       flush();
@@ -386,11 +454,38 @@ final _leadKinds = RegExp(r'^(#{1,3} |\s*[-*] \[([ xX])\] |\s*[-*•] |> ?)');
     }
   }
 
-  for (final line in text.split('\n')) {
+  final lines = text.split('\n');
+  // таблицы: строка разделителя пропадает, ячейки строки — через «·», шапка жирным
+  final tableRows = <int, bool>{};
+  final dividers = <int>{};
+  for (var index = 0; index + 1 < lines.length; index++) {
+    if (!lines[index].contains('|') || !tableDivider.hasMatch(lines[index + 1])) continue;
+    if (tableCells(lines[index]).length != tableCells(lines[index + 1]).length) continue;
+    tableRows[index] = true;
+    dividers.add(index + 1);
+    var row = index + 2;
+    while (row < lines.length && lines[row].contains('|')) {
+      tableRows[row++] = false;
+    }
+    index = row - 1;
+  }
+  for (final (lineIndex, line) in lines.indexed) {
     final lineEnd = from + line.length;
     // строка-картинка в подсказке не видна: у карточки своё фото
-    if (embedLine.hasMatch(line)) {
+    if (embedLine.hasMatch(line) || dividers.contains(lineIndex)) {
       drop(from, min(lineEnd + 1, text.length));
+      from = lineEnd + 1;
+      continue;
+    }
+    if (tableRows[lineIndex] case final header?) {
+      drop(from, lineEnd);
+      final start = out.length;
+      out.write(tableCells(line).where((cell) => cell.isNotEmpty).join(' · '));
+      if (header && out.length > start) styles.add((start, out.length - start, MarkupStyle.bold));
+      if (lineEnd < text.length) {
+        moved[lineEnd] = out.length;
+        out.write('\n');
+      }
       from = lineEnd + 1;
       continue;
     }

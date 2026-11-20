@@ -118,6 +118,7 @@ class NoteBody extends StatelessWidget {
       ImageBlock(:final name) => image?.call(name) ?? MissingImage(name: name),
       CodeBlock(:final code, :final language) => CodeBlockView(code: code, language: language, onTap: onEdit),
       MathBlock(:final tex) => MathBlockView(tex: tex, onTap: onEdit),
+      TableBlock() => NoteTable(table: block, body: body, onEdit: onEdit, onLink: onLink),
       // текст внутри выноски — те же блоки и те же касания, что у всей заметки
       CalloutBlock() => CalloutView(
         block: block,
@@ -135,6 +136,64 @@ class NoteBody extends StatelessWidget {
         ),
       ),
     };
+  }
+}
+
+/// Таблица Markdown на странице заметки: шапка жирным, строки через тонкую черту, столбцы
+/// по ширине содержимого и выравниванию из строки разделителя. Широкая листается вбок,
+/// страница под ней не ломается. Ячейки — со строчной разметкой и ссылками.
+class NoteTable extends StatelessWidget {
+  const NoteTable({super.key, required this.table, required this.body, required this.onEdit, required this.onLink});
+
+  final TableBlock table;
+  final TextStyle body;
+  final VoidCallback onEdit;
+  final ValueChanged<String> onLink;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = body.copyWith(fontSize: 15, height: 1.4);
+    final line = BorderSide(color: Tokens.outline.withValues(alpha: 0.5));
+    Widget cell(String value, int column, {bool head = false}) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      child: Align(
+        alignment: switch (table.aligns[column]) {
+          TableAlign.left => Alignment.centerLeft,
+          TableAlign.center => Alignment.center,
+          TableAlign.right => Alignment.centerRight,
+        },
+        widthFactor: 1,
+        child: ConstrainedBox(
+          // длинная ячейка переносится, а не растягивает столбец на весь экран
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: RichLine(text: value, style: head ? style.copyWith(fontWeight: FontWeight.w700) : style, onLink: onLink),
+        ),
+      ),
+    );
+
+    return GestureDetector(
+      onTap: onEdit,
+      child: Container(
+        key: const ValueKey('note-table'),
+        decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
+        clipBehavior: Clip.antiAlias,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Table(
+            defaultColumnWidth: const IntrinsicColumnWidth(),
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: TableBorder(horizontalInside: line),
+            children: [
+              TableRow(
+                decoration: BoxDecoration(color: Tokens.containerHigh),
+                children: [for (final (column, value) in table.header.indexed) cell(value, column, head: true)],
+              ),
+              for (final row in table.rows) TableRow(children: [for (final (column, value) in row.indexed) cell(value, column)]),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
