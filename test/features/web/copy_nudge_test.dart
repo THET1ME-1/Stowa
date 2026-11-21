@@ -41,6 +41,18 @@ void main() {
     expect((saved, later), (1, 1));
   });
 
+  // 21.11 хозяин со снимка: «Кнопка Позже кривая, выше чем надо» — в узкой плашке кнопки
+  // стояли по верхнему краю, а «Позже» ниже «Сохранить копию». 480 — узкая плашка (кнопки
+  // под текстом), но обе ещё в одной строке: шрифт тестов шире настоящего
+  for (final width in [480.0, 900.0]) {
+    testWidgets('«Позже» на одной высоте с «Сохранить копию», ширина ${width.toInt()}', (tester) async {
+      await show(tester, nudge: BackupNudge.first, width: width);
+      final save = tester.getCenter(find.widgetWithText(FilledButton, 'Сохранить копию'));
+      final later = tester.getCenter(find.widgetWithText(TextButton, 'Позже'));
+      expect(later.dy, closeTo(save.dy, 0.5));
+    });
+  }
+
   testWidgets('копия устарела — напоминание короче', (tester) async {
     await show(tester, nudge: BackupNudge.stale);
     expect(find.text('Копия заметок устарела: сохраните свежую.'), findsOneWidget);

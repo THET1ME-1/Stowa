@@ -101,7 +101,11 @@ class _Card extends StatelessWidget {
             children: [
               line,
               const SizedBox(height: 8),
-              Padding(padding: const EdgeInsets.only(left: 28), child: Wrap(spacing: 4, runSpacing: 4, children: actions)),
+              // кнопки разной высоты: по середине строки, иначе «Позже» липла к верху (хозяин 21.11)
+              Padding(
+                padding: const EdgeInsets.only(left: 28),
+                child: Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: actions),
+              ),
             ],
           );
         },
