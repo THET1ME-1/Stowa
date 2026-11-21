@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -916,50 +917,48 @@ class _IconSheetState extends State<_IconSheet> {
     final icons = query.isEmpty
         ? {...searchIcons(widget.name, limit: 18), ...pickableSymbols, ..._allIcons}.toList()
         : searchIcons(query, limit: 120);
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * 0.7,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 8),
-                child: TextField(
-                  decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.iconSearch),
-                  onChanged: (value) => setState(() => _query = value),
-                ),
+    // над клавиатурой шторку поднимает showStowaSheet; высота — 70 % экрана, но не больше
+    // места над клавиатурой: иначе нижние значки уходили за край
+    return LayoutBuilder(
+      builder: (context, room) => SizedBox(
+        height: math.min(MediaQuery.sizeOf(context).height * 0.7, room.maxHeight),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 8),
+              child: TextField(
+                decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.iconSearch),
+                onChanged: (value) => setState(() => _query = value),
               ),
-              Expanded(
-                child: icons.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(Space.screen),
-                        child: Text(l.iconsNone, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
-                      )
-                    : GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, Space.screen),
-                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 60, mainAxisSpacing: 8, crossAxisSpacing: 8),
-                        itemCount: icons.length,
-                        itemBuilder: (context, index) {
-                          final name = icons[index];
-                          final chosen = name == widget.current;
-                          return Material(
-                            key: ValueKey('icon-$name'),
-                            color: chosen ? Tokens.accent : Tokens.containerHigh,
-                            borderRadius: BorderRadius.circular(chosen ? 30 : 18),
-                            clipBehavior: Clip.antiAlias,
-                            child: InkWell(
-                              onTap: () => Navigator.pop(context, name),
-                              child: Icon(symbolIcon(name, filled: chosen), size: 26, color: chosen ? Tokens.onAccent : Tokens.onSurface),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: icons.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(Space.screen),
+                      child: Text(l.iconsNone, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, Space.screen),
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 60, mainAxisSpacing: 8, crossAxisSpacing: 8),
+                      itemCount: icons.length,
+                      itemBuilder: (context, index) {
+                        final name = icons[index];
+                        final chosen = name == widget.current;
+                        return Material(
+                          key: ValueKey('icon-$name'),
+                          color: chosen ? Tokens.accent : Tokens.containerHigh,
+                          borderRadius: BorderRadius.circular(chosen ? 30 : 18),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context, name),
+                            child: Icon(symbolIcon(name, filled: chosen), size: 26, color: chosen ? Tokens.onAccent : Tokens.onSurface),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );

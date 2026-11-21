@@ -105,58 +105,56 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Container(width: 28, height: 28, decoration: BoxDecoration(color: _color, shape: BoxShape.circle)),
-                const SizedBox(width: 12),
-                Expanded(child: Text(widget.title, style: text.titleLarge)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ColorPicker(
-              pickerColor: _color,
-              onColorChanged: _set,
-              enableAlpha: false,
-              paletteType: PaletteType.hueWheel,
-              labelTypes: const [],
-              hexInputBar: false,
-              portraitOnly: true,
-              pickerAreaBorderRadius: BorderRadius.circular(Radii.photo),
-            ),
-            // HEX и три канала одной строкой: место под ползунком больше не пустует
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
+    // над клавиатурой шторку поднимает showStowaSheet: второй такой отступ отнял бы место дважды
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(width: 28, height: 28, decoration: BoxDecoration(color: _color, shape: BoxShape.circle)),
+              const SizedBox(width: 12),
+              Expanded(child: Text(widget.title, style: text.titleLarge)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ColorPicker(
+            pickerColor: _color,
+            onColorChanged: _set,
+            enableAlpha: false,
+            paletteType: PaletteType.hueWheel,
+            labelTypes: const [],
+            hexInputBar: false,
+            portraitOnly: true,
+            pickerAreaBorderRadius: BorderRadius.circular(Radii.photo),
+          ),
+          // HEX и три канала одной строкой: место под ползунком больше не пустует
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                flex: 5,
+                child: _field(key: const ValueKey('color-hex'), label: 'HEX', controller: _hex, focus: _focus[0], hex: true, onChanged: _fromHex),
+              ),
+              for (final (i, label) in ['R', 'G', 'B'].indexed) ...[
+                const SizedBox(width: 8),
                 Expanded(
-                  flex: 5,
-                  child: _field(key: const ValueKey('color-hex'), label: 'HEX', controller: _hex, focus: _focus[0], hex: true, onChanged: _fromHex),
+                  flex: 3,
+                  child: _field(key: ValueKey('color-$label'), label: label, controller: _channels[i], focus: _focus[i + 1], hex: false, onChanged: (_) => _fromChannels()),
                 ),
-                for (final (i, label) in ['R', 'G', 'B'].indexed) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 3,
-                    child: _field(key: ValueKey('color-$label'), label: label, controller: _channels[i], focus: _focus[i + 1], hex: false, onChanged: (_) => _fromChannels()),
-                  ),
-                ],
               ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(child: TextButton(onPressed: () => Navigator.pop(context), child: Text(l.cancel))),
-                const SizedBox(width: 12),
-                Expanded(child: FilledButton(onPressed: () => Navigator.pop(context, _color), child: Text(l.pickerApply))),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(child: TextButton(onPressed: () => Navigator.pop(context), child: Text(l.cancel))),
+              const SizedBox(width: 12),
+              Expanded(child: FilledButton(onPressed: () => Navigator.pop(context, _color), child: Text(l.pickerApply))),
+            ],
+          ),
+        ],
       ),
     );
   }

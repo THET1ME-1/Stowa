@@ -345,49 +345,46 @@ class _CreateSheetState extends ConsumerState<_CreateSheet> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
+    // над клавиатурой и краем экрана шторку поднимает showStowaSheet. Свой второй такой
+    // отступ здесь уводил «Создать» за край шторки, и касание до неё не доходило
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(l.vaultCreate, style: text.titleLarge),
-              const SizedBox(height: 16),
-              TextField(controller: _name, decoration: InputDecoration(labelText: l.vaultName)),
-              const SizedBox(height: 12),
-              Material(
-                color: Tokens.containerHigh,
-                borderRadius: BorderRadius.circular(Radii.tile),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () async {
-                    final picked = await ref.read(vaultPickerProvider)();
-                    if (picked != null && mounted) setState(() => _parent = picked);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l.vaultPlace, style: text.bodySmall!.copyWith(color: Tokens.muted)),
-                        const SizedBox(height: 2),
-                        Text(shortVaultPath(_parent), style: text.bodyLarge),
-                      ],
-                    ),
-                  ),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(l.vaultCreate, style: text.titleLarge),
+          const SizedBox(height: 16),
+          TextField(controller: _name, decoration: InputDecoration(labelText: l.vaultName)),
+          const SizedBox(height: 12),
+          Material(
+            color: Tokens.containerHigh,
+            borderRadius: BorderRadius.circular(Radii.tile),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () async {
+                final picked = await ref.read(vaultPickerProvider)();
+                if (picked != null && mounted) setState(() => _parent = picked);
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.vaultPlace, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+                    const SizedBox(height: 2),
+                    Text(shortVaultPath(_parent), style: text.bodyLarge),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(p.join(_parent, vaultFileName(_name.text))),
-                child: Text(l.vaultCreateButton),
-              ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(p.join(_parent, vaultFileName(_name.text))),
+            child: Text(l.vaultCreateButton),
+          ),
+        ],
       ),
     );
   }

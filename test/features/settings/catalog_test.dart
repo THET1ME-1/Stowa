@@ -180,6 +180,27 @@ void main() {
     expect([for (final item in await tester.runAsync(() => prepared.select(prepared.items).get()) ?? <Item>[]) item.title], ['План']);
   });
 
+  // хозяин 21.11 со снимков: при открытой клавиатуре «Создать» не нажималось — шторка и её
+  // содержимое поднимались над клавиатурой оба, кнопка уезжала за край шторки
+  testWidgets('«Создать хранилище» при открытой клавиатуре: «Создать» нажимается', (tester) async {
+    Directory(p.join(world.files.path, 'Документы')).createSync();
+    world.pickedFolder = p.join(world.files.path, 'Документы');
+    await openCatalog(tester);
+    await tester.tap(find.text('Добавить хранилище'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Создать новое'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Где создать'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField).last);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 340);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Создать'));
+    await settle(tester);
+    expect(find.text('Создать хранилище'), findsNothing, reason: 'шторка закрылась по «Создать»');
+    expect(Directory(p.join(world.files.path, 'Документы', 'Stowa')).existsSync(), isTrue);
+  });
+
   testWidgets('выбрали папку открытого — «уже открыто», без смены', (tester) async {
     await settings.setVault(obsidian.path, VaultMode.device);
     await settings.openKnownVault(settings.vaults.firstWhere((one) => one.db == 'stowa-obs'), notesHere: 0);
