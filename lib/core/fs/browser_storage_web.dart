@@ -66,6 +66,26 @@ void onTabTakenOver(Future<void> Function() leave) {
 
 void reloadPage() => web.window.location.reload();
 
+const _yieldKey = 'stowa-panel-yield';
+
+void markPanelYield() {
+  try {
+    web.window.sessionStorage.setItem(_yieldKey, '${DateTime.now().millisecondsSinceEpoch}');
+  } catch (_) {
+    // хранилище страницы закрыто: панель просто не подождёт
+  }
+}
+
+bool panelJustYielded() {
+  try {
+    final at = int.tryParse(web.window.sessionStorage.getItem(_yieldKey) ?? '');
+    web.window.sessionStorage.removeItem(_yieldKey);
+    return at != null && DateTime.now().millisecondsSinceEpoch - at < 15000;
+  } catch (_) {
+    return false;
+  }
+}
+
 void Function() watchAutofill(String hint, void Function(String value) onFill) {
   // слушает весь документ: поле подстановки Flutter заводит и убирает сам
   final listener = ((web.Event event) {

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:path/path.dart' as p;
 import 'package:record/record.dart';
 
@@ -27,8 +28,9 @@ class VoiceSession extends ChangeNotifier {
   Future<bool> start({bool checked = false}) async {
     if (!checked && !await _recorder.hasPermission()) return false;
     await _folder.create(recursive: true);
-    final path = p.join(_folder.path, 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a');
-    await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
+    final path = p.join(_folder.path, 'voice_${DateTime.now().millisecondsSinceEpoch}.$_extension');
+    // браузер пишет Opus в webm: AAC его записыватель не умеет, и запись падала как «нет доступа»
+    await _recorder.start(RecordConfig(encoder: kIsWeb ? AudioEncoder.opus : AudioEncoder.aacLc), path: path);
     _startedAt = DateTime.now();
     // громкость в децибелах от −50 до 0 превращается в высоту палочки
     _amplitude = _recorder.onAmplitudeChanged(const Duration(milliseconds: 90)).listen((amplitude) {
@@ -46,10 +48,23 @@ class VoiceSession extends ChangeNotifier {
     final seconds = elapsed.inSeconds;
     final path = await _recorder.stop();
     if (path == null) return null;
+    // в браузере записыватель отдаёт ссылку «blob:…» в память страницы, а не файл: байты
+    // ложатся файлом в ту же папку черновиков, дальше всё как на телефоне
+    if (kIsWeb) {
+      final bytes = await XFile(path).readAsBytes();
+      if (bytes.isEmpty) return null;
+      final file = File(p.join(_folder.path, 'voice_${DateTime.now().millisecondsSinceEpoch}.$_extension'));
+      await file.writeAsBytes(bytes, flush: true);
+      return PickedFile(path: file.path, mime: _mime, size: bytes.length, seconds: seconds);
+    }
     final file = File(path);
     if (!file.existsSync()) return null;
-    return PickedFile(path: path, mime: 'audio/mp4', size: file.lengthSync(), seconds: seconds);
+    return PickedFile(path: path, mime: _mime, size: file.lengthSync(), seconds: seconds);
   }
+
+  static String get _extension => kIsWeb ? 'webm' : 'm4a';
+
+  static String get _mime => kIsWeb ? 'audio/webm' : 'audio/mp4';
 
   Future<void> cancel() async {
     _stopTicking();

@@ -60,6 +60,8 @@ void main() {
     addTearDown(watching.cancel);
     await pumpEventQueue();
     await note(tab, 'a', 'Шины на зиму');
+    // правки копятся 200 мс и уходят панели одним сообщением
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     await pumpEventQueue(times: 50);
     expect(seen.last, 1);
   });

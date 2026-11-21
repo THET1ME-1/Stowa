@@ -11,24 +11,21 @@ import '../../services/panel_db.dart';
 import '../../services/privacy/hidden_rows.dart';
 import '../composer/line_dock.dart';
 
-/// Пауза между проверками, жива ли вкладка.
-const _pulse = Duration(seconds: 3);
-
 /// Боковая панель браузера при открытой вкладке Stowa (STOWA-9): строка телефона целиком —
-/// «+», `# @ /`, «Развернуть», голос, найденное с действиями, — на базе вкладки
+/// «+», `# @ /`, «На весь экран», голос, найденное с действиями, — на базе вкладки
 /// (`panel_db.dart`), которую панель только читает, а пишет просьбами вкладке
-/// (`panel_writes.dart`). Найденное открывается во вкладке. Вкладка пропала (закрыли,
-/// перезагружают) или включила «Код на вход» — [onLost]: панель перезагружается и встаёт
-/// заново, полным приложением или лёгкой.
+/// (`panel_writes.dart`). Найденное открывается во вкладке. Вкладка включила «Код на вход» —
+/// [onLost]: панель перезагружается и встаёт лёгкой. Закрытие и перезагрузку вкладки ловит
+/// замок хранилища в `main.dart`, а не пульс: занятая вкладка отвечает медленно, и
+/// перезагрузка по пульсу стирала бы набранное.
 class PanelHost extends ConsumerStatefulWidget {
-  const PanelHost({super.key, required this.client, required this.onOpenHere, required this.onLost, this.pulse = _pulse});
+  const PanelHost({super.key, required this.client, required this.onOpenHere, required this.onLost});
 
   final PanelClient client;
 
   /// Забрать Stowa в панель: вкладка отдаёт хранилище и перезагружается.
   final Future<void> Function() onOpenHere;
   final VoidCallback onLost;
-  final Duration pulse;
 
   @override
   ConsumerState<PanelHost> createState() => _PanelHostState();
@@ -38,8 +35,6 @@ class _PanelHostState extends ConsumerState<PanelHost> {
   final _dock = GlobalKey<LineDockState>();
   late final StreamSubscription<Map<String, Object?>> _follow;
   late final StreamSubscription<Map<String, Object?>> _events;
-  Timer? _pulse;
-  int _missed = 0;
   bool _lost = false;
   bool _leaving = false;
   String? _note;
@@ -58,33 +53,18 @@ class _PanelHostState extends ConsumerState<PanelHost> {
     hiddenFolderIds(db).then((folders) {
       if (mounted) setState(() => _hiddenOpen = folders.isNotEmpty);
     }).ignore();
-    _pulse = Timer.periodic(widget.pulse, (_) => _check().ignore());
   }
 
   @override
   void dispose() {
-    _pulse?.cancel();
     _follow.cancel().ignore();
     _events.cancel().ignore();
     super.dispose();
   }
 
-  // два пропущенных ответа подряд — вкладки нет: её запросы без ответа повисли бы
-  Future<void> _check() async {
-    final answer = await widget.client.ask('hello');
-    if (!mounted || _lost) return;
-    if (answer == null) {
-      if (++_missed >= 2) _lose();
-      return;
-    }
-    _missed = 0;
-    if (answer['locked'] == true) _lose();
-  }
-
   void _lose() {
     if (_lost) return;
     _lost = true;
-    _pulse?.cancel();
     widget.onLost();
   }
 
@@ -97,7 +77,6 @@ class _PanelHostState extends ConsumerState<PanelHost> {
   Future<void> _openHere() async {
     if (_leaving) return;
     setState(() => _leaving = true);
-    _pulse?.cancel();
     try {
       await widget.onOpenHere();
     } catch (_) {

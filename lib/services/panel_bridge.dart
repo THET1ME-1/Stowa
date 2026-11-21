@@ -82,7 +82,7 @@ class PanelBridge {
     void reply(String type, [Map<String, Object?> more = const {}]) => link.send({'type': type, 'id': id, ...more});
     switch (message['type']) {
       case 'hello':
-        reply('here', {'locked': locked(), if (_sharesDatabase) 'schema': schema});
+        reply('here', {'locked': locked(), if (_sharesDatabase) ...{'schema': schema, 'protocol': panelProtocol}});
       case 'db-open':
         if (!_sharesDatabase || message['schema'] != schema) return reply('db-refused');
         database!.serve('${message['channel']}');

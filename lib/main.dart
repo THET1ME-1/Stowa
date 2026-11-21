@@ -42,6 +42,10 @@ import 'services/vault/vault_writer.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (isWeb) {
+    // панель, которой хранилище досталось оттого, что вкладка ушла, даёт ей вернуться:
+    // перезагрузка вкладки освобождает замок на миг, и панель без паузы забирала его,
+    // а вкладка показывала «уже открыта» (веб-панель Vivaldi без ?panel, 21.11)
+    if (isPanelPage() && panelJustYielded()) await Future<void>.delayed(const Duration(seconds: 5));
     // одна вкладка на хранилище: две разом испортили бы файлы и базу
     if (!await claimTab()) await _waitForTab();
     // хранилище наше: на «кто держит» и «уйди» отвечаем сразу, ещё до файлов — вкладка,
@@ -102,25 +106,27 @@ Future<void> _waitForTab() async {
   final appearance = SettingsRepository(prefs, const SecureKeyStore()).appearance;
   Tokens.use(paletteFor(appearance, brightnessFor(appearance, PlatformDispatcher.instance.platformBrightness, DateTime.now())));
   final ours = waitForTab();
+  var askedHere = false;
   Future<void> openHere() {
+    askedHere = true;
     askTabToLeave();
     return ours;
   }
 
   // боковая панель браузера (STOWA-9): строка телефона на базе вкладки, только чтение,
   // записи — просьбами вкладке. Вкладка старой сборки или под кодом — лёгкая панель.
-  // Вкладку закрыли — хранилище наше, и панель становится полным приложением
+  // Хранилище освободилось — с чистого листа: по «Открыть здесь» сразу полным приложением,
+  // а если вкладка ушла сама (закрыли или перезагружают), сперва даём ей вернуться
   if (isPanelPage()) {
     final client = PanelClient(PanelLink());
     final db = await connectTabDatabase(client);
     if (db == null) {
       runApp(PanelApp(client: client, onOpenHere: openHere));
-      await ours;
-      return;
+    } else {
+      await _runPanel(client, db, openHere);
     }
-    await _runPanel(client, db, openHere);
-    // хранилище освободилось: с чистого листа — полным приложением со своими файлами
     await ours;
+    if (!askedHere) markPanelYield();
     reloadPage();
     await Completer<void>().future;
   }

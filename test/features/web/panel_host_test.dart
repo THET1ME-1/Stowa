@@ -86,7 +86,7 @@ void main() {
           itemsRepositoryProvider.overrideWith((ref) => PanelItemsRepository(db!, client, clock: () => world.now)),
           foldersRepositoryProvider.overrideWith((ref) => PanelFoldersRepository(db!, client)),
         ],
-        child: StowaApp(locale: const Locale('ru'), lockable: false, home: PanelHost(client: client, onOpenHere: () async {}, onLost: () {}, pulse: const Duration(days: 1))),
+        child: StowaApp(locale: const Locale('ru'), lockable: false, home: PanelHost(client: client, onOpenHere: () async {}, onLost: () {})),
       ),
     );
     await settle(tester);

@@ -4,7 +4,7 @@ import 'browser_storage.dart' if (dart.library.js_interop) 'browser_storage_web.
 import 'web_fs.dart';
 import 'web_store.dart';
 
-export 'browser_storage.dart' if (dart.library.js_interop) 'browser_storage_web.dart' show BrowserDownload, askTabToLeave, claimTab, persistStorage, reloadPage, startDownload, waitForTab, watchAutofill;
+export 'browser_storage.dart' if (dart.library.js_interop) 'browser_storage_web.dart' show BrowserDownload, askTabToLeave, claimTab, markPanelYield, panelJustYielded, persistStorage, reloadPage, startDownload, waitForTab, watchAutofill;
 
 /// Другая вкладка попросила хранилище себе: дописать файлы и перезагрузиться. Замок при
 /// этом снимается, а эта вкладка после перезагрузки покажет «Stowa уже открыта в другой вкладке».
