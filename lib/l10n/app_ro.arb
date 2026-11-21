@@ -1021,5 +1021,10 @@
   "tagPinHint": "Eticheta apare în rândul de sus de pe pagina principală",
   "numberPadRange": "De la {min} la {max}",
   "numberPadOpen": "Scrie un număr",
-  "tagShowNotes": "Notițe cu #{tag}"
+  "tagShowNotes": "Notițe cu #{tag}",
+  "panelHint": "Notițele și căutarea trec prin fila Stowa deschisă.",
+  "panelEmpty": "Scrie un gând sau caută o notiță: rândul le face pe amândouă.",
+  "panelLocked": "Căutarea e blocată de codul de intrare; poți scrie în continuare.",
+  "panelOpened": "Deschisă în fila Stowa",
+  "panelSaved": "Salvate acum"
 }

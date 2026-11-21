@@ -4654,4 +4654,22 @@ class LEs extends L {
   String tagShowNotes(String tag) {
     return 'Notas con #$tag';
   }
+
+  @override
+  String get panelHint =>
+      'Las notas y la búsqueda pasan por la pestaña de Stowa abierta.';
+
+  @override
+  String get panelEmpty =>
+      'Escribe una idea o busca una nota: la línea hace las dos cosas.';
+
+  @override
+  String get panelLocked =>
+      'La búsqueda está bloqueada por el código de entrada; puedes seguir escribiendo.';
+
+  @override
+  String get panelOpened => 'Abierta en la pestaña de Stowa';
+
+  @override
+  String get panelSaved => 'Guardado ahora';
 }

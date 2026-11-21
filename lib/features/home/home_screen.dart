@@ -16,7 +16,11 @@ import '../../data/providers.dart';
 import '../../domain/hints.dart' show Tip, visibleStep;
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
-import '../../services/capture_service.dart' show PickedFile;
+import '../../domain/item_title.dart' show linesUnderTitle;
+import '../../domain/note_links.dart' show shownTitle;
+import '../../domain/search_query.dart' show parseSearch;
+import '../../services/capture_service.dart' show CaptureInput, PickedFile;
+import '../../services/panel_bridge.dart';
 import '../../services/launch_actions.dart';
 import '../../services/notice_service.dart' show noticePrivatePref;
 import '../../services/place_alarms.dart';
@@ -69,6 +73,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // корешки «Под рукой» включены — служба на месте и при первом открытии, а не только при
     // возврате: HyperOS убивает их вместе с процессом, и открывать Stowa приходилось дважды
     ref.read(edgeControlProvider).resumed().ignore();
+    // браузер: эта вкладка держит хранилище и отвечает боковой панели (STOWA-9)
+    if (isWeb) _panel = _panelBridge()..start();
     // виджеты iPhone читают заметки из файла в папке группы: держать его свежим, замок — сразу
     if (isIOS) {
       ref.read(widgetSyncProvider).start();
@@ -180,7 +186,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     _watch?.stop().ignore();
     _placeTimer?.cancel();
     _shared?.cancel().ignore();
+    _panel?.stop();
     super.dispose();
+  }
+
+  PanelBridge? _panel;
+
+  /// Ответы боковой панели браузера: запись тем же сервисом, что строка, поиск тем же
+  /// поиском. Под «Кодом на вход» панель только записывает: папку и найденное не видит.
+  PanelBridge _panelBridge() {
+    bool locked() => (ref.read(privacyLockProvider).value ?? ref.read(startLockProvider))?.appLock ?? false;
+    return PanelBridge(
+      link: PanelLink(),
+      panel: isPanelPage(),
+      locked: locked,
+      capture: (text) async {
+        final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text));
+        final saved = await ref.read(itemsRepositoryProvider).get(id);
+        final folders = ref.read(foldersProvider).value ?? const [];
+        return (id: id, folder: folders.where((one) => one.id == saved?.item.folderId).firstOrNull?.name);
+      },
+      undo: (id) => ref.read(itemsRepositoryProvider).softDelete(id, ref.read(clockProvider)()),
+      search: (query) async {
+        final now = ref.read(clockProvider)();
+        final found = await ref.read(itemsRepositoryProvider).search(query: parseSearch(query, now), now: now, limit: 8);
+        return [
+          for (final result in found.results)
+            PanelNote(id: result.card.id, title: shownTitle(result.card.title), line: linesUnderTitle(result.card.body, result.card.title).firstOrNull, folder: result.card.folderName),
+        ];
+      },
+      // строка главной живёт и во вкладке рабочего места: от неё заметка откроется своей вкладкой
+      open: (id) {
+        final from = _dock.currentContext ?? context;
+        if (from.mounted) openItem(from, id).ignore();
+      },
+    );
   }
 
   Timer? _placeTimer;

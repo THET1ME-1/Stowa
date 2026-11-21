@@ -4707,4 +4707,20 @@ class LUk extends L {
   String tagShowNotes(String tag) {
     return 'Нотатки з #$tag';
   }
+
+  @override
+  String get panelHint => 'Записи й пошук ідуть через відкриту вкладку Stowa.';
+
+  @override
+  String get panelEmpty =>
+      'Пиши думку або шукай нотатку: рядок робить і те, і інше.';
+
+  @override
+  String get panelLocked => 'Пошук закрито кодом на вхід, записувати можна.';
+
+  @override
+  String get panelOpened => 'Відкрив у вкладці Stowa';
+
+  @override
+  String get panelSaved => 'Щойно записано';
 }

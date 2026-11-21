@@ -37,6 +37,8 @@ rsync -a --delete -e "${ssh_command[*]}" build/web/ "$STOWA_WEB_SSH:$dir.next/"
 headers=$(curl -fsS -m 20 -D - -o /dev/null "$url/")
 echo "$headers" | grep -qi '^cross-origin-opener-policy: same-origin' || { echo 'нет заголовка Cross-Origin-Opener-Policy' >&2; exit 1; }
 echo "$headers" | grep -qi '^cross-origin-embedder-policy: require-corp' || { echo 'нет заголовка Cross-Origin-Embedder-Policy' >&2; exit 1; }
+# без него боковая панель расширения не загрузит сайт (STOWA-9)
+echo "$headers" | grep -qi '^cross-origin-resource-policy: cross-origin' || { echo 'нет заголовка Cross-Origin-Resource-Policy' >&2; exit 1; }
 curl -fsS -m 20 -D - -o /dev/null "$url/sqlite3.wasm" | grep -qi '^content-type: application/wasm' || { echo 'sqlite3.wasm отдаётся не как application/wasm' >&2; exit 1; }
 local_version=$(cat build/web/version.json)
 remote_version=$(curl -fsS -m 20 "$url/version.json")

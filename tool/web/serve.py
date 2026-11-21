@@ -17,6 +17,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         # без этих двух заголовков база в браузере работает в медленном и ненадёжном режиме
         self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
         self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
+        # боковая панель расширения встраивает сайт фреймом изолированной страницы (STOWA-9)
+        self.send_header('Cross-Origin-Resource-Policy', 'cross-origin')
         self.send_header('Cache-Control', 'no-store')
         super().end_headers()
 

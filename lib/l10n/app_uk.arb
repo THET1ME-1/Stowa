@@ -1021,5 +1021,10 @@
   "tagPinHint": "Тег стане в ряд угорі головної",
   "numberPadRange": "Від {min} до {max}",
   "numberPadOpen": "Вписати число",
-  "tagShowNotes": "Нотатки з #{tag}"
+  "tagShowNotes": "Нотатки з #{tag}",
+  "panelHint": "Записи й пошук ідуть через відкриту вкладку Stowa.",
+  "panelEmpty": "Пиши думку або шукай нотатку: рядок робить і те, і інше.",
+  "panelLocked": "Пошук закрито кодом на вхід, записувати можна.",
+  "panelOpened": "Відкрив у вкладці Stowa",
+  "panelSaved": "Щойно записано"
 }

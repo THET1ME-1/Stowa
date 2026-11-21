@@ -4719,4 +4719,20 @@ class LRu extends L {
   String tagShowNotes(String tag) {
     return 'Заметки с #$tag';
   }
+
+  @override
+  String get panelHint => 'Записи и поиск идут через открытую вкладку Stowa.';
+
+  @override
+  String get panelEmpty =>
+      'Пиши мысль или ищи заметку: строка делает и то и другое.';
+
+  @override
+  String get panelLocked => 'Поиск закрыт кодом на вход, записывать можно.';
+
+  @override
+  String get panelOpened => 'Открыл во вкладке Stowa';
+
+  @override
+  String get panelSaved => 'Записано сейчас';
 }

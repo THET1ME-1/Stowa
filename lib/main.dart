@@ -24,7 +24,9 @@ import 'features/edge/sticker_host.dart';
 import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
+import 'features/web/panel_screen.dart';
 import 'features/web/tab_busy_screen.dart';
+import 'services/panel_bridge.dart';
 import 'services/background.dart';
 import 'services/crash_reporter.dart';
 import 'services/privacy/privacy_service.dart';
@@ -93,14 +95,22 @@ Future<void> _waitForTab() async {
   final appearance = SettingsRepository(prefs, const SecureKeyStore()).appearance;
   Tokens.use(paletteFor(appearance, brightnessFor(appearance, PlatformDispatcher.instance.platformBrightness, DateTime.now())));
   final ours = waitForTab();
-  runApp(
-    TabBusyApp(
-      onOpenHere: () {
-        askTabToLeave();
-        return ours;
-      },
-    ),
-  );
+  Future<void> openHere() {
+    askTabToLeave();
+    return ours;
+  }
+
+  // боковая панель браузера (STOWA-9): базу не открывает, пишет и ищет через вкладку.
+  // Вкладку закрыли — хранилище наше, и панель становится полным приложением
+  if (isPanelPage()) {
+    runApp(PanelApp(client: PanelClient(PanelLink()), onOpenHere: openHere));
+    await ours;
+    return;
+  }
+  // хранилище держит панель — обычная вкладка забирает его сама, без «Открыть здесь»:
+  // панель дописывает файлы и перезагружается в лёгкий режим
+  if (await holderIsPanel()) askTabToLeave();
+  runApp(TabBusyApp(onOpenHere: openHere));
   await ours;
 }
 

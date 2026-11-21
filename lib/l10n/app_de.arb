@@ -1021,5 +1021,10 @@
   "tagPinHint": "Das Tag erscheint in der Reihe oben auf der Startseite",
   "numberPadRange": "Von {min} bis {max}",
   "numberPadOpen": "Zahl eingeben",
-  "tagShowNotes": "Notizen mit #{tag}"
+  "tagShowNotes": "Notizen mit #{tag}",
+  "panelHint": "Notizen und Suche laufen über deinen offenen Stowa-Tab.",
+  "panelEmpty": "Schreib einen Gedanken oder such eine Notiz: Die Zeile kann beides.",
+  "panelLocked": "Die Suche ist durch den Zugangscode gesperrt, schreiben geht.",
+  "panelOpened": "Im Stowa-Tab geöffnet",
+  "panelSaved": "Gerade gespeichert"
 }

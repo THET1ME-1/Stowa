@@ -4682,4 +4682,21 @@ class LRo extends L {
   String tagShowNotes(String tag) {
     return 'Notițe cu #$tag';
   }
+
+  @override
+  String get panelHint => 'Notițele și căutarea trec prin fila Stowa deschisă.';
+
+  @override
+  String get panelEmpty =>
+      'Scrie un gând sau caută o notiță: rândul le face pe amândouă.';
+
+  @override
+  String get panelLocked =>
+      'Căutarea e blocată de codul de intrare; poți scrie în continuare.';
+
+  @override
+  String get panelOpened => 'Deschisă în fila Stowa';
+
+  @override
+  String get panelSaved => 'Salvate acum';
 }

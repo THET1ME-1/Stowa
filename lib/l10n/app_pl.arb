@@ -1021,5 +1021,10 @@
   "tagPinHint": "Tag pojawi się w rzędzie na górze strony głównej",
   "numberPadRange": "Od {min} do {max}",
   "numberPadOpen": "Wpisz liczbę",
-  "tagShowNotes": "Notatki z #{tag}"
+  "tagShowNotes": "Notatki z #{tag}",
+  "panelHint": "Notatki i wyszukiwanie idą przez otwartą kartę Stowa.",
+  "panelEmpty": "Zapisz myśl albo szukaj notatki: linia robi jedno i drugie.",
+  "panelLocked": "Wyszukiwanie blokuje kod wejścia, pisać można.",
+  "panelOpened": "Otwarto w karcie Stowa",
+  "panelSaved": "Zapisane przed chwilą"
 }

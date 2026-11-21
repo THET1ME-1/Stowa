@@ -7936,6 +7936,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Notes with #{tag}'**
   String tagShowNotes(String tag);
+
+  /// Подзаголовок боковой панели браузера в лёгком режиме
+  ///
+  /// In en, this message translates to:
+  /// **'Notes and search go through your open Stowa tab.'**
+  String get panelHint;
+
+  /// panelEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'Write a thought or look up a note: the line does both.'**
+  String get panelEmpty;
+
+  /// panelLocked
+  ///
+  /// In en, this message translates to:
+  /// **'Search is locked by the app code; you can still write.'**
+  String get panelLocked;
+
+  /// panelOpened
+  ///
+  /// In en, this message translates to:
+  /// **'Opened in the Stowa tab'**
+  String get panelOpened;
+
+  /// Заголовок списка заметок, записанных из панели за этот раз
+  ///
+  /// In en, this message translates to:
+  /// **'Just saved'**
+  String get panelSaved;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -4640,4 +4640,21 @@ class LEn extends L {
   String tagShowNotes(String tag) {
     return 'Notes with #$tag';
   }
+
+  @override
+  String get panelHint => 'Notes and search go through your open Stowa tab.';
+
+  @override
+  String get panelEmpty =>
+      'Write a thought or look up a note: the line does both.';
+
+  @override
+  String get panelLocked =>
+      'Search is locked by the app code; you can still write.';
+
+  @override
+  String get panelOpened => 'Opened in the Stowa tab';
+
+  @override
+  String get panelSaved => 'Just saved';
 }

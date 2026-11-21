@@ -1304,5 +1304,10 @@
   "tagPinHint": "Тег встанет в ряд наверху главной",
   "numberPadRange": "От {min} до {max}",
   "numberPadOpen": "Вписать число",
-  "tagShowNotes": "Заметки с #{tag}"
+  "tagShowNotes": "Заметки с #{tag}",
+  "panelHint": "Записи и поиск идут через открытую вкладку Stowa.",
+  "panelEmpty": "Пиши мысль или ищи заметку: строка делает и то и другое.",
+  "panelLocked": "Поиск закрыт кодом на вход, записывать можно.",
+  "panelOpened": "Открыл во вкладке Stowa",
+  "panelSaved": "Записано сейчас"
 }

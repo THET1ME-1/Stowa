@@ -4714,4 +4714,21 @@ class LPl extends L {
   String tagShowNotes(String tag) {
     return 'Notatki z #$tag';
   }
+
+  @override
+  String get panelHint =>
+      'Notatki i wyszukiwanie idą przez otwartą kartę Stowa.';
+
+  @override
+  String get panelEmpty =>
+      'Zapisz myśl albo szukaj notatki: linia robi jedno i drugie.';
+
+  @override
+  String get panelLocked => 'Wyszukiwanie blokuje kod wejścia, pisać można.';
+
+  @override
+  String get panelOpened => 'Otwarto w karcie Stowa';
+
+  @override
+  String get panelSaved => 'Zapisane przed chwilą';
 }

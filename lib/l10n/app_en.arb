@@ -5617,5 +5617,25 @@
         "type": "String"
       }
     }
+  },
+  "panelHint": "Notes and search go through your open Stowa tab.",
+  "@panelHint": {
+    "description": "Подзаголовок боковой панели браузера в лёгком режиме"
+  },
+  "panelEmpty": "Write a thought or look up a note: the line does both.",
+  "@panelEmpty": {
+    "description": "panelEmpty"
+  },
+  "panelLocked": "Search is locked by the app code; you can still write.",
+  "@panelLocked": {
+    "description": "panelLocked"
+  },
+  "panelOpened": "Opened in the Stowa tab",
+  "@panelOpened": {
+    "description": "panelOpened"
+  },
+  "panelSaved": "Just saved",
+  "@panelSaved": {
+    "description": "Заголовок списка заметок, записанных из панели за этот раз"
   }
 }

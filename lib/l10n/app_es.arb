@@ -1021,5 +1021,10 @@
   "tagPinHint": "La etiqueta aparece en la fila de arriba del inicio",
   "numberPadRange": "De {min} a {max}",
   "numberPadOpen": "Escribir un número",
-  "tagShowNotes": "Notas con #{tag}"
+  "tagShowNotes": "Notas con #{tag}",
+  "panelHint": "Las notas y la búsqueda pasan por la pestaña de Stowa abierta.",
+  "panelEmpty": "Escribe una idea o busca una nota: la línea hace las dos cosas.",
+  "panelLocked": "La búsqueda está bloqueada por el código de entrada; puedes seguir escribiendo.",
+  "panelOpened": "Abierta en la pestaña de Stowa",
+  "panelSaved": "Guardado ahora"
 }

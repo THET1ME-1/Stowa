@@ -28,20 +28,22 @@ class TabBusyApp extends StatelessWidget {
     supportedLocales: AppLanguage.supportedLocales,
     localizationsDelegates: const [L.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
     localeListResolutionCallback: (deviceLocales, _) => AppLanguage.resolve(deviceLocales ?? const []).locale,
-    home: _TabBusyScreen(onOpenHere: onOpenHere),
+    home: TabBusyScreen(onOpenHere: onOpenHere),
   );
 }
 
-class _TabBusyScreen extends StatefulWidget {
-  const _TabBusyScreen({required this.onOpenHere});
+/// Экран «Stowa уже открыта в другой вкладке»: его же показывает боковая панель, когда
+/// вкладка ей не ответила.
+class TabBusyScreen extends StatefulWidget {
+  const TabBusyScreen({super.key, required this.onOpenHere});
 
   final Future<void> Function() onOpenHere;
 
   @override
-  State<_TabBusyScreen> createState() => _TabBusyScreenState();
+  State<TabBusyScreen> createState() => _TabBusyScreenState();
 }
 
-class _TabBusyScreenState extends State<_TabBusyScreen> {
+class _TabBusyScreenState extends State<TabBusyScreen> {
   bool _waiting = false;
 
   Future<void> _openHere() async {

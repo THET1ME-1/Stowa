@@ -4670,4 +4670,22 @@ class LDe extends L {
   String tagShowNotes(String tag) {
     return 'Notizen mit #$tag';
   }
+
+  @override
+  String get panelHint =>
+      'Notizen und Suche laufen über deinen offenen Stowa-Tab.';
+
+  @override
+  String get panelEmpty =>
+      'Schreib einen Gedanken oder such eine Notiz: Die Zeile kann beides.';
+
+  @override
+  String get panelLocked =>
+      'Die Suche ist durch den Zugangscode gesperrt, schreiben geht.';
+
+  @override
+  String get panelOpened => 'Im Stowa-Tab geöffnet';
+
+  @override
+  String get panelSaved => 'Gerade gespeichert';
 }
