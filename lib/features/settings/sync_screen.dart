@@ -42,9 +42,41 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
 
   SyncService get _service => ref.read(syncServiceProvider);
 
+  /// Блок хода вместо «Синхронизировать сейчас»: проход с работой или начатый касанием.
+  /// Пустой проход (открыли экран, вернулись свои же правки) мигал бы кнопкой и блоком.
+  bool _showProgress = false;
+  bool _asked = false;
+  late final ValueNotifier<SyncProgress?> _progress;
+
+  void _onProgress() {
+    final progress = _progress.value;
+    final show = progress != null && (_showProgress || _asked || _hasWork(progress));
+    if (progress == null) _asked = false;
+    if (show != _showProgress && mounted) setState(() => _showProgress = show);
+  }
+
+  /// Сверка папки обходит всю папку и при пустом проходе: работа видна только с приёма.
+  static bool _hasWork(SyncProgress progress) => switch (progress.stage) {
+    SyncStage.folder => false,
+    SyncStage.receive || SyncStage.send => (progress.total ?? 0) > 0,
+    SyncStage.place => true,
+  };
+
+  void _syncNow() {
+    setState(() {
+      _asked = true;
+      _showProgress = true;
+    });
+    ref.read(vaultSyncProvider).run().ignore();
+  }
+
   @override
   void initState() {
     super.initState();
+    // в dispose ref уже не читается: ход слушаем через запомненный notifier
+    _progress = _service.progress..addListener(_onProgress);
+    final progress = _progress.value;
+    _showProgress = progress != null && _hasWork(progress);
     _service.account().then((account) {
       if (!mounted) return;
       setState(() {
@@ -61,6 +93,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
 
   @override
   void dispose() {
+    _progress.removeListener(_onProgress);
     _stopAutofill();
     _tick?.cancel();
     _email.dispose();
@@ -305,9 +338,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       listenable: Listenable.merge([_service.status, _service.progress]),
       builder: (context, _) {
         final status = _service.status.value;
-        // проход идёт — блок хода на месте кнопки; движок без сверки хранилища (так не
-        // бывает, но всё же) — приём без цифр
-        final running = _service.progress.value ?? (status.running ? const SyncProgress(SyncStage.receive) : null);
+        // касание успело раньше первого отчёта прохода — сверка папки без цифр
+        final running = _showProgress ? _service.progress.value ?? const SyncProgress(SyncStage.folder) : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -326,7 +358,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                     ),
                     child: running != null
                         ? SyncProgressCard(key: const ValueKey('sync-progress-card'), progress: running, tint: tint)
-                        : SettingsRow(key: const ValueKey('sync-now'), icon: 'sync', title: l.syncNow, value: _lastPass(l, status), onTap: () => ref.read(vaultSyncProvider).run()),
+                        : SettingsRow(key: const ValueKey('sync-now'), icon: 'sync', title: l.syncNow, value: _lastPass(l, status), onTap: _syncNow),
                   ),
               ],
             ),

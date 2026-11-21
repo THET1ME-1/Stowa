@@ -109,10 +109,12 @@ void main() {
       }
 
       const mb = 1024 * 1024;
-      await moving('${name}_folder', const SyncProgress(SyncStage.folder, done: 1840, total: 3873));
+      // блок открывает проход с работой; дальше он держится до конца прохода, и этап папки
+      // снимается тем же блоком
       await moving('${name}_receive', const SyncProgress(SyncStage.receive, done: 1214, total: 3873, bytesDone: 211 * mb, bytesTotal: 633 * mb, file: 'Конспекты/Физика/Лекция 12. Электромагнитная индукция.md'));
       await moving('${name}_send', const SyncProgress(SyncStage.send, done: 3, total: 12, bytesDone: 2 * mb, bytesTotal: 18 * mb, file: 'Вложения/IMG_2045.jpg'));
       await moving('${name}_place', const SyncProgress(SyncStage.place));
+      await moving('${name}_folder', const SyncProgress(SyncStage.folder, done: 1840, total: 3873));
       service.track(null);
       service.status.value = service.status.value.copyWith(lastAt: DateTime(2026, 11, 21, 14, 32), received: 12, sent: 3);
       await shot('${name}_done');

@@ -174,6 +174,32 @@ void main() {
     expect(find.text('Получено: 12, отправлено: 3'), findsOneWidget);
   });
 
+  // открыли экран, вернулись свои правки — проход без работы. Блок мигал бы вместо кнопки
+  testWidgets('проход без работы блок не показывает, касание «Синхронизировать сейчас» — сразу', (tester) async {
+    await open(tester);
+    await askCode(tester);
+    await tester.enterText(find.byKey(const ValueKey('sync-code')), '123456');
+    await tester.pumpAndSettle();
+    final service = ProviderScope.containerOf(tester.element(find.byType(SyncScreen))).read(syncServiceProvider);
+
+    for (final step in const [SyncProgress(SyncStage.folder, done: 10, total: 40), SyncProgress(SyncStage.receive, total: 0), SyncProgress(SyncStage.send, total: 0)]) {
+      service.track(step);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const ValueKey('sync-progress')), findsNothing);
+    }
+    service.track(null);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('sync-now')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('sync-progress')), findsOneWidget);
+    // настоящий проход в тесте ждёт диска, которого в поддельном времени нет: конец — вручную
+    service.track(null);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('sync-now')), findsOneWidget);
+  });
+
   testWidgets('без хранилища — подсказка выбрать папку, полей нет', (tester) async {
     world.vaultRoot = null;
     await open(tester);

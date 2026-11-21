@@ -250,15 +250,20 @@ class SyncService {
     } else if (report.error == null) {
       inactive = false;
     }
+    // служебное (.stowa, .obsidian) человек не считает: «получено 3» за одну заметку сбивало бы
+    final received = report.received.where(_visible).length;
+    final sent = report.sent.where(_visible).length;
+    // пустой проход итог прошлого не стирает: за отправкой сразу идёт проход по своим же
+    // вернувшимся правкам, и «Отправлено: 3» гасло через секунду
+    final moved = received > 0 || sent > 0;
     status.value = status.value.copyWith(
       running: false,
       lastAt: report.error == null ? DateTime.now() : null,
       error: report.error,
       clearError: report.error == null,
       inactive: inactive,
-      // служебное (.stowa, .obsidian) человек не считает: «получено 3» за одну заметку сбивало бы
-      received: report.received.where(_visible).length,
-      sent: report.sent.where(_visible).length,
+      received: moved ? received : null,
+      sent: moved ? sent : null,
     );
     // проход не полный (сеть, отложенные файлы): повторить самим, с растущей паузой до
     // 10 минут, — ожидание правок будит только новая правка, а отложенные курсор уже прошёл
