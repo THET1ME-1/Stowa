@@ -7085,6 +7085,90 @@ abstract class L {
   /// **'Your notes stay on this device.'**
   String get syncSignOutHint;
 
+  /// Подпись первого отрезка полосы хода синхронизации: сверка папки хранилища. Коротко, одно слово
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get syncStepFolder;
+
+  /// Подпись второго отрезка полосы хода синхронизации: приём с сервера. Коротко, одно слово
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get syncStepReceive;
+
+  /// Подпись третьего отрезка полосы хода синхронизации: отправка на сервер. Коротко, одно слово
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get syncStepSend;
+
+  /// Подпись четвёртого отрезка полосы хода синхронизации: пришедшие файлы ложатся в заметки. Коротко, одно слово
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get syncStepPlace;
+
+  /// Заголовок блока хода синхронизации: сверяются правки в папке хранилища
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the folder'**
+  String get syncDoingFolder;
+
+  /// Заголовок блока хода синхронизации: правки с других устройств скачиваются
+  ///
+  /// In en, this message translates to:
+  /// **'Receiving from the server'**
+  String get syncDoingReceive;
+
+  /// Заголовок блока хода синхронизации: свои файлы сверяются с сервером, отличные отправляются
+  ///
+  /// In en, this message translates to:
+  /// **'Checking and sending'**
+  String get syncDoingSend;
+
+  /// Заголовок блока хода синхронизации: пришедшие файлы раскладываются по заметкам
+  ///
+  /// In en, this message translates to:
+  /// **'Putting notes in place'**
+  String get syncDoingPlace;
+
+  /// Ход этапа синхронизации в файлах: «340 из 1000». Числа уже с разделителями разрядов
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String syncOf(String done, String total);
+
+  /// Ход этапа синхронизации в мегабайтах: «12,4 из 63 МБ»
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} MB'**
+  String syncOfMb(String done, String total);
+
+  /// Ход этапа синхронизации в гигабайтах: «0,4 из 1,2 ГБ»
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} GB'**
+  String syncOfGb(String done, String total);
+
+  /// Итог прошлого прохода под «Синхронизировать сейчас»: сколько файлов пришло
+  ///
+  /// In en, this message translates to:
+  /// **'Received: {count}'**
+  String syncPassReceived(int count);
+
+  /// Итог прошлого прохода под «Синхронизировать сейчас»: сколько файлов ушло
+  ///
+  /// In en, this message translates to:
+  /// **'Sent: {count}'**
+  String syncPassSent(int count);
+
+  /// Итог прошлого прохода под «Синхронизировать сейчас»: сколько файлов пришло и ушло
+  ///
+  /// In en, this message translates to:
+  /// **'Received: {received}, sent: {sent}'**
+  String syncPassBoth(int received, int sent);
+
   /// Side panel with the main places of the app
   ///
   /// In en, this message translates to:

@@ -14,9 +14,11 @@ import 'package:http/testing.dart';
 import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/core/theme/palette.dart';
 import 'package:stowa/core/theme/tokens.dart';
+import 'package:stowa/data/providers.dart';
 import 'package:stowa/domain/appearance.dart';
 import 'package:stowa/features/settings/sync_screen.dart';
 import 'package:stowa/l10n/app_localizations.dart';
+import 'package:stowa/services/sync/sync_progress.dart';
 
 import '../../test/helpers/test_app.dart';
 
@@ -91,6 +93,35 @@ void main() {
       await tester.enterText(find.byKey(const ValueKey('sync-code')), '482913');
       await tester.pumpAndSettle();
       await shot('${name}_on');
+
+      // ход прохода: значок крутится, settle не дождётся — кадр через полсекунды
+      final service = ProviderScope.containerOf(tester.element(find.byType(SyncScreen))).read(syncServiceProvider);
+      Future<void> moving(String file, SyncProgress progress) async {
+        service.track(progress);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 700));
+        final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(const ValueKey('shot')));
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          File('build/previews/$file.png').writeAsBytesSync(png!.buffer.asUint8List());
+        });
+      }
+
+      const mb = 1024 * 1024;
+      await moving('${name}_folder', const SyncProgress(SyncStage.folder, done: 1840, total: 3873));
+      await moving('${name}_receive', const SyncProgress(SyncStage.receive, done: 1214, total: 3873, bytesDone: 211 * mb, bytesTotal: 633 * mb, file: 'Конспекты/Физика/Лекция 12. Электромагнитная индукция.md'));
+      await moving('${name}_send', const SyncProgress(SyncStage.send, done: 3, total: 12, bytesDone: 2 * mb, bytesTotal: 18 * mb, file: 'Вложения/IMG_2045.jpg'));
+      await moving('${name}_place', const SyncProgress(SyncStage.place));
+      service.track(null);
+      service.status.value = service.status.value.copyWith(lastAt: DateTime(2026, 11, 21, 14, 32), received: 12, sent: 3);
+      await shot('${name}_done');
+
+      // узкий телефон: 320 точек
+      tester.view.physicalSize = const Size(320, 700);
+      await moving('${name}_receive_320', const SyncProgress(SyncStage.receive, done: 1214, total: 3873, bytesDone: 211 * mb, bytesTotal: 633 * mb, file: 'Конспекты/Физика/Лекция 12. Электромагнитная индукция.md'));
+      service.track(null);
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });
   }

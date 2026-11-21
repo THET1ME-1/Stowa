@@ -788,7 +788,7 @@ final vaultReaderProvider = Provider((ref) => VaultReader(ref.watch(databaseProv
 /// Сверка хранилища: сперва чужие правки, потом свои, потом синхронизация через сервер.
 final vaultSyncProvider = Provider((ref) {
   final sync = ref.watch(syncServiceProvider);
-  final vault = VaultSync(reader: ref.watch(vaultReaderProvider), writer: ref.watch(vaultWriterProvider), remote: sync.run);
+  final vault = VaultSync(reader: ref.watch(vaultReaderProvider), writer: ref.watch(vaultWriterProvider), remote: sync.run, onProgress: sync.track);
   sync.trigger = vault.run;
   return vault;
 });

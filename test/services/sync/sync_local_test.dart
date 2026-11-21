@@ -10,6 +10,7 @@ import 'package:stowa/services/sync/sync_crypto.dart';
 import 'package:stowa/services/sync/sync_db_state.dart';
 import 'package:stowa/services/sync/sync_disk.dart';
 import 'package:stowa/services/sync/sync_engine.dart';
+import 'package:stowa/services/sync/sync_progress.dart';
 import 'package:stowa/services/vault/vault_reader.dart';
 import 'package:stowa/services/vault/vault_sync.dart';
 import 'package:stowa/services/vault/vault_writer.dart';
@@ -20,7 +21,7 @@ import 'fakes.dart';
 class Phone {
   Phone(FakeRemote remote, VaultKey key) {
     final reader = VaultReader(db, root: root, clock: DateTime.now);
-    engine = SyncEngine(vault: DiskSyncFiles(root), remote: remote, state: DbSyncState(db), key: key, exclusive: reader.exclusively);
+    engine = SyncEngine(vault: DiskSyncFiles(root), remote: remote, state: DbSyncState(db), key: key, exclusive: reader.exclusively, onProgress: steps.add);
     vault = VaultSync(
       reader: reader,
       writer: VaultWriter(db, root: root, clock: DateTime.now),
@@ -28,6 +29,7 @@ class Phone {
         last = await engine.sync();
         return last!.received;
       },
+      onProgress: steps.add,
     );
   }
 
@@ -36,6 +38,9 @@ class Phone {
   late final SyncEngine engine;
   late final VaultSync vault;
   SyncReport? last;
+
+  /// Ход полного прохода, как его видит экран; null — проход кончился.
+  final steps = <SyncProgress?>[];
 
   Future<Item?> byTitle(String title) => (db.select(db.items)..where((t) => t.title.equals(title))).getSingleOrNull();
 
@@ -60,6 +65,23 @@ void main() {
   tearDown(() async {
     await a.dispose();
     await b.dispose();
+  });
+
+  test('полный проход идёт этапами: папка, приём, отправка, заметки — и гаснет в конце', () async {
+    final now = DateTime.now();
+    await a.db.into(a.db.items).insert(ItemsCompanion.insert(id: 'n1', kind: ItemKind.note, title: 'Идеи', body: const Value('Идеи\nс первого телефона'), createdAt: now, updatedAt: now));
+    await a.vault.run();
+    await b.vault.run();
+    final stages = <SyncStage>[];
+    for (final step in b.steps.whereType<SyncProgress>()) {
+      if (stages.isEmpty || stages.last != step.stage) stages.add(step.stage);
+    }
+    expect(stages, [SyncStage.folder, SyncStage.receive, SyncStage.send, SyncStage.place]);
+    final placed = b.steps.whereType<SyncProgress>().lastWhere((step) => step.stage == SyncStage.place);
+    expect(placed.done, placed.total);
+    expect(b.steps.last, isNull);
+    // своё ушло, а принимать на первом телефоне нечего: раскладки нет
+    expect(a.steps.whereType<SyncProgress>().map((step) => step.stage).toSet(), {SyncStage.folder, SyncStage.receive, SyncStage.send});
   });
 
   test('заметка с одного телефона появляется в базе другого, правка возвращается', () async {

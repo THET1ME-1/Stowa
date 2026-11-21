@@ -4164,6 +4164,60 @@ class LEn extends L {
   String get syncSignOutHint => 'Your notes stay on this device.';
 
   @override
+  String get syncStepFolder => 'Folder';
+
+  @override
+  String get syncStepReceive => 'Receive';
+
+  @override
+  String get syncStepSend => 'Send';
+
+  @override
+  String get syncStepPlace => 'Notes';
+
+  @override
+  String get syncDoingFolder => 'Checking the folder';
+
+  @override
+  String get syncDoingReceive => 'Receiving from the server';
+
+  @override
+  String get syncDoingSend => 'Checking and sending';
+
+  @override
+  String get syncDoingPlace => 'Putting notes in place';
+
+  @override
+  String syncOf(String done, String total) {
+    return '$done of $total';
+  }
+
+  @override
+  String syncOfMb(String done, String total) {
+    return '$done of $total MB';
+  }
+
+  @override
+  String syncOfGb(String done, String total) {
+    return '$done of $total GB';
+  }
+
+  @override
+  String syncPassReceived(int count) {
+    return 'Received: $count';
+  }
+
+  @override
+  String syncPassSent(int count) {
+    return 'Sent: $count';
+  }
+
+  @override
+  String syncPassBoth(int received, int sent) {
+    return 'Received: $received, sent: $sent';
+  }
+
+  @override
   String get wsSections => 'Sections';
 
   @override

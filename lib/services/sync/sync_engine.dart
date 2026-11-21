@@ -11,6 +11,7 @@ import 'package:crypto/crypto.dart' as hash;
 import 'merge.dart';
 import 'sync_crypto.dart';
 import 'sync_ports.dart';
+import 'sync_progress.dart';
 
 enum SyncError {
   /// Сеть оборвалась или сервер не ответил: проход доделается в следующий раз.
@@ -34,6 +35,9 @@ class SyncReport {
 
   /// Пути, которые проход положил или удалил на диске: их забирает сверка.
   final received = <String>[];
+
+  /// Пути, ушедшие на сервер.
+  final sent = <String>[];
   SyncError? error;
 
   @override
@@ -68,8 +72,12 @@ class SyncEngine {
     this.loser,
     this.chunk = syncChunk,
     this.parallel = 6,
+    this.onProgress,
     Future<T> Function<T>(Future<T> Function() work)? exclusive,
   }) : exclusive = exclusive ?? _direct;
+
+  /// Ход приёма и отправки для экрана: зовётся на каждый файл и каждую часть.
+  final void Function(SyncProgress progress)? onProgress;
 
   static Future<T> _direct<T>(Future<T> Function() work) => work();
 
@@ -123,6 +131,61 @@ class SyncEngine {
   /// Файлы, на которых сервер отказал по ревизии в этом проходе.
   final _conflicts = <String>{};
 
+  // ── ход для экрана ──
+
+  SyncStage? _stage;
+  int _done = 0;
+  int _total = 0;
+  int _bytesDone = 0;
+  int _bytesTotal = 0;
+  String? _file;
+
+  /// Файл → байты, уже пришедшие или ушедшие: большой файл двигает ход частями.
+  final _flight = <String, int>{};
+
+  /// Этап начат или к нему прибавилось: [files] и [bytes] — к итогу. Новый этап считается
+  /// с нуля; приём после отправки (сервер отказал по ревизии) — тоже.
+  void _expect(SyncStage stage, {required int files, int bytes = 0}) {
+    if (_stage != stage) {
+      _stage = stage;
+      _done = 0;
+      _total = 0;
+      _bytesDone = 0;
+      _bytesTotal = 0;
+      _file = null;
+      _flight.clear();
+    }
+    _total += files;
+    _bytesTotal += bytes;
+    _tell();
+  }
+
+  void _tell() {
+    final tell = onProgress;
+    final stage = _stage;
+    if (tell == null || stage == null) return;
+    var flying = 0;
+    for (final bytes in _flight.values) {
+      flying += bytes;
+    }
+    tell(SyncProgress(stage, done: _done, total: _total, bytesDone: _bytesDone + flying, bytesTotal: _bytesTotal, file: _file));
+  }
+
+  /// Часть файла [file] пришла или ушла.
+  void _part(String file, int bytes, {required String path}) {
+    _flight[file] = (_flight[file] ?? 0) + bytes;
+    _file = path;
+    _tell();
+  }
+
+  /// Файл [file] доделан — лёг, ушёл, совпал или отложен до следующего прохода: его [size] — в счёт.
+  void _settled(String file, int size) {
+    _flight.remove(file);
+    _done++;
+    _bytesDone += size;
+    _tell();
+  }
+
   Future<void> _put(SyncedFile file) async {
     _known[file.file] = file;
     await state.put(file);
@@ -130,6 +193,7 @@ class SyncEngine {
 
   Future<SyncReport> sync() async {
     final report = SyncReport();
+    _stage = null;
     _known = await state.files();
     final Map<String, LocalFile> local;
     try {
@@ -146,10 +210,15 @@ class SyncEngine {
       for (var round = 0; round < 3; round++) {
         await _pull(local, report);
         // ревизию, которую курсор уже прошёл, спрашиваем у сервера по одному файлу
+        _expect(SyncStage.receive, files: _conflicts.length);
         for (final file in _conflicts.toList()) {
           final current = await remote.file(file);
-          if (current != null) await _apply(current, local, report);
+          if (current != null) {
+            _expect(SyncStage.receive, files: 0, bytes: current.size);
+            await _apply(current, local, report);
+          }
           _conflicts.remove(file);
+          _settled(file, current?.size ?? 0);
         }
         if (!await _push(local, report)) break;
       }
@@ -166,20 +235,43 @@ class SyncEngine {
   // ── приём ──
 
   Future<void> _pull(Map<String, LocalFile> local, SyncReport report) async {
-    // отложенные с прошлых проходов дочитываются по одному файлу
     final waiting = await state.pending();
+    // сперва все страницы, потом файлы: сколько придёт файлов и байт, экран знает до первого
+    // файла. Страница — только заголовки, тысяча весит сотни килобайт
+    final pages = <ChangePage>[];
+    var cursor = await state.cursor();
+    while (true) {
+      final page = await remote.changes(cursor);
+      pages.add(page);
+      cursor = page.cursor;
+      if (!page.more) break;
+    }
+    // в счёт только то, что ляжет: свои же правки, вернувшиеся с сервера, пропускаются сразу
+    final due = [
+      for (final page in pages)
+        for (final change in page.changes)
+          if (change.rev > (_known[change.file]?.rev ?? 0) && !waiting.contains(change.file)) change,
+    ];
+    final counted = {for (final change in due) change.file};
+    _expect(SyncStage.receive, files: waiting.length + due.length, bytes: due.fold<int>(0, (sum, change) => sum + change.size));
+
+    // отложенные с прошлых проходов дочитываются по одному файлу
     await _each(waiting.toList(), (file) async {
+      var size = 0;
       try {
         final current = await remote.file(file);
-        if (current != null) await _apply(current, local, report);
+        if (current != null) {
+          size = current.size;
+          _expect(SyncStage.receive, files: 0, bytes: size);
+          await _apply(current, local, report);
+        }
         await state.setPending(file, false);
       } on Object {
         report.waiting++;
       }
+      _settled(file, size);
     });
-    var cursor = await state.cursor();
-    while (true) {
-      final page = await remote.changes(cursor);
+    for (final page in pages) {
       // в странице каждый файл один раз: файлы приходят параллельно. Застрял в бакете
       // (Hetzner отдаёт отдельные объекты по две минуты) — файл откладывается, курсор
       // идёт дальше: иначе один файл держал бы все остальные
@@ -191,10 +283,9 @@ class SyncEngine {
           await state.setPending(change.file, true);
           report.waiting++;
         }
+        if (counted.contains(change.file)) _settled(change.file, change.size);
       });
-      cursor = page.cursor;
-      await state.setCursor(cursor);
-      if (!page.more) break;
+      await state.setCursor(page.cursor);
     }
   }
 
@@ -233,7 +324,7 @@ class SyncEngine {
       return;
     }
     if (_isNote(path) || _isMetaJson(path)) {
-      final theirs = utf8.decode(await _fetch(change), allowMalformed: true);
+      final theirs = utf8.decode(await _fetch(change, path), allowMalformed: true);
       final ours = utf8.decode(await vault.read(path, 0, mine.size), allowMalformed: true);
       final base = await state.shadow(change.file) ?? '';
       final oursNewer = mine.mtime > meta.mtime;
@@ -264,10 +355,12 @@ class SyncEngine {
     }
   }
 
-  Future<List<int>> _fetch(RemoteChange change) async {
+  Future<List<int>> _fetch(RemoteChange change, String path) async {
     final out = <int>[];
     for (final blob in change.blobs) {
-      out.addAll(await key.openChunk(await remote.getBlob(blob)));
+      final plain = await key.openChunk(await remote.getBlob(blob));
+      out.addAll(plain);
+      _part(change.file, plain.length, path: path);
     }
     return out;
   }
@@ -277,7 +370,9 @@ class SyncEngine {
     // части скачиваются и открываются по одной: весь файл в памяти не держим
     Stream<List<int>> parts() async* {
       for (final blob in change.blobs) {
-        yield await key.openChunk(await remote.getBlob(blob));
+        final plain = await key.openChunk(await remote.getBlob(blob));
+        _part(change.file, plain.length, path: path);
+        yield plain;
       }
     }
 
@@ -308,32 +403,40 @@ class SyncEngine {
   Future<bool> _push(Map<String, LocalFile> local, SyncReport report) async {
     final known = Map.of(_known);
     var conflict = false;
-    final changed = [
+    final changed = <(String, LocalFile)>[
       for (final MapEntry(key: file, value: seen) in local.entries)
         if (known[file] case final was when was != null && was.size == seen.size && was.mtime == seen.mtime) ...[] else (file, seen),
     ];
-    await _each(changed, (pair) async {
-      final (file, seen) = pair;
-      final result = await _upload(file, seen, known[file]);
-      if (result == null) return;
-      if (result is Conflict) {
-        conflict = true;
-        _conflicts.add(file);
-      } else {
-        report.pushed++;
-      }
-    });
-
     // удаления: файл был синхронизирован, а на диске его нет; надгробия не в счёт
     final alive = known.values.where((was) => was.hash.isNotEmpty).toList();
     final gone = [
       for (final was in alive)
         if (!local.containsKey(was.file)) was,
     ];
+    // на втором телефоне с той же копией почти все файлы только сверяются: экран зовёт
+    // этап «сверяю и отправляю», а в счёт идут и совпавшие
+    _expect(SyncStage.send, files: changed.length + gone.length, bytes: changed.fold(0, (sum, pair) => sum + pair.$2.size));
+    await _each(changed, (pair) async {
+      final (file, seen) = pair;
+      _file = seen.path;
+      final result = await _upload(file, seen, known[file]);
+      _settled(file, seen.size);
+      if (result == null) return;
+      if (result is Conflict) {
+        conflict = true;
+        _conflicts.add(file);
+      } else {
+        report.pushed++;
+        report.sent.add(seen.path);
+      }
+    });
+
     if (gone.length > massDeleteCount && gone.length > alive.length * massDeleteShare) throw const _MassDelete();
     for (final was in gone) {
+      _file = was.path;
       final meta = FileMeta(path: was.path, mtime: DateTime.now().millisecondsSinceEpoch, size: 0, hash: '', deleted: true);
       final result = await remote.commit(was.file, baseRev: was.rev, meta: await key.sealMeta(meta), blobs: const [], size: 0, deleted: true);
+      _settled(was.file, 0);
       if (result is Conflict) {
         conflict = true;
         _conflicts.add(was.file);
@@ -375,6 +478,7 @@ class SyncEngine {
       final name = sha256Hex(box);
       // большую часть сперва ищем на сервере (докачка после обрыва), мелкую дешевле просто отправить
       if (box.length < min(_askFirst, chunk ~/ 2) || !await remote.hasBlob(name)) await remote.putBlob(name, box);
+      _part(file, plain.length, path: seen.path);
       blobs.add(name);
       offset += plain.length;
       index++;

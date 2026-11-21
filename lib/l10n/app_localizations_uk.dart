@@ -4230,6 +4230,60 @@ class LUk extends L {
   String get syncSignOutHint => 'Нотатки на цьому пристрої залишаться.';
 
   @override
+  String get syncStepFolder => 'Тека';
+
+  @override
+  String get syncStepReceive => 'Прийом';
+
+  @override
+  String get syncStepSend => 'Відправка';
+
+  @override
+  String get syncStepPlace => 'Нотатки';
+
+  @override
+  String get syncDoingFolder => 'Перевіряю теку';
+
+  @override
+  String get syncDoingReceive => 'Отримую з сервера';
+
+  @override
+  String get syncDoingSend => 'Звіряю й надсилаю';
+
+  @override
+  String get syncDoingPlace => 'Розкладаю нотатки';
+
+  @override
+  String syncOf(String done, String total) {
+    return '$done з $total';
+  }
+
+  @override
+  String syncOfMb(String done, String total) {
+    return '$done з $total МБ';
+  }
+
+  @override
+  String syncOfGb(String done, String total) {
+    return '$done з $total ГБ';
+  }
+
+  @override
+  String syncPassReceived(int count) {
+    return 'Отримано: $count';
+  }
+
+  @override
+  String syncPassSent(int count) {
+    return 'Надіслано: $count';
+  }
+
+  @override
+  String syncPassBoth(int received, int sent) {
+    return 'Отримано: $received, надіслано: $sent';
+  }
+
+  @override
   String get wsSections => 'Розділи';
 
   @override

@@ -4242,6 +4242,60 @@ class LRu extends L {
       'Заметки на этом устройстве останутся на месте.';
 
   @override
+  String get syncStepFolder => 'Папка';
+
+  @override
+  String get syncStepReceive => 'Приём';
+
+  @override
+  String get syncStepSend => 'Отправка';
+
+  @override
+  String get syncStepPlace => 'Заметки';
+
+  @override
+  String get syncDoingFolder => 'Проверяю папку';
+
+  @override
+  String get syncDoingReceive => 'Получаю с сервера';
+
+  @override
+  String get syncDoingSend => 'Сверяю и отправляю';
+
+  @override
+  String get syncDoingPlace => 'Раскладываю заметки';
+
+  @override
+  String syncOf(String done, String total) {
+    return '$done из $total';
+  }
+
+  @override
+  String syncOfMb(String done, String total) {
+    return '$done из $total МБ';
+  }
+
+  @override
+  String syncOfGb(String done, String total) {
+    return '$done из $total ГБ';
+  }
+
+  @override
+  String syncPassReceived(int count) {
+    return 'Получено: $count';
+  }
+
+  @override
+  String syncPassSent(int count) {
+    return 'Отправлено: $count';
+  }
+
+  @override
+  String syncPassBoth(int received, int sent) {
+    return 'Получено: $received, отправлено: $sent';
+  }
+
+  @override
   String get wsSections => 'Разделы';
 
   @override

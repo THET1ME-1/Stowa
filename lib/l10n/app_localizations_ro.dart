@@ -4202,6 +4202,60 @@ class LRo extends L {
   String get syncSignOutHint => 'Notițele rămân pe acest dispozitiv.';
 
   @override
+  String get syncStepFolder => 'Dosar';
+
+  @override
+  String get syncStepReceive => 'Primire';
+
+  @override
+  String get syncStepSend => 'Trimitere';
+
+  @override
+  String get syncStepPlace => 'Notițe';
+
+  @override
+  String get syncDoingFolder => 'Verific dosarul';
+
+  @override
+  String get syncDoingReceive => 'Primesc de pe server';
+
+  @override
+  String get syncDoingSend => 'Compar și trimit';
+
+  @override
+  String get syncDoingPlace => 'Aranjez notițele';
+
+  @override
+  String syncOf(String done, String total) {
+    return '$done din $total';
+  }
+
+  @override
+  String syncOfMb(String done, String total) {
+    return '$done din $total MB';
+  }
+
+  @override
+  String syncOfGb(String done, String total) {
+    return '$done din $total GB';
+  }
+
+  @override
+  String syncPassReceived(int count) {
+    return 'Primite: $count';
+  }
+
+  @override
+  String syncPassSent(int count) {
+    return 'Trimise: $count';
+  }
+
+  @override
+  String syncPassBoth(int received, int sent) {
+    return 'Primite: $received, trimise: $sent';
+  }
+
+  @override
   String get wsSections => 'Secțiuni';
 
   @override

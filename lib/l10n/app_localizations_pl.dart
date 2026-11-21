@@ -4235,6 +4235,60 @@ class LPl extends L {
   String get syncSignOutHint => 'Notatki zostaną na tym urządzeniu.';
 
   @override
+  String get syncStepFolder => 'Folder';
+
+  @override
+  String get syncStepReceive => 'Odbiór';
+
+  @override
+  String get syncStepSend => 'Wysyłka';
+
+  @override
+  String get syncStepPlace => 'Notatki';
+
+  @override
+  String get syncDoingFolder => 'Sprawdzam folder';
+
+  @override
+  String get syncDoingReceive => 'Pobieram z serwera';
+
+  @override
+  String get syncDoingSend => 'Porównuję i wysyłam';
+
+  @override
+  String get syncDoingPlace => 'Układam notatki';
+
+  @override
+  String syncOf(String done, String total) {
+    return '$done z $total';
+  }
+
+  @override
+  String syncOfMb(String done, String total) {
+    return '$done z $total MB';
+  }
+
+  @override
+  String syncOfGb(String done, String total) {
+    return '$done z $total GB';
+  }
+
+  @override
+  String syncPassReceived(int count) {
+    return 'Odebrano: $count';
+  }
+
+  @override
+  String syncPassSent(int count) {
+    return 'Wysłano: $count';
+  }
+
+  @override
+  String syncPassBoth(int received, int sent) {
+    return 'Odebrano: $received, wysłano: $sent';
+  }
+
+  @override
   String get wsSections => 'Sekcje';
 
   @override

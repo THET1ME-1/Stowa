@@ -10,8 +10,10 @@ import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/sync/sync_engine.dart';
 import '../../services/sync/sync_http.dart';
+import '../../services/sync/sync_progress.dart';
 import '../../services/sync/sync_service.dart';
 import 'settings_blocks.dart';
+import 'sync_progress_card.dart';
 
 Route<void> syncRoute() => settingsPageRoute(const SyncScreen());
 
@@ -297,34 +299,61 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
 
   Widget _signedIn(L l, SyncAccount account) {
     final otherVault = !_service.syncsOpenVault(account);
-    return ValueListenableBuilder(
-      valueListenable: _service.status,
-      builder: (context, status, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SettingsGroup(
-            tint: settingsTint('sky'),
-            children: [
-              SettingsRow(key: const ValueKey('sync-account'), icon: 'mail', title: account.email, value: _statusLine(l, status, otherVault), onTap: null),
-              if (!otherVault && !status.inactive)
-                SettingsRow(key: const ValueKey('sync-now'), icon: 'sync', title: status.running ? l.syncRunning : l.syncNow, onTap: status.running ? null : () => ref.read(vaultSyncProvider).run()),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SettingsGroup(
-            tint: settingsTint('rose'),
-            children: [SettingsRow(key: const ValueKey('sync-sign-out'), icon: 'logout', title: l.syncSignOut, onTap: _signOut)],
-          ),
-          SettingsHint(l.syncSignOutHint),
-        ],
-      ),
+    final tint = settingsTint('sky');
+    final calm = MediaQuery.disableAnimationsOf(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge([_service.status, _service.progress]),
+      builder: (context, _) {
+        final status = _service.status.value;
+        // проход идёт — блок хода на месте кнопки; движок без сверки хранилища (так не
+        // бывает, но всё же) — приём без цифр
+        final running = _service.progress.value ?? (status.running ? const SyncProgress(SyncStage.receive) : null);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SettingsGroup(
+              tint: tint,
+              children: [
+                SettingsRow(key: const ValueKey('sync-account'), icon: 'mail', title: account.email, value: _statusLine(l, status, otherVault), onTap: null),
+                if (!otherVault && !status.inactive)
+                  AnimatedSwitcher(
+                    duration: calm ? Duration.zero : const Duration(milliseconds: 260),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(sizeFactor: animation, alignment: Alignment.topCenter, child: child),
+                    ),
+                    child: running != null
+                        ? SyncProgressCard(key: const ValueKey('sync-progress-card'), progress: running, tint: tint)
+                        : SettingsRow(key: const ValueKey('sync-now'), icon: 'sync', title: l.syncNow, value: _lastPass(l, status), onTap: () => ref.read(vaultSyncProvider).run()),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SettingsGroup(
+              tint: settingsTint('rose'),
+              children: [SettingsRow(key: const ValueKey('sync-sign-out'), icon: 'logout', title: l.syncSignOut, onTap: _signOut)],
+            ),
+            SettingsHint(l.syncSignOutHint),
+          ],
+        );
+      },
     );
+  }
+
+  /// Итог прошлого прохода под «Синхронизировать сейчас»: сколько заметок и файлов пришло и ушло.
+  String? _lastPass(L l, SyncStatus status) {
+    if (status.lastAt == null || status.error != null) return null;
+    if (status.received > 0 && status.sent > 0) return l.syncPassBoth(status.received, status.sent);
+    if (status.received > 0) return l.syncPassReceived(status.received);
+    if (status.sent > 0) return l.syncPassSent(status.sent);
+    return null;
   }
 
   String? _statusLine(L l, SyncStatus status, bool otherVault) {
     if (otherVault) return l.syncOtherVault;
     if (status.inactive) return l.syncInactive;
-    if (status.running) return l.syncRunning;
     switch (status.error) {
       case SyncError.massDelete:
         return l.syncMassDelete;

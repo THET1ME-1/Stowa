@@ -4175,6 +4175,60 @@ class LEs extends L {
   String get syncSignOutHint => 'Tus notas se quedan en este dispositivo.';
 
   @override
+  String get syncStepFolder => 'Carpeta';
+
+  @override
+  String get syncStepReceive => 'Recibir';
+
+  @override
+  String get syncStepSend => 'Enviar';
+
+  @override
+  String get syncStepPlace => 'Notas';
+
+  @override
+  String get syncDoingFolder => 'Revisando la carpeta';
+
+  @override
+  String get syncDoingReceive => 'Recibiendo del servidor';
+
+  @override
+  String get syncDoingSend => 'Comparando y enviando';
+
+  @override
+  String get syncDoingPlace => 'Colocando las notas';
+
+  @override
+  String syncOf(String done, String total) {
+    return '$done de $total';
+  }
+
+  @override
+  String syncOfMb(String done, String total) {
+    return '$done de $total MB';
+  }
+
+  @override
+  String syncOfGb(String done, String total) {
+    return '$done de $total GB';
+  }
+
+  @override
+  String syncPassReceived(int count) {
+    return 'Recibido: $count';
+  }
+
+  @override
+  String syncPassSent(int count) {
+    return 'Enviado: $count';
+  }
+
+  @override
+  String syncPassBoth(int received, int sent) {
+    return 'Recibido: $received, enviado: $sent';
+  }
+
+  @override
   String get wsSections => 'Secciones';
 
   @override

@@ -4189,6 +4189,60 @@ class LDe extends L {
   String get syncSignOutHint => 'Deine Notizen bleiben auf diesem Gerät.';
 
   @override
+  String get syncStepFolder => 'Ordner';
+
+  @override
+  String get syncStepReceive => 'Empfang';
+
+  @override
+  String get syncStepSend => 'Senden';
+
+  @override
+  String get syncStepPlace => 'Notizen';
+
+  @override
+  String get syncDoingFolder => 'Ordner wird geprüft';
+
+  @override
+  String get syncDoingReceive => 'Empfange vom Server';
+
+  @override
+  String get syncDoingSend => 'Abgleichen und senden';
+
+  @override
+  String get syncDoingPlace => 'Notizen werden einsortiert';
+
+  @override
+  String syncOf(String done, String total) {
+    return '$done von $total';
+  }
+
+  @override
+  String syncOfMb(String done, String total) {
+    return '$done von $total MB';
+  }
+
+  @override
+  String syncOfGb(String done, String total) {
+    return '$done von $total GB';
+  }
+
+  @override
+  String syncPassReceived(int count) {
+    return 'Empfangen: $count';
+  }
+
+  @override
+  String syncPassSent(int count) {
+    return 'Gesendet: $count';
+  }
+
+  @override
+  String syncPassBoth(int received, int sent) {
+    return 'Empfangen: $received, gesendet: $sent';
+  }
+
+  @override
   String get wsSections => 'Bereiche';
 
   @override

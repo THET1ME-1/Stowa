@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../sync/sync_progress.dart';
 import 'vault_reader.dart';
 import 'vault_writer.dart';
 
@@ -7,7 +8,11 @@ import 'vault_writer.dart';
 /// В таком порядке правка с компьютера не затирается незаписанной правкой из приложения,
 /// а при правке с двух сторон обе версии остаются.
 class VaultSync {
-  VaultSync({required this.reader, required this.writer, this.remote});
+  VaultSync({required this.reader, required this.writer, this.remote, this.onProgress});
+
+  /// Ход полного прохода для экрана синхронизации: сверка папки и раскладка пришедшего
+  /// (приём и отправку сообщает движок). null — проход кончился.
+  final void Function(SyncProgress? progress)? onProgress;
 
   final VaultReader reader;
   final VaultWriter writer;
@@ -34,33 +39,39 @@ class VaultSync {
   }
 
   Future<void> _loop() async {
+    void folder(int done, int total) => _report(SyncStage.folder, done, total);
+    void place(int done, int total) => _report(SyncStage.place, done, total);
     try {
       do {
         _again = false;
-        await reader.reconcile(progress: _report);
+        onProgress?.call(const SyncProgress(SyncStage.folder));
+        await reader.reconcile(progress: folder);
         await writer.drain();
         // файл поправили, пока писатель писал соседние: забрать и дописать
         if (writer.sawExternalEdit) {
-          await reader.reconcile(progress: _report);
+          await reader.reconcile(progress: folder);
           await writer.drain();
         }
         // свои правки уже в файлах: синхронизация отправляет их и кладёт чужие
         final sync = remote;
         final received = sync == null ? const <String>[] : await sync().catchError((_) => const <String>[]);
         if (received.isNotEmpty) {
+          onProgress?.call(const SyncProgress(SyncStage.place));
           // метки, папки и правила с другого телефона — до заметок, история — после
           await reader.restoreSynced(received, meta: true);
-          await reader.reconcile(progress: _report);
+          await reader.reconcile(progress: place);
           await reader.restoreSynced(received, meta: false);
           await writer.drain();
         }
       } while (_again);
     } finally {
       status.value = null;
+      onProgress?.call(null);
     }
   }
 
-  void _report(int done, int total) {
+  void _report(SyncStage stage, int done, int total) {
     if (total >= showFrom) status.value = (done, total);
+    onProgress?.call(SyncProgress(stage, done: done, total: total));
   }
 }

@@ -5055,6 +5055,104 @@
   "@syncSignOutHint": {
     "description": "Под кнопкой «Выйти» из Stowa Sync: заметки на телефоне или в браузере не пропадут"
   },
+  "syncStepFolder": "Folder",
+  "@syncStepFolder": {
+    "description": "Подпись первого отрезка полосы хода синхронизации: сверка папки хранилища. Коротко, одно слово"
+  },
+  "syncStepReceive": "Receive",
+  "@syncStepReceive": {
+    "description": "Подпись второго отрезка полосы хода синхронизации: приём с сервера. Коротко, одно слово"
+  },
+  "syncStepSend": "Send",
+  "@syncStepSend": {
+    "description": "Подпись третьего отрезка полосы хода синхронизации: отправка на сервер. Коротко, одно слово"
+  },
+  "syncStepPlace": "Notes",
+  "@syncStepPlace": {
+    "description": "Подпись четвёртого отрезка полосы хода синхронизации: пришедшие файлы ложатся в заметки. Коротко, одно слово"
+  },
+  "syncDoingFolder": "Checking the folder",
+  "@syncDoingFolder": {
+    "description": "Заголовок блока хода синхронизации: сверяются правки в папке хранилища"
+  },
+  "syncDoingReceive": "Receiving from the server",
+  "@syncDoingReceive": {
+    "description": "Заголовок блока хода синхронизации: правки с других устройств скачиваются"
+  },
+  "syncDoingSend": "Checking and sending",
+  "@syncDoingSend": {
+    "description": "Заголовок блока хода синхронизации: свои файлы сверяются с сервером, отличные отправляются"
+  },
+  "syncDoingPlace": "Putting notes in place",
+  "@syncDoingPlace": {
+    "description": "Заголовок блока хода синхронизации: пришедшие файлы раскладываются по заметкам"
+  },
+  "syncOf": "{done} of {total}",
+  "@syncOf": {
+    "description": "Ход этапа синхронизации в файлах: «340 из 1000». Числа уже с разделителями разрядов",
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "syncOfMb": "{done} of {total} MB",
+  "@syncOfMb": {
+    "description": "Ход этапа синхронизации в мегабайтах: «12,4 из 63 МБ»",
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "syncOfGb": "{done} of {total} GB",
+  "@syncOfGb": {
+    "description": "Ход этапа синхронизации в гигабайтах: «0,4 из 1,2 ГБ»",
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "syncPassReceived": "Received: {count}",
+  "@syncPassReceived": {
+    "description": "Итог прошлого прохода под «Синхронизировать сейчас»: сколько файлов пришло",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncPassSent": "Sent: {count}",
+  "@syncPassSent": {
+    "description": "Итог прошлого прохода под «Синхронизировать сейчас»: сколько файлов ушло",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncPassBoth": "Received: {received}, sent: {sent}",
+  "@syncPassBoth": {
+    "description": "Итог прошлого прохода под «Синхронизировать сейчас»: сколько файлов пришло и ушло",
+    "placeholders": {
+      "received": {
+        "type": "int"
+      },
+      "sent": {
+        "type": "int"
+      }
+    }
+  },
   "wsSections": "Sections",
   "@wsSections": {
     "description": "Side panel with the main places of the app"

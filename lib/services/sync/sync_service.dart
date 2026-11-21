@@ -16,6 +16,7 @@ import 'sync_db_state.dart';
 import 'sync_disk.dart';
 import 'sync_engine.dart';
 import 'sync_http.dart';
+import 'sync_progress.dart';
 
 /// Имя телефона: «Xiaomi 14», «iPhone 15». Не узнали — пусто, письмо обойдётся без него.
 Future<String> phoneName() async {
@@ -61,7 +62,7 @@ class SyncAccount {
 /// Что показывает экран синхронизации.
 @immutable
 class SyncStatus {
-  const SyncStatus({this.email, this.running = false, this.lastAt, this.error, this.inactive = false});
+  const SyncStatus({this.email, this.running = false, this.lastAt, this.error, this.inactive = false, this.received = 0, this.sent = 0});
 
   /// Почта аккаунта; null — не вошли.
   final String? email;
@@ -72,8 +73,19 @@ class SyncStatus {
   /// Подписка не действует: сервер не принимает файлы.
   final bool inactive;
 
-  SyncStatus copyWith({String? email, bool? running, DateTime? lastAt, SyncError? error, bool clearError = false, bool? inactive}) =>
-      SyncStatus(email: email ?? this.email, running: running ?? this.running, lastAt: lastAt ?? this.lastAt, error: clearError ? null : error ?? this.error, inactive: inactive ?? this.inactive);
+  /// Сколько файлов последний проход положил или убрал на диске и сколько отправил.
+  final int received;
+  final int sent;
+
+  SyncStatus copyWith({String? email, bool? running, DateTime? lastAt, SyncError? error, bool clearError = false, bool? inactive, int? received, int? sent}) => SyncStatus(
+    email: email ?? this.email,
+    running: running ?? this.running,
+    lastAt: lastAt ?? this.lastAt,
+    error: clearError ? null : error ?? this.error,
+    inactive: inactive ?? this.inactive,
+    received: received ?? this.received,
+    sent: sent ?? this.sent,
+  );
 }
 
 /// Синхронизация хранилища через sync.stowa.work.
@@ -110,6 +122,27 @@ class SyncService {
   final Future<String> Function() deviceName;
 
   final status = ValueNotifier(const SyncStatus());
+
+  /// Ход полного прохода для экрана; null — прохода нет.
+  final progress = ValueNotifier<SyncProgress?>(null);
+  SyncProgress? _latest;
+  Timer? _publish;
+
+  /// Ход прохода от сверки хранилища и движка. Новый этап — сразу, ход внутри этапа — не
+  /// чаще десяти раз в секунду: шесть потоков приёма в браузере делят один главный поток.
+  void track(SyncProgress? next) {
+    _latest = next;
+    if (next == null || progress.value?.stage != next.stage) {
+      _publish?.cancel();
+      _publish = null;
+      progress.value = next;
+      return;
+    }
+    _publish ??= Timer(const Duration(milliseconds: 100), () {
+      _publish = null;
+      progress.value = _latest;
+    });
+  }
 
   /// Запустить общую сверку хранилища (её ставит приложение): пришедшее ложится в базу.
   Future<void> Function()? trigger;
@@ -198,6 +231,7 @@ class SyncService {
       key: VaultKey(account.key),
       loser: (path, text) => unawaited(_keepLoser(path, text)),
       exclusive: _reader.exclusively,
+      onProgress: track,
     );
     final report = await engine.sync();
     var inactive = status.value.inactive;
@@ -216,7 +250,16 @@ class SyncService {
     } else if (report.error == null) {
       inactive = false;
     }
-    status.value = status.value.copyWith(running: false, lastAt: report.error == null ? DateTime.now() : null, error: report.error, clearError: report.error == null, inactive: inactive);
+    status.value = status.value.copyWith(
+      running: false,
+      lastAt: report.error == null ? DateTime.now() : null,
+      error: report.error,
+      clearError: report.error == null,
+      inactive: inactive,
+      // служебное (.stowa, .obsidian) человек не считает: «получено 3» за одну заметку сбивало бы
+      received: report.received.where(_visible).length,
+      sent: report.sent.where(_visible).length,
+    );
     // проход не полный (сеть, отложенные файлы): повторить самим, с растущей паузой до
     // 10 минут, — ожидание правок будит только новая правка, а отложенные курсор уже прошёл
     _retry?.cancel();
@@ -228,6 +271,8 @@ class SyncService {
     }
     return report.received;
   }
+
+  static bool _visible(String path) => !path.split('/').any((part) => part.startsWith('.'));
 
   /// Проигравшая версия заметки — в её историю: её видно на экране версий.
   Future<void> _keepLoser(String path, String text) async {
@@ -255,6 +300,7 @@ class SyncService {
     stopListening();
     _poke?.cancel();
     _retry?.cancel();
+    _publish?.cancel();
   }
 
   bool _listening = false;

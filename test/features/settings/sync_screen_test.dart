@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:stowa/data/providers.dart';
 import 'package:stowa/features/settings/sync_screen.dart';
+import 'package:stowa/services/sync/sync_progress.dart';
 import 'package:stowa/services/sync/sync_service.dart';
 
 import '../../helpers/test_app.dart';
@@ -129,6 +132,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(await world.syncAccount.read(), isNull);
     expect(find.byKey(const ValueKey('sync-email')), findsOneWidget);
+  });
+
+  // хозяин 21.11 со снимка: «Синхронизация…» дважды и без хода — «хотел бы показ полного
+  // прогресса красиво»
+  testWidgets('идёт проход — блок хода: этап, сколько из скольких, файл; кончился — кнопка и итог', (tester) async {
+    await open(tester);
+    await askCode(tester);
+    await tester.enterText(find.byKey(const ValueKey('sync-code')), '123456');
+    await tester.pumpAndSettle();
+    final service = ProviderScope.containerOf(tester.element(find.byType(SyncScreen))).read(syncServiceProvider);
+
+    const mb = 1024 * 1024;
+    service.track(const SyncProgress(SyncStage.receive, done: 1200, total: 3873, bytesDone: 130 * mb, bytesTotal: 633 * mb, file: 'Конспекты/Физика.md'));
+    // первый кадр начинает смену кнопки на блок, второй — после неё: блок крутится, settle не дождётся
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const ValueKey('sync-progress')), findsOneWidget);
+    expect(find.byKey(const ValueKey('sync-now')), findsNothing);
+    expect(find.text('Получаю с сервера'), findsOneWidget);
+    // внутри половинок пробелы неразрывные: узкий экран переносит только у точки
+    expect(find.textContaining('1 200 из 3 873 · 130 из 633 МБ'), findsOneWidget);
+    expect(find.text('Физика.md'), findsOneWidget);
+    for (final step in ['Папка', 'Приём', 'Отправка', 'Заметки']) {
+      expect(find.text(step), findsOneWidget);
+    }
+    expect(find.text('Синхронизация…'), findsNothing);
+
+    // сколько всего, ещё не известно — полоса ждёт, цифр нет
+    service.track(const SyncProgress(SyncStage.place));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Раскладываю заметки'), findsOneWidget);
+    expect(find.textContaining('из'), findsNothing);
+
+    service.track(null);
+    service.status.value = service.status.value.copyWith(lastAt: DateTime(2026, 11, 21, 14, 32), received: 12, sent: 3);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('sync-progress')), findsNothing);
+    expect(find.byKey(const ValueKey('sync-now')), findsOneWidget);
+    expect(find.text('Получено: 12, отправлено: 3'), findsOneWidget);
   });
 
   testWidgets('без хранилища — подсказка выбрать папку, полей нет', (tester) async {

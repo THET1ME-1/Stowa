@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/services/sync/sync_crypto.dart';
 import 'package:stowa/services/sync/sync_engine.dart';
+import 'package:stowa/services/sync/sync_progress.dart';
 
 import 'fakes.dart';
 
@@ -10,8 +11,8 @@ var _now = 1700000000000;
 int _clock() => _now += 1000;
 
 class Device {
-  Device(this.remote, this.key, {int chunk = 64}) {
-    engine = SyncEngine(vault: vault, remote: remote, state: state, key: key, chunk: chunk, loser: (path, text) => losers.add((path, text)));
+  Device(this.remote, this.key, {int chunk = 64, void Function(SyncProgress progress)? progress}) {
+    engine = SyncEngine(vault: vault, remote: remote, state: state, key: key, chunk: chunk, loser: (path, text) => losers.add((path, text)), onProgress: progress);
   }
 
   final FakeRemote remote;
@@ -43,6 +44,46 @@ void main() {
     // повторный проход ничего не гоняет
     final again = await a.sync();
     expect(again.pushed + again.pulled, 0);
+  });
+
+  // хозяин 21.11: вместо «Синхронизация…» — весь ход. Сколько придёт и уйдёт, известно
+  // до первого файла; счёт не пятится и доходит до конца, большой файл двигает байты частями
+  test('ход прохода: приём и отправка знают итог заранее и доходят до конца', () async {
+    final sent = <SyncProgress>[], got = <SyncProgress>[];
+    final a = Device(remote, key, progress: sent.add), b = Device(remote, key, progress: got.add);
+    for (var i = 0; i < 120; i++) {
+      a.vault.putText('Заметки/$i.md', 'заметка $i\n');
+    }
+    a.vault.put('Вложения/фото.jpg', List.generate(1000, (i) => i % 256));
+    await a.sync();
+    final send = sent.where((step) => step.stage == SyncStage.send).toList();
+    expect(send.first.total, 121);
+    expect(send.last.done, 121);
+    expect(send.last.bytesTotal, greaterThan(1000));
+    expect(send.last.bytesDone, send.last.bytesTotal);
+    _steady(send);
+
+    await b.sync();
+    final receive = got.where((step) => step.stage == SyncStage.receive).toList();
+    // сервер отдаёт по 50, а итог известен с первого же отчёта
+    expect(receive.first.total, 121);
+    expect(receive.last.done, 121);
+    expect(receive.last.bytesDone, receive.last.bytesTotal);
+    _steady(receive);
+    // фото идёт 16 частями: байты растут и внутри одного файла
+    expect(receive.map((step) => step.bytesDone).toSet().length, greaterThan(121 + 10));
+  });
+
+  test('свои правки, вернувшиеся с сервера, в приём не считаются', () async {
+    final seen = <SyncProgress>[];
+    final a = Device(remote, key, progress: seen.add);
+    a.vault.putText('a.md', 'a\n');
+    await a.sync();
+    seen.clear();
+    await a.sync();
+    final receive = seen.where((step) => step.stage == SyncStage.receive);
+    expect(receive, isNotEmpty);
+    expect(receive.map((step) => step.total).toSet(), {0});
   });
 
   test('удаление уходит и приходит, переименование — удаление и новый файл', () async {
@@ -247,6 +288,17 @@ void main() {
 
   for (var seed = 1; seed <= 25; seed++) {
     test('симуляция $seed: три телефона, правки, удаления, обрывы и падения', () => _simulate(seed), tags: 'heavy');
+  }
+}
+
+/// Ход одного этапа: сделанное не убывает и не больше итога.
+void _steady(List<SyncProgress> steps) {
+  for (var i = 1; i < steps.length; i++) {
+    expect(steps[i].done, greaterThanOrEqualTo(steps[i - 1].done));
+    expect(steps[i].bytesDone, greaterThanOrEqualTo(steps[i - 1].bytesDone));
+  }
+  for (final step in steps) {
+    expect(step.done, lessThanOrEqualTo(step.total!));
   }
 }
 
