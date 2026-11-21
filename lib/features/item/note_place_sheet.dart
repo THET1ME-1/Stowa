@@ -33,7 +33,10 @@ Future<void> editNotePlace(BuildContext context, WidgetRef ref, Item item) async
   final navigator = Navigator.of(context);
   final items = ref.read(itemsRepositoryProvider);
   final current = item.latitude == null || item.longitude == null ? null : (latitude: item.latitude!, longitude: item.longitude!, name: item.placeName);
-  final choice = await showOptionsSheetWith<Object>(context, (sheet) => _NotePlaceSheet(current: current));
+  // где человек обычно бывает: поиск ставит ближние адреса выше, карта открывается там же
+  final near = current == null ? await _lastPoint(ref) : LatLng(current.latitude, current.longitude);
+  if (!context.mounted) return;
+  final choice = await showOptionsSheetWith<Object>(context, (sheet) => _NotePlaceSheet(current: current, near: near));
   if (choice == null) return;
   switch (choice) {
     case _Action.showOnMap:
@@ -49,8 +52,7 @@ Future<void> editNotePlace(BuildContext context, WidgetRef ref, Item item) async
       }
       await items.setLocation(item.id, (latitude: fix.latitude, longitude: fix.longitude, name: fix.name));
     case _Action.pickOnMap:
-      final start = current == null ? await _lastPoint(ref) : LatLng(current.latitude, current.longitude);
-      final picked = await navigator.push<NotePoint>(MaterialPageRoute(builder: (_) => _NotePlaceMap(start: start)));
+      final picked = await navigator.push<NotePoint>(MaterialPageRoute(builder: (_) => _NotePlaceMap(start: near)));
       if (picked != null) await items.setLocation(item.id, picked);
     case final NotePoint point:
       await items.setLocation(item.id, point);
@@ -72,9 +74,12 @@ Future<LatLng?> _lastPoint(WidgetRef ref) async {
 String _foundName(FoundPlace found) => found.address == null || found.address == found.name ? found.name : '${found.name}, ${found.address}';
 
 class _NotePlaceSheet extends ConsumerStatefulWidget {
-  const _NotePlaceSheet({required this.current});
+  const _NotePlaceSheet({required this.current, required this.near});
 
   final NotePoint? current;
+
+  /// Рядом с чем искать адрес: место заметки или последнее место.
+  final LatLng? near;
 
   @override
   ConsumerState<_NotePlaceSheet> createState() => _NotePlaceSheetState();
@@ -107,7 +112,7 @@ class _NotePlaceSheetState extends ConsumerState<_NotePlaceSheet> {
     // поиск ходит в OpenStreetMap: ждём, пока человек допечатает
     _wait = Timer(const Duration(milliseconds: 350), () async {
       final round = ++_round;
-      final near = widget.current;
+      final near = widget.near;
       final found = await ref.read(placeLookupProvider).search(query, nearLatitude: near?.latitude, nearLongitude: near?.longitude);
       if (!mounted || round != _round) return;
       setState(() {
@@ -275,6 +280,7 @@ class _NotePlaceMapState extends ConsumerState<_NotePlaceMap> {
     final text = Theme.of(context).textTheme;
     final top = MediaQuery.paddingOf(context).top;
     final bottom = MediaQuery.paddingOf(context).bottom;
+    final desk = DeskMode.of(context);
     return Scaffold(
       key: const ValueKey('note-place-map'),
       backgroundColor: Tokens.container,
@@ -295,15 +301,20 @@ class _NotePlaceMapState extends ConsumerState<_NotePlaceMap> {
               Align(
                 alignment: Alignment.bottomLeft,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(8, 8, 8, 132 + bottom),
+                  padding: EdgeInsets.fromLTRB(8, 8, 8, (desk ? 8 : 132) + bottom),
                   child: Text('© OpenStreetMap', style: TextStyle(fontSize: 10, color: Tokens.muted)),
                 ),
               ),
             ],
           ),
-          // булавка стоит в середине карты остриём: сдвинута вверх на свою высоту
+          // булавка стоит в середине карты остриём: сдвинута вверх на половину своей высоты
           IgnorePointer(
-            child: Center(child: Transform.translate(offset: const Offset(0, -28), child: const PlacePin(icon: 'location_on'))),
+            child: Center(
+              child: Transform.translate(
+                offset: const Offset(0, -28),
+                child: const SizedBox(width: 44, height: 56, child: PlacePin(icon: 'location_on')),
+              ),
+            ),
           ),
           Positioned(
             left: 12,
@@ -315,10 +326,13 @@ class _NotePlaceMapState extends ConsumerState<_NotePlaceMap> {
             top: top + 12,
             child: MapRoundButton(icon: 'my_location', tooltip: l.placeHereNow, busy: _locating, onTap: _locating ? null : _here),
           ),
+          // на телефоне карточка у пальца внизу; на мониторе низ окна занят общей строкой
+          // и её подсказками — карточка наверху, между кнопками
           Positioned(
-            left: 12,
-            right: 12,
-            bottom: 12 + bottom,
+            left: desk ? 72 : 12,
+            right: desk ? 72 : 12,
+            top: desk ? top + 12 : null,
+            bottom: desk ? null : 12 + bottom,
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 560),
