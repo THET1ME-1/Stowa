@@ -1018,5 +1018,7 @@
   "tagFolderRow": "Класти в папку",
   "tagFolderNone": "Не класти",
   "tagFolderHint": "Це правило: його видно й можна вимкнути у вкладці «Правила».",
-  "tagPinHint": "Тег стане в ряд угорі головної"
+  "tagPinHint": "Тег стане в ряд угорі головної",
+  "numberPadRange": "Від {min} до {max}",
+  "numberPadOpen": "Вписати число"
 }

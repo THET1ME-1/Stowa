@@ -4627,4 +4627,12 @@ class LEn extends L {
 
   @override
   String get tagPinHint => 'The tag appears in the row at the top of Home';
+
+  @override
+  String numberPadRange(String min, String max) {
+    return 'From $min to $max';
+  }
+
+  @override
+  String get numberPadOpen => 'Type a number';
 }

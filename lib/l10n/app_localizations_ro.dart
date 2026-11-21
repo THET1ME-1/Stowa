@@ -4669,4 +4669,12 @@ class LRo extends L {
   @override
   String get tagPinHint =>
       'Eticheta apare în rândul de sus de pe pagina principală';
+
+  @override
+  String numberPadRange(String min, String max) {
+    return 'De la $min la $max';
+  }
+
+  @override
+  String get numberPadOpen => 'Scrie un număr';
 }

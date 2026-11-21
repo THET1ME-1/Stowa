@@ -1018,5 +1018,7 @@
   "tagFolderRow": "Pune în folder",
   "tagFolderNone": "Nu pune",
   "tagFolderHint": "Aceasta e o regulă: o vezi și o poți opri în fila „Reguli”.",
-  "tagPinHint": "Eticheta apare în rândul de sus de pe pagina principală"
+  "tagPinHint": "Eticheta apare în rândul de sus de pe pagina principală",
+  "numberPadRange": "De la {min} la {max}",
+  "numberPadOpen": "Scrie un număr"
 }

@@ -4706,4 +4706,12 @@ class LRu extends L {
 
   @override
   String get tagPinHint => 'Тег встанет в ряд наверху главной';
+
+  @override
+  String numberPadRange(String min, String max) {
+    return 'От $min до $max';
+  }
+
+  @override
+  String get numberPadOpen => 'Вписать число';
 }

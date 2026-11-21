@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/icons/icon_registry.dart';
+import '../../core/widgets/number_pad.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/items_repository.dart' show ItemCard;
@@ -149,6 +151,12 @@ class _EdgeScreenState extends ConsumerState<EdgeScreen> with WidgetsBindingObse
                   key: const ValueKey('edge-alpha'),
                   label: l.edgeAlpha,
                   value: '${settings.alpha} %',
+                  onValueTap: () async {
+                    final alpha = await showNumberPad(context, title: l.edgeAlpha, min: 40, max: 100, unit: '%');
+                    // пока открыт калькулятор, остальное не менялось, но берём свежие настройки
+                    final now = ref.read(edgeSettingsProvider).value ?? settings;
+                    if (alpha != null) _change(now.copyWith(alpha: alpha));
+                  },
                   slider: Slider(
                     // дорожка от края до края блока, ровно под подписью
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -332,11 +340,14 @@ class _SideChoice extends StatelessWidget {
 
 /// Подпись и значение над ползунком.
 class _SliderRow extends StatelessWidget {
-  const _SliderRow({super.key, required this.label, required this.value, required this.slider});
+  const _SliderRow({super.key, required this.label, required this.value, required this.slider, required this.onValueTap});
 
   final String label;
   final String value;
   final Widget slider;
+
+  /// Касание числа — калькулятор: ползунком точное значение не поймать (хозяин 21.11).
+  final VoidCallback onValueTap;
 
   @override
   Widget build(BuildContext context) {
@@ -347,7 +358,27 @@ class _SliderRow extends StatelessWidget {
         Row(
           children: [
             Expanded(child: Text(label, style: text.titleMedium)),
-            Text(value, style: text.titleMedium!.copyWith(color: Tokens.onSurfaceVariant, fontFeatures: const [FontFeature.tabularFigures()])),
+            // число на подложке: видно, что его можно нажать
+            Tooltip(
+              message: L.of(context).numberPadOpen,
+              child: Pressable(
+                key: const ValueKey('edge-alpha-value'),
+                onTap: onValueTap,
+                radius: BorderRadius.circular(100),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 10, 6),
+                  decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(100)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(value, style: text.titleMedium!.copyWith(color: Tokens.onSurface, fontFeatures: const [FontFeature.tabularFigures()])),
+                      const SizedBox(width: 6),
+                      Icon(symbolIcon('dialpad'), size: 16, color: Tokens.muted),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
         slider,

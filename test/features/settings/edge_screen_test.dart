@@ -115,6 +115,28 @@ void main() {
     expect(find.text('40 %'), findsOneWidget);
   });
 
+  // 21.11 хозяин: «при нажатии на процент видимости открывается M3 калькулятор, чтобы вписать своё число»
+  testWidgets('касание процента — калькулятор, вписанное число встаёт заметностью', (tester) async {
+    world.edgeSettings = const EdgeSettings(enabled: true, alpha: 86);
+    await open(tester);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('edge-alpha')), 200, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('86 %'));
+    await tester.pumpAndSettle();
+    final pad = find.byKey(const ValueKey('number-pad'));
+    expect(pad, findsOneWidget);
+    expect(find.descendant(of: pad, matching: find.text('Заметность')), findsOneWidget);
+    expect(find.descendant(of: pad, matching: find.text('От 40 до 100 %')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('pad-7')));
+    await tester.tap(find.byKey(const ValueKey('pad-5')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('pad-done')));
+    await tester.pumpAndSettle();
+    expect(pad, findsNothing);
+    expect(world.edgeSettings.alpha, 75);
+    expect(find.text('75 %'), findsOneWidget);
+  });
+
   testWidgets('на картинке столько корешков, сколько закреплённых заметок', (tester) async {
     for (final (index, title) in ['Пароль', 'Купить', 'Дела'].indexed) {
       await world.db.into(world.db.items).insert(ItemsCompanion.insert(

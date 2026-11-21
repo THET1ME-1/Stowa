@@ -1018,5 +1018,7 @@
   "tagFolderRow": "Guardar en carpeta",
   "tagFolderNone": "No guardar",
   "tagFolderHint": "Es una regla: puedes verla y apagarla en la pestaña «Reglas».",
-  "tagPinHint": "La etiqueta aparece en la fila de arriba del inicio"
+  "tagPinHint": "La etiqueta aparece en la fila de arriba del inicio",
+  "numberPadRange": "De {min} a {max}",
+  "numberPadOpen": "Escribir un número"
 }

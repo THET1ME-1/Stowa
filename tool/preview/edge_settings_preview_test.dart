@@ -106,6 +106,14 @@ void main() {
       );
       await _shot(tester, name);
       expect(tester.takeException(), isNull);
+      // калькулятор заметности: касание числа, набрано «75»
+      if (name == 'edge_dark' || name == 'edge_light') {
+        await tester.tap(find.byKey(const ValueKey('edge-alpha-value')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('pad-7')));
+        await tester.tap(find.byKey(const ValueKey('pad-5')));
+        await _shot(tester, '${name}_pad');
+      }
     });
   }
 }

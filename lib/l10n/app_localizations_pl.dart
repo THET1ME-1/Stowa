@@ -4701,4 +4701,12 @@ class LPl extends L {
 
   @override
   String get tagPinHint => 'Tag pojawi się w rzędzie na górze strony głównej';
+
+  @override
+  String numberPadRange(String min, String max) {
+    return 'Od $min do $max';
+  }
+
+  @override
+  String get numberPadOpen => 'Wpisz liczbę';
 }

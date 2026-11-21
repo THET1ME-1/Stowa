@@ -5592,5 +5592,21 @@
   "tagPinHint": "The tag appears in the row at the top of Home",
   "@tagPinHint": {
     "description": "tagPinHint"
+  },
+  "numberPadRange": "From {min} to {max}",
+  "@numberPadRange": {
+    "description": "Границы под табло калькулятора: «От 40 до 100 %»",
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "numberPadOpen": "Type a number",
+  "@numberPadOpen": {
+    "description": "Подсказка у числа рядом с ползунком: касание открывает калькулятор"
   }
 }

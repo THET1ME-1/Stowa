@@ -4641,4 +4641,12 @@ class LEs extends L {
   @override
   String get tagPinHint =>
       'La etiqueta aparece en la fila de arriba del inicio';
+
+  @override
+  String numberPadRange(String min, String max) {
+    return 'De $min a $max';
+  }
+
+  @override
+  String get numberPadOpen => 'Escribir un número';
 }

@@ -1018,5 +1018,7 @@
   "tagFolderRow": "In Ordner legen",
   "tagFolderNone": "Nicht ablegen",
   "tagFolderHint": "Das ist eine Regel: Du siehst sie im Tab „Regeln“ und kannst sie dort ausschalten.",
-  "tagPinHint": "Das Tag erscheint in der Reihe oben auf der Startseite"
+  "tagPinHint": "Das Tag erscheint in der Reihe oben auf der Startseite",
+  "numberPadRange": "Von {min} bis {max}",
+  "numberPadOpen": "Zahl eingeben"
 }

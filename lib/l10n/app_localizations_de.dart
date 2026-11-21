@@ -4657,4 +4657,12 @@ class LDe extends L {
   @override
   String get tagPinHint =>
       'Das Tag erscheint in der Reihe oben auf der Startseite';
+
+  @override
+  String numberPadRange(String min, String max) {
+    return 'Von $min bis $max';
+  }
+
+  @override
+  String get numberPadOpen => 'Zahl eingeben';
 }

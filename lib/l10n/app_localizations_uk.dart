@@ -4694,4 +4694,12 @@ class LUk extends L {
 
   @override
   String get tagPinHint => 'Тег стане в ряд угорі головної';
+
+  @override
+  String numberPadRange(String min, String max) {
+    return 'Від $min до $max';
+  }
+
+  @override
+  String get numberPadOpen => 'Вписати число';
 }

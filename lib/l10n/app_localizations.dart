@@ -7918,6 +7918,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The tag appears in the row at the top of Home'**
   String get tagPinHint;
+
+  /// Границы под табло калькулятора: «От 40 до 100 %»
+  ///
+  /// In en, this message translates to:
+  /// **'From {min} to {max}'**
+  String numberPadRange(String min, String max);
+
+  /// Подсказка у числа рядом с ползунком: касание открывает калькулятор
+  ///
+  /// In en, this message translates to:
+  /// **'Type a number'**
+  String get numberPadOpen;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
