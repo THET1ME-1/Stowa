@@ -9,7 +9,6 @@ import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/pill_segments.dart';
-import '../../core/widgets/pressable.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -18,17 +17,19 @@ import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
-import '../../domain/structured_page.dart' show PageType;
 import '../../l10n/app_localizations.dart';
-import '../composer/panel_text.dart';
 import '../folder/folder_screen.dart';
 import '../folder/folder_sheets.dart';
+import '../settings/settings_blocks.dart';
 import 'rule_sheet.dart';
 import 'tag_sheet.dart';
 
 Route<void> tagsRoute() => MaterialPageRoute(builder: (_) => const TagsScreen());
 
-/// Теги и папки, как экран 10 макета: закреплённые теги, все теги, правила; папки отдельной вкладкой.
+enum _Tab { tags, rules, folders }
+
+/// Теги, правила и папки — тремя вкладками. У каждой одна фраза, зачем она: хозяин 21.11
+/// назвал прежний экран непонятным («как что делать и зачем»).
 class TagsScreen extends ConsumerStatefulWidget {
   const TagsScreen({super.key});
 
@@ -37,12 +38,18 @@ class TagsScreen extends ConsumerStatefulWidget {
 }
 
 class _TagsScreenState extends ConsumerState<TagsScreen> {
-  bool _folders = false;
+  _Tab _tab = _Tab.tags;
 
   Future<void> _add() async {
-    if (!_folders) return showTagSheet(context);
-    final name = await showRenameSheet(context, '');
-    if (name != null) await ref.read(foldersRepositoryProvider).create(name);
+    switch (_tab) {
+      case _Tab.tags:
+        await showTagSheet(context);
+      case _Tab.rules:
+        await showRuleSheet(context);
+      case _Tab.folders:
+        final name = await showRenameSheet(context, '');
+        if (name != null) await ref.read(foldersRepositoryProvider).create(name);
+    }
   }
 
   Future<void> _delete(TagCard tag) async {
@@ -56,13 +63,11 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final text = Theme.of(context).textTheme;
-    final tags = ref.watch(allTagsProvider).value ?? const [];
-    final pinned = ref.watch(pinnedTagsProvider).value ?? const [];
-    final rules = ref.watch(allRulesProvider).value ?? const [];
-    final folders = ref.watch(foldersProvider).value ?? const [];
-    final filesRoot = ref.watch(filesRootProvider);
-
+    final addTip = switch (_tab) {
+      _Tab.tags => l.tagAdd,
+      _Tab.rules => l.ruleNew,
+      _Tab.folders => l.folderPickNew,
+    };
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -70,65 +75,182 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
           children: [
             Row(
               children: [
-                _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
+                Expanded(child: SettingsHeader(l.settingsTooltip)),
                 const SizedBox(width: 12),
-                Expanded(child: Text(l.tagsTitle, style: text.titleLarge!.copyWith(fontSize: 18))),
-                _RoundButton(icon: 'add', tooltip: _folders ? l.folderNew : l.tagAdd, onTap: _add),
+                SettingsRoundButton(icon: 'add', tooltip: addTip, onTap: _add),
               ],
             ),
-            const SizedBox(height: 14),
-            PillSegments<bool>(
-              options: [(value: false, label: l.tagsTab, icon: 'label'), (value: true, label: l.foldersTab, icon: 'folder')],
-              selected: _folders,
-              onChanged: (folders) => setState(() => _folders = folders),
+            const SizedBox(height: 16),
+            // на узком телефоне значки съедали подписи («Прав…»): там вкладки одними словами
+            LayoutBuilder(
+              builder: (context, box) {
+                final icons = box.maxWidth >= 340;
+                return PillSegments<_Tab>(
+                  options: [
+                    (value: _Tab.tags, label: l.tagsTab, icon: icons ? 'sell' : null),
+                    (value: _Tab.rules, label: l.rulesTab, icon: icons ? 'rule' : null),
+                    (value: _Tab.folders, label: l.foldersTab, icon: icons ? 'folder' : null),
+                  ],
+                  selected: _tab,
+                  onChanged: (tab) => setState(() => _tab = tab),
+                );
+              },
             ),
-            if (_folders)
-              ..._folderList(folders)
-            else ...[
-              if (pinned.isNotEmpty) ...[
-                _Section(l.tagsPinned),
-                Text(l.tagsPinnedHint, style: text.bodySmall!.copyWith(color: Tokens.muted)),
-                const SizedBox(height: 10),
-                _PinnedWrap(tags: pinned, filesRoot: filesRoot, onOpen: (tag) => showTagSheet(context, tag: tag)),
-              ],
-              _Section(l.tagsAll),
-              if (tags.isEmpty) Text(l.tagsNone, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
-              for (final tag in tags)
-                Dismissible(
-                  key: ValueKey('tag-${tag.id}'),
-                  direction: DismissDirection.endToStart,
-                  // пустой тег ничего не держит: спрашивать незачем, «Вернуть» всё равно есть
-                  confirmDismiss: (_) async => tag.count == 0 || await _confirmDelete(tag),
-                  onDismissed: (_) => _delete(tag),
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(color: Tokens.error, borderRadius: BorderRadius.circular(Radii.tile)),
-                    child: Icon(symbolIcon('delete'), color: Tokens.onError),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                    leading: TagTile(kind: tag.iconKind, value: tag.iconValue, filesRoot: filesRoot, size: 36),
-                    title: Text(tag.name),
-                    subtitle: Text(l.itemsCount(tag.count), style: TextStyle(color: Tokens.muted)),
-                    trailing: tag.pinned ? Icon(symbolIcon('keep', filled: true), size: 18, color: Tokens.muted) : null,
-                    onTap: () => showTagSheet(context, tag: tag),
-                  ),
+            // вкладки сменяются проявлением, без рывка
+            AnimatedSwitcher(
+              duration: Motion.medium,
+              switchInCurve: Motion.emphasizedDecelerate,
+              switchOutCurve: Motion.emphasizedAccelerate,
+              layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+              child: KeyedSubtree(
+                key: ValueKey(_tab),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: switch (_tab) {
+                    _Tab.tags => _tagsTab(l),
+                    _Tab.rules => _rulesTab(l),
+                    _Tab.folders => _foldersTab(l),
+                  },
                 ),
-              _Section(l.rulesTitle),
-              if (rules.isEmpty) Text(l.rulesNone, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
-              for (final rule in rules)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _RuleCard(rule: rule, tags: tags, folders: folders, filesRoot: filesRoot, onTap: () => showRuleSheet(context, rule: rule)),
-                ),
-              const SizedBox(height: 4),
-              OutlinedButton.icon(onPressed: () => showRuleSheet(context), icon: Icon(symbolIcon('add')), label: Text(l.ruleNew)),
-            ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  List<Widget> _tagsTab(L l) {
+    final text = Theme.of(context).textTheme;
+    final tags = ref.watch(allTagsProvider).value ?? const <TagCard>[];
+    final pinned = ref.watch(pinnedTagsProvider).value ?? const <TagCard>[];
+    final filesRoot = ref.watch(filesRootProvider);
+    return [
+      _Intro(l.tagsIntro),
+      if (pinned.isNotEmpty) ...[
+        _Section(l.tagsPinned),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(l.tagsPinnedHint, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+        ),
+        _PinnedWrap(tags: pinned, filesRoot: filesRoot, onOpen: (tag) => showTagSheet(context, tag: tag)),
+      ],
+      _Section(l.tagsAll),
+      if (tags.isEmpty)
+        Padding(padding: const EdgeInsets.only(left: 4, bottom: 12), child: Text(l.tagsNone, style: text.bodyMedium!.copyWith(color: Tokens.muted)))
+      else
+        SettingsGroup(
+          tint: Tokens.onSurface,
+          children: [
+            for (final tag in tags)
+              Dismissible(
+                key: ValueKey('tag-${tag.id}'),
+                direction: DismissDirection.endToStart,
+                // пустой тег ничего не держит: спрашивать незачем, «Вернуть» всё равно есть
+                confirmDismiss: (_) async => tag.count == 0 || await _confirmDelete(tag),
+                onDismissed: (_) => _delete(tag),
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  color: Tokens.error,
+                  child: Icon(symbolIcon('delete'), color: Tokens.onError),
+                ),
+                child: _TagRow(tag: tag, filesRoot: filesRoot, onTap: () => showTagSheet(context, tag: tag)),
+              ),
+          ],
+        ),
+      const SizedBox(height: 12),
+      _AddButton(label: l.tagNew, onTap: () => showTagSheet(context)),
+    ];
+  }
+
+  List<Widget> _rulesTab(L l) {
+    final text = Theme.of(context).textTheme;
+    final rules = ref.watch(allRulesProvider).value ?? const <Rule>[];
+    final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
+    String? folderName(Rule rule) => folders.where((one) => one.id == rule.actionValue).firstOrNull?.name;
+    // примеры — пока правил мало; тот, что уже заведён, не повторяется
+    final examples = <RuleDraft>[
+      (condition: RuleConditionKind.domain, conditionValue: 'youtube.com', action: RuleActionKind.addTag, actionValue: l.ruleExampleVideoTag),
+      (condition: RuleConditionKind.keyword, conditionValue: l.ruleExampleBuyWord, action: RuleActionKind.addTag, actionValue: l.ruleExampleShoppingTag),
+      (condition: RuleConditionKind.pageType, conditionValue: 'event', action: RuleActionKind.remindBefore, actionValue: '1440'),
+    ].where((draft) => !rules.any((rule) => rule.conditionKind == draft.condition && rule.conditionValue == draft.conditionValue)).toList();
+    return [
+      _Intro(l.rulesIntro),
+      if (rules.isEmpty)
+        Padding(padding: const EdgeInsets.fromLTRB(4, 8, 4, 12), child: Text(l.rulesEmpty, style: text.bodyMedium!.copyWith(color: Tokens.muted)))
+      else ...[
+        const SizedBox(height: 8),
+        SettingsGroup(
+          tint: Tokens.onSurface,
+          children: [
+            for (final rule in rules)
+              _RuleRow(
+                key: ValueKey('rule-${rule.id}'),
+                icon: ruleConditionIcon(rule.conditionKind),
+                when: ruleWhenText(l, rule.conditionKind, rule.conditionValue),
+                then: ruleDoText(l, rule.actionKind, rule.actionValue, folderName: folderName(rule)),
+                enabled: rule.enabled,
+                onTap: () => showRuleSheet(context, rule: rule),
+                onToggle: (on) => ref.read(rulesRepositoryProvider).setEnabled(rule.id, on),
+              ),
+          ],
+        ),
+      ],
+      const SizedBox(height: 12),
+      _AddButton(label: l.ruleNew, onTap: () => showRuleSheet(context)),
+      if (rules.length < 3 && examples.isNotEmpty) ...[
+        _Section(l.rulesExamples),
+        SettingsGroup(
+          tint: Tokens.onSurface,
+          children: [
+            for (final draft in examples)
+              _RuleRow(
+                key: ValueKey('rule-example-${draft.condition.name}'),
+                icon: ruleConditionIcon(draft.condition),
+                when: ruleWhenText(l, draft.condition, draft.conditionValue),
+                then: ruleDoText(l, draft.action, draft.actionValue),
+                enabled: true,
+                onTap: () => showRuleSheet(context, draft: draft),
+              ),
+          ],
+        ),
+      ],
+      SettingsHint(l.rulesWhenWorks),
+    ];
+  }
+
+  List<Widget> _foldersTab(L l) {
+    final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
+    return [
+      const SizedBox(height: 16),
+      if (folders.isNotEmpty)
+        SettingsGroup(
+          tint: Tokens.onSurface,
+          children: [
+            for (final folder in folders)
+              _ListRow(
+                leading: ShapeBadge(
+                  shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
+                  size: 40,
+                  color: Tokens.containerHighest,
+                  child: Icon(symbolIcon(folder.icon), size: 20, color: Tokens.onSurface),
+                ),
+                title: folder.name,
+                subtitle: l.itemsCount(folder.count),
+                onTap: () => Navigator.of(context).push(folderRoute(folder.id)),
+              ),
+          ],
+        ),
+      const SizedBox(height: 12),
+      _AddButton(
+        label: l.folderPickNew,
+        onTap: () async {
+          final name = await showRenameSheet(context, '');
+          if (name != null) await ref.read(foldersRepositoryProvider).create(name);
+        },
+      ),
+    ];
   }
 
   Future<bool> _confirmDelete(TagCard tag) async {
@@ -159,26 +281,20 @@ class _TagsScreenState extends ConsumerState<TagsScreen> {
     );
     return yes ?? false;
   }
+}
 
-  List<Widget> _folderList(List<FolderCard> folders) {
-    final l = L.of(context);
-    return [
-      const SizedBox(height: 12),
-      for (final folder in folders)
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-          leading: ShapeBadge(
-            shape: BadgeShape.values.asNameMap()[folder.shape] ?? BadgeShape.squircle,
-            size: 40,
-            color: Tokens.containerHighest,
-            child: Icon(symbolIcon(folder.icon), size: 20, color: Tokens.onSurface),
-          ),
-          title: Text(folder.name),
-          subtitle: Text(l.itemsCount(folder.count), style: TextStyle(color: Tokens.muted)),
-          trailing: Icon(symbolIcon('chevron_right'), color: Tokens.muted),
-          onTap: () => Navigator.of(context).push(folderRoute(folder.id)),
-        ),
-    ];
+/// Зачем вкладка — одной фразой под переключателем.
+class _Intro extends StatelessWidget {
+  const _Intro(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 16, 4, 4),
+      child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
+    );
   }
 }
 
@@ -190,38 +306,142 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 22, bottom: 8),
-      child: Text(title, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: Tokens.onSurfaceVariant)),
+      padding: const EdgeInsets.fromLTRB(4, 22, 4, 10),
+      child: Text(title, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: Tokens.onSurfaceVariant)),
     );
   }
 }
 
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.icon, required this.tooltip, required this.onTap});
+/// Строка-блок списка: значок, имя крупно, подпись под ним, стрелка.
+class _ListRow extends StatelessWidget {
+  const _ListRow({required this.leading, required this.title, required this.subtitle, required this.onTap, this.trailing, this.faded = false});
 
-  final String icon;
-  final String tooltip;
+  final Widget leading;
+  final String title;
+  final String subtitle;
   final VoidCallback onTap;
+  final Widget? trailing;
+
+  /// Пустой тег: имя приглушено, он ничего не держит.
+  final bool faded;
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Pressable(
-        pressedScale: 0.9,
+    final text = Theme.of(context).textTheme;
+    return Material(
+      color: Tokens.containerHigh,
+      child: InkWell(
         onTap: onTap,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(color: Tokens.containerHigh, shape: BoxShape.circle),
-          child: Icon(symbolIcon(icon), color: Tokens.onSurface),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+          child: Row(
+            children: [
+              leading,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: faded ? Tokens.muted : Tokens.onSurface)),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
+                  ],
+                ),
+              ),
+              ?trailing,
+              Icon(symbolIcon('chevron_right'), size: 22, color: Tokens.muted),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// Тег пилюлей: плитка, имя и число, как на экране 10.
+class _TagRow extends StatelessWidget {
+  const _TagRow({required this.tag, required this.filesRoot, required this.onTap});
+
+  final TagCard tag;
+  final Directory filesRoot;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return _ListRow(
+      leading: TagTile(kind: tag.iconKind, value: tag.iconValue, filesRoot: filesRoot, size: 40, tonal: true),
+      title: '#${tag.name}',
+      subtitle: l.itemsCount(tag.count),
+      faded: tag.count == 0,
+      trailing: tag.pinned
+          ? Padding(padding: const EdgeInsets.only(right: 4), child: Tooltip(message: l.tagsPinned, child: Icon(symbolIcon('keep', filled: true), size: 18, color: Tokens.muted)))
+          : null,
+      onTap: onTap,
+    );
+  }
+}
+
+/// Правило карточкой: фраза словами и выключатель прямо на ней. Без [onToggle] — пример:
+/// вместо выключателя «+», касание открывает лист уже заполненным.
+class _RuleRow extends StatelessWidget {
+  const _RuleRow({super.key, required this.icon, required this.when, required this.then, required this.enabled, required this.onTap, this.onToggle});
+
+  final String icon;
+  final String when;
+  final String then;
+  final bool enabled;
+  final VoidCallback onTap;
+  final ValueChanged<bool>? onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return Material(
+      color: Tokens.containerHigh,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+          child: Row(
+            children: [
+              Expanded(child: RulePhrase(icon: icon, when: when, then: then, muted: !enabled)),
+              const SizedBox(width: 8),
+              if (onToggle case final toggle?)
+                Tooltip(message: l.ruleEnabled, child: Switch(value: enabled, onChanged: toggle))
+              else
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(color: Tokens.containerHighest, shape: BoxShape.circle),
+                  child: Icon(symbolIcon('add'), size: 20, color: Tokens.onSurface),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// «+ Новый тег», «+ Новое правило»: пилюля во всю ширину на тональной подложке.
+class _AddButton extends StatelessWidget {
+  const _AddButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.tonalIcon(
+      onPressed: onTap,
+      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: Tokens.containerHigh, foregroundColor: Tokens.onSurface),
+      icon: Icon(symbolIcon('add')),
+      label: Text(label),
+    );
+  }
+}
+
+/// Тег пилюлей: плитка, имя и число, как на главной.
 class _TagPill extends StatelessWidget {
   const _TagPill({required this.tag, required this.filesRoot, this.faded = false});
 
@@ -304,86 +524,6 @@ class _PinnedWrapState extends ConsumerState<_PinnedWrap> {
             ),
           ),
       ],
-    );
-  }
-}
-
-/// Правило карточкой «условие → действие».
-class _RuleCard extends StatelessWidget {
-  const _RuleCard({required this.rule, required this.tags, required this.folders, required this.filesRoot, required this.onTap});
-
-  final Rule rule;
-  final List<TagCard> tags;
-  final List<FolderCard> folders;
-  final Directory filesRoot;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    final text = Theme.of(context).textTheme;
-    Widget tagPill(String name) {
-      final tag = tags.where((one) => one.name == name).firstOrNull;
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TagTile(kind: tag?.iconKind ?? TagIconKind.symbol, value: tag?.iconValue ?? 'tag', filesRoot: filesRoot, size: 26),
-          const SizedBox(width: 6),
-          Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: text.labelLarge!.copyWith(fontSize: 14))),
-        ],
-      );
-    }
-
-    Widget iconLabel(String icon, String label, {Color? color}) => Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(symbolIcon(icon), size: 18, color: color ?? Tokens.onSurfaceVariant),
-        const SizedBox(width: 6),
-        Flexible(child: Text(label, overflow: TextOverflow.ellipsis, style: text.labelLarge!.copyWith(fontSize: 14, color: color))),
-      ],
-    );
-
-    final condition = switch (rule.conditionKind) {
-      RuleConditionKind.hasTag => tagPill(rule.conditionValue),
-      RuleConditionKind.domain => iconLabel('link', rule.conditionValue),
-      RuleConditionKind.keyword => iconLabel('text_fields', '«${rule.conditionValue}»'),
-      RuleConditionKind.kind => iconLabel(kindIcon(ItemKind.values.asNameMap()[rule.conditionValue] ?? ItemKind.note),
-          kindsLabel(l, ItemKind.values.asNameMap()[rule.conditionValue] ?? ItemKind.note)),
-      RuleConditionKind.pageType => iconLabel('article', pageTypeName(l, PageType.values.asNameMap()[rule.conditionValue])),
-      RuleConditionKind.priceAbove => iconLabel('payments', l.rulePriceAboveValue(rule.conditionValue)),
-      RuleConditionKind.priceBelow => iconLabel('payments', l.rulePriceBelowValue(rule.conditionValue)),
-    };
-    final folder = folders.where((one) => one.id == rule.actionValue).firstOrNull;
-    final action = switch (rule.actionKind) {
-      RuleActionKind.addTag => tagPill(rule.actionValue),
-      RuleActionKind.toFolder => folder == null ? iconLabel('block', l.ruleStays, color: Tokens.muted) : iconLabel(folder.icon, folder.name),
-      RuleActionKind.remindBefore => iconLabel('alarm', remindBeforeLabel(l, int.tryParse(rule.actionValue) ?? 1440)),
-    };
-    return Pressable(
-      onTap: onTap,
-      pressedScale: 0.98,
-      child: Opacity(
-        opacity: rule.enabled ? 1 : 0.45,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(Space.tile, 12, 8, 12),
-          decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.tile)),
-          child: Row(
-            children: [
-              // как в макете: условие, стрелка и действие подряд, длинное сокращается
-              Expanded(
-                child: Row(
-                  children: [
-                    Flexible(child: condition),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Icon(symbolIcon('arrow_right_alt'), color: Tokens.muted)),
-                    Flexible(child: action),
-                  ],
-                ),
-              ),
-              Icon(symbolIcon('chevron_right'), color: Tokens.muted),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

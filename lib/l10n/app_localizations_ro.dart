@@ -4492,4 +4492,181 @@ class LRo extends L {
   @override
   String get placesNoFixBrowser =>
       'Nu am aflat unde ești. Verifică dacă browserul permite Stowa să vadă locația.';
+
+  @override
+  String get rulesTab => 'Reguli';
+
+  @override
+  String get tagsIntro =>
+      'O etichetă peste foldere: scrie #cuvânt în rând și găsești notițele din orice folder.';
+
+  @override
+  String get rulesIntro =>
+      'O regulă sortează singură notițele noi: vede o etichetă, un site sau un cuvânt și pune notița într-un folder sau adaugă o etichetă.';
+
+  @override
+  String get rulesWhenWorks =>
+      'Regulile se aplică notițelor noi și nu ating ce ai pus tu.';
+
+  @override
+  String get rulesEmpty =>
+      'Încă nu ai reguli: începe cu un exemplu de mai jos.';
+
+  @override
+  String get rulesExamples => 'Exemple';
+
+  @override
+  String ruleWhenTag(String tag) {
+    return 'Are eticheta #$tag';
+  }
+
+  @override
+  String ruleWhenSite(String site) {
+    return 'Link de pe $site';
+  }
+
+  @override
+  String ruleWhenWord(String word) {
+    return 'Textul conține „$word”';
+  }
+
+  @override
+  String ruleWhenKind(String kind) {
+    return 'Tipul notiței: $kind';
+  }
+
+  @override
+  String ruleWhenPage(String page) {
+    return 'Pagină: $page';
+  }
+
+  @override
+  String ruleWhenPriceAbove(String value) {
+    return 'Preț peste $value';
+  }
+
+  @override
+  String ruleWhenPriceBelow(String value) {
+    return 'Preț sub $value';
+  }
+
+  @override
+  String ruleDoFolder(String folder) {
+    return 'în folderul „$folder”';
+  }
+
+  @override
+  String ruleDoTag(String tag) {
+    return 'adaugă eticheta #$tag';
+  }
+
+  @override
+  String ruleDoRemind(String when) {
+    return 'amintește $when';
+  }
+
+  @override
+  String get ruleCondTag => 'Are o etichetă';
+
+  @override
+  String get ruleCondTagHint => 'Ai pus o #etichetă când ai scris';
+
+  @override
+  String get ruleCondSite => 'Link de pe un site';
+
+  @override
+  String get ruleCondSiteHint => 'De exemplu, clipuri de pe youtube.com';
+
+  @override
+  String get ruleCondWord => 'Cuvânt în text';
+
+  @override
+  String get ruleCondWordHint => 'De exemplu, „cumpără” sau „rețetă”';
+
+  @override
+  String get ruleCondKind => 'Tipul notiței';
+
+  @override
+  String get ruleCondKindHint => 'Foto, video, mesaj vocal, fișier sau link';
+
+  @override
+  String get ruleCondPage => 'Tipul paginii';
+
+  @override
+  String get ruleCondPageHint =>
+      'Un link către o rețetă, un produs, un eveniment sau un film';
+
+  @override
+  String get ruleCondPriceAbove => 'Preț peste';
+
+  @override
+  String get ruleCondPriceAboveHint => 'Notița are o sumă mai mare';
+
+  @override
+  String get ruleCondPriceBelow => 'Preț sub';
+
+  @override
+  String get ruleCondPriceBelowHint => 'Notița are o sumă mai mică';
+
+  @override
+  String get ruleActFolder => 'Pune în folder';
+
+  @override
+  String get ruleActFolderHint => 'Notița ajunge direct în acel folder';
+
+  @override
+  String get ruleActTag => 'Adaugă o etichetă';
+
+  @override
+  String get ruleActTagHint => 'Notița primește o etichetă';
+
+  @override
+  String get ruleActRemind => 'Amintește din timp';
+
+  @override
+  String get ruleActRemindHint => 'Doar pentru evenimente: înainte de început';
+
+  @override
+  String get ruleStepWhen => 'Când';
+
+  @override
+  String get ruleStepDo => 'Ce să facă';
+
+  @override
+  String get ruleFolderPick => 'Alege folderul';
+
+  @override
+  String get ruleSaveButton => 'Salvează regula';
+
+  @override
+  String get ruleValueTagHint => 'de exemplu, muncă';
+
+  @override
+  String get ruleValueWordHint => 'de exemplu, cumpără';
+
+  @override
+  String get ruleValueSiteHint => 'de exemplu, youtube.com';
+
+  @override
+  String get ruleExampleVideoTag => 'video';
+
+  @override
+  String get ruleExampleBuyWord => 'cumpără';
+
+  @override
+  String get ruleExampleShoppingTag => 'cumpărături';
+
+  @override
+  String get tagFolderRow => 'Pune în folder';
+
+  @override
+  String get tagFolderNone => 'Nu pune';
+
+  @override
+  String get tagFolderHint =>
+      'Aceasta e o regulă: o vezi și o poți opri în fila „Reguli”.';
+
+  @override
+  String get tagPinHint =>
+      'Eticheta apare în rândul de sus de pe pagina principală';
 }

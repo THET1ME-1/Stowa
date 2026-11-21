@@ -7618,6 +7618,306 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Couldn\'t tell where you are. Check that the browser lets Stowa use your location.'**
   String get placesNoFixBrowser;
+
+  /// rulesTab
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get rulesTab;
+
+  /// tagsIntro
+  ///
+  /// In en, this message translates to:
+  /// **'A label across folders: type #word in the line and find those notes from any folder.'**
+  String get tagsIntro;
+
+  /// rulesIntro
+  ///
+  /// In en, this message translates to:
+  /// **'A rule sorts new notes for you: it spots a tag, site or word and files the note or adds a tag.'**
+  String get rulesIntro;
+
+  /// rulesWhenWorks
+  ///
+  /// In en, this message translates to:
+  /// **'Rules apply to new notes and leave alone what you filed yourself.'**
+  String get rulesWhenWorks;
+
+  /// rulesEmpty
+  ///
+  /// In en, this message translates to:
+  /// **'No rules yet: start with an example below.'**
+  String get rulesEmpty;
+
+  /// rulesExamples
+  ///
+  /// In en, this message translates to:
+  /// **'Examples'**
+  String get rulesExamples;
+
+  /// ruleWhenTag
+  ///
+  /// In en, this message translates to:
+  /// **'Has tag #{tag}'**
+  String ruleWhenTag(String tag);
+
+  /// ruleWhenSite
+  ///
+  /// In en, this message translates to:
+  /// **'Link from {site}'**
+  String ruleWhenSite(String site);
+
+  /// ruleWhenWord
+  ///
+  /// In en, this message translates to:
+  /// **'Text contains “{word}”'**
+  String ruleWhenWord(String word);
+
+  /// ruleWhenKind
+  ///
+  /// In en, this message translates to:
+  /// **'Note type: {kind}'**
+  String ruleWhenKind(String kind);
+
+  /// ruleWhenPage
+  ///
+  /// In en, this message translates to:
+  /// **'Page: {page}'**
+  String ruleWhenPage(String page);
+
+  /// ruleWhenPriceAbove
+  ///
+  /// In en, this message translates to:
+  /// **'Price over {value}'**
+  String ruleWhenPriceAbove(String value);
+
+  /// ruleWhenPriceBelow
+  ///
+  /// In en, this message translates to:
+  /// **'Price under {value}'**
+  String ruleWhenPriceBelow(String value);
+
+  /// ruleDoFolder
+  ///
+  /// In en, this message translates to:
+  /// **'to folder “{folder}”'**
+  String ruleDoFolder(String folder);
+
+  /// ruleDoTag
+  ///
+  /// In en, this message translates to:
+  /// **'add tag #{tag}'**
+  String ruleDoTag(String tag);
+
+  /// ruleDoRemind
+  ///
+  /// In en, this message translates to:
+  /// **'remind {when}'**
+  String ruleDoRemind(String when);
+
+  /// ruleCondTag
+  ///
+  /// In en, this message translates to:
+  /// **'Has a tag'**
+  String get ruleCondTag;
+
+  /// ruleCondTagHint
+  ///
+  /// In en, this message translates to:
+  /// **'You added a #tag while writing'**
+  String get ruleCondTagHint;
+
+  /// ruleCondSite
+  ///
+  /// In en, this message translates to:
+  /// **'Link from a site'**
+  String get ruleCondSite;
+
+  /// ruleCondSiteHint
+  ///
+  /// In en, this message translates to:
+  /// **'For example, videos from youtube.com'**
+  String get ruleCondSiteHint;
+
+  /// ruleCondWord
+  ///
+  /// In en, this message translates to:
+  /// **'Word in the text'**
+  String get ruleCondWord;
+
+  /// ruleCondWordHint
+  ///
+  /// In en, this message translates to:
+  /// **'For example, “buy” or “recipe”'**
+  String get ruleCondWordHint;
+
+  /// ruleCondKind
+  ///
+  /// In en, this message translates to:
+  /// **'Note type'**
+  String get ruleCondKind;
+
+  /// ruleCondKindHint
+  ///
+  /// In en, this message translates to:
+  /// **'Photo, video, voice, file or link'**
+  String get ruleCondKindHint;
+
+  /// ruleCondPage
+  ///
+  /// In en, this message translates to:
+  /// **'Page type'**
+  String get ruleCondPage;
+
+  /// ruleCondPageHint
+  ///
+  /// In en, this message translates to:
+  /// **'A link to a recipe, product, event or film'**
+  String get ruleCondPageHint;
+
+  /// ruleCondPriceAbove
+  ///
+  /// In en, this message translates to:
+  /// **'Price over'**
+  String get ruleCondPriceAbove;
+
+  /// ruleCondPriceAboveHint
+  ///
+  /// In en, this message translates to:
+  /// **'The note has a higher amount'**
+  String get ruleCondPriceAboveHint;
+
+  /// ruleCondPriceBelow
+  ///
+  /// In en, this message translates to:
+  /// **'Price under'**
+  String get ruleCondPriceBelow;
+
+  /// ruleCondPriceBelowHint
+  ///
+  /// In en, this message translates to:
+  /// **'The note has a lower amount'**
+  String get ruleCondPriceBelowHint;
+
+  /// ruleActFolder
+  ///
+  /// In en, this message translates to:
+  /// **'Put in a folder'**
+  String get ruleActFolder;
+
+  /// ruleActFolderHint
+  ///
+  /// In en, this message translates to:
+  /// **'The note goes straight into that folder'**
+  String get ruleActFolderHint;
+
+  /// ruleActTag
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tag'**
+  String get ruleActTag;
+
+  /// ruleActTagHint
+  ///
+  /// In en, this message translates to:
+  /// **'The note gets a tag'**
+  String get ruleActTagHint;
+
+  /// ruleActRemind
+  ///
+  /// In en, this message translates to:
+  /// **'Remind in advance'**
+  String get ruleActRemind;
+
+  /// ruleActRemindHint
+  ///
+  /// In en, this message translates to:
+  /// **'Events only: before they start'**
+  String get ruleActRemindHint;
+
+  /// ruleStepWhen
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get ruleStepWhen;
+
+  /// ruleStepDo
+  ///
+  /// In en, this message translates to:
+  /// **'Then'**
+  String get ruleStepDo;
+
+  /// ruleFolderPick
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folder'**
+  String get ruleFolderPick;
+
+  /// ruleSaveButton
+  ///
+  /// In en, this message translates to:
+  /// **'Save rule'**
+  String get ruleSaveButton;
+
+  /// ruleValueTagHint
+  ///
+  /// In en, this message translates to:
+  /// **'for example, work'**
+  String get ruleValueTagHint;
+
+  /// ruleValueWordHint
+  ///
+  /// In en, this message translates to:
+  /// **'for example, buy'**
+  String get ruleValueWordHint;
+
+  /// ruleValueSiteHint
+  ///
+  /// In en, this message translates to:
+  /// **'for example, youtube.com'**
+  String get ruleValueSiteHint;
+
+  /// Имя тега в примере правила, строчными
+  ///
+  /// In en, this message translates to:
+  /// **'video'**
+  String get ruleExampleVideoTag;
+
+  /// Слово в примере правила
+  ///
+  /// In en, this message translates to:
+  /// **'buy'**
+  String get ruleExampleBuyWord;
+
+  /// Имя тега в примере правила, строчными
+  ///
+  /// In en, this message translates to:
+  /// **'shopping'**
+  String get ruleExampleShoppingTag;
+
+  /// tagFolderRow
+  ///
+  /// In en, this message translates to:
+  /// **'File into folder'**
+  String get tagFolderRow;
+
+  /// tagFolderNone
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t file'**
+  String get tagFolderNone;
+
+  /// tagFolderHint
+  ///
+  /// In en, this message translates to:
+  /// **'This is a rule: see or turn it off in the Rules tab.'**
+  String get tagFolderHint;
+
+  /// tagPinHint
+  ///
+  /// In en, this message translates to:
+  /// **'The tag appears in the row at the top of Home'**
+  String get tagPinHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

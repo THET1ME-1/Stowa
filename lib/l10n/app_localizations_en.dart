@@ -4453,4 +4453,178 @@ class LEn extends L {
   @override
   String get placesNoFixBrowser =>
       'Couldn\'t tell where you are. Check that the browser lets Stowa use your location.';
+
+  @override
+  String get rulesTab => 'Rules';
+
+  @override
+  String get tagsIntro =>
+      'A label across folders: type #word in the line and find those notes from any folder.';
+
+  @override
+  String get rulesIntro =>
+      'A rule sorts new notes for you: it spots a tag, site or word and files the note or adds a tag.';
+
+  @override
+  String get rulesWhenWorks =>
+      'Rules apply to new notes and leave alone what you filed yourself.';
+
+  @override
+  String get rulesEmpty => 'No rules yet: start with an example below.';
+
+  @override
+  String get rulesExamples => 'Examples';
+
+  @override
+  String ruleWhenTag(String tag) {
+    return 'Has tag #$tag';
+  }
+
+  @override
+  String ruleWhenSite(String site) {
+    return 'Link from $site';
+  }
+
+  @override
+  String ruleWhenWord(String word) {
+    return 'Text contains “$word”';
+  }
+
+  @override
+  String ruleWhenKind(String kind) {
+    return 'Note type: $kind';
+  }
+
+  @override
+  String ruleWhenPage(String page) {
+    return 'Page: $page';
+  }
+
+  @override
+  String ruleWhenPriceAbove(String value) {
+    return 'Price over $value';
+  }
+
+  @override
+  String ruleWhenPriceBelow(String value) {
+    return 'Price under $value';
+  }
+
+  @override
+  String ruleDoFolder(String folder) {
+    return 'to folder “$folder”';
+  }
+
+  @override
+  String ruleDoTag(String tag) {
+    return 'add tag #$tag';
+  }
+
+  @override
+  String ruleDoRemind(String when) {
+    return 'remind $when';
+  }
+
+  @override
+  String get ruleCondTag => 'Has a tag';
+
+  @override
+  String get ruleCondTagHint => 'You added a #tag while writing';
+
+  @override
+  String get ruleCondSite => 'Link from a site';
+
+  @override
+  String get ruleCondSiteHint => 'For example, videos from youtube.com';
+
+  @override
+  String get ruleCondWord => 'Word in the text';
+
+  @override
+  String get ruleCondWordHint => 'For example, “buy” or “recipe”';
+
+  @override
+  String get ruleCondKind => 'Note type';
+
+  @override
+  String get ruleCondKindHint => 'Photo, video, voice, file or link';
+
+  @override
+  String get ruleCondPage => 'Page type';
+
+  @override
+  String get ruleCondPageHint => 'A link to a recipe, product, event or film';
+
+  @override
+  String get ruleCondPriceAbove => 'Price over';
+
+  @override
+  String get ruleCondPriceAboveHint => 'The note has a higher amount';
+
+  @override
+  String get ruleCondPriceBelow => 'Price under';
+
+  @override
+  String get ruleCondPriceBelowHint => 'The note has a lower amount';
+
+  @override
+  String get ruleActFolder => 'Put in a folder';
+
+  @override
+  String get ruleActFolderHint => 'The note goes straight into that folder';
+
+  @override
+  String get ruleActTag => 'Add a tag';
+
+  @override
+  String get ruleActTagHint => 'The note gets a tag';
+
+  @override
+  String get ruleActRemind => 'Remind in advance';
+
+  @override
+  String get ruleActRemindHint => 'Events only: before they start';
+
+  @override
+  String get ruleStepWhen => 'When';
+
+  @override
+  String get ruleStepDo => 'Then';
+
+  @override
+  String get ruleFolderPick => 'Choose folder';
+
+  @override
+  String get ruleSaveButton => 'Save rule';
+
+  @override
+  String get ruleValueTagHint => 'for example, work';
+
+  @override
+  String get ruleValueWordHint => 'for example, buy';
+
+  @override
+  String get ruleValueSiteHint => 'for example, youtube.com';
+
+  @override
+  String get ruleExampleVideoTag => 'video';
+
+  @override
+  String get ruleExampleBuyWord => 'buy';
+
+  @override
+  String get ruleExampleShoppingTag => 'shopping';
+
+  @override
+  String get tagFolderRow => 'File into folder';
+
+  @override
+  String get tagFolderNone => 'Don\'t file';
+
+  @override
+  String get tagFolderHint =>
+      'This is a rule: see or turn it off in the Rules tab.';
+
+  @override
+  String get tagPinHint => 'The tag appears in the row at the top of Home';
 }

@@ -4520,4 +4520,178 @@ class LUk extends L {
   @override
   String get placesNoFixBrowser =>
       'Не вдалося дізнатися, де ти. Перевір, що браузер дозволяє Stowa місце.';
+
+  @override
+  String get rulesTab => 'Правила';
+
+  @override
+  String get tagsIntro =>
+      'Мітка поверх папок: напиши #слово в рядку, і нотатки з ним знайдуться з будь-якої папки.';
+
+  @override
+  String get rulesIntro =>
+      'Правило саме розбирає нові нотатки: бачить тег, сайт або слово й кладе нотатку в папку чи ставить тег.';
+
+  @override
+  String get rulesWhenWorks =>
+      'Правила спрацьовують на нових нотатках і не чіпають те, що ти розклав сам.';
+
+  @override
+  String get rulesEmpty => 'Правил поки немає: почни з прикладу нижче.';
+
+  @override
+  String get rulesExamples => 'Приклади';
+
+  @override
+  String ruleWhenTag(String tag) {
+    return 'Є тег #$tag';
+  }
+
+  @override
+  String ruleWhenSite(String site) {
+    return 'Посилання з сайту $site';
+  }
+
+  @override
+  String ruleWhenWord(String word) {
+    return 'У тексті є «$word»';
+  }
+
+  @override
+  String ruleWhenKind(String kind) {
+    return 'Вид нотатки: $kind';
+  }
+
+  @override
+  String ruleWhenPage(String page) {
+    return 'Сторінка: $page';
+  }
+
+  @override
+  String ruleWhenPriceAbove(String value) {
+    return 'Ціна більша за $value';
+  }
+
+  @override
+  String ruleWhenPriceBelow(String value) {
+    return 'Ціна менша за $value';
+  }
+
+  @override
+  String ruleDoFolder(String folder) {
+    return 'у папку «$folder»';
+  }
+
+  @override
+  String ruleDoTag(String tag) {
+    return 'поставити тег #$tag';
+  }
+
+  @override
+  String ruleDoRemind(String when) {
+    return 'нагадати $when';
+  }
+
+  @override
+  String get ruleCondTag => 'Є тег';
+
+  @override
+  String get ruleCondTagHint => 'Ти поставив #тег, коли записував';
+
+  @override
+  String get ruleCondSite => 'Посилання з сайту';
+
+  @override
+  String get ruleCondSiteHint => 'Наприклад, ролики з youtube.com';
+
+  @override
+  String get ruleCondWord => 'Слово в тексті';
+
+  @override
+  String get ruleCondWordHint => 'Наприклад, «купити» або «рецепт»';
+
+  @override
+  String get ruleCondKind => 'Вид нотатки';
+
+  @override
+  String get ruleCondKindHint => 'Фото, відео, голосове, файл або посилання';
+
+  @override
+  String get ruleCondPage => 'Тип сторінки';
+
+  @override
+  String get ruleCondPageHint => 'Посилання на рецепт, товар, подію чи фільм';
+
+  @override
+  String get ruleCondPriceAbove => 'Ціна більша';
+
+  @override
+  String get ruleCondPriceAboveHint => 'У нотатці є сума, дорожча за неї';
+
+  @override
+  String get ruleCondPriceBelow => 'Ціна менша';
+
+  @override
+  String get ruleCondPriceBelowHint => 'У нотатці є сума, дешевша за неї';
+
+  @override
+  String get ruleActFolder => 'Покласти в папку';
+
+  @override
+  String get ruleActFolderHint => 'Нотатка одразу ляже в цю папку';
+
+  @override
+  String get ruleActTag => 'Поставити тег';
+
+  @override
+  String get ruleActTagHint => 'До нотатки додасться тег';
+
+  @override
+  String get ruleActRemind => 'Нагадати заздалегідь';
+
+  @override
+  String get ruleActRemindHint => 'Лише для подій: до початку';
+
+  @override
+  String get ruleStepWhen => 'Коли';
+
+  @override
+  String get ruleStepDo => 'Що зробити';
+
+  @override
+  String get ruleFolderPick => 'Вибрати папку';
+
+  @override
+  String get ruleSaveButton => 'Зберегти правило';
+
+  @override
+  String get ruleValueTagHint => 'наприклад, робота';
+
+  @override
+  String get ruleValueWordHint => 'наприклад, купити';
+
+  @override
+  String get ruleValueSiteHint => 'наприклад, youtube.com';
+
+  @override
+  String get ruleExampleVideoTag => 'відео';
+
+  @override
+  String get ruleExampleBuyWord => 'купити';
+
+  @override
+  String get ruleExampleShoppingTag => 'покупки';
+
+  @override
+  String get tagFolderRow => 'Класти в папку';
+
+  @override
+  String get tagFolderNone => 'Не класти';
+
+  @override
+  String get tagFolderHint =>
+      'Це правило: його видно й можна вимкнути у вкладці «Правила».';
+
+  @override
+  String get tagPinHint => 'Тег стане в ряд угорі головної';
 }

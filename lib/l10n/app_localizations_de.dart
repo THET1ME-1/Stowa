@@ -4480,4 +4480,181 @@ class LDe extends L {
   @override
   String get placesNoFixBrowser =>
       'Dein Standort ließ sich nicht bestimmen. Prüfe, ob der Browser Stowa den Standort erlaubt.';
+
+  @override
+  String get rulesTab => 'Regeln';
+
+  @override
+  String get tagsIntro =>
+      'Ein Etikett über Ordner hinweg: Schreib #Wort in die Zeile und finde diese Notizen aus jedem Ordner.';
+
+  @override
+  String get rulesIntro =>
+      'Eine Regel sortiert neue Notizen selbst: Sie erkennt ein Tag, eine Website oder ein Wort und legt die Notiz in einen Ordner oder setzt ein Tag.';
+
+  @override
+  String get rulesWhenWorks =>
+      'Regeln greifen bei neuen Notizen und lassen in Ruhe, was du selbst einsortiert hast.';
+
+  @override
+  String get rulesEmpty =>
+      'Noch keine Regeln: Fang mit einem Beispiel unten an.';
+
+  @override
+  String get rulesExamples => 'Beispiele';
+
+  @override
+  String ruleWhenTag(String tag) {
+    return 'Hat das Tag #$tag';
+  }
+
+  @override
+  String ruleWhenSite(String site) {
+    return 'Link von $site';
+  }
+
+  @override
+  String ruleWhenWord(String word) {
+    return 'Im Text steht „$word“';
+  }
+
+  @override
+  String ruleWhenKind(String kind) {
+    return 'Notizart: $kind';
+  }
+
+  @override
+  String ruleWhenPage(String page) {
+    return 'Seite: $page';
+  }
+
+  @override
+  String ruleWhenPriceAbove(String value) {
+    return 'Preis über $value';
+  }
+
+  @override
+  String ruleWhenPriceBelow(String value) {
+    return 'Preis unter $value';
+  }
+
+  @override
+  String ruleDoFolder(String folder) {
+    return 'in den Ordner „$folder“';
+  }
+
+  @override
+  String ruleDoTag(String tag) {
+    return 'Tag #$tag setzen';
+  }
+
+  @override
+  String ruleDoRemind(String when) {
+    return 'erinnern: $when';
+  }
+
+  @override
+  String get ruleCondTag => 'Hat ein Tag';
+
+  @override
+  String get ruleCondTagHint => 'Du hast beim Schreiben ein #Tag gesetzt';
+
+  @override
+  String get ruleCondSite => 'Link von einer Website';
+
+  @override
+  String get ruleCondSiteHint => 'Zum Beispiel Videos von youtube.com';
+
+  @override
+  String get ruleCondWord => 'Wort im Text';
+
+  @override
+  String get ruleCondWordHint => 'Zum Beispiel „kaufen“ oder „Rezept“';
+
+  @override
+  String get ruleCondKind => 'Notizart';
+
+  @override
+  String get ruleCondKindHint => 'Foto, Video, Sprachnotiz, Datei oder Link';
+
+  @override
+  String get ruleCondPage => 'Seitentyp';
+
+  @override
+  String get ruleCondPageHint => 'Link zu Rezept, Produkt, Termin oder Film';
+
+  @override
+  String get ruleCondPriceAbove => 'Preis über';
+
+  @override
+  String get ruleCondPriceAboveHint => 'Die Notiz enthält einen höheren Betrag';
+
+  @override
+  String get ruleCondPriceBelow => 'Preis unter';
+
+  @override
+  String get ruleCondPriceBelowHint =>
+      'Die Notiz enthält einen niedrigeren Betrag';
+
+  @override
+  String get ruleActFolder => 'In Ordner legen';
+
+  @override
+  String get ruleActFolderHint => 'Die Notiz landet direkt in diesem Ordner';
+
+  @override
+  String get ruleActTag => 'Tag setzen';
+
+  @override
+  String get ruleActTagHint => 'Die Notiz bekommt ein Tag';
+
+  @override
+  String get ruleActRemind => 'Vorher erinnern';
+
+  @override
+  String get ruleActRemindHint => 'Nur bei Terminen: vor Beginn';
+
+  @override
+  String get ruleStepWhen => 'Wenn';
+
+  @override
+  String get ruleStepDo => 'Dann';
+
+  @override
+  String get ruleFolderPick => 'Ordner wählen';
+
+  @override
+  String get ruleSaveButton => 'Regel speichern';
+
+  @override
+  String get ruleValueTagHint => 'zum Beispiel arbeit';
+
+  @override
+  String get ruleValueWordHint => 'zum Beispiel kaufen';
+
+  @override
+  String get ruleValueSiteHint => 'zum Beispiel youtube.com';
+
+  @override
+  String get ruleExampleVideoTag => 'video';
+
+  @override
+  String get ruleExampleBuyWord => 'kaufen';
+
+  @override
+  String get ruleExampleShoppingTag => 'einkauf';
+
+  @override
+  String get tagFolderRow => 'In Ordner legen';
+
+  @override
+  String get tagFolderNone => 'Nicht ablegen';
+
+  @override
+  String get tagFolderHint =>
+      'Das ist eine Regel: Du siehst sie im Tab „Regeln“ und kannst sie dort ausschalten.';
+
+  @override
+  String get tagPinHint =>
+      'Das Tag erscheint in der Reihe oben auf der Startseite';
 }

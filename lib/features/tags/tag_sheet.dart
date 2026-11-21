@@ -9,19 +9,23 @@ import 'package:uuid/uuid.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/pill_segments.dart';
 import '../../core/icons/icon_words.dart';
+import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/tag_tile.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
+import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/tags_repository.dart';
 import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart';
+import '../composer/line_dock.dart' show FolderPickerSheet;
 import '../folder/folder_sheets.dart';
 import '../graph/graph_screen.dart';
+import '../settings/settings_blocks.dart';
+import 'rule_sheet.dart' show SheetDeleteButton;
 
 /// Лист тега, как экран 11 макета: новый или правка старого.
 Future<void> showTagSheet(BuildContext context, {TagCard? tag, bool pin = false}) {
@@ -104,153 +108,167 @@ class _TagSheetState extends ConsumerState<TagSheet> {
     showUndo(messenger, message: l.tagDeleted(tag.name), label: l.restoreAction, onUndo: () => tags.restore(snapshot));
   }
 
-  Future<void> _newFolder() async {
-    final name = await showRenameSheet(context, '');
-    if (name == null) return;
-    final folder = await ref.read(foldersRepositoryProvider).create(name);
-    setState(() => _folderId = folder.id);
+  /// «Класть в папку» — тем же окном, что «Переложить»: «Не класть» первой строкой, «Новая папка» внизу.
+  Future<void> _pickFolder() async {
+    final l = L.of(context);
+    final folders = ref.read(foldersProvider).value ?? const <FolderCard>[];
+    final picked = await showOptionsSheetWith<FolderCard>(
+      context,
+      (sheet) => FolderPickerSheet(title: l.tagFolderRow, folders: folders, allowNone: true, noneLabel: l.tagFolderNone, onNew: () => askNewFolder(sheet, ref)),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _folderId = identical(picked, FolderPickerSheet.none) ? null : picked.id);
   }
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final text = Theme.of(context).textTheme;
-    final folders = ref.watch(foldersProvider).value ?? const [];
-    final filesRoot = ref.watch(filesRootProvider);
-    // по-русски («машина», «кофе») и по английским именам
-    final icons = _query.trim().isEmpty ? pickableSymbols : searchIcons(_query);
-
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * 0.85,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              TagTile(kind: _kind, value: _value, filesRoot: filesRoot, size: 52),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.tag == null ? l.tagNew : l.tagEdit, style: text.labelMedium!.copyWith(color: Tokens.muted)),
-                    TextField(
-                      controller: _name,
-                      autofocus: widget.tag == null,
-                      style: text.titleLarge!.copyWith(fontFamily: 'Unbounded', fontWeight: FontWeight.w700, fontSize: 22),
-                      decoration: InputDecoration.collapsed(hintText: l.tagNameHint),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _Label(l.lookIcon),
-          PillSegments<TagIconKind>(
-            height: 36,
-            options: [
-              (value: TagIconKind.symbol, label: l.iconSymbols, icon: null),
-              (value: TagIconKind.emoji, label: l.iconEmoji, icon: null),
-              (value: TagIconKind.image, label: l.iconImage, icon: null),
-            ],
-            selected: _kind,
-            onChanged: (kind) {
-              setState(() {
-                _kind = kind;
-                _value = switch (kind) {
-                  TagIconKind.symbol => hasSymbol(_value) ? _value : 'label',
-                  TagIconKind.emoji => '🏷️',
-                  TagIconKind.image => _value,
-                };
-              });
-              if (kind == TagIconKind.image) _pickImage();
-            },
-          ),
-          const SizedBox(height: 12),
-          if (_kind == TagIconKind.symbol) ...[
-            TextField(
-              decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.iconSearch),
-              onChanged: (value) => setState(() => _query = value),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 12),
+              children: _fields(l),
             ),
-            const SizedBox(height: 8),
-            GridView.count(
-              crossAxisCount: 6,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 6,
-              crossAxisSpacing: 6,
+          ),
+          // кнопка всегда на виду: раньше она была под сеткой значков, до неё листали
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Space.screen, 4, Space.screen, Space.screen),
+            child: Row(
               children: [
-                for (final name in icons)
-                  GestureDetector(
-                    onTap: () => setState(() => _value = name),
-                    child: AnimatedContainer(
-                      duration: Motion.short,
-                      decoration: BoxDecoration(color: name == _value ? Tokens.accent : Tokens.containerHigh, borderRadius: BorderRadius.circular(14)),
-                      child: Icon(symbolIcon(name, filled: name == _value), color: name == _value ? Tokens.onAccent : Tokens.onSurface),
-                    ),
+                if (widget.tag != null) ...[
+                  SheetDeleteButton(tooltip: l.tagDelete, onTap: _delete),
+                  const SizedBox(width: 10),
+                ],
+                Expanded(
+                  child: FilledButton(
+                    onPressed: normalizeTagName(_name.text).isEmpty ? null : _save,
+                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                    child: Text(widget.tag == null ? l.tagCreateButton : l.save),
                   ),
+                ),
               ],
             ),
-          ] else if (_kind == TagIconKind.emoji)
-            TextField(
-              decoration: InputDecoration(hintText: l.emojiHint),
-              style: const TextStyle(fontSize: 28),
-              onChanged: (value) {
-                final emoji = value.characters.isEmpty ? '' : value.characters.last;
-                if (emoji.isNotEmpty) setState(() => _value = emoji);
-              },
-            )
-          else
-            OutlinedButton.icon(onPressed: _pickImage, icon: Icon(symbolIcon('image')), label: Text(l.iconPickImage)),
-          const SizedBox(height: 20),
-          _Label(l.tagToFolder),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _Choice(label: l.folderNone, on: _folderId == null, onTap: () => setState(() => _folderId = null)),
-              for (final folder in folders)
-                _Choice(icon: folder.icon, label: folder.name, on: _folderId == folder.id, onTap: () => setState(() => _folderId = folder.id)),
-              _Choice(icon: 'add', label: l.shareNewFolder, on: false, onTap: _newFolder),
-            ],
           ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l.tagPin),
-            value: _pinned,
-            onChanged: (value) => setState(() => _pinned = value),
-          ),
-          const SizedBox(height: 8),
-          FilledButton(
-            onPressed: normalizeTagName(_name.text).isEmpty ? null : _save,
-            child: Text(widget.tag == null ? l.tagCreateButton : l.save),
-          ),
-          if (widget.tag case final tag? when tag.count > 1) ...[
-            const SizedBox(height: 8),
-            // все вещи с тегом и как они связаны
-            OutlinedButton.icon(
-              onPressed: () {
-                final navigator = Navigator.of(context)..pop();
-                navigator.push(graphRoute(tag: tag.name, title: '#${tag.name}'));
-              },
-              icon: Icon(symbolIcon('hub')),
-              label: Text(l.graphTitle),
-            ),
-          ],
-          if (widget.tag != null) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: Tokens.error),
-              onPressed: _delete,
-              child: Text(l.tagDelete),
-            ),
-          ],
         ],
       ),
     );
+  }
+
+  /// Имя, значок, папка, закрепление и граф — всё, что листается над кнопкой.
+  List<Widget> _fields(L l) {
+    final text = Theme.of(context).textTheme;
+    final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
+    final folder = folders.where((one) => one.id == _folderId).firstOrNull;
+    final filesRoot = ref.watch(filesRootProvider);
+    // по-русски («машина», «кофе») и по английским именам
+    final icons = _query.trim().isEmpty ? pickableSymbols : searchIcons(_query);
+    return [
+      Row(
+        children: [
+          TagTile(kind: _kind, value: _value, filesRoot: filesRoot, size: 52),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.tag == null ? l.tagNew : l.tagEdit, style: text.labelMedium!.copyWith(color: Tokens.muted)),
+                TextField(
+                  controller: _name,
+                  autofocus: widget.tag == null,
+                  style: text.titleLarge!.copyWith(fontFamily: 'Unbounded', fontWeight: FontWeight.w700, fontSize: 22),
+                  decoration: InputDecoration.collapsed(hintText: l.tagNameHint),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
+      // папка тега — это правило «есть тег → в папку»: так и сказано под строкой
+      SettingsGroup(
+        tint: Tokens.onSurface,
+        children: [
+          SettingsRow(key: const ValueKey('tag-folder'), icon: folder?.icon ?? 'folder_off', title: l.tagFolderRow, value: folder?.name ?? l.tagFolderNone, onTap: _pickFolder),
+          SettingsSwitchRow(icon: 'keep', title: l.tagPin, subtitle: l.tagPinHint, value: _pinned, onChanged: (value) => setState(() => _pinned = value)),
+        ],
+      ),
+      if (folder != null) SettingsHint(l.tagFolderHint),
+      if (widget.tag case final tag? when tag.count > 1) ...[
+        const SizedBox(height: 8),
+        // все вещи с тегом и как они связаны
+        OutlinedButton.icon(
+          onPressed: () {
+            final navigator = Navigator.of(context)..pop();
+            navigator.push(graphRoute(tag: tag.name, title: '#${tag.name}'));
+          },
+          icon: Icon(symbolIcon('hub')),
+          label: Text(l.graphTitle),
+        ),
+      ],
+      const SizedBox(height: 20),
+      _Label(l.lookIcon),
+      PillSegments<TagIconKind>(
+        height: 36,
+        options: [
+          (value: TagIconKind.symbol, label: l.iconSymbols, icon: null),
+          (value: TagIconKind.emoji, label: l.iconEmoji, icon: null),
+          (value: TagIconKind.image, label: l.iconImage, icon: null),
+        ],
+        selected: _kind,
+        onChanged: (kind) {
+          setState(() {
+            _kind = kind;
+            _value = switch (kind) {
+              TagIconKind.symbol => hasSymbol(_value) ? _value : 'label',
+              TagIconKind.emoji => '🏷️',
+              TagIconKind.image => _value,
+            };
+          });
+          if (kind == TagIconKind.image) _pickImage();
+        },
+      ),
+      const SizedBox(height: 12),
+      if (_kind == TagIconKind.symbol) ...[
+        TextField(
+          decoration: InputDecoration(prefixIcon: Icon(symbolIcon('search')), hintText: l.iconSearch),
+          onChanged: (value) => setState(() => _query = value),
+        ),
+        const SizedBox(height: 8),
+        GridView.count(
+          crossAxisCount: 6,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
+          children: [
+            for (final name in icons)
+              GestureDetector(
+                onTap: () => setState(() => _value = name),
+                child: AnimatedContainer(
+                  duration: Motion.short,
+                  decoration: BoxDecoration(color: name == _value ? Tokens.accent : Tokens.containerHigh, borderRadius: BorderRadius.circular(14)),
+                  child: Icon(symbolIcon(name, filled: name == _value), color: name == _value ? Tokens.onAccent : Tokens.onSurface),
+                ),
+              ),
+          ],
+        ),
+      ] else if (_kind == TagIconKind.emoji)
+        TextField(
+          decoration: InputDecoration(hintText: l.emojiHint),
+          style: const TextStyle(fontSize: 28),
+          onChanged: (value) {
+            final emoji = value.characters.isEmpty ? '' : value.characters.last;
+            if (emoji.isNotEmpty) setState(() => _value = emoji);
+          },
+        )
+      else
+        OutlinedButton.icon(onPressed: _pickImage, icon: Icon(symbolIcon('image')), label: Text(l.iconPickImage)),
+    ];
   }
 }
 
@@ -264,37 +282,6 @@ class _Label extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: Tokens.muted)),
-    );
-  }
-}
-
-/// Чип выбора: белый — выбран.
-class _Choice extends StatelessWidget {
-  const _Choice({required this.label, required this.on, required this.onTap, this.icon});
-
-  final String label;
-  final String? icon;
-  final bool on;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = on ? Tokens.onAccent : Tokens.onSurface;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Motion.short,
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(color: on ? Tokens.accent : Tokens.containerHigh, borderRadius: BorderRadius.circular(18)),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[Icon(symbolIcon(icon), size: 18, color: color), const SizedBox(width: 6)],
-            Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: color)),
-          ],
-        ),
-      ),
     );
   }
 }

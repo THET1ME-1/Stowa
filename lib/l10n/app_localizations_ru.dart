@@ -4532,4 +4532,178 @@ class LRu extends L {
   @override
   String get placesNoFixBrowser =>
       'Не вышло узнать, где ты. Проверь, что браузер разрешает Stowa место.';
+
+  @override
+  String get rulesTab => 'Правила';
+
+  @override
+  String get tagsIntro =>
+      'Метка поверх папок: напиши #слово в строке, и заметки с ним найдутся из любой папки.';
+
+  @override
+  String get rulesIntro =>
+      'Правило само разбирает новые заметки: видит тег, сайт или слово и кладёт заметку в папку или ставит тег.';
+
+  @override
+  String get rulesWhenWorks =>
+      'Правила срабатывают на новых заметках и не трогают то, что ты разложил сам.';
+
+  @override
+  String get rulesEmpty => 'Правил пока нет: начни с примера ниже.';
+
+  @override
+  String get rulesExamples => 'Примеры';
+
+  @override
+  String ruleWhenTag(String tag) {
+    return 'Есть тег #$tag';
+  }
+
+  @override
+  String ruleWhenSite(String site) {
+    return 'Ссылка с сайта $site';
+  }
+
+  @override
+  String ruleWhenWord(String word) {
+    return 'В тексте есть «$word»';
+  }
+
+  @override
+  String ruleWhenKind(String kind) {
+    return 'Вид заметки: $kind';
+  }
+
+  @override
+  String ruleWhenPage(String page) {
+    return 'Страница: $page';
+  }
+
+  @override
+  String ruleWhenPriceAbove(String value) {
+    return 'Цена больше $value';
+  }
+
+  @override
+  String ruleWhenPriceBelow(String value) {
+    return 'Цена меньше $value';
+  }
+
+  @override
+  String ruleDoFolder(String folder) {
+    return 'в папку «$folder»';
+  }
+
+  @override
+  String ruleDoTag(String tag) {
+    return 'поставить тег #$tag';
+  }
+
+  @override
+  String ruleDoRemind(String when) {
+    return 'напомнить $when';
+  }
+
+  @override
+  String get ruleCondTag => 'Есть тег';
+
+  @override
+  String get ruleCondTagHint => 'Ты поставил #тег, когда записывал';
+
+  @override
+  String get ruleCondSite => 'Ссылка с сайта';
+
+  @override
+  String get ruleCondSiteHint => 'Например, ролики с youtube.com';
+
+  @override
+  String get ruleCondWord => 'Слово в тексте';
+
+  @override
+  String get ruleCondWordHint => 'Например, «купить» или «рецепт»';
+
+  @override
+  String get ruleCondKind => 'Вид заметки';
+
+  @override
+  String get ruleCondKindHint => 'Фото, видео, голосовое, файл или ссылка';
+
+  @override
+  String get ruleCondPage => 'Тип страницы';
+
+  @override
+  String get ruleCondPageHint => 'Ссылка на рецепт, товар, событие или фильм';
+
+  @override
+  String get ruleCondPriceAbove => 'Цена больше';
+
+  @override
+  String get ruleCondPriceAboveHint => 'В заметке есть сумма дороже';
+
+  @override
+  String get ruleCondPriceBelow => 'Цена меньше';
+
+  @override
+  String get ruleCondPriceBelowHint => 'В заметке есть сумма дешевле';
+
+  @override
+  String get ruleActFolder => 'Положить в папку';
+
+  @override
+  String get ruleActFolderHint => 'Заметка сразу ляжет в эту папку';
+
+  @override
+  String get ruleActTag => 'Поставить тег';
+
+  @override
+  String get ruleActTagHint => 'К заметке добавится тег';
+
+  @override
+  String get ruleActRemind => 'Напомнить заранее';
+
+  @override
+  String get ruleActRemindHint => 'Только для событий: до начала';
+
+  @override
+  String get ruleStepWhen => 'Когда';
+
+  @override
+  String get ruleStepDo => 'Что сделать';
+
+  @override
+  String get ruleFolderPick => 'Выбрать папку';
+
+  @override
+  String get ruleSaveButton => 'Сохранить правило';
+
+  @override
+  String get ruleValueTagHint => 'например, работа';
+
+  @override
+  String get ruleValueWordHint => 'например, купить';
+
+  @override
+  String get ruleValueSiteHint => 'например, youtube.com';
+
+  @override
+  String get ruleExampleVideoTag => 'видео';
+
+  @override
+  String get ruleExampleBuyWord => 'купить';
+
+  @override
+  String get ruleExampleShoppingTag => 'покупки';
+
+  @override
+  String get tagFolderRow => 'Класть в папку';
+
+  @override
+  String get tagFolderNone => 'Не класть';
+
+  @override
+  String get tagFolderHint =>
+      'Это правило: его видно и можно выключить во вкладке «Правила».';
+
+  @override
+  String get tagPinHint => 'Тег встанет в ряд наверху главной';
 }

@@ -5342,5 +5342,255 @@
   "placesNoFixBrowser": "Couldn't tell where you are. Check that the browser lets Stowa use your location.",
   "@placesNoFixBrowser": {
     "description": "placesNoFixBrowser"
+  },
+  "rulesTab": "Rules",
+  "@rulesTab": {
+    "description": "rulesTab"
+  },
+  "tagsIntro": "A label across folders: type #word in the line and find those notes from any folder.",
+  "@tagsIntro": {
+    "description": "tagsIntro"
+  },
+  "rulesIntro": "A rule sorts new notes for you: it spots a tag, site or word and files the note or adds a tag.",
+  "@rulesIntro": {
+    "description": "rulesIntro"
+  },
+  "rulesWhenWorks": "Rules apply to new notes and leave alone what you filed yourself.",
+  "@rulesWhenWorks": {
+    "description": "rulesWhenWorks"
+  },
+  "rulesEmpty": "No rules yet: start with an example below.",
+  "@rulesEmpty": {
+    "description": "rulesEmpty"
+  },
+  "rulesExamples": "Examples",
+  "@rulesExamples": {
+    "description": "rulesExamples"
+  },
+  "ruleWhenTag": "Has tag #{tag}",
+  "@ruleWhenTag": {
+    "description": "ruleWhenTag",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleWhenSite": "Link from {site}",
+  "@ruleWhenSite": {
+    "description": "ruleWhenSite",
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleWhenWord": "Text contains “{word}”",
+  "@ruleWhenWord": {
+    "description": "ruleWhenWord",
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleWhenKind": "Note type: {kind}",
+  "@ruleWhenKind": {
+    "description": "ruleWhenKind",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleWhenPage": "Page: {page}",
+  "@ruleWhenPage": {
+    "description": "ruleWhenPage",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleWhenPriceAbove": "Price over {value}",
+  "@ruleWhenPriceAbove": {
+    "description": "ruleWhenPriceAbove",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleWhenPriceBelow": "Price under {value}",
+  "@ruleWhenPriceBelow": {
+    "description": "ruleWhenPriceBelow",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleDoFolder": "to folder “{folder}”",
+  "@ruleDoFolder": {
+    "description": "ruleDoFolder",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleDoTag": "add tag #{tag}",
+  "@ruleDoTag": {
+    "description": "ruleDoTag",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleDoRemind": "remind {when}",
+  "@ruleDoRemind": {
+    "description": "ruleDoRemind",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleCondTag": "Has a tag",
+  "@ruleCondTag": {
+    "description": "ruleCondTag"
+  },
+  "ruleCondTagHint": "You added a #tag while writing",
+  "@ruleCondTagHint": {
+    "description": "ruleCondTagHint"
+  },
+  "ruleCondSite": "Link from a site",
+  "@ruleCondSite": {
+    "description": "ruleCondSite"
+  },
+  "ruleCondSiteHint": "For example, videos from youtube.com",
+  "@ruleCondSiteHint": {
+    "description": "ruleCondSiteHint"
+  },
+  "ruleCondWord": "Word in the text",
+  "@ruleCondWord": {
+    "description": "ruleCondWord"
+  },
+  "ruleCondWordHint": "For example, “buy” or “recipe”",
+  "@ruleCondWordHint": {
+    "description": "ruleCondWordHint"
+  },
+  "ruleCondKind": "Note type",
+  "@ruleCondKind": {
+    "description": "ruleCondKind"
+  },
+  "ruleCondKindHint": "Photo, video, voice, file or link",
+  "@ruleCondKindHint": {
+    "description": "ruleCondKindHint"
+  },
+  "ruleCondPage": "Page type",
+  "@ruleCondPage": {
+    "description": "ruleCondPage"
+  },
+  "ruleCondPageHint": "A link to a recipe, product, event or film",
+  "@ruleCondPageHint": {
+    "description": "ruleCondPageHint"
+  },
+  "ruleCondPriceAbove": "Price over",
+  "@ruleCondPriceAbove": {
+    "description": "ruleCondPriceAbove"
+  },
+  "ruleCondPriceAboveHint": "The note has a higher amount",
+  "@ruleCondPriceAboveHint": {
+    "description": "ruleCondPriceAboveHint"
+  },
+  "ruleCondPriceBelow": "Price under",
+  "@ruleCondPriceBelow": {
+    "description": "ruleCondPriceBelow"
+  },
+  "ruleCondPriceBelowHint": "The note has a lower amount",
+  "@ruleCondPriceBelowHint": {
+    "description": "ruleCondPriceBelowHint"
+  },
+  "ruleActFolder": "Put in a folder",
+  "@ruleActFolder": {
+    "description": "ruleActFolder"
+  },
+  "ruleActFolderHint": "The note goes straight into that folder",
+  "@ruleActFolderHint": {
+    "description": "ruleActFolderHint"
+  },
+  "ruleActTag": "Add a tag",
+  "@ruleActTag": {
+    "description": "ruleActTag"
+  },
+  "ruleActTagHint": "The note gets a tag",
+  "@ruleActTagHint": {
+    "description": "ruleActTagHint"
+  },
+  "ruleActRemind": "Remind in advance",
+  "@ruleActRemind": {
+    "description": "ruleActRemind"
+  },
+  "ruleActRemindHint": "Events only: before they start",
+  "@ruleActRemindHint": {
+    "description": "ruleActRemindHint"
+  },
+  "ruleStepWhen": "When",
+  "@ruleStepWhen": {
+    "description": "ruleStepWhen"
+  },
+  "ruleStepDo": "Then",
+  "@ruleStepDo": {
+    "description": "ruleStepDo"
+  },
+  "ruleFolderPick": "Choose folder",
+  "@ruleFolderPick": {
+    "description": "ruleFolderPick"
+  },
+  "ruleSaveButton": "Save rule",
+  "@ruleSaveButton": {
+    "description": "ruleSaveButton"
+  },
+  "ruleValueTagHint": "for example, work",
+  "@ruleValueTagHint": {
+    "description": "ruleValueTagHint"
+  },
+  "ruleValueWordHint": "for example, buy",
+  "@ruleValueWordHint": {
+    "description": "ruleValueWordHint"
+  },
+  "ruleValueSiteHint": "for example, youtube.com",
+  "@ruleValueSiteHint": {
+    "description": "ruleValueSiteHint"
+  },
+  "ruleExampleVideoTag": "video",
+  "@ruleExampleVideoTag": {
+    "description": "Имя тега в примере правила, строчными"
+  },
+  "ruleExampleBuyWord": "buy",
+  "@ruleExampleBuyWord": {
+    "description": "Слово в примере правила"
+  },
+  "ruleExampleShoppingTag": "shopping",
+  "@ruleExampleShoppingTag": {
+    "description": "Имя тега в примере правила, строчными"
+  },
+  "tagFolderRow": "File into folder",
+  "@tagFolderRow": {
+    "description": "tagFolderRow"
+  },
+  "tagFolderNone": "Don't file",
+  "@tagFolderNone": {
+    "description": "tagFolderNone"
+  },
+  "tagFolderHint": "This is a rule: see or turn it off in the Rules tab.",
+  "@tagFolderHint": {
+    "description": "tagFolderHint"
+  },
+  "tagPinHint": "The tag appears in the row at the top of Home",
+  "@tagPinHint": {
+    "description": "tagPinHint"
   }
 }

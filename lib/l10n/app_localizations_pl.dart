@@ -4525,4 +4525,180 @@ class LPl extends L {
   @override
   String get placesNoFixBrowser =>
       'Nie udało się ustalić, gdzie jesteś. Sprawdź, czy przeglądarka pozwala Stowa na lokalizację.';
+
+  @override
+  String get rulesTab => 'Reguły';
+
+  @override
+  String get tagsIntro =>
+      'Etykieta ponad folderami: wpisz #słowo w linii, a notatki z nim znajdziesz w każdym folderze.';
+
+  @override
+  String get rulesIntro =>
+      'Reguła sama porządkuje nowe notatki: widzi tag, stronę lub słowo i odkłada notatkę do folderu albo dodaje tag.';
+
+  @override
+  String get rulesWhenWorks =>
+      'Reguły działają na nowych notatkach i nie ruszają tego, co odłożyłeś sam.';
+
+  @override
+  String get rulesEmpty =>
+      'Nie ma jeszcze reguł: zacznij od przykładu poniżej.';
+
+  @override
+  String get rulesExamples => 'Przykłady';
+
+  @override
+  String ruleWhenTag(String tag) {
+    return 'Ma tag #$tag';
+  }
+
+  @override
+  String ruleWhenSite(String site) {
+    return 'Link ze strony $site';
+  }
+
+  @override
+  String ruleWhenWord(String word) {
+    return 'W tekście jest „$word”';
+  }
+
+  @override
+  String ruleWhenKind(String kind) {
+    return 'Rodzaj notatki: $kind';
+  }
+
+  @override
+  String ruleWhenPage(String page) {
+    return 'Strona: $page';
+  }
+
+  @override
+  String ruleWhenPriceAbove(String value) {
+    return 'Cena powyżej $value';
+  }
+
+  @override
+  String ruleWhenPriceBelow(String value) {
+    return 'Cena poniżej $value';
+  }
+
+  @override
+  String ruleDoFolder(String folder) {
+    return 'do folderu „$folder”';
+  }
+
+  @override
+  String ruleDoTag(String tag) {
+    return 'dodaj tag #$tag';
+  }
+
+  @override
+  String ruleDoRemind(String when) {
+    return 'przypomnij $when';
+  }
+
+  @override
+  String get ruleCondTag => 'Ma tag';
+
+  @override
+  String get ruleCondTagHint => 'Dodałeś #tag podczas pisania';
+
+  @override
+  String get ruleCondSite => 'Link ze strony';
+
+  @override
+  String get ruleCondSiteHint => 'Na przykład filmy z youtube.com';
+
+  @override
+  String get ruleCondWord => 'Słowo w tekście';
+
+  @override
+  String get ruleCondWordHint => 'Na przykład „kupić” albo „przepis”';
+
+  @override
+  String get ruleCondKind => 'Rodzaj notatki';
+
+  @override
+  String get ruleCondKindHint => 'Zdjęcie, wideo, głosówka, plik lub link';
+
+  @override
+  String get ruleCondPage => 'Typ strony';
+
+  @override
+  String get ruleCondPageHint =>
+      'Link do przepisu, produktu, wydarzenia lub filmu';
+
+  @override
+  String get ruleCondPriceAbove => 'Cena powyżej';
+
+  @override
+  String get ruleCondPriceAboveHint => 'W notatce jest wyższa kwota';
+
+  @override
+  String get ruleCondPriceBelow => 'Cena poniżej';
+
+  @override
+  String get ruleCondPriceBelowHint => 'W notatce jest niższa kwota';
+
+  @override
+  String get ruleActFolder => 'Odłóż do folderu';
+
+  @override
+  String get ruleActFolderHint => 'Notatka od razu trafi do tego folderu';
+
+  @override
+  String get ruleActTag => 'Dodaj tag';
+
+  @override
+  String get ruleActTagHint => 'Notatka dostanie tag';
+
+  @override
+  String get ruleActRemind => 'Przypomnij wcześniej';
+
+  @override
+  String get ruleActRemindHint => 'Tylko wydarzenia: przed początkiem';
+
+  @override
+  String get ruleStepWhen => 'Kiedy';
+
+  @override
+  String get ruleStepDo => 'Co zrobić';
+
+  @override
+  String get ruleFolderPick => 'Wybierz folder';
+
+  @override
+  String get ruleSaveButton => 'Zapisz regułę';
+
+  @override
+  String get ruleValueTagHint => 'na przykład praca';
+
+  @override
+  String get ruleValueWordHint => 'na przykład kupić';
+
+  @override
+  String get ruleValueSiteHint => 'na przykład youtube.com';
+
+  @override
+  String get ruleExampleVideoTag => 'wideo';
+
+  @override
+  String get ruleExampleBuyWord => 'kupić';
+
+  @override
+  String get ruleExampleShoppingTag => 'zakupy';
+
+  @override
+  String get tagFolderRow => 'Odkładaj do folderu';
+
+  @override
+  String get tagFolderNone => 'Nie odkładaj';
+
+  @override
+  String get tagFolderHint =>
+      'To reguła: zobaczysz ją i wyłączysz w karcie „Reguły”.';
+
+  @override
+  String get tagPinHint => 'Tag pojawi się w rzędzie na górze strony głównej';
 }

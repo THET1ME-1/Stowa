@@ -4464,4 +4464,181 @@ class LEs extends L {
   @override
   String get placesNoFixBrowser =>
       'No se pudo saber dónde estás. Comprueba que el navegador permite a Stowa usar la ubicación.';
+
+  @override
+  String get rulesTab => 'Reglas';
+
+  @override
+  String get tagsIntro =>
+      'Una etiqueta por encima de las carpetas: escribe #palabra en la línea y encontrarás esas notas desde cualquier carpeta.';
+
+  @override
+  String get rulesIntro =>
+      'Una regla ordena sola las notas nuevas: detecta una etiqueta, un sitio o una palabra y guarda la nota en una carpeta o le pone una etiqueta.';
+
+  @override
+  String get rulesWhenWorks =>
+      'Las reglas se aplican a notas nuevas y no tocan lo que ordenaste tú.';
+
+  @override
+  String get rulesEmpty =>
+      'Aún no hay reglas: empieza con un ejemplo de abajo.';
+
+  @override
+  String get rulesExamples => 'Ejemplos';
+
+  @override
+  String ruleWhenTag(String tag) {
+    return 'Tiene la etiqueta #$tag';
+  }
+
+  @override
+  String ruleWhenSite(String site) {
+    return 'Enlace de $site';
+  }
+
+  @override
+  String ruleWhenWord(String word) {
+    return 'El texto contiene «$word»';
+  }
+
+  @override
+  String ruleWhenKind(String kind) {
+    return 'Tipo de nota: $kind';
+  }
+
+  @override
+  String ruleWhenPage(String page) {
+    return 'Página: $page';
+  }
+
+  @override
+  String ruleWhenPriceAbove(String value) {
+    return 'Precio mayor de $value';
+  }
+
+  @override
+  String ruleWhenPriceBelow(String value) {
+    return 'Precio menor de $value';
+  }
+
+  @override
+  String ruleDoFolder(String folder) {
+    return 'a la carpeta «$folder»';
+  }
+
+  @override
+  String ruleDoTag(String tag) {
+    return 'poner la etiqueta #$tag';
+  }
+
+  @override
+  String ruleDoRemind(String when) {
+    return 'recordar $when';
+  }
+
+  @override
+  String get ruleCondTag => 'Tiene una etiqueta';
+
+  @override
+  String get ruleCondTagHint => 'Pusiste una #etiqueta al escribir';
+
+  @override
+  String get ruleCondSite => 'Enlace de un sitio';
+
+  @override
+  String get ruleCondSiteHint => 'Por ejemplo, vídeos de youtube.com';
+
+  @override
+  String get ruleCondWord => 'Palabra en el texto';
+
+  @override
+  String get ruleCondWordHint => 'Por ejemplo, «comprar» o «receta»';
+
+  @override
+  String get ruleCondKind => 'Tipo de nota';
+
+  @override
+  String get ruleCondKindHint => 'Foto, vídeo, nota de voz, archivo o enlace';
+
+  @override
+  String get ruleCondPage => 'Tipo de página';
+
+  @override
+  String get ruleCondPageHint =>
+      'Un enlace a una receta, producto, evento o película';
+
+  @override
+  String get ruleCondPriceAbove => 'Precio mayor';
+
+  @override
+  String get ruleCondPriceAboveHint => 'La nota tiene un importe mayor';
+
+  @override
+  String get ruleCondPriceBelow => 'Precio menor';
+
+  @override
+  String get ruleCondPriceBelowHint => 'La nota tiene un importe menor';
+
+  @override
+  String get ruleActFolder => 'Guardar en carpeta';
+
+  @override
+  String get ruleActFolderHint => 'La nota va directa a esa carpeta';
+
+  @override
+  String get ruleActTag => 'Poner etiqueta';
+
+  @override
+  String get ruleActTagHint => 'La nota recibe una etiqueta';
+
+  @override
+  String get ruleActRemind => 'Recordar antes';
+
+  @override
+  String get ruleActRemindHint => 'Solo eventos: antes de que empiecen';
+
+  @override
+  String get ruleStepWhen => 'Cuando';
+
+  @override
+  String get ruleStepDo => 'Qué hacer';
+
+  @override
+  String get ruleFolderPick => 'Elegir carpeta';
+
+  @override
+  String get ruleSaveButton => 'Guardar regla';
+
+  @override
+  String get ruleValueTagHint => 'por ejemplo, trabajo';
+
+  @override
+  String get ruleValueWordHint => 'por ejemplo, comprar';
+
+  @override
+  String get ruleValueSiteHint => 'por ejemplo, youtube.com';
+
+  @override
+  String get ruleExampleVideoTag => 'video';
+
+  @override
+  String get ruleExampleBuyWord => 'comprar';
+
+  @override
+  String get ruleExampleShoppingTag => 'compras';
+
+  @override
+  String get tagFolderRow => 'Guardar en carpeta';
+
+  @override
+  String get tagFolderNone => 'No guardar';
+
+  @override
+  String get tagFolderHint =>
+      'Es una regla: puedes verla y apagarla en la pestaña «Reglas».';
+
+  @override
+  String get tagPinHint =>
+      'La etiqueta aparece en la fila de arriba del inicio';
 }
