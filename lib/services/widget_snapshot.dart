@@ -87,8 +87,13 @@ class WidgetSync {
   }
 
   Future<void> _write() async {
-    final locked = _locked();
-    final notes = locked ? const <WidgetNote>[] : await widgetNotes(_db);
+    var locked = _locked();
+    var notes = locked ? const <WidgetNote>[] : await widgetNotes(_db);
+    // замок включили, пока база отвечала: закрытый файл уже лёг, текст поверх него не класть
+    if (!locked && _locked()) {
+      locked = true;
+      notes = const [];
+    }
     try {
       await widgetChannel.invokeMethod<void>('write', jsonEncode(widgetSnapshot(notes: notes, locked: locked)));
     } on MissingPluginException {

@@ -81,4 +81,21 @@ void main() {
     await tester.pump();
     expect(written.last['locked'], true);
   });
+
+  testWidgets('замок включили, пока виджет читал заметки, — последним ложится закрытый файл', (tester) async {
+    final written = fakeWidgetChannel(tester);
+    await tester.runAsync(() => note('wifi', 'Пароль от Wi‑Fi'));
+    var locked = false;
+    final sync = WidgetSync(world.db, locked: () => locked);
+    addTearDown(sync.dispose);
+    // первая запись ждёт базу, вторая — закрытая и сразу
+    sync.refresh(now: true);
+    locked = true;
+    sync.refresh(now: true);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pump();
+    expect(written, hasLength(2));
+    expect(written.last['locked'], true);
+    expect(written.last['notes'], isEmpty);
+  });
 }
