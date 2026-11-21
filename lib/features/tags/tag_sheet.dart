@@ -26,18 +26,24 @@ import '../folder/folder_sheets.dart';
 import '../graph/graph_screen.dart';
 import '../settings/settings_blocks.dart';
 import 'rule_sheet.dart' show SheetDeleteButton;
+import 'tag_search.dart';
 
 /// Лист тега, как экран 11 макета: новый или правка старого.
 Future<void> showTagSheet(BuildContext context, {TagCard? tag, bool pin = false}) {
+  // «Заметки с #тег» уходит от экрана, открывшего лист: окно на мониторе вкладок не видит
+  void notes(String name) => showTagNotes(context, name);
   // кнопка внизу не ложится на полоску жестов: шторка сама держит безопасную зону
-  return showStowaSheet<void>(context, backgroundColor: Tokens.containerLow, maxHeightFactor: null, builder: (context) => TagSheet(tag: tag, pin: pin));
+  return showStowaSheet<void>(context, backgroundColor: Tokens.containerLow, maxHeightFactor: null, builder: (context) => TagSheet(tag: tag, pin: pin, onNotes: notes));
 }
 
 class TagSheet extends ConsumerStatefulWidget {
-  const TagSheet({super.key, this.tag, this.pin = false});
+  const TagSheet({super.key, this.tag, this.pin = false, this.onNotes});
 
   final TagCard? tag;
   final bool pin;
+
+  /// Показать заметки с тегом на главной; лист перед этим закрывается.
+  final ValueChanged<String>? onNotes;
 
   @override
   ConsumerState<TagSheet> createState() => _TagSheetState();
@@ -198,6 +204,20 @@ class _TagSheetState extends ConsumerState<TagSheet> {
         ],
       ),
       if (folder != null) SettingsHint(l.tagFolderHint),
+      // заметки с тегом — на главной поиском по нему (STOWA-10)
+      if ((widget.tag, widget.onNotes) case (final tag?, final notes?) when tag.count > 0) ...[
+        const SizedBox(height: 8),
+        FilledButton.tonalIcon(
+          key: const ValueKey('tag-notes'),
+          onPressed: () {
+            Navigator.pop(context);
+            notes(tag.name);
+          },
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48), backgroundColor: Tokens.containerHigh, foregroundColor: Tokens.onSurface),
+          icon: Icon(symbolIcon('search')),
+          label: Text(l.tagShowNotes(tag.name)),
+        ),
+      ],
       if (widget.tag case final tag? when tag.count > 1) ...[
         const SizedBox(height: 8),
         // все вещи с тегом и как они связаны

@@ -4677,4 +4677,9 @@ class LRo extends L {
 
   @override
   String get numberPadOpen => 'Scrie un număr';
+
+  @override
+  String tagShowNotes(String tag) {
+    return 'Notițe cu #$tag';
+  }
 }

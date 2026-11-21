@@ -54,6 +54,7 @@ import '../places/reminder_permissions.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
 import '../tags/tag_picker.dart';
+import '../tags/tag_search.dart';
 import '../reader/highlights_block.dart';
 import '../reader/reader_screen.dart';
 import 'copying_bar.dart';
@@ -1097,7 +1098,15 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   runSpacing: 6,
                                   children: [
                                     for (final tag in full.tags.keys)
-                                      _TagPill(label: '#$tag', removeTooltip: l.removeChip, onRemove: _editing ? () => ref.read(tagsRepositoryProvider).unlink(_id, tag) : null),
+                                      _TagPill(
+                                        key: ValueKey('item-tag-$tag'),
+                                        label: '#$tag',
+                                        removeTooltip: l.removeChip,
+                                        onRemove: _editing ? () => ref.read(tagsRepositoryProvider).unlink(_id, tag) : null,
+                                        // касание тега — главная с поиском по нему (STOWA-10)
+                                        onTap: _editing ? null : () => showTagNotes(context, tag),
+                                        tapTooltip: l.tagShowNotes(tag),
+                                      ),
                                     _TagPill(label: l.tagAdd, short: l.tagAddShort, add: true, onTap: _addTag),
                                   ],
                                 ),
@@ -1173,10 +1182,13 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             children: [
                               for (final tag in full.tags.keys)
                                 _TagPill(
+                                  key: ValueKey('item-tag-$tag'),
                                   label: '#$tag',
                                   removeTooltip: l.removeChip,
-                                  // снять тег можно в правке, в просмотре пилюля просто называет его
+                                  // снять тег можно в правке; в просмотре касание — главная с поиском по тегу (STOWA-10)
                                   onRemove: _editing ? () => ref.read(tagsRepositoryProvider).unlink(_id, tag) : null,
+                                  onTap: _editing ? null : () => showTagNotes(context, tag),
+                                  tapTooltip: l.tagShowNotes(tag),
                                 ),
                               _TagPill(label: l.tagAdd, short: l.tagAddShort, add: true, onTap: _addTag),
                               _TagPill(key: const ValueKey('link-add'), label: l.linkAdd, short: l.linkAddShort, add: true, onTap: _addLink),
@@ -1693,7 +1705,7 @@ class _Header extends StatelessWidget {
 
 /// Пилюля тега. У «добавить» значок плюса и приглушённая подложка.
 class _TagPill extends StatelessWidget {
-  const _TagPill({super.key, required this.label, this.short, this.add = false, this.onTap, this.onRemove, this.removeTooltip});
+  const _TagPill({super.key, required this.label, this.short, this.add = false, this.onTap, this.onRemove, this.removeTooltip, this.tapTooltip});
 
   final String label;
 
@@ -1705,6 +1717,9 @@ class _TagPill extends StatelessWidget {
   /// Крестик: снять тег только у этой вещи.
   final VoidCallback? onRemove;
   final String? removeTooltip;
+
+  /// Подсказка, что даст касание тега: «Заметки с #работа».
+  final String? tapTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -1729,7 +1744,7 @@ class _TagPill extends StatelessWidget {
         ),
       ),
     );
-    final tip = onRemove != null ? removeTooltip : (add ? label : null);
+    final tip = onRemove != null ? removeTooltip : (add ? label : (onTap != null ? tapTooltip : null));
     return tip == null ? pill : Tooltip(message: tip, child: pill);
   }
 }

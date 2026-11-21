@@ -4649,4 +4649,9 @@ class LEs extends L {
 
   @override
   String get numberPadOpen => 'Escribir un número';
+
+  @override
+  String tagShowNotes(String tag) {
+    return 'Notas con #$tag';
+  }
 }

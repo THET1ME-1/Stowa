@@ -4665,4 +4665,9 @@ class LDe extends L {
 
   @override
   String get numberPadOpen => 'Zahl eingeben';
+
+  @override
+  String tagShowNotes(String tag) {
+    return 'Notizen mit #$tag';
+  }
 }

@@ -1020,5 +1020,6 @@
   "tagFolderHint": "To reguła: zobaczysz ją i wyłączysz w karcie „Reguły”.",
   "tagPinHint": "Tag pojawi się w rzędzie na górze strony głównej",
   "numberPadRange": "Od {min} do {max}",
-  "numberPadOpen": "Wpisz liczbę"
+  "numberPadOpen": "Wpisz liczbę",
+  "tagShowNotes": "Notatki z #{tag}"
 }

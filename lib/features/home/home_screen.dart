@@ -43,6 +43,7 @@ import 'folder_shelf.dart';
 import 'reminder_carousel.dart';
 import 'note_timeline.dart';
 import 'pinned_tags_row.dart';
+import '../tags/tag_search.dart';
 import '../returns/return_screen.dart' show notificationRoute;
 import '../places/place_always_card.dart';
 import 'return_pills.dart';
@@ -328,6 +329,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
+    // касание тега где угодно (STOWA-10): строка главной ищет по нему. После кадра — экран
+    // заметки ещё закрывается, и фокус строке до этого не отдать
+    ref.listen(tagSearchProvider, (_, request) {
+      if (request == null) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _dock.currentState?.searchTag(request.tag));
+    });
     return Scaffold(
       // широкое окно (браузер, компьютер) — рабочее пространство с доками и вкладками;
       // обходы, слежка за хранилищем и синхронизация остаются здесь, при любой ширине

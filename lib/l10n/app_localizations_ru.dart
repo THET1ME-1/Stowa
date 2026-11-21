@@ -4714,4 +4714,9 @@ class LRu extends L {
 
   @override
   String get numberPadOpen => 'Вписать число';
+
+  @override
+  String tagShowNotes(String tag) {
+    return 'Заметки с #$tag';
+  }
 }

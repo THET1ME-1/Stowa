@@ -4702,4 +4702,9 @@ class LUk extends L {
 
   @override
   String get numberPadOpen => 'Вписати число';
+
+  @override
+  String tagShowNotes(String tag) {
+    return 'Нотатки з #$tag';
+  }
 }

@@ -4635,4 +4635,9 @@ class LEn extends L {
 
   @override
   String get numberPadOpen => 'Type a number';
+
+  @override
+  String tagShowNotes(String tag) {
+    return 'Notes with #$tag';
+  }
 }

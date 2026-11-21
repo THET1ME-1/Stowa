@@ -5608,5 +5608,14 @@
   "numberPadOpen": "Type a number",
   "@numberPadOpen": {
     "description": "Подсказка у числа рядом с ползунком: касание открывает калькулятор"
+  },
+  "tagShowNotes": "Notes with #{tag}",
+  "@tagShowNotes": {
+    "description": "Подсказка у тега и кнопка в листе тега: показать на главной заметки с ним",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
   }
 }

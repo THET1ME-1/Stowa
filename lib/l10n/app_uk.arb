@@ -1020,5 +1020,6 @@
   "tagFolderHint": "Це правило: його видно й можна вимкнути у вкладці «Правила».",
   "tagPinHint": "Тег стане в ряд угорі головної",
   "numberPadRange": "Від {min} до {max}",
-  "numberPadOpen": "Вписати число"
+  "numberPadOpen": "Вписати число",
+  "tagShowNotes": "Нотатки з #{tag}"
 }

@@ -7930,6 +7930,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Type a number'**
   String get numberPadOpen;
+
+  /// Подсказка у тега и кнопка в листе тега: показать на главной заметки с ним
+  ///
+  /// In en, this message translates to:
+  /// **'Notes with #{tag}'**
+  String tagShowNotes(String tag);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

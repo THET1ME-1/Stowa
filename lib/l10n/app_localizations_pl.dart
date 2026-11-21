@@ -4709,4 +4709,9 @@ class LPl extends L {
 
   @override
   String get numberPadOpen => 'Wpisz liczbę';
+
+  @override
+  String tagShowNotes(String tag) {
+    return 'Notatki z #$tag';
+  }
 }
