@@ -806,22 +806,13 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     // макете, сверху тонкая строка с путём папки и действиями, низ окна отдан общей строке ввода
     final desk = WorkspaceScope.maybeOf(context) != null;
     final titleFromLine = titleIsFirstLine(shownBody, item.title);
-    // на мониторе заголовок документа всегда крупно сверху, как в макете: строка, из которой
-    // он сделан, в тексте под ним не повторяется, номера строк для галочек сдвигаются за ней
-    final deskTitle = desk && !_editing && !linkLike && titleFromLine;
-    final List<NoteBlock> blocks;
-    if (deskTitle) {
-      final lines = shownBody.split('\n');
-      final first = lines.indexWhere((line) => line.trim().isNotEmpty);
-      blocks = parseNoteBlocks(lines.skip(first + 1).join('\n'), lineOffset: first + 1);
-    } else {
-      blocks = parseNoteBlocks(shownBody);
-    }
+    final blocks = parseNoteBlocks(shownBody);
     // «купить молоко, хлеб и яйца» можно одним касанием сделать галочками
     final checklist = item.kind == ItemKind.note ? shoppingChecklist(item.body) : null;
     final properties = unpackVaultProperties(item.properties);
-    // заголовок из первой строки над ней же не повторяется: заметка видна, как её написали
-    final showTitle = _editing || linkLike || !titleFromLine || deskTitle;
+    // заголовок из первой строки над ней же не повторяется: заметка видна, как её написали.
+    // На мониторе так же: 21.11 хозяин назвал крупную первую строку ошибкой — «это текст»
+    final showTitle = _editing || linkLike || !titleFromLine;
     final source = url == null ? null : sourceName(Uri.tryParse(url)?.host ?? '');
     final duration = item.durationSeconds == null ? null : Duration(seconds: item.durationSeconds!);
     Future<void> openMain() => videoFile != null ? openLocalFile(context, p.join(filesRoot.path, videoFile.path), videoFile.mime) : _openLink(url!);
@@ -1081,7 +1072,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           ),
                         // монитор: свойства таблицей, как в макете, черта под ними
                         if (desk) ...[
-                          const SizedBox(height: 18),
+                          SizedBox(height: showTitle ? 18 : 4),
                           _DeskProps(
                             key: const ValueKey('desk-props'),
                             rows: [
@@ -1218,8 +1209,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             child: VoicePlayer(path: p.join(filesRoot.path, voice.path), seedId: voice.id, large: true),
                           ),
                         ],
-                        // монитор, заметка из одной строки: под заголовком приглашение дописать
-                        if (deskTitle && blocks.isEmpty && !linkLike && videoFile == null)
+                        // монитор, заметка без текста: под свойствами приглашение дописать
+                        if (desk && !_editing && blocks.isEmpty && !linkLike && videoFile == null)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(6, 14, 6, 0),
                             child: MouseRegion(

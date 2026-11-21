@@ -86,10 +86,10 @@ void main() {
 
   // хозяин 20.11: «адаптив под сайт, а не как телефон». Страница заметки как в макете: крупный
   // заголовок, свойства таблицей (подпись слева, значение справа), черта и текст без карточки
-  testWidgets('монитор: заголовок крупно, свойства таблицей, текст без карточки и без повтора заголовка', (tester) async {
+  testWidgets('монитор: своё название крупно, свойства таблицей, текст без карточки', (tester) async {
     await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'rem', name: 'Ремонт', icon: 'build', shape: 'gem'));
     await world.db.into(world.db.items).insert(
-      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Ремонт кухни', body: const Value('Ремонт кухни\nзамер 3,2 × 2,6'), folderId: const Value('rem'), createdAt: world.now, updatedAt: world.now),
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Ремонт кухни', body: const Value('Замер стен\n3,2 × 2,6'), folderId: const Value('rem'), createdAt: world.now, updatedAt: world.now),
     );
     tester.view.physicalSize = const Size(1600, 960);
     tester.view.devicePixelRatio = 1;
@@ -101,11 +101,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final page = find.byType(ItemScreen);
-    // RichText ловит и текст заметки: «Ремонт кухни» должно быть только одно — в заголовке
-    expect(find.descendant(of: page, matching: find.text('Ремонт кухни', findRichText: true)), findsOneWidget, reason: 'в тексте заголовок не повторяется');
     final title = find.descendant(of: page, matching: find.text('Ремонт кухни'));
     expect(tester.widget<Text>(title).style!.fontSize, greaterThanOrEqualTo(30));
-    expect(find.descendant(of: page, matching: find.textContaining('замер 3,2', findRichText: true)), findsOneWidget);
+    expect(find.descendant(of: page, matching: find.textContaining('Замер стен', findRichText: true)), findsOneWidget);
 
     final props = find.byKey(const ValueKey('desk-props'));
     for (final label in ['Папка', 'Теги', 'Создана', 'Связи']) {
@@ -151,9 +149,34 @@ void main() {
     expect(find.byType(ItemScreen), findsOneWidget, reason: 'телефон — экраном');
   });
 
-  testWidgets('монитор: заметка из одной строки — заголовок и приглашение дописать, щелчок открывает правку', (tester) async {
+  // 21.11 хозяин со снимка: «на сайте все тексты — заголовок, хотя это текст. На телефоне верно».
+  // Название из первой строки над текстом не показывается: строка остаётся текстом, как на телефоне
+  testWidgets('монитор: название из первой строки — не заголовок, строка остаётся текстом', (tester) async {
+    const first = 'Мне снилось, что меня объявили в розыск';
     await world.db.into(world.db.items).insert(
-      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Купить молоко', body: const Value('Купить молоко'), createdAt: world.now, updatedAt: world.now),
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: first, body: const Value('$first\nУбегал с другом'), createdAt: world.now, updatedAt: world.now),
+    );
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+
+    final page = find.byType(ItemScreen);
+    expect(find.descendant(of: page, matching: find.text(first)), findsNothing, reason: 'крупного заголовка нет');
+    final body = find.byKey(const ValueKey('item-body-card'));
+    expect(find.descendant(of: body, matching: find.textContaining(first, findRichText: true)), findsOneWidget, reason: 'первая строка в тексте');
+    expect(find.descendant(of: body, matching: find.textContaining('Убегал с другом', findRichText: true)), findsOneWidget);
+    expect(find.byKey(const ValueKey('desk-props')), findsOneWidget);
+    expect(find.text('Дописать текст…'), findsNothing);
+  });
+
+  testWidgets('монитор: заметка без текста — приглашение дописать, щелчок открывает правку', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Купить молоко', body: const Value(''), createdAt: world.now, updatedAt: world.now),
     );
     tester.view.physicalSize = const Size(1600, 960);
     tester.view.devicePixelRatio = 1;
