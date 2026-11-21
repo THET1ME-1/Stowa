@@ -88,6 +88,15 @@ class WorkspaceController extends ChangeNotifier {
     WidgetsBinding.instance.addPostFrameCallback((_) => popups.settle());
   }
 
+  /// Закрыть вкладку [tab], где бы она ни была, без памяти о закрытых: её заметку удалили,
+  /// и «вернуть закрытую» открыла бы пустую.
+  void drop(WsTab tab) {
+    final pane = workspace.panes.where((pane) => pane.tabs.any((one) => one.key == tab.key)).firstOrNull;
+    if (pane == null) return;
+    update((ws) => ws.close(pane.id, pane.tabs.indexWhere((one) => one.key == tab.key)));
+    WidgetsBinding.instance.addPostFrameCallback((_) => popups.settle());
+  }
+
   void reopen() {
     if (closed.isNotEmpty) open(closed.removeLast());
   }
@@ -931,13 +940,35 @@ class _TabBody extends ConsumerWidget {
     'home' => const _HomeTab(),
     'inbox' => const FolderScreen(folderId: null),
     'folder' => FolderScreen(folderId: tab.id),
-    'item' => ItemScreen(id: tab.id!),
+    'item' => _ItemTab(tab: tab, controller: controller),
     'settings' => const _SettingsTab(),
     'map' => const MapScreen(),
     'graph' => GraphScreen(title: L.of(context).graphTitle),
     'later' => const ReturnScreen(kind: ReturnKind.watchLater),
     _ => const SizedBox.shrink(),
   };
+}
+
+/// Заметка во вкладке. Её удалили — меню заметки, лента, другой телефон через синхронизацию —
+/// вкладка закрывается сама: пустая вкладка с «Удалил · Отменить» висела (хозяин 21.11).
+/// Открытая из корзины заметка уже удалена и не закрывается: закрывает только переход
+/// живой заметки в удалённую.
+class _ItemTab extends ConsumerWidget {
+  const _ItemTab({required this.tab, required this.controller});
+
+  final WsTab tab;
+  final WorkspaceController controller;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(itemProvider(tab.id!), (previous, next) {
+      final was = previous?.value;
+      if (was == null || was.item.deletedAt != null || !next.hasValue) return;
+      final now = next.value;
+      if (now == null || now.item.deletedAt != null) controller.drop(tab);
+    });
+    return ItemScreen(id: tab.id!);
+  }
 }
 
 /// Настройки. Страница навигатора строится один раз, а раздел меняется: он берётся

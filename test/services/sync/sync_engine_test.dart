@@ -187,7 +187,10 @@ void main() {
     expect(b.vault.text('n.md'), 'x\n');
   });
 
-  test('служебное не синхронизируется', () async {
+  // хозяин 21.11 со снимка сайта: «ни одна заметка на сайте не имеет превью от ссылок, а на
+  // телефоне есть». Заметка приходит с `cover:`, а файла нет: браузер скачать обложку не может
+  // (сеть dart:io в нём не работает), второй телефон считает превью готовым и тоже не качает
+  test('обложки ссылок ездят, входящие и раскладка окон Obsidian — нет', () async {
     final a = Device(remote, key), b = Device(remote, key);
     a.vault.putText('.stowa/covers/1.jpg', 'обложка');
     a.vault.putText('.stowa/incoming/x.md', 'входящее');
@@ -195,7 +198,8 @@ void main() {
     a.vault.putText('.obsidian/workspace.json', '{}');
     await a.sync();
     await b.sync();
-    expect(b.vault.files.keys.toSet(), {'.stowa/tags.json'});
+    expect(b.vault.files.keys.toSet(), {'.stowa/tags.json', '.stowa/covers/1.jpg'});
+    expect(b.vault.text('.stowa/covers/1.jpg'), 'обложка');
   });
 
   test('обрыв на третьей части — докачка без повторной отправки готовых', () async {

@@ -45,6 +45,33 @@ void main() {
     expect(shown(tester, 'settings'), 0, reason: 'настройки лежат в стопке выше заметки и закрывали бы её');
   });
 
+  // хозяин 21.11 со снимка сайта: «заметка удалена, но всё равно окно на ней» — пустая вкладка
+  // с «Удалил · Отменить». Удалить могли и меню заметки, и лента, и телефон через синхронизацию
+  testWidgets('заметку удалили — её вкладка закрывается, соседние остаются', (tester) async {
+    for (final id in ['n', 'm']) {
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: id, kind: ItemKind.note, title: 'Заметка $id', body: Value('Заметка $id'), createdAt: world.now, updatedAt: world.now));
+    }
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final shell = WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!;
+    shell.open(const WsTab.item('m'));
+    shell.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('chip-item:n')), findsOneWidget);
+
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('n'))).write(ItemsCompanion(deletedAt: Value(world.now)));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('chip-item:n')), findsNothing);
+    expect(find.byKey(const ValueKey('chip-item:m')), findsOneWidget);
+    // удалённая не возвращается сочетанием «открыть закрытую»
+    expect(shell.closed.where((tab) => tab.id == 'n'), isEmpty);
+  });
+
   // хозяин 20.11 про сайт: «переходы экранов». Вкладка не подменяется: входящая мягко
   // поднимается на место и проявляется
   testWidgets('смена вкладки: входящая поднимается на место, а не появляется сразу', (tester) async {

@@ -44,11 +44,12 @@ class SyncReport {
   String toString() => 'SyncReport(pulled: $pulled, pushed: $pushed, deleted: $deleted, merged: $merged, waiting: $waiting, error: $error)';
 }
 
-/// Синхронизируется ли путь. Обложки, кадры, копии страниц, кэш и входящие
-/// пересчитываются на каждом телефоне; раскладка окон Obsidian своя у каждого.
+/// Синхронизируется ли путь. Кадры, копии страниц, кэш и входящие пересчитываются на
+/// каждом телефоне; раскладка окон Obsidian своя у каждого. Обложки ссылок ездят (21.11):
+/// пришедшая заметка уже с превью, второй телефон его не качает, а браузер не может вовсе.
 bool syncable(String path) {
   if (path.endsWith('.tmp')) return false;
-  const skip = ['.stowa/covers/', '.stowa/frames/', '.stowa/pages/', '.stowa/articles/', '.stowa/cache/', '.stowa/incoming/'];
+  const skip = ['.stowa/frames/', '.stowa/pages/', '.stowa/articles/', '.stowa/cache/', '.stowa/incoming/'];
   for (final prefix in skip) {
     if (path.startsWith(prefix)) return false;
   }

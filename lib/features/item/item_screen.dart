@@ -683,7 +683,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _autosave?.cancel();
     _editing = false;
     await _items.softDelete(_id, _clock());
-    if (mounted) Navigator.pop(context);
+    // во вкладке сайта заметка — единственный экран: pop снимал его и оставлял белое поле,
+    // вкладку закрывает она сама, увидев удаление; на телефоне экран уходит, как раньше
+    if (mounted) Navigator.maybePop(context).ignore();
     showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => _items.restore(_id));
   }
 
