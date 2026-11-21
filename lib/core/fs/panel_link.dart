@@ -30,17 +30,25 @@ class PanelLink {
 }
 
 /// Канал базы между вкладкой и одной панелью по имени (`panel_db.dart`). В браузере —
-/// свой `BroadcastChannel` на имя, здесь — пара концов в памяти: первый, кто назвал имя,
-/// получает один конец, второй — другой.
+/// свой `BroadcastChannel` на имя, здесь — шина в памяти с тем же поведением: сообщение
+/// получают только концы, уже открытые к моменту отправки, а открытый конец копит
+/// пришедшее, пока его не начали слушать.
 StreamChannel<Object?> panelDbChannel(String name) {
-  final waiting = _dbChannels.remove(name);
-  if (waiting != null) return waiting.foreign;
   final pair = StreamChannelController<Object?>();
-  _dbChannels[name] = pair;
-  return pair.local;
+  final bus = _dbBuses.putIfAbsent(name, () => []);
+  bus.add(pair);
+  pair.local.stream.listen(
+    (message) {
+      for (final other in List.of(bus)) {
+        if (!identical(other, pair)) scheduleMicrotask(() => other.local.sink.add(message));
+      }
+    },
+    onDone: () => bus.remove(pair),
+  );
+  return pair.foreign;
 }
 
-final _dbChannels = <String, StreamChannelController<Object?>>{};
+final _dbBuses = <String, List<StreamChannelController<Object?>>>{};
 
 /// Открыта ли страница как боковая панель: адрес с `?panel` (так её открывает расширение)
 /// или узкое окно (веб-панель Vivaldi, Opera, Edge с обычным адресом). Вне браузера — нет.

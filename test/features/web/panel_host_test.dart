@@ -26,7 +26,6 @@ void main() {
   late TestWorld world;
   late PanelBridge tab;
   late List<String> opened;
-  var serial = 0;
   setUp(() {
     world = TestWorld();
     opened = [];
@@ -73,11 +72,7 @@ void main() {
   Future<void> show(WidgetTester tester) async {
     final client = PanelClient(PanelLink());
     addTearDown(client.close);
-    final db = await tester.runAsync(() async {
-      final name = 'stowa-db-host-${serial++}';
-      await client.ask('db-open', payload: {'channel': name, 'schema': AppDatabase.schema});
-      return openPanelDb(name, closeStreamsSynchronously: true);
-    });
+    final db = await tester.runAsync(() => connectTabDatabase(client, closeStreamsSynchronously: true));
     world.database = db;
     tester.view.physicalSize = const Size(560, 900);
     tester.view.devicePixelRatio = 1;

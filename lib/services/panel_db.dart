@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 // одна сборка сайта, а разные сборки рукопожатие моста не пускает к базе
 // ignore: experimental_member_use
 import 'package:drift/remote.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 import '../data/db/database.dart';
 import 'panel_bridge.dart';
@@ -42,11 +43,35 @@ class PanelDbServer {
   }
 }
 
-/// Подключиться к базе вкладки, которая слушает канал [name]. О правках вкладки панель
+/// База вкладки для панели: вкладка той же сборки ответила и кода на вход нет —
+/// подключиться. Иначе null: панель останется лёгкой.
+///
+/// Свой конец канала панель открывает ДО просьбы `db-open`: вкладка, начав отдавать базу,
+/// сразу шлёт первое сообщение, а `BroadcastChannel` не копит сообщения для тех, кто ещё
+/// не открыл канал. В обратном порядке подключение ждало вечно (поймано в браузере 21.11).
+Future<AppDatabase?> connectTabDatabase(PanelClient client, {bool closeStreamsSynchronously = false, Duration wait = const Duration(seconds: 5)}) async {
+  final hello = await client.ask('hello');
+  if (hello == null || hello['schema'] != AppDatabase.schema) return null;
+  final name = 'stowa-db-${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}';
+  final channel = panelDbChannel(name);
+  final ready = await client.ask('db-open', payload: {'channel': name, 'schema': AppDatabase.schema});
+  if (ready?['type'] != 'db-ready') {
+    await channel.sink.close();
+    return null;
+  }
+  try {
+    return await openPanelDb(channel, closeStreamsSynchronously: closeStreamsSynchronously).timeout(wait);
+  } catch (_) {
+    await channel.sink.close();
+    return null;
+  }
+}
+
+/// Подключиться к базе вкладки по уже открытому [channel]. О правках вкладки панель
 /// узнаёт сообщениями моста ([followPanelDb]), поэтому слежка своя, обычная;
 /// [closeStreamsSynchronously] — для тестов, как у `AppDatabase.memory`.
-Future<AppDatabase> openPanelDb(String name, {bool closeStreamsSynchronously = false}) async {
-  final remote = await connectToRemoteAndInitialize(panelDbChannel(name));
+Future<AppDatabase> openPanelDb(StreamChannel<Object?> channel, {bool closeStreamsSynchronously = false}) async {
+  final remote = await connectToRemoteAndInitialize(channel);
   return AppDatabase(closeStreamsSynchronously ? DatabaseConnection(remote.executor, closeStreamsSynchronously: true) : remote);
 }
 

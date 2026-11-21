@@ -33,7 +33,7 @@ StreamChannel<Object?> panelDbChannel(String name) {
   final channel = web.BroadcastChannel(name);
   final pair = StreamChannelController<Object?>();
   channel.onmessage = ((web.MessageEvent event) => pair.local.sink.add(event.data.dartify())).toJS;
-  pair.local.stream.listen((message) => channel.postMessage(message.jsify()), onDone: channel.close);
+  pair.local.stream.listen((message) => channel.postMessage(message.jsify()), onDone: () => channel.close());
   return pair.foreign;
 }
 

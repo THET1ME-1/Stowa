@@ -27,8 +27,10 @@ void main() {
 
   Future<AppDatabase> panel() async {
     final name = 'stowa-db-test-${serial++}';
+    // конец панели открыт до того, как вкладка начала отдавать базу: как в connectTabDatabase
+    final channel = panelDbChannel(name);
     server.serve(name);
-    final db = await openPanelDb(name);
+    final db = await openPanelDb(channel);
     addTearDown(db.close);
     return db;
   }

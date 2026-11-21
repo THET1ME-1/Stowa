@@ -112,7 +112,7 @@ Future<void> _waitForTab() async {
   // Вкладку закрыли — хранилище наше, и панель становится полным приложением
   if (isPanelPage()) {
     final client = PanelClient(PanelLink());
-    final db = await _tabDatabase(client);
+    final db = await connectTabDatabase(client);
     if (db == null) {
       runApp(PanelApp(client: client, onOpenHere: openHere));
       await ours;
@@ -129,21 +129,6 @@ Future<void> _waitForTab() async {
   if (await holderIsPanel()) askTabToLeave();
   runApp(TabBusyApp(onOpenHere: openHere));
   await ours;
-}
-
-/// База вкладки для панели: вкладка той же сборки ответила, кода на вход нет — подключиться.
-/// Иначе null: панель останется лёгкой.
-Future<AppDatabase?> _tabDatabase(PanelClient client) async {
-  final hello = await client.ask('hello');
-  if (hello == null || hello['schema'] != AppDatabase.schema) return null;
-  final channel = 'stowa-db-${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}';
-  final ready = await client.ask('db-open', payload: {'channel': channel, 'schema': AppDatabase.schema});
-  if (ready?['type'] != 'db-ready') return null;
-  try {
-    return await openPanelDb(channel).timeout(const Duration(seconds: 5));
-  } catch (_) {
-    return null;
-  }
 }
 
 /// Панель со строкой телефона (STOWA-9): тот же `StowaApp`, что у приложения, но база —

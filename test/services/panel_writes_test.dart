@@ -67,12 +67,9 @@ void main() {
   Future<({PanelClient client, AppDatabase db})> panel() async {
     final client = PanelClient(PanelLink());
     addTearDown(client.close);
-    final hello = await client.ask('hello');
-    expect(hello?['schema'], tab.schemaVersion);
-    final name = 'stowa-db-writes-${serial++}';
-    expect((await client.ask('db-open', payload: {'channel': name, 'schema': tab.schemaVersion}))?['type'], 'db-ready');
-    final db = await openPanelDb(name);
-    addTearDown(db.close);
+    final db = await connectTabDatabase(client);
+    expect(db, isNotNull, reason: 'вкладка той же сборки без кода отдаёт базу');
+    addTearDown(db!.close);
     return (client: client, db: db);
   }
 
