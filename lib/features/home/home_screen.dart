@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/platform.dart';
@@ -12,6 +14,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
+import '../../data/db/database.dart' show AppDatabase;
 import '../../data/providers.dart';
 import '../../domain/hints.dart' show Tip, visibleStep;
 import '../../domain/return_plan.dart';
@@ -21,6 +24,8 @@ import '../../domain/note_links.dart' show shownTitle;
 import '../../domain/search_query.dart' show parseSearch;
 import '../../services/capture_service.dart' show CaptureInput, PickedFile;
 import '../../services/panel_bridge.dart';
+import '../../services/panel_db.dart';
+import '../../services/panel_writes.dart';
 import '../../services/launch_actions.dart';
 import '../../services/notice_service.dart' show noticePrivatePref;
 import '../../services/place_alarms.dart';
@@ -83,7 +88,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     }
     // закрепили, убрали, поправили текст закреплённой — уведомления следом; замок — тоже
     ref.listenManual(noticesProvider, (previous, next) => _syncNotices().ignore(), fireImmediately: true);
-    ref.listenManual(privacyLockProvider, (previous, next) => _syncNotices(force: true).ignore());
+    ref.listenManual(privacyLockProvider, (previous, next) {
+      _syncNotices(force: true).ignore();
+      // включили код — строка телефона в панели браузера теряет базу
+      _panel?.lockChanged();
+    });
     // любая правка напоминаний в базе переставляет будильники системы
     ref.listenManual(remindersProvider, (previous, next) {
       final reminders = next.value;
@@ -220,6 +229,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
         final from = _dock.currentContext ?? context;
         if (from.mounted) openItem(from, id).ignore();
       },
+      // строке телефона в панели — база на чтение, её записи выполняют те же службы
+      database: PanelDbServer(ref.read(databaseProvider)),
+      schema: AppDatabase.schema,
+      writes: PanelWrites(
+        captureAll: (inputs) => ref.read(captureServiceProvider).captureAll(inputs),
+        append: (id, text) => ref.read(itemsRepositoryProvider).append(id, text, ref.read(clockProvider)()),
+        makeFolder: (name, parentId) => ref.read(foldersRepositoryProvider).create(name, parentId: parentId),
+        makeSmartFolder: (name, query) => ref.read(smartFoldersRepositoryProvider).create(name: name, query: query),
+        makeDocument: (kind, title, folderId) => ref.read(documentsRepositoryProvider).create(kind, title: title, folderId: folderId),
+        placeFile: (name, bytes) async {
+          // вложение из панели — во временную папку вкладки: хранитель файлов перенесёт его в хранилище
+          final Directory root = ref.read(cacheRootProvider) ?? ref.read(scratchRootProvider);
+          final file = File(p.join(root.path, 'panel', '${DateTime.now().microsecondsSinceEpoch}-$name'));
+          await file.parent.create(recursive: true);
+          await file.writeAsBytes(bytes);
+          return file.path;
+        },
+      ),
     );
   }
 

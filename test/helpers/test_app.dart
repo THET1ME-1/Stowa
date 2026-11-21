@@ -40,6 +40,10 @@ class TestWorld {
   final db = AppDatabase.memory();
   final files = Directory.systemTemp.createTempSync('stowa_test');
 
+  /// База, которую видит приложение, если не [db]: боковая панель браузера читает базу
+  /// вкладки через канал (`panel_db.dart`).
+  AppDatabase? database;
+
   /// Сколько раз приложение просило систему доделать файлы в фоне.
   var fileWorkAsked = 0;
 
@@ -133,7 +137,7 @@ class TestWorld {
           placeAsked++;
           return placeGranted = true;
         }),
-        databaseProvider.overrideWithValue(db),
+        databaseProvider.overrideWithValue(database ?? db),
         articleLoaderProvider.overrideWithValue((id, url) async => pages[id] == null ? null : extractArticle(pages[id]!, Uri.parse(url))),
         linkCheckProvider.overrideWithValue((uri) async => linkReplies['$uri'] ?? LinkReply.alive),
         startFilesRootProvider.overrideWithValue(files),

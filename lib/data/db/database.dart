@@ -120,8 +120,12 @@ class AppDatabase extends _$AppDatabase {
   /// оборот цикла событий, а часы теста поддельные, и закрытие виснет.
   AppDatabase.memory() : super(DatabaseConnection(memoryExecutor(), closeStreamsSynchronously: true));
 
+  /// Версия схемы. Её же сверяют вкладка и боковая панель браузера: разные сборки к одной
+  /// базе не подключаются.
+  static const schema = 22;
+
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => schema;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 
+import 'package:stream_channel/stream_channel.dart';
 import 'package:web/web.dart' as web;
 
 /// Канал между боковой панелью браузера и вкладкой Stowa (STOWA-9): `BroadcastChannel`
@@ -24,6 +25,16 @@ class PanelLink {
     _channel.close();
     _incoming.close();
   }
+}
+
+/// Канал базы между вкладкой и одной панелью (`panel_db.dart`): свой `BroadcastChannel` на
+/// имя, его слышат только эти двое. drift шлёт по нему лишь числа, строки, байты и списки.
+StreamChannel<Object?> panelDbChannel(String name) {
+  final channel = web.BroadcastChannel(name);
+  final pair = StreamChannelController<Object?>();
+  channel.onmessage = ((web.MessageEvent event) => pair.local.sink.add(event.data.dartify())).toJS;
+  pair.local.stream.listen((message) => channel.postMessage(message.jsify()), onDone: channel.close);
+  return pair.foreign;
 }
 
 // уже этого окно браузера — боковая панель, а не вкладка

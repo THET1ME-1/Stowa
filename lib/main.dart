@@ -24,9 +24,12 @@ import 'features/edge/sticker_host.dart';
 import 'features/quick/quick_host.dart';
 import 'features/returns/return_screen.dart';
 import 'features/share/share_receiver.dart';
+import 'features/web/panel_host.dart';
 import 'features/web/panel_screen.dart';
 import 'features/web/tab_busy_screen.dart';
 import 'services/panel_bridge.dart';
+import 'services/panel_db.dart';
+import 'services/panel_writes.dart';
 import 'services/background.dart';
 import 'services/crash_reporter.dart';
 import 'services/privacy/privacy_service.dart';
@@ -104,18 +107,78 @@ Future<void> _waitForTab() async {
     return ours;
   }
 
-  // боковая панель браузера (STOWA-9): базу не открывает, пишет и ищет через вкладку.
+  // боковая панель браузера (STOWA-9): строка телефона на базе вкладки, только чтение,
+  // записи — просьбами вкладке. Вкладка старой сборки или под кодом — лёгкая панель.
   // Вкладку закрыли — хранилище наше, и панель становится полным приложением
   if (isPanelPage()) {
-    runApp(PanelApp(client: PanelClient(PanelLink()), onOpenHere: openHere));
+    final client = PanelClient(PanelLink());
+    final db = await _tabDatabase(client);
+    if (db == null) {
+      runApp(PanelApp(client: client, onOpenHere: openHere));
+      await ours;
+      return;
+    }
+    await _runPanel(client, db, openHere);
+    // хранилище освободилось: с чистого листа — полным приложением со своими файлами
     await ours;
-    return;
+    reloadPage();
+    await Completer<void>().future;
   }
   // хранилище держит панель — обычная вкладка забирает его сама, без «Открыть здесь»:
   // панель дописывает файлы и перезагружается в лёгкий режим
   if (await holderIsPanel()) askTabToLeave();
   runApp(TabBusyApp(onOpenHere: openHere));
   await ours;
+}
+
+/// База вкладки для панели: вкладка той же сборки ответила, кода на вход нет — подключиться.
+/// Иначе null: панель останется лёгкой.
+Future<AppDatabase?> _tabDatabase(PanelClient client) async {
+  final hello = await client.ask('hello');
+  if (hello == null || hello['schema'] != AppDatabase.schema) return null;
+  final channel = 'stowa-db-${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}';
+  final ready = await client.ask('db-open', payload: {'channel': channel, 'schema': AppDatabase.schema});
+  if (ready?['type'] != 'db-ready') return null;
+  try {
+    return await openPanelDb(channel).timeout(const Duration(seconds: 5));
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Панель со строкой телефона (STOWA-9): тот же `StowaApp`, что у приложения, но база —
+/// вкладки, на чтение, всё, что пишет строка, уходит вкладке, а файлы панели — в памяти.
+/// Служб главной здесь нет: писатель хранилища, факты, ИИ и превью работают во вкладке.
+Future<void> _runPanel(PanelClient client, AppDatabase db, Future<void> Function() openHere) async {
+  UnfoldTouch.install();
+  await startPanelFiles();
+  final prefs = await SharedPreferences.getInstance();
+  final settings = SettingsRepository(prefs, const SecureKeyStore());
+  final hints = HintsRepository(prefs);
+  final appearance = settings.appearance;
+  Tokens.use(paletteFor(appearance, brightnessFor(appearance, PlatformDispatcher.instance.platformBrightness, DateTime.now())));
+  final timeZone = await FlutterTimezone.getLocalTimezone().then((zone) => zone.identifier, onError: (_) => DateTime.now().timeZoneName);
+  runApp(
+    ProviderScope(
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        startFilesRootProvider.overrideWithValue(webAppDirectory),
+        vaultRootProvider.overrideWith(() => VaultRootNotifier(null)),
+        appSupportProvider.overrideWithValue(webAppDirectory),
+        cacheRootProvider.overrideWithValue(webCacheDirectory),
+        settingsRepositoryProvider.overrideWithValue(settings),
+        hintsRepositoryProvider.overrideWithValue(hints),
+        preferencesProvider.overrideWithValue(prefs),
+        timeZoneProvider.overrideWithValue(timeZone),
+        captureServiceProvider.overrideWith((ref) => PanelCaptureService(db, client, filesRoot: webCacheDirectory, clock: ref.watch(clockProvider))),
+        itemsRepositoryProvider.overrideWith((ref) => PanelItemsRepository(db, client, clock: ref.watch(clockProvider))),
+        foldersRepositoryProvider.overrideWith((ref) => PanelFoldersRepository(db, client)),
+        smartFoldersRepositoryProvider.overrideWith((ref) => PanelSmartFoldersRepository(db, client, clock: ref.watch(clockProvider))),
+        documentsRepositoryProvider.overrideWith((ref) => PanelDocumentsRepository(db, client, clock: ref.watch(clockProvider))),
+      ],
+      child: StowaApp(home: PanelHost(client: client, onOpenHere: openHere, onLost: reloadPage), lockable: false),
+    ),
+  );
 }
 
 /// [window] — какое окно запущено: с ним ошибка уходит в отчёт. [notifications] нет

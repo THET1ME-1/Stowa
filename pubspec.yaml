@@ -15,6 +15,7 @@ dependencies:
   device_info_plus: ^13.3.0
   drift: ^2.35.3
   drift_flutter: ^0.3.1
+  stream_channel: ^2.1.4
   dynamic_color: ^1.7.0
   file_picker: ^13.3.2
   file: ^7.0.1

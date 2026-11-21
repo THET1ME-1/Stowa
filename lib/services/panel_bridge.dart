@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import '../core/fs/panel_link.dart' if (dart.library.js_interop) '../core/fs/panel_link_web.dart';
+import 'panel_db.dart';
+import 'panel_writes.dart';
 
-export '../core/fs/panel_link.dart' if (dart.library.js_interop) '../core/fs/panel_link_web.dart' show PanelLink, isPanelAddress, isPanelPage;
+export '../core/fs/panel_link.dart' if (dart.library.js_interop) '../core/fs/panel_link_web.dart' show PanelLink, isPanelAddress, isPanelPage, panelDbChannel;
 
 /// Найденная заметка для панели: только то, что видно в списке.
 class PanelNote {
@@ -25,10 +27,28 @@ class PanelNote {
 /// отменяет, ищет и открывает заметки. Под «Кодом на вход» ([locked]) запись
 /// принимается, а поиск и папка в ответе — нет: из базы без кода ничего не показываем.
 class PanelBridge {
-  PanelBridge({required this.link, required this.locked, required this.capture, required this.undo, required this.search, required this.open});
+  PanelBridge({
+    required this.link,
+    required this.locked,
+    required this.capture,
+    required this.undo,
+    required this.search,
+    required this.open,
+    this.database,
+    this.schema,
+    this.writes,
+  });
 
   final PanelLink link;
   final bool Function() locked;
+
+  /// База на чтение для строки телефона в панели (`panel_db.dart`) и чем выполнять её записи.
+  /// Без них панель остаётся лёгкой: только запись текстом и поиск через мост.
+  final PanelDbServer? database;
+
+  /// Версия схемы базы: панель другой сборки к базе не подключается.
+  final int? schema;
+  final PanelWrites? writes;
 
   /// Сохранить текст; ответ — id и папка, куда легло.
   final Future<({String id, String? folder})> Function(String text) capture;
@@ -38,19 +58,35 @@ class PanelBridge {
 
   StreamSubscription<Map<String, Object?>>? _listening;
 
-  void start() => _listening = link.messages.listen((message) => _answer(message).ignore());
+  void start() {
+    _listening = link.messages.listen((message) => _answer(message).ignore());
+    database?.relayChanges(link);
+  }
 
   void stop() {
     _listening?.cancel();
+    database?.stop();
     link.close();
   }
+
+  /// Замок сменился. Включили «Код на вход» — панели со строкой телефона перезагружаются
+  /// и встают лёгкими: база без кода не читается.
+  void lockChanged() {
+    if (locked()) link.send({'type': 'locked'});
+  }
+
+  bool get _sharesDatabase => database != null && writes != null && schema != null && !locked();
 
   Future<void> _answer(Map<String, Object?> message) async {
     final id = message['id'];
     void reply(String type, [Map<String, Object?> more = const {}]) => link.send({'type': type, 'id': id, ...more});
     switch (message['type']) {
       case 'hello':
-        reply('here', {'locked': locked()});
+        reply('here', {'locked': locked(), if (_sharesDatabase) 'schema': schema});
+      case 'db-open':
+        if (!_sharesDatabase || message['schema'] != schema) return reply('db-refused');
+        database!.serve('${message['channel']}');
+        reply('db-ready');
       case 'capture':
         final text = '${message['text'] ?? ''}';
         if (text.trim().isEmpty) return reply('failed');
@@ -70,6 +106,14 @@ class PanelBridge {
       case 'open':
         if (!locked()) open('${message['item']}');
         reply('opened');
+      default:
+        final writes = this.writes;
+        if (writes == null) return;
+        try {
+          await answerPanelWrite(writes, message, reply);
+        } catch (_) {
+          reply('failed');
+        }
     }
   }
 }
