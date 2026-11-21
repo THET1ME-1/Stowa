@@ -4489,4 +4489,35 @@ class LUk extends L {
 
   @override
   String get folderSubLess => 'Згорнути';
+
+  @override
+  String get itemPlaceAdd => 'Додати місце';
+
+  @override
+  String get itemPlaceAddShort => 'Місце';
+
+  @override
+  String get itemPlaceTitle => 'Місце нотатки';
+
+  @override
+  String get itemPlaceShowMap => 'Показати на мапі';
+
+  @override
+  String get itemPlacePickMap => 'Вибрати на мапі';
+
+  @override
+  String get itemPlaceRemove => 'Прибрати місце';
+
+  @override
+  String get itemPlaceRemoved => 'Місце прибрано';
+
+  @override
+  String get itemPlaceSetHere => 'Поставити сюди';
+
+  @override
+  String get itemPlaceMapHint => 'Рухай мапу, шпилька позначить місце';
+
+  @override
+  String get placesNoFixBrowser =>
+      'Не вдалося дізнатися, де ти. Перевір, що браузер дозволяє Stowa місце.';
 }

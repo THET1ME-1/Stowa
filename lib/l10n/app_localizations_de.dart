@@ -4448,4 +4448,36 @@ class LDe extends L {
 
   @override
   String get folderSubLess => 'Weniger';
+
+  @override
+  String get itemPlaceAdd => 'Ort hinzufügen';
+
+  @override
+  String get itemPlaceAddShort => 'Ort';
+
+  @override
+  String get itemPlaceTitle => 'Ort der Notiz';
+
+  @override
+  String get itemPlaceShowMap => 'Auf der Karte zeigen';
+
+  @override
+  String get itemPlacePickMap => 'Auf der Karte wählen';
+
+  @override
+  String get itemPlaceRemove => 'Ort entfernen';
+
+  @override
+  String get itemPlaceRemoved => 'Ort entfernt';
+
+  @override
+  String get itemPlaceSetHere => 'Hierhin setzen';
+
+  @override
+  String get itemPlaceMapHint =>
+      'Verschiebe die Karte, die Nadel markiert den Ort';
+
+  @override
+  String get placesNoFixBrowser =>
+      'Dein Standort ließ sich nicht bestimmen. Prüfe, ob der Browser Stowa den Standort erlaubt.';
 }

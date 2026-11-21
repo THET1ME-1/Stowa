@@ -180,8 +180,56 @@ void main() {
     expect(sorter.tagMemory.parsed, parsed + 1);
   });
 
+  // 21.11 хозяин: «автоматический разбор папок работает, а теги не работают». Папка
+  // тянет заметки своим именем и темой с первой заметки, тег — только соседями, от двух
+  group('тег по имени и теме, как папка', () {
+    Future<void> others() async {
+      for (final note in ['Купить хлеб', 'Позвонить маме', 'Забрать посылку', 'Счёт за свет', 'Записаться к врачу', 'Идея для подарка']) {
+        await add(note);
+      }
+    }
+
+    test('заметке о работе встаёт #работа, хотя с ним одна заметка', () async {
+      await add('Созвон в пятницу', tags: [('работа', TagSource.user)]);
+      await others();
+      final task = await add('Подготовить презентацию для клиента и отчёт начальнику');
+      expect(await sorter.tagItem(task), ['работа']);
+    });
+
+    test('тег без единой заметки тоже ставится по имени', () async {
+      await db.into(db.tags).insert(TagsCompanion.insert(id: 'twork', name: 'работа', createdAt: now));
+      await others();
+      final task = await add('Отчёт по проекту для клиента');
+      expect(await sorter.tagItem(task), ['работа']);
+    });
+
+    test('одно слово темы, как у папок: «идея для книги» — #книга', () async {
+      await add('Герой убегает от погони', tags: [('книга', TagSource.user)]);
+      await others();
+      final idea = await add('Идея для книги');
+      expect(await sorter.tagItem(idea), ['книга']);
+    });
+
+    test('служебный тег копии конфликта сам не ставится — ни по имени, ни по соседям', () async {
+      await add('Конфликт с соседом из-за парковки', tags: [('конфликт', TagSource.user)]);
+      await add('Конфликт с соседом снова', tags: [('конфликт', TagSource.user)]);
+      await others();
+      final note = await add('Конфликт с соседом решили');
+      expect(await sorter.tagItem(note), isEmpty);
+    });
+
+    test('ни имени, ни темы, ни соседей — тега нет', () async {
+      await add('Созвон в пятницу', tags: [('работа', TagSource.user)]);
+      await others();
+      final note = await add('Полить цветы на балконе');
+      expect(await sorter.tagItem(note), isEmpty);
+    });
+  });
+
+  // имя тега без темы и без слова в тексте: решают только соседи, а сосед один.
+  // С «#рецепт» борщ получил бы тег по теме готовки — как папка «Рецепты»
   test('тег одной вещи ещё не повод ставить его другим', () async {
-    await add('Борщ с говядиной', tags: [('рецепт', TagSource.user)]);
+    await add('Борщ с говядиной', tags: [('любимое', TagSource.user)]);
     await add('Купить хлеб');
     final soup = await add('Постный борщ');
     expect(await sorter.tagItem(soup), isEmpty);

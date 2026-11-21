@@ -958,5 +958,15 @@
   "itemWriteMore": "Dopisz tekst…",
   "graphLoading": "Układam powiązania…",
   "folderSubAll": "Wszystkie {count, plural, one{{count} folder} few{{count} foldery} many{{count} folderów} other{{count} folderu}}",
-  "folderSubLess": "Zwiń"
+  "folderSubLess": "Zwiń",
+  "itemPlaceAdd": "Dodaj miejsce",
+  "itemPlaceAddShort": "Miejsce",
+  "itemPlaceTitle": "Miejsce notatki",
+  "itemPlaceShowMap": "Pokaż na mapie",
+  "itemPlacePickMap": "Wybierz na mapie",
+  "itemPlaceRemove": "Usuń miejsce",
+  "itemPlaceRemoved": "Miejsce usunięte",
+  "itemPlaceSetHere": "Postaw tutaj",
+  "itemPlaceMapHint": "Przesuń mapę, pinezka zaznaczy miejsce",
+  "placesNoFixBrowser": "Nie udało się ustalić, gdzie jesteś. Sprawdź, czy przeglądarka pozwala Stowa na lokalizację."
 }

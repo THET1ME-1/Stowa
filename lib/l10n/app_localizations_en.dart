@@ -4422,4 +4422,35 @@ class LEn extends L {
 
   @override
   String get folderSubLess => 'Show less';
+
+  @override
+  String get itemPlaceAdd => 'Add place';
+
+  @override
+  String get itemPlaceAddShort => 'Place';
+
+  @override
+  String get itemPlaceTitle => 'Note place';
+
+  @override
+  String get itemPlaceShowMap => 'Show on map';
+
+  @override
+  String get itemPlacePickMap => 'Pick on map';
+
+  @override
+  String get itemPlaceRemove => 'Remove place';
+
+  @override
+  String get itemPlaceRemoved => 'Place removed';
+
+  @override
+  String get itemPlaceSetHere => 'Put it here';
+
+  @override
+  String get itemPlaceMapHint => 'Move the map, the pin marks the place';
+
+  @override
+  String get placesNoFixBrowser =>
+      'Couldn\'t tell where you are. Check that the browser lets Stowa use your location.';
 }

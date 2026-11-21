@@ -958,5 +958,15 @@
   "itemWriteMore": "Дописати текст…",
   "graphLoading": "Розкладаю зв’язки…",
   "folderSubAll": "Усі {count, plural, one{{count} тека} few{{count} теки} many{{count} тек} other{{count} теки}}",
-  "folderSubLess": "Згорнути"
+  "folderSubLess": "Згорнути",
+  "itemPlaceAdd": "Додати місце",
+  "itemPlaceAddShort": "Місце",
+  "itemPlaceTitle": "Місце нотатки",
+  "itemPlaceShowMap": "Показати на мапі",
+  "itemPlacePickMap": "Вибрати на мапі",
+  "itemPlaceRemove": "Прибрати місце",
+  "itemPlaceRemoved": "Місце прибрано",
+  "itemPlaceSetHere": "Поставити сюди",
+  "itemPlaceMapHint": "Рухай мапу, шпилька позначить місце",
+  "placesNoFixBrowser": "Не вдалося дізнатися, де ти. Перевір, що браузер дозволяє Stowa місце."
 }

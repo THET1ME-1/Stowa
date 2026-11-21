@@ -958,5 +958,15 @@
   "itemWriteMore": "Añadir texto…",
   "graphLoading": "Colocando los enlaces…",
   "folderSubAll": "Las {count, plural, one{{count} carpeta} other{{count} carpetas}}",
-  "folderSubLess": "Mostrar menos"
+  "folderSubLess": "Mostrar menos",
+  "itemPlaceAdd": "Añadir lugar",
+  "itemPlaceAddShort": "Lugar",
+  "itemPlaceTitle": "Lugar de la nota",
+  "itemPlaceShowMap": "Ver en el mapa",
+  "itemPlacePickMap": "Elegir en el mapa",
+  "itemPlaceRemove": "Quitar lugar",
+  "itemPlaceRemoved": "Lugar quitado",
+  "itemPlaceSetHere": "Ponerlo aquí",
+  "itemPlaceMapHint": "Mueve el mapa, el alfiler marca el lugar",
+  "placesNoFixBrowser": "No se pudo saber dónde estás. Comprueba que el navegador permite a Stowa usar la ubicación."
 }

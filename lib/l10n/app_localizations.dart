@@ -7558,6 +7558,66 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Show less'**
   String get folderSubLess;
+
+  /// Строка под датой заметки без места
+  ///
+  /// In en, this message translates to:
+  /// **'Add place'**
+  String get itemPlaceAdd;
+
+  /// Подпись пилюли «+ Место» в свойствах заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get itemPlaceAddShort;
+
+  /// Заголовок листа выбора места
+  ///
+  /// In en, this message translates to:
+  /// **'Note place'**
+  String get itemPlaceTitle;
+
+  /// itemPlaceShowMap
+  ///
+  /// In en, this message translates to:
+  /// **'Show on map'**
+  String get itemPlaceShowMap;
+
+  /// itemPlacePickMap
+  ///
+  /// In en, this message translates to:
+  /// **'Pick on map'**
+  String get itemPlacePickMap;
+
+  /// itemPlaceRemove
+  ///
+  /// In en, this message translates to:
+  /// **'Remove place'**
+  String get itemPlaceRemove;
+
+  /// itemPlaceRemoved
+  ///
+  /// In en, this message translates to:
+  /// **'Place removed'**
+  String get itemPlaceRemoved;
+
+  /// Кнопка на карте выбора места заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Put it here'**
+  String get itemPlaceSetHere;
+
+  /// itemPlaceMapHint
+  ///
+  /// In en, this message translates to:
+  /// **'Move the map, the pin marks the place'**
+  String get itemPlaceMapHint;
+
+  /// placesNoFixBrowser
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t tell where you are. Check that the browser lets Stowa use your location.'**
+  String get placesNoFixBrowser;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

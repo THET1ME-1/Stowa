@@ -4461,4 +4461,35 @@ class LRo extends L {
 
   @override
   String get folderSubLess => 'Restrânge';
+
+  @override
+  String get itemPlaceAdd => 'Adaugă locul';
+
+  @override
+  String get itemPlaceAddShort => 'Loc';
+
+  @override
+  String get itemPlaceTitle => 'Locul notiței';
+
+  @override
+  String get itemPlaceShowMap => 'Arată pe hartă';
+
+  @override
+  String get itemPlacePickMap => 'Alege pe hartă';
+
+  @override
+  String get itemPlaceRemove => 'Elimină locul';
+
+  @override
+  String get itemPlaceRemoved => 'Locul a fost eliminat';
+
+  @override
+  String get itemPlaceSetHere => 'Pune aici';
+
+  @override
+  String get itemPlaceMapHint => 'Mută harta, acul marchează locul';
+
+  @override
+  String get placesNoFixBrowser =>
+      'Nu am aflat unde ești. Verifică dacă browserul permite Stowa să vadă locația.';
 }

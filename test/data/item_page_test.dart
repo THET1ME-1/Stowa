@@ -38,6 +38,20 @@ void main() {
     expect((await db.select(db.vaultQueue).get()).map((row) => row.target), ['item:a']);
   });
 
+  // 21.11 хозяин: «у готовых заметок нельзя выбрать местоположение, если его не было при создании»
+  test('место ставится готовой заметке и снимается, правка встаёт в очередь файла', () async {
+    await db.delete(db.vaultQueue).go();
+    await items.setLocation('a', (latitude: 47.02, longitude: 28.83, name: 'Strada Cornului 7/1, Chișinău'));
+    var item = (await items.get('a'))!.item;
+    expect((item.latitude, item.longitude, item.placeName), (47.02, 28.83, 'Strada Cornului 7/1, Chișinău'));
+    expect(item.updatedAt, at, reason: 'текст не правили — время правки прежнее');
+    expect((await db.select(db.vaultQueue).get()).map((row) => row.target), ['item:a']);
+
+    await items.setLocation('a', null);
+    item = (await items.get('a'))!.item;
+    expect((item.latitude, item.longitude, item.placeName), (null, null, null));
+  });
+
   test('дата позже последней правки тянет время правки за собой', () async {
     final later = DateTime(2026, 11, 5, 9);
     await items.setCreated('a', later);

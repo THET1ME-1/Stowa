@@ -975,6 +975,12 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     onEdited?.call(id);
   }
 
+  /// Где заметка записана, выбранное руками: готовой заметке без места или вместо неверного.
+  /// null снимает. Текст не правили — время правки прежнее, как у смены даты.
+  Future<void> setLocation(String id, ({double latitude, double longitude, String? name})? place) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
+    ItemsCompanion(latitude: Value(place?.latitude), longitude: Value(place?.longitude), placeName: Value(place?.name)),
+  );
+
   /// Напоминание по месту со страницы заметки; null снимает.
   Future<void> setPlaceReminder(String id, PlaceReminder? place) => (_db.update(_db.items)..where((t) => t.id.equals(id))).write(
     ItemsCompanion(

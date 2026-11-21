@@ -4501,4 +4501,35 @@ class LRu extends L {
 
   @override
   String get folderSubLess => 'Свернуть';
+
+  @override
+  String get itemPlaceAdd => 'Добавить место';
+
+  @override
+  String get itemPlaceAddShort => 'Место';
+
+  @override
+  String get itemPlaceTitle => 'Место заметки';
+
+  @override
+  String get itemPlaceShowMap => 'Показать на карте';
+
+  @override
+  String get itemPlacePickMap => 'Выбрать на карте';
+
+  @override
+  String get itemPlaceRemove => 'Убрать место';
+
+  @override
+  String get itemPlaceRemoved => 'Место убрано';
+
+  @override
+  String get itemPlaceSetHere => 'Поставить сюда';
+
+  @override
+  String get itemPlaceMapHint => 'Двигай карту, булавка отметит место';
+
+  @override
+  String get placesNoFixBrowser =>
+      'Не вышло узнать, где ты. Проверь, что браузер разрешает Stowa место.';
 }

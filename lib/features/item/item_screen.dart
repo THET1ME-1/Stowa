@@ -53,7 +53,6 @@ import '../places/places_screen.dart';
 import '../places/reminder_permissions.dart';
 import '../composer/picked_files.dart';
 import '../folder/folder_sheets.dart';
-import '../map/map_screen.dart';
 import '../tags/tag_picker.dart';
 import '../reader/highlights_block.dart';
 import '../reader/reader_screen.dart';
@@ -61,6 +60,7 @@ import 'copying_bar.dart';
 import 'facts_block.dart';
 import 'history_screen.dart';
 import 'math_view.dart';
+import 'note_place_sheet.dart';
 import 'item_actions.dart' show toggleNoticed, togglePinned;
 import 'page_card.dart';
 import 'item_media.dart';
@@ -110,7 +110,7 @@ const _wikiMax = 232.0;
 /// а пустая строка в конце сохраняться не должна.
 final _trailingSpace = RegExp(r'\s+$');
 
-enum _MenuAction { pin, notice, copy, date, property, history, delete }
+enum _MenuAction { pin, notice, copy, date, place, property, history, delete }
 
 /// Вещь целиком, по образцу поста Togetherly: шапка с пилюлей папки, заголовок,
 /// теги и напоминание отдельными блоками, текст своей карточкой, внизу плавающая
@@ -701,6 +701,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
         ),
         SheetChoice(value: _MenuAction.copy, title: l.itemCopy, icon: 'content_copy'),
         SheetChoice(value: _MenuAction.date, title: l.itemDateChange, icon: 'calendar_today'),
+        SheetChoice(value: _MenuAction.place, title: item.latitude == null ? l.itemPlaceAdd : l.itemPlaceTitle, icon: 'location_on'),
         SheetChoice(value: _MenuAction.property, title: l.propertyAdd, icon: 'list_alt'),
         if (hasHistory) SheetChoice(value: _MenuAction.history, title: l.historyTitle, icon: 'history'),
         SheetChoice(value: _MenuAction.delete, title: l.itemDelete, icon: 'delete', danger: true),
@@ -716,6 +717,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
         await _copy(item);
       case _MenuAction.date:
         await _changeDate(item);
+      case _MenuAction.place:
+        await editNotePlace(context, ref, item);
       case _MenuAction.property:
         await _addProperty(item);
       case _MenuAction.history:
@@ -1113,13 +1116,19 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                   onTap: () => _placeMenu(place),
                                   child: _PropChip(icon: remindPlaceIcon(place.kind), label: remindPlaceLabel(l, place.kind, name: place.name, day: place.day)),
                                 ),
-                              if (item.latitude != null)
-                                _PropRow(
-                                  icon: 'location_on',
-                                  label: l.itemPropPlace,
-                                  onTap: () => Navigator.of(context).push(mapRoute(focusItemId: _id)),
-                                  child: _PropText(item.placeName ?? l.mapPlaceUnnamed),
-                                ),
+                              // место есть всегда: у готовой заметки без места его ставят здесь же
+                              _PropRow(
+                                icon: 'location_on',
+                                label: l.itemPropPlace,
+                                onTap: item.latitude == null ? null : () => editNotePlace(context, ref, item),
+                                child: item.latitude == null
+                                    ? Align(
+                                        alignment: Alignment.centerLeft,
+                                        // подпись строки уже «Место»: на пилюле не повторяем
+                                        child: _TagPill(key: const ValueKey('place-add'), label: l.itemPlaceAdd, add: true, onTap: () => editNotePlace(context, ref, item)),
+                                      )
+                                    : _PropText(item.placeName ?? l.mapPlaceUnnamed),
+                              ),
                               _PropRow(
                                 key: const ValueKey('item-date'),
                                 icon: 'calendar_today',
@@ -1150,7 +1159,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                             now: now,
                             onDate: () => _changeDate(item),
                             place: item.latitude == null ? null : (item.placeName ?? l.mapPlaceUnnamed),
-                            onPlace: () => Navigator.of(context).push(mapRoute(focusItemId: _id)),
+                            onPlace: () => editNotePlace(context, ref, item),
                             taken: photoTakenLine(l, facts, now),
                           ),
                         ),
@@ -1171,6 +1180,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                 ),
                               _TagPill(label: l.tagAdd, short: l.tagAddShort, add: true, onTap: _addTag),
                               _TagPill(key: const ValueKey('link-add'), label: l.linkAdd, short: l.linkAddShort, add: true, onTap: _addLink),
+                              // место есть — оно строкой под датой, касание меняет его там
+                              if (item.latitude == null)
+                                _TagPill(key: const ValueKey('place-add'), label: l.itemPlaceAdd, short: l.itemPlaceAddShort, add: true, onTap: () => editNotePlace(context, ref, item)),
                             ],
                           ),
                         ),

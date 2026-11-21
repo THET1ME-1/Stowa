@@ -451,7 +451,7 @@ class FolderIndex {
 
   /// [series] — папка, куда легли две прошлые заметки подряд: мысль, скорее всего, оттуда же.
   FolderGuess? guess(String text, {List<String> signals = const [], String? series}) {
-    final (:scores, :evidence) = _score(text, signals, series: series);
+    final (:scores, :evidence, named: _) = _score(text, signals, series: series);
     if (scores.isEmpty) return null;
     final ranked = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final best = ranked.first;
@@ -471,10 +471,14 @@ class FolderIndex {
   /// Ярлыки, к которым текст тянет не меньше [minScore], у которых уже не меньше
   /// [minSize] вещей. Для тегов: у вещи их бывает несколько, поэтому второе место
   /// первому не мешает.
-  List<String> strong(String text, {List<String> signals = const [], double minScore = 1.5, int minSize = 2}) {
-    final scores = _score(text, signals).scores;
-    final picked = scores.entries.where((entry) => entry.value >= minScore && (_sizes[entry.key] ?? 0) >= minSize).toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+  ///
+  /// [namedScore] — ярлык тянет своё имя или тема не меньше этого: такой подходит и без
+  /// [minSize] вещей, как папка «Работа» с первой заметки (теги: «#работа» — заметке о работе).
+  List<String> strong(String text, {List<String> signals = const [], double minScore = 1.5, int minSize = 2, double? namedScore}) {
+    final (:scores, :named, evidence: _) = _score(text, signals);
+    bool sure(String label, double score) =>
+        (score >= minScore && (_sizes[label] ?? 0) >= minSize) || (namedScore != null && (named[label] ?? 0) >= namedScore);
+    final picked = scores.entries.where((entry) => sure(entry.key, entry.value)).toList()..sort((a, b) => b.value.compareTo(a.value));
     return [for (final entry in picked) entry.key];
   }
 
@@ -484,12 +488,23 @@ class FolderIndex {
     return [for (final entry in scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value))) entry.key];
   }
 
-  ({Map<String, double> scores, Map<String, List<(String, double, bool)>> evidence}) _score(String text, List<String> signals, {String? series}) {
+  // named — та часть счёта, что от имени папки и её темы, без соседей
+  ({Map<String, double> scores, Map<String, double> named, Map<String, List<(String, double, bool)>> evidence}) _score(
+    String text,
+    List<String> signals, {
+    String? series,
+  }) {
     final scores = <String, double>{};
+    final named = <String, double>{};
     final evidence = <String, List<(String, double, bool)>>{};
     void push(String folder, String shown, double weight, {bool name = false}) {
       scores[folder] = (scores[folder] ?? 0) + weight;
       evidence.putIfAbsent(folder, () => []).add((shown, weight, name));
+    }
+
+    void pushNamed(String folder, String shown, double weight) {
+      push(folder, shown, weight);
+      named[folder] = (named[folder] ?? 0) + weight;
     }
 
     void add(String stem, String shown, double factor, {bool name = false, int minHits = 1}) {
@@ -529,7 +544,7 @@ class FolderIndex {
         // слово уже тянет сюда как слово темы папки: «машине» у «Машины» не считается дважды.
         // Имя без темы («Дача») — по-прежнему сильный знак
         if (topicsOfWord(shown).any((topic) => _topics[folder]?.containsKey(topic) ?? false)) continue;
-        push(folder, shown, _nameMatchWeight);
+        pushNamed(folder, shown, _nameMatchWeight);
       }
     }
 
@@ -574,7 +589,7 @@ class FolderIndex {
         // вещь ребёнка или зверя — в его папку: «сыну форму для футбола», «котёнку прививку»
         final owner = topic == Topic.kids || topic == Topic.pets ? _ownerWeight : 1.0;
         for (final shown in found.take(_topicCap)) {
-          push(folder, shown, _topicWeight * affinity * owner);
+          pushNamed(folder, shown, _topicWeight * affinity * owner);
         }
       }
     }
@@ -588,6 +603,6 @@ class FolderIndex {
       final against = [for (final stem in shownOf.keys) ?pushes[stem]].fold(0, (sum, count) => sum + count);
       if (against > 0 && scores.containsKey(folder)) scores[folder] = scores[folder]! - _rejectWeight * min(against, _topicCap);
     }
-    return (scores: scores, evidence: evidence);
+    return (scores: scores, named: named, evidence: evidence);
   }
 }

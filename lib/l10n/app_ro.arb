@@ -958,5 +958,15 @@
   "itemWriteMore": "Adaugă text…",
   "graphLoading": "Așez legăturile…",
   "folderSubAll": "Toate {count, plural, one{{count} dosar} few{{count} dosare} other{{count} de dosare}}",
-  "folderSubLess": "Restrânge"
+  "folderSubLess": "Restrânge",
+  "itemPlaceAdd": "Adaugă locul",
+  "itemPlaceAddShort": "Loc",
+  "itemPlaceTitle": "Locul notiței",
+  "itemPlaceShowMap": "Arată pe hartă",
+  "itemPlacePickMap": "Alege pe hartă",
+  "itemPlaceRemove": "Elimină locul",
+  "itemPlaceRemoved": "Locul a fost eliminat",
+  "itemPlaceSetHere": "Pune aici",
+  "itemPlaceMapHint": "Mută harta, acul marchează locul",
+  "placesNoFixBrowser": "Nu am aflat unde ești. Verifică dacă browserul permite Stowa să vadă locația."
 }

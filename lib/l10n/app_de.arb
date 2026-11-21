@@ -958,5 +958,15 @@
   "itemWriteMore": "Text ergänzen…",
   "graphLoading": "Verknüpfungen werden gelegt…",
   "folderSubAll": "Alle {count, plural, one{{count} Ordner} other{{count} Ordner}}",
-  "folderSubLess": "Weniger"
+  "folderSubLess": "Weniger",
+  "itemPlaceAdd": "Ort hinzufügen",
+  "itemPlaceAddShort": "Ort",
+  "itemPlaceTitle": "Ort der Notiz",
+  "itemPlaceShowMap": "Auf der Karte zeigen",
+  "itemPlacePickMap": "Auf der Karte wählen",
+  "itemPlaceRemove": "Ort entfernen",
+  "itemPlaceRemoved": "Ort entfernt",
+  "itemPlaceSetHere": "Hierhin setzen",
+  "itemPlaceMapHint": "Verschiebe die Karte, die Nadel markiert den Ort",
+  "placesNoFixBrowser": "Dein Standort ließ sich nicht bestimmen. Prüfe, ob der Browser Stowa den Standort erlaubt."
 }

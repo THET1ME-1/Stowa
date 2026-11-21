@@ -5302,5 +5302,45 @@
   "folderSubLess": "Show less",
   "@folderSubLess": {
     "description": "Шапка папки на мониторе: свернуть метки вложенных папок обратно в две строки"
+  },
+  "itemPlaceAdd": "Add place",
+  "@itemPlaceAdd": {
+    "description": "Строка под датой заметки без места"
+  },
+  "itemPlaceAddShort": "Place",
+  "@itemPlaceAddShort": {
+    "description": "Подпись пилюли «+ Место» в свойствах заметки"
+  },
+  "itemPlaceTitle": "Note place",
+  "@itemPlaceTitle": {
+    "description": "Заголовок листа выбора места"
+  },
+  "itemPlaceShowMap": "Show on map",
+  "@itemPlaceShowMap": {
+    "description": "itemPlaceShowMap"
+  },
+  "itemPlacePickMap": "Pick on map",
+  "@itemPlacePickMap": {
+    "description": "itemPlacePickMap"
+  },
+  "itemPlaceRemove": "Remove place",
+  "@itemPlaceRemove": {
+    "description": "itemPlaceRemove"
+  },
+  "itemPlaceRemoved": "Place removed",
+  "@itemPlaceRemoved": {
+    "description": "itemPlaceRemoved"
+  },
+  "itemPlaceSetHere": "Put it here",
+  "@itemPlaceSetHere": {
+    "description": "Кнопка на карте выбора места заметки"
+  },
+  "itemPlaceMapHint": "Move the map, the pin marks the place",
+  "@itemPlaceMapHint": {
+    "description": "itemPlaceMapHint"
+  },
+  "placesNoFixBrowser": "Couldn't tell where you are. Check that the browser lets Stowa use your location.",
+  "@placesNoFixBrowser": {
+    "description": "placesNoFixBrowser"
   }
 }

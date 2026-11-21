@@ -139,7 +139,11 @@ class DevicePlaceSource implements PlaceSource {
       if (permission == LocationPermission.denied && ask) permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) return null;
 
-      var position = await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);
+      // в браузере последней точки нет: geolocator бросает, и место не узнавалось вовсе
+      Position? position;
+      try {
+        position = await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);
+      } on UnsupportedError catch (_) {}
       if (position == null || DateTime.now().difference(position.timestamp) > maxAge) {
         position = await Geolocator.getCurrentPosition(
           locationSettings: AndroidSettings(accuracy: accuracy, forceLocationManager: true, timeLimit: const Duration(seconds: 15)),

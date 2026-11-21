@@ -459,7 +459,7 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
               MarkerLayer(
                 markers: [
                   // низ острия — сама точка
-                  Marker(point: point, width: 44, height: 56, alignment: Alignment.topCenter, child: _Pin(icon: _shownIcon)),
+                  Marker(point: point, width: 44, height: 56, alignment: Alignment.topCenter, child: PlacePin(icon: _shownIcon)),
                 ],
               ),
             ],
@@ -483,7 +483,7 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
         Positioned(
           right: 10,
           bottom: 10,
-          child: _RoundButton(icon: 'my_location', tooltip: l.placeHereNow, busy: _locating, onTap: _locating ? null : _here),
+          child: MapRoundButton(icon: 'my_location', tooltip: l.placeHereNow, busy: _locating, onTap: _locating ? null : _here),
         ),
         Positioned(
           left: 10,
@@ -516,9 +516,9 @@ class _PlaceEditScreenState extends ConsumerState<PlaceEditScreen> {
   }
 }
 
-/// Булавка точки: круг цвета акцента со значком места и острие вниз.
-class _Pin extends StatelessWidget {
-  const _Pin({required this.icon});
+/// Булавка точки: круг цвета акцента со значком места и острие вниз. 44 × 56, точка — низ острия.
+class PlacePin extends StatelessWidget {
+  const PlacePin({super.key, required this.icon});
 
   final String icon;
 
@@ -693,8 +693,9 @@ class _MapHint extends StatelessWidget {
 }
 
 /// Круглая кнопка на карте: «Я сейчас здесь». Пока ищет — крутилка.
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.icon, required this.tooltip, required this.busy, required this.onTap});
+/// Круглая кнопка поверх карты: «Я сейчас здесь», «назад»; пока ждёт — крутилка.
+class MapRoundButton extends StatelessWidget {
+  const MapRoundButton({super.key, required this.icon, required this.tooltip, required this.busy, required this.onTap});
 
   final String icon;
   final String tooltip;

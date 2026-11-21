@@ -1241,5 +1241,15 @@
   "itemWriteMore": "Дописать текст…",
   "graphLoading": "Раскладываю связи…",
   "folderSubAll": "Все {count, plural, one{{count} папка} few{{count} папки} many{{count} папок} other{{count} папки}}",
-  "folderSubLess": "Свернуть"
+  "folderSubLess": "Свернуть",
+  "itemPlaceAdd": "Добавить место",
+  "itemPlaceAddShort": "Место",
+  "itemPlaceTitle": "Место заметки",
+  "itemPlaceShowMap": "Показать на карте",
+  "itemPlacePickMap": "Выбрать на карте",
+  "itemPlaceRemove": "Убрать место",
+  "itemPlaceRemoved": "Место убрано",
+  "itemPlaceSetHere": "Поставить сюда",
+  "itemPlaceMapHint": "Двигай карту, булавка отметит место",
+  "placesNoFixBrowser": "Не вышло узнать, где ты. Проверь, что браузер разрешает Stowa место."
 }

@@ -4433,4 +4433,35 @@ class LEs extends L {
 
   @override
   String get folderSubLess => 'Mostrar menos';
+
+  @override
+  String get itemPlaceAdd => 'Añadir lugar';
+
+  @override
+  String get itemPlaceAddShort => 'Lugar';
+
+  @override
+  String get itemPlaceTitle => 'Lugar de la nota';
+
+  @override
+  String get itemPlaceShowMap => 'Ver en el mapa';
+
+  @override
+  String get itemPlacePickMap => 'Elegir en el mapa';
+
+  @override
+  String get itemPlaceRemove => 'Quitar lugar';
+
+  @override
+  String get itemPlaceRemoved => 'Lugar quitado';
+
+  @override
+  String get itemPlaceSetHere => 'Ponerlo aquí';
+
+  @override
+  String get itemPlaceMapHint => 'Mueve el mapa, el alfiler marca el lugar';
+
+  @override
+  String get placesNoFixBrowser =>
+      'No se pudo saber dónde estás. Comprueba que el navegador permite a Stowa usar la ubicación.';
 }

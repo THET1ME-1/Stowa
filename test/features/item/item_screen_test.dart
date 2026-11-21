@@ -406,7 +406,10 @@ void main() {
     await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
     await tester.pumpAndSettle();
     expect(find.text('Ботаника, Кишинёв'), findsOneWidget);
+    // касание места — лист места, в нём «Показать на карте»
     await tester.tap(find.byKey(const ValueKey('item-place')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Показать на карте'));
     // карта тянет плитки из сети: ждём только въезд экрана
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));

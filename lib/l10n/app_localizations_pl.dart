@@ -4494,4 +4494,35 @@ class LPl extends L {
 
   @override
   String get folderSubLess => 'Zwiń';
+
+  @override
+  String get itemPlaceAdd => 'Dodaj miejsce';
+
+  @override
+  String get itemPlaceAddShort => 'Miejsce';
+
+  @override
+  String get itemPlaceTitle => 'Miejsce notatki';
+
+  @override
+  String get itemPlaceShowMap => 'Pokaż na mapie';
+
+  @override
+  String get itemPlacePickMap => 'Wybierz na mapie';
+
+  @override
+  String get itemPlaceRemove => 'Usuń miejsce';
+
+  @override
+  String get itemPlaceRemoved => 'Miejsce usunięte';
+
+  @override
+  String get itemPlaceSetHere => 'Postaw tutaj';
+
+  @override
+  String get itemPlaceMapHint => 'Przesuń mapę, pinezka zaznaczy miejsce';
+
+  @override
+  String get placesNoFixBrowser =>
+      'Nie udało się ustalić, gdzie jesteś. Sprawdź, czy przeglądarka pozwala Stowa na lokalizację.';
 }

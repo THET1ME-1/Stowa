@@ -4,6 +4,7 @@ import '../data/db/database.dart';
 import '../data/repositories/items_repository.dart';
 import '../domain/folder_guess.dart';
 import '../domain/models.dart';
+import 'vault/vault_reader.dart' show conflictTag;
 
 /// Весь текст вещи для угадывателя: то же, что видит поиск, плюс превью ссылки.
 const _itemText = "items.title || ' ' || items.body || ' ' || coalesce(items.ai_description, '') || ' ' || "
@@ -13,6 +14,11 @@ const _firstFile = '(SELECT attachments.path FROM attachments WHERE attachments.
 
 /// Тегов, которые алгоритм ставит одной вещи сам, не больше этого.
 const _maxAutoTags = 2;
+
+/// Тег тянет заметку своим именем и темой не меньше этого — ставится и без соседей, как
+/// папка: у угадывателя папок тот же порог. Соседями — строже, [_neighbourScore].
+const _namedTagScore = 1.0;
+const _neighbourScore = 1.2;
 
 /// Разбор без ИИ после сохранения: «Без папки» раскладывается заново, когда
 /// в папках появились похожие вещи, а вещь получает теги своих соседей. Всё,
@@ -83,8 +89,9 @@ class AutoSorter {
     });
   }
 
-  /// Поставить вещи теги, которые стоят у похожих на неё. Учится только на
-  /// тегах, поставленных человеком, правилами и из текста — не на своих.
+  /// Поставить вещи теги: те, что стоят у похожих на неё, и те, чьё имя или тема в ней
+  /// есть («#работа» — заметке про отчёт клиенту). Учится только на тегах, поставленных
+  /// человеком, правилами и из текста — не на своих. Служебный «конфликт» сам не ставится.
   Future<List<String>> tagItem(String id) async => (await tagItems([id]))[id] ?? const [];
 
   /// То же для пачки: индекс соседей строится один раз. Перенос из Telegram по одной
@@ -92,18 +99,23 @@ class AutoSorter {
   /// Соседи — заметки вне пачки.
   Future<Map<String, List<String>>> tagItems(List<String> ids) async {
     if (ids.isEmpty) return const {};
+    final names = [
+      for (final row in await _db.customSelect('SELECT name FROM tags WHERE name != ?', variables: [Variable.withString(conflictTag)]).get()) row.read<String>('name'),
+    ];
+    if (names.isEmpty) return {for (final id in ids) id: const <String>[]};
     // вещи без тегов тоже в индексе, с пустым ярлыком: редкость слова считается по всей базе,
-    // иначе слово, общее для двух вещей с тегом, выглядело бы общим вообще
+    // иначе слово, общее для двух вещей с тегом, выглядело бы общим вообще. Копия конфликта
+    // учит пустым ярлыком: её тег ставит сверка, а не человек по смыслу
     final docs = await _db
         .customSelect(
           "SELECT items.id AS id, coalesce(tags.name, '') AS tag, items.kind, items.url, $_itemText AS text, $_firstFile AS file_path "
           "FROM items LEFT JOIN item_tags ON item_tags.item_id = items.id AND item_tags.source != 'similar' "
+          'AND item_tags.tag_id NOT IN (SELECT id FROM tags WHERE name = ?) '
           'LEFT JOIN tags ON tags.id = item_tags.tag_id '
           'WHERE items.deleted_at IS NULL AND items.id NOT IN (${List.filled(ids.length, '?').join(', ')})',
-          variables: [for (final id in ids) Variable.withString(id)],
+          variables: [Variable.withString(conflictTag), for (final id in ids) Variable.withString(id)],
         )
         .get();
-    if (docs.every((row) => row.read<String>('tag').isEmpty)) return {for (final id in ids) id: const <String>[]};
     // с передышками и памятью: на хранилище в тысячи заметок постройка разом держала поток секунды
     final index = await FolderIndex.build([
       for (final row in docs)
@@ -113,7 +125,7 @@ class AutoSorter {
           text: row.read<String>('text'),
           signals: itemSignals(kind: ItemKind.values.byName(row.read<String>('kind')), url: row.readNullable<String>('url'), fileName: row.readNullable<String>('file_path')),
         ),
-    ], memory: tagMemory);
+    ], labels: [for (final name in names) FolderLabel(name, name)], memory: tagMemory);
     final added = <String, List<String>>{};
     for (final id in ids) {
       final target = await _db
@@ -131,7 +143,7 @@ class AutoSorter {
       final has = (target.readNullable<String>('tag_names') ?? '').split('\x1f').toSet();
       final signals = itemSignals(kind: ItemKind.values.byName(target.read<String>('kind')), url: target.readNullable<String>('url'), fileName: target.readNullable<String>('file_path'));
       final picked = index
-          .strong(target.read<String>('text'), signals: signals, minScore: 1.2)
+          .strong(target.read<String>('text'), signals: signals, minScore: _neighbourScore, namedScore: _namedTagScore)
           .where((tag) => tag.isNotEmpty && !has.contains(tag))
           .take(_maxAutoTags)
           .toList();
