@@ -4735,4 +4735,7 @@ class LRu extends L {
 
   @override
   String get panelSaved => 'Записано сейчас';
+
+  @override
+  String get panelWaiting => 'Жду вкладку Stowa…';
 }

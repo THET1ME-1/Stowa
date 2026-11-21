@@ -28,6 +28,7 @@ import '../home/folder_shelf.dart';
 import '../home/note_timeline.dart';
 import '../item/item_actions.dart';
 import '../item/item_screen.dart';
+import '../tags/tag_search.dart';
 import '../settings/edge_screen.dart';
 
 /// Ширина полки; на узком экране — чуть меньше экрана.
@@ -93,6 +94,11 @@ class _EdgeHostState extends ConsumerState<EdgeHost> with TickerProviderStateMix
   void initState() {
     super.initState();
     _events = ref.read(edgeChannelProvider).events.listen(_onEvent);
+    // касание тега на странице заметки в полке (STOWA-10): главной тут нет — ищет строка полки
+    ref.listenManual(tagSearchProvider, (_, request) {
+      if (request == null) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _line.currentState?.searchTag(request.tag));
+    });
     // замер плавности в profile-сборке: кадры каждого движения полки в журнал
     if (kProfileMode) {
       SchedulerBinding.instance.addTimingsCallback(_frames);

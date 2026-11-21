@@ -4699,4 +4699,7 @@ class LRo extends L {
 
   @override
   String get panelSaved => 'Salvate acum';
+
+  @override
+  String get panelWaiting => 'Aștept fila Stowa…';
 }

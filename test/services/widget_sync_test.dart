@@ -66,4 +66,19 @@ void main() {
     expect(written.last['locked'], true);
     expect(written.last['notes'], isEmpty);
   });
+
+  // HyperOS убивает процесс смахиванием: текст не должен ждать паузу и остаться на столе
+  testWidgets('замок — файл без заметок пишется сразу, без паузы', (tester) async {
+    final written = fakeWidgetChannel(tester);
+    await tester.runAsync(() => note('wifi', 'Пароль от Wi‑Fi'));
+    var locked = false;
+    final sync = WidgetSync(world.db, locked: () => locked)..start();
+    addTearDown(sync.dispose);
+    await settle(tester);
+    locked = true;
+    sync.refresh(now: true);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 30)));
+    await tester.pump();
+    expect(written.last['locked'], true);
+  });
 }

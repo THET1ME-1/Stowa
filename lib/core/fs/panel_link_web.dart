@@ -31,7 +31,8 @@ const _panelWidth = 600;
 
 /// Открыта ли страница как боковая панель: адрес с `?panel` (так её открывает расширение)
 /// или узкое окно (веб-панель Vivaldi, Opera, Edge с обычным адресом).
-bool isPanelPage() {
-  final query = Uri.base.queryParameters;
-  return query.containsKey('panel') || web.window.innerWidth < _panelWidth;
-}
+bool isPanelPage() => isPanelAddress() || web.window.innerWidth < _panelWidth;
+
+/// Панель названа явно, адресом `?panel`. Только такую широкая вкладка выселяет сама:
+/// обычное узкое окно потеряло бы набранное в строке.
+bool isPanelAddress() => Uri.base.queryParameters.containsKey('panel');

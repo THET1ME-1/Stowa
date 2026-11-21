@@ -1026,5 +1026,6 @@
   "panelEmpty": "Escribe una idea o busca una nota: la línea hace las dos cosas.",
   "panelLocked": "La búsqueda está bloqueada por el código de entrada; puedes seguir escribiendo.",
   "panelOpened": "Abierta en la pestaña de Stowa",
-  "panelSaved": "Guardado ahora"
+  "panelSaved": "Guardado ahora",
+  "panelWaiting": "Esperando la pestaña de Stowa…"
 }

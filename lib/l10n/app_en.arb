@@ -5637,5 +5637,9 @@
   "panelSaved": "Just saved",
   "@panelSaved": {
     "description": "Заголовок списка заметок, записанных из панели за этот раз"
+  },
+  "panelWaiting": "Waiting for the Stowa tab…",
+  "@panelWaiting": {
+    "description": "panelWaiting"
   }
 }

@@ -4723,4 +4723,7 @@ class LUk extends L {
 
   @override
   String get panelSaved => 'Щойно записано';
+
+  @override
+  String get panelWaiting => 'Чекаю вкладку Stowa…';
 }

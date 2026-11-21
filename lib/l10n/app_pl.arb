@@ -1026,5 +1026,6 @@
   "panelEmpty": "Zapisz myśl albo szukaj notatki: linia robi jedno i drugie.",
   "panelLocked": "Wyszukiwanie blokuje kod wejścia, pisać można.",
   "panelOpened": "Otwarto w karcie Stowa",
-  "panelSaved": "Zapisane przed chwilą"
+  "panelSaved": "Zapisane przed chwilą",
+  "panelWaiting": "Czekam na kartę Stowa…"
 }

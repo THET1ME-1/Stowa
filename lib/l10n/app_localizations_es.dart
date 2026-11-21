@@ -4672,4 +4672,7 @@ class LEs extends L {
 
   @override
   String get panelSaved => 'Guardado ahora';
+
+  @override
+  String get panelWaiting => 'Esperando la pestaña de Stowa…';
 }

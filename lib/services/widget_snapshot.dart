@@ -75,10 +75,15 @@ class WidgetSync {
     refresh();
   }
 
-  /// Переписать файл после короткой паузы.
-  void refresh() {
+  /// Переписать файл после короткой паузы; [now] — сразу (замок сменился: HyperOS убивает
+  /// процесс смахиванием, и за паузу текст остался бы на столе).
+  void refresh({bool now = false}) {
     _pause?.cancel();
-    _pause = Timer(_quiet, () => _write().ignore());
+    if (now) {
+      _write().ignore();
+    } else {
+      _pause = Timer(_quiet, () => _write().ignore());
+    }
   }
 
   Future<void> _write() async {

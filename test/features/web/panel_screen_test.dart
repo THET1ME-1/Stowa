@@ -19,7 +19,6 @@ void main() {
     locked = false;
     tab = PanelBridge(
       link: PanelLink(),
-      panel: false,
       locked: () => locked,
       capture: (text) async {
         saved.add(text);
@@ -95,11 +94,24 @@ void main() {
     expect(find.text('Шины на зиму'), findsNothing);
   });
 
-  testWidgets('вкладка не ответила — прежний экран «уже открыта в другой вкладке»', (tester) async {
+  testWidgets('вкладка не ответила за все попытки — прежний экран «уже открыта в другой вкладке»', (tester) async {
     await show(tester, withTab: false);
-    // ожидание ответа идёт по часам теста
-    await tester.pump(const Duration(milliseconds: 1600));
+    expect(find.text('Жду вкладку Stowa…'), findsOneWidget);
+    // ожидание ответа идёт по часам теста: восемь попыток по полторы секунды
+    for (var attempt = 0; attempt < 8; attempt++) {
+      await tester.pump(const Duration(milliseconds: 1600));
+    }
     await tester.pumpAndSettle();
     expect(find.byType(TabBusyScreen), findsOneWidget);
+  });
+
+  testWidgets('вкладка ещё грузится — панель ждёт и подключается, когда та ответит', (tester) async {
+    await show(tester, withTab: false);
+    await tester.pump(const Duration(milliseconds: 1600));
+    tab.start();
+    await tester.pump(const Duration(milliseconds: 1600));
+    await settle(tester);
+    expect(find.text('Пиши мысль или ищи заметку: строка делает и то и другое.'), findsOneWidget);
+    expect(find.byType(TabBusyScreen), findsNothing);
   });
 }

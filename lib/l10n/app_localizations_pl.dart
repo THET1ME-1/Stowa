@@ -4731,4 +4731,7 @@ class LPl extends L {
 
   @override
   String get panelSaved => 'Zapisane przed chwilą';
+
+  @override
+  String get panelWaiting => 'Czekam na kartę Stowa…';
 }

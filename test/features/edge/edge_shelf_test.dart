@@ -122,6 +122,22 @@ void main() {
     expect(inShelf('Закреплено'), findsOneWidget);
   });
 
+  // STOWA-10: главной в полке нет — тег ищет строка самой полки
+  testWidgets('касание тега на заметке в полке: полка со строкой, которая ищет по тегу', (tester) async {
+    await note('tires', 'Шины на зиму', pinned: true);
+    await tester.runAsync(() async {
+      await world.db.into(world.db.tags).insert(TagsCompanion.insert(id: 'car', name: 'машина', createdAt: world.now));
+      await world.db.into(world.db.itemTags).insert(ItemTagsCompanion.insert(itemId: 'tires', tagId: 'car', source: TagSource.user));
+    });
+    await open(tester);
+    await tester.tap(inShelf('Шины на зиму'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('item-tag-машина')));
+    await tester.pumpAndSettle();
+    expect(find.byType(ItemScreen), findsNothing, reason: 'заметка закрылась до полки');
+    expect(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byKey(const ValueKey('#машина'))), findsOneWidget);
+  });
+
   testWidgets('«+» в полке отдаёт лоток окну виджета вместе с набранным: камере и файлам нужно окно приложения', (tester) async {
     await open(tester);
     await tester.enterText(find.descendant(of: find.byKey(const ValueKey('edge-shelf')), matching: find.byType(TextField)), 'купить хлеб');

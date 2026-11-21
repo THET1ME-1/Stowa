@@ -4688,4 +4688,7 @@ class LDe extends L {
 
   @override
   String get panelSaved => 'Gerade gespeichert';
+
+  @override
+  String get panelWaiting => 'Warte auf den Stowa-Tab…';
 }

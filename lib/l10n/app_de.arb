@@ -1026,5 +1026,6 @@
   "panelEmpty": "Schreib einen Gedanken oder such eine Notiz: Die Zeile kann beides.",
   "panelLocked": "Die Suche ist durch den Zugangscode gesperrt, schreiben geht.",
   "panelOpened": "Im Stowa-Tab geöffnet",
-  "panelSaved": "Gerade gespeichert"
+  "panelSaved": "Gerade gespeichert",
+  "panelWaiting": "Warte auf den Stowa-Tab…"
 }

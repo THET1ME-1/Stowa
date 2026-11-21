@@ -84,8 +84,15 @@ class _PanelScreenState extends State<PanelScreen> {
     super.dispose();
   }
 
+  // сколько раз спросить вкладку, прежде чем решить, что она не ответит: панель, которая
+  // уступила хранилище перезагруженной вкладке, ждёт, пока та поднимет файлы и базу
+  static const _helloTries = 8;
+
   Future<void> _hello() async {
-    final answer = await widget.client.ask('hello');
+    Map<String, Object?>? answer;
+    for (var attempt = 0; attempt < _helloTries && answer == null && mounted; attempt++) {
+      answer = await widget.client.ask('hello');
+    }
     if (!mounted) return;
     setState(() {
       _link = answer == null ? _Link.silent : _Link.here;
@@ -107,7 +114,8 @@ class _PanelScreenState extends State<PanelScreen> {
     // вкладка ищет по всему хранилищу: ждём, пока допечатают
     _wait = Timer(const Duration(milliseconds: 250), () async {
       final round = ++_round;
-      final answer = await widget.client.ask('search', payload: {'query': query});
+      // вкладка в фоне: браузер придерживает её таймеры, на поиск — запас
+      final answer = await widget.client.ask('search', payload: {'query': query}, timeout: const Duration(seconds: 5));
       if (!mounted || round != _round || _query != query) return;
       setState(() {
         _searchLocked = answer?['locked'] == true;
@@ -224,7 +232,7 @@ class _PanelScreenState extends State<PanelScreen> {
         child: Padding(
           padding: const EdgeInsets.all(28),
           // под «Кодом на вход» сразу сказать, что искать не выйдет, а записывать — да
-          child: Text(_link == _Link.asking ? '' : (_locked ? l.panelLocked : l.panelEmpty), textAlign: TextAlign.center, style: text.bodyMedium!.copyWith(color: Tokens.muted, height: 1.4)),
+          child: Text(_link == _Link.asking ? l.panelWaiting : (_locked ? l.panelLocked : l.panelEmpty), textAlign: TextAlign.center, style: text.bodyMedium!.copyWith(color: Tokens.muted, height: 1.4)),
         ),
       );
     }

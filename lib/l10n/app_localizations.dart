@@ -7966,6 +7966,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Just saved'**
   String get panelSaved;
+
+  /// panelWaiting
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the Stowa tab…'**
+  String get panelWaiting;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

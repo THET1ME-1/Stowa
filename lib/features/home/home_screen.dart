@@ -79,7 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     // приложения, STOWA-8): держать его свежим, замок — сразу
     if (isIOS || isAndroid) {
       ref.read(widgetSyncProvider).start();
-      ref.listenManual(privacyLockProvider, (previous, next) => ref.read(widgetSyncProvider).refresh());
+      ref.listenManual(privacyLockProvider, (previous, next) => ref.read(widgetSyncProvider).refresh(now: true));
     }
     // закрепили, убрали, поправили текст закреплённой — уведомления следом; замок — тоже
     ref.listenManual(noticesProvider, (previous, next) => _syncNotices().ignore(), fireImmediately: true);
@@ -199,7 +199,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     bool locked() => (ref.read(privacyLockProvider).value ?? ref.read(startLockProvider))?.appLock ?? false;
     return PanelBridge(
       link: PanelLink(),
-      panel: isPanelPage(),
       locked: locked,
       capture: (text) async {
         final id = await ref.read(captureServiceProvider).capture(CaptureInput(text: text));

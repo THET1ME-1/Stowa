@@ -4657,4 +4657,7 @@ class LEn extends L {
 
   @override
   String get panelSaved => 'Just saved';
+
+  @override
+  String get panelWaiting => 'Waiting for the Stowa tab…';
 }

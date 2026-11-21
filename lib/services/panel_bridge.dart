@@ -2,7 +2,7 @@ import 'dart:async';
 
 import '../core/fs/panel_link.dart' if (dart.library.js_interop) '../core/fs/panel_link_web.dart';
 
-export '../core/fs/panel_link.dart' if (dart.library.js_interop) '../core/fs/panel_link_web.dart' show PanelLink, isPanelPage;
+export '../core/fs/panel_link.dart' if (dart.library.js_interop) '../core/fs/panel_link_web.dart' show PanelLink, isPanelAddress, isPanelPage;
 
 /// Найденная заметка для панели: только то, что видно в списке.
 class PanelNote {
@@ -25,12 +25,9 @@ class PanelNote {
 /// отменяет, ищет и открывает заметки. Под «Кодом на вход» ([locked]) запись
 /// принимается, а поиск и папка в ответе — нет: из базы без кода ничего не показываем.
 class PanelBridge {
-  PanelBridge({required this.link, required this.panel, required this.locked, required this.capture, required this.undo, required this.search, required this.open});
+  PanelBridge({required this.link, required this.locked, required this.capture, required this.undo, required this.search, required this.open});
 
   final PanelLink link;
-
-  /// Эта вкладка сама открыта панелью: обычная вкладка тогда заберёт хранилище себе.
-  final bool panel;
   final bool Function() locked;
 
   /// Сохранить текст; ответ — id и папка, куда легло.
@@ -54,8 +51,6 @@ class PanelBridge {
     switch (message['type']) {
       case 'hello':
         reply('here', {'locked': locked()});
-      case 'who':
-        reply('holder', {'panel': panel});
       case 'capture':
         final text = '${message['text'] ?? ''}';
         if (text.trim().isEmpty) return reply('failed');
@@ -114,6 +109,16 @@ class PanelClient {
     _listening.cancel();
     link.close();
   }
+}
+
+/// Страница, которая получила хранилище, сразу отвечает на «кто держит»: ещё до файлов и
+/// базы. Иначе вкладку, перезагруженную при открытой панели, встретило бы «уже открыта»:
+/// панель забрала хранилище на миг перезагрузки и ещё грузится. [panel] — адрес `?panel`.
+void answerWho({required bool panel}) {
+  final link = PanelLink();
+  link.messages.listen((message) {
+    if (message['type'] == 'who') link.send({'type': 'holder', 'id': message['id'], 'panel': panel});
+  });
 }
 
 /// Держит ли хранилище панель: тогда обычная вкладка заберёт его сама, без «Открыть здесь».

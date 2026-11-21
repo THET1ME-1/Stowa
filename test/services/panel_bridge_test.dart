@@ -8,9 +8,8 @@ void main() {
   late List<String> opened;
   late bool locked;
 
-  PanelBridge bridge({bool panel = false}) => PanelBridge(
+  PanelBridge bridge() => PanelBridge(
     link: PanelLink(),
-    panel: panel,
     locked: () => locked,
     capture: (text) async {
       saved.add(text);
@@ -83,12 +82,10 @@ void main() {
     expect(await panel.ask('hello', timeout: const Duration(milliseconds: 100)), isNull);
   });
 
-  test('кто держит хранилище: панель или обычная вкладка', () async {
-    final holder = bridge(panel: true)..start();
+  // «кто держит» отвечает страница сразу после захвата хранилища, ещё до моста главной
+  test('кто держит хранилище: панель отвечает «панель», а молчание — не панель', () async {
+    expect(await holderIsPanel(), isFalse, reason: 'никто не ответил');
+    answerWho(panel: true);
     expect(await holderIsPanel(), isTrue);
-    holder.stop();
-    final tab = bridge()..start();
-    addTearDown(tab.stop);
-    expect(await holderIsPanel(), isFalse);
   });
 }
