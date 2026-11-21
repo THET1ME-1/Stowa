@@ -63,20 +63,20 @@ void main() {
 
   testWidgets('поиск адреса: найденное ставится с городом в названии', (tester) async {
     await note(world);
-    world.placeLookup.found = const [FoundPlace(name: 'Strada Cornului 7/1', address: 'Chișinău', latitude: 47.0201, longitude: 28.8302)];
+    world.placeLookup.found = const [FoundPlace(name: 'Strada Mihai Eminescu 12', address: 'Chișinău', latitude: 47.0201, longitude: 28.8302)];
     await phone(tester);
 
     await tester.tap(find.byKey(const ValueKey('place-add')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const ValueKey('note-place-search')), 'Cornului');
+    await tester.enterText(find.byKey(const ValueKey('note-place-search')), 'Eminescu');
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
-    expect(world.placeLookup.queries, contains('Cornului'));
-    await tester.tap(find.text('Strada Cornului 7/1'));
+    expect(world.placeLookup.queries, contains('Eminescu'));
+    await tester.tap(find.text('Strada Mihai Eminescu 12'));
     await tester.pumpAndSettle();
 
     final item = await stored(world);
-    expect((item.latitude, item.longitude, item.placeName), (47.0201, 28.8302, 'Strada Cornului 7/1, Chișinău'));
+    expect((item.latitude, item.longitude, item.placeName), (47.0201, 28.8302, 'Strada Mihai Eminescu 12, Chișinău'));
   });
 
   testWidgets('«Я сейчас здесь» ставит точку, где человек сейчас', (tester) async {

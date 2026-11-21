@@ -41,9 +41,9 @@ void main() {
   // 21.11 хозяин: «у готовых заметок нельзя выбрать местоположение, если его не было при создании»
   test('место ставится готовой заметке и снимается, правка встаёт в очередь файла', () async {
     await db.delete(db.vaultQueue).go();
-    await items.setLocation('a', (latitude: 47.02, longitude: 28.83, name: 'Strada Cornului 7/1, Chișinău'));
+    await items.setLocation('a', (latitude: 47.02, longitude: 28.83, name: 'Ботаника, Кишинёв'));
     var item = (await items.get('a'))!.item;
-    expect((item.latitude, item.longitude, item.placeName), (47.02, 28.83, 'Strada Cornului 7/1, Chișinău'));
+    expect((item.latitude, item.longitude, item.placeName), (47.02, 28.83, 'Ботаника, Кишинёв'));
     expect(item.updatedAt, at, reason: 'текст не правили — время правки прежнее');
     expect((await db.select(db.vaultQueue).get()).map((row) => row.target), ['item:a']);
 

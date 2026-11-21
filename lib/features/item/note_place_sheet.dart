@@ -19,7 +19,7 @@ import '../map/map_tiles.dart';
 import '../places/place_edit_screen.dart' show MapRoundButton, PlacePin;
 import '../places/place_kinds.dart';
 
-/// Точка и как её назвать: «Strada Cornului 7/1, Chișinău», «Дом».
+/// Точка и как её назвать: «Strada Pușkin 52, Chișinău», «Дом».
 typedef NotePoint = ({double latitude, double longitude, String? name});
 
 enum _Action { here, pickOnMap, showOnMap, remove }
@@ -70,7 +70,7 @@ Future<LatLng?> _lastPoint(WidgetRef ref) async {
   return places.isEmpty ? null : LatLng(places.first.latitude, places.first.longitude);
 }
 
-/// Найденное одной строкой: «Strada Cornului 7/1, Chișinău»; город, совпавший с именем, не повторяется.
+/// Найденное одной строкой: «Strada Pușkin 52, Chișinău»; город, совпавший с именем, не повторяется.
 String _foundName(FoundPlace found) => found.address == null || found.address == found.name ? found.name : '${found.name}, ${found.address}';
 
 class _NotePlaceSheet extends ConsumerStatefulWidget {

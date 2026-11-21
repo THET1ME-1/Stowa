@@ -152,9 +152,9 @@ void main() {
   // 21.11 хозяин со снимка: «на сайте все тексты — заголовок, хотя это текст. На телефоне верно».
   // Название из первой строки над текстом не показывается: строка остаётся текстом, как на телефоне
   testWidgets('монитор: название из первой строки — не заголовок, строка остаётся текстом', (tester) async {
-    const first = 'Мне снилось, что меня объявили в розыск';
+    const first = 'Купить молоко и хлеб по дороге домой';
     await world.db.into(world.db.items).insert(
-      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: first, body: const Value('$first\nУбегал с другом'), createdAt: world.now, updatedAt: world.now),
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: first, body: const Value('$first\nЗабрать посылку'), createdAt: world.now, updatedAt: world.now),
     );
     tester.view.physicalSize = const Size(1600, 960);
     tester.view.devicePixelRatio = 1;
@@ -169,7 +169,7 @@ void main() {
     expect(find.descendant(of: page, matching: find.text(first)), findsNothing, reason: 'крупного заголовка нет');
     final body = find.byKey(const ValueKey('item-body-card'));
     expect(find.descendant(of: body, matching: find.textContaining(first, findRichText: true)), findsOneWidget, reason: 'первая строка в тексте');
-    expect(find.descendant(of: body, matching: find.textContaining('Убегал с другом', findRichText: true)), findsOneWidget);
+    expect(find.descendant(of: body, matching: find.textContaining('Забрать посылку', findRichText: true)), findsOneWidget);
     expect(find.byKey(const ValueKey('desk-props')), findsOneWidget);
     expect(find.text('Дописать текст…'), findsNothing);
   });
