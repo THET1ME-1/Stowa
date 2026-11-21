@@ -105,6 +105,29 @@ void main() {
     expect(find.byType(TabBusyScreen), findsOneWidget);
   });
 
+  // хозяин 21.11 со снимка Vivaldi: «дизайн под телефон уже хороший, только текст меньше»
+  testWidgets('узкая панель: строка как на телефоне — подсказка в одну строку, «Закинуть» под полем', (tester) async {
+    await show(tester);
+    tester.view.physicalSize = const Size(340, 800);
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byKey(const ValueKey('panel-field')));
+    expect(field.decoration!.hintMaxLines, 1);
+    expect(tester.getRect(find.byKey(const ValueKey('panel-send'))).top, greaterThanOrEqualTo(tester.getRect(find.byKey(const ValueKey('panel-field'))).bottom));
+  });
+
+  testWidgets('панель целиком — текст мельче телефонного: узкая панель уже телефона', (tester) async {
+    tab.start();
+    addTearDown(tab.stop);
+    tester.view.physicalSize = const Size(340, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final client = PanelClient(PanelLink());
+    addTearDown(client.close);
+    await tester.pumpWidget(PanelApp(client: client, onOpenHere: () async {}, locale: const Locale('ru')));
+    await settle(tester);
+    expect(MediaQuery.textScalerOf(tester.element(find.byKey(const ValueKey('panel-field')))), const TextScaler.linear(panelTextScale));
+  });
+
   testWidgets('вкладка ещё грузится — панель ждёт и подключается, когда та ответит', (tester) async {
     await show(tester, withTab: false);
     await tester.pump(const Duration(milliseconds: 1600));

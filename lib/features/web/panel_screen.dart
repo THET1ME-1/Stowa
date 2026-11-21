@@ -1,16 +1,19 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/panel_bridge.dart';
+import '../composer/line_dock.dart' show SendButton;
 import 'tab_busy_screen.dart';
 
 /// Боковая панель браузера при открытой вкладке Stowa (STOWA-9). Хранилище держит вкладка,
@@ -35,9 +38,27 @@ class PanelApp extends StatelessWidget {
     supportedLocales: AppLanguage.supportedLocales,
     localizationsDelegates: const [L.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
     localeListResolutionCallback: (deviceLocales, _) => AppLanguage.resolve(deviceLocales ?? const []).locale,
+    builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(panelTextScale)), child: child!),
     home: PanelScreen(client: client, onOpenHere: onOpenHere),
   );
 }
+
+/// Сама Stowa открыта в боковой панели браузера (вкладки нет, хранилище у панели): тот же
+/// телефонный вид, текст мельче. Обычный узкий сайт на телефоне так не уменьшается —
+/// только панель с адресом `?panel` или узкое окно на компьютере.
+bool scaledAsPanel(BuildContext context) {
+  if (!isWeb) return false;
+  if (isPanelAddress()) return true;
+  final desktop = switch (defaultTargetPlatform) {
+    TargetPlatform.linux || TargetPlatform.macOS || TargetPlatform.windows => true,
+    _ => false,
+  };
+  return desktop && isPanelPage();
+}
+
+/// Текст в боковой панели мельче телефонного: панель браузера (~340 точек) уже телефона
+/// (~390), а вид тот же (хозяин 21.11: «дизайн под телефон уже хороший, только текст меньше»).
+const panelTextScale = 0.875;
 
 enum _Link { asking, here, silent }
 
@@ -286,17 +307,21 @@ class _PanelScreenState extends State<PanelScreen> {
     );
   }
 
+  // строка как на телефоне (`LineDock`): поле сверху, под ним белая кнопка, подпись
+  // «Закинуть» появляется, когда есть что закинуть
   Widget _line(L l) {
     final ready = _query.isNotEmpty && !_sending && _link == _Link.here;
+    final fieldStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, height: 1.45, color: Tokens.onSurface);
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
-        decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
+        padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
+        decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(Radii.card)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
               child: Focus(
                 onKeyEvent: _onKey,
                 child: TextField(
@@ -308,17 +333,26 @@ class _PanelScreenState extends State<PanelScreen> {
                   keyboardType: TextInputType.multiline,
                   textCapitalization: TextCapitalization.sentences,
                   onChanged: _changed,
-                  decoration: InputDecoration.collapsed(hintText: l.composerHint).copyWith(contentPadding: const EdgeInsets.symmetric(vertical: 12)),
+                  cursorColor: Tokens.accent,
+                  style: fieldStyle,
+                  decoration: InputDecoration.collapsed(hintText: l.composerHint, hintMaxLines: 1, hintStyle: fieldStyle.copyWith(color: Tokens.muted)),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            FilledButton.icon(
-              key: const ValueKey('panel-send'),
-              onPressed: ready ? _send : null,
-              style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
-              icon: _sending ? SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Tokens.onAccent)) : Icon(symbolIcon('arrow_upward')),
-              label: Text(l.composerStow),
+            Align(
+              alignment: Alignment.centerRight,
+              child: AnimatedOpacity(
+                opacity: ready || _sending ? 1 : 0.5,
+                duration: Motion.short,
+                child: SendButton(
+                  key: const ValueKey('panel-send'),
+                  label: _query.isEmpty ? '' : l.actionStow,
+                  icon: 'arrow_upward',
+                  tooltip: l.actionStow,
+                  busy: !ready,
+                  onTap: _send,
+                ),
+              ),
             ),
           ],
         ),

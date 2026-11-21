@@ -13,6 +13,7 @@ import 'data/providers.dart';
 import 'domain/appearance.dart';
 import 'features/privacy/privacy_gate.dart';
 import 'features/vault/vault_gate.dart';
+import 'features/web/panel_screen.dart' show panelTextScale, scaledAsPanel;
 import 'l10n/app_language.dart';
 import 'l10n/app_localizations.dart';
 
@@ -58,6 +59,12 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
   bool _onAnyKey(KeyEvent event) {
     userFirst.touch();
     return false;
+  }
+
+  /// Stowa в боковой панели браузера: телефонный вид, текст мельче — панель уже телефона.
+  Widget _panelText(BuildContext context, Widget child) {
+    if (!scaledAsPanel(context)) return child;
+    return MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(panelTextScale)), child: child);
   }
 
   /// В браузере фон уступает человеку: нажатие, прокрутка и клавиша отмечают, что он занят.
@@ -140,7 +147,7 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarContrastEnforced: false,
         ),
-        child: _attentive(widget.lockable ? PrivacyGate(child: child!) : child!),
+        child: _attentive(_panelText(context, widget.lockable ? PrivacyGate(child: child!) : child!)),
       ),
       home: widget.home,
     );

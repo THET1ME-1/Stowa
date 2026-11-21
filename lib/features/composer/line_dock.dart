@@ -1613,7 +1613,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
             ],
             if (voice != null)
               // в узкой полке «Под рукой» подпись сжимается, а не ряд вылезает за край
-              Flexible(child: _SendButton(label: label, icon: icon, tooltip: label, busy: _sending, onTap: _act))
+              Flexible(child: SendButton(label: label, icon: icon, tooltip: label, busy: _sending, onTap: _act))
             else
               // на узком экране сжимается подпись кнопки, а не ряд
               Expanded(
@@ -1627,7 +1627,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                       icon: Icon(symbolIcon(_full ? 'close_fullscreen' : 'open_in_full'), size: 20),
                     ),
                     Flexible(
-                      child: _SendButton(label: label, icon: icon, tooltip: label.isEmpty ? l.voiceRecord : label, busy: _sending, onTap: _act),
+                      child: SendButton(label: label, icon: icon, tooltip: label.isEmpty ? l.voiceRecord : label, busy: _sending, onTap: _act),
                     ),
                   ],
                 ),
@@ -2112,8 +2112,10 @@ class _BlinkState extends State<_Blink> with SingleTickerProviderStateMixin {
 }
 
 /// Кнопка строки: пустая — микрофон, иначе белая пилюля с тем, что она сделает.
-class _SendButton extends StatefulWidget {
-  const _SendButton({required this.label, required this.icon, required this.tooltip, required this.busy, required this.onTap});
+/// Белая кнопка строки: подпись действия и значок, без подписи — круг. Её же берёт боковая
+/// панель браузера, чтобы строка там была телефонной.
+class SendButton extends StatefulWidget {
+  const SendButton({super.key, required this.label, required this.icon, required this.tooltip, required this.busy, required this.onTap});
 
   final String label;
   final String icon;
@@ -2122,10 +2124,10 @@ class _SendButton extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_SendButton> createState() => _SendButtonState();
+  State<SendButton> createState() => _SendButtonState();
 }
 
-class _SendButtonState extends State<_SendButton> {
+class _SendButtonState extends State<SendButton> {
   // подпись остаётся на месте, пока тает и сжимается, как в макете
   String _shown = '';
 
