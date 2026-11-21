@@ -4,4 +4,15 @@
     <string name="widget_mic">Sprachnotiz</string>
     <string name="widget_camera">Foto</string>
     <string name="widget_description">Gedanken, Link oder Sprachnotiz speichern, ohne die App zu öffnen</string>
+    <string name="note_widget_label">Notiz</string>
+    <string name="note_widget_description">Eine gewählte Notiz oder jeden Tag eine zufällige</string>
+    <string name="note_widget_random">Zufällig, jeden Tag eine neue</string>
+    <string name="note_widget_pick">Welche Notiz zeigen</string>
+    <string name="note_widget_open">Öffne Stowa, dann erscheinen hier deine Notizen</string>
+    <string name="note_widget_locked">Stowa ist mit einem Code gesperrt</string>
+    <string name="note_widget_empty">Noch keine Notizen</string>
+    <string name="note_widget_untitled">Ohne Titel</string>
+    <string name="note_widget_shuffle">Andere Notiz</string>
+    <string name="note_widget_sample_title">Fürs Wochenende</string>
+    <string name="note_widget_sample_lines">☑ Einkaufen\n☐ Oma anrufen\n☐ Tickets kaufen</string>
 </resources>

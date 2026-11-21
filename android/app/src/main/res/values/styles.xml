@@ -15,6 +15,21 @@
     <style name="NormalTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+    <!-- настройка виджета-заметки: прозрачное окно, поверх рабочего стола только диалог -->
+    <style name="NoteWidgetConfigTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <!-- диалог выбора заметки в графитовых цветах Stowa -->
+    <style name="NoteWidgetDialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:textColorPrimary">#F2F2F0</item>
+        <item name="android:textColorSecondary">#B0B1B6</item>
+        <item name="colorAccent">#F4F4F2</item>
+        <item name="android:windowBackground">@drawable/widget_dialog</item>
+    </style>
     <!-- окно «Поделиться»: сквозь него видно приложение, из которого делятся -->
     <style name="ShareTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
         <item name="android:windowBackground">@android:color/transparent</item>

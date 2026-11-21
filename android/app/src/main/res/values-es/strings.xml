@@ -4,4 +4,15 @@
     <string name="widget_mic">Nota de voz</string>
     <string name="widget_camera">Foto</string>
     <string name="widget_description">Guarda una idea, un enlace o una nota de voz sin abrir la app</string>
+    <string name="note_widget_label">Nota</string>
+    <string name="note_widget_description">Una nota elegida o una al azar, nueva cada día</string>
+    <string name="note_widget_random">Al azar, nueva cada día</string>
+    <string name="note_widget_pick">Qué nota mostrar</string>
+    <string name="note_widget_open">Abre Stowa y aquí aparecerán tus notas</string>
+    <string name="note_widget_locked">Stowa está bloqueada con un código</string>
+    <string name="note_widget_empty">Aún no hay notas</string>
+    <string name="note_widget_untitled">Sin título</string>
+    <string name="note_widget_shuffle">Otra nota</string>
+    <string name="note_widget_sample_title">Para el fin de semana</string>
+    <string name="note_widget_sample_lines">☑ Compras\n☐ Llamar a la abuela\n☐ Comprar entradas</string>
 </resources>

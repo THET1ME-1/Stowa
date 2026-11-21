@@ -4,4 +4,15 @@
     <string name="widget_mic">Голосове</string>
     <string name="widget_camera">Фото</string>
     <string name="widget_description">Закинути думку, посилання чи голосове, не відкриваючи головну</string>
+    <string name="note_widget_label">Нотатка</string>
+    <string name="note_widget_description">Вибрана нотатка або випадкова, нова щодня</string>
+    <string name="note_widget_random">Випадкова, нова щодня</string>
+    <string name="note_widget_pick">Яку нотатку показувати</string>
+    <string name="note_widget_open">Відкрий Stowa, і тут з’являться нотатки</string>
+    <string name="note_widget_locked">Stowa закрита кодом</string>
+    <string name="note_widget_empty">Нотаток поки немає</string>
+    <string name="note_widget_untitled">Без назви</string>
+    <string name="note_widget_shuffle">Інша нотатка</string>
+    <string name="note_widget_sample_title">На вихідні</string>
+    <string name="note_widget_sample_lines">☑ Продукти\n☐ Подзвонити бабусі\n☐ Купити квитки</string>
 </resources>

@@ -40,6 +40,16 @@ class MainActivity : FlutterFragmentActivity() {
         registerPlaceChannel(flutterEngine, this)
         registerMediaChannel(flutterEngine)
         registerEdgeChannel(flutterEngine, this)
+        // виджет-заметка: Dart отдаёт свежий widget.json после правок и смены замка (STOWA-8)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/widget").setMethodCallHandler { call, result ->
+            val text = call.arguments as? String
+            if (call.method == "write" && text != null) {
+                NoteWidgetProvider.write(this, text)
+                result.success(null)
+            } else {
+                result.notImplemented()
+            }
+        }
         window = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/window")
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/launch").apply {
             setMethodCallHandler { call, result ->

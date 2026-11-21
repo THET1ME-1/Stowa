@@ -114,6 +114,24 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/composer_widget_info" />
         </receiver>
+        <!-- виджет-заметка: выбранная или случайная, новая каждый день (STOWA-8) -->
+        <receiver android:name=".NoteWidgetProvider" android:exported="false" android:label="@string/note_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/note_widget_info" />
+        </receiver>
+        <!-- настройку виджета открывает рабочий стол: окно обязано быть доступно снаружи -->
+        <activity
+            android:name=".NoteWidgetConfigureActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity="app.stowa.widget"
+            android:theme="@style/NoteWidgetConfigTheme">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
         <!-- напоминания по месту: точка, сеть дома и работы; после загрузки тревоги ставятся заново -->
         <!-- будильник-сторож корешков: поднимает их, если HyperOS убила процесс при смахивании -->
         <receiver android:exported="false" android:name=".edge.EdgeWatchdog$Receiver" />

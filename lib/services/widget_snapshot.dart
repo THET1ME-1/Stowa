@@ -1,4 +1,5 @@
-/// Что видят виджеты iPhone: файл `widget.json` в папке группы `group.app.stowa`.
+/// Что видят виджеты: файл `widget.json` — на iPhone в папке группы `group.app.stowa`,
+/// на Android в папке приложения (`NoteWidgetProvider`).
 /// Виджет базы не читает — только этот файл, его пишет приложение при каждой правке.
 library;
 
@@ -53,7 +54,7 @@ Map<String, Object?> widgetSnapshot({required List<WidgetNote> notes, required b
   ],
 };
 
-/// Канал `stowa/widget` (только iPhone): `write` кладёт текст `widget.json` в папку группы
+/// Канал `stowa/widget` (iPhone и Android): `write` кладёт текст `widget.json` в папку группы или приложения
 /// и просит виджеты перерисоваться.
 const widgetChannel = MethodChannel('stowa/widget');
 

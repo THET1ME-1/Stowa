@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- форма карточки виджета-заметки: белая, цвет даёт фильтр из NoteWidgetProvider; углы 28, как у карточек -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFFFFF" />
+    <corners android:radius="28dp" />
+</shape>

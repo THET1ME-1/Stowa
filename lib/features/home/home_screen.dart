@@ -75,8 +75,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     ref.read(edgeControlProvider).resumed().ignore();
     // браузер: эта вкладка держит хранилище и отвечает боковой панели (STOWA-9)
     if (isWeb) _panel = _panelBridge()..start();
-    // виджеты iPhone читают заметки из файла в папке группы: держать его свежим, замок — сразу
-    if (isIOS) {
+    // виджеты читают заметки из файла (iPhone — в папке группы, Android — в папке
+    // приложения, STOWA-8): держать его свежим, замок — сразу
+    if (isIOS || isAndroid) {
       ref.read(widgetSyncProvider).start();
       ref.listenManual(privacyLockProvider, (previous, next) => ref.read(widgetSyncProvider).refresh());
     }

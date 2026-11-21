@@ -4,4 +4,15 @@
     <string name="widget_mic">Głosówka</string>
     <string name="widget_camera">Zdjęcie</string>
     <string name="widget_description">Zapisz myśl, link lub głosówkę bez otwierania aplikacji</string>
+    <string name="note_widget_label">Notatka</string>
+    <string name="note_widget_description">Wybrana notatka albo losowa, nowa każdego dnia</string>
+    <string name="note_widget_random">Losowa, nowa każdego dnia</string>
+    <string name="note_widget_pick">Którą notatkę pokazać</string>
+    <string name="note_widget_open">Otwórz Stowa, a notatki pojawią się tutaj</string>
+    <string name="note_widget_locked">Stowa jest zablokowana kodem</string>
+    <string name="note_widget_empty">Nie ma jeszcze notatek</string>
+    <string name="note_widget_untitled">Bez tytułu</string>
+    <string name="note_widget_shuffle">Inna notatka</string>
+    <string name="note_widget_sample_title">Na weekend</string>
+    <string name="note_widget_sample_lines">☑ Zakupy\n☐ Zadzwonić do babci\n☐ Kupić bilety</string>
 </resources>

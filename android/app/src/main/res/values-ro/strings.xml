@@ -4,4 +4,15 @@
     <string name="widget_mic">Mesaj vocal</string>
     <string name="widget_camera">Fotografie</string>
     <string name="widget_description">Salvează un gând, un link sau o notă vocală fără să deschizi aplicația</string>
+    <string name="note_widget_label">Notiță</string>
+    <string name="note_widget_description">O notiță aleasă sau una aleatorie, nouă în fiecare zi</string>
+    <string name="note_widget_random">Aleatorie, nouă în fiecare zi</string>
+    <string name="note_widget_pick">Ce notiță să arate</string>
+    <string name="note_widget_open">Deschide Stowa și notițele vor apărea aici</string>
+    <string name="note_widget_locked">Stowa e blocată cu un cod</string>
+    <string name="note_widget_empty">Încă nu ai notițe</string>
+    <string name="note_widget_untitled">Fără titlu</string>
+    <string name="note_widget_shuffle">Altă notiță</string>
+    <string name="note_widget_sample_title">Pentru weekend</string>
+    <string name="note_widget_sample_lines">☑ Cumpărături\n☐ Sună-o pe bunica\n☐ Cumpără bilete</string>
 </resources>
