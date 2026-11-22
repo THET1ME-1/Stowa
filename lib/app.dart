@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/fs/panel_link.dart' if (dart.library.js_interop) 'core/fs/panel_link_web.dart' show isPanelAddress;
+import 'core/platform.dart' show isWeb;
 import 'core/theme/app_theme.dart';
 import 'core/theme/palette.dart';
 import 'core/theme/tokens.dart';
@@ -12,6 +14,9 @@ import 'core/user_first.dart';
 import 'data/providers.dart';
 import 'domain/appearance.dart';
 import 'features/privacy/privacy_gate.dart';
+import 'features/subscription/panel_gate.dart';
+import 'features/subscription/paywall_screen.dart';
+import 'services/billing/store_channel.dart';
 import 'features/vault/vault_gate.dart';
 import 'features/web/panel_screen.dart' show panelTextScale, scaledAsPanel;
 import 'l10n/app_language.dart';
@@ -45,6 +50,12 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (userFirst.enabled) HardwareKeyboard.instance.addHandler(_onAnyKey);
+    // stowa.work/?subscribe — сюда ведёт кнопка замка боковой панели: сразу экран покупки
+    if (isWeb && !isPanelAddress() && Uri.base.queryParameters.containsKey('subscribe')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => appNavigator.currentState?.push(paywallRoute()));
+    }
+    // магазинная касса слушает покупки с запуска: недоделанная прошлая проверяется и закрывается
+    if (ref.read(storeChannelProvider) != StoreChannel.direct) ref.read(checkoutProvider);
   }
 
   @override
@@ -150,9 +161,16 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarContrastEnforced: false,
         ),
-        child: _attentive(_panelText(context, widget.lockable ? PrivacyGate(child: child!) : child!)),
+        child: _attentive(_panelText(context, _panelGate(widget.lockable ? PrivacyGate(child: child!) : child!))),
       ),
       home: widget.home,
     );
+  }
+
+  /// Боковая панель браузера (адрес `?panel`) — часть Stowa Sync: без подписки вместо неё замок.
+  /// Сайт в обычной вкладке бесплатный.
+  Widget _panelGate(Widget child) {
+    if (!isWeb || !isPanelAddress()) return child;
+    return PanelGate(store: ref.read(subscriptionStoreProvider), open: ref.read(urlOpenerProvider), child: child);
   }
 }

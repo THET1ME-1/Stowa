@@ -16,6 +16,7 @@ import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
 import '../account/account_row.dart';
 import '../composer/panel_text.dart' show untitledFor;
+import '../subscription/subscribe_card.dart';
 import '../../domain/appearance.dart';
 import '../../domain/edge_settings.dart';
 import '../../domain/return_plan.dart';
@@ -92,7 +93,7 @@ class SettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             SettingsHeader(title ?? l.settingsTitle),
-            if (show('account')) const AccountRow(),
+            if (show('account')) ...[const SubscribeCard(), const AccountRow()],
             if (show('vault')) ...[
             SettingsSection(l.settingsCatalog),
             SettingsGroup(

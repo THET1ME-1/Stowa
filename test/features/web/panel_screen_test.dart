@@ -1,10 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/core/theme/app_theme.dart';
+import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/features/web/panel_screen.dart';
 import 'package:stowa/features/web/tab_busy_screen.dart';
 import 'package:stowa/l10n/app_localizations.dart';
+import 'package:stowa/services/billing/subscription.dart';
 import 'package:stowa/services/panel_bridge.dart';
+
+/// Снимок действующей подписки: панель — часть Stowa Sync.
+MemoryKeyStore _subscribed() => MemoryKeyStore()
+  ..value = jsonEncode(Subscription.fromAccount({'email': 'me@x.io', 'active': true, 'paid_until': DateTime.now().toUtc().add(const Duration(days: 30)).toIso8601String()}).toJson());
 
 // STOWA-9: панель при открытой вкладке Stowa — строка, которая пишет и ищет через вкладку
 void main() {
@@ -123,9 +131,21 @@ void main() {
     addTearDown(tester.view.reset);
     final client = PanelClient(PanelLink());
     addTearDown(client.close);
-    await tester.pumpWidget(PanelApp(client: client, onOpenHere: () async {}, locale: const Locale('ru')));
+    await tester.pumpWidget(PanelApp(client: client, onOpenHere: () async {}, locale: const Locale('ru'), subscription: _subscribed()));
     await settle(tester);
     expect(MediaQuery.textScalerOf(tester.element(find.byKey(const ValueKey('panel-field')))), const TextScaler.linear(panelTextScale));
+  });
+
+  // панель — часть Stowa Sync: лёгкая панель без подписки показывает замок, а не строку
+  testWidgets('лёгкая панель без подписки — замок', (tester) async {
+    tab.start();
+    addTearDown(tab.stop);
+    final client = PanelClient(PanelLink());
+    addTearDown(client.close);
+    await tester.pumpWidget(PanelApp(client: client, onOpenHere: () async {}, locale: const Locale('ru'), subscription: MemoryKeyStore()));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('panel-field')), findsNothing);
+    expect(find.text('Боковая панель входит в Stowa Sync'), findsOneWidget);
   });
 
   testWidgets('вкладка ещё грузится — панель ждёт и подключается, когда та ответит', (tester) async {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/desk_mode.dart';
@@ -8,23 +7,16 @@ import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/billing/subscription.dart';
 import '../settings/settings_blocks.dart';
+import '../subscription/paywall_screen.dart';
+import '../subscription/subscription_date.dart';
+import '../subscription/subscription_screen.dart';
 
 Route<void> accountRoute() => settingsPageRoute(const AccountScreen());
-
-/// Срок подписки по-человечески: «22 декабря», другой год — «22 декабря 2027 г.».
-String subscriptionDate(BuildContext context, DateTime date) {
-  final locale = Localizations.localeOf(context).toString();
-  final local = date.toLocal();
-  return local.year == DateTime.now().year ? DateFormat.MMMMd(locale).format(local) : DateFormat.yMMMMd(locale).format(local);
-}
 
 /// Аккаунт: почта, подписка, выход и удаление. Удаление требуют App Store и Google Play: аккаунт
 /// заводится в приложении — значит, и удаляется в нём.
 class AccountScreen extends ConsumerStatefulWidget {
-  const AccountScreen({super.key, this.onSubscription});
-
-  /// Касание строки подписки: экран подписки или покупка. null — строка только показывает.
-  final void Function(BuildContext context, Subscription subscription)? onSubscription;
+  const AccountScreen({super.key});
 
   @override
   ConsumerState<AccountScreen> createState() => _AccountScreenState();
@@ -111,7 +103,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final subscription = ref.watch(subscriptionProvider).value ?? Subscription.none;
     final status = ref.watch(syncServiceProvider).status.value;
     final email = subscription.email ?? status.email ?? '';
-    final onSubscription = widget.onSubscription;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -125,8 +116,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   key: const ValueKey('account-email'),
                   icon: 'mail',
                   title: email,
-                  value: subscription.activeNow ? l.subActiveUntil(subscriptionDate(context, subscription.paidUntil!)) : null,
-                  onTap: onSubscription == null ? null : () => onSubscription(context, subscription),
+                  value: subscription.activeNow ? l.subActiveUntil(subscriptionDate(context, subscription.paidUntil!)) : l.subBuy,
+                  onTap: () => Navigator.of(context).push(subscription.activeNow ? subscriptionRoute() : paywallRoute()),
                 ),
               ],
             ),

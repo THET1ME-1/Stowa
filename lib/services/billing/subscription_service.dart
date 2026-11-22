@@ -15,6 +15,8 @@ class SubscriptionService {
   // ignore: prefer_initializing_formals
   SubscriptionService({required this.sync, required KeyStore store, required this.api}) : _store = store {
     sync.status.addListener(_onSync);
+    // аккаунт мог прочитаться раньше, чем завели службу: перемены уже не будет, сверяемся сразу
+    if (sync.status.value.email != null) _onSync();
   }
 
   final SyncService sync;

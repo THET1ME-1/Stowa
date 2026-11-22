@@ -8,7 +8,10 @@ import '../../l10n/app_localizations.dart';
 import '../../services/sync/sync_engine.dart';
 import '../../services/sync/sync_progress.dart';
 import '../../services/sync/sync_service.dart';
+import '../../services/billing/subscription.dart';
 import '../account/email_code_form.dart';
+import '../subscription/paywall_screen.dart';
+import '../subscription/subscribe_card.dart';
 import 'settings_blocks.dart';
 import 'sync_progress_card.dart';
 
@@ -108,6 +111,11 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 16),
                 child: Text(l.syncIntro, style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
               ),
+              AccentCard(key: const ValueKey('sync-buy'), title: l.subBuy, hint: l.subBuyHint, onTap: () => Navigator.of(context).push(paywallRoute())),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 28, 4, 12),
+                child: Text(l.syncHaveSub, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600)),
+              ),
               EmailCodeForm(onSignedIn: _signedIn),
             ],
           ],
@@ -121,20 +129,27 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     final otherVault = !_service.syncsOpenVault(account);
     final tint = settingsTint('sky');
     final calm = MediaQuery.disableAnimationsOf(context);
+    final subscription = ref.watch(subscriptionProvider).value ?? Subscription.none;
     return ListenableBuilder(
       listenable: Listenable.merge([_service.status, _service.progress]),
       builder: (context, _) {
         final status = _service.status.value;
+        // подписки нет: сервер это сказал при входе или снимок с сервера её не видит
+        final locked = status.inactive || subscription.signedIn && !subscription.activeNow;
         // касание успело раньше первого отчёта прохода — сверка папки без цифр
         final running = _showProgress ? _service.progress.value ?? const SyncProgress(SyncStage.folder) : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (locked) ...[
+              AccentCard(key: const ValueKey('sync-offer'), title: l.syncOffer, hint: l.syncOfferHint, onTap: () => Navigator.of(context).push(paywallRoute())),
+              const SizedBox(height: 16),
+            ],
             SettingsGroup(
               tint: tint,
               children: [
-                SettingsRow(key: const ValueKey('sync-account'), icon: 'mail', title: account.email, value: _statusLine(l, status, otherVault), onTap: null),
-                if (!otherVault && !status.inactive && !noVault)
+                SettingsRow(key: const ValueKey('sync-account'), icon: 'mail', title: account.email, value: locked ? null : _statusLine(l, status, otherVault), onTap: null),
+                if (!otherVault && !locked && !noVault)
                   AnimatedSwitcher(
                     duration: calm ? Duration.zero : const Duration(milliseconds: 260),
                     switchInCurve: Curves.easeOutCubic,

@@ -11,10 +11,10 @@ import '../../l10n/app_localizations.dart';
 import '../../services/billing/checkout.dart';
 import '../../services/billing/store_channel.dart';
 import '../../services/billing/subscription.dart';
-import '../account/account_screen.dart' show subscriptionDate;
 import '../account/sign_in_screen.dart';
 import '../settings/settings_blocks.dart';
 import '../settings/settings_screen.dart' show privacyPolicyUrl;
+import 'subscription_date.dart';
 
 Route<void> paywallRoute() => settingsPageRoute(const PaywallScreen());
 
