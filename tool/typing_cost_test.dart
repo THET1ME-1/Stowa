@@ -45,11 +45,8 @@ void main() {
     testWidgets('$length знаков', (tester) async {
       final base = _sample(length);
       final body = MarkdownController(text: base);
-      late BuildContext context;
-      await tester.pumpWidget(MaterialApp(home: Builder(builder: (inner) {
-        context = inner;
-        return const SizedBox();
-      })));
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
       final spans = <int>[], layouts = <int>[];
       var text = base;
       final middle = base.length ~/ 2;
