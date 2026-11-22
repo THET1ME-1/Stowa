@@ -450,7 +450,18 @@ class FolderIndex {
   final _hits = <String, Map<String, int>>{};
 
   /// [series] — папка, куда легли две прошлые заметки подряд: мысль, скорее всего, оттуда же.
+  // последняя догадка: строка спрашивает тот же текст на каждый кадр, пока его разбирают
+  (String, String, String?)? _lastAsked;
+  FolderGuess? _lastGuess;
+
   FolderGuess? guess(String text, {List<String> signals = const [], String? series}) {
+    final asked = (text, signals.join('\u0000'), series);
+    if (asked == _lastAsked) return _lastGuess;
+    _lastAsked = asked;
+    return _lastGuess = _guess(text, signals: signals, series: series);
+  }
+
+  FolderGuess? _guess(String text, {required List<String> signals, String? series}) {
     final (:scores, :evidence, named: _) = _score(text, signals, series: series);
     if (scores.isEmpty) return null;
     final ranked = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));

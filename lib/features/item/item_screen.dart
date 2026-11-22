@@ -30,7 +30,8 @@ import '../../core/platform.dart' show isWeb;
 import '../../data/providers.dart';
 import '../../domain/hints.dart' show Tip;
 import '../../domain/place_cue.dart' show KnownPlace, parsePlaceCue;
-import '../../domain/reminder_parser.dart' show parseReminder, reminderPhrase;
+import '../../domain/reminder_parser.dart' show parseReminder, reminderPhraseOf;
+import '../../domain/text_diff.dart' show editedRange;
 import '../../data/repositories/folders_repository.dart';
 import '../../data/repositories/items_repository.dart';
 import '../../domain/item_kind.dart';
@@ -42,6 +43,7 @@ import '../../domain/shopping.dart';
 import '../../domain/vault_note.dart' show unpackVaultProperties;
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show CaptureInput, PickedFile;
+import '../composer/line_controller.dart' show LineController;
 import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
@@ -191,6 +193,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _autosave?.cancel();
     // ушли посреди правки — набранное не теряется
     if (_editing) _save();
+    _phraseTimer?.cancel();
     _title.dispose();
     _body.dispose();
     _bodyFocus.dispose();
@@ -210,10 +213,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _title.text = titleIsFirstLine(body, item.title) ? '' : item.title;
     _body.text = append && body.trim().isNotEmpty && !body.endsWith('\n') ? '$body\n' : body;
     _body.selection = TextSelection.collapsed(offset: _body.text.length);
-    final now = '${_title.text}\n${_body.text}';
     if (ref.read(placesProvider).value case final places?) _known = _knownOf(places);
-    _seenPhrase = reminderPhrase(now, _clock(), workEnd: _workEnd());
-    _seenPlace = _placePhrase(now);
+    _checkPhrases();
     _timeTouched = false;
     _placeTouched = false;
     setState(() => _editing = true);
@@ -236,25 +237,65 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   List<KnownPlace> _knownOf(List<Place> places) => [for (final place in places) (id: place.id, name: place.name, kind: place.kind, label: place.label)];
 
-  String? _placePhrase(String text) {
-    final cue = parsePlaceCue(text, places: _known);
-    return cue == null ? null : '${cue.kind.name}|${cue.placeId}|${text.substring(cue.start, cue.end).toLowerCase()}';
-  }
+  // отложенная проверка времени и места длинного текста
+  Timer? _phraseTimer;
+  static const _phraseDelay = Duration(milliseconds: 250);
+
+  // текст на прошлой правке и где в нём стояли время и место на прошлой проверке
+  String _lastText = '';
+  List<(int, int)> _timeSpans = const [];
+  (int, int)? _placeSpan;
 
   void _changed() {
     if (!_editing) return;
+    _phraseTimer?.cancel();
     final text = '${_title.text}\n${_body.text}';
-    final phrase = reminderPhrase(text, _clock(), workEnd: _workEnd());
-    if (phrase != _seenPhrase) _timeTouched = true;
-    _seenPhrase = phrase;
-    final place = _placePhrase(text);
-    if (place != _seenPlace) _placeTouched = true;
-    _seenPlace = place;
+    if (text.length <= LineController.instantLength) {
+      _checkPhrases();
+      return _restartAutosave();
+    }
+    // длинный текст разбирается, когда набор стих: на четыре тысячи знаков разбор шёл двадцать
+    // миллисекунд на букву (тестировщик 22.11: «лагает, 10 FPS»). Стёр «8» и набрал заново до
+    // паузы — фраза та же, но её трогали: это видно по месту правки, без разбора
+    final edit = editedRange(_lastText, text);
+    if (_timeSpans.any(edit.touches)) _timeTouched = true;
+    if (_placeSpan case final span? when edit.touches(span)) _placeTouched = true;
+    _timeSpans = [for (final span in _timeSpans) edit.shift(span)];
+    _placeSpan = _placeSpan == null ? null : edit.shift(_placeSpan!);
+    _lastText = text;
+    _phraseTimer = Timer(_phraseDelay, () {
+      if (mounted && _editing) _checkPhrases();
+    });
+    _restartAutosave();
+  }
+
+  void _restartAutosave() {
     _autosave?.cancel();
     _autosave = Timer(_autosaveDelay, _save);
   }
 
+  /// Фраза времени или места сменилась с прошлой проверки — их трогали.
+  void _checkPhrases() {
+    final text = '${_title.text}\n${_body.text}';
+    _lastText = text;
+    final found = parseReminder(text, _clock(), workEnd: _workEnd());
+    final phrase = found == null ? null : reminderPhraseOf(text, found);
+    if (phrase != _seenPhrase) _timeTouched = true;
+    _seenPhrase = phrase;
+    _timeSpans = found?.parts ?? const [];
+    final cue = parsePlaceCue(text, places: _known);
+    final place = cue == null ? null : '${cue.kind.name}|${cue.placeId}|${text.substring(cue.start, cue.end).toLowerCase()}';
+    if (place != _seenPlace) _placeTouched = true;
+    _seenPlace = place;
+    _placeSpan = cue == null ? null : (cue.start, cue.end);
+  }
+
   Future<void> _save() async {
+    // проверка длинного текста ещё ждёт паузы — сохранение не уходит мимо неё
+    if (_phraseTimer?.isActive ?? false) {
+      _phraseTimer!.cancel();
+      _checkPhrases();
+    }
     final body = _body.text.replaceFirst(_trailingSpace, '');
     final typed = _title.text.trim();
     // заголовок стёрли — берётся из текста, как при сохранении из строки

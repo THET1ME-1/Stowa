@@ -209,6 +209,32 @@ void main() {
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
   });
 
+  // тестировщик 22.11: длинный текст лагал, 10 FPS — его время и место разбираются на паузе в наборе
+  testWidgets('длинный текст: «Закинуть» сразу после буквы берёт время из нынешнего текста, а не с прошлой паузы', (tester) async {
+    await open(tester);
+    final long = List.filled(40, 'мысль про ремонт в ванной и плитку на кухне').join(' ');
+    await type(tester, long);
+    expect(find.byKey(const ValueKey('reminder')), findsNothing);
+    await tester.enterText(find.byType(TextField), '$long завтра в 9 позвонить мастеру');
+    await tester.pump(const Duration(milliseconds: 30));
+    await tester.tap(find.text('Закинуть').last);
+    await tester.pumpAndSettle();
+    final item = await world.db.select(world.db.items).getSingle();
+    expect(item.reminderAt?.hour, 9);
+  });
+
+  testWidgets('длинный текст: чип времени встаёт, когда набор стих', (tester) async {
+    await open(tester);
+    final long = List.filled(40, 'мысль про ремонт в ванной и плитку на кухне').join(' ');
+    await type(tester, long);
+    await tester.enterText(find.byType(TextField), '$long завтра в 9 позвонить мастеру');
+    await tester.pump(const Duration(milliseconds: 30));
+    expect(find.byKey(const ValueKey('reminder')), findsNothing);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('reminder')), findsOneWidget);
+  });
+
   testWidgets('«напомни дома» — чип «Напомнить дома», сохраняется с местом; снял чип — без места', (tester) async {
     await open(tester);
     await type(tester, 'напомни дома купить хлеб');

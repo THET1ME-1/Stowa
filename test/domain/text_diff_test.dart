@@ -6,6 +6,32 @@ void main() {
     for (final line in lines) '${switch (line.kind) { DiffKind.same => ' ', DiffKind.added => '+', DiffKind.removed => '-' }}${line.text}',
   ].join('\n');
 
+  group('место одной правки', () {
+    // «пить в 8 вечера»: время — кусок (7, 8)
+    const before = 'пить в 8 вечера';
+
+    test('стёртая цифра времени задевает его, буква в другом слове — нет', () {
+      expect(editedRange(before, 'пить в  вечера').touches((7, 8)), isTrue);
+      expect(editedRange(before, 'пиить в 8 вечера').touches((7, 8)), isFalse);
+    });
+
+    test('вставка внутрь задевает, вставка у края — нет', () {
+      expect(editedRange('в 10', 'в 120').touches((2, 4)), isTrue);
+      expect(editedRange('в 10', 'в 10 утра').touches((2, 4)), isFalse);
+    });
+
+    test('кусок после правки сдвигается на её длину, до правки остаётся', () {
+      final edit = editedRange(before, 'ну, пить в 8 вечера');
+      expect(edit.shift((7, 8)), (11, 12));
+      expect(editedRange(before, 'пить в 8 вечера!').shift((7, 8)), (7, 8));
+    });
+
+    test('одинаковые буквы на стыке не путают место', () {
+      final edit = editedRange('аааа', 'ааааа');
+      expect((edit.start, edit.end, edit.delta), (4, 4, 1));
+    });
+  });
+
   test('одинаковые строки остаются, убранные и добавленные помечены', () {
     final diff = diffLines('Ремонт\nкупить клей\nплитка', 'Ремонт\nплитка\nзатирка');
     expect(show(diff), ' Ремонт\n-купить клей\n плитка\n+затирка');

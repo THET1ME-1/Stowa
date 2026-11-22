@@ -56,10 +56,36 @@ class LineController extends TextEditingController {
   /// Свои места: «буду у Саши» узнаёт место «Саша». Нет — только виды мест.
   List<KnownPlace> Function()? places;
 
+  /// Длинный текст разбирается на время и место не на каждую букву, а когда набор стих
+  /// ([settle]): на четыре тысячи знаков разбор шёл десятки миллисекунд на букву, и строка
+  /// давала 10 кадров в секунду (тестировщик 22.11). Короткий — сразу, как раньше.
+  static const instantLength = 600;
+
+  // длинный текст, по которому разобраны время и место; короткий разбирается как есть
+  String? _settledText;
+
+  /// Текст, по которому сейчас разобраны время и место (и папка с языком в строке).
+  String get settledText {
+    if (text.length <= instantLength) return text;
+    // первый раз длинный (вставили целиком) — разбор сразу, дальше — по паузам
+    return _settledText ??= text;
+  }
+
+  /// Разбор идёт по нынешнему тексту.
+  bool get settled => settledText == text;
+
+  /// Набор стих (или текст уходит в сохранение): разобрать нынешний длинный текст.
+  void settle() {
+    if (text.length <= instantLength || _settledText == text) return;
+    _settledText = text;
+    notifyListeners();
+  }
+
   ReminderMatch? get _found {
-    if (_parsedText != text) {
-      _parsedText = text;
-      _parsed = parseReminder(text, _clock(), workEnd: _workEnd());
+    final source = settledText;
+    if (_parsedText != source) {
+      _parsedText = source;
+      _parsed = parseReminder(source, _clock(), workEnd: _workEnd());
     }
     return _parsed;
   }
@@ -85,16 +111,21 @@ class LineController extends TextEditingController {
   /// Место из текста («напомни дома», «буду проходить мимо магазина»), пока человек его не снял.
   PlaceCue? get placeCue {
     if (_placeDismissed) return null;
-    if (_cueText != text) {
-      _cueText = text;
-      _cue = parsePlaceCue(text, places: places?.call() ?? const []);
+    final source = settledText;
+    if (_cueText != source) {
+      _cueText = source;
+      _cue = parsePlaceCue(source, places: places?.call() ?? const []);
     }
     return _cue;
   }
 
   @override
   set value(TextEditingValue newValue) {
-    super.value = _liftMarks(newValue);
+    final next = _liftMarks(newValue);
+    // короткий текст разбирается сразу: следующий длинный (вставка, «Отменить») начнёт с себя,
+    // а не с прошлой заметки
+    if (next.text.length <= instantLength) _settledText = null;
+    super.value = next;
   }
 
   void dismissReminder() {
@@ -166,6 +197,7 @@ class LineController extends TextEditingController {
     _folder = folder;
     _reminderDismissed = reminderDismissed;
     _placeDismissed = placeDismissed;
+    _settledText = null;
     value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
@@ -265,8 +297,10 @@ class LineController extends TextEditingController {
     if (command != null) {
       marks.add((0, command.end, TextStyle(color: Tokens.onAccent, backgroundColor: Tokens.accent)));
     }
-    final found = reminder;
-    final cue = placeCue;
+    // длинный текст ещё набирается: разбор прежний, его места к нынешнему тексту не подходят
+    final current = settled;
+    final found = current ? reminder : null;
+    final cue = current ? placeCue : null;
     // день и время могут стоять порознь: подчёркнут каждый кусок, слова между ними — нет; место — так же
     for (final (from, to) in [...?found?.parts, if (cue != null) (cue.start, cue.end)]) {
       marks.add((

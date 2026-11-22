@@ -12,6 +12,83 @@ void main() {
   setUp(() => line = LineController(clock: () => now));
   tearDown(() => line.dispose());
 
+  // тестировщик 22.11: «когда пишешь длинный текст, приложение лагает, 10 FPS» — время, место,
+  // язык и папка разбирались по всему тексту на каждую букву
+  group('длинный текст разбирается, когда набор стих', () {
+    final long = List.filled(80, 'мысль про ремонт в ванной').join(' ');
+
+    test('короткий текст — сразу, как раньше', () {
+      line.value = _typed('завтра в 9 позвонить мастеру');
+      expect(line.reminder, isNotNull);
+      expect(line.settled, isTrue);
+    });
+
+    test('длинный — время и место из текста на момент паузы; settle() — по нынешнему', () {
+      line.value = _typed(long);
+      expect(line.reminder, isNull);
+      line.value = _typed('$long завтра в 9 позвонить мастеру');
+      expect(line.settled, isFalse);
+      expect(line.reminder, isNull, reason: 'буквы ещё идут — разбор прежний');
+      line.settle();
+      expect(line.settled, isTrue);
+      expect(line.reminder?.at, DateTime(2026, 11, 3, 9));
+    });
+
+    test('набор в длинном тексте не разбирает его на каждую букву', () {
+      var parses = 0;
+      final counted = LineController(clock: () {
+        parses++;
+        return now;
+      });
+      addTearDown(counted.dispose);
+      counted.value = _typed(long);
+      counted.reminder;
+      parses = 0;
+      var text = long;
+      for (var letter = 0; letter < 30; letter++) {
+        text += 'а';
+        counted.value = _typed(text);
+        // так строка спрашивает на каждом кадре: чип, подсветка, план сохранения
+        counted.reminder;
+        counted.placeCue;
+      }
+      expect(parses, 0);
+      counted.settle();
+      counted.reminder;
+      expect(parses, 1);
+    });
+
+    test('после отправки новый длинный текст разбирается сам, а не по прошлой заметке', () {
+      line.value = _typed('$long завтра в 9');
+      expect(line.reminder, isNotNull);
+      line.reset();
+      line.value = _typed(long);
+      expect(line.settled, isTrue);
+      expect(line.reminder, isNull);
+      line.restore(text: '$long послезавтра в 10', tags: const []);
+      expect(line.settled, isTrue);
+      expect(line.reminder?.at, DateTime(2026, 11, 4, 10));
+    });
+
+    testWidgets('пока длинный текст не разобран, подчёркнутых кусков времени нет — позиции были бы чужие', (tester) async {
+      line.value = _typed('$long завтра в 9');
+      line.settle();
+      line.value = _typed('завтра в 9 $long');
+      expect(line.settled, isFalse);
+      late TextSpan span;
+      await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
+        span = line.buildTextSpan(context: context, withComposing: false);
+        return const SizedBox();
+      })));
+      final dotted = <String>[];
+      span.visitChildren((child) {
+        if ((child as TextSpan).style?.decorationStyle == TextDecorationStyle.dotted) dotted.add(child.text!);
+        return true;
+      });
+      expect(dotted, isEmpty);
+    });
+  });
+
   test('«после работы» — по концу рабочего дня из настроек', () {
     final mine = LineController(clock: () => now, workEnd: () => 17 * 60 + 30);
     addTearDown(mine.dispose);

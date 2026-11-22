@@ -183,7 +183,12 @@ class PanelInput {
     this.folderIndex,
     this.series,
     this.writeOnly = false,
+    this.settledText,
   });
+
+  /// Текст, по которому строка решает, куда и как сохранить (вид, правила, папка). У длинного —
+  /// на момент паузы в наборе, а не на каждую букву ([LineController.settledText]); нет — [text].
+  final String? settledText;
 
   /// Строка только закидывает: не ищет и не называет ничего из базы. Так работает окно виджета при коде на вход.
   final bool writeOnly;
@@ -213,11 +218,37 @@ class PanelInput {
   final DateTime? remindAt;
 }
 
+/// Строка, разобранная для поиска и сохранения.
+class LineQuery {
+  LineQuery._(this.free, this.command, this.rest);
+
+  /// Что ищет поиск: текст без команды, тегов, папок и ссылок.
+  final String free;
+  final LineCommand? command;
+
+  /// Текст без команды: его сохраняет «Закинуть».
+  final String rest;
+
+  /// Слова поиска с основами — только когда спросили: на длинном тексте это миллисекунды.
+  late final List<String> words = searchWords(free);
+
+  /// Есть ли что искать словами: без основ и до первого слова.
+  late final bool hasWords = hasSearchWords(free);
+}
+
+// последние разборы: строка спрашивает один и тот же текст несколько раз за букву (поиск,
+// панель, кнопка). Нынешний текст и разобранный на паузе — двух хватает; задетый встаёт последним
+final _queries = <(String, Map<LineCommand, List<String>>), LineQuery>{};
+
 /// Что ищет поиск: текст без команды, тегов, папок и ссылок, его слова; чипы — фильтром.
-({List<String> words, String free, LineCommand? command, String rest}) queryOf(String text, Map<LineCommand, List<String>> keys) {
+LineQuery queryOf(String text, Map<LineCommand, List<String>> keys) {
+  final key = (text, keys);
+  if (_queries.remove(key) case final known?) return _queries[key] = known;
   final parsed = parseCommand(text, keys);
   final free = parsed.rest.replaceAll(RegExp(r'(^|\s)[#@][^\s#@]*'), ' ').replaceAll(RegExp(r'https?://\S+'), ' ');
-  return (words: searchWords(free), free: free.trim(), command: parsed.command, rest: parsed.rest);
+  final query = LineQuery._(free.trim(), parsed.command, parsed.rest);
+  if (_queries.length >= 2) _queries.remove(_queries.keys.first);
+  return _queries[key] = query;
 }
 
 SavePlan planSave(PanelInput input, {required LineCommand? command, required String rest}) {
@@ -295,7 +326,10 @@ PanelState buildPanel(PanelInput input) {
   // одинокие «#» и «@» — не мысль, а начатая метка: «Закинуть» из них заметку не делает
   final hasContent = query.rest.replaceAll(RegExp(r'(^|\s)[#@](?=\s|$)'), ' ').trim().isNotEmpty || input.attachmentMimes.isNotEmpty;
   // «/холст» без имени тоже заводит холст: имя будет «Холст»
-  final plan = command == LineCommand.find || (!hasContent && !isDocumentCommand(command)) ? null : planSave(input, command: command, rest: query.rest);
+  // куда сохранить, решается по разобранному тексту: у длинного — на паузе в наборе
+  final settled = input.settledText;
+  final planRest = settled == null || settled == input.text ? query.rest : queryOf(settled, input.commandKeys).rest;
+  final plan = command == LineCommand.find || (!hasContent && !isDocumentCommand(command)) ? null : planSave(input, command: command, rest: planRest);
 
   final kinds = <ItemKind>[];
   for (final result in input.found) {
@@ -326,12 +360,12 @@ PanelState buildPanel(PanelInput input) {
 
   final PanelHeader header;
   if (plan == null) {
-    header = shown.isNotEmpty ? PanelHeader.found : (query.words.isEmpty && input.chosenTags.isEmpty ? PanelHeader.none : PanelHeader.nothingFound);
+    header = shown.isNotEmpty ? PanelHeader.found : (!query.hasWords && input.chosenTags.isEmpty ? PanelHeader.none : PanelHeader.nothingFound);
   } else if (shown.isNotEmpty) {
     header = pick == 1 ? PanelHeader.found : PanelHeader.similar;
   } else {
     // «Похожего нет» без поиска было бы неправдой
-    header = query.words.isNotEmpty && !input.writeOnly ? PanelHeader.fresh : PanelHeader.none;
+    header = query.hasWords && !input.writeOnly ? PanelHeader.fresh : PanelHeader.none;
   }
   return PanelState(
     rows: rows,

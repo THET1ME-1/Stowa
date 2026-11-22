@@ -10,6 +10,22 @@ const _keys = {
 };
 
 void main() {
+  group('длинный текст ищется по началу', () {
+    test('короткий — целиком, длинный — до границы слова', () {
+      expect(searchHead('плитка в ванную'), 'плитка в ванную');
+      final long = List.filled(60, 'плитка').join(' ');
+      final head = searchHead(long);
+      expect(head.length, lessThanOrEqualTo(searchHeadLength));
+      expect(head.endsWith('плитка'), isTrue);
+    });
+
+    test('«есть ли слова» отвечает как полный разбор', () {
+      for (final text in ['', 'и в на', 'а б', 'плитка', 'в ванную']) {
+        expect(hasSearchWords(text), searchWords(text).isNotEmpty, reason: text);
+      }
+    });
+  });
+
   group('слово под курсором', () {
     test('решётка открывает теги, запрос без решётки', () {
       final token = caretToken('лампа #св', 9)!;

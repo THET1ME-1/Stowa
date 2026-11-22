@@ -2,6 +2,39 @@
 /// Для экрана истории заметки, без сети и без пакетов.
 library;
 
+/// Где одна правка поменяла текст: в прежнем тексте заменён кусок `[start, end)`, длина
+/// изменилась на [delta]. Для набора: правка одна и у курсора.
+class EditedRange {
+  const EditedRange(this.start, this.end, this.delta);
+
+  final int start;
+  final int end;
+  final int delta;
+
+  /// Правка задела кусок прежнего текста `[from, to)`: стёрла или заменила в нём букву или
+  /// вставила внутрь. Вставка у края кусок не трогает: «в 8» → «в 8 часов» — новая фраза,
+  /// её узнаёт разбор, а не место правки.
+  bool touches((int, int) span) => end > start ? start < span.$2 && end > span.$1 : start > span.$1 && start < span.$2;
+
+  /// Кусок прежнего текста на его месте в новом. Задетый правкой остаётся где был.
+  (int, int) shift((int, int) span) => span.$1 >= end && (end > start || span.$1 >= start) ? (span.$1 + delta, span.$2 + delta) : span;
+}
+
+/// Правка от [before] к [after]: общее начало и конец отрезаются, середина — правка.
+/// Идёт по кодам букв, не собирая строк.
+EditedRange editedRange(String before, String after) {
+  final shortest = before.length < after.length ? before.length : after.length;
+  var start = 0;
+  while (start < shortest && before.codeUnitAt(start) == after.codeUnitAt(start)) {
+    start++;
+  }
+  var tail = 0;
+  while (tail < shortest - start && before.codeUnitAt(before.length - 1 - tail) == after.codeUnitAt(after.length - 1 - tail)) {
+    tail++;
+  }
+  return EditedRange(start, before.length - tail, after.length - before.length);
+}
+
 enum DiffKind { same, added, removed }
 
 class DiffLine {

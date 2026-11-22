@@ -158,8 +158,24 @@ List<String> searchWords(String text) {
   final seen = <String>{};
   return [
     for (final word in wordsOf(text).map(foldText))
-      if (word.length >= 2 && !_stopWords.contains(word) && seen.add(stem(word))) word,
+      if (_searchable(word) && seen.add(stem(word))) word,
   ];
+}
+
+/// Есть ли в тексте слово для поиска: то же, что `searchWords(text).isNotEmpty`, но без основ
+/// и до первого такого слова — строке это нужно на каждую букву.
+bool hasSearchWords(String text) => wordMatches(text.toLowerCase()).any((match) => _searchable(foldText(match.group(0)!)));
+
+bool _searchable(String word) => word.length >= 2 && !_stopWords.contains(word);
+
+/// Сколько знаков строки ищет поиск: длинный текст пишут, а не ищут.
+const searchHeadLength = 240;
+
+/// Начало текста для поиска — до [searchHeadLength] знаков, по границе слова.
+String searchHead(String text) {
+  if (text.length <= searchHeadLength) return text;
+  final cut = text.lastIndexOf(RegExp(r'\s'), searchHeadLength);
+  return text.substring(0, cut > 0 ? cut : searchHeadLength);
 }
 
 /// Слова отличаются не больше чем на одну букву: лишняя, пропущенная или другая.

@@ -249,6 +249,49 @@ void main() {
     expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 20));
   });
 
+  // тестировщик 22.11: «когда пишешь длинный текст, лагает, 10 FPS» — длинный текст разбирается на паузе
+  group('длинная заметка: время и место разбираются, когда набор стих', () {
+    final long = List.filled(40, 'мысль про ремонт в ванной и плитку на кухне').join(' ');
+
+    testWidgets('«Готово» сразу после буквы ставит время из нынешнего текста', (tester) async {
+      await open(tester, body: 'Ремонт\n$long', title: 'Ремонт');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'Ремонт\n$long в 6 вечера позвонить');
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.tap(find.text('Готово'));
+      await tester.pumpAndSettle();
+      expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 18));
+    });
+
+    testWidgets('стёр время и набрал то же быстрее паузы — напоминание встаёт по тексту', (tester) async {
+      await open(tester, body: 'В 8 часов вечера пить пиво\n$long', title: 'Пить пиво');
+      final wrong = DateTime(world.now.year, world.now.month, world.now.day, 6);
+      await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(reminderAt: Value(wrong)));
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'В  часов вечера пить пиво\n$long');
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.enterText(find.byType(TextField).last, 'В 8 часов вечера пить пиво\n$long');
+      await tester.tap(find.text('Готово'));
+      await tester.pumpAndSettle();
+      expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 20));
+    });
+
+    testWidgets('правка далеко от времени не сбивает поставленное руками', (tester) async {
+      await open(tester, body: 'В 8 часов вечера пить пиво\n$long', title: 'Пить пиво');
+      final mine = DateTime(world.now.year, world.now.month, world.now.day, 21, 30);
+      await (world.db.update(world.db.items)..where((t) => t.id.equals('a'))).write(ItemsCompanion(reminderAt: Value(mine)));
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'В 8 часов вечера пить пиво\n$long и ещё затирка');
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.tap(find.text('Готово'));
+      await tester.pumpAndSettle();
+      expect((await saved()).reminderAt, mine);
+    });
+  });
+
   testWidgets('правка рядом со временем, само время не трогали — напоминание не сбивается', (tester) async {
     await open(tester, body: 'В 8 часов вечера пить пиво', title: 'Пить пиво');
     final mine = DateTime(world.now.year, world.now.month, world.now.day, 21, 30);

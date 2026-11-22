@@ -264,6 +264,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _paste.release(this);
     deskToasts.removeListener(_onDeskToast);
     _searchTimer?.cancel();
+    _settleTimer?.cancel();
     _warmTimer?.cancel();
     _toastTimer?.cancel();
     _morph.dispose();
@@ -284,7 +285,30 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   bool get _hasContent => _line.text.replaceAll(RegExp(r'(^|\s)[#@](?=\s|$)'), ' ').trim().isNotEmpty || _files.isNotEmpty;
 
   // строка под замком холст и базу не заводит: открыть их она не может
-  Map<LineCommand, List<String>> _commandKeys(L l) => commandKeys(l, documents: !widget.writeOnly);
+  // словарь команд один на язык: по нему же запоминаются разборы строки (queryOf)
+  Map<LineCommand, List<String>>? _keys;
+  String? _keysLocale;
+
+  Map<LineCommand, List<String>> _commandKeys(L l) {
+    if (_keys == null || _keysLocale != l.localeName) {
+      _keys = commandKeys(l, documents: !widget.writeOnly);
+      _keysLocale = l.localeName;
+    }
+    return _keys!;
+  }
+
+  // язык текста меняется только с разобранным текстом: проверка — раз на него, а не на кадр
+  String? _languageText;
+  bool _languageUnsupported = false;
+
+  bool get _unsupportedLanguage {
+    final text = _line.settledText;
+    if (_languageText != text) {
+      _languageText = text;
+      _languageUnsupported = unsupportedLanguage(text);
+    }
+    return _languageUnsupported;
+  }
 
   bool get _rested => !_active && _toast == null && _voice == null && !_sending && !_hasContent;
   bool _wasRested = true;
@@ -334,9 +358,19 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     }
   }
 
+  // длинный текст разбирается на время, место, папку и язык, когда набор стих
+  Timer? _settleTimer;
+  static const _settleDelay = Duration(milliseconds: 250);
+
   void _onLine() {
     _manual = false;
     if (_line.text.isEmpty) _filter = null;
+    if (!_line.settled) {
+      _settleTimer?.cancel();
+      _settleTimer = Timer(_settleDelay, () {
+        if (mounted) _line.settle();
+      });
+    }
     _scheduleSearch();
     // заметки для подсказки [[… читаются один раз, когда курсор впервые встал в скобки
     if (_wikiQuery != null && _linkTargets == null) {
@@ -373,17 +407,28 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     final caret = _line.selection.isValid ? _line.selection.extentOffset : _line.text.length;
     if (caretToken(_line.text, caret) != null) return;
     final query = queryOf(_line.text, _commandKeys(L.of(context)));
-    final search = parseSearch(query.free, _now);
-    final key = '${query.free.toLowerCase()}|${_line.tags.join(' ')}|${_line.folder?.id}';
+    // длинный текст ищется по началу: сотни слов в запросе ничего не находят, а считаются долго;
+    // дописывание в конец поиск не повторяет
+    final searched = searchHead(query.free);
+    final key = '${searched.toLowerCase()}|${_line.tags.join(' ')}|${_line.folder?.id}';
     if (key == _searchKey) return;
     _searchKey = key;
     _searchTimer?.cancel();
-    if (search.isEmpty && _line.tags.isEmpty && _line.folder == null) {
+    if (searched.trim().isEmpty && _line.tags.isEmpty && _line.folder == null) {
       _found = SearchFound.none;
       return;
     }
     final run = ++_searchRun;
-    _searchTimer = Timer(_searchDelay, () async {
+    // длинный текст пишут, а не ищут: поиск ждёт настоящей паузы, а не промежутка между буквами
+    final delay = _line.text.length > LineController.instantLength ? const Duration(milliseconds: 400) : _searchDelay;
+    _searchTimer = Timer(delay, () async {
+      // запрос разбирается, когда набор стих, а не на каждую букву: на длинном тексте разбор
+      // шёл двадцать миллисекунд на букву (тестировщик 22.11: «лагает, 10 FPS»)
+      final search = parseSearch(searched, _now);
+      if (search.isEmpty && _line.tags.isEmpty && _line.folder == null) {
+        if (mounted && run == _searchRun) setState(() => _found = SearchFound.none);
+        return;
+      }
       // «рядом» спрашивает, где телефон, только когда его попросили
       final here = search.near ? await ref.read(searchHereProvider)() : null;
       if (!mounted || run != _searchRun) return;
@@ -704,6 +749,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   Future<void> _save() async {
     if (_sending || !_hasContent) return;
+    // время и место — по тексту, который уходит, а не по прошлой паузе в наборе
+    _settleTimer?.cancel();
+    _line.settle();
     final l = L.of(context);
     // «Отменить» вернёт строку такой, какой её набрали, с метками в тексте
     final typed = (text: _line.text, tags: _line.tags, folder: _line.folder);
@@ -1053,6 +1101,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         // две прошлые заметки подряд в одной папке: подсказка видит серию, как и сохранение
         series: shows ? seriesOf([for (final card in (ref.watch(recentItemsProvider).value ?? const []).take(2)) (folderId: card.folderId, at: card.createdAt)], now) : null,
         writeOnly: widget.writeOnly,
+        settledText: _line.settledText,
       ),
     );
     final rows = _panel.rows;
@@ -1314,7 +1363,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
               // каждый кадр и рвёт анимацию на телефоне), а наложенным градиентом цвета строки
               // чужой язык, а ни время, ни место не нашлись: время цифрами понимается на любом.
               // Строкой, а не чипом: длинный текст в ряду чипов увёл бы крестик за край
-              if (!_languageHidden && _line.reminder == null && _line.placeCue == null && unsupportedLanguage(_line.text))
+              if (!_languageHidden && _line.reminder == null && _line.placeCue == null && _unsupportedLanguage)
                 _LanguageHint(text: l.lineLanguageHint, hideTooltip: l.lineLanguageHide, onHide: () => setState(() => _languageHidden = true)),
               if (_wikiQuery case final query?)
                 Padding(

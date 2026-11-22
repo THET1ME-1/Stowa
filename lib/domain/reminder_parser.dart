@@ -382,6 +382,9 @@ String? reminderPhrase(String text, DateTime now, {int workEnd = defaultWorkEnd}
   return found == null ? null : _phrase(text, found);
 }
 
+/// То же, что [reminderPhrase], по уже найденному: разбор не повторяется.
+String reminderPhraseOf(String text, ReminderMatch match) => _phrase(text, match);
+
 // куски даты и времени как написаны, без регистра: «Завтра в 10» и «завтра в 10» — одно
 String _phrase(String text, ReminderMatch match) => [for (final (from, to) in match.parts) text.substring(from, to).toLowerCase()].join(' ');
 
