@@ -51,6 +51,10 @@ import '../services/telegram_service.dart';
 import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
+import '../services/billing/billing_api.dart';
+import '../services/billing/store_channel.dart';
+import '../services/billing/subscription.dart';
+import '../services/billing/subscription_service.dart';
 import '../services/sync/sync_service.dart';
 import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
@@ -828,6 +832,43 @@ final syncServiceProvider = Provider((ref) {
   );
   ref.onDispose(service.dispose);
   return service;
+});
+
+/// Касса этой сборки: внешняя, Google Play или App Store. Тесты подменяют.
+final storeChannelProvider = Provider<StoreChannel>((ref) => storeChannelFrom(buildStoreChannel));
+
+/// Касса на сервере синхронизации.
+final billingApiProvider = Provider((ref) => BillingApi(ref.watch(syncHttpProvider) ?? http.Client()));
+
+/// Где лежит снимок подписки; в тестах — память.
+final subscriptionStoreProvider = Provider<KeyStore>((ref) => const SecureKeyStore('subscription'));
+
+/// Подписка аккаунта: снимок с сервера, сохранённый на устройстве.
+final subscriptionServiceProvider = Provider((ref) {
+  final service = SubscriptionService(sync: ref.watch(syncServiceProvider), store: ref.watch(subscriptionStoreProvider), api: ref.watch(billingApiProvider));
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+/// Подписка для экранов: сохранённый снимок сразу, свежий — как ответит сервер.
+final subscriptionProvider = StreamProvider<Subscription>((ref) {
+  final service = ref.watch(subscriptionServiceProvider);
+  final out = StreamController<Subscription>();
+  void send() {
+    if (!out.isClosed) out.add(service.state.value);
+  }
+
+  service.state.addListener(send);
+  service.load().then((_) {
+    send();
+    // аккаунт читается из защищённого хранилища: прочёлся — служба сама спросит сервер
+    return service.sync.account();
+  }).ignore();
+  ref.onDispose(() {
+    service.state.removeListener(send);
+    out.close();
+  });
+  return out.stream.distinct();
 });
 
 /// Сколько задач ждёт записи в хранилище: изменилось — главная разбирает очередь.

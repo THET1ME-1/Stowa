@@ -191,6 +191,24 @@ class SyncService {
     return true;
   }
 
+  /// Токен входа; null — не вошли.
+  Future<String?> token() async => (await account())?.token;
+
+  /// Подписка появилась: снять запрет, сразу пройти и ждать правок с других устройств.
+  void activate() {
+    status.value = status.value.copyWith(inactive: false);
+    _retries = 0;
+    unawaited(trigger?.call());
+    unawaited(listen());
+  }
+
+  /// Подписка кончилась: сервер файлы не примет, проходы и ожидание правок — впустую.
+  void deactivate() {
+    if (!status.value.inactive) status.value = status.value.copyWith(inactive: true);
+    _retry?.cancel();
+    stopListening();
+  }
+
   Future<void> signOut() async {
     final account = await this.account();
     if (account != null) {

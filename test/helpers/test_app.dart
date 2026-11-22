@@ -20,6 +20,7 @@ import 'package:stowa/domain/return_plan.dart';
 import 'package:stowa/features/privacy/privacy_flows.dart';
 import 'package:stowa/features/share/share_receiver.dart';
 import 'package:stowa/services/privacy/seal_crypto.dart';
+import 'package:stowa/services/billing/store_channel.dart';
 import 'package:stowa/services/edge_channel.dart';
 import 'package:stowa/services/link_checker.dart';
 import 'package:stowa/services/media_probe.dart';
@@ -245,6 +246,8 @@ class TestWorld {
         if (aiHttp case final aiHttp?) aiHttpProvider.overrideWithValue(aiHttp),
         // аккаунт синхронизации — в памяти, сервер — поддельный, если тест его дал
         syncAccountStoreProvider.overrideWithValue(syncAccount),
+        subscriptionStoreProvider.overrideWithValue(subscription),
+        storeChannelProvider.overrideWithValue(storeChannel),
         // тесты в сеть не ходят: без своего сервера — поддельный, который всем отказывает
         syncHttpProvider.overrideWithValue(syncHttp ?? MockClient((_) async => http.Response('', 401))),
         if (vaultRoot case final vaultRoot?) vaultRootProvider.overrideWith(() => VaultRootNotifier(vaultRoot)),
@@ -256,6 +259,12 @@ class TestWorld {
 
   /// Аккаунт синхронизации: по умолчанию не вошли.
   final syncAccount = MemoryKeyStore();
+
+  /// Снимок подписки на устройстве: по умолчанию пусто.
+  final subscription = MemoryKeyStore();
+
+  /// Касса сборки: по умолчанию внешняя (APK с GitHub, сайт).
+  StoreChannel storeChannel = StoreChannel.direct;
 
   /// Поддельный сервер синхронизации.
   http.Client? syncHttp;
