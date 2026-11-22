@@ -181,12 +181,18 @@ void main() {
     // последний кусок далеко внизу: прокручиваем к нему
     await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -2000));
     await tester.pumpAndSettle();
-    final piece = _fields(tester)[3];
-    expect(piece.readOnly, isTrue);
+    // неподвижный кусок, чья десятая буква на экране
+    late EditableText piece;
+    late Offset at;
+    for (final field in _fields(tester).where((field) => field.readOnly)) {
+      final editable = tester.state<EditableTextState>(find.byWidget(field)).renderEditable;
+      final box = editable.getBoxesForSelection(const TextSelection(baseOffset: 10, extentOffset: 11)).first;
+      at = editable.localToGlobal(Offset(box.left + 1, (box.top + box.bottom) / 2));
+      piece = field;
+      if (at.dy > 100 && at.dy < 500) break;
+    }
     final pieceStart = text.indexOf(piece.controller.text);
-    final editable = tester.state<EditableTextState>(find.byWidget(piece)).renderEditable;
-    final box = editable.getBoxesForSelection(const TextSelection(baseOffset: 10, extentOffset: 11)).first;
-    await tester.tapAt(editable.localToGlobal(Offset(box.left + 1, (box.top + box.bottom) / 2)));
+    await tester.tapAt(at);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(field.focus.hasFocus, isTrue);
