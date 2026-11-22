@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="robots" content="noindex">
+  <title>Stowa Sync</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <!-- Сюда касса возвращает после оплаты Stowa Sync. Подписку включает сервер, а приложение
+       узнаёт о ней само, вернувшись на экран: эта страница только говорит, что делать дальше. -->
+  <style>
+    @font-face { font-family: Unbounded; src: url('assets/assets/fonts/Unbounded.ttf'); font-weight: 200 900; font-display: swap; }
+    @font-face { font-family: Onest; src: url('assets/assets/fonts/Onest.ttf'); font-weight: 100 900; font-display: swap; }
+    :root {
+      --bg: #141517; --card: #26272B; --ink: #F2F2F0; --muted: #B0B1B6; --accent: #F4F4F2; --on-accent: #141517;
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #F6F6F4; --card: #E4E4E1; --ink: #1B1C1E; --muted: #46474C; --accent: #1B1C1E; --on-accent: #F6F6F4; }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); }
+    body { font-family: Onest, system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; padding: 24px 16px; }
+    main { width: 100%; max-width: 440px; background: var(--card); border-radius: 28px; padding: 28px 24px 24px; }
+    .mark { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 22px; font-weight: 700; margin-bottom: 18px; }
+    h1 { font-family: Unbounded, Onest, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 10px; text-wrap: balance; }
+    p { margin: 0; font-size: 16px; line-height: 1.45; color: var(--muted); text-wrap: pretty; }
+    .brand { margin-top: 22px; font-size: 12px; letter-spacing: 0.02em; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark" id="mark" aria-hidden="true">✓</div>
+    <h1 id="title">Оплата прошла</h1>
+    <p id="text">Вернитесь в Stowa: подписка включится сама через несколько секунд. Эту вкладку можно закрыть.</p>
+    <div class="brand">Stowa Sync</div>
+  </main>
+  <script>
+    // язык — по браузеру, исход — по адресу: касса возвращает сюда и при отказе (`?failed`)
+    var ru = /^(ru|uk|be)/i.test(navigator.language || '');
+    var failed = location.search.indexOf('failed') !== -1;
+    var texts = {
+      ok: ru ? ['Оплата прошла', 'Вернитесь в Stowa: подписка включится сама через несколько секунд. Эту вкладку можно закрыть.']
+             : ['Payment complete', 'Go back to Stowa: your subscription turns on by itself in a few seconds. You can close this tab.'],
+      failed: ru ? ['Оплата не прошла', 'Деньги не списаны. Вернитесь в Stowa и попробуйте ещё раз.']
+                 : ['Payment didn’t go through', 'You weren’t charged. Go back to Stowa and try again.']
+    };
+    var t = failed ? texts.failed : texts.ok;
+    document.documentElement.lang = ru ? 'ru' : 'en';
+    document.getElementById('title').textContent = t[0];
+    document.getElementById('text').textContent = t[1];
+    if (failed) document.getElementById('mark').textContent = '!';
+  </script>
+</body>
+</html>

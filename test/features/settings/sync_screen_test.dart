@@ -200,10 +200,19 @@ void main() {
     expect(find.byKey(const ValueKey('sync-now')), findsOneWidget);
   });
 
-  testWidgets('без хранилища — подсказка выбрать папку, полей нет', (tester) async {
+  // войти надо и без хранилища: купить подписку или забрать выданную можно до выбора папки
+  testWidgets('вход без хранилища — после входа подсказка выбрать папку', (tester) async {
     world.vaultRoot = null;
     await open(tester);
-    expect(find.byKey(const ValueKey('sync-email')), findsNothing);
+    expect(find.textContaining('папку хранилища'), findsNothing);
+    await tester.enterText(find.byKey(const ValueKey('sync-email')), 'me@x.io');
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('sync-get-code')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('sync-code')), '123456');
+    await tester.pumpAndSettle();
+    expect(find.text('me@x.io'), findsOneWidget);
     expect(find.textContaining('папку хранилища'), findsOneWidget);
+    expect(find.byKey(const ValueKey('sync-now')), findsNothing);
   });
 }

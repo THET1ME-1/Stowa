@@ -4783,4 +4783,255 @@ class LEs extends L {
 
   @override
   String get panelWaiting => 'Esperando la pestaña de Stowa…';
+
+  @override
+  String get accountSignIn => 'Iniciar sesión';
+
+  @override
+  String get accountSignInHint => 'Si te regalaron una suscripción';
+
+  @override
+  String get accountTitle => 'Cuenta';
+
+  @override
+  String get signInTitle => 'Iniciar sesión';
+
+  @override
+  String get signInIntro =>
+      'Te enviaremos un código por correo. No hace falta contraseña, y la cuenta se crea sola la primera vez que entras.';
+
+  @override
+  String get accountDelete => 'Eliminar cuenta';
+
+  @override
+  String accountDeleteAsk(String email) {
+    return '¿Eliminar la cuenta $email?';
+  }
+
+  @override
+  String get accountDeleteHint =>
+      'Las notas de este dispositivo se quedan. Sus copias y tu suscripción se borran del servidor.';
+
+  @override
+  String get accountDeleteStorePlay =>
+      'Una suscripción de Google Play no se detiene sola: cancélala en Google Play.';
+
+  @override
+  String get accountDeleteStoreApple =>
+      'Una suscripción del App Store no se detiene sola: cancélala en los ajustes de tu Apple ID.';
+
+  @override
+  String get accountDeleteStoreAny =>
+      'Una suscripción de Google Play o del App Store no se detiene sola: cancélala en la tienda.';
+
+  @override
+  String get accountDeleteLive =>
+      'Primero cancela la renovación de la suscripción; si no, se te seguirá cobrando.';
+
+  @override
+  String get accountDeleted => 'Cuenta eliminada';
+
+  @override
+  String get subBuy => 'Suscribirme';
+
+  @override
+  String get subBuyHint =>
+      'Sincronización, nube para archivos y panel lateral del navegador';
+
+  @override
+  String subActiveUntil(String date) {
+    return 'Stowa Sync hasta el $date';
+  }
+
+  @override
+  String get paywallLead =>
+      'Tus notas y archivos en todos tus dispositivos. En un solo dispositivo, Stowa sigue siendo gratis.';
+
+  @override
+  String get featureSync => 'Sincronización con cifrado de extremo a extremo';
+
+  @override
+  String get featureSyncHint =>
+      'El teléfono, la web y el ordenador ven lo mismo. Cifra tu dispositivo; el servidor solo ve texto cifrado.';
+
+  @override
+  String get featureFiles => 'Nube para archivos';
+
+  @override
+  String get featureFilesHint =>
+      'Las fotos, los vídeos y los PDF llegan a todos tus dispositivos.';
+
+  @override
+  String get featurePanel => 'Panel lateral en el navegador';
+
+  @override
+  String get featurePanelHint => 'Apunta y busca sin salir de la página.';
+
+  @override
+  String get featureHistory => 'Historial de versiones';
+
+  @override
+  String get featureHistoryHint =>
+      'Cada cambio de una nota se guarda en el servidor: ves qué cambió y recuperas cualquier versión.';
+
+  @override
+  String get featureLinks => 'Tablero por enlace';
+
+  @override
+  String get featureLinksHint =>
+      'Enseña un tablero a quien quieras. La clave va dentro del enlace, así que el servidor no puede leerlo.';
+
+  @override
+  String get soon => 'Pronto';
+
+  @override
+  String get planMonth => 'Mes';
+
+  @override
+  String get planQuarter => '3 meses';
+
+  @override
+  String get planYear => 'Año';
+
+  @override
+  String planPerMonth(String price) {
+    return '$price al mes';
+  }
+
+  @override
+  String planSave(int percent) {
+    return 'Ahorra un $percent %';
+  }
+
+  @override
+  String get paywallContinue => 'Continuar';
+
+  @override
+  String get paywallWaiting => 'Esperando el pago';
+
+  @override
+  String get paywallWaitingHint =>
+      'La página de pago se abrió en el navegador. En cuanto se complete el pago, la suscripción se activará sola.';
+
+  @override
+  String get paywallOpenAgain => 'Abrir el pago otra vez';
+
+  @override
+  String get paywallDone => 'Stowa Sync está activa';
+
+  @override
+  String paywallDoneUntil(String date) {
+    return 'Hasta el $date. La sincronización ya empezó.';
+  }
+
+  @override
+  String get paywallDoneButton => 'Listo';
+
+  @override
+  String get paywallFailed => 'El pago no se completó. Inténtalo de nuevo.';
+
+  @override
+  String get paywallUnavailable =>
+      'Ahora no se puede pagar. Revisa la conexión e inténtalo más tarde.';
+
+  @override
+  String get paywallOwned =>
+      'Esta compra pertenece a otra cuenta de Stowa. Inicia sesión en ella para usar la suscripción.';
+
+  @override
+  String get paywallRestore => 'Restaurar compra';
+
+  @override
+  String get paywallRestoreNothing => 'No hay compras que restaurar';
+
+  @override
+  String get paywallTerms => 'Condiciones';
+
+  @override
+  String get paywallPrivacy => 'Privacidad';
+
+  @override
+  String get paywallRenewDirect =>
+      'La suscripción se renueva sola al final de cada periodo. Puedes cancelar la renovación cuando quieras en los ajustes de Stowa y conservas el acceso hasta el final del periodo pagado.';
+
+  @override
+  String get paywallRenewPlay =>
+      'La suscripción se renueva sola al final de cada periodo y se cobra a través de Google Play. Puedes cancelarla cuando quieras en Google Play, en «Pagos y suscripciones».';
+
+  @override
+  String get paywallRenewApple =>
+      'El pago se carga a tu Apple ID al confirmar la compra. La suscripción se renueva automáticamente salvo que desactives la renovación al menos 24 horas antes del final del periodo. Gestiónala en los ajustes de tu Apple ID.';
+
+  @override
+  String get subTitle => 'Suscripción';
+
+  @override
+  String get subPlan => 'Plan';
+
+  @override
+  String get subUntil => 'Activa hasta';
+
+  @override
+  String subRenewOn(String date) {
+    return 'Se renueva el $date';
+  }
+
+  @override
+  String subRenewOff(String date) {
+    return 'Renovación cancelada, acceso hasta el $date';
+  }
+
+  @override
+  String get subSourceGrant => 'Regalada por el equipo de Stowa';
+
+  @override
+  String get subSourceCard => 'Pagada con tarjeta';
+
+  @override
+  String get subSourcePlay => 'Google Play';
+
+  @override
+  String get subSourceApple => 'App Store';
+
+  @override
+  String get subTest => 'Compra de prueba';
+
+  @override
+  String get subCancel => 'Cancelar renovación';
+
+  @override
+  String subCancelAsk(String date) {
+    return '¿Cancelar la renovación? Stowa Sync seguirá funcionando hasta el $date.';
+  }
+
+  @override
+  String get subKeep => 'Mantener';
+
+  @override
+  String get subCancelled => 'Renovación cancelada';
+
+  @override
+  String get subManagePlay => 'Gestionar en Google Play';
+
+  @override
+  String get subManageApple => 'Gestionar en el App Store';
+
+  @override
+  String get syncOffer => 'La sincronización forma parte de Stowa Sync';
+
+  @override
+  String get syncOfferHint =>
+      'Suscríbete y tus notas coincidirán en todos tus dispositivos.';
+
+  @override
+  String get syncHaveSub => '¿Ya tienes suscripción? Inicia sesión';
+
+  @override
+  String get panelSubLocked => 'El panel lateral forma parte de Stowa Sync';
+
+  @override
+  String get panelSubLockedHint => 'Suscríbete y el panel se abrirá.';
+
+  @override
+  String get panelSubOpen => 'Conseguir Stowa Sync';
 }

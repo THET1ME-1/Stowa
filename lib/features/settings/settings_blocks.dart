@@ -11,7 +11,7 @@ Color settingsTint(String key) => FolderPalette.colors[key]!;
 
 /// Экран настроек вырастает из нажатой строки (переход темы). Раздел длиннее
 /// пяти строк живёт на своём экране.
-Route<void> settingsPageRoute(Widget page) => MaterialPageRoute(builder: (context) => DeskMode.of(context) ? _DeskPage(child: page) : page);
+Route<T> settingsPageRoute<T>(Widget page) => MaterialPageRoute<T>(builder: (context) => DeskMode.of(context) ? _DeskPage(child: page) : page);
 
 /// Экран настроек на мониторе: колонкой не шире 760 точек по центру окна, как текст заметки,
 /// а не полями и кнопками во всю ширину вкладки.

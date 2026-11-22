@@ -4811,4 +4811,255 @@ class LRo extends L {
 
   @override
   String get panelWaiting => 'Aștept fila Stowa…';
+
+  @override
+  String get accountSignIn => 'Conectează-te';
+
+  @override
+  String get accountSignInHint => 'Dacă ai primit un abonament';
+
+  @override
+  String get accountTitle => 'Cont';
+
+  @override
+  String get signInTitle => 'Conectare';
+
+  @override
+  String get signInIntro =>
+      'Îți trimitem un cod pe e-mail. Nu ai nevoie de parolă, iar contul apare singur la prima conectare.';
+
+  @override
+  String get accountDelete => 'Șterge contul';
+
+  @override
+  String accountDeleteAsk(String email) {
+    return 'Ștergi contul $email?';
+  }
+
+  @override
+  String get accountDeleteHint =>
+      'Notițele de pe acest dispozitiv rămân. Copiile lor și abonamentul se șterg de pe server.';
+
+  @override
+  String get accountDeleteStorePlay =>
+      'Un abonament Google Play nu se oprește singur: anulează-l în Google Play.';
+
+  @override
+  String get accountDeleteStoreApple =>
+      'Un abonament App Store nu se oprește singur: anulează-l în setările Apple ID.';
+
+  @override
+  String get accountDeleteStoreAny =>
+      'Un abonament Google Play sau App Store nu se oprește singur: anulează-l în magazin.';
+
+  @override
+  String get accountDeleteLive =>
+      'Anulează mai întâi reînnoirea abonamentului, altfel plățile continuă.';
+
+  @override
+  String get accountDeleted => 'Cont șters';
+
+  @override
+  String get subBuy => 'Cumpără abonament';
+
+  @override
+  String get subBuyHint =>
+      'Sincronizare, cloud pentru fișiere și panoul lateral din browser';
+
+  @override
+  String subActiveUntil(String date) {
+    return 'Stowa Sync până pe $date';
+  }
+
+  @override
+  String get paywallLead =>
+      'Notițele și fișierele tale pe toate dispozitivele. Pe un singur dispozitiv, Stowa rămâne gratuită.';
+
+  @override
+  String get featureSync => 'Sincronizare cu criptare end-to-end';
+
+  @override
+  String get featureSyncHint =>
+      'Telefonul, site-ul și calculatorul văd același lucru. Criptează dispozitivul tău, serverul vede doar textul cifrat.';
+
+  @override
+  String get featureFiles => 'Cloud pentru fișiere';
+
+  @override
+  String get featureFilesHint =>
+      'Fotografiile, videoclipurile și PDF-urile ajung pe toate dispozitivele.';
+
+  @override
+  String get featurePanel => 'Panou lateral în browser';
+
+  @override
+  String get featurePanelHint => 'Notezi și cauți fără să părăsești pagina.';
+
+  @override
+  String get featureHistory => 'Istoricul versiunilor';
+
+  @override
+  String get featureHistoryHint =>
+      'Fiecare modificare a unei notițe stă pe server: vezi ce s-a schimbat și readuci orice versiune.';
+
+  @override
+  String get featureLinks => 'Tablă prin link';
+
+  @override
+  String get featureLinksHint =>
+      'Arată o tablă oricui. Cheia stă chiar în link, așa că serverul nu o poate citi.';
+
+  @override
+  String get soon => 'În curând';
+
+  @override
+  String get planMonth => 'Lună';
+
+  @override
+  String get planQuarter => '3 luni';
+
+  @override
+  String get planYear => 'An';
+
+  @override
+  String planPerMonth(String price) {
+    return '$price pe lună';
+  }
+
+  @override
+  String planSave(int percent) {
+    return 'Economisești $percent%';
+  }
+
+  @override
+  String get paywallContinue => 'Continuă';
+
+  @override
+  String get paywallWaiting => 'Așteptăm plata';
+
+  @override
+  String get paywallWaitingHint =>
+      'Pagina de plată s-a deschis în browser. Imediat ce plata trece, abonamentul pornește singur.';
+
+  @override
+  String get paywallOpenAgain => 'Deschide din nou plata';
+
+  @override
+  String get paywallDone => 'Stowa Sync e activă';
+
+  @override
+  String paywallDoneUntil(String date) {
+    return 'Până pe $date. Sincronizarea a început deja.';
+  }
+
+  @override
+  String get paywallDoneButton => 'Gata';
+
+  @override
+  String get paywallFailed => 'Plata nu a trecut. Încearcă din nou.';
+
+  @override
+  String get paywallUnavailable =>
+      'Plata nu e disponibilă acum. Verifică conexiunea și încearcă mai târziu.';
+
+  @override
+  String get paywallOwned =>
+      'Această achiziție aparține altui cont Stowa. Conectează-te la el ca să folosești abonamentul.';
+
+  @override
+  String get paywallRestore => 'Restaurează achiziția';
+
+  @override
+  String get paywallRestoreNothing => 'Nu sunt achiziții de restaurat';
+
+  @override
+  String get paywallTerms => 'Condiții';
+
+  @override
+  String get paywallPrivacy => 'Confidențialitate';
+
+  @override
+  String get paywallRenewDirect =>
+      'Abonamentul se reînnoiește singur la sfârșitul fiecărei perioade. Poți anula reînnoirea oricând din setările Stowa și păstrezi accesul până la sfârșitul perioadei plătite.';
+
+  @override
+  String get paywallRenewPlay =>
+      'Abonamentul se reînnoiește singur la sfârșitul fiecărei perioade, iar plata trece prin Google Play. Îl poți anula oricând în Google Play, la „Plăți și abonamente”.';
+
+  @override
+  String get paywallRenewApple =>
+      'Plata se încasează din Apple ID la confirmarea achiziției. Abonamentul se reînnoiește automat dacă reînnoirea nu e oprită cu cel puțin 24 de ore înainte de sfârșitul perioadei. Îl gestionezi din setările Apple ID.';
+
+  @override
+  String get subTitle => 'Abonament';
+
+  @override
+  String get subPlan => 'Plan';
+
+  @override
+  String get subUntil => 'Activ până pe';
+
+  @override
+  String subRenewOn(String date) {
+    return 'Se reînnoiește pe $date';
+  }
+
+  @override
+  String subRenewOff(String date) {
+    return 'Reînnoire anulată, acces până pe $date';
+  }
+
+  @override
+  String get subSourceGrant => 'Oferit de echipa Stowa';
+
+  @override
+  String get subSourceCard => 'Plătit cu cardul';
+
+  @override
+  String get subSourcePlay => 'Google Play';
+
+  @override
+  String get subSourceApple => 'App Store';
+
+  @override
+  String get subTest => 'Achiziție de test';
+
+  @override
+  String get subCancel => 'Anulează reînnoirea';
+
+  @override
+  String subCancelAsk(String date) {
+    return 'Anulezi reînnoirea? Stowa Sync va funcționa până pe $date.';
+  }
+
+  @override
+  String get subKeep => 'Păstrează';
+
+  @override
+  String get subCancelled => 'Reînnoire anulată';
+
+  @override
+  String get subManagePlay => 'Gestionează în Google Play';
+
+  @override
+  String get subManageApple => 'Gestionează în App Store';
+
+  @override
+  String get syncOffer => 'Sincronizarea face parte din Stowa Sync';
+
+  @override
+  String get syncOfferHint =>
+      'Fă-ți abonament și notițele vor fi la fel pe toate dispozitivele.';
+
+  @override
+  String get syncHaveSub => 'Ai deja abonament? Conectează-te';
+
+  @override
+  String get panelSubLocked => 'Panoul lateral face parte din Stowa Sync';
+
+  @override
+  String get panelSubLockedHint => 'Fă-ți abonament și panoul se deschide.';
+
+  @override
+  String get panelSubOpen => 'Ia Stowa Sync';
 }

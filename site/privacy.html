@@ -15,16 +15,18 @@
     <nav class="pills">
       <a class="pill" href="./">Support</a>
       <a class="pill" href="privacy.html" aria-current="page">Privacy</a>
+      <a class="pill" href="terms.html">Terms</a>
       <a class="pill" href="ru/privacy.html" hreflang="ru" lang="ru">RU</a>
     </nav>
   </div>
 
   <h1>Privacy Policy</h1>
-  <p class="lead">Stowa is a notes app for Android and iPhone. This page lists what the app keeps on your phone and what it sends, where, and when.</p>
-  <p class="date">Effective November 15, 2026.</p>
+  <p class="lead">Stowa is a notes app for Android, iPhone and the browser. This page lists what the app keeps on your device and what it sends, where, and when.</p>
+  <p class="date">Effective November 22, 2026.</p>
 
   <div class="short">
-    <p>Your notes, photos, and files stay on your phone. Stowa has no account, no ads, and no analytics.</p>
+    <p>Your notes, photos, and files stay on your device. Stowa has no ads and no analytics. You need an account only to sign in to Stowa Sync, the subscription sync.</p>
+    <p>With Stowa Sync, copies of your notes and files are kept on our server. Your device encrypts them before sending, and the server stores only encrypted data.</p>
     <p>We receive crash reports, without note text or file names, which you can turn off in Settings → Data → Error reports. And the support messages you send yourself from Settings → Help.</p>
     <p>Anything else leaves the phone only when your own action needs it: loading a link preview, finding an address on the map, or sorting a note with your AI key.</p>
   </div>
@@ -37,6 +39,16 @@
   <p>Hidden folders are encrypted with your passcode while closed. Their text is then absent from the database and from search. We cannot open them without the passcode, and we never have it.</p>
   <p>Stowa writes backups as an archive to the place you choose. If system backup is on (Google on Android, iCloud on iPhone), the system may copy app data to your account under Google's or Apple's terms. You can switch it off in your phone settings.</p>
   <p>Your AI key, Telegram bot token, and app passcode are stored only on the phone.</p>
+  <p>In the browser, notes live in the private storage of the stowa.work site on your computer. The site sends them nowhere until you sign in to Stowa Sync.</p>
+
+  <h2 style="--dot:#9ad0ff">Account and Stowa Sync</h2>
+  <p>Your account is your email address. There is no password: when you sign in, we email you a code. The email goes out through Brevo (France), an email delivery service. To stop code guessing, the server remembers the email and IP address of each code request and erases them after 7 days.</p>
+  <p>When sync is on, your device encrypts every note and file before sending it. The encrypted pieces are stored with Hetzner in Helsinki (Finland). Our server in Moscow (Russia) keeps your email, the list of your files and their versions under numbers (file names are encrypted together with the contents) and your subscription period. Older versions of files are kept for 30 days.</p>
+  <p>Your device creates the encryption key. So that signing in is enough on a new device, a copy of the key is stored on the server, locked with a separate server key. Without that server key the copy can't be opened.</p>
+
+  <h2 style="--dot:#c8b3ff">Payments</h2>
+  <p>You pay for the subscription in Google Play, in the App Store, or by card outside the stores. Card details never reach us. The store tells our server the purchase number, plan and period, and our server checks them with the store itself. The card payment service receives your account email to issue the invoice and tells us about payments, renewals, cancellations and refunds.</p>
+  <p>We keep payment records for as long as accounting law requires, even after you delete your account.</p>
 
   <h2 style="--dot:#5fcdf5">What leaves your phone</h2>
   <div class="table">
@@ -90,6 +102,7 @@
 
   <h2 style="--dot:#51d5ce">Your rights</h2>
   <p>Your notes are yours: open, copy, export to Markdown, or delete them along with the notes folder. Uninstalling the app erases its database and settings. A notes folder in shared storage stays until you delete it.</p>
+  <p>You delete your account in the app: Settings → Account → Delete account. The server immediately erases your email, the copies of your notes and files, the key and the subscription; notes on your device stay. If deleting in the app doesn't work, email us from your account address and we'll delete it for you. Deleting the account doesn't stop a Google Play or App Store subscription: cancel it in the store.</p>
   <p>You have the right to learn what data we hold about you, to correct or delete it, and to object to processing. Crash reports are anonymous and we cannot link them to you. We can find your support messages by the email you left in them and delete them on request. Write to us with any question. You can file a complaint with the National Center for Personal Data Protection of the Republic of Moldova or with the supervisory authority in your country.</p>
 
   <h2 style="--dot:#f89ec1">Children</h2>

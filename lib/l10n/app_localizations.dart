@@ -8140,6 +8140,438 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Waiting for the Stowa tab…'**
   String get panelWaiting;
+
+  /// Пункт настроек: войти без покупки
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get accountSignIn;
+
+  /// Подпись под «Войти» в настройках
+  ///
+  /// In en, this message translates to:
+  /// **'If you were given a subscription'**
+  String get accountSignInHint;
+
+  /// Экран аккаунта
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountTitle;
+
+  /// Заголовок экрана входа
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInTitle;
+
+  /// Пояснение на экране входа
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll email you a code. No password needed, and your account is created the first time you sign in.'**
+  String get signInIntro;
+
+  /// Кнопка удаления аккаунта
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get accountDelete;
+
+  /// Вопрос перед удалением аккаунта
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the account {email}?'**
+  String accountDeleteAsk(String email);
+
+  /// Что сотрётся при удалении аккаунта
+  ///
+  /// In en, this message translates to:
+  /// **'Notes on this device stay. Their copies and your subscription are erased from the server.'**
+  String get accountDeleteHint;
+
+  /// Удаление аккаунта, сборка Google Play
+  ///
+  /// In en, this message translates to:
+  /// **'A Google Play subscription won\'t stop by itself: cancel it in Google Play.'**
+  String get accountDeleteStorePlay;
+
+  /// Удаление аккаунта, сборка App Store
+  ///
+  /// In en, this message translates to:
+  /// **'An App Store subscription won\'t stop by itself: cancel it in your Apple ID settings.'**
+  String get accountDeleteStoreApple;
+
+  /// Удаление аккаунта, сборка вне магазинов
+  ///
+  /// In en, this message translates to:
+  /// **'A Google Play or App Store subscription won\'t stop by itself: cancel it in the store.'**
+  String get accountDeleteStoreAny;
+
+  /// Удалить нельзя: продление подписки не отменено
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the subscription renewal first, otherwise you\'ll keep being charged.'**
+  String get accountDeleteLive;
+
+  /// Аккаунт удалён
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get accountDeleted;
+
+  /// Первый пункт настроек, цветом акцента
+  ///
+  /// In en, this message translates to:
+  /// **'Get a subscription'**
+  String get subBuy;
+
+  /// Подпись под «Купить подписку»
+  ///
+  /// In en, this message translates to:
+  /// **'Sync, cloud for files and the browser side panel'**
+  String get subBuyHint;
+
+  /// Первый пункт настроек при подписке
+  ///
+  /// In en, this message translates to:
+  /// **'Stowa Sync until {date}'**
+  String subActiveUntil(String date);
+
+  /// Под заголовком экрана покупки
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes and files on every device. Stowa on a single device stays free.'**
+  String get paywallLead;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'End-to-end encrypted sync'**
+  String get featureSync;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Phone, website and computer see the same thing. Your device encrypts, the server only sees ciphertext.'**
+  String get featureSyncHint;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud for files'**
+  String get featureFiles;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Photos, videos and PDFs reach all your devices.'**
+  String get featureFilesHint;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Browser side panel'**
+  String get featurePanel;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Save and find without leaving the page.'**
+  String get featurePanelHint;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Version history'**
+  String get featureHistory;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Every edit of a note is kept on the server: see what changed and bring back any version.'**
+  String get featureHistoryHint;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Share a board by link'**
+  String get featureLinks;
+
+  /// Что даёт подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Show a board to anyone. The key lives in the link itself, so the server can\'t read it.'**
+  String get featureLinksHint;
+
+  /// Пометка у ещё не вышедшей возможности
+  ///
+  /// In en, this message translates to:
+  /// **'Soon'**
+  String get soon;
+
+  /// Тариф
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get planMonth;
+
+  /// Тариф
+  ///
+  /// In en, this message translates to:
+  /// **'3 months'**
+  String get planQuarter;
+
+  /// Тариф
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get planYear;
+
+  /// Цена тарифа в пересчёте на месяц
+  ///
+  /// In en, this message translates to:
+  /// **'{price} per month'**
+  String planPerMonth(String price);
+
+  /// Выгода к помесячной оплате
+  ///
+  /// In en, this message translates to:
+  /// **'Save {percent}%'**
+  String planSave(int percent);
+
+  /// Кнопка экрана покупки
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get paywallContinue;
+
+  /// Страница оплаты открыта в браузере
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for payment'**
+  String get paywallWaiting;
+
+  /// Страница оплаты открыта в браузере
+  ///
+  /// In en, this message translates to:
+  /// **'The payment page opened in your browser. As soon as the payment goes through, the subscription turns on by itself.'**
+  String get paywallWaitingHint;
+
+  /// Открыть страницу оплаты ещё раз
+  ///
+  /// In en, this message translates to:
+  /// **'Open payment again'**
+  String get paywallOpenAgain;
+
+  /// Оплата прошла
+  ///
+  /// In en, this message translates to:
+  /// **'Stowa Sync is on'**
+  String get paywallDone;
+
+  /// Оплата прошла
+  ///
+  /// In en, this message translates to:
+  /// **'Until {date}. Sync has already started.'**
+  String paywallDoneUntil(String date);
+
+  /// Закрыть экран покупки
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get paywallDoneButton;
+
+  /// Оплата не прошла
+  ///
+  /// In en, this message translates to:
+  /// **'The payment didn\'t go through. Please try again.'**
+  String get paywallFailed;
+
+  /// Касса не ответила
+  ///
+  /// In en, this message translates to:
+  /// **'Payment isn\'t available right now. Check your connection and try later.'**
+  String get paywallUnavailable;
+
+  /// Чек магазина принадлежит другому аккаунту
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase belongs to another Stowa account. Sign in to it to use the subscription.'**
+  String get paywallOwned;
+
+  /// Только в сборках магазинов
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get paywallRestore;
+
+  /// Восстанавливать нечего
+  ///
+  /// In en, this message translates to:
+  /// **'No purchases to restore'**
+  String get paywallRestoreNothing;
+
+  /// Ссылка на условия
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get paywallTerms;
+
+  /// Ссылка на политику
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get paywallPrivacy;
+
+  /// Условия продления, сборка вне магазинов
+  ///
+  /// In en, this message translates to:
+  /// **'The subscription renews automatically at the end of each period. You can cancel the renewal anytime in Stowa settings and keep access until the paid period ends.'**
+  String get paywallRenewDirect;
+
+  /// Условия продления, Google Play
+  ///
+  /// In en, this message translates to:
+  /// **'The subscription renews automatically at the end of each period and is billed through Google Play. You can cancel anytime in Google Play under Payments & subscriptions.'**
+  String get paywallRenewPlay;
+
+  /// Условия продления, App Store
+  ///
+  /// In en, this message translates to:
+  /// **'Payment is charged to your Apple ID when you confirm the purchase. The subscription renews automatically unless auto-renew is turned off at least 24 hours before the end of the period. Manage it in your Apple ID settings.'**
+  String get paywallRenewApple;
+
+  /// Экран подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subTitle;
+
+  /// Строка экрана подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get subPlan;
+
+  /// Строка экрана подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Active until'**
+  String get subUntil;
+
+  /// Продление включено
+  ///
+  /// In en, this message translates to:
+  /// **'Renews {date}'**
+  String subRenewOn(String date);
+
+  /// Продление отменено
+  ///
+  /// In en, this message translates to:
+  /// **'Renewal cancelled, access until {date}'**
+  String subRenewOff(String date);
+
+  /// Откуда подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Given by the Stowa team'**
+  String get subSourceGrant;
+
+  /// Откуда подписка: оплата вне магазинов
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by card'**
+  String get subSourceCard;
+
+  /// Откуда подписка
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play'**
+  String get subSourcePlay;
+
+  /// Откуда подписка
+  ///
+  /// In en, this message translates to:
+  /// **'App Store'**
+  String get subSourceApple;
+
+  /// Покупка песочницы или тестировщика
+  ///
+  /// In en, this message translates to:
+  /// **'Test purchase'**
+  String get subTest;
+
+  /// Отменить продление подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel renewal'**
+  String get subCancel;
+
+  /// Вопрос перед отменой продления
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel renewal? Stowa Sync will keep working until {date}.'**
+  String subCancelAsk(String date);
+
+  /// Не отменять продление
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get subKeep;
+
+  /// Продление отменено
+  ///
+  /// In en, this message translates to:
+  /// **'Renewal cancelled'**
+  String get subCancelled;
+
+  /// Страница подписок магазина
+  ///
+  /// In en, this message translates to:
+  /// **'Manage in Google Play'**
+  String get subManagePlay;
+
+  /// Страница подписок магазина
+  ///
+  /// In en, this message translates to:
+  /// **'Manage in App Store'**
+  String get subManageApple;
+
+  /// Вошёл без подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is part of Stowa Sync'**
+  String get syncOffer;
+
+  /// Вошёл без подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Get a subscription and your notes will match on every device.'**
+  String get syncOfferHint;
+
+  /// Над формой входа на экране Stowa Sync
+  ///
+  /// In en, this message translates to:
+  /// **'Already subscribed? Sign in'**
+  String get syncHaveSub;
+
+  /// Панель браузера без подписки
+  ///
+  /// In en, this message translates to:
+  /// **'The side panel is part of Stowa Sync'**
+  String get panelSubLocked;
+
+  /// Панель браузера без подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Get a subscription and the panel opens.'**
+  String get panelSubLockedHint;
+
+  /// Кнопка панели без подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Get Stowa Sync'**
+  String get panelSubOpen;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,8 @@ import 'package:stowa/features/privacy/privacy_flows.dart';
 import 'package:stowa/features/share/share_receiver.dart';
 import 'package:stowa/services/privacy/seal_crypto.dart';
 import 'package:stowa/services/billing/store_channel.dart';
+import 'package:stowa/services/billing/store_checkout.dart';
+import 'package:stowa/services/sync/sync_service.dart' show SyncAccount;
 import 'package:stowa/services/edge_channel.dart';
 import 'package:stowa/services/link_checker.dart';
 import 'package:stowa/services/media_probe.dart';
@@ -248,8 +251,23 @@ class TestWorld {
         syncAccountStoreProvider.overrideWithValue(syncAccount),
         subscriptionStoreProvider.overrideWithValue(subscription),
         storeChannelProvider.overrideWithValue(storeChannel),
+        storeBillingProvider.overrideWithValue(storeBilling),
+        deviceCountryProvider.overrideWithValue(deviceCountry),
+        urlOpenerProvider.overrideWithValue((url) async {
+          openedUrls.add(url);
+          return true;
+        }),
         // тесты в сеть не ходят: без своего сервера — поддельный, который всем отказывает
-        syncHttpProvider.overrideWithValue(syncHttp ?? MockClient((_) async => http.Response('', 401))),
+        // по умолчанию сервер знает вошедшего (подписки нет) и отказывает во всём остальном:
+        // служба подписки спрашивает аккаунт при запуске, и на 401 вышла бы из него
+        syncHttpProvider.overrideWithValue(
+          syncHttp ??
+              MockClient((request) async {
+                final email = SyncAccount.fromJson(syncAccount.value)?.email;
+                if (request.url.path == '/v1/account' && email != null) return http.Response(jsonEncode({'email': email, 'active': false}), 200);
+                return http.Response('', 401);
+              }),
+        ),
         if (vaultRoot case final vaultRoot?) vaultRootProvider.overrideWith(() => VaultRootNotifier(vaultRoot)),
         if (autofill case final autofill?) autofillWatchProvider.overrideWithValue(autofill),
       ];
@@ -265,6 +283,15 @@ class TestWorld {
 
   /// Касса сборки: по умолчанию внешняя (APK с GitHub, сайт).
   StoreChannel storeChannel = StoreChannel.direct;
+
+  /// Магазин устройства для сборок Play и App Store; вне магазинов — нет.
+  StoreBilling? storeBilling;
+
+  /// Страна устройства: по ней валюта внешней кассы.
+  String? deviceCountry = 'RU';
+
+  /// Какие ссылки открывались во внешнем браузере.
+  final openedUrls = <Uri>[];
 
   /// Поддельный сервер синхронизации.
   http.Client? syncHttp;

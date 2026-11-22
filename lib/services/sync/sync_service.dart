@@ -194,19 +194,23 @@ class SyncService {
   /// Токен входа; null — не вошли.
   Future<String?> token() async => (await account())?.token;
 
-  /// Подписка появилась: снять запрет, сразу пройти и ждать правок с других устройств.
+  /// Подписка появилась: снять запрет, сразу пройти и, если приложение на экране, ждать правок
+  /// с других устройств (ожидание прошлое закончилось само, пока подписки не было).
   void activate() {
     status.value = status.value.copyWith(inactive: false);
     _retries = 0;
     unawaited(trigger?.call());
-    unawaited(listen());
+    if (_foreground) unawaited(listen());
   }
 
   /// Подписка кончилась: сервер файлы не примет, проходы и ожидание правок — впустую.
   void deactivate() {
     if (!status.value.inactive) status.value = status.value.copyWith(inactive: true);
     _retry?.cancel();
-    stopListening();
+    // ожидание закончится само на следующем круге; на экране ли приложение — помним
+    _listening = false;
+    _sleep?.cancel();
+    if (_woken case final woken? when !woken.isCompleted) woken.complete();
   }
 
   Future<void> signOut() async {
@@ -332,9 +336,13 @@ class SyncService {
 
   bool _listening = false;
 
+  /// Приложение на экране и просило ждать правок: включённая подписка продолжит ожидание.
+  bool _foreground = false;
+
   /// Пока приложение открыто: сервер держит запрос до 25 секунд и отвечает, как только
   /// появилась правка с другого телефона.
   Future<void> listen() async {
+    _foreground = true;
     if (_listening) return;
     _listening = true;
     var failures = 0;
@@ -375,6 +383,7 @@ class SyncService {
 
   void stopListening() {
     _listening = false;
+    _foreground = false;
     _sleep?.cancel();
     if (_woken case final woken? when !woken.isCompleted) woken.complete();
   }

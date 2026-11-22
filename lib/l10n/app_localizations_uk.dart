@@ -4835,4 +4835,254 @@ class LUk extends L {
 
   @override
   String get panelWaiting => 'Чекаю вкладку Stowa…';
+
+  @override
+  String get accountSignIn => 'Увійти';
+
+  @override
+  String get accountSignInHint => 'Якщо вам видали підписку';
+
+  @override
+  String get accountTitle => 'Акаунт';
+
+  @override
+  String get signInTitle => 'Вхід';
+
+  @override
+  String get signInIntro =>
+      'Надішлемо код на пошту. Пароль не потрібен, а акаунт з\'явиться сам під час першого входу.';
+
+  @override
+  String get accountDelete => 'Видалити акаунт';
+
+  @override
+  String accountDeleteAsk(String email) {
+    return 'Видалити акаунт $email?';
+  }
+
+  @override
+  String get accountDeleteHint =>
+      'Нотатки на цьому пристрої залишаться. З сервера зітруться їхні копії та підписка.';
+
+  @override
+  String get accountDeleteStorePlay =>
+      'Підписка Google Play сама не зупиниться: скасуйте її в Google Play.';
+
+  @override
+  String get accountDeleteStoreApple =>
+      'Підписка App Store сама не зупиниться: скасуйте її в налаштуваннях Apple ID.';
+
+  @override
+  String get accountDeleteStoreAny =>
+      'Підписка Google Play або App Store сама не зупиниться: скасуйте її в магазині.';
+
+  @override
+  String get accountDeleteLive =>
+      'Спершу скасуйте продовження підписки, інакше оплата й далі списуватиметься.';
+
+  @override
+  String get accountDeleted => 'Акаунт видалено';
+
+  @override
+  String get subBuy => 'Купити підписку';
+
+  @override
+  String get subBuyHint => 'Синхронізація, хмара для файлів і бічна панель';
+
+  @override
+  String subActiveUntil(String date) {
+    return 'Stowa Sync до $date';
+  }
+
+  @override
+  String get paywallLead =>
+      'Нотатки й файли на всіх ваших пристроях. На одному пристрої Stowa лишається безкоштовною.';
+
+  @override
+  String get featureSync => 'Синхронізація з наскрізним шифруванням';
+
+  @override
+  String get featureSyncHint =>
+      'Телефон, сайт і комп\'ютер бачать одне й те саме. Шифрує ваш пристрій, сервер бачить лише шифр.';
+
+  @override
+  String get featureFiles => 'Хмара для файлів';
+
+  @override
+  String get featureFilesHint =>
+      'Фото, відео та PDF доїжджають до всіх пристроїв.';
+
+  @override
+  String get featurePanel => 'Бічна панель у браузері';
+
+  @override
+  String get featurePanelHint => 'Записати й знайти, не йдучи зі сторінки.';
+
+  @override
+  String get featureHistory => 'Історія версій';
+
+  @override
+  String get featureHistoryHint =>
+      'Кожна правка нотатки зберігається на сервері: видно, що змінилося, і можна повернути будь-яку версію.';
+
+  @override
+  String get featureLinks => 'Дошка за посиланням';
+
+  @override
+  String get featureLinksHint =>
+      'Покажіть дошку будь-кому. Ключ лежить у самому посиланні, сервер його не прочитає.';
+
+  @override
+  String get soon => 'Незабаром';
+
+  @override
+  String get planMonth => 'Місяць';
+
+  @override
+  String get planQuarter => '3 місяці';
+
+  @override
+  String get planYear => 'Рік';
+
+  @override
+  String planPerMonth(String price) {
+    return '$price на місяць';
+  }
+
+  @override
+  String planSave(int percent) {
+    return 'Вигода $percent%';
+  }
+
+  @override
+  String get paywallContinue => 'Продовжити';
+
+  @override
+  String get paywallWaiting => 'Чекаємо на оплату';
+
+  @override
+  String get paywallWaitingHint =>
+      'Сторінка оплати відкрилася в браузері. Щойно оплата пройде, підписка ввімкнеться сама.';
+
+  @override
+  String get paywallOpenAgain => 'Відкрити оплату знову';
+
+  @override
+  String get paywallDone => 'Stowa Sync увімкнено';
+
+  @override
+  String paywallDoneUntil(String date) {
+    return 'До $date. Синхронізація вже почалася.';
+  }
+
+  @override
+  String get paywallDoneButton => 'Готово';
+
+  @override
+  String get paywallFailed => 'Оплата не пройшла. Спробуйте ще раз.';
+
+  @override
+  String get paywallUnavailable =>
+      'Оплата зараз недоступна. Перевірте інтернет і спробуйте пізніше.';
+
+  @override
+  String get paywallOwned =>
+      'Ця покупка прив\'язана до іншого акаунта Stowa. Увійдіть у нього, щоб користуватися підпискою.';
+
+  @override
+  String get paywallRestore => 'Відновити покупку';
+
+  @override
+  String get paywallRestoreNothing => 'Покупок для відновлення немає';
+
+  @override
+  String get paywallTerms => 'Умови';
+
+  @override
+  String get paywallPrivacy => 'Конфіденційність';
+
+  @override
+  String get paywallRenewDirect =>
+      'Підписка продовжується сама наприкінці строку. Скасувати продовження можна будь-коли в налаштуваннях Stowa, доступ залишиться до кінця оплаченого строку.';
+
+  @override
+  String get paywallRenewPlay =>
+      'Підписка продовжується сама наприкінці строку, оплата йде через Google Play. Скасувати можна будь-коли в Google Play, у розділі «Платежі й підписки».';
+
+  @override
+  String get paywallRenewApple =>
+      'Оплата спишеться з Apple ID під час підтвердження покупки. Підписка продовжується сама, якщо не вимкнути продовження щонайменше за 24 години до кінця строку. Керувати підпискою можна в налаштуваннях Apple ID.';
+
+  @override
+  String get subTitle => 'Підписка';
+
+  @override
+  String get subPlan => 'Тариф';
+
+  @override
+  String get subUntil => 'Діє до';
+
+  @override
+  String subRenewOn(String date) {
+    return 'Продовжиться $date';
+  }
+
+  @override
+  String subRenewOff(String date) {
+    return 'Продовження скасовано, доступ до $date';
+  }
+
+  @override
+  String get subSourceGrant => 'Видана командою Stowa';
+
+  @override
+  String get subSourceCard => 'Оплачена карткою';
+
+  @override
+  String get subSourcePlay => 'Google Play';
+
+  @override
+  String get subSourceApple => 'App Store';
+
+  @override
+  String get subTest => 'Тестова покупка';
+
+  @override
+  String get subCancel => 'Скасувати продовження';
+
+  @override
+  String subCancelAsk(String date) {
+    return 'Скасувати продовження? Stowa Sync працюватиме до $date.';
+  }
+
+  @override
+  String get subKeep => 'Залишити';
+
+  @override
+  String get subCancelled => 'Продовження скасовано';
+
+  @override
+  String get subManagePlay => 'Керувати в Google Play';
+
+  @override
+  String get subManageApple => 'Керувати в App Store';
+
+  @override
+  String get syncOffer => 'Синхронізація входить у Stowa Sync';
+
+  @override
+  String get syncOfferHint =>
+      'Оформіть підписку, і нотатки зійдуться на всіх пристроях.';
+
+  @override
+  String get syncHaveSub => 'Уже маєте підписку? Увійдіть';
+
+  @override
+  String get panelSubLocked => 'Бічна панель входить у Stowa Sync';
+
+  @override
+  String get panelSubLockedHint => 'Оформіть підписку, і панель відкриється.';
+
+  @override
+  String get panelSubOpen => 'Оформити Stowa Sync';
 }

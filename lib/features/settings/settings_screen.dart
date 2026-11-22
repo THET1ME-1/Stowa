@@ -14,6 +14,7 @@ import '../../domain/hints.dart' show Tip;
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../data/settings_repository.dart';
+import '../account/account_row.dart';
 import '../composer/panel_text.dart' show untitledFor;
 import '../../domain/appearance.dart';
 import '../../domain/edge_settings.dart';
@@ -91,6 +92,7 @@ class SettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             SettingsHeader(title ?? l.settingsTitle),
+            if (show('account')) const AccountRow(),
             if (show('vault')) ...[
             SettingsSection(l.settingsCatalog),
             SettingsGroup(

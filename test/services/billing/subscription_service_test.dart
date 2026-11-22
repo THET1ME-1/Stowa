@@ -106,8 +106,8 @@ void main() {
     final now = await service.refresh();
     expect(now.activeNow, isTrue);
     expect(sync.status.value.inactive, isFalse);
-    // проход пошёл сразу: ждать следующей правки незачем
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // проход пошёл сразу: ждать следующей правки незачем (run() отдаёт уже идущий проход)
+    await sync.run();
     expect(requests, contains('GET /v1/changes'));
     expect(jsonDecode((await subStore.read())!), containsPair('active', true));
     sync.stopListening();

@@ -94,6 +94,8 @@ void main() {
     testWidgets('320 точек и крупный шрифт: «$section» влезает', (tester) async {
       await open(tester, keyStatus: 200, size: const Size(320, 700), textScale: 1.3);
       expect(tester.takeException(), isNull);
+      // сверху — подписка и аккаунт: на узком экране раздел ниже края, до него листают
+      await tester.scrollUntilVisible(find.text(section), 200, scrollable: find.byType(Scrollable).last);
       await tester.tap(find.text(section));
       await tester.pumpAndSettle();
       await tester.drag(find.byType(Scrollable).last, const Offset(0, -2000));

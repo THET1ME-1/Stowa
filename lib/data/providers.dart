@@ -8,6 +8,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart' show Brightness, ColorScheme;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,7 +53,11 @@ import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
 import '../services/billing/billing_api.dart';
+import '../services/billing/checkout.dart';
+import '../services/billing/in_app_store_billing.dart';
+import '../services/billing/lava_checkout.dart';
 import '../services/billing/store_channel.dart';
+import '../services/billing/store_checkout.dart';
 import '../services/billing/subscription.dart';
 import '../services/billing/subscription_service.dart';
 import '../services/sync/sync_service.dart';
@@ -871,6 +876,31 @@ final subscriptionProvider = StreamProvider<Subscription>((ref) {
   return out.stream.distinct();
 });
 
+/// Открыть ссылку во внешнем браузере (страница оплаты, условия). Тесты подменяют.
+final urlOpenerProvider = Provider<Future<bool> Function(Uri url)>((ref) => (url) => launchUrl(url, mode: LaunchMode.externalApplication).catchError((_) => false));
+
+/// Страна устройства: по ней валюта внешней кассы. Тесты подменяют.
+final deviceCountryProvider = Provider<String?>((ref) => PlatformDispatcher.instance.locale.countryCode);
+
+/// Магазин устройства для сборок Play и App Store; вне магазинов — null. Тесты подменяют.
+final storeBillingProvider = Provider<StoreBilling?>((ref) {
+  final channel = ref.watch(storeChannelProvider);
+  return channel == StoreChannel.direct ? null : InAppStoreBilling(channel);
+});
+
+/// Касса этой сборки. Магазинная слушает покупки с запуска: недоделанная покупка прошлого
+/// раза проверяется и закрывается, даже если экран покупки не открывали.
+final checkoutProvider = Provider<Checkout>((ref) {
+  final store = ref.watch(storeBillingProvider);
+  final sync = ref.watch(syncServiceProvider);
+  if (store == null) {
+    return LavaCheckout(api: ref.watch(billingApiProvider), token: sync.token, open: ref.watch(urlOpenerProvider), currency: currencyForCountry(ref.watch(deviceCountryProvider)));
+  }
+  final checkout = StoreCheckout(store: store, api: ref.watch(billingApiProvider), subscription: ref.watch(subscriptionServiceProvider), channel: ref.watch(storeChannelProvider));
+  ref.onDispose(checkout.dispose);
+  return checkout;
+});
+
 /// Сколько задач ждёт записи в хранилище: изменилось — главная разбирает очередь.
 /// Очередь записи хранилища: (задач, сумма версий) — меняется и от новой правки поверх старой.
 final vaultQueueProvider = StreamProvider((ref) => ref.watch(databaseProvider).watchVaultQueue());
@@ -922,6 +952,23 @@ final syncSignedInProvider = StreamProvider<bool>((ref) {
 
   service.status.addListener(send);
   service.account().then((_) => send(), onError: (Object _) => out.isClosed ? null : out.add(false));
+  ref.onDispose(() {
+    service.status.removeListener(send);
+    out.close();
+  });
+  return out.stream.distinct();
+});
+
+/// Почта аккаунта Stowa; null — не вошли. Вход не зависит от подписки и от хранилища.
+final accountEmailProvider = StreamProvider<String?>((ref) {
+  final service = ref.watch(syncServiceProvider);
+  final out = StreamController<String?>();
+  void send() {
+    if (!out.isClosed) out.add(service.status.value.email);
+  }
+
+  service.status.addListener(send);
+  service.account().then((_) => send(), onError: (Object _) => out.isClosed ? null : out.add(null));
   ref.onDispose(() {
     service.status.removeListener(send);
     out.close();

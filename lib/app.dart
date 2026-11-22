@@ -123,6 +123,9 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
     final palette = paletteFor(appearance, brightness, wallpaper: brightness == Brightness.dark ? wallpaper?.dark : wallpaper?.light);
     if (palette != Tokens.palette) _repaint(palette);
     _planSwitch(appearance, now);
+    // подписка живёт всё время работы приложения: пришла оплата — синхронизация включается,
+    // даже если экран настроек закрыт
+    ref.listen(subscriptionProvider, (_, _) {});
 
     return MaterialApp(
       navigatorKey: appNavigator,

@@ -4844,4 +4844,255 @@ class LPl extends L {
 
   @override
   String get panelWaiting => 'Czekam na kartę Stowa…';
+
+  @override
+  String get accountSignIn => 'Zaloguj się';
+
+  @override
+  String get accountSignInHint => 'Jeśli dostałeś subskrypcję';
+
+  @override
+  String get accountTitle => 'Konto';
+
+  @override
+  String get signInTitle => 'Logowanie';
+
+  @override
+  String get signInIntro =>
+      'Wyślemy kod e-mailem. Hasło nie jest potrzebne, a konto powstanie samo przy pierwszym logowaniu.';
+
+  @override
+  String get accountDelete => 'Usuń konto';
+
+  @override
+  String accountDeleteAsk(String email) {
+    return 'Usunąć konto $email?';
+  }
+
+  @override
+  String get accountDeleteHint =>
+      'Notatki na tym urządzeniu zostaną. Z serwera znikną ich kopie i subskrypcja.';
+
+  @override
+  String get accountDeleteStorePlay =>
+      'Subskrypcja Google Play sama się nie zatrzyma: anuluj ją w Google Play.';
+
+  @override
+  String get accountDeleteStoreApple =>
+      'Subskrypcja App Store sama się nie zatrzyma: anuluj ją w ustawieniach Apple ID.';
+
+  @override
+  String get accountDeleteStoreAny =>
+      'Subskrypcja Google Play lub App Store sama się nie zatrzyma: anuluj ją w sklepie.';
+
+  @override
+  String get accountDeleteLive =>
+      'Najpierw anuluj odnawianie subskrypcji, inaczej płatności będą dalej pobierane.';
+
+  @override
+  String get accountDeleted => 'Konto usunięte';
+
+  @override
+  String get subBuy => 'Kup subskrypcję';
+
+  @override
+  String get subBuyHint =>
+      'Synchronizacja, chmura na pliki i panel boczny w przeglądarce';
+
+  @override
+  String subActiveUntil(String date) {
+    return 'Stowa Sync do $date';
+  }
+
+  @override
+  String get paywallLead =>
+      'Notatki i pliki na wszystkich twoich urządzeniach. Na jednym urządzeniu Stowa zostaje darmowa.';
+
+  @override
+  String get featureSync => 'Synchronizacja z szyfrowaniem end-to-end';
+
+  @override
+  String get featureSyncHint =>
+      'Telefon, strona i komputer widzą to samo. Szyfruje twoje urządzenie, serwer widzi tylko szyfr.';
+
+  @override
+  String get featureFiles => 'Chmura na pliki';
+
+  @override
+  String get featureFilesHint =>
+      'Zdjęcia, filmy i PDF-y docierają na wszystkie urządzenia.';
+
+  @override
+  String get featurePanel => 'Panel boczny w przeglądarce';
+
+  @override
+  String get featurePanelHint => 'Zapisuj i szukaj, nie wychodząc ze strony.';
+
+  @override
+  String get featureHistory => 'Historia wersji';
+
+  @override
+  String get featureHistoryHint =>
+      'Każda zmiana notatki jest na serwerze: widać, co się zmieniło, i można przywrócić dowolną wersję.';
+
+  @override
+  String get featureLinks => 'Tablica przez link';
+
+  @override
+  String get featureLinksHint =>
+      'Pokaż tablicę komu chcesz. Klucz jest w samym linku, więc serwer jej nie odczyta.';
+
+  @override
+  String get soon => 'Wkrótce';
+
+  @override
+  String get planMonth => 'Miesiąc';
+
+  @override
+  String get planQuarter => '3 miesiące';
+
+  @override
+  String get planYear => 'Rok';
+
+  @override
+  String planPerMonth(String price) {
+    return '$price miesięcznie';
+  }
+
+  @override
+  String planSave(int percent) {
+    return 'Oszczędzasz $percent%';
+  }
+
+  @override
+  String get paywallContinue => 'Dalej';
+
+  @override
+  String get paywallWaiting => 'Czekamy na płatność';
+
+  @override
+  String get paywallWaitingHint =>
+      'Strona płatności otworzyła się w przeglądarce. Gdy tylko płatność przejdzie, subskrypcja włączy się sama.';
+
+  @override
+  String get paywallOpenAgain => 'Otwórz płatność ponownie';
+
+  @override
+  String get paywallDone => 'Stowa Sync włączona';
+
+  @override
+  String paywallDoneUntil(String date) {
+    return 'Do $date. Synchronizacja już ruszyła.';
+  }
+
+  @override
+  String get paywallDoneButton => 'Gotowe';
+
+  @override
+  String get paywallFailed => 'Płatność nie przeszła. Spróbuj ponownie.';
+
+  @override
+  String get paywallUnavailable =>
+      'Płatność jest teraz niedostępna. Sprawdź internet i spróbuj później.';
+
+  @override
+  String get paywallOwned =>
+      'Ten zakup należy do innego konta Stowa. Zaloguj się na nie, aby korzystać z subskrypcji.';
+
+  @override
+  String get paywallRestore => 'Przywróć zakup';
+
+  @override
+  String get paywallRestoreNothing => 'Brak zakupów do przywrócenia';
+
+  @override
+  String get paywallTerms => 'Warunki';
+
+  @override
+  String get paywallPrivacy => 'Prywatność';
+
+  @override
+  String get paywallRenewDirect =>
+      'Subskrypcja odnawia się sama na koniec okresu. Odnawianie możesz anulować w każdej chwili w ustawieniach Stowa, a dostęp zostanie do końca opłaconego okresu.';
+
+  @override
+  String get paywallRenewPlay =>
+      'Subskrypcja odnawia się sama na koniec okresu, opłata idzie przez Google Play. Anulować możesz w każdej chwili w Google Play, w sekcji „Płatności i subskrypcje”.';
+
+  @override
+  String get paywallRenewApple =>
+      'Opłata zostanie pobrana z Apple ID po potwierdzeniu zakupu. Subskrypcja odnawia się automatycznie, jeśli nie wyłączysz odnawiania co najmniej 24 godziny przed końcem okresu. Zarządzasz nią w ustawieniach Apple ID.';
+
+  @override
+  String get subTitle => 'Subskrypcja';
+
+  @override
+  String get subPlan => 'Plan';
+
+  @override
+  String get subUntil => 'Ważna do';
+
+  @override
+  String subRenewOn(String date) {
+    return 'Odnowi się $date';
+  }
+
+  @override
+  String subRenewOff(String date) {
+    return 'Odnawianie anulowane, dostęp do $date';
+  }
+
+  @override
+  String get subSourceGrant => 'Przyznana przez zespół Stowa';
+
+  @override
+  String get subSourceCard => 'Opłacona kartą';
+
+  @override
+  String get subSourcePlay => 'Google Play';
+
+  @override
+  String get subSourceApple => 'App Store';
+
+  @override
+  String get subTest => 'Zakup testowy';
+
+  @override
+  String get subCancel => 'Anuluj odnawianie';
+
+  @override
+  String subCancelAsk(String date) {
+    return 'Anulować odnawianie? Stowa Sync będzie działać do $date.';
+  }
+
+  @override
+  String get subKeep => 'Zostaw';
+
+  @override
+  String get subCancelled => 'Odnawianie anulowane';
+
+  @override
+  String get subManagePlay => 'Zarządzaj w Google Play';
+
+  @override
+  String get subManageApple => 'Zarządzaj w App Store';
+
+  @override
+  String get syncOffer => 'Synchronizacja należy do Stowa Sync';
+
+  @override
+  String get syncOfferHint =>
+      'Kup subskrypcję, a notatki będą takie same na wszystkich urządzeniach.';
+
+  @override
+  String get syncHaveSub => 'Masz już subskrypcję? Zaloguj się';
+
+  @override
+  String get panelSubLocked => 'Panel boczny należy do Stowa Sync';
+
+  @override
+  String get panelSubLockedHint => 'Kup subskrypcję, a panel się otworzy.';
+
+  @override
+  String get panelSubOpen => 'Kup Stowa Sync';
 }

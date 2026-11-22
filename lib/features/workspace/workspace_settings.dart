@@ -25,6 +25,7 @@ import 'workspace_shell.dart';
 typedef _Section = ({String id, String icon, String tint, String Function(L l) title});
 
 final List<_Section> _sections = [
+  (id: 'account', icon: 'account_circle', tint: 'amber', title: (l) => l.accountTitle),
   (id: 'vault', icon: 'folder', tint: 'teal', title: (l) => l.settingsCatalog),
   (id: 'sync', icon: 'cloud_sync', tint: 'sky', title: (l) => l.syncTitle),
   (id: 'look', icon: 'palette', tint: 'rose', title: (l) => l.appearanceTitle),
