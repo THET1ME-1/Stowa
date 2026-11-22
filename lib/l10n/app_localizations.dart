@@ -8722,6 +8722,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Snap to grid. Hold Alt to move freely'**
   String get canvasSnapAlt;
+
+  /// Кнопка просмотра PDF: показать и спрятать миниатюры страниц сбоку
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get pdfPages;
+
+  /// Кнопка просмотра PDF: увеличить
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get pdfZoomIn;
+
+  /// Кнопка просмотра PDF: уменьшить
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get pdfZoomOut;
+
+  /// После поля номера страницы: «1 из 21»
+  ///
+  /// In en, this message translates to:
+  /// **'of {count}'**
+  String pdfPageOf(Object count);
+
+  /// Подсказка поля номера страницы PDF
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get pdfPage;
+
+  /// Пункт меню PDF в заметке: открыть просмотр на весь экран
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get pdfFullScreen;
+
+  /// Пункт меню PDF: открыть программой системы
+  ///
+  /// In en, this message translates to:
+  /// **'Open in app'**
+  String get pdfOpenApp;
+
+  /// Пункт меню PDF на сайте: открыть новой вкладкой
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get pdfOpenBrowser;
+
+  /// Вместо страниц, когда PDF битый или с паролем
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the PDF'**
+  String get pdfFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

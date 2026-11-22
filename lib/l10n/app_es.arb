@@ -1154,5 +1154,14 @@
   "canvasSnap": "Ajustar a la cuadrícula",
   "canvasSnapAlt": "Ajustar a la cuadrícula. Con Alt, libre",
   "canvasDefaultName": "Sin título",
-  "baseDefaultName": "Sin título"
+  "baseDefaultName": "Sin título",
+  "pdfPages": "Páginas",
+  "pdfZoomIn": "Ampliar",
+  "pdfZoomOut": "Reducir",
+  "pdfPageOf": "de {count}",
+  "pdfPage": "Página",
+  "pdfFullScreen": "Pantalla completa",
+  "pdfOpenApp": "Abrir en la app",
+  "pdfOpenBrowser": "Abrir en el navegador",
+  "pdfFailed": "No se pudo abrir el PDF"
 }

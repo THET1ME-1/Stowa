@@ -1154,5 +1154,14 @@
   "canvasSnap": "Am Raster ausrichten",
   "canvasSnapAlt": "Am Raster ausrichten. Mit Alt frei bewegen",
   "canvasDefaultName": "Unbenannt",
-  "baseDefaultName": "Unbenannt"
+  "baseDefaultName": "Unbenannt",
+  "pdfPages": "Seiten",
+  "pdfZoomIn": "Vergrößern",
+  "pdfZoomOut": "Verkleinern",
+  "pdfPageOf": "von {count}",
+  "pdfPage": "Seite",
+  "pdfFullScreen": "Vollbild",
+  "pdfOpenApp": "In App öffnen",
+  "pdfOpenBrowser": "Im Browser öffnen",
+  "pdfFailed": "PDF konnte nicht geöffnet werden"
 }

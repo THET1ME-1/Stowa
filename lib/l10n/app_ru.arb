@@ -1435,5 +1435,14 @@
   "photoNext": "Следующее фото",
   "photoFileFailed": "Не получилось сохранить фото",
   "canvasSnap": "Привязка к сетке",
-  "canvasSnapAlt": "Привязка к сетке. С Alt — свободно"
+  "canvasSnapAlt": "Привязка к сетке. С Alt — свободно",
+  "pdfPages": "Страницы",
+  "pdfZoomIn": "Крупнее",
+  "pdfZoomOut": "Мельче",
+  "pdfPageOf": "из {count}",
+  "pdfPage": "Страница",
+  "pdfFullScreen": "На весь экран",
+  "pdfOpenApp": "Открыть в программе",
+  "pdfOpenBrowser": "Открыть в браузере",
+  "pdfFailed": "Не получилось открыть PDF"
 }

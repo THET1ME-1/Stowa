@@ -5114,4 +5114,33 @@ class LEs extends L {
 
   @override
   String get canvasSnapAlt => 'Ajustar a la cuadrícula. Con Alt, libre';
+
+  @override
+  String get pdfPages => 'Páginas';
+
+  @override
+  String get pdfZoomIn => 'Ampliar';
+
+  @override
+  String get pdfZoomOut => 'Reducir';
+
+  @override
+  String pdfPageOf(Object count) {
+    return 'de $count';
+  }
+
+  @override
+  String get pdfPage => 'Página';
+
+  @override
+  String get pdfFullScreen => 'Pantalla completa';
+
+  @override
+  String get pdfOpenApp => 'Abrir en la app';
+
+  @override
+  String get pdfOpenBrowser => 'Abrir en el navegador';
+
+  @override
+  String get pdfFailed => 'No se pudo abrir el PDF';
 }

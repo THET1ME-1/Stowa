@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart' show Finder, WidgetTester, find;
 import 'package:image_picker/image_picker.dart' show XFile;
+import 'package:pdfrx/pdfrx.dart' show Pdfrx;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -42,7 +43,10 @@ import 'package:stowa/l10n/app_localizations.dart';
 
 /// База в памяти, своя папка файлов и замёрзшие часы — для виджет-тестов.
 class TestWorld {
-  TestWorld({DateTime? now}) : now = now ?? DateTime(2026, 11, 2, 10);
+  TestWorld({DateTime? now}) : now = now ?? DateTime(2026, 11, 2, 10) {
+    // просмотр PDF спрашивает временную папку у системы, а канала path_provider в тестах нет
+    Pdfrx.cacheDirectoryPath ??= Directory.systemTemp.createTempSync('stowa_pdfrx').path;
+  }
 
   final DateTime now;
   final db = AppDatabase.memory();

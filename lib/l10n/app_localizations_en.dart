@@ -5097,4 +5097,33 @@ class LEn extends L {
 
   @override
   String get canvasSnapAlt => 'Snap to grid. Hold Alt to move freely';
+
+  @override
+  String get pdfPages => 'Pages';
+
+  @override
+  String get pdfZoomIn => 'Zoom in';
+
+  @override
+  String get pdfZoomOut => 'Zoom out';
+
+  @override
+  String pdfPageOf(Object count) {
+    return 'of $count';
+  }
+
+  @override
+  String get pdfPage => 'Page';
+
+  @override
+  String get pdfFullScreen => 'Full screen';
+
+  @override
+  String get pdfOpenApp => 'Open in app';
+
+  @override
+  String get pdfOpenBrowser => 'Open in browser';
+
+  @override
+  String get pdfFailed => 'Couldn\'t open the PDF';
 }

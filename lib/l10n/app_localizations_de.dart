@@ -5134,4 +5134,33 @@ class LDe extends L {
 
   @override
   String get canvasSnapAlt => 'Am Raster ausrichten. Mit Alt frei bewegen';
+
+  @override
+  String get pdfPages => 'Seiten';
+
+  @override
+  String get pdfZoomIn => 'Vergrößern';
+
+  @override
+  String get pdfZoomOut => 'Verkleinern';
+
+  @override
+  String pdfPageOf(Object count) {
+    return 'von $count';
+  }
+
+  @override
+  String get pdfPage => 'Seite';
+
+  @override
+  String get pdfFullScreen => 'Vollbild';
+
+  @override
+  String get pdfOpenApp => 'In App öffnen';
+
+  @override
+  String get pdfOpenBrowser => 'Im Browser öffnen';
+
+  @override
+  String get pdfFailed => 'PDF konnte nicht geöffnet werden';
 }

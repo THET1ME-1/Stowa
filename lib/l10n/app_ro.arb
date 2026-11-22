@@ -1154,5 +1154,14 @@
   "canvasSnap": "Aliniere la grilă",
   "canvasSnapAlt": "Aliniere la grilă. Ține Alt pentru mișcare liberă",
   "canvasDefaultName": "Fără titlu",
-  "baseDefaultName": "Fără titlu"
+  "baseDefaultName": "Fără titlu",
+  "pdfPages": "Pagini",
+  "pdfZoomIn": "Mărește",
+  "pdfZoomOut": "Micșorează",
+  "pdfPageOf": "din {count}",
+  "pdfPage": "Pagina",
+  "pdfFullScreen": "Ecran complet",
+  "pdfOpenApp": "Deschide în aplicație",
+  "pdfOpenBrowser": "Deschide în browser",
+  "pdfFailed": "PDF-ul nu a putut fi deschis"
 }

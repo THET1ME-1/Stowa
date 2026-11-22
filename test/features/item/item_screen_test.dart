@@ -856,18 +856,26 @@ void main() {
       expect(find.byType(PhotoViewer), findsNothing);
     });
 
+    // PDF с 22.11 — просмотром страниц (pdf_panel_test.dart), строкой — остальные документы
     testWidgets('файл строкой с именем и весом, голосовое — плеером', (tester) async {
       await show(
         tester,
         ItemsCompanion.insert(id: 'a', kind: ItemKind.voice, title: 'Договор с хозяйкой', createdAt: world.now, updatedAt: world.now),
         files: [
           AttachmentsCompanion.insert(id: 'v', itemId: 'a', path: 'attachments/a/0_voice.m4a', mime: 'audio/mp4', size: 40000),
-          AttachmentsCompanion.insert(id: 'd', itemId: 'a', path: 'attachments/a/1_Договор.pdf', mime: 'application/pdf', size: 1258291, position: const Value(1)),
+          AttachmentsCompanion.insert(
+            id: 'd',
+            itemId: 'a',
+            path: 'attachments/a/1_Договор.docx',
+            mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            size: 1258291,
+            position: const Value(1),
+          ),
         ],
       );
       expect(find.byType(VoicePlayer), findsOneWidget);
-      expect(find.text('Договор.pdf'), findsOneWidget);
-      expect(find.text('PDF · 1.2 MB'), findsOneWidget);
+      expect(find.text('Договор.docx'), findsOneWidget);
+      expect(find.text('DOCX · 1.2 MB'), findsOneWidget);
     });
 
     testWidgets('«Связано»: похожая вещь с причиной, крестик записывает отказ', (tester) async {

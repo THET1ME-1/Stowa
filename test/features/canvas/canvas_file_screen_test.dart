@@ -4,7 +4,10 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:path/path.dart' as p;
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdfrx/pdfrx.dart' show PdfPageView;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stowa/features/item/pdf_panel.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/services/vault/vault_layout.dart' show writeAttachmentSetting;
 import 'package:flutter/gestures.dart';
@@ -516,6 +519,40 @@ void main() {
     await tester.tap(find.text('Дом').last);
     await tester.pumpAndSettle();
     expect((await canvasItem()).folderId, 'h');
+  });
+
+  // хозяин 22.11: «предосмотр и управление PDF, как в Obsidian» — на холсте PDF карточкой с
+  // первой страницей, двойной щелчок открывает его на весь экран
+  testWidgets('PDF на холсте — первая страница на карточке, двойной щелчок — просмотр на весь экран', (tester) async {
+    await tester.runAsync(() async {
+      final document = pw.Document()..addPage(pw.Page(build: (_) => pw.Text('Slide 1')));
+      final file = File(p.join(world.files.path, 'Вложения', 'Слайды.pdf'));
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(await document.save());
+    });
+    await canvas(CanvasDoc.empty().addFile('Вложения/Слайды.pdf', x: 0, y: 0, width: 283, height: 400));
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'c')));
+    for (var step = 0; step < 30; step++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 40)));
+      await tester.pump(const Duration(milliseconds: 60));
+    }
+    expect(find.byType(PdfPageView), findsOneWidget);
+    final id = (await stored()).nodes.single.id;
+    await tester.tap(find.byKey(ValueKey('node-$id')));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.tap(find.byKey(ValueKey('node-$id')));
+    for (var step = 0; step < 20; step++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 40)));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(PdfPanel), findsOneWidget);
+    // pdfrx закрывает документ с задержкой: дать таймеру дойти ещё в тесте
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
   });
 
   // точки сетки холста-файла: шаг 24 от начала мира, а мир сдвинут на 20000

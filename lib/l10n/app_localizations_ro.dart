@@ -5143,4 +5143,33 @@ class LRo extends L {
   @override
   String get canvasSnapAlt =>
       'Aliniere la grilă. Ține Alt pentru mișcare liberă';
+
+  @override
+  String get pdfPages => 'Pagini';
+
+  @override
+  String get pdfZoomIn => 'Mărește';
+
+  @override
+  String get pdfZoomOut => 'Micșorează';
+
+  @override
+  String pdfPageOf(Object count) {
+    return 'din $count';
+  }
+
+  @override
+  String get pdfPage => 'Pagina';
+
+  @override
+  String get pdfFullScreen => 'Ecran complet';
+
+  @override
+  String get pdfOpenApp => 'Deschide în aplicație';
+
+  @override
+  String get pdfOpenBrowser => 'Deschide în browser';
+
+  @override
+  String get pdfFailed => 'PDF-ul nu a putut fi deschis';
 }

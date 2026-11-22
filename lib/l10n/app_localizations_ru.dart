@@ -5178,4 +5178,33 @@ class LRu extends L {
 
   @override
   String get canvasSnapAlt => 'Привязка к сетке. С Alt — свободно';
+
+  @override
+  String get pdfPages => 'Страницы';
+
+  @override
+  String get pdfZoomIn => 'Крупнее';
+
+  @override
+  String get pdfZoomOut => 'Мельче';
+
+  @override
+  String pdfPageOf(Object count) {
+    return 'из $count';
+  }
+
+  @override
+  String get pdfPage => 'Страница';
+
+  @override
+  String get pdfFullScreen => 'На весь экран';
+
+  @override
+  String get pdfOpenApp => 'Открыть в программе';
+
+  @override
+  String get pdfOpenBrowser => 'Открыть в браузере';
+
+  @override
+  String get pdfFailed => 'Не получилось открыть PDF';
 }

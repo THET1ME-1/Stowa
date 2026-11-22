@@ -68,6 +68,7 @@ import 'edit_toggle.dart';
 import 'item_actions.dart' show changeItemDate, folderPath, toggleNoticed, togglePinned;
 import 'page_card.dart';
 import 'item_media.dart';
+import 'pdf_panel.dart';
 import 'markdown_controller.dart';
 import 'note_body.dart';
 import 'photo_viewer.dart';
@@ -840,7 +841,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     }
     final videoFile = !linkLike && item.kind == ItemKind.video ? full.attachments.where((file) => file.mime.startsWith('video/')).firstOrNull : null;
     final voices = full.attachments.where((file) => file.mime.startsWith('audio/')).toList();
-    final files = full.attachments.where((file) => !showsAsImage(file.mime) && !file.mime.startsWith('audio/') && file != videoFile).toList();
+    // файлы строкой под текстом — кроме вставленных в текст: те стоят на своём месте
+    final files = full.attachments.where((file) => !showsAsImage(file.mime) && !file.mime.startsWith('audio/') && file != videoFile && !inline.contains(file.path)).toList();
     // адрес уже стоит в превью: строкой в тексте он не повторяется
     final shownBody = linkLike ? item.body.split('\n').where((line) => line.trim() != url).join('\n') : item.body;
     // широкий экран (вкладка рабочего пространства): текст колонкой до 760 точек посередине, как в
@@ -869,7 +871,13 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     Widget inlineImage(String name) {
       final path = embedPath(name, attachmentPaths);
       final image = images.where((one) => one.path == path).firstOrNull;
-      if (image == null) return MissingImage(name: name);
+      if (image == null) {
+        // вставлен не рисунок: PDF — просмотром, как в Obsidian, другой файл — строкой файла
+        final file = full.attachments.where((one) => one.path == path).firstOrNull;
+        if (file == null) return MissingImage(name: name);
+        if (isPdfFile(file.mime, file.path)) return PdfPanel(path: p.join(filesRoot.path, file.path), mime: file.mime);
+        return FileTile(file: file, filesRoot: filesRoot);
+      }
       return _PhotoCover(
         image: image,
         filesRoot: filesRoot,
@@ -1369,7 +1377,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                         if (item.transcript != null && item.transcript!.isNotEmpty) _DeepBlock(title: l.itemTranscript, text: item.transcript!),
                         // описание от ИИ нужно поиску; читать его стоит только у картинки, у заметки оно пересказ её же текста
                         if (images.isNotEmpty && item.aiDescription != null && item.aiDescription!.isNotEmpty) _DeepBlock(title: l.itemDescription, text: item.aiDescription!),
-                        for (final file in files) FileTile(file: file, filesRoot: filesRoot),
+                        // PDF — просмотром, как в Obsidian: страницы, масштаб, «1 из N»
+                        for (final file in files)
+                          if (isPdfFile(file.mime, file.path)) PdfPanel(path: p.join(filesRoot.path, file.path), mime: file.mime) else FileTile(file: file, filesRoot: filesRoot),
                         if (!_editing) RelatedBlock(itemId: _id, onOpen: (id) => openItem(context, id)),
                       ],
                     ),

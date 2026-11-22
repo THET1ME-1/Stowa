@@ -1154,5 +1154,14 @@
   "canvasSnap": "Прив'язка до сітки",
   "canvasSnapAlt": "Прив'язка до сітки. З Alt — вільно",
   "canvasDefaultName": "Без назви",
-  "baseDefaultName": "Без назви"
+  "baseDefaultName": "Без назви",
+  "pdfPages": "Сторінки",
+  "pdfZoomIn": "Більше",
+  "pdfZoomOut": "Менше",
+  "pdfPageOf": "з {count}",
+  "pdfPage": "Сторінка",
+  "pdfFullScreen": "На весь екран",
+  "pdfOpenApp": "Відкрити в програмі",
+  "pdfOpenBrowser": "Відкрити в браузері",
+  "pdfFailed": "Не вдалося відкрити PDF"
 }

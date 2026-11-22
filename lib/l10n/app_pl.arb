@@ -1154,5 +1154,14 @@
   "canvasSnap": "Przyciąganie do siatki",
   "canvasSnapAlt": "Przyciąganie do siatki. Z Alt — swobodnie",
   "canvasDefaultName": "Bez tytułu",
-  "baseDefaultName": "Bez tytułu"
+  "baseDefaultName": "Bez tytułu",
+  "pdfPages": "Strony",
+  "pdfZoomIn": "Powiększ",
+  "pdfZoomOut": "Pomniejsz",
+  "pdfPageOf": "z {count}",
+  "pdfPage": "Strona",
+  "pdfFullScreen": "Pełny ekran",
+  "pdfOpenApp": "Otwórz w aplikacji",
+  "pdfOpenBrowser": "Otwórz w przeglądarce",
+  "pdfFailed": "Nie udało się otworzyć PDF"
 }

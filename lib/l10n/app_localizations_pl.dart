@@ -5175,4 +5175,33 @@ class LPl extends L {
 
   @override
   String get canvasSnapAlt => 'Przyciąganie do siatki. Z Alt — swobodnie';
+
+  @override
+  String get pdfPages => 'Strony';
+
+  @override
+  String get pdfZoomIn => 'Powiększ';
+
+  @override
+  String get pdfZoomOut => 'Pomniejsz';
+
+  @override
+  String pdfPageOf(Object count) {
+    return 'z $count';
+  }
+
+  @override
+  String get pdfPage => 'Strona';
+
+  @override
+  String get pdfFullScreen => 'Pełny ekran';
+
+  @override
+  String get pdfOpenApp => 'Otwórz w aplikacji';
+
+  @override
+  String get pdfOpenBrowser => 'Otwórz w przeglądarce';
+
+  @override
+  String get pdfFailed => 'Nie udało się otworzyć PDF';
 }

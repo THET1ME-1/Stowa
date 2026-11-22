@@ -43,6 +43,9 @@ String fileIcon(String mime, String path) {
   return 'description';
 }
 
+/// PDF ли файл: по типу, а без него — по расширению.
+bool isPdfFile(String mime, String path) => mime == 'application/pdf' || p.extension(path).toLowerCase() == '.pdf';
+
 /// Открыть свой файл в приложении системы: PDF в просмотрщике, видео в плеере. Формат,
 /// который открыть нечем, — плашка «Нечем открыть такой файл». В браузере программ системы
 /// нет: что он показывает сам, открывается новой вкладкой, остальное скачивается.

@@ -5164,4 +5164,33 @@ class LUk extends L {
 
   @override
   String get canvasSnapAlt => 'Прив\'язка до сітки. З Alt — вільно';
+
+  @override
+  String get pdfPages => 'Сторінки';
+
+  @override
+  String get pdfZoomIn => 'Більше';
+
+  @override
+  String get pdfZoomOut => 'Менше';
+
+  @override
+  String pdfPageOf(Object count) {
+    return 'з $count';
+  }
+
+  @override
+  String get pdfPage => 'Сторінка';
+
+  @override
+  String get pdfFullScreen => 'На весь екран';
+
+  @override
+  String get pdfOpenApp => 'Відкрити в програмі';
+
+  @override
+  String get pdfOpenBrowser => 'Відкрити в браузері';
+
+  @override
+  String get pdfFailed => 'Не вдалося відкрити PDF';
 }

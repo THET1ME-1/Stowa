@@ -26,7 +26,12 @@ import '../../domain/json_canvas.dart';
 import '../../domain/note_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart';
+import '../../core/platform.dart' show isWeb;
 import '../item/document_header.dart';
+import '../item/item_media.dart' show isPdfFile, openLocalFile;
+import '../item/pdf_panel.dart';
+import '../item/photo_viewer.dart';
+import 'package:pdfrx/pdfrx.dart' show PdfDocument, PdfDocumentRefData, PdfDocumentViewBuilder, PdfPageView;
 import '../item/item_screen.dart' show openItem;
 import '../item/link_sheet.dart';
 import '../../services/capture_service.dart';
@@ -691,7 +696,22 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     final file = node.file;
     if (file == null) return;
     final id = await ref.read(documentsRepositoryProvider).itemAt(file);
-    if (id != null && mounted) await openItem(context, id);
+    if (!mounted) return;
+    if (id != null) {
+      await openItem(context, id);
+      return;
+    }
+    // файл холста без своей заметки (вложение холста): PDF — просмотром, картинка — как фото,
+    // остальное — программой системы
+    final absolute = vaultAbsolute(ref.read(filesRootProvider).path, file);
+    if (!File(absolute).existsSync()) return;
+    if (isPdfFile('', file)) {
+      await PdfPanel.open(context, absolute);
+    } else if (isCanvasImage(file)) {
+      await PhotoViewer.open(context, [absolute], 0);
+    } else {
+      await openLocalFile(context, absolute, lookupMimeType(file) ?? 'application/octet-stream');
+    }
   }
 
   Future<void> _color({CanvasNode? node, CanvasEdge? edge}) async {
@@ -1374,6 +1394,32 @@ class _LinkFace extends StatelessWidget {
   }
 }
 
+/// PDF на холсте: первая страница во всю карточку. Не открылся — карточка файла с именем.
+class _PdfFace extends StatelessWidget {
+  const _PdfFace({required this.path, required this.fallback});
+
+  final String path;
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget page(BuildContext context, PdfDocument? document) =>
+        document == null ? const SizedBox.shrink() : PdfPageView(document: document, pageNumber: 1, maximumDpi: 96, backgroundColor: Colors.white);
+    // в браузере файла на диске нет: байты из хранилища страницы
+    if (isWeb) {
+      return FutureBuilder(
+        future: File(path).readAsBytes(),
+        builder: (context, snapshot) => switch (snapshot) {
+          AsyncSnapshot(hasError: true) => fallback,
+          AsyncSnapshot(:final data?) => PdfDocumentViewBuilder(documentRef: PdfDocumentRefData(data, sourceName: path), builder: page, errorBuilder: (_, _, _) => fallback),
+          _ => const SizedBox.shrink(),
+        },
+      );
+    }
+    return PdfDocumentViewBuilder.file(path, builder: page, errorBuilder: (_, _, _) => fallback);
+  }
+}
+
 class _FileFace extends ConsumerWidget {
   const _FileFace({required this.path, required this.filesRoot, required this.missing, this.subpath});
 
@@ -1391,6 +1437,8 @@ class _FileFace extends ConsumerWidget {
     if (isCanvasImage(path)) {
       return FilePicture(File(vaultAbsolute(filesRoot.path, path)), fit: BoxFit.cover, cacheWidth: 900, errorBuilder: (_, _, _) => _plain(text, 'broken_image', missing));
     }
+    // PDF — первой страницей, как в Obsidian
+    if (extension == 'pdf') return _PdfFace(path: vaultAbsolute(filesRoot.path, path), fallback: _plain(text, 'picture_as_pdf', path.split('/').last));
     if (extension != 'md' && extension != 'canvas' && extension != 'base') return _plain(text, 'draft', path.split('/').last);
     final item = ref.watch(_fileItemProvider(path));
     return switch (item) {

@@ -6239,5 +6239,41 @@
   "canvasSnapAlt": "Snap to grid. Hold Alt to move freely",
   "@canvasSnapAlt": {
     "description": "Подсказка той же кнопки на компьютере: Alt отключает привязку на время"
+  },
+  "pdfPages": "Pages",
+  "@pdfPages": {
+    "description": "Кнопка просмотра PDF: показать и спрятать миниатюры страниц сбоку"
+  },
+  "pdfZoomIn": "Zoom in",
+  "@pdfZoomIn": {
+    "description": "Кнопка просмотра PDF: увеличить"
+  },
+  "pdfZoomOut": "Zoom out",
+  "@pdfZoomOut": {
+    "description": "Кнопка просмотра PDF: уменьшить"
+  },
+  "pdfPageOf": "of {count}",
+  "@pdfPageOf": {
+    "description": "После поля номера страницы: «1 из 21»"
+  },
+  "pdfPage": "Page",
+  "@pdfPage": {
+    "description": "Подсказка поля номера страницы PDF"
+  },
+  "pdfFullScreen": "Full screen",
+  "@pdfFullScreen": {
+    "description": "Пункт меню PDF в заметке: открыть просмотр на весь экран"
+  },
+  "pdfOpenApp": "Open in app",
+  "@pdfOpenApp": {
+    "description": "Пункт меню PDF: открыть программой системы"
+  },
+  "pdfOpenBrowser": "Open in browser",
+  "@pdfOpenBrowser": {
+    "description": "Пункт меню PDF на сайте: открыть новой вкладкой"
+  },
+  "pdfFailed": "Couldn't open the PDF",
+  "@pdfFailed": {
+    "description": "Вместо страниц, когда PDF битый или с паролем"
   }
 }
