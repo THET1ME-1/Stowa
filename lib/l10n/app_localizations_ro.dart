@@ -4331,6 +4331,9 @@ class LRo extends L {
   String get wsCmdMove => 'Mută în dosar';
 
   @override
+  String get wsCmdEdit => 'Editează sau vezi notița';
+
+  @override
   String get wsCmdReopen => 'Redeschide fila închisă';
 
   @override

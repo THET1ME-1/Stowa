@@ -919,6 +919,7 @@
   "wsCmdTrash": "In den Papierkorb",
   "wsCmdPin": "Notiz anheften",
   "wsCmdMove": "In Ordner verschieben",
+  "wsCmdEdit": "Notiz bearbeiten oder ansehen",
   "wsCmdReopen": "Geschlossenen Tab wiederherstellen",
   "wsCmdNext": "Nächster Tab",
   "wsCmdPrev": "Vorheriger Tab",

@@ -203,6 +203,7 @@ String commandTitle(L l, String id) => switch (id) {
   'trash' => l.wsCmdTrash,
   'pin' => l.wsCmdPin,
   'move' => l.wsCmdMove,
+  'edit' => l.wsCmdEdit,
   'close' => l.wsCloseTab,
   'reopen' => l.wsCmdReopen,
   'next' => l.wsCmdNext,

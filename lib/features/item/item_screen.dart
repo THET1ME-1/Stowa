@@ -62,6 +62,7 @@ import 'facts_block.dart';
 import 'history_screen.dart';
 import 'math_view.dart';
 import 'note_place_sheet.dart';
+import 'edit_toggle.dart';
 import 'item_actions.dart' show toggleNoticed, togglePinned;
 import 'page_card.dart';
 import 'item_media.dart';
@@ -166,12 +167,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _body.addListener(_measureCaret);
     _scroll.addListener(_measureCaret);
     _bodyFocus.addListener(_measureCaret);
+    HardwareKeyboard.instance.addHandler(_onKey);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
     _items.markOpened(widget.id, _clock()).ignore();
   }
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKey);
     _autosave?.cancel();
     // ушли посреди правки — набранное не теряется
     if (_editing) _save();
@@ -763,10 +766,34 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     );
   }
 
+  /// Ctrl+E: просмотр ↔ правка. Из правки — сохранить и выйти, как «Готово».
+  void _toggleEditing() {
+    if (_editing) {
+      _finish().ignore();
+      return;
+    }
+    final item = ref.read(itemProvider(_id)).value?.item;
+    if (item != null && item.deletedAt == null) _startEditing(item);
+  }
+
+  // телефон и планшет с клавиатурой: рабочего пространства с его сочетаниями там нет
+  bool _onKey(KeyEvent event) {
+    if (event is! KeyDownEvent || !mounted || event.physicalKey != PhysicalKeyboardKey.keyE) return false;
+    final keyboard = HardwareKeyboard.instance;
+    if (!(keyboard.isControlPressed || keyboard.isMetaPressed) || keyboard.isAltPressed || keyboard.isShiftPressed) return false;
+    if (WorkspaceScope.maybeOf(context) != null || !(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    _toggleEditing();
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
+    // монитор: сочетание «Правка и просмотр» (Ctrl+E) ведёт рабочее пространство
+    ref.listen(editToggleProvider, (_, request) {
+      if (request?.itemId == _id) _toggleEditing();
+    });
     final full = ref.watch(itemProvider(_id)).value;
     final facts = ref.watch(itemFactsProvider(_id)).value ?? const <Fact>[];
     final highlights = ref.watch(highlightsProvider(_id)).value ?? const <Highlight>[];

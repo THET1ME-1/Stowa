@@ -25,6 +25,8 @@ const wsCommands = [
   WsCommand('trash', 'notes', 'delete', ['Delete', 'Alt+Backspace']),
   WsCommand('pin', 'notes', 'keep', ['P', 'Alt+P']),
   WsCommand('move', 'notes', 'drive_file_move', ['M', 'Alt+M']),
+  // просмотр ↔ правка открытой заметки, как в Obsidian (хозяин 22.11)
+  WsCommand('edit', 'notes', 'edit', ['Ctrl+E']),
   WsCommand('close', 'tabs', 'close', ['Alt+W']),
   WsCommand('reopen', 'tabs', 'undo', ['Alt+Shift+T']),
   WsCommand('next', 'tabs', 'arrow_forward', ['Alt+]']),

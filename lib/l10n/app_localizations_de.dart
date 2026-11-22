@@ -4318,6 +4318,9 @@ class LDe extends L {
   String get wsCmdMove => 'In Ordner verschieben';
 
   @override
+  String get wsCmdEdit => 'Notiz bearbeiten oder ansehen';
+
+  @override
   String get wsCmdReopen => 'Geschlossenen Tab wiederherstellen';
 
   @override

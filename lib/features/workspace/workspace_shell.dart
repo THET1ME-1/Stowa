@@ -22,6 +22,7 @@ import '../map/map_screen.dart';
 import '../returns/return_screen.dart';
 import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/undo_snack.dart';
+import '../item/edit_toggle.dart';
 import '../item/item_actions.dart';
 import 'workspace_docks.dart';
 import 'workspace_home.dart';
@@ -285,7 +286,7 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
     final id = keys.commandFor(chord);
     if (id == null) return false;
     // команды заметки без открытой заметки клавишу не забирают: Delete на холсте — его
-    if (const {'trash', 'pin', 'move'}.contains(id) && _noteId == null) return false;
+    if (const {'trash', 'pin', 'move', 'edit'}.contains(id) && _noteId == null) return false;
     _run(id);
     return true;
   }
@@ -322,6 +323,10 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
         _controller.open(const WsTab.settings('keys'));
       case 'settings':
         _controller.open(const WsTab.settings());
+      case 'edit':
+        final noteId = _noteId;
+        if (noteId == null) return _say(l.wsOpenNoteFirst);
+        ref.read(editToggleProvider.notifier).toggle(noteId);
       case 'trash' || 'pin' || 'move':
         final noteId = _noteId;
         if (noteId == null) return _say(l.wsOpenNoteFirst);

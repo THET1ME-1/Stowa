@@ -4359,6 +4359,9 @@ class LUk extends L {
   String get wsCmdMove => 'Перекласти в папку';
 
   @override
+  String get wsCmdEdit => 'Редагування і перегляд нотатки';
+
+  @override
   String get wsCmdReopen => 'Повернути закриту вкладку';
 
   @override

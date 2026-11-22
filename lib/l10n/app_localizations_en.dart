@@ -4293,6 +4293,9 @@ class LEn extends L {
   String get wsCmdMove => 'Move to folder';
 
   @override
+  String get wsCmdEdit => 'Edit or view note';
+
+  @override
   String get wsCmdReopen => 'Reopen closed tab';
 
   @override

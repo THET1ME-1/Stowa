@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
@@ -70,6 +71,41 @@ void main() {
     expect(find.byKey(const ValueKey('chip-item:m')), findsOneWidget);
     // удалённая не возвращается сочетанием «открыть закрытую»
     expect(shell.closed.where((tab) => tab.id == 'n'), isEmpty);
+  });
+
+  // хозяин 22.11: «CTRL + E для переключения видов заметки просмотр/редактирование»
+  testWidgets('Ctrl+E в открытой заметке включает правку, ещё раз — сохраняет и возвращает просмотр', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.note, title: 'Схема курсовой', body: const Value('Схема курсовой'), createdAt: world.now, updatedAt: world.now),
+    );
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    final tab = find.byKey(const ValueKey('tab-item:n'));
+    EditableText body() => tester.widget<EditableText>(find.descendant(of: tab, matching: find.byType(EditableText)).last);
+    expect(find.descendant(of: tab, matching: find.byType(EditableText)), findsNothing);
+
+    Future<void> ctrlE() async {
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyE);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+    }
+
+    await ctrlE();
+    expect(body().controller.text, 'Схема курсовой');
+
+    // правка с клавиатуры и снова Ctrl+E, уже из поля: текст сохранён, поля нет
+    body().controller.text = 'Схема курсовой\nвторая строка';
+    await ctrlE();
+    expect(find.descendant(of: tab, matching: find.byType(EditableText)), findsNothing);
+    final saved = await (world.db.select(world.db.items)..where((t) => t.id.equals('n'))).getSingle();
+    expect(saved.body, 'Схема курсовой\nвторая строка');
   });
 
   testWidgets('папку удалили — её вкладка закрывается', (tester) async {

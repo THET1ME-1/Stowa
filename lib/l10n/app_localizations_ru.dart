@@ -4371,6 +4371,9 @@ class LRu extends L {
   String get wsCmdMove => 'Переложить в папку';
 
   @override
+  String get wsCmdEdit => 'Правка и просмотр заметки';
+
+  @override
   String get wsCmdReopen => 'Вернуть закрытую вкладку';
 
   @override

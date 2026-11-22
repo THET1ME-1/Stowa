@@ -103,4 +103,26 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  // хозяин 22.11: Ctrl+E — просмотр ↔ правка. На телефоне и планшете с клавиатурой рабочего
+  // пространства с сочетаниями нет: клавишу ловит сама страница заметки
+  testWidgets('телефон с клавиатурой: Ctrl+E включает правку и выключает её', (tester) async {
+    await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Список', body: const Value('Список'), createdAt: world.now, updatedAt: world.now));
+    await iPhone(tester, keyboard: 0);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    Future<void> ctrlE() async {
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyE);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.byKey(const ValueKey('edit-dock')), findsNothing);
+    await ctrlE();
+    expect(find.byKey(const ValueKey('edit-dock')), findsOneWidget);
+    await ctrlE();
+    expect(find.byKey(const ValueKey('edit-dock')), findsNothing);
+  });
 }

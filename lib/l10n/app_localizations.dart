@@ -7319,6 +7319,12 @@ abstract class L {
   /// **'Move to folder'**
   String get wsCmdMove;
 
+  /// Команда сочетаний клавиш на мониторе (Ctrl+E): переключить открытую заметку между просмотром и правкой
+  ///
+  /// In en, this message translates to:
+  /// **'Edit or view note'**
+  String get wsCmdEdit;
+
   /// No description provided for @wsCmdReopen.
   ///
   /// In en, this message translates to:

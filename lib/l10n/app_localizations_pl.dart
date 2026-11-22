@@ -4364,6 +4364,9 @@ class LPl extends L {
   String get wsCmdMove => 'Przenieś do folderu';
 
   @override
+  String get wsCmdEdit => 'Edycja i podgląd notatki';
+
+  @override
   String get wsCmdReopen => 'Przywróć zamkniętą kartę';
 
   @override

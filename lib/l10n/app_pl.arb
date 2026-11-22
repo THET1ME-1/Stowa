@@ -919,6 +919,7 @@
   "wsCmdTrash": "Do kosza",
   "wsCmdPin": "Przypnij notatkę",
   "wsCmdMove": "Przenieś do folderu",
+  "wsCmdEdit": "Edycja i podgląd notatki",
   "wsCmdReopen": "Przywróć zamkniętą kartę",
   "wsCmdNext": "Następna karta",
   "wsCmdPrev": "Poprzednia karta",

@@ -5220,6 +5220,10 @@
   "wsCmdTrash": "Move to trash",
   "wsCmdPin": "Pin note",
   "wsCmdMove": "Move to folder",
+  "wsCmdEdit": "Edit or view note",
+  "@wsCmdEdit": {
+    "description": "Команда сочетаний клавиш на мониторе (Ctrl+E): переключить открытую заметку между просмотром и правкой"
+  },
   "wsCmdReopen": "Reopen closed tab",
   "wsCmdNext": "Next tab",
   "wsCmdPrev": "Previous tab",

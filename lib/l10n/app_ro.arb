@@ -919,6 +919,7 @@
   "wsCmdTrash": "Mută în coș",
   "wsCmdPin": "Fixează notița",
   "wsCmdMove": "Mută în dosar",
+  "wsCmdEdit": "Editează sau vezi notița",
   "wsCmdReopen": "Redeschide fila închisă",
   "wsCmdNext": "Fila următoare",
   "wsCmdPrev": "Fila anterioară",

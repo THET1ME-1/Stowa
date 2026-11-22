@@ -919,6 +919,7 @@
   "wsCmdTrash": "Mover a la papelera",
   "wsCmdPin": "Fijar nota",
   "wsCmdMove": "Mover a carpeta",
+  "wsCmdEdit": "Editar o ver la nota",
   "wsCmdReopen": "Reabrir pestaña cerrada",
   "wsCmdNext": "Pestaña siguiente",
   "wsCmdPrev": "Pestaña anterior",

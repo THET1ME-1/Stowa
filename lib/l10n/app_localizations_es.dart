@@ -4304,6 +4304,9 @@ class LEs extends L {
   String get wsCmdMove => 'Mover a carpeta';
 
   @override
+  String get wsCmdEdit => 'Editar o ver la nota';
+
+  @override
   String get wsCmdReopen => 'Reabrir pestaña cerrada';
 
   @override
