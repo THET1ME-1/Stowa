@@ -34,6 +34,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Настройки'));
     await tester.pumpAndSettle();
+    // первыми стоят подписка и аккаунт: на узком экране с крупным шрифтом до «Оформления» листают
+    await tester.scrollUntilVisible(find.text(summary), 200, scrollable: find.byType(Scrollable).last);
     expect(find.text(summary), findsOneWidget);
     await tester.tap(find.text('Оформление'));
     await tester.pumpAndSettle();
