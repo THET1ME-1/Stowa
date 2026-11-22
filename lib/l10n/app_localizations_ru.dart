@@ -446,7 +446,8 @@ class LRu extends L {
   String get trayPickHint => 'Выбери фото и видео из галереи';
 
   @override
-  String get trayPickHintDesk => 'Выбери фото и видео или перетащи их в окно';
+  String get trayPickHintDesk =>
+      'Выбери файлы, фото и видео или перетащи их в окно';
 
   @override
   String get trayPick => 'Выбрать';

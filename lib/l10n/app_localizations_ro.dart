@@ -449,7 +449,7 @@ class LRo extends L {
 
   @override
   String get trayPickHintDesk =>
-      'Alege poze și clipuri sau trage-le în fereastră';
+      'Alege fișiere, poze și clipuri sau trage-le în fereastră';
 
   @override
   String get trayPick => 'Alege';

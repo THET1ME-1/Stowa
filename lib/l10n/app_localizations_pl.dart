@@ -448,7 +448,7 @@ class LPl extends L {
 
   @override
   String get trayPickHintDesk =>
-      'Wybierz zdjęcia i filmy albo przeciągnij je do okna';
+      'Wybierz pliki, zdjęcia i filmy albo przeciągnij je do okna';
 
   @override
   String get trayPick => 'Wybierz';

@@ -576,9 +576,9 @@
   "@trayPickHint": {
     "description": "Подсказка в лотке «+» на сайте, открытом с телефона: галерею открывает окно выбора браузера"
   },
-  "trayPickHintDesk": "Pick photos and videos or drag them into the window",
+  "trayPickHintDesk": "Pick files, photos and videos, or drag them into the window",
   "@trayPickHintDesk": {
-    "description": "Подсказка в лотке «+» на компьютере: файлы выбирают окном или перетаскивают"
+    "description": "Подсказка в лотке «+» на компьютере: любые файлы выбирают одним окном или перетаскивают"
   },
   "trayPick": "Choose",
   "@trayPick": {

@@ -448,7 +448,7 @@ class LEn extends L {
 
   @override
   String get trayPickHintDesk =>
-      'Pick photos and videos or drag them into the window';
+      'Pick files, photos and videos, or drag them into the window';
 
   @override
   String get trayPick => 'Choose';

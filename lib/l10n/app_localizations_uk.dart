@@ -447,7 +447,8 @@ class LUk extends L {
   String get trayPickHint => 'Вибери фото й відео з галереї';
 
   @override
-  String get trayPickHintDesk => 'Вибери фото й відео або перетягни їх у вікно';
+  String get trayPickHintDesk =>
+      'Вибери файли, фото й відео або перетягни їх у вікно';
 
   @override
   String get trayPick => 'Вибрати';

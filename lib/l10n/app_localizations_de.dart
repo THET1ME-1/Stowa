@@ -449,7 +449,7 @@ class LDe extends L {
 
   @override
   String get trayPickHintDesk =>
-      'Wähle Fotos und Videos oder zieh sie ins Fenster';
+      'Wähle Dateien, Fotos und Videos oder zieh sie ins Fenster';
 
   @override
   String get trayPick => 'Auswählen';

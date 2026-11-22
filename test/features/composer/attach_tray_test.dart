@@ -19,29 +19,39 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('галереи нет (сайт, компьютер): вместо просьбы о доступе — выбор фото окном', (tester) async {
-    var picked = 0;
+  testWidgets('компьютер: вместо просьбы о доступе — одна вкладка «Файл» с выбором любых файлов', (tester) async {
+    var media = 0, files = 0;
     await show(
       tester,
-      AttachTray(gallery: false, camera: false, selected: const [], onToggle: (_, _) {}, onPickMedia: () => picked++, onCamera: () {}, onVideo: () {}, onFiles: () {}, onLink: () {}),
+      AttachTray(gallery: false, camera: false, selected: const [], onToggle: (_, _) {}, onPickMedia: () => media++, onCamera: () {}, onVideo: () {}, onFiles: () => files++, onLink: () {}),
     );
     expect(find.textContaining('Дай доступ'), findsNothing);
     expect(find.text('Разрешить'), findsNothing);
     // камеры у компьютера в лотке нет: кнопка открыла бы то же окно выбора файла
     expect(find.byTooltip('Камера'), findsNothing);
     expect(find.byTooltip('Видео'), findsNothing);
+    // хозяин 22.11 со снимка: «зачем 2 кнопки, что делают одно и то же» — «Фото и видео» и
+    // «Файл» на компьютере открывали одно окно. Остаётся одна вкладка, окно берёт любые файлы
+    expect(find.byTooltip('Фото и видео'), findsNothing);
+    expect(find.byTooltip('Файл'), findsOneWidget);
+    expect(find.textContaining('файлы'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('tray-pick')));
     await tester.pump();
-    expect(picked, 1);
+    expect((media, files), (0, 1));
   });
 
-  testWidgets('сайт на телефоне: галереи нет, а камера есть', (tester) async {
+  testWidgets('сайт на телефоне: галереи нет, а камера есть; фото и файлы — разными окнами', (tester) async {
+    var media = 0;
     await show(
       tester,
-      AttachTray(gallery: false, camera: true, selected: const [], onToggle: (_, _) {}, onPickMedia: () {}, onCamera: () {}, onVideo: () {}, onFiles: () {}, onLink: () {}),
+      AttachTray(gallery: false, camera: true, selected: const [], onToggle: (_, _) {}, onPickMedia: () => media++, onCamera: () {}, onVideo: () {}, onFiles: () {}, onLink: () {}),
     );
-    expect(find.byKey(const ValueKey('tray-pick')), findsOneWidget);
     expect(find.byTooltip('Камера'), findsOneWidget);
+    expect(find.byTooltip('Фото и видео'), findsOneWidget);
+    expect(find.byTooltip('Файл'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('tray-pick')));
+    await tester.pump();
+    expect(media, 1);
   });
 
   testWidgets('сайт: лоток строки открывается с выбором фото, а не с просьбой о доступе', (tester) async {

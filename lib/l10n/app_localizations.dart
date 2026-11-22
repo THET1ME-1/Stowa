@@ -839,10 +839,10 @@ abstract class L {
   /// **'Pick photos and videos from your gallery'**
   String get trayPickHint;
 
-  /// Подсказка в лотке «+» на компьютере: файлы выбирают окном или перетаскивают
+  /// Подсказка в лотке «+» на компьютере: любые файлы выбирают одним окном или перетаскивают
   ///
   /// In en, this message translates to:
-  /// **'Pick photos and videos or drag them into the window'**
+  /// **'Pick files, photos and videos, or drag them into the window'**
   String get trayPickHintDesk;
 
   /// Кнопка в лотке «+»: открыть окно выбора фото и видео

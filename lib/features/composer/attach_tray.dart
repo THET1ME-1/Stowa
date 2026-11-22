@@ -96,6 +96,9 @@ class _AttachTrayState extends State<AttachTray> {
     }
   }
 
+  /// Компьютер: ни галереи, ни камеры — всё выбирают одним окном выбора файлов.
+  bool get _onlyFiles => !widget.gallery && !widget.camera;
+
   void _pickTab(int index, VoidCallback? action) {
     setState(() => _tab = index);
     if (action == null) return;
@@ -109,11 +112,14 @@ class _AttachTrayState extends State<AttachTray> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
+    // компьютер: галереи и камеры нет, а «Фото и видео» и «Файл» открывали бы одно и то же
+    // окно выбора — остаётся одна вкладка «Файл», её окно берёт любые файлы (хозяин 22.11:
+    // «зачем 2 кнопки, что делают одно и то же»). На телефоне это разные окна: галерея и проводник
     final tabs = [
-      ('photo_library', widget.gallery ? l.trayGallery : l.trayPhotos, null),
+      if (_onlyFiles) ('attach_file', l.trayFile, null) else ('photo_library', widget.gallery ? l.trayGallery : l.trayPhotos, null),
       if (widget.camera) ('photo_camera', l.trayCamera, widget.onCamera),
       if (widget.camera) ('videocam', l.trayVideo, widget.onVideo),
-      ('attach_file', l.trayFile, widget.onFiles),
+      if (!_onlyFiles) ('attach_file', l.trayFile, widget.onFiles),
       ('link', l.trayLink, widget.onLink),
     ];
     return Padding(
@@ -148,12 +154,12 @@ class _AttachTrayState extends State<AttachTray> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              widget.camera ? l.trayPickHint : l.trayPickHintDesk,
+              _onlyFiles ? l.trayPickHintDesk : l.trayPickHint,
               textAlign: TextAlign.center,
               style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant),
             ),
             const SizedBox(height: 12),
-            FilledButton(key: const ValueKey('tray-pick'), onPressed: widget.onPickMedia, child: Text(l.trayPick)),
+            FilledButton(key: const ValueKey('tray-pick'), onPressed: _onlyFiles ? widget.onFiles : widget.onPickMedia, child: Text(l.trayPick)),
           ],
         ),
       );
