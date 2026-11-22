@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'item_title.dart' show titleFor;
+
 /// Холст Obsidian: файл `.canvas`, формат JSON Canvas 1.0 (jsoncanvas.org).
 /// Узел и стрелка помнят исходный объект целиком: правка меняет только свои поля,
 /// чужие (`styleAttributes`, поля плагинов) и порядок узлов остаются как были.
@@ -219,7 +221,9 @@ String newCanvasId() => List.generate(16, (_) => _random.nextInt(16).toRadixStri
 
 String _fileTitle(String path) {
   final name = path.split('/').last;
-  return name.endsWith('.md') ? name.substring(0, name.length - 3) : name;
+  if (name.endsWith('.md')) return name.substring(0, name.length - 3);
+  // имя от камеры или вставки («IMG-20261122-185119.png») — не слова, в поиск и подпись не идёт
+  return titleFor('', fileName: name).isEmpty ? '' : name;
 }
 
 /// Готовые цвета Obsidian «1»…«6» — ключи палитры папок Stowa (`FolderPalette.colors`).

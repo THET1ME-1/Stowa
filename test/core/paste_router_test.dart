@@ -43,6 +43,16 @@ void main() {
     expect(got, ['холст']);
   });
 
+  test('картинка из буфера без своего имени («image.png» браузера) называется по дате, как фото', () {
+    final at = DateTime(2026, 11, 22, 18, 20, 3);
+    expect(pastedFileName('image.png', 'image/png', at), 'IMG-20261122-182003.png');
+    expect(pastedFileName('', 'image/jpeg', at), 'IMG-20261122-182003.jpg');
+    expect(pastedFileName('Image.PNG', 'image/png', at), 'IMG-20261122-182003.png');
+    // файл с настоящим именем (скопирован в проводнике) остаётся под своим
+    expect(pastedFileName('План кухни.png', 'image/png', at), 'План кухни.png');
+    expect(pastedFileName('отчёт.pdf', 'application/pdf', at), 'отчёт.pdf');
+  });
+
   test('пустая вставка никуда не идёт', () async {
     final router = PasteRouter();
     var called = false;

@@ -20,6 +20,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../domain/canvas_layout.dart';
+import '../../domain/item_kind.dart' show showsAsImage;
 import '../../domain/json_canvas.dart';
 import '../../domain/note_section.dart';
 import '../../l10n/app_localizations.dart';
@@ -77,10 +78,23 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
   /// Задаётся в initState: ленивое `late` прочиталось бы впервые уже с новой версией.
   String? _stored;
 
+  // прежние свои версии файла (последние 20): база может прислать снимок, снятый до
+  // своей записи, уже после неё — это эхо, а не правка снаружи. Принять его — затереть
+  // своё: в Chromium вставленная картинка так на секунду пропадала с холста
+  final _ownVersions = <String?>[];
+
+  void _remember(String? stored) {
+    _stored = stored;
+    _ownVersions
+      ..remove(stored)
+      ..add(stored);
+    if (_ownVersions.length > 20) _ownVersions.removeAt(0);
+  }
+
   @override
   void initState() {
     super.initState();
-    _stored = widget.item.document;
+    _remember(widget.item.document);
     _doc = CanvasDoc.parse(_stored ?? '');
     // картинка из буфера (Ctrl+V) встаёт на холст карточкой, без строки
     listenPaste(ref.read(pasteRouterProvider));
@@ -108,9 +122,10 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
   void didUpdateWidget(CanvasFileScreen old) {
     super.didUpdateWidget(old);
     final incoming = widget.item.document;
-    // файл поправили снаружи (Obsidian, другой телефон), а своих несохранённых правок нет
-    if (incoming != _stored && _save == null && _hold == null) {
-      _stored = incoming;
+    // файл поправили снаружи (Obsidian, другой телефон, слежка за положенной картинкой),
+    // а своих несохранённых правок нет; своя прежняя версия — запоздалое эхо, не правка
+    if (incoming != _stored && !_ownVersions.contains(incoming) && _save == null && _hold == null) {
+      _remember(incoming);
       _doc = CanvasDoc.parse(incoming ?? '');
     }
   }
@@ -144,32 +159,84 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
 
   /// Файлы из системы, брошенные мышью или вставленные из буфера: каждый — заметка (её
   /// раскладывают по папкам как обычно), на холсте — карточка там, где отпустили или где мышь.
+  ///
+  /// Картинка встаёт карточкой сразу и видна из своих байтов, пока заметка сохраняется и
+  /// писатель переносит файл в папку вложений; потом карточка смотрит на сам файл картинки.
   @override
   Future<void> placeFiles(List<XFile> files, Offset at) async {
     if (!_editable) return;
     final l = L.of(context);
     final world = transform.toScene(at) - const Offset(_origin, _origin);
     final capture = ref.read(captureServiceProvider);
-    final ids = <String>[];
-    for (final file in files) {
+    final documents = ref.read(documentsRepositoryProvider);
+    for (final (index, file) in files.indexed) {
+      final center = world + Offset(index * 40.0, index * 40.0);
       final picked = await pickedFromXFile(file);
-      ids.add(await capture.capture(CaptureInput(files: [picked], untitled: (time) => untitledFor(l, mime: picked.mime, fileName: p.basename(picked.path), at: time))));
+      if (!mounted || !_editable) return;
+      String? nodeId;
+      if (showsAsImage(picked.mime)) {
+        final name = p.basename(picked.path);
+        // байты, а не временный файл: хранитель файлов уносит его во входящие переименованием
+        final bytes = await file.readAsBytes();
+        if (!mounted) return;
+        nodeId = _put(name, center, picture: true);
+        _previews[nodeId] = bytes;
+      }
+      final String id;
+      try {
+        id = await capture.capture(CaptureInput(files: [picked], untitled: (time) => untitledFor(l, mime: picked.mime, fileName: p.basename(picked.path), at: time)));
+      } catch (_) {
+        if (nodeId != null && mounted) {
+          _previews.remove(nodeId);
+          _change(_doc.removeNode(nodeId));
+        }
+        if (mounted) showNote(ScaffoldMessenger.of(context), l.attachFailed);
+        return;
+      }
+      if (nodeId == null) {
+        if (mounted) await _placeSaved([id], at: center);
+        continue;
+      }
+      _placed[nodeId] = id;
+      // слежка читает холст из базы: карточка должна быть там до неё
+      if (mounted) await _flushNow();
+      documents.followPlaced(widget.item.id, nodeId, id);
     }
-    if (mounted) await _placeSaved(ids, at: world);
   }
 
-  /// Заметки, сохранённые строкой или брошенные файлами: карточками рядом друг с другом —
-  /// в точке мира [at] или посреди экрана.
+  /// Вставленные картинки: узел → байты для показа, пока файл ложится на место.
+  final _previews = <String, Uint8List>{};
+
+  // и после перехода на файл в папке вложений: это тот же снимок, а загрузка его из файла
+  // дала бы ещё одно мигание; карточка ушла с картинки (файл не лёг) — показ из файла
+  Uint8List? _previewOf(CanvasNode node) =>
+      _imageExtensions.contains(p.extension(node.file ?? '').replaceFirst('.', '').toLowerCase()) ? _previews[node.id] : null;
+
+  /// Карточка-файл [file] серединой в точке мира [center] (рядом, если там занято); выбрана.
+  String _put(String file, Offset center, {required bool picture}) {
+    final (width, height) = picture ? (320.0, 240.0) : (300.0, 200.0);
+    final spot = _spot(center - Offset(width / 2, height / 2), width, height);
+    final next = _doc.addFile(file, x: spot.dx, y: spot.dy, width: width, height: height);
+    final nodeId = next.nodes.last.id;
+    _select(next);
+    return nodeId;
+  }
+
+  /// Заметки, сохранённые строкой: карточками рядом друг с другом — в точке мира [at] или
+  /// посреди экрана. Карточка встаёт сразу; файл заметки ложится за секунды — карточка
+  /// переходит на него сама (`followPlaced`).
   Future<void> _placeSaved(List<String> ids, {Offset? at}) async {
+    final documents = ref.read(documentsRepositoryProvider);
     for (final (index, id) in ids.indexed) {
-      final path = await _pathOf(id);
+      final settled = await documents.placedPathOf(id);
+      final path = settled ?? await documents.pathOf(id);
       if (path == null || !mounted || !_editable) return;
-      final image = _imageExtensions.contains(p.extension(path).replaceFirst('.', '').toLowerCase());
-      final (width, height) = image ? (320.0, 240.0) : (300.0, 200.0);
-      final spot = _spot((at ?? _center) - Offset(width / 2, height / 2) + Offset(index * 40.0, index * 40.0), width, height);
-      final next = _doc.addFile(path, x: spot.dx, y: spot.dy, width: width, height: height);
-      _placed[next.nodes.last.id] = id;
-      _select(next);
+      final picture = _imageExtensions.contains(p.extension(path).replaceFirst('.', '').toLowerCase());
+      final nodeId = _put(path, (at ?? _center) + Offset(index * 40.0, index * 40.0), picture: picture);
+      _placed[nodeId] = id;
+      if (settled != null) continue;
+      await _flushNow();
+      documents.followPlaced(widget.item.id, nodeId, id);
     }
   }
 
@@ -180,21 +247,30 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     _save = Timer(_saveDelay, _flush);
   }
 
-  void _flush() {
+  void _flush() => _flushNow().ignore();
+
+  /// Записать холст сейчас, не дожидаясь паузы в правках.
+  Future<void> _flushNow() async {
+    _save?.cancel();
     _save = null;
     final documents = ref.read(documentsRepositoryProvider);
     final id = widget.item.id;
     final placed = Map.of(_placed);
-    var doc = _doc;
-    _stored = doc.encode();
-    () async {
-      // свежий путь положенных заметок: их могли разложить по папкам, пока холст ждал
-      for (final MapEntry(key: nodeId, value: itemId) in placed.entries) {
-        final path = await documents.writtenPathOf(itemId) ?? await documents.pathOf(itemId);
-        if (path != null && doc.node(nodeId)?.file != path) doc = doc.updateNode(nodeId, {'file': path});
-      }
-      await documents.save(id, doc);
-    }().ignore();
+    final start = _doc;
+    var doc = start;
+    _remember(doc.encode());
+    // свежий путь положенных заметок: их могли разложить по папкам, пока холст ждал;
+    // у заметки-картинки это сама картинка — не возвращать карточку на файл заметки
+    for (final MapEntry(key: nodeId, value: itemId) in placed.entries) {
+      final path = await documents.placedPathOf(itemId);
+      if (path != null && doc.node(nodeId)?.file != path) doc = doc.updateNode(nodeId, {'file': path});
+    }
+    if (!identical(doc, start)) {
+      _remember(doc.encode());
+      // на экране тот же путь, что в файле, — если за это время холст не правили
+      if (mounted && identical(_doc, start)) setState(() => _doc = doc);
+    }
+    await documents.save(id, doc);
   }
 
   /// Точка экрана → координаты файла (мир без сдвига на середину).
@@ -692,6 +768,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
       child: _NodeView(
         node: node,
         filesRoot: filesRoot,
+        preview: _previewOf(node),
         selected: _selected.contains(node.id),
         lifted: _hold?.id == node.id,
         editable: _editable,
@@ -1096,6 +1173,7 @@ class _NodeView extends ConsumerWidget {
   const _NodeView({
     required this.node,
     required this.filesRoot,
+    this.preview,
     required this.selected,
     required this.lifted,
     required this.editable,
@@ -1109,6 +1187,9 @@ class _NodeView extends ConsumerWidget {
 
   final CanvasNode node;
   final Directory filesRoot;
+
+  /// Картинка, чей файл ещё не лёг на место: показ из её байтов.
+  final Uint8List? preview;
   final bool selected;
 
   /// Её сейчас тянут.
@@ -1140,6 +1221,7 @@ class _NodeView extends ConsumerWidget {
         ),
       ),
       CanvasNodeType.link => _LinkFace(url: node.url ?? ''),
+      CanvasNodeType.file when preview != null => Image.memory(preview!, fit: BoxFit.cover, cacheWidth: 900, gaplessPlayback: true),
       CanvasNodeType.file => _FileFace(path: node.file ?? '', subpath: node.subpath, filesRoot: filesRoot, missing: l.canvasMissingFile(node.file ?? '')),
       CanvasNodeType.group => Align(
         alignment: Alignment.topLeft,

@@ -258,6 +258,8 @@ class _PhotoViewerState extends State<PhotoViewer> {
                 }),
                 itemBuilder: (context, index) => _ZoomablePhoto(
                   path: widget.paths[index],
+                  desk: desk,
+                  strip: count > 1,
                   onZoomChanged: (zoomed) {
                     if (index == _index && zoomed != _zoomed) setState(() => _zoomed = zoomed);
                   },
@@ -428,10 +430,17 @@ class _Strip extends StatelessWidget {
 
 /// Один снимок: щипок до пяти раз, двойное касание приближает туда, куда ткнули.
 class _ZoomablePhoto extends StatefulWidget {
-  const _ZoomablePhoto({required this.path, required this.onZoomChanged});
+  const _ZoomablePhoto({required this.path, required this.onZoomChanged, this.desk = false, this.strip = false});
 
   final String path;
   final ValueChanged<bool> onZoomChanged;
+
+  /// Монитор: снимок не крупнее своего размера (маленький скриншот не расплывается на весь
+  /// экран) и с полями — кнопки по краям не ложатся на него.
+  final bool desk;
+
+  /// Внизу лента снимков: поле снизу выше.
+  final bool strip;
 
   @override
   State<_ZoomablePhoto> createState() => _ZoomablePhotoState();
@@ -480,10 +489,13 @@ class _ZoomablePhotoState extends State<_ZoomablePhoto> with SingleTickerProvide
       child: InteractiveViewer(
         transformationController: _transform,
         maxScale: 5,
-        child: Center(
-          child: Hero(
-            tag: photoHeroTag(widget.path),
-            child: FilePicture(File(widget.path), fit: BoxFit.contain, width: double.infinity, height: double.infinity),
+        child: Padding(
+          padding: widget.desk ? EdgeInsets.fromLTRB(88, 72, 88, widget.strip ? 160 : 96) : EdgeInsets.zero,
+          child: Center(
+            child: Hero(
+              tag: photoHeroTag(widget.path),
+              child: FilePicture(File(widget.path), fit: widget.desk ? BoxFit.scaleDown : BoxFit.contain, width: double.infinity, height: double.infinity),
+            ),
           ),
         ),
       ),

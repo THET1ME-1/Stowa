@@ -89,6 +89,16 @@ void main() {
     expect(text, contains('https://example.com/tile'));
   });
 
+  // вставленная картинка зовётся по дате: «IMG-20261122-185119.png» в подписи холста на
+  // главной и в поиске — шум, имя «План кухни.png» человек дал сам — остаётся
+  test('текст для поиска: машинное имя картинки не идёт, человеческое — идёт', () {
+    final doc = CanvasDoc.empty()
+        .addText('Замер', x: 0, y: 0)
+        .addFile('Вложения/IMG-20261122-185119.png', x: 300, y: 0, width: 320, height: 240)
+        .addFile('Вложения/План кухни.png', x: 700, y: 0, width: 320, height: 240);
+    expect(doc.plainText(), 'Замер\nПлан кухни.png');
+  });
+
   test('битый файл не роняет: пустой холст с пометкой, пустой текст — тоже пустой холст', () {
     expect(CanvasDoc.parse('{"nodes": [').broken, isTrue);
     expect(CanvasDoc.parse('').nodes, isEmpty);

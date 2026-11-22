@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -420,5 +422,51 @@ void main() {
     expect(note, hasLength(1));
     final placed = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file);
     expect(placed, hasLength(1));
+  });
+
+  // в Chromium карточка вставленной картинки появлялась, на секунду пропадала и вставала снова:
+  // база присылала холст без неё, пока свой холст ещё писался, и экран принимал это за правку снаружи
+  testWidgets('вставленная картинка не пропадает с холста, пока заметка и холст сохраняются', (tester) async {
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await openWide(tester);
+    // карточки холста (id узла — 16 знаков); «node-open», «node-color» — кнопки у выбранной
+    final cards = find.byWidgetPredicate((widget) => widget.key is ValueKey<String> && RegExp(r'^node-[0-9a-f]{16}$').hasMatch((widget.key! as ValueKey<String>).value));
+    expect(cards, findsOneWidget);
+    world.pasted.add([
+      XFile.fromData(base64.decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='), mimeType: 'image/png'),
+    ]);
+    var placed = false;
+    for (var step = 0; step < 60; step++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump(const Duration(milliseconds: 100));
+      final count = cards.evaluate().length;
+      if (placed) expect(count, 2, reason: 'шаг $step: карточка пропала');
+      placed = placed || count == 2;
+    }
+    expect(placed, isTrue);
+  });
+
+  // хозяин 22.11: «хочу вставить сразу в холст без инпута через Ctrl+V»; первая версия
+  // клала на холст «Image» пустой карточкой заметки вместо самой картинки
+  testWidgets('картинка из буфера (Ctrl+V) — карточка с самой картинкой, как кладёт Obsidian', (tester) async {
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await openWide(tester);
+    await world.paste(tester, [
+      XFile.fromData(
+        base64.decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='),
+        mimeType: 'image/png',
+      ),
+    ]);
+    await saved(tester);
+    final picture = (await world.db.select(world.db.items).get()).singleWhere((item) => item.kind != ItemKind.canvas);
+    expect(picture.kind, ItemKind.image);
+    // карточка встала сразу, пока картинка во входящих
+    expect((await stored()).nodes.where((node) => node.type == CanvasNodeType.file), hasLength(1));
+    // писатель хранилища перенёс картинку в папку вложений (в тестовом мире его нет — делаем за него)
+    await (world.db.update(world.db.attachments)..where((t) => t.itemId.equals(picture.id))).write(const AttachmentsCompanion(path: Value('Вложения/IMG-20261122-182003.png')));
+    await tester.pump(const Duration(milliseconds: 600));
+    await saved(tester);
+    final file = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file).single;
+    expect(file.file, 'Вложения/IMG-20261122-182003.png', reason: 'карточка смотрит на картинку, а не на файл заметки');
   });
 }

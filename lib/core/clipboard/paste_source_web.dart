@@ -4,6 +4,8 @@ import 'dart:js_interop';
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:web/web.dart' as web;
 
+import 'paste_router.dart' show pastedFileName;
+
 /// Файлы, вставленные из буфера сочетанием Ctrl+V. Flutter в браузере берёт из буфера только
 /// текст, поэтому картинку («Копировать картинку», снимок экрана, файл из проводника) ловим
 /// сами — событием `paste` страницы. Оно приходит и с полем ввода в фокусе, и без него.
@@ -42,11 +44,12 @@ void _onPaste(web.ClipboardEvent event, StreamController<List<XFile>> out) {
   if (files.isEmpty) return;
   // вставку забираем целиком: поле ввода не получит пустую строку
   event.preventDefault();
+  final now = DateTime.now();
   () async {
     final pasted = <XFile>[];
     for (final file in files) {
       final bytes = (await file.arrayBuffer().toDart).toDart.asUint8List();
-      pasted.add(XFile.fromData(bytes, name: file.name, mimeType: file.type, length: bytes.length));
+      pasted.add(XFile.fromData(bytes, name: pastedFileName(file.name, file.type, now), mimeType: file.type, length: bytes.length));
     }
     if (pasted.isNotEmpty && !out.isClosed) out.add(pasted);
   }();

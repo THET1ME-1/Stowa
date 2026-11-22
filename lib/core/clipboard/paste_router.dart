@@ -4,6 +4,21 @@ import 'package:image_picker/image_picker.dart' show XFile;
 /// Что делать со вставленными файлами (картинка из буфера, файл из проводника).
 typedef PasteHandler = Future<void> Function(List<XFile> files);
 
+// так браузер зовёт любую картинку из буфера: снимок экрана, «Копировать картинку»
+final _clipboardImage = RegExp(r'^image\.\w+$', caseSensitive: false);
+
+/// Имя вставленного файла. Картинка без своего имени («image.png» браузера) называется по
+/// дате, как фото камеры: подпись у заметки тогда «Фото от …», а не «Image», и вставки в
+/// одну заметку не спорят за одно имя. Файл с настоящим именем остаётся под своим.
+String pastedFileName(String name, String mime, DateTime at) {
+  final trimmed = name.trim();
+  if (!mime.startsWith('image/') || (trimmed.isNotEmpty && !_clipboardImage.hasMatch(trimmed))) return name;
+  final dot = trimmed.lastIndexOf('.');
+  final extension = dot > 0 ? trimmed.substring(dot + 1).toLowerCase() : (mime == 'image/jpeg' ? 'jpg' : mime.substring('image/'.length));
+  String two(int value) => value.toString().padLeft(2, '0');
+  return 'IMG-${at.year}${two(at.month)}${two(at.day)}-${two(at.hour)}${two(at.minute)}${two(at.second)}.$extension';
+}
+
 /// Место видно человеку: его экран сверху (не закрыт другим экраном или окном) и вкладка
 /// не спрятана — у спрятанной вкладки рабочего пространства часы выключены.
 bool shownOnScreen(State state) {

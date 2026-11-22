@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../domain/folder_tree.dart';
@@ -9,6 +12,7 @@ import '../../domain/note_links.dart' show wikiLink;
 import '../../domain/obsidian_base.dart';
 import '../../domain/vault_note.dart' show packVaultProperties, unpackVaultProperties, vaultFileName;
 import '../db/database.dart';
+import '../recompute.dart';
 
 /// Холсты и базы Obsidian — заметки видов canvas и base, файл целиком в `items.document`.
 /// В файл хранилища их кладёт писатель, как и заметки: правка здесь ставит запись в очередь.
@@ -103,10 +107,60 @@ class DocumentsRepository {
     return [...(await _folderNames(item.folderId)).map(vaultFileName), '${vaultFileName(item.title)}.${_extension(item.kind)}'].join('/');
   }
 
-  /// Заметка по пути файла из холста: сперва карта файлов, потом папки и заголовок.
+  /// На что смотрит карточка холста, положенная за заметку. Заметка из одной картинки без
+  /// своего текста — сам файл картинки, как кладёт на холст Obsidian: картинку видно и там,
+  /// и здесь. Остальные — файл заметки. null — файл ещё не лёг на место (картинка во
+  /// входящих, заметка не записана).
+  Future<String?> placedPathOf(String itemId) async {
+    final item = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingleOrNull();
+    if (item == null) return null;
+    final files = await (_db.select(_db.attachments)..where((t) => t.itemId.equals(itemId))).get();
+    // вставку картинки `![[…]]` в заметку дописывает писатель: это не текст человека
+    final ownText = item.body.replaceAll(_embed, '').trim();
+    if (ownText.isEmpty && files.length == 1 && showsAsImage(files.single.mime)) {
+      final path = files.single.path;
+      return path.startsWith('.stowa/') || p.isAbsolute(path) ? null : path;
+    }
+    return writtenPathOf(itemId);
+  }
+
+  static final _embed = RegExp(r'!\[\[[^\]\n]*\]\]');
+
+  /// Карточка [nodeId] холста [canvasId] положена за заметку [itemId] раньше, чем её файл
+  /// лёг на место (картинку переносит из входящих писатель, заметку пишет он же). Как ляжет —
+  /// карточка в файле холста переходит на него. Живёт отдельно от экрана: холст закрыли
+  /// сразу после вставки — карточка всё равно встанет верно. Карточку убрали, холст или
+  /// заметку удалили — слежка снимается.
+  void followPlaced(String canvasId, String nodeId, String itemId) {
+    late final StreamSubscription<String?> watch;
+    var done = false;
+    watch = recomputeOn(_db.changesOf([_db.attachments, _db.vaultFiles, _db.items]), () async {
+      if (done) return null;
+      final alive = await (_db.select(_db.items)..where((t) => t.id.equals(itemId) & t.deletedAt.isNull())).getSingleOrNull();
+      final canvas = await (_db.select(_db.items)..where((t) => t.id.equals(canvasId) & t.deletedAt.isNull())).getSingleOrNull();
+      final doc = canvas?.document == null ? null : CanvasDoc.parse(canvas!.document!);
+      final node = doc?.node(nodeId);
+      if (alive == null || node == null) {
+        done = true;
+        return null;
+      }
+      final path = await placedPathOf(itemId);
+      if (path == null) return null;
+      done = true;
+      if (node.file != path) await save(canvasId, doc!.updateNode(nodeId, {'file': path}));
+      return path;
+    }).listen((_) {
+      if (done) watch.cancel();
+    });
+  }
+
+  /// Заметка по пути файла из холста: сперва карта файлов, потом вложения (карточка-картинка),
+  /// потом папки и заголовок.
   Future<String?> itemAt(String path) async {
     final known = await (_db.select(_db.vaultFiles)..where((t) => t.path.equals(path))).getSingleOrNull();
     if (known != null) return known.itemId;
+    final attached = await (_db.select(_db.attachments)..where((t) => t.path.equals(path))..limit(1)).getSingleOrNull();
+    if (attached != null) return attached.itemId;
     final paths = await _computedPaths();
     return paths.entries.where((entry) => entry.value.toLowerCase() == path.toLowerCase()).firstOrNull?.key;
   }
