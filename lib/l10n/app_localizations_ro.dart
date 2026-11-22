@@ -442,6 +442,21 @@ class LRo extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get tabsSection => 'File';
+
+  @override
+  String get tabCloseTitle => 'Butonul de închidere al filei';
+
+  @override
+  String get tabCloseLeft => 'În stânga';
+
+  @override
+  String get tabCloseRight => 'În dreapta';
+
+  @override
+  String get tabsHint => 'Un dublu clic pe o filă o închide și el.';
+
+  @override
   String get trayPhotos => 'Poze și clipuri';
 
   @override

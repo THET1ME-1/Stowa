@@ -442,6 +442,22 @@ class LDe extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get tabsSection => 'Tabs';
+
+  @override
+  String get tabCloseTitle => 'Schließen-Kreuz am Tab';
+
+  @override
+  String get tabCloseLeft => 'Links';
+
+  @override
+  String get tabCloseRight => 'Rechts';
+
+  @override
+  String get tabsHint =>
+      'Ein Doppelklick auf einen Tab schließt ihn ebenfalls.';
+
+  @override
   String get trayPhotos => 'Fotos und Videos';
 
   @override

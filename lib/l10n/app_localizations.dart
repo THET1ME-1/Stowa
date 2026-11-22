@@ -827,6 +827,36 @@ abstract class L {
   /// **'Allow'**
   String get trayAllow;
 
+  /// Заголовок раздела «Внешний вид» про вкладки рабочего пространства на мониторе
+  ///
+  /// In en, this message translates to:
+  /// **'Tabs'**
+  String get tabsSection;
+
+  /// Настройка: с какой стороны от названия вкладки стоит крестик закрытия
+  ///
+  /// In en, this message translates to:
+  /// **'Close button on a tab'**
+  String get tabCloseTitle;
+
+  /// Выбор стороны крестика вкладки: слева от названия
+  ///
+  /// In en, this message translates to:
+  /// **'On the left'**
+  String get tabCloseLeft;
+
+  /// Выбор стороны крестика вкладки: справа от названия, так по умолчанию
+  ///
+  /// In en, this message translates to:
+  /// **'On the right'**
+  String get tabCloseRight;
+
+  /// Подсказка под выбором стороны крестика: двойной щелчок по вкладке тоже закрывает её
+  ///
+  /// In en, this message translates to:
+  /// **'Double-click a tab to close it.'**
+  String get tabsHint;
+
   /// Вкладка лотка «+» там, где галереи телефона нет (сайт, компьютер): фото и видео выбирают окном выбора файлов
   ///
   /// In en, this message translates to:

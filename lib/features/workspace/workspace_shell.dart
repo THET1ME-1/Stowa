@@ -1256,7 +1256,7 @@ class _TabChipState extends ConsumerState<_TabChip> {
     final l = L.of(context);
     final (icon, label, color) = lookOf(l, ref, tab);
     return GestureDetector(
-      onTap: onTap,
+      onTap: _tapped,
       // средняя кнопка мыши закрывает вкладку, как в браузере
       onTertiaryTapUp: (_) => onClose(),
       child: MouseRegion(
@@ -1283,15 +1283,38 @@ class _TabChipState extends ConsumerState<_TabChip> {
 
   Widget _fade(Widget child) => AnimatedOpacity(duration: Motion.medium, curve: Motion.emphasized, opacity: active ? 1 : 0, child: child);
 
+  /// Когда по вкладке щёлкнули в прошлый раз: второй щелчок следом закрывает её.
+  DateTime? _tappedAt;
+
+  /// Щелчок открывает вкладку сразу; второй в течение трети секунды — закрывает (хозяин
+  /// 22.11: «2 раза нажать на вкладку, и она закроется»). Двойное нажатие узнаётся здесь, а
+  /// не жестом `onDoubleTap`: тот придерживал бы каждый одиночный щелчок, ожидая второго.
+  void _tapped() {
+    final now = DateTime.now();
+    final again = _tappedAt != null && now.difference(_tappedAt!) < const Duration(milliseconds: 350);
+    _tappedAt = again ? null : now;
+    again ? onClose() : onTap();
+  }
+
   Widget _chip(BuildContext context, L l, String icon, String label, Color? color) {
     final text = Theme.of(context).textTheme;
+    // сторона крестика — из настроек «Внешний вид»; по умолчанию справа
+    final closeLeft = ref.watch(tabCloseLeftProvider).value ?? false;
+    final close = Tooltip(
+      message: l.wsCloseTab,
+      child: InkResponse(
+        onTap: onClose,
+        radius: 14,
+        child: Padding(padding: const EdgeInsets.all(3), child: Icon(symbolIcon('close'), size: 16, color: Tokens.muted)),
+      ),
+    );
     return AnimatedContainer(
           duration: Motion.medium,
           curve: Motion.emphasized,
           constraints: const BoxConstraints(maxWidth: 240),
           height: active ? 44 : 36,
           margin: EdgeInsets.only(bottom: active ? 0 : 4),
-          padding: const EdgeInsets.only(left: 12, right: 6),
+          padding: EdgeInsets.only(left: closeLeft ? 6 : 12, right: closeLeft ? 12 : 6),
           decoration: BoxDecoration(
             color: active ? _block : (_hover ? Tokens.container : Tokens.container.withValues(alpha: 0)),
             borderRadius: active ? const BorderRadius.vertical(top: Radius.circular(14)) : BorderRadius.circular(12),
@@ -1299,6 +1322,7 @@ class _TabChipState extends ConsumerState<_TabChip> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (closeLeft) ...[close, const SizedBox(width: 4)],
               Icon(symbolIcon(icon, filled: color != null), size: 18, color: color ?? (active || _hover ? Tokens.onSurface : Tokens.onSurfaceVariant)),
               const SizedBox(width: 8),
               Flexible(
@@ -1309,15 +1333,7 @@ class _TabChipState extends ConsumerState<_TabChip> {
                   child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ),
-              const SizedBox(width: 4),
-              Tooltip(
-                message: l.wsCloseTab,
-                child: InkResponse(
-                  onTap: onClose,
-                  radius: 14,
-                  child: Padding(padding: const EdgeInsets.all(3), child: Icon(symbolIcon('close'), size: 16, color: Tokens.muted)),
-                ),
-              ),
+              if (!closeLeft) ...[const SizedBox(width: 4), close],
             ],
           ),
         );

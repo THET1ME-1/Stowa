@@ -441,6 +441,21 @@ class LEn extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get tabsSection => 'Tabs';
+
+  @override
+  String get tabCloseTitle => 'Close button on a tab';
+
+  @override
+  String get tabCloseLeft => 'On the left';
+
+  @override
+  String get tabCloseRight => 'On the right';
+
+  @override
+  String get tabsHint => 'Double-click a tab to close it.';
+
+  @override
   String get trayPhotos => 'Photos and videos';
 
   @override

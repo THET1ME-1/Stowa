@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/composer/line_dock.dart';
+import 'package:stowa/features/settings/appearance_screen.dart';
 import 'package:stowa/features/workspace/workspace_model.dart';
 import 'package:stowa/features/workspace/workspace_shell.dart';
 
@@ -106,6 +109,71 @@ void main() {
     expect(find.descendant(of: tab, matching: find.byType(EditableText)), findsNothing);
     final saved = await (world.db.select(world.db.items)..where((t) => t.id.equals('n'))).getSingle();
     expect(saved.body, 'Схема курсовой\nвторая строка');
+  });
+
+  // хозяин 22.11: «2 раза нажать на вкладку, и она закроется. В настройках — крестик слева
+  // или справа, справа по умолчанию»
+  testWidgets('двойной щелчок по вкладке закрывает её, одиночный открывает сразу; крестик встаёт слева по настройке', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+    world.settings = settings;
+    for (final id in ['n', 'm']) {
+      await world.db.into(world.db.items).insert(ItemsCompanion.insert(id: id, kind: ItemKind.note, title: 'Заметка $id', body: Value('Заметка $id'), createdAt: world.now, updatedAt: world.now));
+    }
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final shell = WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!;
+    shell.open(const WsTab.item('m'));
+    shell.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    final chipM = find.byKey(const ValueKey('chip-item:m'));
+    final chipN = find.byKey(const ValueKey('chip-item:n'));
+
+    // крестик по умолчанию справа от названия
+    double close(Finder chip) => tester.getCenter(find.descendant(of: chip, matching: find.byTooltip('Закрыть вкладку'))).dx;
+    double label(Finder chip, String title) => tester.getCenter(find.descendant(of: chip, matching: find.text(title))).dx;
+    expect(close(chipN), greaterThan(label(chipN, 'Заметка n')));
+
+    // один щелчок открывает вкладку сразу, без ожидания второго
+    await tester.tap(chipM);
+    await tester.pump();
+    expect(shell.workspace.focusedPane.activeTab, const WsTab.item('m'));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(chipM, findsOneWidget, reason: 'одиночный щелчок вкладку не закрывает');
+
+    // два щелчка подряд закрывают
+    await tester.tap(chipN);
+    await tester.pump(const Duration(milliseconds: 90));
+    await tester.tap(chipN);
+    await tester.pumpAndSettle();
+    expect(chipN, findsNothing);
+    expect(chipM, findsOneWidget);
+
+    await settings.setTabCloseLeft(true);
+    await tester.pumpAndSettle();
+    expect(close(chipM), lessThan(label(chipM, 'Заметка m')));
+  });
+
+  testWidgets('«Внешний вид» на мониторе: выбор стороны крестика вкладки, справа по умолчанию', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+    world.settings = settings;
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const AppearanceScreen()));
+    await tester.pumpAndSettle();
+    expect(settings.tabCloseLeft, isFalse);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('tab-close-left')), 200);
+    await tester.tap(find.byKey(const ValueKey('tab-close-left')));
+    await tester.pumpAndSettle();
+    expect(settings.tabCloseLeft, isTrue);
+    expect(find.textContaining('Двойной щелчок'), findsOneWidget);
   });
 
   testWidgets('папку удалили — её вкладка закрывается', (tester) async {

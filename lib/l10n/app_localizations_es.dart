@@ -441,6 +441,21 @@ class LEs extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get tabsSection => 'Pestañas';
+
+  @override
+  String get tabCloseTitle => 'Botón de cerrar de la pestaña';
+
+  @override
+  String get tabCloseLeft => 'A la izquierda';
+
+  @override
+  String get tabCloseRight => 'A la derecha';
+
+  @override
+  String get tabsHint => 'Un doble clic en una pestaña también la cierra.';
+
+  @override
   String get trayPhotos => 'Fotos y vídeos';
 
   @override

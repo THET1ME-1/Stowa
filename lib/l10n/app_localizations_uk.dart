@@ -441,6 +441,21 @@ class LUk extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get tabsSection => 'Вкладки';
+
+  @override
+  String get tabCloseTitle => 'Хрестик закриття вкладки';
+
+  @override
+  String get tabCloseLeft => 'Ліворуч';
+
+  @override
+  String get tabCloseRight => 'Праворуч';
+
+  @override
+  String get tabsHint => 'Подвійне клацання по вкладці теж закриває її.';
+
+  @override
   String get trayPhotos => 'Фото й відео';
 
   @override

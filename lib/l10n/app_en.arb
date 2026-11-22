@@ -568,6 +568,26 @@
     "description": "Tray without permission"
   },
   "trayAllow": "Allow",
+  "tabsSection": "Tabs",
+  "@tabsSection": {
+    "description": "Заголовок раздела «Внешний вид» про вкладки рабочего пространства на мониторе"
+  },
+  "tabCloseTitle": "Close button on a tab",
+  "@tabCloseTitle": {
+    "description": "Настройка: с какой стороны от названия вкладки стоит крестик закрытия"
+  },
+  "tabCloseLeft": "On the left",
+  "@tabCloseLeft": {
+    "description": "Выбор стороны крестика вкладки: слева от названия"
+  },
+  "tabCloseRight": "On the right",
+  "@tabCloseRight": {
+    "description": "Выбор стороны крестика вкладки: справа от названия, так по умолчанию"
+  },
+  "tabsHint": "Double-click a tab to close it.",
+  "@tabsHint": {
+    "description": "Подсказка под выбором стороны крестика: двойной щелчок по вкладке тоже закрывает её"
+  },
   "trayPhotos": "Photos and videos",
   "@trayPhotos": {
     "description": "Вкладка лотка «+» там, где галереи телефона нет (сайт, компьютер): фото и видео выбирают окном выбора файлов"

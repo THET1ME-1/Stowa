@@ -367,6 +367,16 @@ class SettingsRepository {
 
   Future<void> setEnterSends(bool value) => _set(() => _prefs.setBool('enter_sends', value));
 
+  /// Крестик закрытия у вкладки рабочего пространства — слева от названия; по умолчанию справа.
+  bool get tabCloseLeft => _prefs.getBool('tab_close_left') ?? false;
+
+  Stream<bool> watchTabCloseLeft() async* {
+    yield tabCloseLeft;
+    yield* _changes.stream.map((_) => tabCloseLeft).distinct();
+  }
+
+  Future<void> setTabCloseLeft(bool value) => _set(() => _prefs.setBool('tab_close_left', value));
+
   /// Что открывать при запуске. По умолчанию главная.
   StartScreen get startScreen => StartScreen.values.asNameMap()[_prefs.getString('start_screen')] ?? StartScreen.home;
 

@@ -145,6 +145,15 @@ final enterSendsProvider = StreamProvider<bool>((ref) {
   }
 });
 
+/// Крестик вкладки слева от названия (монитор); без настроек — справа.
+final tabCloseLeftProvider = StreamProvider<bool>((ref) {
+  try {
+    return ref.watch(settingsRepositoryProvider).watchTabCloseLeft();
+  } on Object {
+    return Stream.value(false);
+  }
+});
+
 /// Выбор «При запуске» для экрана настроек.
 final startScreenChoiceProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchStartScreen());
 

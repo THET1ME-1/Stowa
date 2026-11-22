@@ -12,6 +12,7 @@ import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../domain/appearance.dart';
 import '../../l10n/app_localizations.dart';
+import '../workspace/workspace_shell.dart' show workspaceFrom;
 import 'settings_blocks.dart';
 
 Route<void> appearanceRoute() => MaterialPageRoute(builder: (_) => const AppearanceScreen());
@@ -173,6 +174,39 @@ class AppearanceScreen extends ConsumerWidget {
                       value: appearance.amoled,
                       onChanged: (on) => save(appearance.copyWith(amoled: on)),
                     ),
+                ],
+              ),
+            ],
+            // вкладки есть только у рабочего пространства широкого окна: на телефоне выбирать нечего
+            if (MediaQuery.sizeOf(context).width >= workspaceFrom) ...[
+              SettingsSection(l.tabsSection),
+              _Block(
+                children: [
+                  Text(l.tabCloseTitle, style: text.titleMedium),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _TextChoice(
+                          key: const ValueKey('tab-close-left'),
+                          label: l.tabCloseLeft,
+                          selected: ref.watch(tabCloseLeftProvider).value ?? false,
+                          onTap: () => ref.read(settingsRepositoryProvider).setTabCloseLeft(true),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _TextChoice(
+                          key: const ValueKey('tab-close-right'),
+                          label: l.tabCloseRight,
+                          selected: !(ref.watch(tabCloseLeftProvider).value ?? false),
+                          onTap: () => ref.read(settingsRepositoryProvider).setTabCloseLeft(false),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(l.tabsHint, style: hintStyle),
                 ],
               ),
             ],

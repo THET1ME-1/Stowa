@@ -441,6 +441,21 @@ class LPl extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get tabsSection => 'Karty';
+
+  @override
+  String get tabCloseTitle => 'Przycisk zamykania karty';
+
+  @override
+  String get tabCloseLeft => 'Po lewej';
+
+  @override
+  String get tabCloseRight => 'Po prawej';
+
+  @override
+  String get tabsHint => 'Dwukrotne kliknięcie karty też ją zamyka.';
+
+  @override
   String get trayPhotos => 'Zdjęcia i filmy';
 
   @override

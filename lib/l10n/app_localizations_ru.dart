@@ -440,6 +440,21 @@ class LRu extends L {
   String get trayAllow => 'Разрешить';
 
   @override
+  String get tabsSection => 'Вкладки';
+
+  @override
+  String get tabCloseTitle => 'Крестик закрытия вкладки';
+
+  @override
+  String get tabCloseLeft => 'Слева';
+
+  @override
+  String get tabCloseRight => 'Справа';
+
+  @override
+  String get tabsHint => 'Двойной щелчок по вкладке тоже закрывает её.';
+
+  @override
   String get trayPhotos => 'Фото и видео';
 
   @override
