@@ -17,7 +17,7 @@ import '../../data/providers.dart';
 import '../../domain/excalidraw.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart';
-import '../folder/folder_sheets.dart' show showRenameSheet;
+import '../item/document_header.dart';
 import 'excalidraw_painter.dart';
 
 /// Рисунок Excalidraw из Obsidian: лист с рисунком, щипком крупнее, двойным касанием —
@@ -117,12 +117,6 @@ class _DrawingScreenState extends ConsumerState<DrawingScreen> {
     _transform.value = Matrix4.translationValues(dx, dy, 0) * Matrix4.diagonal3Values(scale, scale, scale);
   }
 
-  Future<void> _rename() async {
-    final name = await showRenameSheet(context, widget.item.title, label: L.of(context).baseColName);
-    if (name == null || name.trim().isEmpty) return;
-    await ref.read(documentsRepositoryProvider).rename(widget.item.id, name.trim());
-  }
-
   Future<void> _showTexts() async {
     final l = L.of(context);
     await showOptionsSheetWith<void>(
@@ -182,33 +176,15 @@ class _DrawingScreenState extends ConsumerState<DrawingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 6),
-              child: Row(
-                children: [
-                  _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.maybePop(context)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: InkWell(
-                      key: const ValueKey('drawing-title'),
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: _rename,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleLarge),
-                          Text(_texts.isEmpty ? l.kindDrawing : '${l.kindDrawing} · ${l.drawingTextCount(_texts.length)}', style: text.bodySmall),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (_texts.isNotEmpty) ...[
-                    _RoundButton(key: const ValueKey('drawing-texts'), icon: 'notes', tooltip: l.drawingTexts, onTap: _showTexts),
-                    const SizedBox(width: 6),
-                  ],
-                  if (scene != null) _RoundButton(icon: 'fit_screen', tooltip: l.canvasFit, onTap: _fit),
-                ],
-              ),
+            // шапка как у заметки; свои кнопки рисунка — тексты и «уместить»
+            DocumentHeader(
+              item: widget.item,
+              kindLabel: l.kindDrawing,
+              detail: _texts.isEmpty ? null : l.drawingTextCount(_texts.length),
+              trailing: [
+                if (_texts.isNotEmpty) _RoundButton(key: const ValueKey('drawing-texts'), icon: 'notes', tooltip: l.drawingTexts, onTap: _showTexts),
+                if (scene != null) _RoundButton(icon: 'fit_screen', tooltip: l.canvasFit, onTap: _fit),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 10),

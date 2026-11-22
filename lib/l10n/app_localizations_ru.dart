@@ -3533,10 +3533,10 @@ class LRu extends L {
   String get baseNew => 'Новая база';
 
   @override
-  String get canvasDefaultName => 'Холст';
+  String get canvasDefaultName => 'Без названия';
 
   @override
-  String get baseDefaultName => 'База';
+  String get baseDefaultName => 'Без названия';
 
   @override
   String canvasCards(int count) {

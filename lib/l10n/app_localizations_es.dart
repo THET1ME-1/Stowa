@@ -3471,10 +3471,10 @@ class LEs extends L {
   String get baseNew => 'New base';
 
   @override
-  String get canvasDefaultName => 'Canvas';
+  String get canvasDefaultName => 'Sin título';
 
   @override
-  String get baseDefaultName => 'Base';
+  String get baseDefaultName => 'Sin título';
 
   @override
   String canvasCards(int count) {

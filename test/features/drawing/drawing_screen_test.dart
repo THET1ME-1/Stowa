@@ -33,7 +33,8 @@ void main() {
   testWidgets('рисунок открывается своим экраном: лист с рисунком и подсказка про Obsidian', (tester) async {
     await open(tester, sample);
     expect(find.byType(DrawingScreen), findsOneWidget);
-    expect(find.text('Рисунок · 2 подписи'), findsOneWidget);
+    // в шапке ещё и папка, как у заметки
+    expect(find.textContaining('Рисунок · 2 подписи'), findsOneWidget);
     expect(find.text('Изменить рисунок можно в Obsidian'), findsOneWidget);
     expect(find.byWidgetPredicate((widget) => widget is CustomPaint && widget.painter is ExcalidrawPainter), findsOneWidget);
   });

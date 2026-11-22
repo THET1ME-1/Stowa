@@ -58,7 +58,8 @@ void main() {
     await seed();
     await open(tester);
     expect(find.byType(BaseFileScreen), findsOneWidget);
-    expect(find.text('База · 2 заметки'), findsOneWidget);
+    // в шапке ещё и папка, как у заметки
+    expect(find.textContaining('База · 2 заметки'), findsOneWidget);
     expect(find.text('Автор'), findsOneWidget);
     expect(find.text('Название'), findsOneWidget);
     expect(find.text('Купить'), findsNothing);

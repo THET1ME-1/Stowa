@@ -13,6 +13,50 @@ import 'item_screen.dart';
 
 enum _Action { open, pin, notice, move, delete }
 
+/// Путь папки от верхней до своей: (id, имя); без папки — «Без папки» с id null. Строка пути
+/// в шапке заметки и документа на мониторе.
+List<(String?, String)> folderPath(L l, String? folderId, List<FolderCard> folders) {
+  final folder = folders.where((one) => one.id == folderId).firstOrNull;
+  if (folder == null) return [(null, l.folderNone)];
+  final chain = <FolderCard>[];
+  for (FolderCard? at = folder; at != null && chain.length < 12; at = folders.where((one) => one.id == at!.parentId).firstOrNull) {
+    chain.insert(0, at);
+  }
+  return [for (final one in chain) (one.id, one.name)];
+}
+
+/// Дата заметки: «Сейчас» или выбранные день и время; будущее обрезается до сейчас.
+/// Плашка с «Отменить».
+Future<void> changeItemDate(BuildContext context, WidgetRef ref, {required String id, required DateTime created}) async {
+  final l = L.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final items = ref.read(itemsRepositoryProvider);
+  final choice = await showOptionsSheet<String>(
+    context,
+    title: l.itemDateChange,
+    options: [
+      SheetChoice(value: 'now', title: l.itemDateNow, icon: 'schedule'),
+      SheetChoice(value: 'pick', title: l.itemDatePick, icon: 'calendar_today'),
+    ],
+  );
+  if (choice == null || !context.mounted) return;
+  final now = ref.read(clockProvider)();
+  final before = created;
+  var chosen = now;
+  if (choice == 'pick') {
+    final start = before.isAfter(now) ? now : before;
+    final day = await showDatePicker(context: context, initialDate: start, firstDate: DateTime(1970), lastDate: now);
+    if (day == null || !context.mounted) return;
+    final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(start));
+    if (time == null) return;
+    chosen = DateTime(day.year, day.month, day.day, time.hour, time.minute);
+    if (chosen.isAfter(now)) chosen = now;
+  }
+  if (chosen == before) return;
+  await items.setCreated(id, chosen);
+  showUndo(messenger, message: l.itemDateChanged, label: l.undo, overDock: true, onUndo: () => items.setCreated(id, before));
+}
+
 /// Закрепить в уведомлениях или убрать оттуда, с «Отменить». Разрешение на уведомления
 /// спрашивается тут же, по действию человека.
 Future<void> toggleNoticed(BuildContext context, WidgetRef ref, {required String id, required bool noticed, bool overDock = true}) async {

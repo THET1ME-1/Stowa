@@ -247,6 +247,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _inWorkspace = WorkspaceScope.maybeOf(context) != null;
     // поверх открыли заметку или настройки — фокус уходит. Иначе при возврате Flutter вернёт его
     // строке сам, и вылезет клавиатура: на Android «назад» прячет клавиатуру, а фокус оставляет
     if (ModalRoute.isCurrentOf(context) == false && _focus.hasFocus) _focus.unfocus();
@@ -298,8 +299,12 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
   }
 
   // плашка монитора над строкой: пока она видна, подсказка знакомства уступает ей место
+  // строка в рабочем пространстве монитора: помнится с didChangeDependencies — плашка приходит
+  // и тогда, когда дерево уже разбирают, а предков у снятого элемента спрашивать нельзя
+  bool _inWorkspace = false;
+
   void _onDeskToast() {
-    if (mounted && WorkspaceScope.maybeOf(context) != null) setState(() {});
+    if (mounted && _inWorkspace) setState(() {});
   }
 
   late final PasteRouter _paste;

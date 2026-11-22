@@ -387,7 +387,8 @@ void main() {
     expect(find.byKey(const ValueKey('canvas-board')), findsOneWidget);
   });
 
-  testWidgets('«@Книги», потом «/база» без имени: база «База» в этой папке', (tester) async {
+  // без имени — «Без названия», как Untitled в Obsidian (хозяин 22.11: «это не название, а тип»)
+  testWidgets('«@Книги», потом «/база» без имени: база «Без названия» в этой папке', (tester) async {
     await open(tester);
     await type(tester, '@Книги');
     await tester.tap(find.text('Создать'));
@@ -399,7 +400,7 @@ void main() {
     await tester.pumpAndSettle();
     final folder = await world.db.select(world.db.folders).getSingle();
     final item = await world.db.select(world.db.items).getSingle();
-    expect((item.kind, item.title, item.folderId), (ItemKind.base, 'База', folder.id));
+    expect((item.kind, item.title, item.folderId), (ItemKind.base, 'Без названия', folder.id));
     expect(item.document, contains('file.inFolder("Книги")'));
   });
 

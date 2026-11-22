@@ -1152,5 +1152,7 @@
   "photoNext": "Następne zdjęcie",
   "photoFileFailed": "Nie udało się zapisać zdjęcia",
   "canvasSnap": "Przyciąganie do siatki",
-  "canvasSnapAlt": "Przyciąganie do siatki. Z Alt — swobodnie"
+  "canvasSnapAlt": "Przyciąganie do siatki. Z Alt — swobodnie",
+  "canvasDefaultName": "Bez tytułu",
+  "baseDefaultName": "Bez tytułu"
 }

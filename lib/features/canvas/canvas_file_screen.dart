@@ -26,7 +26,7 @@ import '../../domain/json_canvas.dart';
 import '../../domain/note_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart';
-import '../folder/folder_sheets.dart' show showRenameSheet;
+import '../item/document_header.dart';
 import '../item/item_screen.dart' show openItem;
 import '../item/link_sheet.dart';
 import '../../services/capture_service.dart';
@@ -760,12 +760,6 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     }
   }
 
-  Future<void> _rename() async {
-    final name = await showRenameSheet(context, widget.item.title, label: L.of(context).baseColName);
-    if (name == null || name.trim().isEmpty) return;
-    await ref.read(documentsRepositoryProvider).rename(widget.item.id, name.trim());
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -835,31 +829,8 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
             bottom: false,
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 6),
-                  child: Row(
-                    children: [
-                      if (Navigator.canPop(context)) ...[
-                        _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.maybePop(context)),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: InkWell(
-                          key: const ValueKey('canvas-title'),
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: _rename,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleLarge),
-                              Text('${l.kindCanvas} · ${l.canvasCards(cards.length)}', style: text.bodySmall),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // шапка как у заметки: путь папки, название, переложить, переименовать, «Ещё»
+                DocumentHeader(item: widget.item, kindLabel: l.kindCanvas, detail: l.canvasCards(cards.length)),
                 if (_doc.broken)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: Space.screen),
@@ -1546,24 +1517,6 @@ class _PillButton extends StatelessWidget {
       onPressed: onTap,
       icon: Icon(symbolIcon(icon)),
       style: IconButton.styleFrom(fixedSize: const Size.square(48)),
-    );
-  }
-}
-
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.icon, required this.tooltip, required this.onTap});
-
-  final String icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: onTap,
-      icon: Icon(symbolIcon(icon)),
-      style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
     );
   }
 }

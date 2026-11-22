@@ -1152,5 +1152,7 @@
   "photoNext": "Nächstes Foto",
   "photoFileFailed": "Foto konnte nicht gespeichert werden",
   "canvasSnap": "Am Raster ausrichten",
-  "canvasSnapAlt": "Am Raster ausrichten. Mit Alt frei bewegen"
+  "canvasSnapAlt": "Am Raster ausrichten. Mit Alt frei bewegen",
+  "canvasDefaultName": "Unbenannt",
+  "baseDefaultName": "Unbenannt"
 }

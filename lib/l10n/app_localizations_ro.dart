@@ -3499,10 +3499,10 @@ class LRo extends L {
   String get baseNew => 'New base';
 
   @override
-  String get canvasDefaultName => 'Canvas';
+  String get canvasDefaultName => 'Fără titlu';
 
   @override
-  String get baseDefaultName => 'Base';
+  String get baseDefaultName => 'Fără titlu';
 
   @override
   String canvasCards(int count) {

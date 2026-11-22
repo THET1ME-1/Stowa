@@ -72,7 +72,8 @@ void main() {
     await open(tester);
     expect(find.byType(CanvasFileScreen), findsOneWidget);
     expect(find.text('План ремонта'), findsOneWidget);
-    expect(find.text('Холст · 1 карточка'), findsOneWidget);
+    // в шапке ещё и папка: «Холст · 1 карточка · Без папки»
+    expect(find.textContaining('Холст · 1 карточка'), findsOneWidget);
     expect(find.text('купить плитку'), findsOneWidget);
   });
 
@@ -452,6 +453,69 @@ void main() {
       placed = placed || count == 2;
     }
     expect(placed, isTrue);
+  });
+
+  // хозяин 22.11: «Почему шапка холста не такая как шапка заметки», «Как мне папку выбрать,
+  // как название поменять? Холст — это не название, а тип заметки»
+  Future<void> inFolder() async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'w', name: 'Работа', icon: 'work', shape: 'pill'));
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'h', name: 'Дом', icon: 'home', shape: 'pill', sortOrder: const Value(1)));
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await (world.db.update(world.db.items)..where((t) => t.id.equals('c'))).write(const ItemsCompanion(folderId: Value('w')));
+  }
+
+  Future<Item> canvasItem() => (world.db.select(world.db.items)..where((t) => t.id.equals('c'))).getSingle();
+
+  testWidgets('монитор: шапка холста как у заметки — путь папки, название, переложить, переименовать, «⋮»', (tester) async {
+    await inFolder();
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('c'));
+    await tester.pumpAndSettle();
+    final bar = find.byKey(const ValueKey('document-bar'));
+    expect(find.descendant(of: bar, matching: find.text('Работа')), findsOneWidget);
+    expect(find.descendant(of: bar, matching: find.text('План ремонта')), findsOneWidget);
+
+    await tester.tap(find.descendant(of: bar, matching: find.byTooltip('Переложить в папку')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Дом').last);
+    await tester.pumpAndSettle();
+    expect((await canvasItem()).folderId, 'h');
+
+    // и название, и значок переименовывают: значок — последний
+    expect(find.descendant(of: bar, matching: find.byTooltip('Переименовать')), findsNWidgets(2));
+    await tester.tap(find.descendant(of: bar, matching: find.byTooltip('Переименовать')).last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Мышки');
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+    expect((await canvasItem()).title, 'Мышки');
+
+    await tester.tap(find.descendant(of: bar, matching: find.byTooltip('Ещё')));
+    await tester.pumpAndSettle();
+    for (final entry in ['Закрепить', 'Закрепить в уведомлениях', 'Изменить дату', 'Удалить']) {
+      expect(find.text(entry), findsOneWidget, reason: entry);
+    }
+  });
+
+  testWidgets('телефон: в шапке холста название, папка и «⋮»; «⋮» переименовывает и перекладывает', (tester) async {
+    await inFolder();
+    await open(tester);
+    final bar = find.byKey(const ValueKey('document-bar'));
+    expect(find.descendant(of: bar, matching: find.text('План ремонта')), findsOneWidget);
+    expect(find.descendant(of: bar, matching: find.textContaining('Работа')), findsOneWidget);
+    await tester.tap(find.descendant(of: bar, matching: find.byTooltip('Ещё')));
+    await tester.pumpAndSettle();
+    expect(find.text('Переименовать'), findsOneWidget);
+    await tester.tap(find.text('Переложить в папку'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Дом').last);
+    await tester.pumpAndSettle();
+    expect((await canvasItem()).folderId, 'h');
   });
 
   // точки сетки холста-файла: шаг 24 от начала мира, а мир сдвинут на 20000

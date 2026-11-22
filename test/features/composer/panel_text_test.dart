@@ -38,11 +38,12 @@ void main() {
     expect(commandKeys(lookupL(const Locale('ru')), documents: false).keys, isNot(contains(LineCommand.canvas)));
   });
 
-  test('имя холста или базы из строки: первая строка, без неё — по виду', () {
+  // хозяин 22.11: «Холст — это не название, а тип заметки» — без своего имени, как в Obsidian
+  test('имя холста или базы из строки: первая строка, без неё — «Без названия»', () {
     final l = lookupL(const Locale('ru'));
     expect(documentName(l, LineCommand.canvas, '  План ремонта\nвторая строка'), 'План ремонта');
-    expect(documentName(l, LineCommand.base, ' '), 'База');
-    expect(documentName(l, LineCommand.canvas, ''), 'Холст');
+    expect(documentName(l, LineCommand.base, ' '), 'Без названия');
+    expect(documentName(l, LineCommand.canvas, ''), 'Без названия');
   });
 
   test('где нашлось в статье: в её тексте или в цитате', () {

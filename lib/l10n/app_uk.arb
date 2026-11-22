@@ -1152,5 +1152,7 @@
   "photoNext": "Наступне фото",
   "photoFileFailed": "Не вдалося зберегти фото",
   "canvasSnap": "Прив'язка до сітки",
-  "canvasSnapAlt": "Прив'язка до сітки. З Alt — вільно"
+  "canvasSnapAlt": "Прив'язка до сітки. З Alt — вільно",
+  "canvasDefaultName": "Без назви",
+  "baseDefaultName": "Без назви"
 }

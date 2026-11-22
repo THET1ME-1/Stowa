@@ -65,7 +65,7 @@ import 'history_screen.dart';
 import 'math_view.dart';
 import 'note_place_sheet.dart';
 import 'edit_toggle.dart';
-import 'item_actions.dart' show toggleNoticed, togglePinned;
+import 'item_actions.dart' show changeItemDate, folderPath, toggleNoticed, togglePinned;
 import 'page_card.dart';
 import 'item_media.dart';
 import 'markdown_controller.dart';
@@ -410,34 +410,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   /// Дата заметки: «сейчас» или свой день и время. Будущего у записанного нет.
-  Future<void> _changeDate(Item item) async {
-    final l = L.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final choice = await showOptionsSheet<String>(
-      context,
-      title: l.itemDateChange,
-      options: [
-        SheetChoice(value: 'now', title: l.itemDateNow, icon: 'schedule'),
-        SheetChoice(value: 'pick', title: l.itemDatePick, icon: 'calendar_today'),
-      ],
-    );
-    if (choice == null || !mounted) return;
-    final now = _clock();
-    final before = item.createdAt;
-    var chosen = now;
-    if (choice == 'pick') {
-      final start = before.isAfter(now) ? now : before;
-      final day = await showDatePicker(context: context, initialDate: start, firstDate: DateTime(1970), lastDate: now);
-      if (day == null || !mounted) return;
-      final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(start));
-      if (time == null) return;
-      chosen = DateTime(day.year, day.month, day.day, time.hour, time.minute);
-      if (chosen.isAfter(now)) chosen = now;
-    }
-    if (chosen == before) return;
-    await _items.setCreated(_id, chosen);
-    showUndo(messenger, message: l.itemDateChanged, label: l.undo, overDock: true, onUndo: () => _items.setCreated(_id, before));
-  }
+  Future<void> _changeDate(Item item) => changeItemDate(context, ref, id: _id, created: item.createdAt);
 
   /// Свойства из файла: правка ложится сразу, удалённое можно вернуть.
   Future<void> _setProperties(Map<String, Object?> before, Map<String, Object?> next) async {
@@ -776,14 +749,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   }
 
   /// Путь папки заметки для строки на мониторе: от верхней папки до своей.
-  List<(String?, String)> _deskPath(L l, FolderCard? folder, List<FolderCard> folders) {
-    if (folder == null) return [(null, l.folderNone)];
-    final chain = <FolderCard>[];
-    for (FolderCard? at = folder; at != null && chain.length < 12; at = folders.where((one) => one.id == at!.parentId).firstOrNull) {
-      chain.insert(0, at);
-    }
-    return [for (final one in chain) (one.id, one.name)];
-  }
+  List<(String?, String)> _deskPath(L l, FolderCard? folder, List<FolderCard> folders) => folderPath(l, folder?.id, folders);
 
   /// История правок. Вернули версию — плашка «Отменить» возвращает то, что было до неё:
   /// оно лежит в истории самым свежим снимком.

@@ -1152,5 +1152,7 @@
   "photoNext": "Foto siguiente",
   "photoFileFailed": "No se pudo guardar la foto",
   "canvasSnap": "Ajustar a la cuadrícula",
-  "canvasSnapAlt": "Ajustar a la cuadrícula. Con Alt, libre"
+  "canvasSnapAlt": "Ajustar a la cuadrícula. Con Alt, libre",
+  "canvasDefaultName": "Sin título",
+  "baseDefaultName": "Sin título"
 }

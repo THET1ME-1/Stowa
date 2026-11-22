@@ -5813,16 +5813,16 @@ abstract class L {
   /// **'New base'**
   String get baseNew;
 
-  /// Холсты и базы Obsidian
+  /// Имя нового холста по умолчанию, как Untitled в Obsidian: «Холст» — вид заметки, а не название
   ///
   /// In en, this message translates to:
-  /// **'Canvas'**
+  /// **'Untitled'**
   String get canvasDefaultName;
 
-  /// Холсты и базы Obsidian
+  /// Имя новой базы по умолчанию
   ///
   /// In en, this message translates to:
-  /// **'Base'**
+  /// **'Untitled'**
   String get baseDefaultName;
 
   /// Холсты и базы Obsidian

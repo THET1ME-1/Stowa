@@ -3531,10 +3531,10 @@ class LPl extends L {
   String get baseNew => 'New base';
 
   @override
-  String get canvasDefaultName => 'Canvas';
+  String get canvasDefaultName => 'Bez tytułu';
 
   @override
-  String get baseDefaultName => 'Base';
+  String get baseDefaultName => 'Bez tytułu';
 
   @override
   String canvasCards(int count) {

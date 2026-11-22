@@ -3529,10 +3529,10 @@ class LUk extends L {
   String get baseNew => 'New base';
 
   @override
-  String get canvasDefaultName => 'Canvas';
+  String get canvasDefaultName => 'Без назви';
 
   @override
-  String get baseDefaultName => 'Base';
+  String get baseDefaultName => 'Без назви';
 
   @override
   String canvasCards(int count) {

@@ -3481,10 +3481,10 @@ class LDe extends L {
   String get baseNew => 'New base';
 
   @override
-  String get canvasDefaultName => 'Canvas';
+  String get canvasDefaultName => 'Unbenannt';
 
   @override
-  String get baseDefaultName => 'Base';
+  String get baseDefaultName => 'Unbenannt';
 
   @override
   String canvasCards(int count) {

@@ -14,7 +14,7 @@ import '../../domain/hints.dart' show Tip;
 import '../../domain/base_filter_rows.dart';
 import '../../domain/obsidian_base.dart';
 import '../../l10n/app_localizations.dart';
-import '../folder/folder_sheets.dart' show showRenameSheet;
+import '../item/document_header.dart';
 import '../item/item_screen.dart' show openItem;
 import '../item/properties_block.dart' show editProperty;
 import 'base_filter_sheet.dart';
@@ -84,12 +84,6 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
     await ref.read(documentsRepositoryProvider).saveBase(widget.item.id, next);
   }
 
-  Future<void> _rename() async {
-    final name = await showRenameSheet(context, widget.item.title, label: L.of(context).baseColName);
-    if (name == null || name.trim().isEmpty) return;
-    await ref.read(documentsRepositoryProvider).rename(widget.item.id, name.trim());
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -139,45 +133,19 @@ class _BaseFileScreenState extends ConsumerState<BaseFileScreen> {
       canEdit: canEdit,
     );
 
-    final subtitle = result == null
-        ? l.kindBase
+    final detail = result == null
+        ? null
         : result.total > result.rows.length
-        ? '${l.kindBase} · ${l.baseShown(result.rows.length, result.total)}'
-        : '${l.kindBase} · ${l.baseCount(result.rows.length)}';
+        ? l.baseShown(result.rows.length, result.total)
+        : l.baseCount(result.rows.length);
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 4),
-              child: Row(
-                children: [
-                  IconButton(
-                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                    onPressed: () => Navigator.maybePop(context),
-                    icon: Icon(symbolIcon('arrow_back')),
-                    style: IconButton.styleFrom(backgroundColor: Tokens.containerHigh, fixedSize: const Size.square(44)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: InkWell(
-                      key: const ValueKey('base-title'),
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: _rename,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleLarge),
-                          Text(subtitle, style: text.bodySmall),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // шапка как у заметки: путь папки, название, переложить, переименовать, «Ещё»
+            DocumentHeader(item: widget.item, kindLabel: l.kindBase, detail: detail),
             _ViewTabs(
               views: base.views,
               selected: index,
