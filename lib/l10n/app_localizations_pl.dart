@@ -4913,7 +4913,7 @@ class LPl extends L {
 
   @override
   String get featureSyncHint =>
-      'Telefon, strona i komputer widzą to samo. Szyfruje twoje urządzenie, serwer widzi tylko szyfr.';
+      'Telefon, strona i komputer widzą to samo. Wszystko szyfruje twoje urządzenie, a z własnym hasłem szyfrowania nikt poza tobą nie przeczyta notatek.';
 
   @override
   String get featureFiles => 'Chmura na pliki';
@@ -5095,4 +5095,63 @@ class LPl extends L {
 
   @override
   String get panelSubOpen => 'Kup Stowa Sync';
+
+  @override
+  String get syncPasswordAsk =>
+      'Notatki są zamknięte twoim hasłem szyfrowania. Wpisz je, aby otworzyć je na tym urządzeniu.';
+
+  @override
+  String get syncPassword => 'Hasło szyfrowania';
+
+  @override
+  String get syncUnlock => 'Otwórz';
+
+  @override
+  String get syncPasswordWrong => 'Hasło nie pasuje';
+
+  @override
+  String get syncOwnPassword => 'Własne hasło szyfrowania';
+
+  @override
+  String get syncOwnPasswordOn => 'Włączone: notatki możesz czytać tylko ty';
+
+  @override
+  String get syncOwnPasswordOff =>
+      'Wyłączone: na nowym urządzeniu wystarczy logowanie';
+
+  @override
+  String get syncOwnPasswordIntro =>
+      'Klucz do notatek zostanie zamknięty twoim hasłem, a nasza kopia klucza zostanie usunięta. Nikt poza tobą nie przeczyta notatek, nawet my.';
+
+  @override
+  String get syncOwnPasswordWarn =>
+      'Jeśli zapomnisz hasła, kopii na serwerze nie da się otworzyć. Notatki na twoich urządzeniach zostaną.';
+
+  @override
+  String get syncPasswordRepeat => 'Powtórz hasło';
+
+  @override
+  String get syncPasswordShort => 'Co najmniej 8 znaków';
+
+  @override
+  String get syncPasswordMismatch => 'Hasła się różnią';
+
+  @override
+  String get syncPasswordTurnOn => 'Włącz';
+
+  @override
+  String get syncPasswordChange => 'Zmień hasło';
+
+  @override
+  String get syncPasswordTurnOff => 'Wyłącz własne hasło';
+
+  @override
+  String get syncPasswordOffAsk =>
+      'Wyłączyć własne hasło? Znów będziemy przechowywać kopię klucza, a na nowym urządzeniu wystarczy logowanie.';
+
+  @override
+  String get syncPasswordDone => 'Własne hasło włączone';
+
+  @override
+  String get syncPasswordOffDone => 'Własne hasło wyłączone';
 }

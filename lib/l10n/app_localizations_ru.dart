@@ -4916,7 +4916,7 @@ class LRu extends L {
 
   @override
   String get featureSyncHint =>
-      'Телефон, сайт и компьютер видят одно и то же. Шифрует ваше устройство, сервер видит только шифр.';
+      'Телефон, сайт и компьютер видят одно и то же. Шифрует всё ваше устройство, а со своим паролем шифрования прочитать заметки не сможет никто, кроме вас.';
 
   @override
   String get featureFiles => 'Облако для файлов';
@@ -5098,4 +5098,63 @@ class LRu extends L {
 
   @override
   String get panelSubOpen => 'Оформить Stowa Sync';
+
+  @override
+  String get syncPasswordAsk =>
+      'Заметки закрыты вашим паролем шифрования. Введите его, чтобы открыть их на этом устройстве.';
+
+  @override
+  String get syncPassword => 'Пароль шифрования';
+
+  @override
+  String get syncUnlock => 'Открыть';
+
+  @override
+  String get syncPasswordWrong => 'Пароль не подходит';
+
+  @override
+  String get syncOwnPassword => 'Свой пароль шифрования';
+
+  @override
+  String get syncOwnPasswordOn => 'Включён: прочитать заметки можете только вы';
+
+  @override
+  String get syncOwnPasswordOff =>
+      'Выключен: для нового устройства хватает входа';
+
+  @override
+  String get syncOwnPasswordIntro =>
+      'Ключ к заметкам закроется вашим паролем, а наша копия ключа сотрётся. Прочитать заметки не сможет никто, кроме вас, даже мы.';
+
+  @override
+  String get syncOwnPasswordWarn =>
+      'Забудете пароль — копию на сервере не открыть никак. Заметки на ваших устройствах останутся.';
+
+  @override
+  String get syncPasswordRepeat => 'Пароль ещё раз';
+
+  @override
+  String get syncPasswordShort => 'Не короче 8 знаков';
+
+  @override
+  String get syncPasswordMismatch => 'Пароли не совпадают';
+
+  @override
+  String get syncPasswordTurnOn => 'Включить';
+
+  @override
+  String get syncPasswordChange => 'Сменить пароль';
+
+  @override
+  String get syncPasswordTurnOff => 'Выключить свой пароль';
+
+  @override
+  String get syncPasswordOffAsk =>
+      'Выключить свой пароль? Копия ключа снова будет храниться у нас, и для нового устройства хватит входа.';
+
+  @override
+  String get syncPasswordDone => 'Свой пароль включён';
+
+  @override
+  String get syncPasswordOffDone => 'Свой пароль выключен';
 }

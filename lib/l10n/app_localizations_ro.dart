@@ -4880,7 +4880,7 @@ class LRo extends L {
 
   @override
   String get featureSyncHint =>
-      'Telefonul, site-ul și calculatorul văd același lucru. Criptează dispozitivul tău, serverul vede doar textul cifrat.';
+      'Telefonul, site-ul și calculatorul văd același lucru. Dispozitivul tău criptează totul, iar cu parola ta de criptare nimeni în afară de tine nu poate citi notițele.';
 
   @override
   String get featureFiles => 'Cloud pentru fișiere';
@@ -5062,4 +5062,63 @@ class LRo extends L {
 
   @override
   String get panelSubOpen => 'Ia Stowa Sync';
+
+  @override
+  String get syncPasswordAsk =>
+      'Notițele sunt închise cu parola ta de criptare. Scrie-o ca să le deschizi pe acest dispozitiv.';
+
+  @override
+  String get syncPassword => 'Parolă de criptare';
+
+  @override
+  String get syncUnlock => 'Deschide';
+
+  @override
+  String get syncPasswordWrong => 'Parola nu se potrivește';
+
+  @override
+  String get syncOwnPassword => 'Parolă de criptare proprie';
+
+  @override
+  String get syncOwnPasswordOn => 'Pornită: doar tu poți citi notițele';
+
+  @override
+  String get syncOwnPasswordOff =>
+      'Oprită: pe un dispozitiv nou ajunge conectarea';
+
+  @override
+  String get syncOwnPasswordIntro =>
+      'Cheia notițelor se închide cu parola ta, iar copia noastră a cheii se șterge. Nimeni în afară de tine nu poate citi notițele, nici măcar noi.';
+
+  @override
+  String get syncOwnPasswordWarn =>
+      'Dacă uiți parola, copia de pe server nu se mai poate deschide. Notițele de pe dispozitivele tale rămân.';
+
+  @override
+  String get syncPasswordRepeat => 'Parola încă o dată';
+
+  @override
+  String get syncPasswordShort => 'Cel puțin 8 caractere';
+
+  @override
+  String get syncPasswordMismatch => 'Parolele nu se potrivesc';
+
+  @override
+  String get syncPasswordTurnOn => 'Pornește';
+
+  @override
+  String get syncPasswordChange => 'Schimbă parola';
+
+  @override
+  String get syncPasswordTurnOff => 'Oprește parola proprie';
+
+  @override
+  String get syncPasswordOffAsk =>
+      'Oprești parola proprie? Vom păstra din nou o copie a cheii, iar pe un dispozitiv nou va ajunge conectarea.';
+
+  @override
+  String get syncPasswordDone => 'Parola proprie e pornită';
+
+  @override
+  String get syncPasswordOffDone => 'Parola proprie e oprită';
 }

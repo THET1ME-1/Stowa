@@ -53,6 +53,7 @@ class _EmailCodeFormState extends ConsumerState<EmailCodeForm> {
     _email.dispose();
     _emailFocus.dispose();
     _code.dispose();
+    _password.dispose();
     super.dispose();
   }
 
@@ -111,13 +112,15 @@ class _EmailCodeFormState extends ConsumerState<EmailCodeForm> {
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _busy = true);
     try {
-      final ok = await _service.verify(email, code);
+      final step = await _service.verify(email, code);
       if (!mounted) return;
       setState(() {
         _busy = false;
-        if (!ok) _error = l.syncWrongCode;
+        if (step == SignInStep.wrongCode) _error = l.syncWrongCode;
+        // ключ закрыт своим паролем шифрования: третий шаг — пароль
+        _needsPassword = step == SignInStep.needsPassword;
       });
-      if (ok) widget.onSignedIn();
+      if (step == SignInStep.signedIn) widget.onSignedIn();
     } on Object {
       if (mounted) {
         setState(() {
@@ -133,14 +136,82 @@ class _EmailCodeFormState extends ConsumerState<EmailCodeForm> {
     _requestCode();
   }
 
+  /// Код принят, ключ хранилища закрыт своим паролем шифрования.
+  bool _needsPassword = false;
+  final _password = TextEditingController();
+
+  Future<void> _unlock() async {
+    if (_password.text.isEmpty || _busy) return;
+    final l = L.of(context);
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    // Argon2 считается секунду-другую: кнопка крутит ожидание
+    final ok = await _service.unlock(_password.text);
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      if (!ok) _error = l.syncPasswordWrong;
+    });
+    if (ok) widget.onSignedIn();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     return AnimatedSwitcher(
       duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 250),
-      child: _sentTo == null ? _emailStep(l) : _codeStep(l),
+      child: _needsPassword ? _passwordStep(l) : (_sentTo == null ? _emailStep(l) : _codeStep(l)),
     );
   }
+
+  Widget _passwordStep(L l) => Column(
+    key: const ValueKey('sync-password-step'),
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
+        child: Text(l.syncPasswordAsk, style: Theme.of(context).textTheme.bodyLarge!.copyWith(height: 1.4)),
+      ),
+      TextField(
+        key: const ValueKey('sync-password'),
+        controller: _password,
+        obscureText: true,
+        autocorrect: false,
+        enableSuggestions: false,
+        autofillHints: const [AutofillHints.password],
+        onChanged: (_) => setState(() => _error = null),
+        onSubmitted: (_) => _unlock(),
+        decoration: InputDecoration(
+          hintText: l.syncPassword,
+          filled: true,
+          fillColor: Tokens.containerHigh,
+          contentPadding: const EdgeInsets.all(16),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(Radii.card), borderSide: BorderSide.none),
+        ),
+      ),
+      const SizedBox(height: 16),
+      _button(key: const ValueKey('sync-unlock'), label: l.syncUnlock, onPressed: _password.text.isNotEmpty && !_busy ? _unlock : null),
+      if (_error != null) _errorLine(),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton(
+          onPressed: _busy
+              ? null
+              : () => setState(() {
+                  _needsPassword = false;
+                  _sentTo = null;
+                  _password.clear();
+                  _error = null;
+                }),
+          child: Text(l.syncOtherEmail),
+        ),
+      ),
+    ],
+  );
 
   Widget _field({
     required Key key,

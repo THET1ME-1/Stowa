@@ -4835,7 +4835,7 @@ class LEn extends L {
 
   @override
   String get featureSyncHint =>
-      'Phone, website and computer see the same thing. Your device encrypts, the server only sees ciphertext.';
+      'Phone, website and computer see the same thing. Your device encrypts everything, and with your own encryption password nobody but you can read your notes.';
 
   @override
   String get featureFiles => 'Cloud for files';
@@ -5018,4 +5018,62 @@ class LEn extends L {
 
   @override
   String get panelSubOpen => 'Get Stowa Sync';
+
+  @override
+  String get syncPasswordAsk =>
+      'Your notes are locked with your encryption password. Enter it to open them on this device.';
+
+  @override
+  String get syncPassword => 'Encryption password';
+
+  @override
+  String get syncUnlock => 'Open';
+
+  @override
+  String get syncPasswordWrong => 'That password doesn\'t fit';
+
+  @override
+  String get syncOwnPassword => 'Own encryption password';
+
+  @override
+  String get syncOwnPasswordOn => 'On: only you can read your notes';
+
+  @override
+  String get syncOwnPasswordOff => 'Off: signing in is enough on a new device';
+
+  @override
+  String get syncOwnPasswordIntro =>
+      'The key to your notes gets locked with your password, and our copy of the key is erased. Nobody but you can read your notes, not even us.';
+
+  @override
+  String get syncOwnPasswordWarn =>
+      'Forget the password and the copy on the server can\'t be opened at all. Notes on your devices stay.';
+
+  @override
+  String get syncPasswordRepeat => 'Password again';
+
+  @override
+  String get syncPasswordShort => 'At least 8 characters';
+
+  @override
+  String get syncPasswordMismatch => 'The passwords don\'t match';
+
+  @override
+  String get syncPasswordTurnOn => 'Turn on';
+
+  @override
+  String get syncPasswordChange => 'Change password';
+
+  @override
+  String get syncPasswordTurnOff => 'Turn off own password';
+
+  @override
+  String get syncPasswordOffAsk =>
+      'Turn off your own password? We\'ll keep a copy of the key again, and signing in will be enough on a new device.';
+
+  @override
+  String get syncPasswordDone => 'Own password is on';
+
+  @override
+  String get syncPasswordOffDone => 'Own password is off';
 }

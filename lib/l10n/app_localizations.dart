@@ -8252,7 +8252,7 @@ abstract class L {
   /// Что даёт подписка
   ///
   /// In en, this message translates to:
-  /// **'Phone, website and computer see the same thing. Your device encrypts, the server only sees ciphertext.'**
+  /// **'Phone, website and computer see the same thing. Your device encrypts everything, and with your own encryption password nobody but you can read your notes.'**
   String get featureSyncHint;
 
   /// Что даёт подписка
@@ -8572,6 +8572,114 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Get Stowa Sync'**
   String get panelSubOpen;
+
+  /// Вход: ключ закрыт своим паролем
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes are locked with your encryption password. Enter it to open them on this device.'**
+  String get syncPasswordAsk;
+
+  /// Поле пароля шифрования
+  ///
+  /// In en, this message translates to:
+  /// **'Encryption password'**
+  String get syncPassword;
+
+  /// Открыть заметки паролем
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get syncUnlock;
+
+  /// Пароль шифрования не подошёл
+  ///
+  /// In en, this message translates to:
+  /// **'That password doesn\'t fit'**
+  String get syncPasswordWrong;
+
+  /// Строка в Stowa Sync
+  ///
+  /// In en, this message translates to:
+  /// **'Own encryption password'**
+  String get syncOwnPassword;
+
+  /// Свой пароль включён
+  ///
+  /// In en, this message translates to:
+  /// **'On: only you can read your notes'**
+  String get syncOwnPasswordOn;
+
+  /// Свой пароль выключен
+  ///
+  /// In en, this message translates to:
+  /// **'Off: signing in is enough on a new device'**
+  String get syncOwnPasswordOff;
+
+  /// Что делает свой пароль
+  ///
+  /// In en, this message translates to:
+  /// **'The key to your notes gets locked with your password, and our copy of the key is erased. Nobody but you can read your notes, not even us.'**
+  String get syncOwnPasswordIntro;
+
+  /// Предупреждение о забытом пароле
+  ///
+  /// In en, this message translates to:
+  /// **'Forget the password and the copy on the server can\'t be opened at all. Notes on your devices stay.'**
+  String get syncOwnPasswordWarn;
+
+  /// Повтор пароля
+  ///
+  /// In en, this message translates to:
+  /// **'Password again'**
+  String get syncPasswordRepeat;
+
+  /// Пароль короче 8 знаков
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get syncPasswordShort;
+
+  /// Пароли не совпали
+  ///
+  /// In en, this message translates to:
+  /// **'The passwords don\'t match'**
+  String get syncPasswordMismatch;
+
+  /// Включить свой пароль
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get syncPasswordTurnOn;
+
+  /// Сменить свой пароль
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get syncPasswordChange;
+
+  /// Выключить свой пароль
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off own password'**
+  String get syncPasswordTurnOff;
+
+  /// Вопрос перед выключением
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off your own password? We\'ll keep a copy of the key again, and signing in will be enough on a new device.'**
+  String get syncPasswordOffAsk;
+
+  /// Свой пароль включён
+  ///
+  /// In en, this message translates to:
+  /// **'Own password is on'**
+  String get syncPasswordDone;
+
+  /// Свой пароль выключен
+  ///
+  /// In en, this message translates to:
+  /// **'Own password is off'**
+  String get syncPasswordOffDone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

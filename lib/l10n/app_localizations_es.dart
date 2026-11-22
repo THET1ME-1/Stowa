@@ -4852,7 +4852,7 @@ class LEs extends L {
 
   @override
   String get featureSyncHint =>
-      'El teléfono, la web y el ordenador ven lo mismo. Cifra tu dispositivo; el servidor solo ve texto cifrado.';
+      'El teléfono, la web y el ordenador ven lo mismo. Tu dispositivo lo cifra todo y, con tu propia contraseña de cifrado, nadie más que tú puede leer tus notas.';
 
   @override
   String get featureFiles => 'Nube para archivos';
@@ -5034,4 +5034,63 @@ class LEs extends L {
 
   @override
   String get panelSubOpen => 'Conseguir Stowa Sync';
+
+  @override
+  String get syncPasswordAsk =>
+      'Tus notas están cerradas con tu contraseña de cifrado. Escríbela para abrirlas en este dispositivo.';
+
+  @override
+  String get syncPassword => 'Contraseña de cifrado';
+
+  @override
+  String get syncUnlock => 'Abrir';
+
+  @override
+  String get syncPasswordWrong => 'La contraseña no es correcta';
+
+  @override
+  String get syncOwnPassword => 'Contraseña de cifrado propia';
+
+  @override
+  String get syncOwnPasswordOn => 'Activada: solo tú puedes leer tus notas';
+
+  @override
+  String get syncOwnPasswordOff =>
+      'Desactivada: en un dispositivo nuevo basta con iniciar sesión';
+
+  @override
+  String get syncOwnPasswordIntro =>
+      'La llave de tus notas se cerrará con tu contraseña y nuestra copia de la llave se borrará. Nadie más que tú podrá leer tus notas, ni siquiera nosotros.';
+
+  @override
+  String get syncOwnPasswordWarn =>
+      'Si olvidas la contraseña, la copia del servidor no se podrá abrir de ninguna forma. Las notas de tus dispositivos se quedan.';
+
+  @override
+  String get syncPasswordRepeat => 'Repite la contraseña';
+
+  @override
+  String get syncPasswordShort => 'Al menos 8 caracteres';
+
+  @override
+  String get syncPasswordMismatch => 'Las contraseñas no coinciden';
+
+  @override
+  String get syncPasswordTurnOn => 'Activar';
+
+  @override
+  String get syncPasswordChange => 'Cambiar contraseña';
+
+  @override
+  String get syncPasswordTurnOff => 'Desactivar contraseña propia';
+
+  @override
+  String get syncPasswordOffAsk =>
+      '¿Desactivar tu contraseña propia? Volveremos a guardar una copia de la llave y en un dispositivo nuevo bastará con iniciar sesión.';
+
+  @override
+  String get syncPasswordDone => 'Contraseña propia activada';
+
+  @override
+  String get syncPasswordOffDone => 'Contraseña propia desactivada';
 }

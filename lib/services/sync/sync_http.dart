@@ -88,11 +88,32 @@ class SyncAccountApi {
     return (jsonDecode(response.body) as Map)['active'] as bool;
   }
 
-  Future<List<int>?> key(String token) async {
+  /// Ключ хранилища, как его хранит сервер: сам ключ или замок своего пароля (тогда ключа нет).
+  /// Ни того ни другого — первое устройство аккаунта, ключ кладёт оно.
+  Future<({List<int>? key, Map<String, Object?>? lock})> keyState(String token) async {
     final response = await _client.get(Uri.parse('$base/v1/key'), headers: _headers(token)).timeout(_timeout);
     if (response.statusCode != 200) throw SyncHttpError(response.statusCode);
-    final key = (jsonDecode(response.body) as Map)['key'] as String?;
-    return key == null ? null : base64.decode(key);
+    final json = jsonDecode(response.body) as Map;
+    final key = json['key'] as String?;
+    return (key: key == null ? null : base64.decode(key), lock: (json['lock'] as Map?)?.cast<String, Object?>());
+  }
+
+  Future<List<int>?> key(String token) async => (await keyState(token)).key;
+
+  /// Свой пароль: замок и отпечаток ключа. false — отпечаток не сошёлся (замок не того ключа).
+  Future<bool> putLock(String token, Map<String, Object?> lock, String check) async {
+    final response = await _client.put(Uri.parse('$base/v1/key/lock'), headers: _headers(token), body: jsonEncode({'lock': lock, 'check': check})).timeout(_timeout);
+    if (response.statusCode == 409) return false;
+    if (response.statusCode != 204) throw SyncHttpError(response.statusCode);
+    return true;
+  }
+
+  /// Выключить свой пароль: ключ снова хранит сервер. false — отпечаток не сошёлся.
+  Future<bool> dropLock(String token, List<int> key) async {
+    final response = await _client.delete(Uri.parse('$base/v1/key/lock'), headers: _headers(token), body: jsonEncode({'key': base64.encode(key)})).timeout(_timeout);
+    if (response.statusCode == 409) return false;
+    if (response.statusCode != 204 && response.statusCode != 404) throw SyncHttpError(response.statusCode);
+    return true;
   }
 
   /// Положить ключ. false — ключ уже есть (положил другой телефон), его надо забрать.

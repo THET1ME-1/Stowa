@@ -4903,7 +4903,7 @@ class LUk extends L {
 
   @override
   String get featureSyncHint =>
-      'Телефон, сайт і комп\'ютер бачать одне й те саме. Шифрує ваш пристрій, сервер бачить лише шифр.';
+      'Телефон, сайт і комп\'ютер бачать одне й те саме. Усе шифрує ваш пристрій, а зі своїм паролем шифрування прочитати нотатки не зможе ніхто, крім вас.';
 
   @override
   String get featureFiles => 'Хмара для файлів';
@@ -5085,4 +5085,62 @@ class LUk extends L {
 
   @override
   String get panelSubOpen => 'Оформити Stowa Sync';
+
+  @override
+  String get syncPasswordAsk =>
+      'Нотатки закриті вашим паролем шифрування. Введіть його, щоб відкрити їх на цьому пристрої.';
+
+  @override
+  String get syncPassword => 'Пароль шифрування';
+
+  @override
+  String get syncUnlock => 'Відкрити';
+
+  @override
+  String get syncPasswordWrong => 'Пароль не підходить';
+
+  @override
+  String get syncOwnPassword => 'Свій пароль шифрування';
+
+  @override
+  String get syncOwnPasswordOn => 'Увімкнено: прочитати нотатки можете лише ви';
+
+  @override
+  String get syncOwnPasswordOff => 'Вимкнено: для нового пристрою досить входу';
+
+  @override
+  String get syncOwnPasswordIntro =>
+      'Ключ до нотаток закриється вашим паролем, а наша копія ключа зітреться. Прочитати нотатки не зможе ніхто, крім вас, навіть ми.';
+
+  @override
+  String get syncOwnPasswordWarn =>
+      'Забудете пароль — копію на сервері не відкрити ніяк. Нотатки на ваших пристроях залишаться.';
+
+  @override
+  String get syncPasswordRepeat => 'Пароль ще раз';
+
+  @override
+  String get syncPasswordShort => 'Не коротше 8 знаків';
+
+  @override
+  String get syncPasswordMismatch => 'Паролі не збігаються';
+
+  @override
+  String get syncPasswordTurnOn => 'Увімкнути';
+
+  @override
+  String get syncPasswordChange => 'Змінити пароль';
+
+  @override
+  String get syncPasswordTurnOff => 'Вимкнути свій пароль';
+
+  @override
+  String get syncPasswordOffAsk =>
+      'Вимкнути свій пароль? Копія ключа знову зберігатиметься в нас, і для нового пристрою вистачить входу.';
+
+  @override
+  String get syncPasswordDone => 'Свій пароль увімкнено';
+
+  @override
+  String get syncPasswordOffDone => 'Свій пароль вимкнено';
 }

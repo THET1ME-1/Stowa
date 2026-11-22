@@ -11,6 +11,7 @@ import '../../data/db/database.dart';
 import '../../data/settings_repository.dart' show KeyStore;
 import '../../domain/vault_note.dart';
 import '../vault/vault_reader.dart';
+import 'key_lock.dart';
 import 'sync_crypto.dart';
 import 'sync_db_state.dart';
 import 'sync_disk.dart';
@@ -32,6 +33,15 @@ Future<String> phoneName() async {
     // нет плагина (тесты) или телефон не ответил
   }
   return '';
+}
+
+/// Чем кончился ввод кода с почты.
+enum SignInStep {
+  signedIn,
+  wrongCode,
+
+  /// Код принят, но ключ закрыт своим паролем шифрования: нужен пароль ([SyncService.unlock]).
+  needsPassword,
 }
 
 /// Аккаунт синхронизации на телефоне. Лежит в защищённом хранилище телефона.
@@ -170,17 +180,68 @@ class SyncService {
   Future<CodeRequest> requestCode(String email, {required String lang}) async =>
       _api.requestCode(email.trim(), lang: lang, device: await deviceName(), tzOffset: DateTime.now().timeZoneOffset.inMinutes);
 
-  /// Код верный — вошли, ключ хранилища на месте. Неверный — false. Сеть — бросает.
-  Future<bool> verify(String email, String code) async {
+  /// Вход, который ждёт своего пароля шифрования: код принят, ключ закрыт паролем.
+  ({SignedIn signed, Map<String, Object?> lock})? _pending;
+
+  /// Код верный — вошли, ключ хранилища на месте; ключ закрыт своим паролем — [SignInStep.needsPassword],
+  /// дальше [unlock]. Неверный код — [SignInStep.wrongCode]. Сеть — бросает.
+  Future<SignInStep> verify(String email, String code) async {
     final signed = await _api.verify(email.trim(), code.trim(), device: await deviceName());
-    if (signed == null) return false;
+    if (signed == null) return SignInStep.wrongCode;
     // ключ один на аккаунт: первый телефон кладёт, остальные забирают
-    var key = await _api.key(signed.token);
-    if (key == null) {
+    var state = await _api.keyState(signed.token);
+    if (state.key == null && state.lock == null) {
       final fresh = VaultKey.generate().bytes;
-      key = await _api.putKey(signed.token, fresh) ? fresh : await _api.key(signed.token);
+      state = await _api.putKey(signed.token, fresh) ? (key: fresh, lock: null) : await _api.keyState(signed.token);
     }
-    final account = SyncAccount(email: signed.email, token: signed.token, key: key!, vaultDb: _vaultDb);
+    final lock = state.lock;
+    if (state.key == null && lock != null) {
+      _pending = (signed: signed, lock: lock);
+      return SignInStep.needsPassword;
+    }
+    await _finishSignIn(signed, state.key!);
+    return SignInStep.signedIn;
+  }
+
+  /// Открыть ключ своим паролем после кода. false — пароль не тот.
+  Future<bool> unlock(String password) async {
+    final pending = _pending;
+    if (pending == null) return false;
+    final key = await KeyLock.open(pending.lock, password);
+    if (key == null) return false;
+    _pending = null;
+    await _finishSignIn(pending.signed, key);
+    return true;
+  }
+
+  /// Включён ли свой пароль шифрования; null — сервер не ответил.
+  Future<bool?> passwordOn() async {
+    final account = await this.account();
+    if (account == null) return false;
+    try {
+      return (await _api.keyState(account.token)).lock != null;
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Включить или сменить свой пароль: ключ закрывается паролем, своя копия сервера стирается.
+  Future<bool> setPassword(String password, {KeyLockCost cost = const KeyLockCost()}) async {
+    final account = await this.account();
+    if (account == null) return false;
+    final lock = await KeyLock.close(account.key, password, cost: cost);
+    return _api.putLock(account.token, lock, KeyLock.check(account.key));
+  }
+
+  /// Выключить свой пароль: ключ снова хранит сервер, вход на новом устройстве — только код.
+  Future<bool> removePassword() async {
+    final account = await this.account();
+    if (account == null) return false;
+    return _api.dropLock(account.token, account.key);
+  }
+
+  Future<void> _finishSignIn(SignedIn signed, List<int> key) async {
+    final account = SyncAccount(email: signed.email, token: signed.token, key: key, vaultDb: _vaultDb);
     // прежняя память о синхронизации — от другого аккаунта или до выхода: первый проход только объединяет
     await DbSyncState(_db).clear();
     await _store.write(account.toJson());
@@ -188,7 +249,6 @@ class SyncService {
     _loaded = true;
     status.value = SyncStatus(email: account.email, inactive: !signed.active);
     unawaited(trigger?.call());
-    return true;
   }
 
   /// Токен входа; null — не вошли.

@@ -4869,7 +4869,7 @@ class LDe extends L {
 
   @override
   String get featureSyncHint =>
-      'Handy, Web und Computer sehen dasselbe. Dein Gerät verschlüsselt, der Server sieht nur Chiffretext.';
+      'Handy, Web und Computer sehen dasselbe. Dein Gerät verschlüsselt alles, und mit eigenem Verschlüsselungspasswort kann niemand außer dir deine Notizen lesen.';
 
   @override
   String get featureFiles => 'Cloud für Dateien';
@@ -5054,4 +5054,63 @@ class LDe extends L {
 
   @override
   String get panelSubOpen => 'Stowa Sync holen';
+
+  @override
+  String get syncPasswordAsk =>
+      'Deine Notizen sind mit deinem Verschlüsselungspasswort verschlossen. Gib es ein, um sie auf diesem Gerät zu öffnen.';
+
+  @override
+  String get syncPassword => 'Verschlüsselungspasswort';
+
+  @override
+  String get syncUnlock => 'Öffnen';
+
+  @override
+  String get syncPasswordWrong => 'Das Passwort passt nicht';
+
+  @override
+  String get syncOwnPassword => 'Eigenes Verschlüsselungspasswort';
+
+  @override
+  String get syncOwnPasswordOn => 'An: Nur du kannst deine Notizen lesen';
+
+  @override
+  String get syncOwnPasswordOff =>
+      'Aus: Auf einem neuen Gerät reicht die Anmeldung';
+
+  @override
+  String get syncOwnPasswordIntro =>
+      'Der Schlüssel zu deinen Notizen wird mit deinem Passwort verschlossen, und unsere Kopie des Schlüssels wird gelöscht. Niemand außer dir kann deine Notizen lesen, nicht einmal wir.';
+
+  @override
+  String get syncOwnPasswordWarn =>
+      'Vergisst du das Passwort, lässt sich die Kopie auf dem Server nicht mehr öffnen. Die Notizen auf deinen Geräten bleiben.';
+
+  @override
+  String get syncPasswordRepeat => 'Passwort wiederholen';
+
+  @override
+  String get syncPasswordShort => 'Mindestens 8 Zeichen';
+
+  @override
+  String get syncPasswordMismatch => 'Die Passwörter stimmen nicht überein';
+
+  @override
+  String get syncPasswordTurnOn => 'Einschalten';
+
+  @override
+  String get syncPasswordChange => 'Passwort ändern';
+
+  @override
+  String get syncPasswordTurnOff => 'Eigenes Passwort ausschalten';
+
+  @override
+  String get syncPasswordOffAsk =>
+      'Eigenes Passwort ausschalten? Wir bewahren dann wieder eine Kopie des Schlüssels auf, und auf einem neuen Gerät reicht die Anmeldung.';
+
+  @override
+  String get syncPasswordDone => 'Eigenes Passwort ist an';
+
+  @override
+  String get syncPasswordOffDone => 'Eigenes Passwort ist aus';
 }

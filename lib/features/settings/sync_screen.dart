@@ -12,6 +12,7 @@ import '../../services/billing/subscription.dart';
 import '../account/email_code_form.dart';
 import '../subscription/paywall_screen.dart';
 import '../subscription/subscribe_card.dart';
+import 'own_password_sheet.dart';
 import 'settings_blocks.dart';
 import 'sync_progress_card.dart';
 
@@ -73,8 +74,25 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
         _loaded = true;
       });
       // открыли экран — сразу свежий проход, строка состояния покажет его итог
-      if (account != null) ref.read(vaultSyncProvider).run().ignore();
+      if (account != null) {
+        ref.read(vaultSyncProvider).run().ignore();
+        _readPassword();
+      }
     });
+  }
+
+  /// Включён ли свой пароль шифрования; null — ещё не знаем (сервер не ответил).
+  bool? _passwordOn;
+
+  void _readPassword() => _service.passwordOn().then((on) {
+    if (mounted) setState(() => _passwordOn = on);
+  }).ignore();
+
+  Future<void> _ownPassword() async {
+    final on = _passwordOn;
+    if (on == null) return;
+    final next = await showOwnPasswordSheet(context, on: on);
+    if (next != null && mounted) setState(() => _passwordOn = next);
   }
 
   @override
@@ -86,6 +104,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   Future<void> _signedIn() async {
     final account = await _service.account();
     if (mounted) setState(() => _account = account);
+    _readPassword();
   }
 
   Future<void> _signOut() async {
@@ -165,6 +184,22 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               ],
             ),
             if (noVault) SettingsHint(l.syncNoVault),
+            // свой пароль шифрования: ключ к заметкам знает только человек
+            if (!locked && _passwordOn != null) ...[
+              const SizedBox(height: 16),
+              SettingsGroup(
+                tint: settingsTint('violet'),
+                children: [
+                  SettingsRow(
+                    key: const ValueKey('sync-own-password'),
+                    icon: 'key',
+                    title: l.syncOwnPassword,
+                    value: _passwordOn! ? l.syncOwnPasswordOn : l.syncOwnPasswordOff,
+                    onTap: _ownPassword,
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             SettingsGroup(
               tint: settingsTint('rose'),

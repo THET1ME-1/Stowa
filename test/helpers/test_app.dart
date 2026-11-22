@@ -23,6 +23,7 @@ import 'package:stowa/features/share/share_receiver.dart';
 import 'package:stowa/services/privacy/seal_crypto.dart';
 import 'package:stowa/services/billing/store_channel.dart';
 import 'package:stowa/services/billing/store_checkout.dart';
+import 'package:stowa/services/sync/key_lock.dart';
 import 'package:stowa/services/sync/sync_service.dart' show SyncAccount;
 import 'package:stowa/services/edge_channel.dart';
 import 'package:stowa/services/link_checker.dart';
@@ -253,6 +254,7 @@ class TestWorld {
         storeChannelProvider.overrideWithValue(storeChannel),
         storeBillingProvider.overrideWithValue(storeBilling),
         deviceCountryProvider.overrideWithValue(deviceCountry),
+        keyLockCostProvider.overrideWithValue(keyLockCost),
         urlOpenerProvider.overrideWithValue((url) async {
           openedUrls.add(url);
           return true;
@@ -289,6 +291,9 @@ class TestWorld {
 
   /// Страна устройства: по ней валюта внешней кассы.
   String? deviceCountry = 'RU';
+
+  /// Цена Argon2 своего пароля шифрования: в тестах лёгкая.
+  KeyLockCost keyLockCost = const KeyLockCost(memory: 64, iterations: 1);
 
   /// Какие ссылки открывались во внешнем браузере.
   final openedUrls = <Uri>[];

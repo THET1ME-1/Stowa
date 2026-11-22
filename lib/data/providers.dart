@@ -60,6 +60,7 @@ import '../services/billing/store_channel.dart';
 import '../services/billing/store_checkout.dart';
 import '../services/billing/subscription.dart';
 import '../services/billing/subscription_service.dart';
+import '../services/sync/key_lock.dart';
 import '../services/sync/sync_service.dart';
 import '../services/vault/vault_sync.dart';
 import '../services/vault/vault_writer.dart';
@@ -838,6 +839,9 @@ final syncServiceProvider = Provider((ref) {
   ref.onDispose(service.dispose);
   return service;
 });
+
+/// Цена Argon2 для своего пароля шифрования. Тесты ставят лёгкую: цена не то, что они проверяют.
+final keyLockCostProvider = Provider<KeyLockCost>((ref) => const KeyLockCost());
 
 /// Касса этой сборки: внешняя, Google Play или App Store. Тесты подменяют.
 final storeChannelProvider = Provider<StoreChannel>((ref) => storeChannelFrom(buildStoreChannel));
