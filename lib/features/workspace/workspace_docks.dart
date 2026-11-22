@@ -262,7 +262,15 @@ class _PanelBody extends ConsumerWidget {
         final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
         rows = folders.isEmpty
             ? [empty(l.wsPanelEmpty)]
-            : [for (final folder in folders) _FolderRow(folder: folder, selected: active == WsTab.folder(folder.id), onTap: () => ws.open(WsTab.folder(folder.id)))];
+            : [
+                for (final folder in folders)
+                  _FolderDrag(
+                    key: ValueKey('dock-folder-${folder.id}'),
+                    folder: folder,
+                    onDrop: (dragged, after) => ref.read(foldersRepositoryProvider).reorder(folderOrderAfterDrop(folders, dragged: dragged, target: folder, after: after)).ignore(),
+                    child: _FolderRow(folder: folder, selected: active == WsTab.folder(folder.id), onTap: () => ws.open(WsTab.folder(folder.id))),
+                  ),
+              ];
       case 'later':
         final later = ref.watch(watchLaterProvider).value ?? const [];
         rows = later.isEmpty
@@ -583,6 +591,92 @@ class _NavRow extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Порядок папок одного уровня после того, как [dragged] бросили на [target]: выше неё или,
+/// с [after], ниже. Остальные соседки сдвигаются.
+List<String> folderOrderAfterDrop(List<FolderCard> folders, {required FolderCard dragged, required FolderCard target, required bool after}) {
+  final siblings = [for (final one in folders) if (one.parentId == target.parentId && one.id != dragged.id) one.id];
+  siblings.insert(siblings.indexOf(target.id) + (after ? 1 : 0), dragged.id);
+  return siblings;
+}
+
+/// Папку в левой панели зажали — она едет за указателем; над соседкой того же уровня видна
+/// черта, куда папка встанет: над ней или под ней (хозяин 22.11: «перетаскивание на любую
+/// позицию»). Вложенность перетаскивание не меняет: для этого «Переложить» в меню папки.
+class _FolderDrag extends StatefulWidget {
+  const _FolderDrag({super.key, required this.folder, required this.onDrop, required this.child});
+
+  final FolderCard folder;
+  final void Function(FolderCard dragged, bool after) onDrop;
+  final Widget child;
+
+  @override
+  State<_FolderDrag> createState() => _FolderDragState();
+}
+
+class _FolderDragState extends State<_FolderDrag> {
+  /// Куда встанет едущая папка: под этой строкой или над ней; null — над строкой никого.
+  bool? _after;
+
+  void _track(DragTargetDetails<FolderCard> details) {
+    final box = context.findRenderObject();
+    if (box is! RenderBox) return;
+    // едущая строка той же высоты: её верх ниже верха этой — середина тоже ниже
+    final after = box.globalToLocal(details.offset).dy > 0;
+    if (after != _after) setState(() => _after = after);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => DragTarget<FolderCard>(
+        onWillAcceptWithDetails: (details) => details.data.id != widget.folder.id && details.data.parentId == widget.folder.parentId,
+        onMove: _track,
+        onLeave: (_) => setState(() => _after = null),
+        onAcceptWithDetails: (details) {
+          final after = _after ?? false;
+          setState(() => _after = null);
+          widget.onDrop(details.data, after);
+        },
+        builder: (context, candidates, _) {
+          final after = candidates.isEmpty ? null : _after;
+          return LongPressDraggable<FolderCard>(
+            data: widget.folder,
+            axis: Axis.vertical,
+            // мышью ждать полсекунды долго, а щелчок по папке короче трети секунды
+            delay: const Duration(milliseconds: 300),
+            feedback: Material(
+              color: Tokens.containerHighest,
+              borderRadius: BorderRadius.circular(12),
+              clipBehavior: Clip.antiAlias,
+              child: SizedBox(width: constraints.maxWidth, child: widget.child),
+            ),
+            childWhenDragging: Opacity(opacity: 0.35, child: widget.child),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                widget.child,
+                if (after != null)
+                  Positioned(
+                    left: 8,
+                    right: 8,
+                    top: after ? null : -2,
+                    // под строкой у неё зазор в две точки: черта ложится в него
+                    bottom: after ? 0 : null,
+                    child: Container(
+                      key: const ValueKey('dock-folder-drop'),
+                      height: 2,
+                      decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(1)),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

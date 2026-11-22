@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/data/db/database.dart';
 import 'package:stowa/features/composer/line_dock.dart';
 import 'package:stowa/features/workspace/workspace_docks.dart';
 import 'package:stowa/features/workspace/workspace_model.dart';
@@ -66,5 +68,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(shell.workspace.rightOpen, isFalse);
     expect(shown(tester, RightDock), isFalse);
+  });
+
+  // хозяин 22.11: «при нажатии и удержании папок сделай их перетаскивание на любую позицию»
+  testWidgets('папку в левой панели зажали и перетащили — встаёт туда, куда бросили: выше или ниже соседки', (tester) async {
+    for (final (index, name) in ['Работа', 'Литература', 'Здоровье', 'Сны'].indexed) {
+      await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'f$index', name: name, icon: 'folder', shape: 'squircle', sortOrder: Value(index)));
+    }
+    await open(tester, const Size(1600, 960));
+    Future<List<String>> order() async {
+      final rows = await (world.db.select(world.db.folders)..orderBy([(t) => OrderingTerm.asc(t.sortOrder)])).get();
+      return [for (final row in rows) row.name];
+    }
+
+    Future<void> drag(String id, Offset to) async {
+      final gesture = await tester.startGesture(tester.getCenter(find.byKey(ValueKey('dock-folder-$id'))));
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveTo(to);
+      await tester.pump(const Duration(milliseconds: 50));
+      await gesture.up();
+      await tester.pumpAndSettle();
+    }
+
+    // «Сны» — на верхнюю половину «Работы»: встают первыми
+    await drag('f3', tester.getRect(find.byKey(const ValueKey('dock-folder-f0'))).topCenter + const Offset(0, 4));
+    expect(await order(), ['Сны', 'Работа', 'Литература', 'Здоровье']);
+
+    // «Сны» — на нижнюю половину «Литературы»: встают после неё
+    await drag('f3', tester.getRect(find.byKey(const ValueKey('dock-folder-f1'))).bottomCenter - const Offset(0, 4));
+    expect(await order(), ['Работа', 'Литература', 'Сны', 'Здоровье']);
   });
 }
