@@ -109,6 +109,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             SettingsHeader(l.accountTitle),
+            const SizedBox(height: 18),
             SettingsGroup(
               tint: settingsTint('sky'),
               children: [

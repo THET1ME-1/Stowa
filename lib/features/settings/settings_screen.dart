@@ -93,7 +93,8 @@ class SettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             SettingsHeader(title ?? l.settingsTitle),
-            if (show('account')) ...[const SubscribeCard(), const AccountRow()],
+            // под заголовком сразу группа: отступ, как в «Хранилище» и «Возврате»
+            if (show('account')) ...[const SizedBox(height: 18), const SubscribeCard(), const AccountRow()],
             if (show('vault')) ...[
             SettingsSection(l.settingsCatalog),
             SettingsGroup(

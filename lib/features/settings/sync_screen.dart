@@ -123,8 +123,10 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
             SettingsHeader(l.syncTitle),
             if (!_loaded)
               const SizedBox.shrink()
-            else if (_account != null)
-              _signedInView(l, _account!)
+            else if (_account != null) ...[
+              const SizedBox(height: 18),
+              _signedInView(l, _account!),
+            ]
             else ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 16),

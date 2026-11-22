@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:stowa/features/account/account_screen.dart';
 import 'package:stowa/features/settings/settings_screen.dart';
+import 'package:stowa/features/settings/sync_screen.dart';
 import 'package:stowa/features/subscription/paywall_screen.dart';
 import 'package:stowa/features/subscription/subscription_screen.dart';
 import 'package:stowa/services/billing/store_channel.dart';
@@ -66,6 +68,25 @@ void main() {
     await tester.pumpWidget(world.wrap(screen));
     await tester.pumpAndSettle();
   }
+
+  // хозяин 22.11 со снимков: «почему отступа снизу от „Аккаунт“ не сделал» — группа липла к заголовку.
+  // Под заголовком экрана, как в «Хранилище» и «Возврате», 18 точек до первой группы
+  testWidgets('под заголовком экранов подписки и аккаунта — отступ до первой группы', (tester) async {
+    await subscribed(SubSource.grant);
+    double gap(String title, Finder first) => tester.getTopLeft(first).dy - tester.getBottomLeft(find.text(title).first).dy;
+
+    await pumpScreen(tester, const SettingsScreen(section: 'account', title: 'Аккаунт'));
+    expect(gap('Аккаунт', find.byKey(const ValueKey('settings-subscription'))), greaterThanOrEqualTo(16));
+
+    await pumpScreen(tester, const SubscriptionScreen());
+    expect(gap('Подписка', find.byKey(const ValueKey('sub-plan'))), greaterThanOrEqualTo(16));
+
+    await pumpScreen(tester, const AccountScreen());
+    expect(gap('Аккаунт', find.byKey(const ValueKey('account-email'))), greaterThanOrEqualTo(16));
+
+    await pumpScreen(tester, const SyncScreen());
+    expect(gap('Stowa Sync', find.byKey(const ValueKey('sync-account'))), greaterThanOrEqualTo(16));
+  });
 
   testWidgets('без подписки первым пунктом — купить, касание открывает экран покупки', (tester) async {
     await pumpScreen(tester, const SettingsScreen());

@@ -112,6 +112,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             SettingsHeader(l.subTitle),
+            const SizedBox(height: 18),
             SettingsGroup(
               tint: settingsTint('sky'),
               children: [
