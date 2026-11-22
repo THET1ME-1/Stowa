@@ -1,6 +1,25 @@
 import 'dart:math';
 import 'dart:ui' show Rect;
 
+/// Привязка к сетке холста: место встаёт на ближайшую точку сетки. Точки фона идут шагом
+/// [step] от начала мира холста, а места карточек считаются от его середины — [origin]
+/// сдвигает одно к другому (без него карточки вставали бы между точками).
+double snapToGrid(double value, double step, {double origin = 0}) => ((value + origin) / step).round() * step - origin;
+
+/// Размер карточки, растянутой за угол: её край встаёт на точку сетки, но уже шага она
+/// не становится.
+double snapEdge({required double start, required double size, required double step, double origin = 0}) =>
+    max(step, snapToGrid(start + size, step, origin: origin) - start);
+
+/// Карточка файла на холсте в его пропорциях: длинная сторона до 400 и не меньше 160 — чтобы
+/// было за что взять. Размер неизвестен (документ без страниц, архив) — обычная карточка файла.
+({double width, double height}) canvasFileSize(({int width, int height})? natural) {
+  if (natural == null || natural.width <= 0 || natural.height <= 0) return (width: 300, height: 200);
+  final long = max(natural.width, natural.height).toDouble();
+  final scale = long.clamp(160.0, 400.0) / long;
+  return (width: (natural.width * scale).roundToDouble(), height: (natural.height * scale).roundToDouble());
+}
+
 /// Вещь на холсте: где лежит и какого размера.
 class CanvasBox {
   const CanvasBox({required this.itemId, required this.x, required this.y, required this.width, required this.height});

@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/app.dart';
+import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/providers.dart';
 import 'package:stowa/data/repositories/canvas_repository.dart';
@@ -123,6 +125,25 @@ void main() {
     final moved = tester.getTopLeft(find.text('Вещь 0').last) - before;
     expect(moved.dx, closeTo(60, 1.5));
     expect(moved.dy, closeTo(40, 1.5));
+  });
+
+  // хозяин 22.11: «Сделай на холсте функции привязки к сетке»; точки холста папки — шаг 32 от
+  // начала мира, а мир сдвинут на 10000
+  testWidgets('привязка к сетке: отпущенная карточка и угол растянутой встают на точки сетки', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    world.settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+    bool onGrid(double value) => (value + 10000) % 32 == 0;
+    await openBig(tester);
+    final card = find.text('Вещь 0').last;
+    final finger = await tester.startGesture(tester.getCenter(card));
+    for (var step = 0; step < 6; step++) {
+      await finger.moveBy(const Offset(9, 7));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await finger.up();
+    await tester.pumpAndSettle();
+    final spot = (await spots()).firstWhere((one) => one.itemId == 'b0');
+    expect((onGrid(spot.x), onGrid(spot.y)), (true, true), reason: '${spot.x}, ${spot.y}');
   });
 
   // хозяин 22.11: «Когда передвигаешь любой элемент, он телепается обратно и на новую позицию» —

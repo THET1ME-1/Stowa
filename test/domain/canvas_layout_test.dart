@@ -36,4 +36,42 @@ void main() {
     expect(bounds.right, 520);
     expect(bounds.bottom, 420);
   });
+
+  // хозяин 22.11: «Сделай на холсте функции привязки к сетке»
+  group('привязка к сетке', () {
+    test('место встаёт на ближайшую точку сетки; точки идут от начала мира, а не от середины', () {
+      expect(snapToGrid(37, 24), 48);
+      expect(snapToGrid(35, 24), 24);
+      expect(snapToGrid(-13, 24), -24);
+      // мир холста-файла сдвинут на 20000: точки там, где (место + 20000) кратно 24
+      expect((snapToGrid(37, 24, origin: 20000) + 20000) % 24, 0);
+      expect(snapToGrid(37, 24, origin: 20000), 40);
+    });
+
+    test('край при растягивании встаёт на сетку, а карточка не становится уже шага', () {
+      expect(snapEdge(start: 48, size: 250, step: 24), 240);
+      expect(snapEdge(start: 48, size: 5, step: 24), 24);
+      // край 290 ближе всего к точке 280 (20280 кратно 24)
+      expect(snapEdge(start: 40, size: 250, step: 24, origin: 20000), 240);
+    });
+  });
+
+  // хозяин 22.11: «пусть фото, документы вставляются в своём размере — вертикальное фото
+  // вставилось квадратом»
+  group('размер карточки по файлу', () {
+    test('картинка в своих пропорциях, длинная сторона до 400', () {
+      expect(canvasFileSize((width: 1080, height: 2340)), (width: 185.0, height: 400.0));
+      expect(canvasFileSize((width: 4000, height: 3000)), (width: 400.0, height: 300.0));
+    });
+
+    test('маленькая картинка — не меньше 160 по длинной стороне, чтобы было за что взять', () {
+      expect(canvasFileSize((width: 100, height: 50)), (width: 160.0, height: 80.0));
+      expect(canvasFileSize((width: 300, height: 200)), (width: 300.0, height: 200.0));
+    });
+
+    test('размер неизвестен — обычная карточка файла', () {
+      expect(canvasFileSize(null), (width: 300.0, height: 200.0));
+      expect(canvasFileSize((width: 0, height: 10)), (width: 300.0, height: 200.0));
+    });
+  });
 }

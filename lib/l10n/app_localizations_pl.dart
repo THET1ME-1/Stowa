@@ -5169,4 +5169,10 @@ class LPl extends L {
 
   @override
   String get photoFileFailed => 'Nie udało się zapisać zdjęcia';
+
+  @override
+  String get canvasSnap => 'Przyciąganie do siatki';
+
+  @override
+  String get canvasSnapAlt => 'Przyciąganie do siatki. Z Alt — swobodnie';
 }

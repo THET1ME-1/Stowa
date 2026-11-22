@@ -5108,4 +5108,10 @@ class LEs extends L {
 
   @override
   String get photoFileFailed => 'No se pudo guardar la foto';
+
+  @override
+  String get canvasSnap => 'Ajustar a la cuadrícula';
+
+  @override
+  String get canvasSnapAlt => 'Ajustar a la cuadrícula. Con Alt, libre';
 }

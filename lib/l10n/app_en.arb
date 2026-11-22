@@ -6231,5 +6231,13 @@
   "photoFileFailed": "Couldn't save the photo",
   "@photoFileFailed": {
     "description": "Плашка, когда скачать или сохранить фото файлом не вышло"
+  },
+  "canvasSnap": "Snap to grid",
+  "@canvasSnap": {
+    "description": "Кнопка холста: карточки встают на точки сетки"
+  },
+  "canvasSnapAlt": "Snap to grid. Hold Alt to move freely",
+  "@canvasSnapAlt": {
+    "description": "Подсказка той же кнопки на компьютере: Alt отключает привязку на время"
   }
 }

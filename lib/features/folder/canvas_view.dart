@@ -114,9 +114,13 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     final shift = arrowShift(event);
     if (shift == null) return false;
     final saved = ref.read(canvasSpotsProvider(widget.folderId)).value ?? const {};
+    // с привязкой стрелка двигает на шаг сетки (с Shift — на четыре) и ставит на точку
+    final snap = _snap;
+    final step = snap ? Offset(shift.dx.sign, shift.dy.sign) * _gridStep * (HardwareKeyboard.instance.isShiftPressed ? 4 : 1) : shift;
     final moved = <String, CanvasSpot>{
       for (final id in _selected)
-        if (_moving[id] ?? saved[id] case final spot?) id: (x: spot.x + shift.dx, y: spot.y + shift.dy, width: spot.width),
+        if (_moving[id] ?? saved[id] case final spot?)
+          id: snap ? (x: _grid(spot.x + step.dx), y: _grid(spot.y + step.dy), width: spot.width) : (x: spot.x + step.dx, y: spot.y + step.dy, width: spot.width),
     };
     setState(() => _moving.addAll(moved));
     // своё место держится, пока база не пришлёт его же (_forgetSettled)
@@ -239,8 +243,10 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
   /// появляется на холсте раньше, чем её место доходит из базы, и расстановка новых
   /// ([_placeMissing]) ставила её справа от остальных, затирая выбранное. Поэтому заметка
   /// сразу числится расставленной.
-  Future<void> _putAt(String id, CanvasSpot spot) async {
+  Future<void> _putAt(String id, CanvasSpot wanted) async {
     _placing.add(id);
+    // новая карточка с привязкой сразу стоит на точке сетки
+    final spot = _snap ? (x: _grid(wanted.x), y: _grid(wanted.y), width: wanted.width) : wanted;
     try {
       await ref.read(canvasRepositoryProvider).save(widget.folderId, id, spot);
     } catch (_) {
@@ -331,10 +337,28 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
   /// следующим кадром, а палец успевает сдвинуться раньше: вид возвращается сюда.
   Matrix4? _heldView;
 
+  // где были карточки, когда палец их взял, и сколько он прошёл: место считается от начала
+  // жеста — привязка к сетке не съедает мелкие сдвиги, карточка не застревает на точке
+  Map<String, CanvasSpot> _dragFrom = const {};
+  Offset _dragTotal = Offset.zero;
+
+  /// Точки сетки — те же, что на фоне: шаг 32 от начала мира холста.
+  static const _gridStep = 32.0;
+
+  /// Привязка к сетке сейчас: включена в столбике и Alt не зажат.
+  bool get _snap => snapNow(ref.read(canvasSnapProvider).value ?? false);
+
+  double _grid(double value) => snapToGrid(value, _gridStep, origin: _origin);
+
   /// Палец лёг на карточку. Тянуть её можно, только если он на холсте один.
   void _grab(ItemCard card, int pointer, {required bool resize}) {
     if (_hold != null || _pointers.isNotEmpty) return;
     _raise(card.id);
+    final saved = ref.read(canvasSpotsProvider(widget.folderId)).value ?? const {};
+    // тянут одну из выбранных — едут все выбранные
+    final group = resize || !_selected.contains(card.id) ? {card.id} : _selected;
+    _dragFrom = {for (final id in group) id: ?(_moving[id] ?? saved[id])};
+    _dragTotal = Offset.zero;
     _heldView = transform.value.clone();
     setState(() => _hold = (pointer: pointer, itemId: card.id, resize: resize));
   }
@@ -343,18 +367,22 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
   void _drag(ItemCard card, CanvasSpot from, int pointer, Offset delta) {
     final hold = _hold;
     if (hold == null || hold.pointer != pointer || hold.itemId != card.id) return;
+    final start = _dragFrom[card.id] ?? from;
+    _dragTotal += delta;
+    final snap = _snap;
     if (hold.resize) {
-      final current = _moving[card.id] ?? from;
-      setState(() => _moving[card.id] = (x: current.x, y: current.y, width: (current.width + delta.dx).clamp(80.0, 1600.0)));
+      // правый край встаёт на точку сетки
+      final raw = start.width + _dragTotal.dx;
+      final width = (snap ? snapEdge(start: start.x, size: raw, step: _gridStep, origin: _origin) : raw).clamp(80.0, 1600.0);
+      setState(() => _moving[card.id] = (x: start.x, y: start.y, width: width));
       return;
     }
-    // тянут одну из выбранных — едут все выбранные
-    final saved = ref.read(canvasSpotsProvider(widget.folderId)).value ?? const {};
-    final group = _selected.contains(card.id) ? _selected : {card.id};
+    // на точку встаёт взятая карточка, выбранные едут за ней тем же сдвигом
+    final target = Offset(start.x, start.y) + _dragTotal;
+    final shift = snap ? Offset(_grid(target.dx) - start.x, _grid(target.dy) - start.y) : _dragTotal;
     setState(() {
-      for (final id in group) {
-        final current = _moving[id] ?? (id == card.id ? from : saved[id]);
-        if (current != null) _moving[id] = (x: current.x + delta.dx, y: current.y + delta.dy, width: current.width);
+      for (final MapEntry(key: id, value: spot) in {card.id: start, ..._dragFrom}.entries) {
+        _moving[id] = (x: spot.x + shift.dx, y: spot.y + shift.dy, width: spot.width);
       }
     });
   }

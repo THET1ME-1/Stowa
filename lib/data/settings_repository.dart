@@ -367,6 +367,17 @@ class SettingsRepository {
 
   Future<void> setEnterSends(bool value) => _set(() => _prefs.setBool('enter_sends', value));
 
+  /// Карточки холста встают на точки сетки (хозяин 22.11: «привязка к сетке»). По умолчанию
+  /// включено, как в Obsidian; выключает кнопка в столбике холста, Alt — свободно на время.
+  bool get canvasSnap => _prefs.getBool('canvas_snap') ?? true;
+
+  Stream<bool> watchCanvasSnap() async* {
+    yield canvasSnap;
+    yield* _changes.stream.map((_) => canvasSnap).distinct();
+  }
+
+  Future<void> setCanvasSnap(bool value) => _set(() => _prefs.setBool('canvas_snap', value));
+
   /// Крестик закрытия у вкладки рабочего пространства — слева от названия; по умолчанию справа.
   bool get tabCloseLeft => _prefs.getBool('tab_close_left') ?? false;
 

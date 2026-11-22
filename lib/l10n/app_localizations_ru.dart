@@ -5172,4 +5172,10 @@ class LRu extends L {
 
   @override
   String get photoFileFailed => 'Не получилось сохранить фото';
+
+  @override
+  String get canvasSnap => 'Привязка к сетке';
+
+  @override
+  String get canvasSnapAlt => 'Привязка к сетке. С Alt — свободно';
 }

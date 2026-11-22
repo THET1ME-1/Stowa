@@ -20,6 +20,8 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../domain/canvas_layout.dart';
+import '../../domain/document_size.dart';
+import '../../domain/image_size.dart';
 import '../../domain/json_canvas.dart';
 import '../../domain/note_section.dart';
 import '../../l10n/app_localizations.dart';
@@ -184,7 +186,9 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
       }
       if (!mounted || !_editable) return;
       final picture = isCanvasImage(path);
-      final nodeId = _put(path, center, picture: picture);
+      // свой размер: картинка в своих пропорциях, документ — в пропорциях страницы
+      final natural = picture ? imageSizeOf(bytes) : (p.extension(path).toLowerCase() == '.pdf' ? pdfPageSize(bytes) : null);
+      final nodeId = _put(path, center, picture: picture, size: canvasFileSize(natural));
       if (picture) _previews[nodeId] = bytes;
       // сперва холст со ссылкой, потом файл: иначе читатель хранилища застал бы файл без
       // ссылки и завёл бы из него заметку
@@ -223,8 +227,10 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
       isCanvasImage(node.file ?? '') ? _previews[node.id] : null;
 
   /// Карточка-файл [file] серединой в точке мира [center] (рядом, если там занято); выбрана.
-  String _put(String file, Offset center, {required bool picture}) {
-    final (width, height) = picture ? (320.0, 240.0) : (300.0, 200.0);
+  /// [size] — свой размер файла (картинка, страница документа); без него — обычная карточка,
+  /// у картинки — 320 × 240.
+  String _put(String file, Offset center, {required bool picture, ({double width, double height})? size}) {
+    final (width, height) = size != null ? (size.width, size.height) : (picture ? (320.0, 240.0) : (300.0, 200.0));
     final spot = _spot(center - Offset(width / 2, height / 2), width, height);
     final next = _doc.addFile(file, x: spot.dx, y: spot.dy, width: width, height: height);
     final nodeId = next.nodes.last.id;
@@ -333,10 +339,16 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     }
     final shift = arrowShift(event);
     if (shift == null) return false;
+    // с привязкой стрелка двигает на шаг сетки (с Shift — на четыре) и ставит на точку
+    final snap = _snap;
+    final step = snap ? Offset(shift.dx.sign, shift.dy.sign) * _dotStep * (HardwareKeyboard.instance.isShiftPressed ? 4 : 1) : shift;
     var next = _doc;
     for (final id in _withContents(_selected)) {
       final node = next.node(id);
-      if (node != null) next = next.updateNode(id, {'x': (node.x + shift.dx).round(), 'y': (node.y + shift.dy).round()});
+      if (node == null) continue;
+      final x = node.x + step.dx;
+      final y = node.y + step.dy;
+      next = next.updateNode(id, {'x': (snap ? _grid(x.toDouble()) : x).round(), 'y': (snap ? _grid(y.toDouble()) : y).round()});
     }
     _change(next);
     return true;
@@ -443,26 +455,49 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
   Set<String> _carried = const {};
   bool _moved = false;
 
+  // где были карточки, когда палец их взял, и сколько он прошёл с тех пор: место считается от
+  // начала жеста — привязка к сетке не съедает мелкие сдвиги, карточка не застревает на точке
+  Map<String, Rect> _dragFrom = const {};
+  Offset _dragTotal = Offset.zero;
+
   void _grab(String id, int pointer, {required bool resize}) {
     if (!_editable || _hold != null || _pointers.isNotEmpty || _connecting) return;
     _carried = resize ? {id} : _withContents(_selected.contains(id) ? _selected : {id});
+    _dragFrom = {
+      for (final one in _carried)
+        if (_doc.node(one) case final node?) one: Rect.fromLTWH(node.x.toDouble(), node.y.toDouble(), node.width.toDouble(), node.height.toDouble()),
+    };
+    _dragTotal = Offset.zero;
     _heldView = transform.value.clone();
     setState(() => _hold = (pointer: pointer, id: id, resize: resize));
   }
+
+  /// Привязка к сетке сейчас: включена в столбике и Alt не зажат.
+  bool get _snap => snapNow(ref.read(canvasSnapProvider).value ?? false);
+
+  double _grid(double value) => snapToGrid(value, _dotStep, origin: _origin);
 
   // сдвиг пальца приходит в координатах холста: на масштаб делить не нужно
   void _drag(String id, int pointer, Offset delta) {
     final hold = _hold;
     if (hold == null || hold.pointer != pointer || hold.id != id) return;
-    final node = _doc.node(id);
-    if (node == null) return;
+    final from = _dragFrom[id];
+    if (from == null) return;
+    _dragTotal += delta;
+    final snap = _snap;
     setState(() {
       if (hold.resize) {
-        _doc = _doc.updateNode(id, {'width': max(60, node.width + delta.dx), 'height': max(40, node.height + delta.dy)});
+        // край встаёт на точку сетки
+        final width = snap ? snapEdge(start: from.left, size: from.width + _dragTotal.dx, step: _dotStep, origin: _origin) : max(60.0, from.width + _dragTotal.dx);
+        final height = snap ? snapEdge(start: from.top, size: from.height + _dragTotal.dy, step: _dotStep, origin: _origin) : max(40.0, from.height + _dragTotal.dy);
+        _doc = _doc.updateNode(id, {'width': width, 'height': height});
       } else {
-        for (final moving in _carried) {
-          final one = _doc.node(moving);
-          if (one != null) _doc = _doc.updateNode(moving, {'x': one.x + delta.dx, 'y': one.y + delta.dy});
+        // на точку встаёт взятая карточка, остальные едут за ней тем же сдвигом — раскладка
+        // выбранных не ломается
+        final target = from.topLeft + _dragTotal;
+        final shift = snap ? Offset(_grid(target.dx), _grid(target.dy)) - from.topLeft : _dragTotal;
+        for (final MapEntry(key: moving, value: start) in _dragFrom.entries) {
+          _doc = _doc.updateNode(moving, {'x': start.left + shift.dx, 'y': start.top + shift.dy});
         }
       }
       _moved = true;
@@ -604,6 +639,8 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
   /// Свободное место под новую карточку рядом с [wanted] (её левым верхним углом).
   Offset _spot(Offset wanted, double width, double height) {
     final spot = freeCanvasSpot(_doc.nodes, x: wanted.dx, y: wanted.dy, width: width, height: height);
+    // новая карточка с привязкой сразу стоит на точке сетки
+    if (_snap) return Offset(_grid(spot.x.toDouble()), _grid(spot.y.toDouble()));
     return Offset(spot.x.toDouble(), spot.y.toDouble());
   }
 

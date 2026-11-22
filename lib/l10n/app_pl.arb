@@ -1150,5 +1150,7 @@
   "photoSaveAs": "Zapisz jako…",
   "photoPrevious": "Poprzednie zdjęcie",
   "photoNext": "Następne zdjęcie",
-  "photoFileFailed": "Nie udało się zapisać zdjęcia"
+  "photoFileFailed": "Nie udało się zapisać zdjęcia",
+  "canvasSnap": "Przyciąganie do siatki",
+  "canvasSnapAlt": "Przyciąganie do siatki. Z Alt — swobodnie"
 }

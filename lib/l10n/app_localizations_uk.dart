@@ -5158,4 +5158,10 @@ class LUk extends L {
 
   @override
   String get photoFileFailed => 'Не вдалося зберегти фото';
+
+  @override
+  String get canvasSnap => 'Прив\'язка до сітки';
+
+  @override
+  String get canvasSnapAlt => 'Прив\'язка до сітки. З Alt — вільно';
 }

@@ -5128,4 +5128,10 @@ class LDe extends L {
 
   @override
   String get photoFileFailed => 'Foto konnte nicht gespeichert werden';
+
+  @override
+  String get canvasSnap => 'Am Raster ausrichten';
+
+  @override
+  String get canvasSnapAlt => 'Am Raster ausrichten. Mit Alt frei bewegen';
 }

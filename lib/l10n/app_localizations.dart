@@ -8710,6 +8710,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Couldn\'t save the photo'**
   String get photoFileFailed;
+
+  /// Кнопка холста: карточки встают на точки сетки
+  ///
+  /// In en, this message translates to:
+  /// **'Snap to grid'**
+  String get canvasSnap;
+
+  /// Подсказка той же кнопки на компьютере: Alt отключает привязку на время
+  ///
+  /// In en, this message translates to:
+  /// **'Snap to grid. Hold Alt to move freely'**
+  String get canvasSnapAlt;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

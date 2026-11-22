@@ -162,6 +162,16 @@ final enterSendsProvider = StreamProvider<bool>((ref) {
   }
 });
 
+/// Привязка карточек холста к сетке. Без настроек (окна без базы, тесты без настроек) —
+/// выключена: карточка встаёт ровно там, где отпустили.
+final canvasSnapProvider = StreamProvider<bool>((ref) {
+  try {
+    return ref.watch(settingsRepositoryProvider).watchCanvasSnap();
+  } on Object {
+    return Stream.value(false);
+  }
+});
+
 /// Крестик вкладки слева от названия (монитор); без настроек — справа.
 final tabCloseLeftProvider = StreamProvider<bool>((ref) {
   try {

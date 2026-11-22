@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/services/vault/vault_layout.dart' show writeAttachmentSetting;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -450,6 +452,67 @@ void main() {
       placed = placed || count == 2;
     }
     expect(placed, isTrue);
+  });
+
+  // точки сетки холста-файла: шаг 24 от начала мира, а мир сдвинут на 20000
+  bool onGrid(num value) => (value + 20000) % 24 == 0;
+
+  Future<void> dragNode(WidgetTester tester, String id, Offset by) async {
+    final mouse = await tester.startGesture(tester.getCenter(find.byKey(ValueKey('node-$id'))), kind: PointerDeviceKind.mouse);
+    await tester.pump(const Duration(milliseconds: 50));
+    for (var step = 0; step < 5; step++) {
+      await mouse.moveBy(by / 5);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await mouse.up();
+    await saved(tester);
+  }
+
+  // хозяин 22.11: «Сделай на холсте функции привязки к сетке»
+  testWidgets('привязка к сетке: отпущенная карточка стоит на точке сетки, с Alt — где отпустили, кнопкой выключается', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    world.settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await openWide(tester);
+    final id = (await stored()).nodes.single.id;
+
+    await dragNode(tester, id, const Offset(53, 37));
+    var node = (await stored()).node(id)!;
+    expect(node.x, isNot(0));
+    expect((onGrid(node.x), onGrid(node.y)), (true, true), reason: '${node.x}, ${node.y}');
+
+    // Alt — свободно, мимо точек
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+    await dragNode(tester, id, const Offset(7, 5));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+    node = (await stored()).node(id)!;
+    expect((onGrid(node.x), onGrid(node.y)), (false, false), reason: '${node.x}, ${node.y}');
+
+    // кнопка в столбике выключает привязку, и выбор помнится; на компьютере подсказка — и про Alt
+    expect(find.byTooltip('Привязка к сетке. С Alt — свободно'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('canvas-snap')));
+    await tester.pumpAndSettle();
+    expect(world.settings!.canvasSnap, isFalse);
+    final before = (await stored()).node(id)!;
+    await dragNode(tester, id, const Offset(7, 5));
+    node = (await stored()).node(id)!;
+    expect(node.x, isNot(before.x));
+    expect(onGrid(node.x), isFalse);
+  });
+
+  // хозяин 22.11: «пусть фото, документы вставляются в своём размере — вертикальное фото вставилось квадратом»
+  testWidgets('вертикальная картинка встаёт на холст вертикальной карточкой, в своих пропорциях', (tester) async {
+    await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
+    await openWide(tester);
+    // PNG 54×117
+    await world.paste(tester, [
+      XFile.fromData(base64.decode('iVBORw0KGgoAAAANSUhEUgAAADYAAAB1AQAAAAAt8i+yAAAAEUlEQVR42mNgGAWjYBQMdgAAA6gAARikyiwAAAAASUVORK5CYII='), mimeType: 'image/png'),
+    ]);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await saved(tester);
+    final picture = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file).single;
+    expect(picture.height / picture.width, closeTo(117 / 54, 0.05));
+    expect(picture.height, 160, reason: 'маленькая — длинная сторона 160');
   });
 
   // хозяин 22.11: «хочу вставить сразу в холст без инпута через Ctrl+V», потом «2 фото загрузил

@@ -1150,5 +1150,7 @@
   "photoSaveAs": "Salvează ca…",
   "photoPrevious": "Fotografia anterioară",
   "photoNext": "Fotografia următoare",
-  "photoFileFailed": "Fotografia nu a putut fi salvată"
+  "photoFileFailed": "Fotografia nu a putut fi salvată",
+  "canvasSnap": "Aliniere la grilă",
+  "canvasSnapAlt": "Aliniere la grilă. Ține Alt pentru mișcare liberă"
 }

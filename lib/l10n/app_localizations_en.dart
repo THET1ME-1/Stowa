@@ -5091,4 +5091,10 @@ class LEn extends L {
 
   @override
   String get photoFileFailed => 'Couldn\'t save the photo';
+
+  @override
+  String get canvasSnap => 'Snap to grid';
+
+  @override
+  String get canvasSnapAlt => 'Snap to grid. Hold Alt to move freely';
 }

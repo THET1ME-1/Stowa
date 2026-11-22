@@ -6,10 +6,13 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 
 import '../../core/clipboard/paste_router.dart';
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart' show isAndroid, isIOS, isWeb;
+import '../../data/providers.dart' show canvasSnapProvider, settingsRepositoryProvider;
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/desk_mode.dart';
@@ -382,12 +385,15 @@ class CanvasDotsPainter extends CustomPainter {
 
 /// Кнопка в столбике справа сверху: значок или надпись (масштаб).
 class CanvasTool extends StatelessWidget {
-  const CanvasTool({super.key, required this.tooltip, required this.onTap, this.icon, this.label});
+  const CanvasTool({super.key, required this.tooltip, required this.onTap, this.icon, this.label, this.active = false});
 
   final String? icon;
   final String? label;
   final String tooltip;
   final VoidCallback onTap;
+
+  /// Включённый переключатель (привязка к сетке): белая кнопка.
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
@@ -401,19 +407,19 @@ class CanvasTool extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 44),
           padding: EdgeInsets.symmetric(horizontal: label == null ? 0 : 12),
           alignment: Alignment.center,
-          decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(22)),
+          decoration: BoxDecoration(color: active ? Tokens.accent : Tokens.containerHigh, borderRadius: BorderRadius.circular(22)),
           child: label != null
               ? Text(label!, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontFeatures: const [FontFeature.tabularFigures()]))
-              : Icon(symbolIcon(icon!), size: 22, color: Tokens.onSurface),
+              : Icon(symbolIcon(icon!), size: 22, color: active ? Tokens.onAccent : Tokens.onSurface),
         ),
       ),
     );
   }
 }
 
-/// Столбик кнопок холста: масштаб пилюлей (касание — всё целиком), «уместить», «записка»
-/// и свои кнопки холста ниже.
-class CanvasTools extends StatelessWidget {
+/// Столбик кнопок холста: масштаб пилюлей (касание — всё целиком), «уместить», «записка»,
+/// привязка к сетке и свои кнопки холста ниже.
+class CanvasTools extends ConsumerWidget {
   const CanvasTools({super.key, required this.view, required this.onFit, required this.onNote, this.more = const []});
 
   final ValueListenable<Matrix4> view;
@@ -422,8 +428,11 @@ class CanvasTools extends StatelessWidget {
   final List<Widget> more;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
+    final snap = ref.watch(canvasSnapProvider).value ?? false;
+    // у телефона нет Alt — подсказка о нём только там, где есть клавиатура
+    final keyboard = isWeb || DeskMode.of(context) || (!isAndroid && !isIOS);
     return Column(
       children: [
         ValueListenableBuilder(
@@ -433,11 +442,28 @@ class CanvasTools extends StatelessWidget {
         const SizedBox(height: 8),
         CanvasTool(icon: 'fit_screen', tooltip: l.canvasFit, onTap: onFit),
         if (onNote != null) ...[const SizedBox(height: 8), CanvasTool(key: const ValueKey('canvas-note'), icon: 'sticky_note_2', tooltip: l.canvasNote, onTap: onNote!)],
+        const SizedBox(height: 8),
+        CanvasTool(
+          key: const ValueKey('canvas-snap'),
+          icon: 'grid_4x4',
+          active: snap,
+          tooltip: keyboard ? l.canvasSnapAlt : l.canvasSnap,
+          onTap: () {
+            try {
+              ref.read(settingsRepositoryProvider).setCanvasSnap(!snap).ignore();
+            } on Object {
+              // окно без настроек: переключать нечего
+            }
+          },
+        ),
         for (final one in more) ...[const SizedBox(height: 8), one],
       ],
     );
   }
 }
+
+/// Привязка к сетке прямо сейчас: включена и Alt не зажат — с Alt карточку двигают свободно.
+bool snapNow(bool enabled) => enabled && !HardwareKeyboard.instance.isAltPressed;
 
 /// Лист записки: текст новой заметки, которая встанет на холст.
 Future<String?> askCanvasNote(BuildContext context) {

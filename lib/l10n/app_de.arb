@@ -1150,5 +1150,7 @@
   "photoSaveAs": "Speichern unter…",
   "photoPrevious": "Vorheriges Foto",
   "photoNext": "Nächstes Foto",
-  "photoFileFailed": "Foto konnte nicht gespeichert werden"
+  "photoFileFailed": "Foto konnte nicht gespeichert werden",
+  "canvasSnap": "Am Raster ausrichten",
+  "canvasSnapAlt": "Am Raster ausrichten. Mit Alt frei bewegen"
 }

@@ -1433,5 +1433,7 @@
   "photoSaveAs": "Сохранить как…",
   "photoPrevious": "Предыдущее фото",
   "photoNext": "Следующее фото",
-  "photoFileFailed": "Не получилось сохранить фото"
+  "photoFileFailed": "Не получилось сохранить фото",
+  "canvasSnap": "Привязка к сетке",
+  "canvasSnapAlt": "Привязка к сетке. С Alt — свободно"
 }

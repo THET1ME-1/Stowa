@@ -5136,4 +5136,11 @@ class LRo extends L {
 
   @override
   String get photoFileFailed => 'Fotografia nu a putut fi salvată';
+
+  @override
+  String get canvasSnap => 'Aliniere la grilă';
+
+  @override
+  String get canvasSnapAlt =>
+      'Aliniere la grilă. Ține Alt pentru mișcare liberă';
 }
