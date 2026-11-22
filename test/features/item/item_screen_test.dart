@@ -292,6 +292,49 @@ void main() {
     });
   });
 
+  // заметка в десятки тысяч знаков: на каждую букву верстается только кусок у курсора
+  group('очень длинная заметка: окно правки', () {
+    final huge = List.generate(300, (index) => 'Строка конспекта $index, в ней мысль про ремонт и плитку').join('\n');
+    TextEditingController live(WidgetTester tester) => tester.widget<TextField>(find.byType(TextField).last).controller!;
+
+    testWidgets('живое поле держит кусок у курсора, сохраняется весь текст', (tester) async {
+      await open(tester, body: 'Ремонт\n$huge', title: 'Ремонт');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      expect(live(tester).text.length, lessThan(4500));
+      await tester.enterText(find.byType(TextField).last, '${live(tester).text}\nновая строка');
+      await tester.tap(find.text('Готово'));
+      await tester.pumpAndSettle();
+      expect((await saved()).body, 'Ремонт\n$huge\nновая строка');
+    });
+
+    testWidgets('«Отменить» возвращает весь текст, а не кусок', (tester) async {
+      await open(tester, body: 'Ремонт\n$huge', title: 'Ремонт');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      final before = live(tester).text;
+      await tester.enterText(find.byType(TextField).last, '$before и затирка');
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tap(find.byTooltip('Отменить'));
+      await tester.pumpAndSettle();
+      expect(live(tester).text, before);
+      await tester.tap(find.text('Готово'));
+      await tester.pumpAndSettle();
+      expect((await saved()).body, 'Ремонт\n$huge');
+    });
+
+    testWidgets('кнопка разметки ставит знаки у курсора в длинной заметке', (tester) async {
+      await open(tester, body: 'Ремонт\n$huge', title: 'Ремонт');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Жирный'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Готово'));
+      await tester.pumpAndSettle();
+      expect((await saved()).body, 'Ремонт\n$huge****');
+    });
+  });
+
   testWidgets('правка рядом со временем, само время не трогали — напоминание не сбивается', (tester) async {
     await open(tester, body: 'В 8 часов вечера пить пиво', title: 'Пить пиво');
     final mine = DateTime(world.now.year, world.now.month, world.now.day, 21, 30);

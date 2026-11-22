@@ -22,6 +22,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/sheet_options.dart';
+import '../../core/widgets/windowed_text_field.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
@@ -134,7 +135,11 @@ class ItemScreen extends ConsumerStatefulWidget {
 
 class _ItemScreenState extends ConsumerState<ItemScreen> {
   final _title = TextEditingController();
+  // весь текст заметки; живое поле правки держит из него кусок у курсора — [_bodyWindow].
+  // То, что смотрит только на место у курсора (подсказка «[[», формула, полоса разметки) и
+  // считается на каждую букву, берёт кусок: на длинной заметке это в разы дешевле
   final _body = MarkdownController();
+  final _bodyWindow = MarkdownController();
   final _bodyFocus = FocusNode();
   // «Отменить» и «Вернуть» в правке: и набранное, и кнопки разметки
   final _undo = UndoHistoryController();
@@ -168,8 +173,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     }).ignore();
     _title.addListener(_changed);
     _body.addListener(_changed);
-    _body.addListener(_watchWiki);
-    _body.addListener(_measureCaret);
+    _bodyWindow.addListener(_watchWiki);
+    _bodyWindow.addListener(_measureCaret);
     _scroll.addListener(_measureCaret);
     _bodyFocus.addListener(_measureCaret);
     // картинка из буфера (Ctrl+V) встаёт в эту заметку: её открыли — с ней и работают
@@ -196,6 +201,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _phraseTimer?.cancel();
     _title.dispose();
     _body.dispose();
+    _bodyWindow.dispose();
     _bodyFocus.dispose();
     _undo.dispose();
     _scroll.dispose();
@@ -213,6 +219,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _title.text = titleIsFirstLine(body, item.title) ? '' : item.title;
     _body.text = append && body.trim().isNotEmpty && !body.endsWith('\n') ? '$body\n' : body;
     _body.selection = TextSelection.collapsed(offset: _body.text.length);
+    // кусок для живого поля — до показа: поле, заполняя его само, будило бы слушателей посреди построения
+    _bodyWindow.value = WindowedTextField.windowFor(_body.value);
     if (ref.read(placesProvider).value case final places?) _known = _knownOf(places);
     _checkPhrases();
     _timeTouched = false;
@@ -344,7 +352,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   List<LinkTarget>? _linkTargets;
 
   void _watchWiki() {
-    if (_linkTargets != null || wikiQueryOf(_body.value) == null) return;
+    if (_linkTargets != null || wikiQueryOf(_bodyWindow.value) == null) return;
     _linkTargets = const [];
     _items.linkTargets().then((targets) {
       if (mounted) setState(() => _linkTargets = targets);
@@ -378,7 +386,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   /// Формула под курсором правки, если в ней уже что-то набрано.
   MathAround? _mathAtCaret() {
-    final value = _body.value;
+    // формула не делится между кусками окна: смотреть хватит на кусок у курсора
+    final value = _bodyWindow.value;
     if (!value.selection.isValid || !value.selection.isCollapsed) return null;
     final formula = mathAround(value.text, value.selection.baseOffset);
     return formula == null || formula.tex.trim().isEmpty ? null : formula;
@@ -388,13 +397,14 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       // меряем, только пока подсказка или просмотр формулы нужны: после правки поля уже нет
-      if (!_editing || !_bodyFocus.hasFocus || (wikiQueryOf(_body.value) == null && _mathAtCaret() == null)) {
+      if (!_editing || !_bodyFocus.hasFocus || (wikiQueryOf(_bodyWindow.value) == null && _mathAtCaret() == null)) {
         _caret.value = null;
         return;
       }
       final stack = _stackKey.currentContext?.findRenderObject() as RenderBox?;
       final editable = _bodyFocus.context?.findAncestorStateOfType<EditableTextState>()?.renderEditable;
-      final selection = _body.selection;
+      // курсор живого поля — его же отсчётом
+      final selection = _bodyWindow.selection;
       if (stack == null || editable == null || !editable.attached || !selection.isValid) {
         _caret.value = null;
         return;
@@ -945,7 +955,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                     decoration: BoxDecoration(color: Tokens.containerHighest, borderRadius: BorderRadius.circular(_markdownStrip / 2)),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     alignment: Alignment.center,
-                    child: MarkdownBar(onAction: _markdown, field: _body),
+                    child: MarkdownBar(onAction: _markdown, field: _bodyWindow),
                   ),
                   const SizedBox(height: 8),
                   ValueListenableBuilder(
@@ -1070,7 +1080,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                     decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(14)),
                     child: Row(
                       children: [
-                        Expanded(child: MarkdownBar(onAction: _markdown, undo: _undo, field: _body)),
+                        Expanded(child: MarkdownBar(onAction: _markdown, undo: _undo, field: _bodyWindow)),
                         SizedBox(height: 22, child: VerticalDivider(width: 9, thickness: 1, color: Tokens.outline)),
                         _DeskIcon(action: _DeskAction(icon: 'add_photo_alternate', tooltip: l.itemAddPhoto, onTap: _addPhotos)),
                       ],
@@ -1349,14 +1359,15 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                     // Tab в формуле — к следующему полю, как в Latex Suite; вне формулы — как обычно
                                     canRequestFocus: false,
                                     skipTraversal: true,
-                                    onKeyEvent: (node, event) => mathTabKey(_body, event),
-                                    child: TextField(
-                                      controller: _body,
+                                    onKeyEvent: (node, event) => mathTabKey(_bodyWindow, event),
+                                    // длинная заметка: на каждую букву верстается только кусок у курсора
+                                    // (тестировщик 22.11: «длинный текст лагает, 10 FPS»)
+                                    child: WindowedTextField(
+                                      document: _body,
+                                      window: _bodyWindow,
+                                      pieceController: (text) => MarkdownController(text: text),
                                       focusNode: _bodyFocus,
                                       undoController: _undo,
-                                      // поле растёт с текстом: одна строка — одна строка, без пустоты под ней
-                                      maxLines: null,
-                                      keyboardType: TextInputType.multiline,
                                       // картинка с клавиатуры телефона (Gboard) и «Вставить» из меню — в текст на место курсора
                                       contentInsertionConfiguration: ref.watch(keyboardContentProvider),
                                       contextMenuBuilder: ref.watch(pasteMenuProvider),
@@ -1430,8 +1441,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                     // у верха экрана — под ней; набранное и курсор не закрываются
                     if (_editing)
                       ListenableBuilder(
-                        listenable: Listenable.merge([_body, _caret]),
-                        builder: (context, _) => switch ((wikiQueryOf(_body.value), _mathAtCaret(), _caret.value)) {
+                        listenable: Listenable.merge([_bodyWindow, _caret]),
+                        builder: (context, _) => switch ((wikiQueryOf(_bodyWindow.value), _mathAtCaret(), _caret.value)) {
                           (final query?, _, final caret?) when _bodyFocus.hasFocus => Positioned.fill(
                             child: LayoutBuilder(builder: (context, box) => _wikiPanel(query, caret, box.maxHeight, bottom)),
                           ),
