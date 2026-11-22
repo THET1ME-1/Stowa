@@ -22,7 +22,7 @@ import '../../domain/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../canvas/canvas_kit.dart';
 import '../composer/picked_files.dart' show pickedFromXFile;
-import 'package:desktop_drop/desktop_drop.dart' show DropItem;
+import 'package:image_picker/image_picker.dart' show XFile;
 import '../../services/capture_service.dart';
 import '../composer/panel_text.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -76,6 +76,13 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
 
   // щелчок попал в карточку: тот же щелчок по пустому месту выбор не снимает
   bool _cardHit = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // картинка из буфера (Ctrl+V) встаёт на холст карточкой, без строки
+    listenPaste(ref.read(pasteRouterProvider));
+  }
 
   /// Клавиши холста: доходят сюда, когда фокус у холста (щёлкнули по нему мышью). Холст
   /// забирает их себе: иначе стрелка заодно увела бы фокус в поле ввода.
@@ -352,6 +359,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
   }
 
   void _pointerDown(PointerDownEvent event) {
+    trackPointer(event);
     _pointers.add(event.pointer);
     // второй палец: это щипок, карточку больше не тащим
     if (_pointers.length > 1) _drop();
@@ -401,7 +409,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
 
     // файлы из системы, брошенные мышью: каждый — заметка этой папки там, где отпустили
     return CanvasDropZone(
-      onFiles: (files, at) => _dropFiles(files, at).ignore(),
+      onFiles: (files, at) => placeFiles(files, at).ignore(),
       child: LayoutBuilder(
       builder: (context, constraints) {
         viewport = constraints.biggest;
@@ -416,6 +424,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
             // слушатель пальцев не отбирает жест у холста: он только считает пальцы
             Listener(
               onPointerDown: _pointerDown,
+              onPointerHover: trackPointer,
               onPointerUp: _pointerUp,
               onPointerCancel: _pointerUp,
               child: MouseRegion(
@@ -581,7 +590,9 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     );
   }
 
-  Future<void> _dropFiles(List<DropItem> files, Offset at) async {
+  /// Каждый файл — заметка этой папки там, куда его бросили или вставили.
+  @override
+  Future<void> placeFiles(List<XFile> files, Offset at) async {
     final l = L.of(context);
     final world = transform.toScene(at);
     final capture = ref.read(captureServiceProvider);

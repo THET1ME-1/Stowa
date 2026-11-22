@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:stowa/features/composer/picked_files.dart';
@@ -44,6 +45,18 @@ void main() {
     expect(picked.mime, 'text/plain');
     expect(picked.size, utf8.encode('план кухни').length);
     expect(File(picked.path).readAsStringSync(), 'план кухни');
+  });
+
+  test('картинка из буфера без имени получает расширение по типу: иначе Obsidian не узнал бы в ней картинку', () async {
+    final cache = await Directory.systemTemp.createTemp('stowa_paste');
+    addTearDown(() => cache.delete(recursive: true));
+    final pasted = XFile.fromData(Uint8List.fromList([1, 2, 3]), mimeType: 'image/png');
+    final picked = await pickedFromXFile(pasted, cache: cache, hasPath: false);
+    expect(p.extension(picked.path), '.png');
+    expect(picked.mime, 'image/png');
+    // имя без расширения, а тип известен — то же
+    final named = await pickedFromXFile(XFile.fromData(Uint8List.fromList([1]), path: '/paste/снимок', mimeType: 'image/jpeg'), cache: cache, hasPath: false);
+    expect(p.basename(named.path), 'снимок.jpg');
   });
 
   test('файл с путём на диске берётся как есть', () async {

@@ -56,6 +56,8 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
     }
     // магазинная касса слушает покупки с запуска: недоделанная прошлая проверяется и закрывается
     if (ref.read(storeChannelProvider) != StoreChannel.direct) ref.read(checkoutProvider);
+    // вставка картинок из буфера (Ctrl+V) слушается с запуска: её получает место, где работают
+    ref.read(pasteRouterProvider);
   }
 
   @override

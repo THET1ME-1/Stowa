@@ -5157,4 +5157,19 @@ class LRu extends L {
 
   @override
   String get syncPasswordOffDone => 'Свой пароль выключен';
+
+  @override
+  String get photoDownload => 'Скачать';
+
+  @override
+  String get photoSaveAs => 'Сохранить как…';
+
+  @override
+  String get photoPrevious => 'Предыдущее фото';
+
+  @override
+  String get photoNext => 'Следующее фото';
+
+  @override
+  String get photoFileFailed => 'Не получилось сохранить фото';
 }

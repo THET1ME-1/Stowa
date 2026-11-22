@@ -5813,183 +5813,423 @@
     "description": "panelWaiting"
   },
   "accountSignIn": "Sign in",
-  "@accountSignIn": {"description": "Пункт настроек: войти без покупки"},
+  "@accountSignIn": {
+    "description": "Пункт настроек: войти без покупки"
+  },
   "accountSignInHint": "If you were given a subscription",
-  "@accountSignInHint": {"description": "Подпись под «Войти» в настройках"},
+  "@accountSignInHint": {
+    "description": "Подпись под «Войти» в настройках"
+  },
   "accountTitle": "Account",
-  "@accountTitle": {"description": "Экран аккаунта"},
+  "@accountTitle": {
+    "description": "Экран аккаунта"
+  },
   "signInTitle": "Sign in",
-  "@signInTitle": {"description": "Заголовок экрана входа"},
+  "@signInTitle": {
+    "description": "Заголовок экрана входа"
+  },
   "signInIntro": "We'll email you a code. No password needed, and your account is created the first time you sign in.",
-  "@signInIntro": {"description": "Пояснение на экране входа"},
+  "@signInIntro": {
+    "description": "Пояснение на экране входа"
+  },
   "accountDelete": "Delete account",
-  "@accountDelete": {"description": "Кнопка удаления аккаунта"},
+  "@accountDelete": {
+    "description": "Кнопка удаления аккаунта"
+  },
   "accountDeleteAsk": "Delete the account {email}?",
-  "@accountDeleteAsk": {"description": "Вопрос перед удалением аккаунта", "placeholders": {"email": {"type": "String"}}},
+  "@accountDeleteAsk": {
+    "description": "Вопрос перед удалением аккаунта",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "accountDeleteHint": "Notes on this device stay. Their copies and your subscription are erased from the server.",
-  "@accountDeleteHint": {"description": "Что сотрётся при удалении аккаунта"},
+  "@accountDeleteHint": {
+    "description": "Что сотрётся при удалении аккаунта"
+  },
   "accountDeleteStorePlay": "A Google Play subscription won't stop by itself: cancel it in Google Play.",
-  "@accountDeleteStorePlay": {"description": "Удаление аккаунта, сборка Google Play"},
+  "@accountDeleteStorePlay": {
+    "description": "Удаление аккаунта, сборка Google Play"
+  },
   "accountDeleteStoreApple": "An App Store subscription won't stop by itself: cancel it in your Apple ID settings.",
-  "@accountDeleteStoreApple": {"description": "Удаление аккаунта, сборка App Store"},
+  "@accountDeleteStoreApple": {
+    "description": "Удаление аккаунта, сборка App Store"
+  },
   "accountDeleteStoreAny": "A Google Play or App Store subscription won't stop by itself: cancel it in the store.",
-  "@accountDeleteStoreAny": {"description": "Удаление аккаунта, сборка вне магазинов"},
+  "@accountDeleteStoreAny": {
+    "description": "Удаление аккаунта, сборка вне магазинов"
+  },
   "accountDeleteLive": "Cancel the subscription renewal first, otherwise you'll keep being charged.",
-  "@accountDeleteLive": {"description": "Удалить нельзя: продление подписки не отменено"},
+  "@accountDeleteLive": {
+    "description": "Удалить нельзя: продление подписки не отменено"
+  },
   "accountDeleted": "Account deleted",
-  "@accountDeleted": {"description": "Аккаунт удалён"},
+  "@accountDeleted": {
+    "description": "Аккаунт удалён"
+  },
   "subBuy": "Get a subscription",
-  "@subBuy": {"description": "Первый пункт настроек, цветом акцента"},
+  "@subBuy": {
+    "description": "Первый пункт настроек, цветом акцента"
+  },
   "subBuyHint": "Sync, cloud for files and the browser side panel",
-  "@subBuyHint": {"description": "Подпись под «Купить подписку»"},
+  "@subBuyHint": {
+    "description": "Подпись под «Купить подписку»"
+  },
   "subActiveUntil": "Stowa Sync until {date}",
-  "@subActiveUntil": {"description": "Первый пункт настроек при подписке", "placeholders": {"date": {"type": "String"}}},
+  "@subActiveUntil": {
+    "description": "Первый пункт настроек при подписке",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "paywallLead": "Your notes and files on every device. Stowa on a single device stays free.",
-  "@paywallLead": {"description": "Под заголовком экрана покупки"},
+  "@paywallLead": {
+    "description": "Под заголовком экрана покупки"
+  },
   "featureSync": "End-to-end encrypted sync",
-  "@featureSync": {"description": "Что даёт подписка"},
+  "@featureSync": {
+    "description": "Что даёт подписка"
+  },
   "featureSyncHint": "Phone, website and computer see the same thing. Your device encrypts everything, and with your own encryption password nobody but you can read your notes.",
-  "@featureSyncHint": {"description": "Что даёт подписка"},
+  "@featureSyncHint": {
+    "description": "Что даёт подписка"
+  },
   "featureFiles": "Cloud for files",
-  "@featureFiles": {"description": "Что даёт подписка"},
+  "@featureFiles": {
+    "description": "Что даёт подписка"
+  },
   "featureFilesHint": "Photos, videos and PDFs reach all your devices.",
-  "@featureFilesHint": {"description": "Что даёт подписка"},
+  "@featureFilesHint": {
+    "description": "Что даёт подписка"
+  },
   "featurePanel": "Browser side panel",
-  "@featurePanel": {"description": "Что даёт подписка"},
+  "@featurePanel": {
+    "description": "Что даёт подписка"
+  },
   "featurePanelHint": "Save and find without leaving the page.",
-  "@featurePanelHint": {"description": "Что даёт подписка"},
+  "@featurePanelHint": {
+    "description": "Что даёт подписка"
+  },
   "featureHistory": "Version history",
-  "@featureHistory": {"description": "Что даёт подписка"},
+  "@featureHistory": {
+    "description": "Что даёт подписка"
+  },
   "featureHistoryHint": "Every edit of a note is kept on the server: see what changed and bring back any version.",
-  "@featureHistoryHint": {"description": "Что даёт подписка"},
+  "@featureHistoryHint": {
+    "description": "Что даёт подписка"
+  },
   "featureLinks": "Share a board by link",
-  "@featureLinks": {"description": "Что даёт подписка"},
+  "@featureLinks": {
+    "description": "Что даёт подписка"
+  },
   "featureLinksHint": "Show a board to anyone. The key lives in the link itself, so the server can't read it.",
-  "@featureLinksHint": {"description": "Что даёт подписка"},
+  "@featureLinksHint": {
+    "description": "Что даёт подписка"
+  },
   "soon": "Soon",
-  "@soon": {"description": "Пометка у ещё не вышедшей возможности"},
+  "@soon": {
+    "description": "Пометка у ещё не вышедшей возможности"
+  },
   "planMonth": "Month",
-  "@planMonth": {"description": "Тариф"},
+  "@planMonth": {
+    "description": "Тариф"
+  },
   "planQuarter": "3 months",
-  "@planQuarter": {"description": "Тариф"},
+  "@planQuarter": {
+    "description": "Тариф"
+  },
   "planYear": "Year",
-  "@planYear": {"description": "Тариф"},
+  "@planYear": {
+    "description": "Тариф"
+  },
   "planPerMonth": "{price} per month",
-  "@planPerMonth": {"description": "Цена тарифа в пересчёте на месяц", "placeholders": {"price": {"type": "String"}}},
+  "@planPerMonth": {
+    "description": "Цена тарифа в пересчёте на месяц",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "planSave": "Save {percent}%",
-  "@planSave": {"description": "Выгода к помесячной оплате", "placeholders": {"percent": {"type": "int"}}},
+  "@planSave": {
+    "description": "Выгода к помесячной оплате",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "paywallContinue": "Continue",
-  "@paywallContinue": {"description": "Кнопка экрана покупки"},
+  "@paywallContinue": {
+    "description": "Кнопка экрана покупки"
+  },
   "paywallWaiting": "Waiting for payment",
-  "@paywallWaiting": {"description": "Страница оплаты открыта в браузере"},
+  "@paywallWaiting": {
+    "description": "Страница оплаты открыта в браузере"
+  },
   "paywallWaitingHint": "The payment page opened in your browser. As soon as the payment goes through, the subscription turns on by itself.",
-  "@paywallWaitingHint": {"description": "Страница оплаты открыта в браузере"},
+  "@paywallWaitingHint": {
+    "description": "Страница оплаты открыта в браузере"
+  },
   "paywallOpenAgain": "Open payment again",
-  "@paywallOpenAgain": {"description": "Открыть страницу оплаты ещё раз"},
+  "@paywallOpenAgain": {
+    "description": "Открыть страницу оплаты ещё раз"
+  },
   "paywallDone": "Stowa Sync is on",
-  "@paywallDone": {"description": "Оплата прошла"},
+  "@paywallDone": {
+    "description": "Оплата прошла"
+  },
   "paywallDoneUntil": "Until {date}. Sync has already started.",
-  "@paywallDoneUntil": {"description": "Оплата прошла", "placeholders": {"date": {"type": "String"}}},
+  "@paywallDoneUntil": {
+    "description": "Оплата прошла",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "paywallDoneButton": "Done",
-  "@paywallDoneButton": {"description": "Закрыть экран покупки"},
+  "@paywallDoneButton": {
+    "description": "Закрыть экран покупки"
+  },
   "paywallFailed": "The payment didn't go through. Please try again.",
-  "@paywallFailed": {"description": "Оплата не прошла"},
+  "@paywallFailed": {
+    "description": "Оплата не прошла"
+  },
   "paywallUnavailable": "Payment isn't available right now. Check your connection and try later.",
-  "@paywallUnavailable": {"description": "Касса не ответила"},
+  "@paywallUnavailable": {
+    "description": "Касса не ответила"
+  },
   "paywallOwned": "This purchase belongs to another Stowa account. Sign in to it to use the subscription.",
-  "@paywallOwned": {"description": "Чек магазина принадлежит другому аккаунту"},
+  "@paywallOwned": {
+    "description": "Чек магазина принадлежит другому аккаунту"
+  },
   "paywallRestore": "Restore purchase",
-  "@paywallRestore": {"description": "Только в сборках магазинов"},
+  "@paywallRestore": {
+    "description": "Только в сборках магазинов"
+  },
   "paywallRestoreNothing": "No purchases to restore",
-  "@paywallRestoreNothing": {"description": "Восстанавливать нечего"},
+  "@paywallRestoreNothing": {
+    "description": "Восстанавливать нечего"
+  },
   "paywallTerms": "Terms",
-  "@paywallTerms": {"description": "Ссылка на условия"},
+  "@paywallTerms": {
+    "description": "Ссылка на условия"
+  },
   "paywallPrivacy": "Privacy",
-  "@paywallPrivacy": {"description": "Ссылка на политику"},
+  "@paywallPrivacy": {
+    "description": "Ссылка на политику"
+  },
   "paywallRenewDirect": "The subscription renews automatically at the end of each period. You can cancel the renewal anytime in Stowa settings and keep access until the paid period ends.",
-  "@paywallRenewDirect": {"description": "Условия продления, сборка вне магазинов"},
+  "@paywallRenewDirect": {
+    "description": "Условия продления, сборка вне магазинов"
+  },
   "paywallRenewPlay": "The subscription renews automatically at the end of each period and is billed through Google Play. You can cancel anytime in Google Play under Payments & subscriptions.",
-  "@paywallRenewPlay": {"description": "Условия продления, Google Play"},
+  "@paywallRenewPlay": {
+    "description": "Условия продления, Google Play"
+  },
   "paywallRenewApple": "Payment is charged to your Apple ID when you confirm the purchase. The subscription renews automatically unless auto-renew is turned off at least 24 hours before the end of the period. Manage it in your Apple ID settings.",
-  "@paywallRenewApple": {"description": "Условия продления, App Store"},
+  "@paywallRenewApple": {
+    "description": "Условия продления, App Store"
+  },
   "subTitle": "Subscription",
-  "@subTitle": {"description": "Экран подписки"},
+  "@subTitle": {
+    "description": "Экран подписки"
+  },
   "subPlan": "Plan",
-  "@subPlan": {"description": "Строка экрана подписки"},
+  "@subPlan": {
+    "description": "Строка экрана подписки"
+  },
   "subUntil": "Active until",
-  "@subUntil": {"description": "Строка экрана подписки"},
+  "@subUntil": {
+    "description": "Строка экрана подписки"
+  },
   "subRenewOn": "Renews {date}",
-  "@subRenewOn": {"description": "Продление включено", "placeholders": {"date": {"type": "String"}}},
+  "@subRenewOn": {
+    "description": "Продление включено",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subRenewOff": "Renewal cancelled, access until {date}",
-  "@subRenewOff": {"description": "Продление отменено", "placeholders": {"date": {"type": "String"}}},
+  "@subRenewOff": {
+    "description": "Продление отменено",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subSourceGrant": "Given by the Stowa team",
-  "@subSourceGrant": {"description": "Откуда подписка"},
+  "@subSourceGrant": {
+    "description": "Откуда подписка"
+  },
   "subSourceCard": "Paid by card",
-  "@subSourceCard": {"description": "Откуда подписка: оплата вне магазинов"},
+  "@subSourceCard": {
+    "description": "Откуда подписка: оплата вне магазинов"
+  },
   "subSourcePlay": "Google Play",
-  "@subSourcePlay": {"description": "Откуда подписка"},
+  "@subSourcePlay": {
+    "description": "Откуда подписка"
+  },
   "subSourceApple": "App Store",
-  "@subSourceApple": {"description": "Откуда подписка"},
+  "@subSourceApple": {
+    "description": "Откуда подписка"
+  },
   "subTest": "Test purchase",
-  "@subTest": {"description": "Покупка песочницы или тестировщика"},
+  "@subTest": {
+    "description": "Покупка песочницы или тестировщика"
+  },
   "subCancel": "Cancel renewal",
-  "@subCancel": {"description": "Отменить продление подписки"},
+  "@subCancel": {
+    "description": "Отменить продление подписки"
+  },
   "subCancelAsk": "Cancel renewal? Stowa Sync will keep working until {date}.",
-  "@subCancelAsk": {"description": "Вопрос перед отменой продления", "placeholders": {"date": {"type": "String"}}},
+  "@subCancelAsk": {
+    "description": "Вопрос перед отменой продления",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subKeep": "Keep",
-  "@subKeep": {"description": "Не отменять продление"},
+  "@subKeep": {
+    "description": "Не отменять продление"
+  },
   "subCancelled": "Renewal cancelled",
-  "@subCancelled": {"description": "Продление отменено"},
+  "@subCancelled": {
+    "description": "Продление отменено"
+  },
   "subManagePlay": "Manage in Google Play",
-  "@subManagePlay": {"description": "Страница подписок магазина"},
+  "@subManagePlay": {
+    "description": "Страница подписок магазина"
+  },
   "subManageApple": "Manage in App Store",
-  "@subManageApple": {"description": "Страница подписок магазина"},
+  "@subManageApple": {
+    "description": "Страница подписок магазина"
+  },
   "syncOffer": "Sync is part of Stowa Sync",
-  "@syncOffer": {"description": "Вошёл без подписки"},
+  "@syncOffer": {
+    "description": "Вошёл без подписки"
+  },
   "syncOfferHint": "Get a subscription and your notes will match on every device.",
-  "@syncOfferHint": {"description": "Вошёл без подписки"},
+  "@syncOfferHint": {
+    "description": "Вошёл без подписки"
+  },
   "syncHaveSub": "Already subscribed? Sign in",
-  "@syncHaveSub": {"description": "Над формой входа на экране Stowa Sync"},
+  "@syncHaveSub": {
+    "description": "Над формой входа на экране Stowa Sync"
+  },
   "panelSubLocked": "The side panel is part of Stowa Sync",
-  "@panelSubLocked": {"description": "Панель браузера без подписки"},
+  "@panelSubLocked": {
+    "description": "Панель браузера без подписки"
+  },
   "panelSubLockedHint": "Get a subscription and the panel opens.",
-  "@panelSubLockedHint": {"description": "Панель браузера без подписки"},
+  "@panelSubLockedHint": {
+    "description": "Панель браузера без подписки"
+  },
   "panelSubOpen": "Get Stowa Sync",
-  "@panelSubOpen": {"description": "Кнопка панели без подписки"},
+  "@panelSubOpen": {
+    "description": "Кнопка панели без подписки"
+  },
   "syncPasswordAsk": "Your notes are locked with your encryption password. Enter it to open them on this device.",
-  "@syncPasswordAsk": {"description": "Вход: ключ закрыт своим паролем"},
+  "@syncPasswordAsk": {
+    "description": "Вход: ключ закрыт своим паролем"
+  },
   "syncPassword": "Encryption password",
-  "@syncPassword": {"description": "Поле пароля шифрования"},
+  "@syncPassword": {
+    "description": "Поле пароля шифрования"
+  },
   "syncUnlock": "Open",
-  "@syncUnlock": {"description": "Открыть заметки паролем"},
+  "@syncUnlock": {
+    "description": "Открыть заметки паролем"
+  },
   "syncPasswordWrong": "That password doesn't fit",
-  "@syncPasswordWrong": {"description": "Пароль шифрования не подошёл"},
+  "@syncPasswordWrong": {
+    "description": "Пароль шифрования не подошёл"
+  },
   "syncOwnPassword": "Own encryption password",
-  "@syncOwnPassword": {"description": "Строка в Stowa Sync"},
+  "@syncOwnPassword": {
+    "description": "Строка в Stowa Sync"
+  },
   "syncOwnPasswordOn": "On: only you can read your notes",
-  "@syncOwnPasswordOn": {"description": "Свой пароль включён"},
+  "@syncOwnPasswordOn": {
+    "description": "Свой пароль включён"
+  },
   "syncOwnPasswordOff": "Off: signing in is enough on a new device",
-  "@syncOwnPasswordOff": {"description": "Свой пароль выключен"},
+  "@syncOwnPasswordOff": {
+    "description": "Свой пароль выключен"
+  },
   "syncOwnPasswordIntro": "The key to your notes gets locked with your password, and our copy of the key is erased. Nobody but you can read your notes, not even us.",
-  "@syncOwnPasswordIntro": {"description": "Что делает свой пароль"},
+  "@syncOwnPasswordIntro": {
+    "description": "Что делает свой пароль"
+  },
   "syncOwnPasswordWarn": "Forget the password and the copy on the server can't be opened at all. Notes on your devices stay.",
-  "@syncOwnPasswordWarn": {"description": "Предупреждение о забытом пароле"},
+  "@syncOwnPasswordWarn": {
+    "description": "Предупреждение о забытом пароле"
+  },
   "syncPasswordRepeat": "Password again",
-  "@syncPasswordRepeat": {"description": "Повтор пароля"},
+  "@syncPasswordRepeat": {
+    "description": "Повтор пароля"
+  },
   "syncPasswordShort": "At least 8 characters",
-  "@syncPasswordShort": {"description": "Пароль короче 8 знаков"},
+  "@syncPasswordShort": {
+    "description": "Пароль короче 8 знаков"
+  },
   "syncPasswordMismatch": "The passwords don't match",
-  "@syncPasswordMismatch": {"description": "Пароли не совпали"},
+  "@syncPasswordMismatch": {
+    "description": "Пароли не совпали"
+  },
   "syncPasswordTurnOn": "Turn on",
-  "@syncPasswordTurnOn": {"description": "Включить свой пароль"},
+  "@syncPasswordTurnOn": {
+    "description": "Включить свой пароль"
+  },
   "syncPasswordChange": "Change password",
-  "@syncPasswordChange": {"description": "Сменить свой пароль"},
+  "@syncPasswordChange": {
+    "description": "Сменить свой пароль"
+  },
   "syncPasswordTurnOff": "Turn off own password",
-  "@syncPasswordTurnOff": {"description": "Выключить свой пароль"},
+  "@syncPasswordTurnOff": {
+    "description": "Выключить свой пароль"
+  },
   "syncPasswordOffAsk": "Turn off your own password? We'll keep a copy of the key again, and signing in will be enough on a new device.",
-  "@syncPasswordOffAsk": {"description": "Вопрос перед выключением"},
+  "@syncPasswordOffAsk": {
+    "description": "Вопрос перед выключением"
+  },
   "syncPasswordDone": "Own password is on",
-  "@syncPasswordDone": {"description": "Свой пароль включён"},
+  "@syncPasswordDone": {
+    "description": "Свой пароль включён"
+  },
   "syncPasswordOffDone": "Own password is off",
-  "@syncPasswordOffDone": {"description": "Свой пароль выключен"}
+  "@syncPasswordOffDone": {
+    "description": "Свой пароль выключен"
+  },
+  "photoDownload": "Download",
+  "@photoDownload": {
+    "description": "Кнопка просмотра фото в браузере: скачать снимок файлом"
+  },
+  "photoSaveAs": "Save as…",
+  "@photoSaveAs": {
+    "description": "Кнопка просмотра фото на компьютере: сохранить снимок в выбранную папку"
+  },
+  "photoPrevious": "Previous photo",
+  "@photoPrevious": {
+    "description": "Подсказка стрелки влево в просмотре фото"
+  },
+  "photoNext": "Next photo",
+  "@photoNext": {
+    "description": "Подсказка стрелки вправо в просмотре фото"
+  },
+  "photoFileFailed": "Couldn't save the photo",
+  "@photoFileFailed": {
+    "description": "Плашка, когда скачать или сохранить фото файлом не вышло"
+  }
 }

@@ -5076,4 +5076,19 @@ class LEn extends L {
 
   @override
   String get syncPasswordOffDone => 'Own password is off';
+
+  @override
+  String get photoDownload => 'Download';
+
+  @override
+  String get photoSaveAs => 'Save as…';
+
+  @override
+  String get photoPrevious => 'Previous photo';
+
+  @override
+  String get photoNext => 'Next photo';
+
+  @override
+  String get photoFileFailed => 'Couldn\'t save the photo';
 }

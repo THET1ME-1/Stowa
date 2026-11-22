@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
+
+import '../../core/clipboard/paste_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_manager/photo_manager.dart';
 
@@ -219,6 +222,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     _line.chooseFolder(widget.homeFolder);
     _line.addListener(_onLine);
     _focus.addListener(_onFocus);
+    // картинка из буфера (Ctrl+V) ложится в строку, если её не забрали заметка или холст
+    _paste = ref.read(pasteRouterProvider)..fallback(this, _pasted, shown: () => shownOnScreen(this));
     deskToasts.addListener(_onDeskToast);
     unawaited(_cleanVoiceDrafts().catchError((_) {}));
     // в браузере первый поиск иначе сам режет на слова сотни последних заметок: это больше секунды
@@ -255,6 +260,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   @override
   void dispose() {
+    _paste.release(this);
     deskToasts.removeListener(_onDeskToast);
     _searchTimer?.cancel();
     _warmTimer?.cancel();
@@ -296,7 +302,18 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     if (mounted && WorkspaceScope.maybeOf(context) != null) setState(() {});
   }
 
+  late final PasteRouter _paste;
+
+  /// Вставленные файлы — вложениями строки, как из «+».
+  Future<void> _pasted(List<XFile> files) async {
+    final picked = await Future.wait([for (final file in files) pickedFromXFile(file)]);
+    _addPicked(picked);
+    if (mounted && !_focus.hasFocus) _focus.requestFocus();
+  }
+
   void _onFocus() {
+    // строка в фокусе — вставка из буфера идёт в неё, а не в холст или заметку под ней
+    if (_focus.hasFocus) _paste.claim(this, _pasted, shown: () => shownOnScreen(this));
     if (_focus.hasFocus && !_active) {
       setState(() {
         _active = true;

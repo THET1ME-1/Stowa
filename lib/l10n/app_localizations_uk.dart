@@ -5143,4 +5143,19 @@ class LUk extends L {
 
   @override
   String get syncPasswordOffDone => 'Свій пароль вимкнено';
+
+  @override
+  String get photoDownload => 'Завантажити';
+
+  @override
+  String get photoSaveAs => 'Зберегти як…';
+
+  @override
+  String get photoPrevious => 'Попереднє фото';
+
+  @override
+  String get photoNext => 'Наступне фото';
+
+  @override
+  String get photoFileFailed => 'Не вдалося зберегти фото';
 }

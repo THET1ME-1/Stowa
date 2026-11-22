@@ -849,7 +849,8 @@ void main() {
       await tester.tapAt(tester.getTopLeft(find.byType(Hero).first) + const Offset(40, 40));
       await tester.pumpAndSettle();
       expect(find.byType(PhotoViewer), findsOneWidget);
-      expect(find.text('В галерею'), findsOneWidget);
+      // надпись кнопки зависит от системы: телефон — «В галерею», тестовая (компьютер) — «Сохранить как…»
+      expect(find.byKey(const ValueKey('photo-save')), findsOneWidget);
       await tester.tap(find.byTooltip('Закрыть'));
       await tester.pumpAndSettle();
       expect(find.byType(PhotoViewer), findsNothing);

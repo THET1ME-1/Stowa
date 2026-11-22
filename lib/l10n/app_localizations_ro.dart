@@ -5121,4 +5121,19 @@ class LRo extends L {
 
   @override
   String get syncPasswordOffDone => 'Parola proprie e oprită';
+
+  @override
+  String get photoDownload => 'Descarcă';
+
+  @override
+  String get photoSaveAs => 'Salvează ca…';
+
+  @override
+  String get photoPrevious => 'Fotografia anterioară';
+
+  @override
+  String get photoNext => 'Fotografia următoare';
+
+  @override
+  String get photoFileFailed => 'Fotografia nu a putut fi salvată';
 }

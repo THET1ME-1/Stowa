@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/composer/line_dock.dart';
 import 'package:stowa/features/item/item_screen.dart';
+import 'package:stowa/features/item/photo_viewer.dart';
 import 'package:stowa/features/workspace/workspace_model.dart';
 import 'package:stowa/features/workspace/workspace_shell.dart';
 
@@ -216,5 +218,52 @@ void main() {
     expect(body.width, lessThanOrEqualTo(760));
     final capsule = tester.getRect(find.descendant(of: line, matching: find.textContaining('Закинь')).first);
     expect(body.bottom, lessThan(capsule.top));
+  });
+
+  // хозяин 22.11 со снимка: «Что за уродство» — «В галерею» во всю ширину, строка ввода
+  // налезала снизу; «А поделиться кнопка? Нет такого на сайте»
+  testWidgets('монитор: просмотр фото поверх всего окна, без «Поделиться» и «В галерею», листается стрелками', (tester) async {
+    await world.db.into(world.db.items).insert(
+      ItemsCompanion.insert(id: 'n', kind: ItemKind.image, title: 'Лампа', createdAt: world.now, updatedAt: world.now),
+    );
+    for (final (index, name) in ['lampa', 'stol'].indexed) {
+      await world.db.into(world.db.attachments).insert(
+        AttachmentsCompanion.insert(id: 'f$index', itemId: 'n', path: 'attachments/n/${index}_$name.jpg', mime: 'image/jpeg', size: 1000, position: Value(index), width: const Value(1200), height: const Value(1600)),
+      );
+    }
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.item('n'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(tester.getTopLeft(find.byType(Hero).first) + const Offset(40, 40));
+    await tester.pumpAndSettle();
+
+    final viewer = find.byType(PhotoViewer);
+    expect(viewer, findsOneWidget);
+    // всё окно, строка ввода под просмотром
+    expect(tester.getRect(viewer), const Rect.fromLTWH(0, 0, 1600, 960));
+    expect(find.byType(LineDock).hitTestable(), findsNothing);
+    expect(find.text('В галерею'), findsNothing);
+    expect(find.descendant(of: viewer, matching: find.byTooltip('Поделиться')), findsNothing);
+    // сохранить — небольшая кнопка посередине, а не полоса во всю ширину (буквы Ahem шире настоящих)
+    final save = tester.getRect(find.byKey(const ValueKey('photo-save')));
+    expect(save.width, lessThan(400));
+    expect(save.center.dx, closeTo(800, 1));
+
+    expect(find.text('1 из 2'), findsOneWidget);
+    await tester.tap(find.byTooltip('Следующее фото'));
+    await tester.pumpAndSettle();
+    expect(find.text('2 из 2'), findsOneWidget);
+    expect(find.byTooltip('Следующее фото'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pumpAndSettle();
+    expect(find.text('1 из 2'), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(viewer, findsNothing);
   });
 }

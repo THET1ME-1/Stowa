@@ -1145,5 +1145,10 @@
   "syncPasswordTurnOff": "Wyłącz własne hasło",
   "syncPasswordOffAsk": "Wyłączyć własne hasło? Znów będziemy przechowywać kopię klucza, a na nowym urządzeniu wystarczy logowanie.",
   "syncPasswordDone": "Własne hasło włączone",
-  "syncPasswordOffDone": "Własne hasło wyłączone"
+  "syncPasswordOffDone": "Własne hasło wyłączone",
+  "photoDownload": "Pobierz",
+  "photoSaveAs": "Zapisz jako…",
+  "photoPrevious": "Poprzednie zdjęcie",
+  "photoNext": "Następne zdjęcie",
+  "photoFileFailed": "Nie udało się zapisać zdjęcia"
 }

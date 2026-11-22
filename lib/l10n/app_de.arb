@@ -1145,5 +1145,10 @@
   "syncPasswordTurnOff": "Eigenes Passwort ausschalten",
   "syncPasswordOffAsk": "Eigenes Passwort ausschalten? Wir bewahren dann wieder eine Kopie des Schlüssels auf, und auf einem neuen Gerät reicht die Anmeldung.",
   "syncPasswordDone": "Eigenes Passwort ist an",
-  "syncPasswordOffDone": "Eigenes Passwort ist aus"
+  "syncPasswordOffDone": "Eigenes Passwort ist aus",
+  "photoDownload": "Herunterladen",
+  "photoSaveAs": "Speichern unter…",
+  "photoPrevious": "Vorheriges Foto",
+  "photoNext": "Nächstes Foto",
+  "photoFileFailed": "Foto konnte nicht gespeichert werden"
 }

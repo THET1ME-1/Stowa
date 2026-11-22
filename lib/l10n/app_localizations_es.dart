@@ -5093,4 +5093,19 @@ class LEs extends L {
 
   @override
   String get syncPasswordOffDone => 'Contraseña propia desactivada';
+
+  @override
+  String get photoDownload => 'Descargar';
+
+  @override
+  String get photoSaveAs => 'Guardar como…';
+
+  @override
+  String get photoPrevious => 'Foto anterior';
+
+  @override
+  String get photoNext => 'Foto siguiente';
+
+  @override
+  String get photoFileFailed => 'No se pudo guardar la foto';
 }

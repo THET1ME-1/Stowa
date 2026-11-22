@@ -8680,6 +8680,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Own password is off'**
   String get syncPasswordOffDone;
+
+  /// Кнопка просмотра фото в браузере: скачать снимок файлом
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get photoDownload;
+
+  /// Кнопка просмотра фото на компьютере: сохранить снимок в выбранную папку
+  ///
+  /// In en, this message translates to:
+  /// **'Save as…'**
+  String get photoSaveAs;
+
+  /// Подсказка стрелки влево в просмотре фото
+  ///
+  /// In en, this message translates to:
+  /// **'Previous photo'**
+  String get photoPrevious;
+
+  /// Подсказка стрелки вправо в просмотре фото
+  ///
+  /// In en, this message translates to:
+  /// **'Next photo'**
+  String get photoNext;
+
+  /// Плашка, когда скачать или сохранить фото файлом не вышло
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the photo'**
+  String get photoFileFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

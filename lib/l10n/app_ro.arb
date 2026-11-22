@@ -1145,5 +1145,10 @@
   "syncPasswordTurnOff": "Oprește parola proprie",
   "syncPasswordOffAsk": "Oprești parola proprie? Vom păstra din nou o copie a cheii, iar pe un dispozitiv nou va ajunge conectarea.",
   "syncPasswordDone": "Parola proprie e pornită",
-  "syncPasswordOffDone": "Parola proprie e oprită"
+  "syncPasswordOffDone": "Parola proprie e oprită",
+  "photoDownload": "Descarcă",
+  "photoSaveAs": "Salvează ca…",
+  "photoPrevious": "Fotografia anterioară",
+  "photoNext": "Fotografia următoare",
+  "photoFileFailed": "Fotografia nu a putut fi salvată"
 }

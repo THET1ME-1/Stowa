@@ -5154,4 +5154,19 @@ class LPl extends L {
 
   @override
   String get syncPasswordOffDone => 'Własne hasło wyłączone';
+
+  @override
+  String get photoDownload => 'Pobierz';
+
+  @override
+  String get photoSaveAs => 'Zapisz jako…';
+
+  @override
+  String get photoPrevious => 'Poprzednie zdjęcie';
+
+  @override
+  String get photoNext => 'Następne zdjęcie';
+
+  @override
+  String get photoFileFailed => 'Nie udało się zapisać zdjęcia';
 }

@@ -6,7 +6,9 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
 
+import '../../core/clipboard/paste_router.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
@@ -35,8 +37,35 @@ mixin CanvasControls<T extends StatefulWidget> on State<T> {
   /// Показать всё разом (Shift+1 и кнопка).
   void fitAll();
 
+  /// Файлы встают карточками: первый — в точку экрана [at], остальные лесенкой.
+  /// Так ложатся и брошенные мышью из системы, и вставленные из буфера.
+  Future<void> placeFiles(List<XFile> files, Offset at);
+
+  // где мышь была над холстом последний раз — туда встаёт вставленная картинка
+  Offset? _pointerAt;
+  PasteRouter? _paste;
+
+  /// Холст принимает вставку из буфера (Ctrl+V): открыли его, коснулись, дали фокус —
+  /// картинка из буфера встаёт карточкой туда, где мышь, без мыши — посередине.
+  void listenPaste(PasteRouter router) {
+    _paste = router;
+    _claimPaste();
+    canvasFocus.addListener(() {
+      if (canvasFocus.hasFocus) _claimPaste();
+    });
+  }
+
+  void _claimPaste() => _paste?.claim(this, (files) => placeFiles(files, _pointerAt ?? viewport.center(Offset.zero)), shown: () => shownOnScreen(this));
+
+  /// Мышь или палец над холстом: состояние зовёт из слушателя холста на нажатие и наведение.
+  void trackPointer(PointerEvent event) {
+    _pointerAt = localOf(event.position) ?? _pointerAt;
+    if (event is PointerDownEvent) _claimPaste();
+  }
+
   @override
   void dispose() {
+    _paste?.release(this);
     canvasFocus.dispose();
     transform.dispose();
     super.dispose();

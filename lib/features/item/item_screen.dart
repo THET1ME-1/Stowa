@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart' show ImagePicker;
+import 'package:image_picker/image_picker.dart' show ImagePicker, XFile;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
@@ -25,6 +25,8 @@ import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../core/widgets/voice_player.dart';
 import '../../data/db/database.dart';
+import '../../core/clipboard/paste_router.dart';
+import '../../core/platform.dart' show isWeb;
 import '../../data/providers.dart';
 import '../../domain/hints.dart' show Tip;
 import '../../domain/place_cue.dart' show KnownPlace, parsePlaceCue;
@@ -167,6 +169,12 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _body.addListener(_measureCaret);
     _scroll.addListener(_measureCaret);
     _bodyFocus.addListener(_measureCaret);
+    // картинка из буфера (Ctrl+V) встаёт в эту заметку: её открыли — с ней и работают
+    _paste = ref.read(pasteRouterProvider);
+    _claimPaste();
+    _bodyFocus.addListener(() {
+      if (_bodyFocus.hasFocus) _claimPaste();
+    });
     HardwareKeyboard.instance.addHandler(_onKey);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
     _items.markOpened(widget.id, _clock()).ignore();
@@ -174,6 +182,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   @override
   void dispose() {
+    _paste.release(this);
     HardwareKeyboard.instance.removeHandler(_onKey);
     _autosave?.cancel();
     // ушли посреди правки — набранное не теряется
@@ -594,25 +603,54 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     try {
       final picked = await ImagePicker().pickMultiImage();
       if (picked.isEmpty) return;
-      final taken = {
-        for (final file in ref.read(itemProvider(_id)).value?.attachments ?? const <Attachment>[]) p.basename(file.path).replaceFirst(RegExp(r'^\d+_'), '').toLowerCase(),
-      };
-      final now = _clock();
-      final files = <PickedFile>[];
-      for (final file in picked) {
-        final extension = p.extension(file.path).replaceFirst('.', '').toLowerCase();
-        final name = photoFileName(now, extension.isEmpty ? 'jpg' : extension, taken);
-        taken.add(name.toLowerCase());
-        final one = await pickedFrom(file.path, hint: file.mimeType);
-        files.add(PickedFile(path: one.path, mime: one.mime, size: one.size, name: name));
-      }
-      await ref.read(captureServiceProvider).attach(_id, files);
-      if (!mounted) return;
-      _body.value = insertImageLines(caret, [for (final file in files) file.name!]);
-      _bodyFocus.requestFocus();
+      await _insertFiles(picked, caret);
     } catch (_) {
       if (mounted) showNote(ScaffoldMessenger.of(context), L.of(context).attachFailed);
     }
+  }
+
+  late final PasteRouter _paste;
+
+  void _claimPaste() => _paste.claim(this, _pasted, shown: () => shownOnScreen(this));
+
+  /// Вставка из буфера (Ctrl+V): картинка встаёт в текст там, где курсор. Заметку только
+  /// смотрят — она переходит в правку, и картинка встаёт в конец текста.
+  Future<void> _pasted(List<XFile> files) async {
+    final full = ref.read(itemProvider(_id)).value;
+    if (full == null || !mounted) return;
+    if (!_editing) _startEditing(full.item, append: true);
+    try {
+      await _insertFiles(files, _body.value);
+    } catch (_) {
+      if (mounted) showNote(ScaffoldMessenger.of(context), L.of(context).attachFailed);
+    }
+  }
+
+  /// Файлы во вложения заметки; картинки ещё и в текст строками на место [caret]. Остальные
+  /// файлы (документ из проводника) видны в «Файлах» заметки.
+  Future<void> _insertFiles(List<XFile> files, TextEditingValue caret) async {
+    final taken = {
+      for (final file in ref.read(itemProvider(_id)).value?.attachments ?? const <Attachment>[]) p.basename(file.path).replaceFirst(RegExp(r'^\d+_'), '').toLowerCase(),
+    };
+    final now = _clock();
+    final attached = <PickedFile>[];
+    final pictures = <String>[];
+    for (final file in files) {
+      final one = await pickedFromXFile(file);
+      if (!showsAsImage(one.mime)) {
+        attached.add(one);
+        continue;
+      }
+      final extension = p.extension(one.path).replaceFirst('.', '').toLowerCase();
+      final name = photoFileName(now, extension.isEmpty ? 'jpg' : extension, taken);
+      taken.add(name.toLowerCase());
+      attached.add(PickedFile(path: one.path, mime: one.mime, size: one.size, name: name));
+      pictures.add(name);
+    }
+    await ref.read(captureServiceProvider).attach(_id, attached);
+    if (!mounted) return;
+    if (pictures.isNotEmpty) _body.value = insertImageLines(caret, pictures);
+    _bodyFocus.requestFocus();
   }
 
   Future<void> _openLink(String url) async {
@@ -934,7 +972,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                     _DockButton(icon: 'edit_note', tooltip: l.itemAppend, onTap: () => _startEditing(item, append: true))
                   else
                     _DockButton(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
-                  _DockButton(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
+                  // в браузере поделиться нечем: на компьютере он открывал бы почтовую программу
+                  if (!isWeb) _DockButton(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
                 ],
                 accentIcon: videoLink || videoFile != null ? 'play_arrow' : (linkLike ? 'open_in_new' : 'add'),
                 accentLabel: videoLink || videoFile != null ? l.itemWatch : (linkLike ? l.itemOpenLink : l.itemAppend),
@@ -950,7 +989,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _finish();
       },
-      child: Scaffold(
+      // коснулись заметки (вкладка рядом с холстом, второй экран) — вставка из буфера снова в неё
+      child: Listener(
+        onPointerDown: (_) => _claimPaste(),
+        child: Scaffold(
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -978,7 +1020,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           _DeskAction(icon: 'edit_note', tooltip: l.itemAppend, onTap: () => _startEditing(item, append: true))
                         else
                           _DeskAction(icon: 'drive_file_move', tooltip: l.itemMove, onTap: () => _move(item, folders)),
-                        _DeskAction(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
+                        if (!isWeb) _DeskAction(icon: 'share', tooltip: l.itemShare, onTap: () => _share(item, full.attachments, filesRoot)),
                         _DeskAction(icon: 'edit', tooltip: l.itemEdit, onTap: () => _startEditing(item)),
                       ],
                       _DeskAction(icon: 'more_vert', tooltip: l.itemMore, onTap: () => _menu(item)),
@@ -1383,6 +1425,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -31,7 +31,7 @@ import '../../services/capture_service.dart';
 import 'canvas_kit.dart';
 import '../composer/panel_text.dart' show untitledFor;
 import '../composer/picked_files.dart' show pickedFromXFile;
-import 'package:desktop_drop/desktop_drop.dart' show DropItem;
+import 'package:image_picker/image_picker.dart' show XFile;
 import '../composer/line_dock.dart';
 import '../workspace/workspace_shell.dart' show CaptureTarget, WorkspaceController, WorkspaceScope, WsTabScope;
 
@@ -82,6 +82,8 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     super.initState();
     _stored = widget.item.document;
     _doc = CanvasDoc.parse(_stored ?? '');
+    // картинка из буфера (Ctrl+V) встаёт на холст карточкой, без строки
+    listenPaste(ref.read(pasteRouterProvider));
   }
 
   Timer? _save;
@@ -140,9 +142,10 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     }
   }
 
-  /// Файлы из системы, брошенные мышью: каждый — заметка (её раскладывают по папкам как
-  /// обычно), на холсте — карточка там, где отпустили.
-  Future<void> _dropFiles(List<DropItem> files, Offset at) async {
+  /// Файлы из системы, брошенные мышью или вставленные из буфера: каждый — заметка (её
+  /// раскладывают по папкам как обычно), на холсте — карточка там, где отпустили или где мышь.
+  @override
+  Future<void> placeFiles(List<XFile> files, Offset at) async {
     if (!_editable) return;
     final l = L.of(context);
     final world = transform.toScene(at) - const Offset(_origin, _origin);
@@ -397,6 +400,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
   }
 
   void _pointerDown(PointerDownEvent event) {
+    trackPointer(event);
     _pointers.add(event.pointer);
     // второй палец: это щипок, карточку больше не тащим
     if (_pointers.length > 1) _drop();
@@ -748,7 +752,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
                       }
                       return CanvasDropZone(
                         enabled: _editable,
-                        onFiles: (files, at) => _dropFiles(files, at).ignore(),
+                        onFiles: (files, at) => placeFiles(files, at).ignore(),
                         child: Focus(
                         focusNode: canvasFocus,
                         onKeyEvent: _onFocusKey,
@@ -761,6 +765,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
                             // слушатель пальцев не отбирает жест у холста: он только считает пальцы
                             Listener(
                               onPointerDown: _pointerDown,
+                              onPointerHover: trackPointer,
                               onPointerUp: _pointerUp,
                               onPointerCancel: _pointerUp,
                               child: MouseRegion(

@@ -1,13 +1,20 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/fs/web_files.dart' show openInBrowser;
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/desk_mode.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../l10n/app_localizations.dart';
@@ -18,24 +25,51 @@ String photoHeroTag(String path) => 'photo:$path';
 /// Сколько протянуть вниз, чтобы просмотр закрылся.
 const _dismissDistance = 120.0;
 
+/// Куда сохраняется снимок: телефон кладёт в галерею, браузер скачивает файлом,
+/// компьютер спрашивает папку.
+enum _SaveTarget { gallery, download, file }
+
+_SaveTarget get _saveTarget => isAndroid || isIOS ? _SaveTarget.gallery : (isWeb ? _SaveTarget.download : _SaveTarget.file);
+
 /// Просмотр фото во весь экран: листание, щипок и двойное касание приближают,
 /// смахивание вниз закрывает, одно касание прячет и возвращает кнопки.
+///
+/// На мониторе — поверх всего окна, вместе с вкладками и общей строкой: кнопки небольшие
+/// посередине, листают стрелки по бокам и клавиши ← →, Esc закрывает. «Поделиться» есть
+/// только на телефоне: браузер и компьютер файл системе не передают.
 class PhotoViewer extends StatefulWidget {
-  const PhotoViewer({super.key, required this.paths, this.initial = 0});
+  const PhotoViewer({super.key, required this.paths, this.initial = 0, this.desk = false});
 
   /// Полные пути к снимкам.
   final List<String> paths;
   final int initial;
 
-  static Future<void> open(BuildContext context, List<String> paths, int initial) => Navigator.of(context).push(
-    PageRouteBuilder<void>(
-      opaque: false,
-      transitionDuration: Motion.medium,
-      reverseTransitionDuration: Motion.medium,
-      pageBuilder: (_, _, _) => PhotoViewer(paths: paths, initial: initial),
-      transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
-    ),
-  );
+  /// Открыт на мониторе.
+  final bool desk;
+
+  static Future<void> open(BuildContext context, List<String> paths, int initial) {
+    // монитор: окно над оболочкой, а не страница во вкладке — иначе снизу налезает общая
+    // строка, а сверху остаются вкладки. Окно, не страница: перелёт снимка между навигаторами
+    // вкладки и окна не нужен, а одинаковая метка в двух вкладках ломала бы его
+    if (DeskMode.of(context)) {
+      return showGeneralDialog<void>(
+        context: context,
+        barrierColor: Colors.transparent,
+        transitionDuration: Motion.medium,
+        pageBuilder: (_, _, _) => PhotoViewer(paths: paths, initial: initial, desk: true),
+        transitionBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
+      );
+    }
+    return Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        opaque: false,
+        transitionDuration: Motion.medium,
+        reverseTransitionDuration: Motion.medium,
+        pageBuilder: (_, _, _) => PhotoViewer(paths: paths, initial: initial),
+        transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
+      ),
+    );
+  }
 
   @override
   State<PhotoViewer> createState() => _PhotoViewerState();
@@ -48,21 +82,56 @@ class _PhotoViewerState extends State<PhotoViewer> {
   bool _zoomed = false;
   double _drag = 0;
 
+  // плашка поверх просмотра на мониторе: общие плашки там живут у строки, а её закрывает просмотр
+  String? _notice;
+  Timer? _noticeTimer;
+
   @override
   void dispose() {
+    _noticeTimer?.cancel();
     _pages.dispose();
     super.dispose();
   }
 
+  void _tell(String message) {
+    if (!widget.desk) {
+      showNote(ScaffoldMessenger.of(context), message, overDock: true);
+      return;
+    }
+    _noticeTimer?.cancel();
+    setState(() => _notice = message);
+    _noticeTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _notice = null);
+    });
+  }
+
   Future<void> _save() async {
     final l = L.of(context);
-    final messenger = ScaffoldMessenger.of(context);
     final path = widget.paths[_index];
-    try {
-      await PhotoManager.editor.saveImageWithPath(path, title: p.basename(path), relativePath: 'Pictures/Stowa');
-      showNote(messenger, l.photoSaved, overDock: true);
-    } catch (_) {
-      showNote(messenger, l.photoSaveFailed, overDock: true);
+    // у вложения в начале имени номер места: «0_лампа.jpg» — человеку он ни к чему
+    final name = p.basename(path).replaceFirst(RegExp(r'^\d+_'), '');
+    final mime = lookupMimeType(path) ?? 'application/octet-stream';
+    switch (_saveTarget) {
+      case _SaveTarget.gallery:
+        try {
+          await PhotoManager.editor.saveImageWithPath(path, title: name, relativePath: 'Pictures/Stowa');
+          _tell(l.photoSaved);
+        } catch (_) {
+          _tell(l.photoSaveFailed);
+        }
+      case _SaveTarget.download:
+        try {
+          // браузер сам показывает скачанное — своей плашки не нужно
+          openInBrowser(await File(path).readAsBytes(), name: name, mime: mime, view: false);
+        } catch (_) {
+          _tell(l.photoFileFailed);
+        }
+      case _SaveTarget.file:
+        try {
+          await FilePicker.saveFile(fileName: name, bytes: await File(path).readAsBytes(), mimeType: mime);
+        } catch (_) {
+          _tell(l.photoFileFailed);
+        }
     }
   }
 
@@ -74,15 +143,93 @@ class _PhotoViewerState extends State<PhotoViewer> {
     ));
   }
 
+  void _go(int index) {
+    if (index < 0 || index >= widget.paths.length || index == _index) return;
+    _pages.animateToPage(index, duration: Motion.medium, curve: Motion.emphasized);
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return KeyEventResult.ignored;
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.escape:
+        Navigator.of(context).pop();
+      case LogicalKeyboardKey.arrowLeft:
+        _go(_index - 1);
+      case LogicalKeyboardKey.arrowRight:
+        _go(_index + 1);
+      default:
+        return KeyEventResult.ignored;
+    }
+    return KeyEventResult.handled;
+  }
+
+  String get _saveLabel {
+    final l = L.of(context);
+    return switch (_saveTarget) {
+      _SaveTarget.gallery => l.photoToGallery,
+      _SaveTarget.download => l.photoDownload,
+      _SaveTarget.file => l.photoSaveAs,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final count = widget.paths.length;
+    final desk = widget.desk;
     // протянули вниз — фон бледнеет, отпустили дальше порога — просмотр закрывается
     final fade = (1 - _drag.abs() / 400).clamp(0.3, 1.0);
     final bottom = MediaQuery.paddingOf(context).bottom;
     final top = MediaQuery.paddingOf(context).top;
-    return Scaffold(
+    final canShare = isAndroid || isIOS;
+    final save = desk
+        ? Material(
+            key: const ValueKey('photo-save'),
+            color: Tokens.accent,
+            shape: const StadiumBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: _save,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: SizedBox(
+                  height: 48,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(symbolIcon('download'), size: 20, color: Tokens.onAccent),
+                      const SizedBox(width: 8),
+                      Text(_saveLabel, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )
+        : Material(
+            key: const ValueKey('photo-save'),
+            color: Tokens.accent,
+            borderRadius: BorderRadius.circular(32),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: _save,
+              child: SizedBox(
+                height: 64,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(symbolIcon('download'), size: 22, color: Tokens.onAccent),
+                    const SizedBox(width: 8),
+                    Text(_saveLabel, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
+                  ],
+                ),
+              ),
+            ),
+          );
+    return Focus(
+      autofocus: true,
+      onKeyEvent: _onKey,
+      child: Scaffold(
       backgroundColor: Colors.black.withValues(alpha: fade),
       body: Stack(
         children: [
@@ -147,44 +294,52 @@ class _PhotoViewerState extends State<PhotoViewer> {
                       ],
                     ),
                   ),
+                  // монитор: листают стрелки по бокам, мышью страницу не тянут
+                  if (desk && _index > 0)
+                    Positioned(
+                      left: 16,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(child: _GlassButton(icon: 'chevron_left', tooltip: l.photoPrevious, onTap: () => _go(_index - 1), size: 52)),
+                    ),
+                  if (desk && _index < count - 1)
+                    Positioned(
+                      right: 16,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(child: _GlassButton(icon: 'chevron_right', tooltip: l.photoNext, onTap: () => _go(_index + 1), size: 52)),
+                    ),
                   Positioned(
                     left: 12,
                     right: 12,
-                    bottom: bottom + 16,
+                    bottom: bottom + (desk ? 24 : 16),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (_notice case final notice?) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(20)),
+                            child: Text(notice, style: TextStyle(fontSize: 14, color: Tokens.onSurface)),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
                         if (count > 1) ...[
-                          _Strip(paths: widget.paths, selected: _index, onPick: (index) => _pages.animateToPage(index, duration: Motion.medium, curve: Motion.emphasized)),
+                          _Strip(paths: widget.paths, selected: _index, onPick: _go),
                           const SizedBox(height: 14),
                         ],
-                        Row(
-                          children: [
-                            _GlassButton(icon: 'share', tooltip: l.itemShare, onTap: _share, size: 64),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Material(
-                                color: Tokens.accent,
-                                borderRadius: BorderRadius.circular(32),
-                                clipBehavior: Clip.antiAlias,
-                                child: InkWell(
-                                  onTap: _save,
-                                  child: SizedBox(
-                                    height: 64,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(symbolIcon('download'), size: 22, color: Tokens.onAccent),
-                                        const SizedBox(width: 8),
-                                        Text(l.photoToGallery, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Tokens.onAccent)),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        if (desk)
+                          save
+                        else
+                          Row(
+                            children: [
+                              if (canShare) ...[
+                                _GlassButton(icon: 'share', tooltip: l.itemShare, onTap: _share, size: 64),
+                                const SizedBox(width: 10),
+                              ],
+                              Expanded(child: save),
+                            ],
+                          ),
                       ],
                     ),
                   ),
@@ -193,6 +348,7 @@ class _PhotoViewerState extends State<PhotoViewer> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

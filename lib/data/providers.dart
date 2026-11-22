@@ -8,6 +8,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart' show Brightness, ColorScheme;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -52,6 +53,8 @@ import '../services/telegram_service.dart';
 import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
+import '../core/clipboard/paste_router.dart';
+import '../core/clipboard/paste_source.dart' if (dart.library.js_interop) '../core/clipboard/paste_source_web.dart';
 import '../services/billing/billing_api.dart';
 import '../services/billing/checkout.dart';
 import '../services/billing/in_app_store_billing.dart';
@@ -838,6 +841,17 @@ final syncServiceProvider = Provider((ref) {
   );
   ref.onDispose(service.dispose);
   return service;
+});
+
+/// Файлы, вставленные из буфера (Ctrl+V). Тесты подменяют своим потоком.
+final pastedFilesProvider = Provider<Stream<List<XFile>>>((ref) => pastedFilesStream());
+
+/// Куда идёт вставка из буфера: текст заметки, холст, строка — где работали последним.
+final pasteRouterProvider = Provider((ref) {
+  final router = PasteRouter();
+  final subscription = ref.watch(pastedFilesProvider).listen((files) => router.deliver(files).ignore());
+  ref.onDispose(subscription.cancel);
+  return router;
 });
 
 /// Цена Argon2 для своего пароля шифрования. Тесты ставят лёгкую: цена не то, что они проверяют.

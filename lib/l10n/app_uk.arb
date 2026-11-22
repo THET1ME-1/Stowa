@@ -1145,5 +1145,10 @@
   "syncPasswordTurnOff": "Вимкнути свій пароль",
   "syncPasswordOffAsk": "Вимкнути свій пароль? Копія ключа знову зберігатиметься в нас, і для нового пристрою вистачить входу.",
   "syncPasswordDone": "Свій пароль увімкнено",
-  "syncPasswordOffDone": "Свій пароль вимкнено"
+  "syncPasswordOffDone": "Свій пароль вимкнено",
+  "photoDownload": "Завантажити",
+  "photoSaveAs": "Зберегти як…",
+  "photoPrevious": "Попереднє фото",
+  "photoNext": "Наступне фото",
+  "photoFileFailed": "Не вдалося зберегти фото"
 }

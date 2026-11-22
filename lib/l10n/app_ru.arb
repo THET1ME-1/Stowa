@@ -1428,5 +1428,10 @@
   "syncPasswordTurnOff": "Выключить свой пароль",
   "syncPasswordOffAsk": "Выключить свой пароль? Копия ключа снова будет храниться у нас, и для нового устройства хватит входа.",
   "syncPasswordDone": "Свой пароль включён",
-  "syncPasswordOffDone": "Свой пароль выключен"
+  "syncPasswordOffDone": "Свой пароль выключен",
+  "photoDownload": "Скачать",
+  "photoSaveAs": "Сохранить как…",
+  "photoPrevious": "Предыдущее фото",
+  "photoNext": "Следующее фото",
+  "photoFileFailed": "Не получилось сохранить фото"
 }

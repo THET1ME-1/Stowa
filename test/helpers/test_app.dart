@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart' show WidgetTester;
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -255,6 +257,7 @@ class TestWorld {
         storeBillingProvider.overrideWithValue(storeBilling),
         deviceCountryProvider.overrideWithValue(deviceCountry),
         keyLockCostProvider.overrideWithValue(keyLockCost),
+        pastedFilesProvider.overrideWithValue(pasted.stream),
         urlOpenerProvider.overrideWithValue((url) async {
           openedUrls.add(url);
           return true;
@@ -295,6 +298,28 @@ class TestWorld {
   /// Цена Argon2 своего пароля шифрования: в тестах лёгкая.
   KeyLockCost keyLockCost = const KeyLockCost(memory: 64, iterations: 1);
 
+  /// Буфер обмена: что «вставили» сочетанием Ctrl+V (в браузере — событие вставки страницы).
+  final pasted = StreamController<List<XFile>>.broadcast();
+
+  /// Вставить картинку и дождаться, пока она ляжет. Обработчик живёт в поддельном времени
+  /// теста, а файлы пишутся на настоящий диск: настоящая пауза и кадр по очереди.
+  Future<void> paste(WidgetTester tester, List<XFile> files) async {
+    pasted.add(files);
+    // файл встаёт в очередь и уходит из неё, когда копия легла вложением; строка файлы
+    // держит у себя до «Закинуть» — там очереди нет вовсе
+    var queued = false;
+    for (var step = 0; step < 120; step++) {
+      final waiting = await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        return (await db.select(db.fileJobs).get()).length;
+      });
+      await tester.pump(const Duration(milliseconds: 200));
+      queued = queued || (waiting ?? 0) > 0;
+      if ((queued && waiting == 0) || (!queued && step >= 40)) break;
+    }
+    await tester.pumpAndSettle();
+  }
+
   /// Какие ссылки открывались во внешнем браузере.
   final openedUrls = <Uri>[];
 
@@ -329,6 +354,7 @@ class TestWorld {
       );
 
   Future<void> dispose() async {
+    await pasted.close();
     await _dismissed.close();
     await _edgeChanges.close();
     shared.close().ignore();

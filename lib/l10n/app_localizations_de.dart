@@ -5113,4 +5113,19 @@ class LDe extends L {
 
   @override
   String get syncPasswordOffDone => 'Eigenes Passwort ist aus';
+
+  @override
+  String get photoDownload => 'Herunterladen';
+
+  @override
+  String get photoSaveAs => 'Speichern unter…';
+
+  @override
+  String get photoPrevious => 'Vorheriges Foto';
+
+  @override
+  String get photoNext => 'Nächstes Foto';
+
+  @override
+  String get photoFileFailed => 'Foto konnte nicht gespeichert werden';
 }

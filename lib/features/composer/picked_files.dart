@@ -38,7 +38,12 @@ Future<PickedFile> pickedFromXFile(XFile file, {Directory? cache, bool? hasPath}
   if (hasPath ?? (!isWeb && file.path.isNotEmpty)) return pickedFrom(file.path, hint: file.mimeType);
   // в браузере имя у файла есть, а путь — ссылка «blob:…» в память страницы
   final named = file.name.trim().isNotEmpty ? file.name : (file.path.isEmpty || file.path.startsWith('blob:') ? '' : file.path);
-  final name = named.trim().isEmpty ? 'file' : p.basename(named);
+  var name = named.trim().isEmpty ? 'file' : p.basename(named);
+  // картинка из буфера бывает без имени, а на компьютере XFile.fromData имя теряет: без
+  // расширения Obsidian и сама Stowa не узнали бы в файле картинку — расширение по типу
+  if (p.extension(name).isEmpty && file.mimeType != null) {
+    if (extensionFromMime(file.mimeType!) case final extension? when extension.isNotEmpty) name = '$name.$extension';
+  }
   final folder = Directory(p.join((cache ?? (isWeb ? webCacheDirectory : Directory.systemTemp)).path, 'picked', const Uuid().v4()));
   await folder.create(recursive: true);
   final target = File(p.join(folder.path, name));
