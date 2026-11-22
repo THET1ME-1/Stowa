@@ -223,15 +223,15 @@ const _cardSelect = '''
 SELECT items.*, folders.name AS folder_name, folders.icon AS folder_icon, folders.color AS folder_color, folders.sort_order AS folder_order,
   -- своя картинка главнее, у ссылки и ролика без неё — обложка превью
   coalesce((SELECT attachments.path FROM attachments
-    WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%'
+    WHERE attachments.item_id = items.id AND attachments.mime IN ($shownImageMimes)
     ORDER BY attachments.position LIMIT 1), items.cover_path) AS thumb_path,
   -- пропорция того, что на плитке: своей картинки, а без неё — кадра своего ролика
   coalesce((SELECT CAST(attachments.height AS REAL) / attachments.width FROM attachments
-    WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%' AND attachments.width > 0
+    WHERE attachments.item_id = items.id AND attachments.mime IN ($shownImageMimes) AND attachments.width > 0
     ORDER BY attachments.position LIMIT 1),
   (SELECT CAST(attachments.height AS REAL) / attachments.width FROM attachments
     WHERE attachments.item_id = items.id AND attachments.mime LIKE 'video/%' AND attachments.width > 0
-      AND NOT EXISTS (SELECT 1 FROM attachments AS pictures WHERE pictures.item_id = items.id AND pictures.mime LIKE 'image/%')
+      AND NOT EXISTS (SELECT 1 FROM attachments AS pictures WHERE pictures.item_id = items.id AND pictures.mime IN ($shownImageMimes))
     ORDER BY attachments.position LIMIT 1)) AS thumb_ratio,
   (SELECT group_concat(tags.name, char(31)) FROM item_tags JOIN tags ON tags.id = item_tags.tag_id
     WHERE item_tags.item_id = items.id) AS tag_names,

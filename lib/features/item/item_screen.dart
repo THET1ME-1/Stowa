@@ -809,7 +809,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     if (item.kind == ItemKind.base) return BaseFileScreen(item: item);
     if (item.kind == ItemKind.drawing) return DrawingScreen(item: item);
     final folder = folders.where((one) => one.id == item.folderId).firstOrNull;
-    final images = full.attachments.where((file) => file.mime.startsWith('image/')).toList();
+    // картинка — только то, что умеем показать; макет Photoshop или TIFF — файл с карточкой
+    final images = full.attachments.where((file) => showsAsImage(file.mime)).toList();
     // фото, вставленные в текст, стоят на своём месте в тексте, а не крупно над заголовком
     final attachmentPaths = [for (final file in full.attachments) file.path];
     final inline = {for (final name in embedNames(item.body)) ?embedPath(name, attachmentPaths)};
@@ -832,7 +833,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     }
     final videoFile = !linkLike && item.kind == ItemKind.video ? full.attachments.where((file) => file.mime.startsWith('video/')).firstOrNull : null;
     final voices = full.attachments.where((file) => file.mime.startsWith('audio/')).toList();
-    final files = full.attachments.where((file) => !file.mime.startsWith('image/') && !file.mime.startsWith('audio/') && file != videoFile).toList();
+    final files = full.attachments.where((file) => !showsAsImage(file.mime) && !file.mime.startsWith('audio/') && file != videoFile).toList();
     // адрес уже стоит в превью: строкой в тексте он не повторяется
     final shownBody = linkLike ? item.body.split('\n').where((line) => line.trim() != url).join('\n') : item.body;
     // широкий экран (вкладка рабочего пространства): текст колонкой до 760 точек посередине, как в

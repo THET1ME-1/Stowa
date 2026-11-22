@@ -58,3 +58,7 @@ abstract class BrowserDownload {
 }
 
 BrowserDownload startDownload() => throw UnsupportedError('Скачивание файлом есть только в браузере');
+
+/// Отдать файл заметки браузеру: с [view] — открыть в новой вкладке, иначе скачать под [name].
+void openInBrowser(Uint8List bytes, {required String name, required String mime, required bool view}) =>
+    throw UnsupportedError('Открыть файл вкладкой можно только в браузере');

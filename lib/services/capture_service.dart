@@ -435,7 +435,7 @@ WHERE items.deleted_at IS NULL AND trim(items.body) = ''
 
   /// Картинкам, сохранённым до учёта размеров, дописать размер. Пропавший файл пропускается.
   Future<void> fillImageSizes() async {
-    final missing = await (_db.select(_db.attachments)..where((t) => t.mime.like('image/%') & t.width.isNull())).get();
+    final missing = await (_db.select(_db.attachments)..where((t) => t.mime.isIn(shownImageTypes) & t.width.isNull())).get();
     for (final file in missing) {
       final full = p.join(_filesRoot.path, file.path);
       if (!await File(full).exists()) continue;

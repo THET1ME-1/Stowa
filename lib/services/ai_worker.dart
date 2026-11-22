@@ -12,6 +12,7 @@ import '../data/db/database.dart';
 import '../data/settings_repository.dart';
 import '../domain/ai_contract.dart';
 import '../domain/folder_tree.dart';
+import '../domain/item_kind.dart' show shownImageTypes;
 import '../domain/models.dart';
 import '../domain/note_links.dart' show shownTitle;
 import '../domain/related.dart';
@@ -344,7 +345,7 @@ class AiWorker {
     String? image;
     final root = _filesRoot;
     final picture = await (_db.select(_db.attachments)
-          ..where((t) => t.itemId.equals(item.id) & t.mime.like('image/%'))
+          ..where((t) => t.itemId.equals(item.id) & t.mime.isIn(shownImageTypes))
           ..orderBy([(t) => OrderingTerm.asc(t.position)])
           ..limit(1))
         .getSingleOrNull();

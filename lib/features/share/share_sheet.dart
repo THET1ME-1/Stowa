@@ -9,6 +9,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../data/providers.dart';
+import '../../domain/item_kind.dart' show showsAsImage;
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
 import '../composer/smart_punctuation.dart';
@@ -114,7 +115,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> with SingleTickerProvid
     final folders = ref.watch(foldersProvider).value ?? const [];
     final folderId = item?.item.folderId;
     final folder = folders.where((one) => one.id == folderId).firstOrNull;
-    final image = item?.attachments.where((file) => file.mime.startsWith('image/')).firstOrNull;
+    final image = item?.attachments.where((file) => showsAsImage(file.mime)).firstOrNull;
     final filesRoot = ref.watch(filesRootProvider);
     // своя папка первой, потом остальные
     final choices = [?folder, ...folders.where((one) => one.id != folderId)].take(6).toList();

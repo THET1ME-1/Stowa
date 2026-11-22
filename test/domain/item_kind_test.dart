@@ -41,6 +41,17 @@ void main() {
     expect(detectKind(mime: 'application/pdf'), ItemKind.file);
   });
 
+  // хозяин 22.11: «что будет, если открыть файл, что мы не поддерживаем». Картинка — только то,
+  // что приложение умеет показать; макет Photoshop или TIFF — файл, его открывает программа системы
+  test('картинка неподдерживаемого формата — файл, а не картинка', () {
+    for (final mime in ['image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/heic', 'image/heif', 'image/avif']) {
+      expect(detectKind(mime: mime), ItemKind.image, reason: mime);
+    }
+    for (final mime in ['image/vnd.adobe.photoshop', 'image/tiff', 'image/svg+xml', 'image/x-xcf', 'image/vnd.djvu', 'image/x-canon-cr2']) {
+      expect(detectKind(mime: mime), ItemKind.file, reason: mime);
+    }
+  });
+
   test('первая ссылка в тексте', () {
     expect(firstUrl('смотри coffee-guide.ru/turka и ещё')!.host, 'coffee-guide.ru');
     expect(firstUrl('https://youtu.be/abc?t=5')!.toString(), 'https://youtu.be/abc?t=5');

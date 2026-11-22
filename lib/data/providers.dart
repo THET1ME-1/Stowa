@@ -34,6 +34,7 @@ import '../services/fact_rules.dart';
 import '../services/facts/extractors.dart';
 import '../services/facts/facts_pipeline.dart';
 import '../services/facts/video_extractor.dart';
+import '../services/file_opener.dart';
 import '../services/facts/web_extractors.dart';
 import '../services/file_keeper.dart';
 import '../services/link_checker.dart';
@@ -837,6 +838,10 @@ final storedInBrowserProvider = Provider((ref) => isWeb);
 /// Хранилищ может быть несколько, и между ними переключаются: Android, компьютер и браузер.
 /// На iPhone место одно — папка приложения в «Файлах».
 final manyVaultsProvider = Provider((ref) => ref.watch(vaultHomeProvider) == null || ref.watch(storedInBrowserProvider));
+
+/// Открыть файл программой системы; false — нечем. Тесты подменяют: на компьютере настоящий
+/// вызов запустил бы чужую программу.
+final fileOpenerProvider = Provider<Future<bool> Function(String path, String mime)>((ref) => openWithSystem);
 
 /// Браузер: где лежат второе и следующие хранилища. Тесты подменяют временной папкой.
 final browserVaultsRootProvider = Provider<String>((ref) => browserMoreVaults);

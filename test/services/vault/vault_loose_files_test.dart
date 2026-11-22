@@ -212,6 +212,46 @@ void main() {
     expect(await (db.select(db.folders)..where((t) => t.id.equals('mine'))).getSingleOrNull(), isNotNull);
   });
 
+  // хозяин 22.11: «что будет, если в качестве хранилища выбрана папка с совершенно другим
+  // форматом файлов». Чужая папка — проект с кодом, архивы, двоичный мусор, битая кодировка:
+  // сверка не падает, каждый файл виден заметкой-файлом, служебное чужое не берётся
+  test('папка чужого формата: сверка не падает, файлы — заметками, битый .md читается как есть', () async {
+    put('проект/main.cpp', 'int main() { return 0; }'.codeUnits);
+    put('проект/Makefile', 'all:\n\tcc main.cpp'.codeUnits);
+    put('проект/сборка/app.exe', [0x4D, 0x5A, 0x90, 0x00, 0xFF, 0xFE, 0x00]);
+    put('архив.zip', [0x50, 0x4B, 0x03, 0x04, 0x00]);
+    put('макет.psd', List.generate(300, (i) => (i * 31) & 0xFF));
+    put('пустой.dat', const []);
+    put('Битая.md', [0xD0, 0x97, 0xFF, 0xFE, 0x0A, 0xC3, 0x28]);
+    put('a/b/c/d/e/глубоко.bin', [1, 2, 3]);
+    put('.git/config', '[core]'.codeUnits);
+    put('node_modules/.cache/x.json', '{}'.codeUnits);
+    final scan = await reader().reconcile();
+    expect(scan.added, greaterThanOrEqualTo(8));
+    final all = await items();
+    final byTitle = {for (final item in all) item.title: item};
+    for (final title in ['main', 'Makefile', 'app', 'архив', 'макет', 'пустой', 'глубоко']) {
+      expect(byTitle[title]?.kind, ItemKind.file, reason: title);
+    }
+    // служебные папки чужих программ — не заметки
+    expect(byTitle.keys, isNot(contains('config')));
+    expect(byTitle.keys, isNot(contains('x')));
+    // битая кодировка — заметка с тем, что прочиталось, без падения
+    expect(all.where((item) => item.kind == ItemKind.note), hasLength(1));
+    final mime = {for (final row in await db.select(db.attachments).get()) p.basename(row.path): row.mime};
+    expect(mime['макет.psd'], isNotEmpty);
+    expect(mime['app.exe'], isNotEmpty);
+    // вторая сверка ничего не плодит и ничего не теряет
+    final again = await reader().reconcile();
+    expect(again.added, 0);
+    expect(again.removed, 0);
+    expect(await items(), hasLength(all.length));
+    // и писатель чужие файлы не трогает
+    await writer().drain();
+    expect(file('макет.psd').readAsBytesSync(), List.generate(300, (i) => (i * 31) & 0xFF));
+    expect(file('проект/сборка/app.exe').existsSync(), isTrue);
+  });
+
   test('удалили файл снаружи — заметка в корзине', () async {
     put('Фото/закат.png', [1, 2]);
     await reader().reconcile();

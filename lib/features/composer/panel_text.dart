@@ -99,7 +99,8 @@ String dayLabel(L l, DateTime day, DateTime now) {
 /// «Фото от 3 ноября». По нему же вещь находится поиском.
 String untitledFor(L l, {required String mime, required String fileName, required DateTime at}) {
   final date = DateFormat.MMMMd(l.localeName).format(at);
-  if (mime.startsWith('image/')) return isScreenshotName(fileName) ? l.untitledScreenshot(date) : l.untitledPhoto(date);
+  // «Фото от …» — только настоящей картинке; макет Photoshop зовётся именем файла, как файл
+  if (showsAsImage(mime)) return isScreenshotName(fileName) ? l.untitledScreenshot(date) : l.untitledPhoto(date);
   if (mime.startsWith('video/')) return l.untitledVideo(date);
   if (mime.startsWith('audio/')) return l.untitledAudio(date);
   return l.untitledFile(date);

@@ -2,16 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/format/duration_format.dart';
+import '../../core/fs/web_files.dart' show browserShows, openInBrowser;
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
+import '../../data/providers.dart' show fileOpenerProvider;
 import '../../domain/item_kind.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/vault/vault_layout.dart' show vaultAbsolute;
@@ -41,12 +43,22 @@ String fileIcon(String mime, String path) {
   return 'description';
 }
 
-/// Открыть свой файл в приложении системы: PDF в просмотрщике, видео в плеере.
+/// Открыть свой файл в приложении системы: PDF в просмотрщике, видео в плеере. Формат,
+/// который открыть нечем, — плашка «Нечем открыть такой файл». В браузере программ системы
+/// нет: что он показывает сам, открывается новой вкладкой, остальное скачивается.
 Future<void> openLocalFile(BuildContext context, String path, String mime) async {
   final messenger = ScaffoldMessenger.of(context);
   final message = L.of(context).fileOpenFailed;
-  final result = await OpenFilex.open(path, type: mime);
-  if (result.type != ResultType.done) showNote(messenger, message, overDock: true);
+  if (isWeb) {
+    try {
+      openInBrowser(await File(path).readAsBytes(), name: fileTitle(path), mime: mime, view: browserShows(mime));
+    } on Object {
+      showNote(messenger, message, overDock: true);
+    }
+    return;
+  }
+  final open = ProviderScope.containerOf(context, listen: false).read(fileOpenerProvider);
+  if (!await open(path, mime)) showNote(messenger, message, overDock: true);
 }
 
 /// Превью ссылки: картинка страницы, сайт и описание. Касание открывает страницу.

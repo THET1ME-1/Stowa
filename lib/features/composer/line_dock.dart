@@ -1888,7 +1888,7 @@ class _AttachmentTile extends StatelessWidget {
     final Widget preview;
     if (attached.thumb != null) {
       preview = Image.memory(attached.thumb!, fit: BoxFit.cover, gaplessPlayback: true);
-    } else if (file != null && file.mime.startsWith('image/')) {
+    } else if (file != null && showsAsImage(file.mime)) {
       preview = FilePicture(
         File(file.path),
         fit: BoxFit.cover,

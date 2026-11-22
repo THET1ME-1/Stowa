@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/folder_tree.dart';
+import '../../domain/item_kind.dart' show showsAsImage;
 import '../../domain/json_canvas.dart';
 import '../../domain/models.dart';
 import '../../domain/note_links.dart' show wikiLink;
@@ -123,7 +124,7 @@ class DocumentsRepository {
     }
     final images = <String, String>{};
     for (final row in await (_db.select(_db.attachments)..orderBy([(t) => OrderingTerm.asc(t.position)])).get()) {
-      if (row.mime.startsWith('image/')) images.putIfAbsent(row.itemId, () => row.path);
+      if (showsAsImage(row.mime)) images.putIfAbsent(row.itemId, () => row.path);
     }
     return [
       for (final item in items)

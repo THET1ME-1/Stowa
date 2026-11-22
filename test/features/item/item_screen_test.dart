@@ -681,6 +681,26 @@ void main() {
       expect(find.byKey(const ValueKey('video-frames')), findsOneWidget);
     });
 
+    // хозяин 22.11: «что будет, если открыть файл, что мы не поддерживаем». Макет Photoshop —
+    // не картинка, а файл: карточка с именем и размером; открыть нечем — плашка, а не тишина
+    testWidgets('файл неподдерживаемого формата: карточка файла, а нечем открыть — плашка', (tester) async {
+      await show(
+        tester,
+        ItemsCompanion.insert(id: 'a', kind: ItemKind.file, title: 'макет', createdAt: world.now, updatedAt: world.now),
+        files: [AttachmentsCompanion.insert(id: 'f', itemId: 'a', path: 'макет.psd', mime: 'image/vnd.adobe.photoshop', size: 2048)],
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('макет.psd'), findsOneWidget);
+      expect(find.text('PSD · 2 KB'), findsOneWidget);
+      await tester.tap(find.text('макет.psd'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.takeException(), isNull);
+      expect(world.openedFiles.single, endsWith('макет.psd'));
+      expect(find.text('Нечем открыть такой файл'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
     testWidgets('фото между абзацами — в тексте на своём месте, остальные — после текста', (tester) async {
       await show(
         tester,

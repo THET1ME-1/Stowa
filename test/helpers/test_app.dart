@@ -91,6 +91,11 @@ class TestWorld {
   /// Браузер: папка, где лежат второе и следующие хранилища (на сайте — `/vaults`).
   String? browserVaults;
 
+  /// Файлы, которые просили открыть программой системы, и есть ли чем: настоящий вызов на
+  /// компьютере запустил бы чужую программу.
+  final openedFiles = <String>[];
+  var canOpenFiles = false;
+
   /// Базы других хранилищ по имени — в памяти, открываются при смене хранилища.
   final vaultDatabases = <String, AppDatabase>{};
 
@@ -155,6 +160,10 @@ class TestWorld {
         bookmarksPickerProvider.overrideWithValue(() async => pickedFile),
         vaultHomeProvider.overrideWithValue(vaultHome),
         if (browserVaults case final browserVaults?) browserVaultsRootProvider.overrideWithValue(browserVaults),
+        fileOpenerProvider.overrideWithValue((path, mime) async {
+          openedFiles.add(path);
+          return canOpenFiles;
+        }),
         vaultChannelProvider.overrideWithValue(_TestChannel(this)),
         vaultDatabaseProvider.overrideWithValue((name) => vaultDatabases[name] ??= AppDatabase.memory()),
         reopenSessionProvider.overrideWithValue((prepared) async => reopened.add(prepared)),

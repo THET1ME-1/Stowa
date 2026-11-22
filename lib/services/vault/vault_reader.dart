@@ -13,6 +13,7 @@ import '../../data/db/database.dart';
 import '../../domain/excalidraw.dart' show isExcalidrawText;
 import '../../domain/folder_tree.dart';
 import '../../domain/inline_tags.dart';
+import '../../domain/item_kind.dart' show detectKind;
 import '../../domain/note_blocks.dart' show embedNames;
 import '../../domain/models.dart';
 import '../../domain/tag_name.dart';
@@ -962,12 +963,8 @@ class VaultReader {
 
 /// Прочитанная заметка, которая ждёт записи в базу.
 // вид заметки-файла по типу файла
-ItemKind _looseKind(String mime) => switch (mime.split('/').first) {
-  'image' => ItemKind.image,
-  'video' => ItemKind.video,
-  'audio' => ItemKind.voice,
-  _ => ItemKind.file,
-};
+// тот же выбор, что у сохранения из приложения: картинка — только то, что умеем показать
+ItemKind _looseKind(String mime) => detectKind(mime: mime);
 
 class _Incoming {
   const _Incoming({

@@ -4,7 +4,16 @@ import 'browser_storage.dart' if (dart.library.js_interop) 'browser_storage_web.
 import 'web_fs.dart';
 import 'web_store.dart';
 
-export 'browser_storage.dart' if (dart.library.js_interop) 'browser_storage_web.dart' show BrowserDownload, askTabToLeave, claimTab, markPanelYield, panelJustYielded, persistStorage, reloadPage, startDownload, waitForTab, watchAutofill;
+export 'browser_storage.dart' if (dart.library.js_interop) 'browser_storage_web.dart' show BrowserDownload, askTabToLeave, claimTab, markPanelYield, openInBrowser, panelJustYielded, persistStorage, reloadPage, startDownload, waitForTab, watchAutofill;
+
+/// Умеет ли браузер показать файл сам, в новой вкладке: PDF, обычные картинки и SVG, ролики,
+/// звук, текст. Архив, документ Word или макет Photoshop он только скачает.
+bool browserShows(String mime) {
+  final type = mime.toLowerCase();
+  if (type == 'application/pdf' || type == 'image/svg+xml') return true;
+  if (type.startsWith('image/')) return const {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/avif', 'image/x-icon', 'image/vnd.microsoft.icon'}.contains(type);
+  return type.startsWith('video/') || type.startsWith('audio/') || type.startsWith('text/');
+}
 
 /// Другая вкладка попросила хранилище себе: дописать файлы и перезагрузиться. Замок при
 /// этом снимается, а эта вкладка после перезагрузки покажет «Stowa уже открыта в другой вкладке».

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/theme/folder_palette.dart';
 import '../../domain/folder_tree.dart';
+import '../../domain/item_kind.dart' show shownImageMimes;
 import '../../domain/models.dart';
 import '../db/database.dart';
 
@@ -114,7 +115,7 @@ SELECT folders.*,
   (SELECT COUNT(*) FROM items WHERE items.folder_id = folders.id AND items.deleted_at IS NULL) AS item_count,
   (SELECT group_concat(path, char(31)) FROM (
     SELECT attachments.path AS path FROM attachments JOIN items ON items.id = attachments.item_id
-    WHERE items.folder_id = folders.id AND items.deleted_at IS NULL AND attachments.mime LIKE 'image/%'
+    WHERE items.folder_id = folders.id AND items.deleted_at IS NULL AND attachments.mime IN ($shownImageMimes)
     ORDER BY items.created_at DESC, attachments.position LIMIT 3)) AS covers,
   (SELECT group_concat(title, char(31)) FROM (
     SELECT items.title AS title FROM items

@@ -51,10 +51,22 @@ bool _isVideoHost(Uri uri) {
   return (host == 'instagram.com' || host.endsWith('.instagram.com')) && uri.path.startsWith('/reel');
 }
 
+/// Картинки, которые приложение умеет показать само. Остальные `image/*` — макет Photoshop,
+/// TIFF, SVG, снимки камеры в RAW — остаются файлами: плитка с пустой рамкой вместо картинки
+/// хуже, чем честная карточка файла, который откроет программа системы.
+/// Список для SQL: `attachments.mime IN ($shownImageMimes)`. Раньше везде стояло
+/// `LIKE 'image/%'`, и макет Photoshop попадал в обложки, галерею и разбор картинок.
+const shownImageMimes = "'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/heic', 'image/heif', 'image/avif', 'image/x-icon', 'image/vnd.microsoft.icon'";
+
+/// Те же типы набором: один источник с [shownImageMimes].
+final Set<String> shownImageTypes = {for (final quoted in shownImageMimes.split(', ')) quoted.substring(1, quoted.length - 1)};
+
+bool showsAsImage(String mime) => shownImageTypes.contains(mime.toLowerCase());
+
 /// Вид вещи по содержимому: тип файла главнее текста.
 ItemKind detectKind({String text = '', String? mime}) {
   if (mime != null) {
-    if (mime.startsWith('image/')) return ItemKind.image;
+    if (showsAsImage(mime)) return ItemKind.image;
     if (mime.startsWith('audio/')) return ItemKind.voice;
     if (mime.startsWith('video/')) return ItemKind.video;
     return ItemKind.file;

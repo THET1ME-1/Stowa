@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
+import '../../domain/item_kind.dart' show shownImageMimes;
 import '../../domain/models.dart';
 import '../../services/page_cache.dart';
 import '../../services/vault/vault_layout.dart';
@@ -38,7 +39,7 @@ class TrashRepository {
           '''
 SELECT items.id, items.title, items.kind, items.deleted_at, folders.name AS folder_name,
   coalesce((SELECT attachments.path FROM attachments
-    WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%'
+    WHERE attachments.item_id = items.id AND attachments.mime IN ($shownImageMimes)
     ORDER BY attachments.position LIMIT 1), items.cover_path) AS thumb_path
 FROM items LEFT JOIN folders ON folders.id = items.folder_id
 WHERE items.deleted_at IS NOT NULL

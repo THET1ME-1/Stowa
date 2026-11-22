@@ -54,6 +54,11 @@ void main() {
     expect(turns(tester), 0.5, reason: 'список открыт — стрелка вверх');
     expect(find.byKey(const ValueKey('vault-option-stowa-work')), findsOneWidget);
     expect(find.text('Добавить хранилище'), findsOneWidget);
+    // хозяин 22.11 со снимка: «почему ширина не такая же, как у меню» — список ровно по шапке
+    final shown = tester.getRect(find.byKey(const ValueKey('dock-vault-menu')));
+    final pill = tester.getRect(head);
+    expect(shown.left, moreOrLessEquals(pill.left, epsilon: 0.5));
+    expect(shown.width, moreOrLessEquals(pill.width, epsilon: 0.5));
 
     // щелчок мимо закрывает, стрелка возвращается
     await tester.tapAt(const Offset(900, 500));

@@ -161,6 +161,29 @@ class _BlobDownload implements BrowserDownload {
   }
 }
 
+/// Отдать файл заметки браузеру. С [view] он открывается в новой вкладке (PDF, картинка,
+/// ролик, звук, текст — браузер показывает их сам), иначе скачивается под именем [name]:
+/// программ системы, которые открыли бы архив или макет, у страницы нет.
+void openInBrowser(Uint8List bytes, {required String name, required String mime, required bool view}) {
+  final file = web.Blob(<JSAny>[bytes.toJS].toJS, web.BlobPropertyBag(type: mime));
+  final url = web.URL.createObjectURL(file);
+  final link = web.HTMLAnchorElement()
+    ..href = url
+    ..style.display = 'none';
+  if (view) {
+    link
+      ..target = '_blank'
+      ..rel = 'noopener';
+  } else {
+    link.download = name;
+  }
+  web.document.body!.append(link);
+  link.click();
+  link.remove();
+  // открытой вкладке ссылка нужна, пока файл читают; скачиванию — пока оно начнётся
+  Timer(Duration(minutes: view ? 30 : 1), () => web.URL.revokeObjectURL(url));
+}
+
 /// Личная папка сайта (OPFS): файлы хранилища лежат в `stowa-files/`, рядом с базой drift.
 class OpfsWebStore implements WebStore {
   static const _folder = 'stowa-files';

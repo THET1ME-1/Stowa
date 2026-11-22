@@ -121,12 +121,12 @@ class PhotoExtractor extends Extractor {
   @override
   String get stampSql => _attachmentsStamp;
   @override
-  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%')";
+  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime IN ($shownImageMimes))";
 
   @override
   Future<List<FactDraft>> extract(ExtractInput input) async {
     final facts = <FactDraft>[];
-    for (final attachment in input.files.where((file) => file.mime.startsWith('image/'))) {
+    for (final attachment in input.files.where((file) => showsAsImage(file.mime))) {
       final file = input.fileOf(attachment);
       if (!await file.exists()) continue;
       final head = await _head(file);
@@ -163,12 +163,12 @@ class FingerprintExtractor extends Extractor {
   @override
   String get stampSql => _attachmentsStamp;
   @override
-  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%')";
+  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime IN ($shownImageMimes))";
 
   @override
   Future<List<FactDraft>> extract(ExtractInput input) async {
     final facts = <FactDraft>[];
-    for (final attachment in input.files.where((file) => file.mime.startsWith('image/'))) {
+    for (final attachment in input.files.where((file) => showsAsImage(file.mime))) {
       final file = input.fileOf(attachment);
       if (!await file.exists()) continue;
       try {
@@ -196,12 +196,12 @@ class ColorsExtractor extends Extractor {
   @override
   String get stampSql => "$_attachmentsStamp || '|' || coalesce(items.cover_path, '')";
   @override
-  String get appliesSql => "items.cover_path IS NOT NULL OR EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%')";
+  String get appliesSql => "items.cover_path IS NOT NULL OR EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime IN ($shownImageMimes))";
 
   @override
   Future<List<FactDraft>> extract(ExtractInput input) async {
     final files = [
-      for (final attachment in input.files.where((file) => file.mime.startsWith('image/'))) input.fileOf(attachment),
+      for (final attachment in input.files.where((file) => showsAsImage(file.mime))) input.fileOf(attachment),
       if (input.item.coverPath case final cover?) File(p.join(input.filesRoot.path, cover)),
     ];
     // цвета заметки — по первой картинке, которая прочиталась: она и стоит крупно
@@ -244,14 +244,14 @@ class QrExtractor extends Extractor {
   @override
   String get stampSql => _attachmentsStamp;
   @override
-  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime LIKE 'image/%')";
+  String get appliesSql => "EXISTS (SELECT 1 FROM attachments WHERE attachments.item_id = items.id AND attachments.mime IN ($shownImageMimes))";
 
   static const _side = 1000;
 
   @override
   Future<List<FactDraft>> extract(ExtractInput input) async {
     final facts = <FactDraft>[];
-    for (final attachment in input.files.where((file) => file.mime.startsWith('image/'))) {
+    for (final attachment in input.files.where((file) => showsAsImage(file.mime))) {
       final file = input.fileOf(attachment);
       if (!await file.exists()) continue;
       final width = attachment.width ?? _side;

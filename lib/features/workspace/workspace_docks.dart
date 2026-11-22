@@ -339,40 +339,58 @@ class _VaultCardState extends ConsumerState<_VaultCard> {
     final where = signedIn ? l.wsSynced : (inBrowser ? l.wsInBrowser : root?.path ?? '');
     final count = ref.watch(notesCountProvider).value;
     final ws = WorkspaceScope.of(context);
-    return MenuAnchor(
-      controller: _menu,
-      onOpen: () => setState(() => _open = true),
-      onClose: () => setState(() => _open = false),
-      alignmentOffset: const Offset(10, 2),
-      // без тени: окно списка отделяет тон выше дока
-      style: MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(Tokens.containerHighest),
-        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-        shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-        elevation: const WidgetStatePropertyAll(0),
-        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-        padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
-      ),
-      menuChildren: [
-        _VaultOption(icon: 'folder_open', title: name, subtitle: count == null ? null : l.itemsCount(count), selected: true, onTap: () {}),
-        for (final one in others)
-          _VaultOption(
-            key: ValueKey('vault-option-${one.db}'),
-            icon: 'folder',
-            title: vaultLabel(l, one, inBrowser: inBrowser),
-            subtitle: one.notes == null ? null : l.itemsCount(one.notes!),
-            onTap: () => switchVault(context, ref, one),
+    // список — ровно по шапке: та же ширина и тот же левый край (хозяин 22.11: «почему
+    // ширина не такая же»), поэтому якорь списка — сама шапка, а ширина берётся с неё
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+      child: LayoutBuilder(
+        builder: (context, box) => MenuAnchor(
+          controller: _menu,
+          onOpen: () => setState(() => _open = true),
+          onClose: () => setState(() => _open = false),
+          alignmentOffset: const Offset(0, 4),
+          // без тени: окно списка отделяет тон выше дока
+          style: MenuStyle(
+            backgroundColor: WidgetStatePropertyAll(Tokens.containerHighest),
+            surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+            shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+            elevation: const WidgetStatePropertyAll(0),
+            shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+            padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+            minimumSize: WidgetStatePropertyAll(Size(box.maxWidth, 0)),
+            maximumSize: WidgetStatePropertyAll(Size(box.maxWidth, double.infinity)),
           ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          child: Container(height: 1, color: Tokens.outline),
-        ),
-        if (ref.watch(manyVaultsProvider)) _VaultOption(icon: 'add', title: l.vaultAdd, onTap: () => addVault(context, ref)),
-        _VaultOption(icon: 'tune', title: l.vaultSection, onTap: () => ws.open(const WsTab.settings('vault'))),
-      ],
-      builder: (context, menu, _) => Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-        child: Pressable(
+          menuChildren: [
+            // меню берёт ширину по содержимому, пределы стиля ему не указ: ширину шапки
+            // получает само содержимое
+            Container(
+              key: const ValueKey('dock-vault-menu'),
+              width: box.maxWidth,
+              padding: const EdgeInsets.all(6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _VaultOption(icon: 'folder_open', title: name, subtitle: count == null ? null : l.itemsCount(count), selected: true, onTap: () {}),
+                  for (final one in others)
+                    _VaultOption(
+                      key: ValueKey('vault-option-${one.db}'),
+                      icon: 'folder',
+                      title: vaultLabel(l, one, inBrowser: inBrowser),
+                      subtitle: one.notes == null ? null : l.itemsCount(one.notes!),
+                      onTap: () => switchVault(context, ref, one),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    child: Container(height: 1, color: Tokens.outline),
+                  ),
+                  if (ref.watch(manyVaultsProvider)) _VaultOption(icon: 'add', title: l.vaultAdd, onTap: () => addVault(context, ref)),
+                  _VaultOption(icon: 'tune', title: l.vaultSection, onTap: () => ws.open(const WsTab.settings('vault'))),
+                ],
+              ),
+            ),
+          ],
+          builder: (context, menu, _) => Pressable(
           key: const ValueKey('dock-vault'),
           radius: BorderRadius.circular(14),
           lift: 0,
@@ -422,6 +440,7 @@ class _VaultCardState extends ConsumerState<_VaultCard> {
             ),
           ),
         ),
+        ),
       ),
     );
   }
@@ -445,20 +464,18 @@ class _VaultOption extends StatelessWidget {
       style: ButtonStyle(
         padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
         shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-        minimumSize: const WidgetStatePropertyAll(Size(236, 44)),
+        // строка с числом заметок выше: соседние хранилища не слипаются; ширину даёт список
+        minimumSize: WidgetStatePropertyAll(Size(0, subtitle == null ? 44 : 56)),
       ),
       leadingIcon: Icon(symbolIcon(icon, filled: selected), size: 20, color: selected ? Tokens.onSurface : Tokens.onSurfaceVariant),
       trailingIcon: selected ? Icon(symbolIcon('check'), size: 18, color: Tokens.onSurface) : null,
-      child: SizedBox(
-        width: 164,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurface, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
-            if (subtitle case final subtitle?) Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelSmall!.copyWith(color: Tokens.muted)),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurface, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+          if (subtitle case final subtitle?) Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelSmall!.copyWith(color: Tokens.muted)),
+        ],
       ),
     );
   }
