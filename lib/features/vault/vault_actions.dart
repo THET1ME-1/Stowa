@@ -127,6 +127,7 @@ Future<bool> openVaultFolder(BuildContext context, WidgetRef ref) async {
   final picked = await ref.read(vaultPickerProvider)();
   if (picked == null || !context.mounted) return false;
   if (!await ensureFileAccess(context, ref) || !context.mounted) return false;
+  if (!await confirmForeignFolder(context, Directory(picked)) || !context.mounted) return false;
   return moveVault(context, ref, Directory(picked), VaultMode.device, openExisting: true);
 }
 
@@ -184,6 +185,27 @@ String knownVaultTitle(L l, KnownVault vault) => vault.mode == VaultMode.app ? l
 /// служебная (`/vault`) и своего имени нет — оно зовётся именем приложения.
 String vaultLabel(L l, KnownVault vault, {required bool inBrowser}) => inBrowser && vault.path == browserFirstVault ? l.appName : knownVaultTitle(l, vault);
 
+/// Папка без заметок, но с посторонними файлами («Загрузки», проект с кодом): прежде чем она
+/// станет хранилищем, человек видит, сколько в ней файлов и что с ними будет. true — можно
+/// продолжать: посторонних файлов нет, в папке уже заметки, или человек согласился.
+Future<bool> confirmForeignFolder(BuildContext context, Directory target) async {
+  if (await folderHasNotes(target)) return true;
+  final files = await countForeignFiles(target);
+  if (files == 0) return true;
+  if (!context.mounted) return false;
+  final l = L.of(context);
+  final name = vaultTitle(target.path);
+  final go = await showOptionsSheet<bool>(
+    context,
+    title: files >= foreignFilesCap ? l.vaultForeignMany(name, foreignFilesCap) : l.vaultForeignAsk(name, files),
+    options: [
+      SheetChoice(value: true, title: l.vaultForeignOpen, subtitle: l.vaultForeignOpenHint, icon: 'folder_open'),
+      SheetChoice(value: false, title: l.cancel, icon: 'close'),
+    ],
+  );
+  return go ?? false;
+}
+
 /// Папка открытого хранилища: выбранная или, у старой установки, папка файлов.
 String _openPath(WidgetRef ref) => ref.read(vaultRootProvider)?.path ?? ref.read(settingsRepositoryProvider).vaultPath ?? ref.read(filesRootProvider).path;
 
@@ -219,6 +241,9 @@ Future<void> changeVaultFolder(BuildContext context, WidgetRef ref) async {
     // папка другого хранилища становится общей: в списке её больше нет
     if (known != null) await settings.forgetVault(known.db);
     if (!context.mounted) return;
+  } else if (!await confirmForeignFolder(context, target) || !context.mounted) {
+    // заметок в папке нет, а посторонние файлы есть, и человек передумал
+    return;
   }
   if (await moveVault(context, ref, target, VaultMode.device, openExisting: hasNotes)) showNote(messenger, l.vaultMoved);
 }
@@ -259,6 +284,7 @@ Future<void> addVault(BuildContext context, WidgetRef ref) async {
     return;
   }
   if (!await ensureFileAccess(context, ref) || !context.mounted) return;
+  if (!create && (!await confirmForeignFolder(context, Directory(path)) || !context.mounted)) return;
   if (create) await Directory(path).create(recursive: true);
   final entry = await ref.read(settingsRepositoryProvider).rememberVault(path, VaultMode.device);
   if (!context.mounted) return;

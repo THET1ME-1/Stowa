@@ -180,6 +180,42 @@ void main() {
     expect([for (final item in await tester.runAsync(() => prepared.select(prepared.items).get()) ?? <Item>[]) item.title], ['План']);
   });
 
+  // хозяин 22.11: «что делать, что отображать, если в качестве хранилища выбрана папка с
+  // совершенно другим форматом файлов». Папку без заметок, но с файлами сверка превратила бы в
+  // сотни заметок-файлов: сперва вопрос, сколько там файлов и что с ними станет
+  testWidgets('«Открыть папку» с чужими файлами и без заметок: сперва вопрос; отказ ничего не меняет', (tester) async {
+    final picked = Directory(p.join(world.files.path, 'Загрузки'))..createSync();
+    for (final name in ['setup.exe', 'архив.zip', 'макет.psd']) {
+      File(p.join(picked.path, name)).writeAsBytesSync([1, 2, 3]);
+    }
+    world.pickedFolder = picked.path;
+    await openCatalog(tester);
+    await tester.tap(find.text('Добавить хранилище'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Открыть папку'));
+    await settle(tester);
+    expect(find.textContaining('3 файла'), findsOneWidget);
+    expect(find.textContaining('заметок среди них нет'), findsOneWidget);
+    await tester.tap(find.text('Отмена'));
+    await settle(tester);
+    expect(settings.vaultDb, 'stowa');
+    expect(world.reopened, isEmpty);
+
+    // согласился — папка открывается, каждый файл станет заметкой
+    await tester.tap(find.text('Добавить хранилище'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Открыть папку'));
+    await settle(tester);
+    await tester.tap(find.text('Всё равно сделать хранилищем'));
+    for (var round = 0; round < 200 && world.reopened.isEmpty; round++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+    }
+    await settle(tester);
+    expect(settings.vaultPath, picked.path);
+    expect(world.reopened, hasLength(1));
+  });
+
   // хозяин 21.11 со снимков: при открытой клавиатуре «Создать» не нажималось — шторка и её
   // содержимое поднимались над клавиатурой оба, кнопка уезжала за край шторки
   testWidgets('«Создать хранилище» при открытой клавиатуре: «Создать» нажимается', (tester) async {

@@ -3142,6 +3142,31 @@ class LRu extends L {
   String get vaultAlreadyOpen => 'Это хранилище уже открыто';
 
   @override
+  String vaultForeignAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла',
+      many: '$count файлов',
+      few: '$count файла',
+      one: '$count файл',
+    );
+    return 'В «$name» $_temp0, заметок среди них нет';
+  }
+
+  @override
+  String vaultForeignMany(String name, int count) {
+    return 'В «$name» больше $count файлов, заметок среди них нет';
+  }
+
+  @override
+  String get vaultForeignOpen => 'Всё равно сделать хранилищем';
+
+  @override
+  String get vaultForeignOpenHint =>
+      'Каждый файл станет отдельной заметкой-файлом';
+
+  @override
   String get vaultHasNotes => 'В этой папке уже есть заметки';
 
   @override

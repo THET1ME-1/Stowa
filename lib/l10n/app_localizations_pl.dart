@@ -3137,6 +3137,31 @@ class LPl extends L {
   String get vaultAlreadyOpen => 'Ten magazyn jest już otwarty';
 
   @override
+  String vaultForeignAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'jest $count pliku',
+      many: 'jest $count plików',
+      few: 'są $count pliki',
+      one: 'jest $count plik',
+    );
+    return 'W „$name” $_temp0, notatek wśród nich nie ma';
+  }
+
+  @override
+  String vaultForeignMany(String name, int count) {
+    return 'W „$name” jest ponad $count plików, notatek wśród nich nie ma';
+  }
+
+  @override
+  String get vaultForeignOpen => 'Mimo to zrób z niego skarbiec';
+
+  @override
+  String get vaultForeignOpenHint =>
+      'Każdy plik stanie się osobną notatką-plikiem';
+
+  @override
   String get vaultHasNotes => 'W tym folderze są już notatki';
 
   @override

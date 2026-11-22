@@ -3083,6 +3083,29 @@ class LEs extends L {
   String get vaultAlreadyOpen => 'Esta bóveda ya está abierta';
 
   @override
+  String vaultForeignAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos',
+      one: '$count archivo',
+    );
+    return 'En «$name» hay $_temp0 y ninguna nota entre ellos';
+  }
+
+  @override
+  String vaultForeignMany(String name, int count) {
+    return 'En «$name» hay más de $count archivos y ninguna nota entre ellos';
+  }
+
+  @override
+  String get vaultForeignOpen => 'Convertirla en bóveda igualmente';
+
+  @override
+  String get vaultForeignOpenHint =>
+      'Cada archivo será una nota de archivo aparte';
+
+  @override
   String get vaultHasNotes => 'Esta carpeta ya tiene notas';
 
   @override

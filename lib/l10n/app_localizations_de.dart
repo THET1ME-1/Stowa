@@ -3090,6 +3090,29 @@ class LDe extends L {
   String get vaultAlreadyOpen => 'Dieser Tresor ist schon offen';
 
   @override
+  String vaultForeignAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'liegen $count Dateien',
+      one: 'liegt $count Datei',
+    );
+    return 'In „$name“ $_temp0, Notizen sind nicht darunter';
+  }
+
+  @override
+  String vaultForeignMany(String name, int count) {
+    return 'In „$name“ liegen mehr als $count Dateien, Notizen sind nicht darunter';
+  }
+
+  @override
+  String get vaultForeignOpen => 'Trotzdem zum Tresor machen';
+
+  @override
+  String get vaultForeignOpenHint =>
+      'Jede Datei wird zu einer eigenen Dateinotiz';
+
+  @override
   String get vaultHasNotes => 'In diesem Ordner liegen schon Notizen';
 
   @override

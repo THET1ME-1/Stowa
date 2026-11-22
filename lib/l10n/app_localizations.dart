@@ -5147,6 +5147,30 @@ abstract class L {
   /// **'This vault is already open'**
   String get vaultAlreadyOpen;
 
+  /// Вопрос, когда хранилищем выбирают папку без заметок, но с посторонними файлами («Загрузки», проект с кодом)
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” has {count, plural, one{{count} file} other{{count} files}} and no notes among them'**
+  String vaultForeignAsk(String name, int count);
+
+  /// Тот же вопрос, когда файлов больше предела подсчёта
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” has more than {count} files and no notes among them'**
+  String vaultForeignMany(String name, int count);
+
+  /// Согласие сделать хранилищем папку с посторонними файлами
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a vault anyway'**
+  String get vaultForeignOpen;
+
+  /// Что будет с посторонними файлами папки, если сделать её хранилищем
+  ///
+  /// In en, this message translates to:
+  /// **'Every file becomes a separate file note'**
+  String get vaultForeignOpenHint;
+
   /// vaultHasNotes
   ///
   /// In en, this message translates to:

@@ -3944,6 +3944,38 @@
   "@vaultAlreadyOpen": {
     "description": "vaultAlreadyOpen"
   },
+  "vaultForeignAsk": "“{name}” has {count, plural, one{{count} file} other{{count} files}} and no notes among them",
+  "@vaultForeignAsk": {
+    "description": "Вопрос, когда хранилищем выбирают папку без заметок, но с посторонними файлами («Загрузки», проект с кодом)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultForeignMany": "“{name}” has more than {count} files and no notes among them",
+  "@vaultForeignMany": {
+    "description": "Тот же вопрос, когда файлов больше предела подсчёта",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultForeignOpen": "Make it a vault anyway",
+  "@vaultForeignOpen": {
+    "description": "Согласие сделать хранилищем папку с посторонними файлами"
+  },
+  "vaultForeignOpenHint": "Every file becomes a separate file note",
+  "@vaultForeignOpenHint": {
+    "description": "Что будет с посторонними файлами папки, если сделать её хранилищем"
+  },
   "vaultHasNotes": "This folder already has notes",
   "@vaultHasNotes": {
     "description": "vaultHasNotes"

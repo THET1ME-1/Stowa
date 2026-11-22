@@ -3079,6 +3079,28 @@ class LEn extends L {
   String get vaultAlreadyOpen => 'This vault is already open';
 
   @override
+  String vaultForeignAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '$count file',
+    );
+    return '“$name” has $_temp0 and no notes among them';
+  }
+
+  @override
+  String vaultForeignMany(String name, int count) {
+    return '“$name” has more than $count files and no notes among them';
+  }
+
+  @override
+  String get vaultForeignOpen => 'Make it a vault anyway';
+
+  @override
+  String get vaultForeignOpenHint => 'Every file becomes a separate file note';
+
+  @override
   String get vaultHasNotes => 'This folder already has notes';
 
   @override

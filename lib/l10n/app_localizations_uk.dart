@@ -3138,6 +3138,30 @@ class LUk extends L {
   String get vaultAlreadyOpen => 'Це сховище вже відкрите';
 
   @override
+  String vaultForeignAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файлу',
+      many: '$count файлів',
+      few: '$count файли',
+      one: '$count файл',
+    );
+    return 'У «$name» $_temp0, нотаток серед них немає';
+  }
+
+  @override
+  String vaultForeignMany(String name, int count) {
+    return 'У «$name» понад $count файлів, нотаток серед них немає';
+  }
+
+  @override
+  String get vaultForeignOpen => 'Усе одно зробити сховищем';
+
+  @override
+  String get vaultForeignOpenHint => 'Кожен файл стане окремою нотаткою-файлом';
+
+  @override
   String get vaultHasNotes => 'У цій теці вже є нотатки';
 
   @override

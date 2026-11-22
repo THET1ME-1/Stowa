@@ -3108,6 +3108,30 @@ class LRo extends L {
   String get vaultAlreadyOpen => 'Acest seif e deja deschis';
 
   @override
+  String vaultForeignAsk(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'sunt $count de fișiere',
+      few: 'sunt $count fișiere',
+      one: 'este $count fișier',
+    );
+    return 'În „$name” $_temp0, niciunul nu e notiță';
+  }
+
+  @override
+  String vaultForeignMany(String name, int count) {
+    return 'În „$name” sunt peste $count de fișiere, niciunul nu e notiță';
+  }
+
+  @override
+  String get vaultForeignOpen => 'Fă-l totuși seif';
+
+  @override
+  String get vaultForeignOpenHint =>
+      'Fiecare fișier devine o notiță-fișier separată';
+
+  @override
   String get vaultHasNotes => 'Dosarul are deja notițe';
 
   @override
