@@ -4,8 +4,9 @@
 // Без VAULT_COPY текст собирается из образца с разметкой. Печатает только числа — содержимое
 // заметок никуда не уходит. Вёрстку считает движок (C++), её цифры честные; кадр поля — в
 // отладочном режиме с проверками и семантикой, он завышен и годится только для сравнения
-// между собой. 22.11.2026 на College: одно поле 18 / 18 / 52 / 389 мс на 1, 5, 25 и 80 тысяч
-// знаков, окно 13 / 11 / 13 / 15 мс.
+// между собой. 23.11.2026 на College, кадр буквы: одно поле 10 / 15 / 22 / 53 / 399 мс на 1, 5,
+// 10, 25 и 80 тысяч знаков, окно 8,5 / 8 / 9 / 11 / 18 мс; вход в правку на 80 тысячах 1,25 с у
+// одного поля и 1,5 с у окна, на 835 тысячах — 10,7 и 9,3 с.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -44,6 +45,32 @@ void main() {
   const style = TextStyle(fontFamily: 'Onest', fontSize: 16, height: 1.45);
   // каждая буква — новый текст: кэш вёрстки движка не помогает, как при наборе
   const letters = 'абвгдежзиклмнопрстуф';
+
+  // вход в правку: первый показ поля — одно поле верстает весь текст, окно заводит все куски
+  for (final length in [80000, 835000]) {
+    for (final windowed in [false, true]) {
+      testWidgets('$length знаков, вход в правку: ${windowed ? 'поле с окном' : 'одно поле'}', (tester) async {
+        tester.view.physicalSize = const Size(400, 880);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final base = _sample(length);
+        final document = MarkdownController(text: base)..selection = TextSelection.collapsed(offset: base.length);
+        final window = MarkdownController()..value = WindowedTextField.windowFor(document.value);
+        final focus = FocusNode();
+        final field = windowed
+            ? WindowedTextField(document: document, window: window, pieceController: (text) => MarkdownController(text: text), focusNode: focus, style: style)
+            : TextField(controller: document, focusNode: focus, maxLines: null, style: style);
+        final watch = Stopwatch()..start();
+        await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(child: field))));
+        // ignore: avoid_print
+        print('$length знаков, вход в правку, ${windowed ? 'поле с окном' : 'одно поле'}: ${watch.elapsedMilliseconds} мс');
+        await tester.pumpWidget(const SizedBox());
+        document.dispose();
+        window.dispose();
+        focus.dispose();
+      });
+    }
+  }
 
   for (final length in [1000, 2000, 5000, 10000, 25000, 80000]) {
     testWidgets('$length знаков', (tester) async {

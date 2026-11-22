@@ -161,6 +161,33 @@ void main() {
     expect(text.indexOf(field.window.text) + field.window.selection.baseOffset, start);
   });
 
+  testWidgets('окно разрослось от набора — на паузе снова сужается, текст на местах', (tester) async {
+    final text = _long(300);
+    final field = await _pump(tester, text, caret: text.length ~/ 2);
+    await _focus(tester, field);
+    // пишут без пауз: несколько тысяч знаков в одном месте
+    final part = '${List.filled(30, 'новая строка набранного текста, ещё немного слов').join('\n')}\n';
+    for (var round = 0; round < 6; round++) {
+      final local = field.window.value;
+      final at = local.selection.baseOffset;
+      await _type(tester, field, TextEditingValue(text: local.text.replaceRange(at, at, part), selection: TextSelection.collapsed(offset: at + part.length)));
+    }
+    expect(field.window.text.length, greaterThan(WindowedTextField.windowLimit));
+    final typed = field.document.text;
+    expect(typed.length, text.length + part.length * 6);
+    // пауза в наборе
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(field.window.text.length, lessThan(WindowedTextField.windowLimit));
+    expect(field.document.text, typed);
+    expect(_composed(tester), typed);
+    // курсор там же, где кончилось набранное, и окно стоит вокруг него
+    final caret = text.length ~/ 2 + part.length * 6;
+    expect(field.document.selection, TextSelection.collapsed(offset: caret));
+    final start = caret - field.window.selection.baseOffset;
+    expect(typed.substring(start, start + field.window.text.length), field.window.text);
+  });
+
   testWidgets('пока клавиатура собирает слово, окно не переезжает', (tester) async {
     final text = _long(300);
     final field = await _pump(tester, text, caret: text.length ~/ 2);

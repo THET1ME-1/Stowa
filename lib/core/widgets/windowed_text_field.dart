@@ -46,14 +46,14 @@ class WindowedTextField extends StatefulWidget {
   });
 
   /// Текст не длиннее — одно поле целиком.
-  static const wholeLimit = 2000;
+  static const wholeLimit = 1500;
 
   /// Примерная длина куска. Окно — три куска, около 1200 знаков: в браузере текст верстает
   /// WebAssembly, и окно в 2200 знаков изредка выходило за кадр, а в 1200 — укладывается.
   static const pieceLength = 400;
 
-  /// Живое поле разрослось (набрали, вставили) — на паузе оно снова сужается.
-  static const windowLimit = 4500;
+  /// Живое поле разрослось вдвое (набрали, вставили) — на паузе оно снова сужается.
+  static const windowLimit = 2400;
 
   final TextEditingController document;
   final TextEditingController window;

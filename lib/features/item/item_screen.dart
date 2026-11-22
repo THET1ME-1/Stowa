@@ -245,6 +245,18 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   List<KnownPlace> _knownOf(List<Place> places) => [for (final place in places) (id: place.id, name: place.name, kind: place.kind, label: place.label)];
 
+  // разобранный на блоки текст: экран перестраивается и без правки текста (тег, папка, превью)
+  String? _blocksText;
+  List<NoteBlock> _blocks = const [];
+
+  List<NoteBlock> _blocksOf(String body) {
+    if (body != _blocksText) {
+      _blocksText = body;
+      _blocks = parseNoteBlocks(body);
+    }
+    return _blocks;
+  }
+
   // отложенная проверка времени и места длинного текста
   Timer? _phraseTimer;
   static const _phraseDelay = Duration(milliseconds: 250);
@@ -900,9 +912,11 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     // макете, сверху тонкая строка с путём папки и действиями, низ окна отдан общей строке ввода
     final desk = WorkspaceScope.maybeOf(context) != null;
     final titleFromLine = titleIsFirstLine(shownBody, item.title);
-    final blocks = parseNoteBlocks(shownBody);
+    // блоки и список покупок — для чтения. В правке текст показывает поле, а экран перестраивается
+    // после каждого автосохранения: разбор всей длинной заметки там был бы лишним тяжёлым кадром
+    final blocks = _editing ? const <NoteBlock>[] : _blocksOf(shownBody);
     // «купить молоко, хлеб и яйца» можно одним касанием сделать галочками
-    final checklist = item.kind == ItemKind.note ? shoppingChecklist(item.body) : null;
+    final checklist = !_editing && item.kind == ItemKind.note ? shoppingChecklist(item.body) : null;
     final properties = unpackVaultProperties(item.properties);
     // заголовок из первой строки над ней же не повторяется: заметка видна, как её написали.
     // На мониторе так же: 21.11 хозяин назвал крупную первую строку ошибкой — «это текст»
