@@ -907,23 +907,26 @@ class _DeskViews extends StatelessWidget {
     Widget segment(String icon, FolderView target) {
       final on = view == target;
       final color = on ? Tokens.onAccent : Tokens.onSurfaceVariant;
-      return GestureDetector(
+      // пилюля выбранного — на всю высоту подложки (её поле три точки), а не по высоте
+      // надписи: хозяин 22.11 со снимка — «что за выделение чёрным мелкое»
+      return Pressable(
+        radius: BorderRadius.circular(15),
+        lift: 0,
+        pressedScale: 0.97,
         onTap: () => onChanged(target),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: AnimatedContainer(
-            duration: Motion.short,
-            curve: Motion.emphasized,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(color: on ? Tokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(15)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(symbolIcon(icon), size: 17, color: color),
-                const SizedBox(width: 6),
-                Text(labels[target]!, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: color)),
-              ],
-            ),
+        child: AnimatedContainer(
+          key: on ? const ValueKey('desk-view-on') : null,
+          duration: Motion.short,
+          curve: Motion.emphasized,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(color: on ? Tokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(15)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(symbolIcon(icon), size: 17, color: color),
+              const SizedBox(width: 6),
+              Text(labels[target]!, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: color)),
+            ],
           ),
         ),
       );
@@ -936,6 +939,8 @@ class _DeskViews extends StatelessWidget {
       decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(18)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        // отрезки растягиваются по высоте подложки, надпись и значок внутри — по центру
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [segment('grid_view', FolderView.board), segment('gesture', FolderView.canvas), segment('view_agenda', FolderView.list)],
       ),
     );

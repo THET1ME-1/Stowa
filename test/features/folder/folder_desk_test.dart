@@ -48,6 +48,11 @@ void main() {
     final views = tester.getRect(find.byKey(const ValueKey('desk-views')));
     expect(views.height, lessThanOrEqualTo(40));
     expect(views.width, lessThan(420));
+    // хозяин 22.11 со снимка: «что за выделение чёрным мелкое» — пилюля выбранного вида
+    // занимает всю высоту подложки с её полем в три точки, а не только высоту надписи
+    final chosen = tester.getRect(find.byKey(const ValueKey('desk-view-on')));
+    expect(chosen.height, views.height - 6);
+    expect(chosen.top, views.top + 3);
     for (final tip in ['Искать в папке', 'Порядок', 'Ещё']) {
       final button = tester.getRect(find.descendant(of: header, matching: find.byTooltip(tip)));
       expect(button.height, lessThanOrEqualTo(40), reason: tip);
