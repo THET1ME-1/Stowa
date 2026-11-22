@@ -51,6 +51,23 @@ void main() {
     expect(folders.last.count, 1);
   });
 
+  // хозяин 22.11: «А где сам холст в главном меню?» — карточка холста была одним названием,
+  // её не узнать среди картинок; обложка — первая картинка на холсте
+  test('холст на главной: обложка — первая картинка на нём, пропорция — её карточки', () async {
+    const document = '{"nodes":['
+        '{"id":"t","type":"text","text":"Мышки","x":0,"y":0,"width":200,"height":100},'
+        '{"id":"a","type":"file","file":"Вложения/мышь.pdf","x":0,"y":200,"width":300,"height":200},'
+        '{"id":"b","type":"file","file":"Вложения/IMG-20261122-195200.png","x":400,"y":0,"width":320,"height":240},'
+        '{"id":"c","type":"file","file":"Вложения/коврик.jpg","x":800,"y":0,"width":300,"height":300}'
+        '],"edges":[]}';
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'c', kind: ItemKind.canvas, title: 'Мышки', document: const Value(document), createdAt: _day, updatedAt: _day));
+    await db.into(db.items).insert(ItemsCompanion.insert(id: 'e', kind: ItemKind.canvas, title: 'Пустой', document: const Value('{"nodes":[],"edges":[]}'), createdAt: _day, updatedAt: _day));
+    final cards = {for (final card in await ItemsRepository(db).watchRecent().first) card.id: card};
+    expect(cards['c']!.thumbPath, 'Вложения/IMG-20261122-195200.png');
+    expect(cards['c']!.thumbRatio, closeTo(0.75, 0.001));
+    expect(cards['e']!.thumbPath, isNull);
+  });
+
   test('мёртвая ссылка на карточке: с копией статьи и без неё; живая — без пометки', () async {
     for (final id in ['copy', 'bare', 'alive']) {
       await db.into(db.items).insert(ItemsCompanion.insert(

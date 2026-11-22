@@ -13,6 +13,7 @@ import '../../domain/note_blocks.dart' show embedLine, embedNames, embedPath;
 import '../../domain/note_links.dart' show renameCanvasFile, renameLinks;
 import '../../domain/vault_note.dart';
 import '../privacy/sealed_space.dart';
+import '../../domain/json_canvas.dart' show CanvasDoc;
 import '../../domain/models.dart' show ItemKind, documentExtension, isDocumentKind;
 import 'vault_layout.dart';
 import 'vault_meta.dart';
@@ -724,6 +725,8 @@ class VaultWriter {
               ..limit(1))
             .getSingleOrNull();
         if (shared != null) continue;
+        // на файл смотрит живой холст — он нужен там, удаление заметки его не уносит
+        if (await _onCanvas(path)) continue;
       }
       var target = deleted ? trashPath(path) : path.substring(trashFolder.length + 1);
       if (!deleted && File(_absolute(target)).existsSync()) target = uniqueNotePath(target, (candidate) => File(_absolute(candidate)).existsSync());
@@ -737,6 +740,13 @@ class VaultWriter {
         await (_db.update(_db.attachments)..where((t) => t.id.equals(attachmentId))).write(AttachmentsCompanion(path: Value(path)));
       }
     });
+  }
+
+  /// Файл [path] стоит карточкой на живом холсте. Холстов в хранилище немного, а спрашивают
+  /// только при удалении заметки с вложением.
+  Future<bool> _onCanvas(String path) async {
+    final canvases = await (_db.select(_db.items)..where((t) => t.kind.equalsValue(ItemKind.canvas) & t.deletedAt.isNull() & t.document.isNotNull())).get();
+    return canvases.any((canvas) => CanvasDoc.parse(canvas.document!).nodes.any((node) => node.file == path));
   }
 
   /// Своя правка базы, которую не надо писать обратно в файлы: флаг глушит триггеры.

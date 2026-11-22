@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:image_picker/image_picker.dart' show XFile;
+import 'package:path/path.dart' as p;
+import 'package:stowa/services/vault/vault_layout.dart' show writeAttachmentSetting;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -403,25 +405,29 @@ void main() {
     await send('entered', [at.dx, at.dy]);
     await tester.pump();
     await send('performOperation', [path]);
-    // сохранение читает файл с диска: настоящее время
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
-    await tester.pump(const Duration(seconds: 4));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    // файл читается и пишется на настоящем диске в несколько шагов: настоящая пауза и кадр по очереди
+    for (var step = 0; step < 20; step++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 40)));
+      await tester.pump(const Duration(milliseconds: 200));
+    }
     await tester.pumpAndSettle();
   }
 
-  testWidgets('файл, брошенный мышью на холст-файл, — заметка (её разложат по папкам) и карточка там, где отпустили', (tester) async {
+  // до 22.11 брошенный файл становился заметкой; хозяин: «мне не надо видеть всё, что я загрузил
+  // в холст, а сам холст» — теперь как в Obsidian: файл — вложение холста, заметки нет
+  testWidgets('файл, брошенный мышью на холст-файл, — вложение холста и карточка там, где отпустили', (tester) async {
     final folder = Directory.systemTemp.createTempSync('stowa_drop');
     addTearDown(() => folder.deleteSync(recursive: true));
     final file = File('${folder.path}/смета.txt')..writeAsStringSync('затирка 2 кг');
+    writeAttachmentSetting(world.files, 'Вложения');
     await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
     await openWide(tester);
     await dropFile(tester, const Offset(900, 600), file.path);
     await saved(tester);
-    final note = (await world.db.select(world.db.items).get()).where((item) => item.kind != ItemKind.canvas);
-    expect(note, hasLength(1));
-    final placed = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file);
-    expect(placed, hasLength(1));
+    expect((await world.db.select(world.db.items).get()).map((item) => item.kind), [ItemKind.canvas], reason: 'заметки из файла нет');
+    final placed = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file).single;
+    expect(placed.file, 'Вложения/смета.txt');
+    expect(File(p.join(world.files.path, 'Вложения', 'смета.txt')).readAsStringSync(), 'затирка 2 кг');
   });
 
   // в Chromium карточка вставленной картинки появлялась, на секунду пропадала и вставала снова:
@@ -446,9 +452,11 @@ void main() {
     expect(placed, isTrue);
   });
 
-  // хозяин 22.11: «хочу вставить сразу в холст без инпута через Ctrl+V»; первая версия
-  // клала на холст «Image» пустой карточкой заметки вместо самой картинки
-  testWidgets('картинка из буфера (Ctrl+V) — карточка с самой картинкой, как кладёт Obsidian', (tester) async {
+  // хозяин 22.11: «хочу вставить сразу в холст без инпута через Ctrl+V», потом «2 фото загрузил
+  // в него… Мне не надо фото видеть всё, что я загрузил в холст, а сам холст» — картинка холста
+  // ложится его вложением, как в Obsidian, а не заметкой на главной
+  testWidgets('картинка из буфера (Ctrl+V) — вложение холста: файл в папке вложений, отдельной заметки нет', (tester) async {
+    writeAttachmentSetting(world.files, 'Вложения');
     await canvas(CanvasDoc.empty().addText('Замер', x: 0, y: 0));
     await openWide(tester);
     await world.paste(tester, [
@@ -457,16 +465,11 @@ void main() {
         mimeType: 'image/png',
       ),
     ]);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
     await saved(tester);
-    final picture = (await world.db.select(world.db.items).get()).singleWhere((item) => item.kind != ItemKind.canvas);
-    expect(picture.kind, ItemKind.image);
-    // карточка встала сразу, пока картинка во входящих
-    expect((await stored()).nodes.where((node) => node.type == CanvasNodeType.file), hasLength(1));
-    // писатель хранилища перенёс картинку в папку вложений (в тестовом мире его нет — делаем за него)
-    await (world.db.update(world.db.attachments)..where((t) => t.itemId.equals(picture.id))).write(const AttachmentsCompanion(path: Value('Вложения/IMG-20261122-182003.png')));
-    await tester.pump(const Duration(milliseconds: 600));
-    await saved(tester);
+    expect((await world.db.select(world.db.items).get()).map((item) => item.kind), [ItemKind.canvas], reason: 'заметки из картинки нет');
     final file = (await stored()).nodes.where((node) => node.type == CanvasNodeType.file).single;
-    expect(file.file, 'Вложения/IMG-20261122-182003.png', reason: 'карточка смотрит на картинку, а не на файл заметки');
+    expect(file.file, matches(RegExp(r'^Вложения/IMG-\d{8}-\d{6}\.png$')));
+    expect(File(p.join(world.files.path, file.file!)).existsSync(), isTrue);
   });
 }

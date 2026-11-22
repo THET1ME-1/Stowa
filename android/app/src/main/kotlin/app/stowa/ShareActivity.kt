@@ -15,5 +15,6 @@ class ShareActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         registerVaultChannel(flutterEngine, this)
         registerMediaChannel(flutterEngine)
+        registerClipboardChannel(flutterEngine, this)
     }
 }

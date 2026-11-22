@@ -20,7 +20,6 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
 import '../../domain/canvas_layout.dart';
-import '../../domain/item_kind.dart' show showsAsImage;
 import '../../domain/json_canvas.dart';
 import '../../domain/note_section.dart';
 import '../../l10n/app_localizations.dart';
@@ -30,9 +29,9 @@ import '../item/item_screen.dart' show openItem;
 import '../item/link_sheet.dart';
 import '../../services/capture_service.dart';
 import 'canvas_kit.dart';
-import '../composer/panel_text.dart' show untitledFor;
-import '../composer/picked_files.dart' show pickedFromXFile;
+import '../../core/clipboard/paste_router.dart' show pastedFileName;
 import 'package:image_picker/image_picker.dart' show XFile;
+import 'package:mime/mime.dart' show extensionFromMime, lookupMimeType;
 import '../composer/line_dock.dart';
 import '../workspace/workspace_shell.dart' show CaptureTarget, WorkspaceController, WorkspaceScope, WsTabScope;
 
@@ -157,51 +156,62 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
     }
   }
 
-  /// Файлы из системы, брошенные мышью или вставленные из буфера: каждый — заметка (её
-  /// раскладывают по папкам как обычно), на холсте — карточка там, где отпустили или где мышь.
+  /// Файлы из системы, брошенные мышью или вставленные из буфера, — вложения холста, как в
+  /// Obsidian: файл ложится в папку вложений, на холсте — карточка с ним там, где отпустили или
+  /// где мышь. Заметкой он не становится и на главной не появляется (хозяин 22.11: «мне не
+  /// надо фото видеть всё, что я загрузил в холст, а сам холст»).
   ///
-  /// Картинка встаёт карточкой сразу и видна из своих байтов, пока заметка сохраняется и
-  /// писатель переносит файл в папку вложений; потом карточка смотрит на сам файл картинки.
+  /// Картинка встаёт сразу и видна из своих байтов, пока файл пишется.
   @override
   Future<void> placeFiles(List<XFile> files, Offset at) async {
     if (!_editable) return;
     final l = L.of(context);
     final world = transform.toScene(at) - const Offset(_origin, _origin);
-    final capture = ref.read(captureServiceProvider);
     final documents = ref.read(documentsRepositoryProvider);
+    final attachments = ref.read(canvasAttachmentsProvider);
+    final now = DateTime.now();
     for (final (index, file) in files.indexed) {
       final center = world + Offset(index * 40.0, index * 40.0);
-      final picked = await pickedFromXFile(file);
-      if (!mounted || !_editable) return;
-      String? nodeId;
-      if (showsAsImage(picked.mime)) {
-        final name = p.basename(picked.path);
-        // байты, а не временный файл: хранитель файлов уносит его во входящие переименованием
-        final bytes = await file.readAsBytes();
-        if (!mounted) return;
-        nodeId = _put(name, center, picture: true);
-        _previews[nodeId] = bytes;
-      }
-      final String id;
+      final Uint8List bytes;
+      final String path;
       try {
-        id = await capture.capture(CaptureInput(files: [picked], untitled: (time) => untitledFor(l, mime: picked.mime, fileName: p.basename(picked.path), at: time)));
+        bytes = await file.readAsBytes();
+        final canvasPath = await documents.pathOf(widget.item.id) ?? '';
+        path = await attachments.pathFor(canvasPath, _fileName(file, now));
       } catch (_) {
-        if (nodeId != null && mounted) {
-          _previews.remove(nodeId);
-          _change(_doc.removeNode(nodeId));
-        }
         if (mounted) showNote(ScaffoldMessenger.of(context), l.attachFailed);
         return;
       }
-      if (nodeId == null) {
-        if (mounted) await _placeSaved([id], at: center);
-        continue;
+      if (!mounted || !_editable) return;
+      final picture = isCanvasImage(path);
+      final nodeId = _put(path, center, picture: picture);
+      if (picture) _previews[nodeId] = bytes;
+      // сперва холст со ссылкой, потом файл: иначе читатель хранилища застал бы файл без
+      // ссылки и завёл бы из него заметку
+      await _flushNow();
+      try {
+        await attachments.write(path, bytes);
+      } catch (_) {
+        if (!mounted) return;
+        _previews.remove(nodeId);
+        _change(_doc.removeNode(nodeId));
+        showNote(ScaffoldMessenger.of(context), l.attachFailed);
+        return;
       }
-      _placed[nodeId] = id;
-      // слежка читает холст из базы: карточка должна быть там до неё
-      if (mounted) await _flushNow();
-      documents.followPlaced(widget.item.id, nodeId, id);
     }
+  }
+
+  /// Имя файла на холсте: своё, у безымянной картинки из буфера — по дате, как фото;
+  /// без расширения — по типу.
+  String _fileName(XFile file, DateTime now) {
+    final raw = file.name.trim().isNotEmpty ? file.name : p.basename(file.path);
+    final mime = file.mimeType ?? lookupMimeType(raw) ?? 'application/octet-stream';
+    var name = pastedFileName(raw.trim(), mime, now);
+    if (name.trim().isEmpty) name = 'file';
+    if (p.extension(name).isEmpty) {
+      if (extensionFromMime(mime) case final extension? when extension.isNotEmpty) name = '$name.$extension';
+    }
+    return name;
   }
 
   /// Вставленные картинки: узел → байты для показа, пока файл ложится на место.
@@ -210,7 +220,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
   // и после перехода на файл в папке вложений: это тот же снимок, а загрузка его из файла
   // дала бы ещё одно мигание; карточка ушла с картинки (файл не лёг) — показ из файла
   Uint8List? _previewOf(CanvasNode node) =>
-      _imageExtensions.contains(p.extension(node.file ?? '').replaceFirst('.', '').toLowerCase()) ? _previews[node.id] : null;
+      isCanvasImage(node.file ?? '') ? _previews[node.id] : null;
 
   /// Карточка-файл [file] серединой в точке мира [center] (рядом, если там занято); выбрана.
   String _put(String file, Offset center, {required bool picture}) {
@@ -231,7 +241,7 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
       final settled = await documents.placedPathOf(id);
       final path = settled ?? await documents.pathOf(id);
       if (path == null || !mounted || !_editable) return;
-      final picture = _imageExtensions.contains(p.extension(path).replaceFirst('.', '').toLowerCase());
+      final picture = isCanvasImage(path);
       final nodeId = _put(path, (at ?? _center) + Offset(index * 40.0, index * 40.0), picture: picture);
       _placed[nodeId] = id;
       if (settled != null) continue;
@@ -1356,8 +1366,6 @@ class _LinkFace extends StatelessWidget {
   }
 }
 
-const _imageExtensions = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'heic', 'bmp', 'avif'};
-
 class _FileFace extends ConsumerWidget {
   const _FileFace({required this.path, required this.filesRoot, required this.missing, this.subpath});
 
@@ -1372,7 +1380,7 @@ class _FileFace extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final extension = path.contains('.') ? path.substring(path.lastIndexOf('.') + 1).toLowerCase() : '';
-    if (_imageExtensions.contains(extension)) {
+    if (isCanvasImage(path)) {
       return FilePicture(File(vaultAbsolute(filesRoot.path, path)), fit: BoxFit.cover, cacheWidth: 900, errorBuilder: (_, _, _) => _plain(text, 'broken_image', missing));
     }
     if (extension != 'md' && extension != 'canvas' && extension != 'base') return _plain(text, 'draft', path.split('/').last);

@@ -955,8 +955,9 @@ class _Photo extends StatelessWidget {
           ),
         ),
         // у фото без текста заголовок — «Фото от 7 ноября», день и так над ним
-        // подпись — как текст заметки: заголовок и две строки
-        if (lines.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 0), child: _Text(item: item, fill: fill, onToggle: onToggle)),
+        // подпись — как текст заметки: заголовок и две строки; у холста название всегда —
+        // обложка лишь первая картинка на нём, без названия холст среди фото не узнать
+        if (lines.isNotEmpty || item.kind == ItemKind.canvas) Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 0), child: _Text(item: item, fill: fill, onToggle: onToggle)),
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:stowa/data/db/database.dart';
@@ -113,6 +114,53 @@ void main() {
     await tester.pumpAndSettle();
     await world.fromKeyboard(tester, line, _copied().single);
     expect(tester.state<LineDockState>(find.byType(LineDock).first).holdsMedia, isTrue);
+  });
+
+  // хозяин 22.11: «Вообще-то показывает» — «Вставить» в меню долгого нажатия видна, когда в
+  // буфере картинка, но Flutter достаёт из буфера только текст и молча ничего не вставлял
+  testWidgets('Android: долгое нажатие в тексте заметки → «Вставить» — картинка из буфера на место курсора', (tester) async {
+    world.clipboardImage = _copied().single;
+    await note('Плитка\nклей', title: 'Плитка');
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    final body = find.byType(TextField).last;
+    final field = tester.widget<TextField>(body);
+    // долгое нажатие ниже текста ставит курсор в конец — туда картинка и встанет
+    await tester.longPress(body);
+    await tester.pumpAndSettle();
+    expect(field.controller!.selection, const TextSelection.collapsed(offset: 11, affinity: TextAffinity.upstream));
+    await tester.tap(find.text('Вставить'));
+    await world.settleFiles(tester);
+    expect(field.controller!.text, matches(RegExp(r'^Плитка\nклей\n!\[\[IMG-[\d-]+\.png\]\]\n$')));
+    expect(await attachmentsOf('a'), 1);
+  });
+
+  testWidgets('Android: в буфере текст — «Вставить» вставляет текст, как раньше', (tester) async {
+    world.clipboardImage = null;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.getData') return {'text': 'затирка'};
+      if (call.method == 'Clipboard.hasStrings') return {'value': true};
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    await note('Плитка', title: 'Плитка');
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    final body = find.byType(TextField).last;
+    final field = tester.widget<TextField>(body);
+    field.controller!.selection = TextSelection.collapsed(offset: field.controller!.text.length);
+    await tester.longPress(body);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Вставить'));
+    await tester.pumpAndSettle();
+    expect(field.controller!.text, 'Плитказатирка');
+    expect(await attachmentsOf('a'), 0);
   });
 
   testWidgets('на главной картинка ложится в строку вложением', (tester) async {

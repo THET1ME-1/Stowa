@@ -119,10 +119,22 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
         if (_moving[id] ?? saved[id] case final spot?) id: (x: spot.x + shift.dx, y: spot.y + shift.dy, width: spot.width),
     };
     setState(() => _moving.addAll(moved));
-    ref.read(canvasRepositoryProvider).saveAll(widget.folderId, moved).then((_) {
-      if (mounted) setState(() => moved.keys.forEach(_moving.remove));
-    });
+    // своё место держится, пока база не пришлёт его же (_forgetSettled)
+    ref.read(canvasRepositoryProvider).saveAll(widget.folderId, moved).ignore();
     return true;
+  }
+
+  /// Своё место карточки держится, пока база не пришлёт его же. В браузере записанное
+  /// приходит назад заметно позже записи: забудь экран своё сразу после записи — карточка
+  /// прыгала бы на старое место и снова на новое (хозяин 22.11: «телепается обратно»).
+  void _forgetSettled(Map<String, CanvasSpot> saved) {
+    if (_hold != null) return;
+    final settled = [
+      for (final MapEntry(key: id, value: spot) in _moving.entries)
+        if (saved[id] case final stored? when (stored.x - spot.x).abs() < 0.5 && (stored.y - spot.y).abs() < 0.5 && (stored.width - spot.width).abs() < 0.5) id,
+    ];
+    if (settled.isEmpty) return;
+    setState(() => settled.forEach(_moving.remove));
   }
 
   @override
@@ -354,8 +366,8 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     setState(() => _hold = null);
     final moved = Map.of(_moving);
     if (moved.isEmpty) return;
+    // своё место держится, пока база не пришлёт его же (_forgetSettled)
     await ref.read(canvasRepositoryProvider).saveAll(widget.folderId, moved);
-    if (mounted) setState(() => moved.keys.forEach(_moving.remove));
   }
 
   void _pointerDown(PointerDownEvent event) {
@@ -372,6 +384,9 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(canvasSpotsProvider(widget.folderId), (_, next) {
+      if (next.value case final spots?) _forgetSettled(spots);
+    });
     final saved = ref.watch(canvasSpotsProvider(widget.folderId)).value;
     final filesRoot = ref.watch(filesRootProvider);
     if (saved == null) return const SizedBox.expand();

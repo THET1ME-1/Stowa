@@ -173,7 +173,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _paste = ref.read(pasteRouterProvider);
     _claimPaste();
     _bodyFocus.addListener(() {
-      if (_bodyFocus.hasFocus) _claimPaste();
+      if (!_bodyFocus.hasFocus) return;
+      _claimPaste();
+      // есть ли картинка в буфере Android: меню «Вставить» строится сразу, ждать ответа не может
+      ref.read(clipboardImagesProvider).refresh().ignore();
     });
     HardwareKeyboard.instance.addHandler(_onKey);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
@@ -1339,8 +1342,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                       // поле растёт с текстом: одна строка — одна строка, без пустоты под ней
                                       maxLines: null,
                                       keyboardType: TextInputType.multiline,
-                                      // картинка с клавиатуры телефона (Gboard) — в текст на место курсора
+                                      // картинка с клавиатуры телефона (Gboard) и «Вставить» из меню — в текст на место курсора
                                       contentInsertionConfiguration: ref.watch(keyboardContentProvider),
+                                      contextMenuBuilder: ref.watch(pasteMenuProvider),
                                       inputFormatters: [
                                         TextInputFormatter.withFunction(continueLists),
                                         TextInputFormatter.withFunction(closeWikiBrackets),

@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:stowa/app.dart';
+import 'package:stowa/core/clipboard/clipboard_images.dart';
 import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/hints_repository.dart';
@@ -258,6 +259,7 @@ class TestWorld {
         deviceCountryProvider.overrideWithValue(deviceCountry),
         keyLockCostProvider.overrideWithValue(keyLockCost),
         pastedFilesProvider.overrideWithValue(pasted.stream),
+        clipboardImagesProvider.overrideWithValue(_TestClipboardImages(this)),
         urlOpenerProvider.overrideWithValue((url) async {
           openedUrls.add(url);
           return true;
@@ -300,6 +302,9 @@ class TestWorld {
 
   /// Буфер обмена: что «вставили» сочетанием Ctrl+V (в браузере — событие вставки страницы).
   final pasted = StreamController<List<XFile>>.broadcast();
+
+  /// Картинка в буфере Android (то, что отдаёт канал `stowa/clipboard`); null — картинки нет.
+  XFile? clipboardImage;
 
   /// Клавиатура телефона вставила картинку в поле [field] (Gboard: картинка из её буфера),
   /// дождаться, пока она ляжет.
@@ -492,4 +497,17 @@ class FakeBiometrics implements Biometrics {
     asked++;
     return present && answer;
   }
+}
+
+/// Буфер Android в тестах: картинку кладёт тест (`world.clipboardImage`).
+class _TestClipboardImages extends ClipboardImages {
+  _TestClipboardImages(this._world);
+
+  final TestWorld _world;
+
+  @override
+  Future<bool> has() async => _world.clipboardImage != null;
+
+  @override
+  Future<XFile?> read() async => _world.clipboardImage;
 }

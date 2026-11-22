@@ -85,7 +85,7 @@ void main() {
   });
 
   // большая папка: целиком она видна только мельче 100 %
-  Future<void> openBig(WidgetTester tester) async {
+  Future<void> openBig(WidgetTester tester, {List<Override> extra = const []}) async {
     final db = world.db;
     await db.into(db.folders).insert(FoldersCompanion.insert(id: 'big', name: 'Большая', icon: 'folder', shape: 'pill'));
     for (var index = 0; index < 14; index++) {
@@ -97,7 +97,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     addTearDown(() => tester.pumpWidget(const SizedBox()));
-    await tester.pumpWidget(world.app());
+    await tester.pumpWidget(extra.isEmpty ? world.app() : ProviderScope(overrides: [...world.overrides, ...extra], child: const StowaApp(locale: Locale('ru'))));
     await tester.pumpAndSettle();
     await tester.tap(find.descendant(of: find.byType(FolderPill), matching: find.text('Большая')));
     await tester.pumpAndSettle();
@@ -123,6 +123,37 @@ void main() {
     final moved = tester.getTopLeft(find.text('Вещь 0').last) - before;
     expect(moved.dx, closeTo(60, 1.5));
     expect(moved.dy, closeTo(40, 1.5));
+  });
+
+  // хозяин 22.11: «Когда передвигаешь любой элемент, он телепается обратно и на новую позицию» —
+  // экран забывал своё место раньше, чем оно приходило из базы
+  testWidgets('отпустил карточку — ни в одном кадре она не прыгает назад, пока место пишется', (tester) async {
+    // в браузере база в своём потоке: записанное место приходит назад заметно позже записи
+    await openBig(tester, extra: [
+      canvasSpotsProvider.overrideWith(
+        (ref, folderId) => ref.watch(canvasRepositoryProvider).watch(folderId).asyncMap((spots) async {
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+          return spots;
+        }),
+      ),
+    ]);
+    // места приходят с задержкой таймером, а pumpAndSettle таймеров без кадров не ждёт
+    for (var step = 0; step < 6; step++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    await tester.pumpAndSettle();
+    final card = find.text('Вещь 0').last;
+    final finger = await tester.startGesture(tester.getCenter(card));
+    for (var step = 0; step < 6; step++) {
+      await finger.moveBy(const Offset(10, 6));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final dragged = tester.getTopLeft(card);
+    await finger.up();
+    for (var frame = 0; frame < 30; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      expect((tester.getTopLeft(find.text('Вещь 0').last) - dragged).distance, lessThan(1.5), reason: 'кадр $frame');
+    }
   });
 
   testWidgets('щипок двумя пальцами, один на карточке, — масштаб, а карточка на месте', (tester) async {

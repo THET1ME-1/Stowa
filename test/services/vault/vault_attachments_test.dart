@@ -174,6 +174,29 @@ void main() {
     expect(await paths('n'), ['Вложения/a.jpg', 'Вложения/b.jpg']);
   });
 
+  // 22.11: картинки, вставленные на холст первой версией, легли заметками; удалить такую
+  // заметку с главной — картинка должна остаться на холсте, а не уйти в корзину
+  test('корзина: вложение, на которое смотрит холст, остаётся на месте', () async {
+    writeAttachmentSetting(root, 'Вложения');
+    await item('n', title: 'Фото от 22 ноября', body: '![[IMG-20261122-195200.png]]');
+    await attach('n', 'Вложения/IMG-20261122-195200.png');
+    await db.into(db.items).insert(
+      ItemsCompanion.insert(
+        id: 'c',
+        kind: ItemKind.canvas,
+        title: 'Мышки',
+        document: const Value('{\n\t"nodes":[\n\t\t{"id":"f1","type":"file","file":"Вложения/IMG-20261122-195200.png","x":0,"y":0,"width":320,"height":240}\n\t],\n\t"edges":[]\n}'),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await writer().drain();
+    await (db.update(db.items)..where((t) => t.id.equals('n'))).write(ItemsCompanion(deletedAt: Value(now)));
+    await writer().drain();
+    expect(file('Вложения/IMG-20261122-195200.png').existsSync(), isTrue);
+    expect(file('.trash/Вложения/IMG-20261122-195200.png').existsSync(), isFalse);
+  });
+
   test('старая заметка с каталогом «Заметка/»: правка ничего не переносит', () async {
     note('Дом/Плитка.md', 'Плитка\n\n![[Дом/Плитка/a.jpg]]\n');
     put('Дом/Плитка/a.jpg');

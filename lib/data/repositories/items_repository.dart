@@ -8,6 +8,7 @@ import '../../core/theme/folder_palette.dart';
 import '../../domain/folder_guess.dart';
 import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
+import '../../domain/json_canvas.dart' show canvasCover;
 import '../../domain/line_query.dart' show searchWords;
 import '../../domain/models.dart';
 import '../../domain/money.dart' show sumByCurrency;
@@ -1394,6 +1395,9 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
     final item = _db.items.map(row.data);
     final tagNames = row.readNullable<String>('tag_names');
     final file = row.readNullable<String>('first_file')?.split('\x1f');
+    // у холста своих вложений нет — обложка из первой картинки на нём, иначе его карточка —
+    // одно название, и среди картинок ленты холст не узнать
+    final cover = item.kind == ItemKind.canvas && row.readNullable<String>('thumb_path') == null ? canvasCover(item.document) : null;
     return ItemCard(
       tags: tagNames == null || tagNames.isEmpty ? const [] : tagNames.split('\x1f'),
       filePath: file?[0],
@@ -1412,8 +1416,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       folderIcon: row.readNullable<String>('folder_icon'),
       folderColor: item.folderId == null ? null : FolderPalette.of(row.readNullable<String>('folder_color'), row.readNullable<int>('folder_order') ?? 0),
       reminderAt: item.reminderAt,
-      thumbPath: row.readNullable<String>('thumb_path'),
-      thumbRatio: row.readNullable<double>('thumb_ratio'),
+      thumbPath: cover?.path ?? row.readNullable<String>('thumb_path'),
+      thumbRatio: cover?.ratio ?? row.readNullable<double>('thumb_ratio'),
       durationSeconds: item.durationSeconds,
       latitude: item.latitude,
       longitude: item.longitude,

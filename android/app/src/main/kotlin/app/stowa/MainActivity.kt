@@ -39,6 +39,7 @@ class MainActivity : FlutterFragmentActivity() {
         registerVaultChannel(flutterEngine, this)
         registerPlaceChannel(flutterEngine, this)
         registerMediaChannel(flutterEngine)
+        registerClipboardChannel(flutterEngine, this)
         registerEdgeChannel(flutterEngine, this)
         // виджет-заметка: Dart отдаёт свежий widget.json после правок и смены замка (STOWA-8)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/widget").setMethodCallHandler { call, result ->

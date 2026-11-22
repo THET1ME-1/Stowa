@@ -6,7 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart' show BaseAggregate, DriftSqlType, OrderingTerm;
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart' show Brightness, ColorScheme;
+import 'package:flutter/material.dart' show AppLifecycleListener, Brightness, ColorScheme;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:url_launcher/url_launcher.dart';
@@ -50,10 +50,13 @@ import '../services/privacy/privacy_service.dart';
 import '../services/notice_service.dart';
 import '../services/reminder_service.dart';
 import '../services/telegram_service.dart';
+import '../services/vault/canvas_attachments.dart';
 import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
+import '../core/clipboard/clipboard_images.dart';
 import '../core/clipboard/keyboard_content.dart';
+import '../core/clipboard/paste_menu.dart';
 import '../core/clipboard/paste_router.dart';
 import '../core/clipboard/paste_source.dart' if (dart.library.js_interop) '../core/clipboard/paste_source_web.dart';
 import '../services/billing/billing_api.dart';
@@ -858,6 +861,21 @@ final pasteRouterProvider = Provider((ref) {
 /// Поля ввода принимают картинку с клавиатуры телефона (Gboard): она идёт туда же, куда
 /// вставка из буфера.
 final keyboardContentProvider = Provider((ref) => keyboardContent(ref.watch(pasteRouterProvider), cache: ref.watch(cacheRootProvider)));
+
+/// Файлы, положенные на холст-файл: вложения холста в папке вложений, не заметки.
+final canvasAttachmentsProvider = Provider((ref) => CanvasAttachments(ref.watch(databaseProvider), root: ref.watch(filesRootProvider)));
+
+/// Картинка в буфере Android. Тесты подменяют. Буфер проверяется заново, когда человек
+/// вернулся в приложение: картинку обычно копируют в другом.
+final clipboardImagesProvider = Provider((ref) {
+  final images = ClipboardImages(cache: ref.watch(cacheRootProvider));
+  final listener = AppLifecycleListener(onResume: () => images.refresh().ignore());
+  ref.onDispose(listener.dispose);
+  return images;
+});
+
+/// Меню полей ввода: «Вставить» на Android вставляет и картинку из буфера.
+final pasteMenuProvider = Provider((ref) => pasteMenu(ref.watch(clipboardImagesProvider), ref.watch(pasteRouterProvider)));
 
 /// Цена Argon2 для своего пароля шифрования. Тесты ставят лёгкую: цена не то, что они проверяют.
 final keyLockCostProvider = Provider<KeyLockCost>((ref) => const KeyLockCost());

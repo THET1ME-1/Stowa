@@ -219,6 +219,29 @@ final _random = Random.secure();
 /// Id как у Obsidian: 16 шестнадцатеричных знаков.
 String newCanvasId() => List.generate(16, (_) => _random.nextInt(16).toRadixString(16)).join();
 
+/// Файлы, которые карточка холста показывает картинкой.
+const canvasImageExtensions = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'heic', 'bmp', 'avif'};
+
+/// Картинка ли файл карточки [path] — по расширению, как решает Obsidian.
+bool isCanvasImage(String path) {
+  final name = path.split('/').last;
+  final dot = name.lastIndexOf('.');
+  return dot > 0 && canvasImageExtensions.contains(name.substring(dot + 1).toLowerCase());
+}
+
+/// Обложка холста на главной и в ленте: первая картинка на нём и пропорция её карточки
+/// (высота к ширине). Картинок нет или файл не разобрался — null.
+({String path, double ratio})? canvasCover(String? document) {
+  if (document == null || document.trim().isEmpty) return null;
+  final doc = CanvasDoc.parse(document);
+  for (final node in doc.nodes) {
+    final file = node.file;
+    if (node.type != CanvasNodeType.file || file == null || !isCanvasImage(file) || node.width <= 0) continue;
+    return (path: file, ratio: node.height / node.width);
+  }
+  return null;
+}
+
 String _fileTitle(String path) {
   final name = path.split('/').last;
   if (name.endsWith('.md')) return name.substring(0, name.length - 3);

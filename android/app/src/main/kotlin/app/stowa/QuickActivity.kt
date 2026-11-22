@@ -45,7 +45,8 @@ class QuickActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         registerVaultChannel(flutterEngine, this)
         registerMediaChannel(flutterEngine)
-        window = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/window")
+        registerClipboardChannel(flutterEngine, this)
+        window =MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/window")
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "stowa/launch").setMethodCallHandler { call, result ->
             when (call.method) {
                 "initial" -> {

@@ -70,6 +70,24 @@ void main() {
 
   Rect cardOf(WidgetTester tester, String id) => tester.getRect(find.byKey(ValueKey('dot-$id')));
 
+  // хозяин 22.11: «А где сам холст в главном меню?» — холст с картинками рисовался как фото без
+  // подписи, и в ленте было не понять, что это холст
+  testWidgets('холст с обложкой — картинка и его название, даже без текста на нём', (tester) async {
+    final canvas = ItemCard(
+      id: 'c',
+      title: 'Мышки',
+      body: '',
+      kind: ItemKind.canvas,
+      folderId: null,
+      sortState: SortState.sorted,
+      createdAt: world.now,
+      thumbPath: 'Вложения/IMG-20261122-195200.png',
+      thumbRatio: 0.75,
+    );
+    await open(tester, [canvas]);
+    expect(find.text('Мышки'), findsOneWidget);
+  });
+
   testWidgets('карточка видна целиком — точка у её низа, как аватарка в Telegram', (tester) async {
     await open(tester, [note('short', 'Купить хлеб', 1)]);
     final card = cardOf(tester, 'short');

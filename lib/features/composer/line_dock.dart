@@ -313,7 +313,11 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   void _onFocus() {
     // строка в фокусе — вставка из буфера идёт в неё, а не в холст или заметку под ней
-    if (_focus.hasFocus) _paste.claim(this, _pasted, shown: () => shownOnScreen(this));
+    if (_focus.hasFocus) {
+      _paste.claim(this, _pasted, shown: () => shownOnScreen(this));
+      // есть ли картинка в буфере Android: меню «Вставить» строится сразу, ждать ответа не может
+      ref.read(clipboardImagesProvider).refresh().ignore();
+    }
     if (_focus.hasFocus && !_active) {
       setState(() {
         _active = true;
@@ -1245,8 +1249,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         // строка не теряет фокус после «Вставить», клавиатура остаётся
         onEditingComplete: () {},
         onTap: _activate,
-        // картинка с клавиатуры телефона (Gboard) — вложением, как из «+»
+        // картинка с клавиатуры телефона (Gboard) и «Вставить» из меню — вложением, как из «+»
         contentInsertionConfiguration: ref.watch(keyboardContentProvider),
+        contextMenuBuilder: ref.watch(pasteMenuProvider),
         cursorColor: Tokens.accent,
         style: fieldStyle,
         // второй «[» дописывает «]]»; под замком подсказки нет, но скобки закрываются; << >> -- — в « » —
