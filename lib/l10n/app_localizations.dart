@@ -827,6 +827,30 @@ abstract class L {
   /// **'Allow'**
   String get trayAllow;
 
+  /// Вкладка лотка «+» там, где галереи телефона нет (сайт, компьютер): фото и видео выбирают окном выбора файлов
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos'**
+  String get trayPhotos;
+
+  /// Подсказка в лотке «+» на сайте, открытом с телефона: галерею открывает окно выбора браузера
+  ///
+  /// In en, this message translates to:
+  /// **'Pick photos and videos from your gallery'**
+  String get trayPickHint;
+
+  /// Подсказка в лотке «+» на компьютере: файлы выбирают окном или перетаскивают
+  ///
+  /// In en, this message translates to:
+  /// **'Pick photos and videos or drag them into the window'**
+  String get trayPickHintDesk;
+
+  /// Кнопка в лотке «+»: открыть окно выбора фото и видео
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get trayPick;
+
   /// Tray without photos
   ///
   /// In en, this message translates to:

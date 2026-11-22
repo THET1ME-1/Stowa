@@ -442,6 +442,19 @@ class LRo extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get trayPhotos => 'Poze și clipuri';
+
+  @override
+  String get trayPickHint => 'Alege poze și clipuri din galerie';
+
+  @override
+  String get trayPickHintDesk =>
+      'Alege poze și clipuri sau trage-le în fereastră';
+
+  @override
+  String get trayPick => 'Alege';
+
+  @override
   String get trayEmpty => 'The gallery is empty';
 
   @override

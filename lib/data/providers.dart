@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/icons/icon_registry.dart';
 import '../core/fs/web_files.dart' show watchAutofill;
-import '../core/platform.dart' show aside, isWeb;
+import '../core/platform.dart' show aside, isAndroid, isIOS, isWeb;
 import '../l10n/app_language.dart';
 import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
@@ -838,6 +838,10 @@ final storedInBrowserProvider = Provider((ref) => isWeb);
 /// Хранилищ может быть несколько, и между ними переключаются: Android, компьютер и браузер.
 /// На iPhone место одно — папка приложения в «Файлах».
 final manyVaultsProvider = Provider((ref) => ref.watch(vaultHomeProvider) == null || ref.watch(storedInBrowserProvider));
+
+/// Лоток «+» читает галерею телефона сам (плитки последних фото). В браузере и на компьютере
+/// галереи нет: там фото выбирают окном выбора файлов. Тесты изображают телефон.
+final galleryInTrayProvider = Provider<bool>((ref) => isAndroid || isIOS);
 
 /// Открыть файл программой системы; false — нечем. Тесты подменяют: на компьютере настоящий
 /// вызов запустил бы чужую программу.

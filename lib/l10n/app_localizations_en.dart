@@ -441,6 +441,19 @@ class LEn extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get trayPhotos => 'Photos and videos';
+
+  @override
+  String get trayPickHint => 'Pick photos and videos from your gallery';
+
+  @override
+  String get trayPickHintDesk =>
+      'Pick photos and videos or drag them into the window';
+
+  @override
+  String get trayPick => 'Choose';
+
+  @override
   String get trayEmpty => 'The gallery is empty';
 
   @override

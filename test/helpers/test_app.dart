@@ -160,6 +160,8 @@ class TestWorld {
         bookmarksPickerProvider.overrideWithValue(() async => pickedFile),
         vaultHomeProvider.overrideWithValue(vaultHome),
         if (browserVaults case final browserVaults?) browserVaultsRootProvider.overrideWithValue(browserVaults),
+        // тесты изображают телефон; с [inBrowser] — сайт, где галереи нет
+        galleryInTrayProvider.overrideWithValue(!inBrowser),
         fileOpenerProvider.overrideWithValue((path, mime) async {
           openedFiles.add(path);
           return canOpenFiles;

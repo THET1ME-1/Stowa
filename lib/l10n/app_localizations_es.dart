@@ -441,6 +441,19 @@ class LEs extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get trayPhotos => 'Fotos y vídeos';
+
+  @override
+  String get trayPickHint => 'Elige fotos y vídeos de tu galería';
+
+  @override
+  String get trayPickHintDesk =>
+      'Elige fotos y vídeos o arrástralos a la ventana';
+
+  @override
+  String get trayPick => 'Elegir';
+
+  @override
   String get trayEmpty => 'The gallery is empty';
 
   @override

@@ -441,6 +441,19 @@ class LPl extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get trayPhotos => 'Zdjęcia i filmy';
+
+  @override
+  String get trayPickHint => 'Wybierz zdjęcia i filmy z galerii';
+
+  @override
+  String get trayPickHintDesk =>
+      'Wybierz zdjęcia i filmy albo przeciągnij je do okna';
+
+  @override
+  String get trayPick => 'Wybierz';
+
+  @override
   String get trayEmpty => 'The gallery is empty';
 
   @override

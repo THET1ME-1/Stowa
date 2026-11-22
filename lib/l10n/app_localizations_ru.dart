@@ -440,6 +440,18 @@ class LRu extends L {
   String get trayAllow => 'Разрешить';
 
   @override
+  String get trayPhotos => 'Фото и видео';
+
+  @override
+  String get trayPickHint => 'Выбери фото и видео из галереи';
+
+  @override
+  String get trayPickHintDesk => 'Выбери фото и видео или перетащи их в окно';
+
+  @override
+  String get trayPick => 'Выбрать';
+
+  @override
   String get trayEmpty => 'В галерее пусто';
 
   @override

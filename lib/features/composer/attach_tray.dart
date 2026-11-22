@@ -26,17 +26,32 @@ Future<Uint8List?> galleryThumb(AssetEntity asset) async {
 class AttachTray extends StatefulWidget {
   const AttachTray({
     super.key,
+    this.gallery = true,
+    this.camera = true,
     required this.selected,
     required this.onToggle,
+    required this.onPickMedia,
     required this.onCamera,
     required this.onVideo,
     required this.onFiles,
     required this.onLink,
   });
 
+  /// Галерею телефона можно читать прямо в лотке. В браузере и на компьютере её нет: там
+  /// фото выбирают окном выбора файлов ([onPickMedia]), а доступ просить не у кого —
+  /// хозяин 22.11 со снимка сайта: «я разрешил, но не работает».
+  final bool gallery;
+
+  /// У устройства есть камера, которую открывает система: телефон и сайт на телефоне.
+  /// На компьютере «Камера» открыла бы то же окно выбора файла.
+  final bool camera;
+
   /// Id выбранных из галереи по порядку: номер на плитке.
   final List<String> selected;
   final void Function(AssetEntity asset, Uint8List? thumb) onToggle;
+
+  /// Выбрать фото и видео окном системы или браузера.
+  final VoidCallback onPickMedia;
   final VoidCallback onCamera;
   final VoidCallback onVideo;
   final VoidCallback onFiles;
@@ -54,7 +69,8 @@ class _AttachTrayState extends State<AttachTray> {
   @override
   void initState() {
     super.initState();
-    _load(request: true);
+    // без галереи телефонный плагин не трогаем: его там нет, запрос только падал бы
+    if (widget.gallery) _load(request: true);
   }
 
   Future<void> _load({required bool request}) async {
@@ -94,9 +110,9 @@ class _AttachTrayState extends State<AttachTray> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final tabs = [
-      ('photo_library', l.trayGallery, null),
-      ('photo_camera', l.trayCamera, widget.onCamera),
-      ('videocam', l.trayVideo, widget.onVideo),
+      ('photo_library', widget.gallery ? l.trayGallery : l.trayPhotos, null),
+      if (widget.camera) ('photo_camera', l.trayCamera, widget.onCamera),
+      if (widget.camera) ('videocam', l.trayVideo, widget.onVideo),
       ('attach_file', l.trayFile, widget.onFiles),
       ('link', l.trayLink, widget.onLink),
     ];
@@ -124,6 +140,24 @@ class _AttachTrayState extends State<AttachTray> {
 
   Widget _grid(L l) {
     final text = Theme.of(context).textTheme;
+    // галереи нет: фото и видео выбирают окном, на компьютере — ещё и перетаскивают в окно
+    if (!widget.gallery) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.camera ? l.trayPickHint : l.trayPickHintDesk,
+              textAlign: TextAlign.center,
+              style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(key: const ValueKey('tray-pick'), onPressed: widget.onPickMedia, child: Text(l.trayPick)),
+          ],
+        ),
+      );
+    }
     final permission = _permission;
     if (permission == null) {
       return SizedBox(

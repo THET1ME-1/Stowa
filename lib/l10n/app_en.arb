@@ -568,6 +568,22 @@
     "description": "Tray without permission"
   },
   "trayAllow": "Allow",
+  "trayPhotos": "Photos and videos",
+  "@trayPhotos": {
+    "description": "Вкладка лотка «+» там, где галереи телефона нет (сайт, компьютер): фото и видео выбирают окном выбора файлов"
+  },
+  "trayPickHint": "Pick photos and videos from your gallery",
+  "@trayPickHint": {
+    "description": "Подсказка в лотке «+» на сайте, открытом с телефона: галерею открывает окно выбора браузера"
+  },
+  "trayPickHintDesk": "Pick photos and videos or drag them into the window",
+  "@trayPickHintDesk": {
+    "description": "Подсказка в лотке «+» на компьютере: файлы выбирают окном или перетаскивают"
+  },
+  "trayPick": "Choose",
+  "@trayPick": {
+    "description": "Кнопка в лотке «+»: открыть окно выбора фото и видео"
+  },
   "@trayAllow": {
     "description": "Button"
   },

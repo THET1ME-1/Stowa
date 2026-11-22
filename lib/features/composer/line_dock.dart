@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1128,8 +1129,12 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                                             decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
                                             padding: const EdgeInsets.all(6),
                                             child: AttachTray(
+                                              gallery: ref.watch(galleryInTrayProvider),
+                                              // камеру открывает система телефона; сайт на телефоне — тоже
+                                              camera: defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS,
                                               selected: [for (final file in _files) file.key],
                                               onToggle: _toggleAsset,
+                                              onPickMedia: () => _pick(pickGalleryMedia),
                                               onCamera: () => _pick(pickCameraPhoto),
                                               onVideo: () => _pick(pickCameraVideo),
                                               onFiles: () => _pick(pickAnyFiles),

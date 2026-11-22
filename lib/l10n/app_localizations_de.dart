@@ -442,6 +442,19 @@ class LDe extends L {
   String get trayAllow => 'Allow';
 
   @override
+  String get trayPhotos => 'Fotos und Videos';
+
+  @override
+  String get trayPickHint => 'Wähle Fotos und Videos aus deiner Galerie';
+
+  @override
+  String get trayPickHintDesk =>
+      'Wähle Fotos und Videos oder zieh sie ins Fenster';
+
+  @override
+  String get trayPick => 'Auswählen';
+
+  @override
   String get trayEmpty => 'The gallery is empty';
 
   @override
