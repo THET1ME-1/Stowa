@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart' show WidgetTester;
+import 'package:flutter_test/flutter_test.dart' show Finder, WidgetTester, find;
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
@@ -301,10 +301,24 @@ class TestWorld {
   /// Буфер обмена: что «вставили» сочетанием Ctrl+V (в браузере — событие вставки страницы).
   final pasted = StreamController<List<XFile>>.broadcast();
 
+  /// Клавиатура телефона вставила картинку в поле [field] (Gboard: картинка из её буфера),
+  /// дождаться, пока она ляжет.
+  Future<void> fromKeyboard(WidgetTester tester, Finder field, XFile image) async {
+    final bytes = await tester.runAsync(image.readAsBytes);
+    final editable = tester.state<EditableTextState>(find.descendant(of: field, matching: find.byType(EditableText)));
+    editable.insertContent(KeyboardInsertedContent(mimeType: image.mimeType ?? 'image/png', uri: 'content://keyboard/image', data: bytes));
+    await settleFiles(tester);
+  }
+
   /// Вставить картинку и дождаться, пока она ляжет. Обработчик живёт в поддельном времени
   /// теста, а файлы пишутся на настоящий диск: настоящая пауза и кадр по очереди.
   Future<void> paste(WidgetTester tester, List<XFile> files) async {
     pasted.add(files);
+    await settleFiles(tester);
+  }
+
+  /// Дождаться, пока вставленный файл ляжет: настоящая пауза и кадр по очереди.
+  Future<void> settleFiles(WidgetTester tester) async {
     // файл встаёт в очередь и уходит из неё, когда копия легла вложением; строка файлы
     // держит у себя до «Закинуть» — там очереди нет вовсе
     var queued = false;

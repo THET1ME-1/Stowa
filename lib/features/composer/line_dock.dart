@@ -1245,6 +1245,8 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
         // строка не теряет фокус после «Вставить», клавиатура остаётся
         onEditingComplete: () {},
         onTap: _activate,
+        // картинка с клавиатуры телефона (Gboard) — вложением, как из «+»
+        contentInsertionConfiguration: ref.watch(keyboardContentProvider),
         cursorColor: Tokens.accent,
         style: fieldStyle,
         // второй «[» дописывает «]]»; под замком подсказки нет, но скобки закрываются; << >> -- — в « » —

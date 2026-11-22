@@ -85,6 +85,36 @@ void main() {
     expect(spots.map((spot) => spot.itemId), contains(pasted.id));
   });
 
+  // хозяин 22.11: «А на андроид такая вставка с клавиатуры работает?» — Gboard вставляет
+  // картинку из своего буфера через поле ввода (commitContent), без Ctrl+V
+  testWidgets('Android: клавиатура вставила картинку в текст заметки — встала на место курсора', (tester) async {
+    await note('Плитка\nклей', title: 'Плитка');
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.wrap(const ItemScreen(id: 'a')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byType(TextField).last);
+    field.controller!.selection = const TextSelection.collapsed(offset: 6);
+    await world.fromKeyboard(tester, find.byType(TextField).last, _copied().single);
+    expect(field.controller!.text, matches(RegExp(r'^Плитка\n!\[\[IMG-[\d-]+\.png\]\]\nклей$')));
+    expect(await attachmentsOf('a'), 1);
+  });
+
+  testWidgets('Android: клавиатура вставила картинку в строку — вложение', (tester) async {
+    tester.view.physicalSize = const Size(400, 880);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final line = find.descendant(of: find.byType(LineDock).first, matching: find.byType(TextField)).first;
+    await tester.tap(line);
+    await tester.pumpAndSettle();
+    await world.fromKeyboard(tester, line, _copied().single);
+    expect(tester.state<LineDockState>(find.byType(LineDock).first).holdsMedia, isTrue);
+  });
+
   testWidgets('на главной картинка ложится в строку вложением', (tester) async {
     tester.view.physicalSize = const Size(400, 880);
     tester.view.devicePixelRatio = 1;

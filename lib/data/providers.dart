@@ -53,6 +53,7 @@ import '../services/telegram_service.dart';
 import '../services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import '../services/vault/vault_location.dart';
 import '../services/vault/vault_reader.dart';
+import '../core/clipboard/keyboard_content.dart';
 import '../core/clipboard/paste_router.dart';
 import '../core/clipboard/paste_source.dart' if (dart.library.js_interop) '../core/clipboard/paste_source_web.dart';
 import '../services/billing/billing_api.dart';
@@ -853,6 +854,10 @@ final pasteRouterProvider = Provider((ref) {
   ref.onDispose(subscription.cancel);
   return router;
 });
+
+/// Поля ввода принимают картинку с клавиатуры телефона (Gboard): она идёт туда же, куда
+/// вставка из буфера.
+final keyboardContentProvider = Provider((ref) => keyboardContent(ref.watch(pasteRouterProvider), cache: ref.watch(cacheRootProvider)));
 
 /// Цена Argon2 для своего пароля шифрования. Тесты ставят лёгкую: цена не то, что они проверяют.
 final keyLockCostProvider = Provider<KeyLockCost>((ref) => const KeyLockCost());

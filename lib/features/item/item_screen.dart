@@ -1339,6 +1339,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                       // поле растёт с текстом: одна строка — одна строка, без пустоты под ней
                                       maxLines: null,
                                       keyboardType: TextInputType.multiline,
+                                      // картинка с клавиатуры телефона (Gboard) — в текст на место курсора
+                                      contentInsertionConfiguration: ref.watch(keyboardContentProvider),
                                       inputFormatters: [
                                         TextInputFormatter.withFunction(continueLists),
                                         TextInputFormatter.withFunction(closeWikiBrackets),
