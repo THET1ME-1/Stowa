@@ -15,7 +15,7 @@ import 'web_store.dart';
 ///
 /// В хранилище идут только пути под [roots]; временные файлы и кэш живут в памяти.
 class WebFileSystem extends ForwardingFileSystem {
-  WebFileSystem(this.store, {WebWal? wal, this.roots = const ['/vault', '/app'], this.delay = const Duration(milliseconds: 300)})
+  WebFileSystem(this.store, {WebWal? wal, this.roots = const ['/vault', '/vaults', '/app'], this.delay = const Duration(milliseconds: 300)})
     : _wal = wal, // ignore: prefer_initializing_formals
       super(MemoryFileSystem(style: FileSystemStyle.posix));
 
@@ -100,8 +100,15 @@ class WebFileSystem extends ForwardingFileSystem {
 
   // ——— старт ———
 
+  /// Хранилища заметок, кроме открытого: их файлы видны, но в память не читаются.
+  static const _vaultRoots = ['/vault', '/vaults'];
+
   /// Прочитать хранилище в память и применить журнал. Зовётся один раз до первого `File(...)`.
-  Future<void> hydrate() async {
+  /// [open] — папка открытого хранилища заметок: остальные хранилища (`/vault`, `/vaults/…`)
+  /// встают заглушками и читаются из хранилища браузера, только когда понадобятся. Сменили
+  /// хранилище — страница перезагружается и поднимает уже его. null — читать всё.
+  Future<void> hydrate({String? open}) async {
+    bool closed(String path) => open != null && _vaultRoots.any((root) => path.startsWith('$root/')) && !path.startsWith('$open/');
     final metaBytes = await store.readMeta();
     final meta = metaBytes == null ? const <String, dynamic>{} : (jsonDecode(utf8.decode(metaBytes)) as Map<String, dynamic>);
     final entries = await store.list();
@@ -116,7 +123,7 @@ class WebFileSystem extends ForwardingFileSystem {
         for (final entry in files.skip(start).take(64))
           () async {
             final target = delegate.file(entry.path)..parent.createSync(recursive: true);
-            if (entry.size > lazyFrom && !_text(entry.path)) {
+            if (closed(entry.path) || (entry.size > lazyFrom && !_text(entry.path))) {
               target.writeAsBytesSync(const []);
               _lazy[entry.path] = entry.size;
             } else {

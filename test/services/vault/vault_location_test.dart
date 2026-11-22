@@ -90,6 +90,26 @@ void main() {
     expect(settings.vaultPath, documents.path);
   });
 
+  // 22.11.2026: в браузере первое хранилище на своём месте, остальные рядом — в папке [more]
+  test('браузер: открытое второе хранилище остаётся открытым, без выбора — первое', () async {
+    final first = Directory(p.join(appSupport.path, 'vault'))..createSync();
+    final more = Directory(p.join(appSupport.path, 'vaults'))..createSync();
+    final work = Directory(p.join(more.path, 'Работа'));
+    VaultLocation browser() => VaultLocation(settings: settings, appSupport: appSupport, home: first, more: more);
+
+    var place = await browser().resolve(hasData: false);
+    expect(place.vault!.path, first.path);
+    expect(settings.vaultPath, first.path);
+
+    // папка нового хранилища заводится при первом открытии: база у него своя, откат к
+    // первому хранилищу свёл бы его файлы с чужой базой
+    await settings.setVault(work.path, VaultMode.device);
+    place = await browser().resolve(hasData: false);
+    expect(place.vault!.path, work.path);
+    expect(work.existsSync(), isTrue);
+    expect(settings.vaultPath, work.path);
+  });
+
   test('хранилище внутри приложения разрешения не спрашивает', () async {
     final channel = _FakeChannel(false);
     final inside = VaultLocation(settings: settings, appSupport: appSupport, channel: channel);

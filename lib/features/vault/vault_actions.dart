@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/fs/web_files.dart' show reloadPage, webFileSystem;
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -18,6 +19,7 @@ import '../../services/vault/vault_location.dart';
 import '../../services/vault/vault_move.dart';
 import '../../services/vault/vault_reader.dart';
 import '../../services/vault/vault_switch.dart';
+import '../folder/folder_sheets.dart' show showRenameSheet;
 
 /// Дан ли «Доступ ко всем файлам». Нет — лист с объяснением и переход в системные настройки;
 /// ответ узнаётся, когда человек вернётся в приложение.
@@ -178,6 +180,10 @@ Future<void> rebuildIndex(BuildContext context, WidgetRef ref) async {
 /// Имя хранилища из списка: у хранилища внутри приложения папка служебная («vault»), его зовём словами.
 String knownVaultTitle(L l, KnownVault vault) => vault.mode == VaultMode.app ? l.vaultInsideApp : vaultTitle(vault.path);
 
+/// Имя хранилища для шапки и списка переключения. В браузере у первого хранилища папка
+/// служебная (`/vault`) и своего имени нет — оно зовётся именем приложения.
+String vaultLabel(L l, KnownVault vault, {required bool inBrowser}) => inBrowser && vault.path == browserFirstVault ? l.appName : knownVaultTitle(l, vault);
+
 /// Папка открытого хранилища: выбранная или, у старой установки, папка файлов.
 String _openPath(WidgetRef ref) => ref.read(vaultRootProvider)?.path ?? ref.read(settingsRepositoryProvider).vaultPath ?? ref.read(filesRootProvider).path;
 
@@ -221,6 +227,20 @@ Future<void> changeVaultFolder(BuildContext context, WidgetRef ref) async {
 Future<void> addVault(BuildContext context, WidgetRef ref) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
+  // браузер: папку на компьютере выбрать негде, хранилище заводится рядом с первым — именем
+  if (ref.read(storedInBrowserProvider)) {
+    final name = await showRenameSheet(context, '', label: l.vaultName, action: l.vaultCreateButton);
+    if (name == null || vaultFileName(name).isEmpty || !context.mounted) return;
+    final path = p.join(ref.read(browserVaultsRootProvider), vaultFileName(name));
+    if (sameVaultPath(path, _openPath(ref))) {
+      showNote(messenger, l.vaultAlreadyOpen);
+      return;
+    }
+    await Directory(path).create(recursive: true);
+    final entry = await ref.read(settingsRepositoryProvider).rememberVault(path, VaultMode.device);
+    if (context.mounted) await switchVault(context, ref, entry);
+    return;
+  }
   final create = await showOptionsSheet<bool>(
     context,
     title: l.vaultAdd,
@@ -262,8 +282,26 @@ Future<void> switchVault(BuildContext context, WidgetRef ref, KnownVault target)
   if (!context.mounted) return;
   final navigator = Navigator.of(context, rootNavigator: true);
   final db = ref.read(databaseProvider);
-  final status = ValueNotifier<(String, double?)>((l.vaultSwitching(knownVaultTitle(l, target)), null));
+  final inBrowser = ref.read(storedInBrowserProvider);
+  final status = ValueNotifier<(String, double?)>((l.vaultSwitching(vaultLabel(l, target, inBrowser: inBrowser)), null));
   unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
+  // браузер: файлы другого хранилища в память не подняты, и базу из них здесь не собрать.
+  // Свои правки дописываются, настройки встают на него, страница перезагружается и
+  // поднимает уже его — со своей базой
+  if (inBrowser) {
+    try {
+      await ref.read(privacyServiceProvider).close().catchError((_) {});
+      await ref.read(vaultWriterProvider).drain().catchError((_) => 0);
+      final notes = await db.customSelect('SELECT count(*) AS n FROM items WHERE deleted_at IS NULL').getSingle().then((row) => row.read<int>('n'));
+      await settings.openKnownVault(target, notesHere: notes);
+      await webFileSystem?.flush().catchError((_) {});
+    } finally {
+      navigator.pop();
+      status.dispose();
+    }
+    reloadPage();
+    return;
+  }
   final AppDatabase prepared;
   try {
     await ref.read(privacyServiceProvider).close().catchError((_) {});

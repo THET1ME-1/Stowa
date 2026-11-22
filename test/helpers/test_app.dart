@@ -88,6 +88,9 @@ class TestWorld {
   /// Единственное место хранилища, как на iPhone; null — как на Android.
   Directory? vaultHome;
 
+  /// Браузер: папка, где лежат второе и следующие хранилища (на сайте — `/vaults`).
+  String? browserVaults;
+
   /// Базы других хранилищ по имени — в памяти, открываются при смене хранилища.
   final vaultDatabases = <String, AppDatabase>{};
 
@@ -151,6 +154,7 @@ class TestWorld {
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
         bookmarksPickerProvider.overrideWithValue(() async => pickedFile),
         vaultHomeProvider.overrideWithValue(vaultHome),
+        if (browserVaults case final browserVaults?) browserVaultsRootProvider.overrideWithValue(browserVaults),
         vaultChannelProvider.overrideWithValue(_TestChannel(this)),
         vaultDatabaseProvider.overrideWithValue((name) => vaultDatabases[name] ??= AppDatabase.memory()),
         reopenSessionProvider.overrideWithValue((prepared) async => reopened.add(prepared)),

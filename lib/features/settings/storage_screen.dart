@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -21,6 +22,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/backup_service.dart';
 import '../../services/zip_stream.dart';
 import '../../services/vault/vault_layout.dart' show attachmentFolderNameError, defaultAttachmentFolder, readAttachmentSetting, writeAttachmentSetting;
+import '../../services/vault/vault_location.dart' show browserFirstVault, browserMoreVaults;
 import '../folder/folder_sheets.dart' show showRenameSheet;
 import '../privacy/markdown_export_action.dart';
 import '../vault/vault_actions.dart';
@@ -37,7 +39,11 @@ bool _insideApp(WidgetRef ref) {
 
 /// Имя открытого хранилища: имя его папки, «Внутри приложения» или, на iPhone, «Файлы» → Stowa.
 String openVaultTitle(WidgetRef ref, L l) {
-  if (ref.watch(storedInBrowserProvider)) return l.wsInBrowser;
+  if (ref.watch(storedInBrowserProvider)) {
+    // второе и следующие хранилища браузера зовутся своим именем, первое — «В этом браузере»
+    final root = ref.watch(vaultRootProvider);
+    return root == null || root.path == browserFirstVault ? l.wsInBrowser : vaultTitle(root.path);
+  }
   if (ref.watch(vaultHomeProvider) != null) return l.vaultInFiles;
   if (_insideApp(ref)) return l.vaultInsideApp;
   return vaultTitle(ref.watch(vaultRootProvider)!.path);
@@ -63,12 +69,14 @@ class StorageScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
-    // на iPhone папка одна: ни смены, ни других хранилищ
+    // на iPhone папка одна: ни смены, ни других хранилищ. В браузере папку не сменить, но
+    // хранилищ может быть несколько: они лежат рядом в личной папке сайта
     final fixed = ref.watch(vaultHomeProvider) != null;
+    final many = ref.watch(manyVaultsProvider);
     final inBrowser = ref.watch(storedInBrowserProvider);
     final list = ref.watch(vaultsProvider).value;
     final others = [
-      if (!fixed && list != null)
+      if (many && list != null)
         for (final one in list.all)
           if (one.db != list.current) one,
     ];
@@ -95,7 +103,7 @@ class StorageScreen extends ConsumerWidget {
                 for (final one in others.take(_shownOthers)) _OtherVault(vault: one),
                 if (others.length > _shownOthers)
                   SettingsRow(icon: 'folder_copy', title: l.vaultAllCount(others.length), onTap: () => _pickFromAll(context, ref, others)),
-                if (!fixed) SettingsRow(icon: 'add', title: l.vaultAdd, onTap: () => addVault(context, ref)),
+                if (many) SettingsRow(icon: 'add', title: l.vaultAdd, onTap: () => addVault(context, ref)),
               ],
             ),
             SettingsHint(inBrowser ? l.vaultBrowserHint : (fixed ? l.vaultFilesHint : l.vaultsHint)),
@@ -128,14 +136,15 @@ Future<void> _pickFromAll(BuildContext context, WidgetRef ref, List<KnownVault> 
     title: l.vaultsSection,
     options: [
       for (final one in others)
-        SheetChoice(value: one, title: knownVaultTitle(l, one), subtitle: _otherSubtitle(l, one), icon: one.mode == VaultMode.app ? 'smartphone' : 'folder'),
+        SheetChoice(value: one, title: vaultLabel(l, one, inBrowser: ref.read(storedInBrowserProvider)), subtitle: _otherSubtitle(l, one), icon: one.mode == VaultMode.app ? 'smartphone' : 'folder'),
     ],
   );
   if (picked != null && context.mounted) await switchVault(context, ref, picked);
 }
 
 String _otherSubtitle(L l, KnownVault vault) => [
-  if (vault.mode != VaultMode.app && vaultParent(vault.path).isNotEmpty) vaultParent(vault.path),
+  // у хранилищ браузера папка служебная (`/vaults`), показывать её незачем
+  if (vault.mode != VaultMode.app && !p.isWithin(browserMoreVaults, vault.path) && vaultParent(vault.path).isNotEmpty) vaultParent(vault.path),
   if (vault.notes case final notes?) l.itemsCount(notes),
 ].join(' · ');
 
@@ -242,7 +251,7 @@ class _OtherVaultState extends ConsumerState<_OtherVault> {
     final settings = ref.read(settingsRepositoryProvider);
     final forget = await showOptionsSheet<bool>(
       context,
-      title: knownVaultTitle(l, widget.vault),
+      title: vaultLabel(l, widget.vault, inBrowser: ref.read(storedInBrowserProvider)),
       options: [
         SheetChoice(value: false, title: l.vaultOpenIt, icon: 'folder_open'),
         SheetChoice(value: true, title: l.vaultForget, subtitle: l.vaultForgetHint, icon: 'playlist_remove', danger: true),
@@ -266,7 +275,7 @@ class _OtherVaultState extends ConsumerState<_OtherVault> {
         return _VaultRow(
           key: ValueKey('vault-${vault.db}'),
           icon: gone ? 'folder_off' : (vault.mode == VaultMode.app ? 'smartphone' : 'folder'),
-          title: knownVaultTitle(l, vault),
+          title: vaultLabel(l, vault, inBrowser: ref.watch(storedInBrowserProvider)),
           subtitle: gone ? l.vaultFolderGone : _otherSubtitle(l, vault),
           gone: gone,
           onTap: gone ? () => showNote(ScaffoldMessenger.of(context), l.vaultFolderGone) : () => switchVault(context, ref, vault),

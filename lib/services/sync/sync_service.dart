@@ -62,7 +62,10 @@ class SyncAccount {
 /// Что показывает экран синхронизации.
 @immutable
 class SyncStatus {
-  const SyncStatus({this.email, this.running = false, this.lastAt, this.error, this.inactive = false, this.received = 0, this.sent = 0});
+  const SyncStatus({this.email, this.running = false, this.lastAt, this.error, this.inactive = false, this.received = 0, this.sent = 0, this.otherVault = false});
+
+  /// Аккаунт возит другое хранилище, а не открытое: это лежит только на устройстве.
+  final bool otherVault;
 
   /// Почта аккаунта; null — не вошли.
   final String? email;
@@ -77,7 +80,8 @@ class SyncStatus {
   final int received;
   final int sent;
 
-  SyncStatus copyWith({String? email, bool? running, DateTime? lastAt, SyncError? error, bool clearError = false, bool? inactive, int? received, int? sent}) => SyncStatus(
+  SyncStatus copyWith({String? email, bool? running, DateTime? lastAt, SyncError? error, bool clearError = false, bool? inactive, int? received, int? sent, bool? otherVault}) => SyncStatus(
+    otherVault: otherVault ?? this.otherVault,
     email: email ?? this.email,
     running: running ?? this.running,
     lastAt: lastAt ?? this.lastAt,
@@ -156,7 +160,7 @@ class SyncService {
     if (!_loaded) {
       _account = SyncAccount.fromJson(await _store.read());
       _loaded = true;
-      status.value = status.value.copyWith(email: _account?.email);
+      status.value = status.value.copyWith(email: _account?.email, otherVault: _account != null && _account!.vaultDb != _vaultDb);
     }
     return _account;
   }

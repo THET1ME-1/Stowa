@@ -34,13 +34,14 @@ Future<void> startPanelFiles() async {
   }
 }
 
-/// Поднять файлы из личной папки сайта и подменить ими `File` и `Directory`.
-Future<void> startWebFiles() async {
+/// Поднять файлы из личной папки сайта и подменить ими `File` и `Directory`. [open] — папка
+/// открытого хранилища: остальные хранилища браузера в память не читаются.
+Future<void> startWebFiles({String? open}) async {
   final fs = WebFileSystem(openBrowserStore(), wal: openBrowserWal());
-  await fs.hydrate();
+  await fs.hydrate(open: open);
   IOOverrides.global = WebIOOverrides(fs);
   webFileSystem = fs;
-  for (final path in ['/app', '/cache', '/vault']) {
+  for (final path in ['/app', '/cache', '/vault', '/vaults']) {
     await Directory(path).create(recursive: true);
   }
   // уходят с вкладки — дописать; не дописано — браузер переспросит перед закрытием

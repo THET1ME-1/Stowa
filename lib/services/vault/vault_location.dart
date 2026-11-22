@@ -47,23 +47,32 @@ class VaultPlace {
   final bool reachable;
 }
 
+/// Первое хранилище в браузере: личная папка сайта, в ней `/vault`.
+const browserFirstVault = '/vault';
+
+/// Остальные хранилища в браузере: `/vaults/<имя>` (22.11.2026, переключение из шапки).
+const browserMoreVaults = '/vaults';
+
 /// Единственное место хранилища на iPhone: папка «Документы» приложения, в «Файлах» она
 /// видна как «На iPhone → Stowa». На Android место выбирает человек — null.
-// в браузере место тоже одно: личная папка сайта, в ней `/vault`
+// в браузере место по умолчанию тоже одно, но рядом могут лежать ещё хранилища
 Future<Directory?> vaultHome() async => isWeb
-    ? Directory('/vault')
+    ? Directory(browserFirstVault)
     : isIOS
     ? getApplicationDocumentsDirectory()
     : null;
 
 class VaultLocation {
-  VaultLocation({required this.settings, required this.appSupport, this.home, this.channel = const VaultChannel()});
+  VaultLocation({required this.settings, required this.appSupport, this.home, this.more, this.channel = const VaultChannel()});
 
   final SettingsRepository settings;
   final Directory appSupport;
 
   /// Место одно и выбирать нечего (iPhone); null — как на Android.
   final Directory? home;
+
+  /// Браузер: рядом с [home] лежат ещё хранилища, каждое своей папкой здесь.
+  final Directory? more;
   final VaultChannel channel;
 
   /// Хранилище внутри приложения: без разрешений, удаляется вместе с приложением.
@@ -78,6 +87,13 @@ class VaultLocation {
   Future<VaultPlace> resolve({required bool hasData}) async {
     // iPhone меняет путь к папке приложения при обновлении: сохранённый путь каждый раз сверяется
     if (home case final home?) {
+      // браузер: открыто одно из хранилищ рядом — оно и остаётся. Папка заводится, если её
+      // ещё нет: база у этого хранилища своя, и откат к первому свёл бы его файлы с чужой базой
+      if ((settings.vaultPath, more) case (final path?, final more?) when p.isWithin(more.path, path)) {
+        final root = Directory(path);
+        await root.create(recursive: true);
+        return VaultPlace(files: root, vault: root, reachable: true);
+      }
       await home.create(recursive: true);
       if (settings.vaultPath != home.path || !settings.vaultAsked) await settings.setVault(home.path, VaultMode.app);
       return VaultPlace(files: home, vault: home, reachable: true);

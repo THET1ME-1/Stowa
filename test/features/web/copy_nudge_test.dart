@@ -106,5 +106,12 @@ void main() {
       expect(find.textContaining('только в этом браузере'), findsNothing);
       expect(find.text('Сохранить копию'), findsNothing);
     });
+
+    // 22.11.2026: в браузере несколько хранилищ, а Stowa Sync возит одно — то, где вошли
+    testWidgets('вошли, но открыто другое хранилище — оно только в браузере, плашка есть', (tester) async {
+      await world.syncAccount.write(SyncAccount(email: 'me@x.io', token: 't', key: List.filled(32, 1), vaultDb: 'stowa-other').toJson());
+      await home(tester);
+      expect(find.textContaining('только в этом браузере'), findsOneWidget);
+    });
   });
 }

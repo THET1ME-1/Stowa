@@ -152,4 +152,64 @@ void main() {
     await fs.flush();
     expect(utf8.decode(await store.read('/vault/x/n.md')), 'через dart:io');
   });
+
+  // 22.11.2026: в браузере несколько хранилищ (`/vault` и `/vaults/<имя>`). В память целиком
+  // читается только открытое: тысячи заметок соседнего не должны тормозить запуск
+  test('второе хранилище живёт в /vaults и переживает открытие; закрытое не читается в память', () async {
+    fs.file('/vault/Идеи.md')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('первое');
+    fs.file('/vaults/Работа/План.md')
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync('второе');
+    await fs.flush();
+    expect(utf8.decode(await store.read('/vaults/Работа/План.md')), 'второе');
+
+    final reads = <String>[];
+    final watched = _WatchedStore(store, reads);
+    final again = WebFileSystem(watched, wal: MemoryWebWal());
+    await again.hydrate(open: '/vaults/Работа');
+    expect(again.file('/vaults/Работа/План.md').readAsStringSync(), 'второе');
+    // закрытое хранилище на месте (папка есть, файл виден), но его текст не читали
+    expect(again.directory('/vault').existsSync(), isTrue);
+    expect(again.file('/vault/Идеи.md').existsSync(), isTrue);
+    expect(reads, isNot(contains('/vault/Идеи.md')));
+    // понадобился — читается из хранилища браузера
+    expect(utf8.decode(await again.file('/vault/Идеи.md').readAsBytes()), 'первое');
+  });
+}
+
+/// Хранилище, которое записывает, какие файлы у него читали.
+class _WatchedStore implements WebStore {
+  _WatchedStore(this._inner, this._reads);
+
+  final WebStore _inner;
+  final List<String> _reads;
+
+  @override
+  Future<Uint8List> read(String path) {
+    _reads.add(path);
+    return _inner.read(path);
+  }
+
+  @override
+  Future<List<StoredEntry>> list() => _inner.list();
+
+  @override
+  Future<void> write(String path, Uint8List bytes) => _inner.write(path, bytes);
+
+  @override
+  Future<void> move(String from, String to) => _inner.move(from, to);
+
+  @override
+  Future<void> delete(String path) => _inner.delete(path);
+
+  @override
+  Future<void> mkdir(String path) => _inner.mkdir(path);
+
+  @override
+  Future<Uint8List?> readMeta() => _inner.readMeta();
+
+  @override
+  Future<void> writeMeta(Uint8List bytes) => _inner.writeMeta(bytes);
 }

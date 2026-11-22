@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/platform.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/return_service.dart' show returnText;
+import '../vault/vault_actions.dart' show addVault, switchVault, vaultLabel;
 import 'workspace_model.dart';
 import 'workspace_shell.dart';
 
@@ -308,49 +309,156 @@ class _PanelBody extends ConsumerWidget {
   }
 }
 
-/// Карточка хранилища: буква, имя, где лежит.
-class _VaultCard extends ConsumerWidget {
+/// Шапка левой панели: буква и имя открытого хранилища, где оно лежит, стрелка. Нажали —
+/// выпадает список хранилищ для переключения, стрелка поворачивается вверх (хозяин 22.11:
+/// «вместо Stowa надо название текущей папки. При нажатии и стрелочку вниз»).
+class _VaultCard extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_VaultCard> createState() => _VaultCardState();
+}
+
+class _VaultCardState extends ConsumerState<_VaultCard> {
+  final _menu = MenuController();
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final root = ref.watch(vaultRootProvider);
     final signedIn = ref.watch(syncSignedInProvider).value ?? false;
-    final name = isWeb || root == null ? l.appName : p.basename(root.path);
-    final where = signedIn ? l.wsSynced : (isWeb ? l.wsInBrowser : root?.path ?? '');
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 14, 10),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(11)),
-            child: Text(name.characters.first.toUpperCase(), style: text.titleMedium!.copyWith(color: Tokens.onAccent, fontWeight: FontWeight.w800)),
+    final inBrowser = ref.watch(storedInBrowserProvider);
+    final list = ref.watch(vaultsProvider).value;
+    final current = list?.all.where((one) => one.db == list.current).firstOrNull;
+    final others = [
+      if (list != null)
+        for (final one in list.all)
+          if (one.db != list.current) one,
+    ];
+    final name = current == null ? l.appName : vaultLabel(l, current, inBrowser: inBrowser);
+    final where = signedIn ? l.wsSynced : (inBrowser ? l.wsInBrowser : root?.path ?? '');
+    final count = ref.watch(notesCountProvider).value;
+    final ws = WorkspaceScope.of(context);
+    return MenuAnchor(
+      controller: _menu,
+      onOpen: () => setState(() => _open = true),
+      onClose: () => setState(() => _open = false),
+      alignmentOffset: const Offset(10, 2),
+      // без тени: окно списка отделяет тон выше дока
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(Tokens.containerHighest),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+        elevation: const WidgetStatePropertyAll(0),
+        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
+      ),
+      menuChildren: [
+        _VaultOption(icon: 'folder_open', title: name, subtitle: count == null ? null : l.itemsCount(count), selected: true, onTap: () {}),
+        for (final one in others)
+          _VaultOption(
+            key: ValueKey('vault-option-${one.db}'),
+            icon: 'folder',
+            title: vaultLabel(l, one, inBrowser: inBrowser),
+            subtitle: one.notes == null ? null : l.itemsCount(one.notes!),
+            onTap: () => switchVault(context, ref, one),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          child: Container(height: 1, color: Tokens.outline),
+        ),
+        if (ref.watch(manyVaultsProvider)) _VaultOption(icon: 'add', title: l.vaultAdd, onTap: () => addVault(context, ref)),
+        _VaultOption(icon: 'tune', title: l.vaultSection, onTap: () => ws.open(const WsTab.settings('vault'))),
+      ],
+      builder: (context, menu, _) => Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+        child: Pressable(
+          key: const ValueKey('dock-vault'),
+          radius: BorderRadius.circular(14),
+          lift: 0,
+          pressedScale: 0.98,
+          onTap: () => menu.isOpen ? menu.close() : menu.open(),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 6, 6, 6),
+            child: Row(
               children: [
-                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall!.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: signedIn ? FolderPalette.colors['mint'] : Tokens.muted),
-                    ),
-                    const SizedBox(width: 5),
-                    Flexible(child: Text(where, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelSmall!.copyWith(color: Tokens.muted))),
-                  ],
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(11)),
+                  child: Text(name.characters.first.toUpperCase(), style: text.titleMedium!.copyWith(color: Tokens.onAccent, fontWeight: FontWeight.w800)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.titleSmall!.copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(shape: BoxShape.circle, color: signedIn ? FolderPalette.colors['mint'] : Tokens.muted),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(child: Text(where, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelSmall!.copyWith(color: Tokens.muted))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 4),
+                // вниз — список закрыт, вверх — открыт
+                AnimatedRotation(
+                  turns: _open ? 0.5 : 0,
+                  duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : Motion.medium,
+                  curve: Motion.emphasized,
+                  child: Icon(symbolIcon('expand_more'), size: 20, color: Tokens.onSurfaceVariant),
                 ),
               ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Строка списка хранилищ: значок, имя, под ним число заметок; у открытого — галочка.
+class _VaultOption extends StatelessWidget {
+  const _VaultOption({super.key, required this.icon, required this.title, this.subtitle, this.selected = false, required this.onTap});
+
+  final String icon;
+  final String title;
+  final String? subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return MenuItemButton(
+      onPressed: onTap,
+      style: ButtonStyle(
+        padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        minimumSize: const WidgetStatePropertyAll(Size(236, 44)),
+      ),
+      leadingIcon: Icon(symbolIcon(icon, filled: selected), size: 20, color: selected ? Tokens.onSurface : Tokens.onSurfaceVariant),
+      trailingIcon: selected ? Icon(symbolIcon('check'), size: 18, color: Tokens.onSurface) : null,
+      child: SizedBox(
+        width: 164,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurface, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+            if (subtitle case final subtitle?) Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelSmall!.copyWith(color: Tokens.muted)),
+          ],
+        ),
       ),
     );
   }

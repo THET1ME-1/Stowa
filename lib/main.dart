@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Directory;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -53,8 +54,10 @@ Future<void> main() async {
     // Просьба уйти до файлов просто перезагружает страницу: записывать ещё нечего
     answerWho(panel: isPanelAddress());
     leaveWhenAsked();
-    // в браузере файлы — свои, поверх личной папки сайта: ставятся до первого File(...)
-    await startWebFiles();
+    // в браузере файлы — свои, поверх личной папки сайта: ставятся до первого File(...).
+    // Целиком поднимается только открытое хранилище, остальные — списком
+    final opened = SettingsRepository(await SharedPreferences.getInstance(), const SecureKeyStore()).vaultPath;
+    await startWebFiles(open: opened ?? browserFirstVault);
     // просим браузер не стирать заметки, когда на диске мало места
     unawaited(persistStorage());
     await _run(const StowaApp(), null, 'web');
@@ -203,7 +206,7 @@ Future<void> _run(StowaApp app, LocalNotificationPort? notifications, String win
   Future<VaultSession> open(AppDatabase? prepared) async {
     final db = prepared ?? AppDatabase.named(settings.vaultDb);
     // хранилище файлами: в базе — пути от его корня; старая установка до переноса — от папки приложения
-    final place = await VaultLocation(settings: settings, appSupport: appSupport, home: home).resolve(hasData: await hasSavedItems(db));
+    final place = await VaultLocation(settings: settings, appSupport: appSupport, home: home, more: isWeb ? Directory(browserMoreVaults) : null).resolve(hasData: await hasSavedItems(db));
     // скрытое, оставшееся открытым от убитого приложения, запечатывается до первого кадра;
     // там же читается замок, чтобы запереть приложение до того, как что-то покажется
     final privacy = PrivacyService(

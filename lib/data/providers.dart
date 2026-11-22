@@ -834,6 +834,13 @@ final pinnedItemsProvider = StreamProvider((ref) => ref.watch(itemsRepositoryPro
 /// папке человека, и напоминать о копии там незачем. Тесты подменяют.
 final storedInBrowserProvider = Provider((ref) => isWeb);
 
+/// Хранилищ может быть несколько, и между ними переключаются: Android, компьютер и браузер.
+/// На iPhone место одно — папка приложения в «Файлах».
+final manyVaultsProvider = Provider((ref) => ref.watch(vaultHomeProvider) == null || ref.watch(storedInBrowserProvider));
+
+/// Браузер: где лежат второе и следующие хранилища. Тесты подменяют временной папкой.
+final browserVaultsRootProvider = Provider<String>((ref) => browserMoreVaults);
+
 /// Слежка за подстановкой менеджера паролей: подсказка поля («email») и что делать со значением;
 /// возвращает, чем перестать следить. В браузере — по полям страницы, вне его — ничего.
 typedef AutofillWatch = void Function() Function(String hint, void Function(String value) onFill);
@@ -843,12 +850,15 @@ final autofillWatchProvider = Provider<AutofillWatch>((ref) => watchAutofill);
 final copyReminderProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchCopyReminder());
 
 /// Пора ли напомнить о резервной копии: копии ещё не было, или она устарела.
-/// Вошли ли в Stowa Sync. Следит за состоянием службы: вход, выход и проходы его меняют.
+/// Синхронизируется ли открытое хранилище: вошли в Stowa Sync, и аккаунт возит именно его.
+/// Следит за состоянием службы: вход, выход и проходы его меняют. Другое хранилище того же
+/// браузера или телефона лежит только здесь — шапка и плашка о копии говорят это честно.
 final syncSignedInProvider = StreamProvider<bool>((ref) {
   final service = ref.watch(syncServiceProvider);
   final out = StreamController<bool>();
   void send() {
-    if (!out.isClosed) out.add(service.status.value.email != null);
+    final status = service.status.value;
+    if (!out.isClosed) out.add(status.email != null && !status.otherVault);
   }
 
   service.status.addListener(send);
