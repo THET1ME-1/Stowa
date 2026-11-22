@@ -31,6 +31,9 @@ final List<String> _allIcons = [
 /// Ширина, с которой образец и цвета встают слева, а иконки справа.
 const _wideFrom = 720.0;
 
+/// Ширина колонки на широком экране: и поля, и «Сохранить».
+const _columnWidth = 520.0;
+
 /// Последние цвета папок в настройках: ключи палитры или `#RRGGBB`.
 const _recentKey = 'folder_recent_colors';
 
@@ -152,23 +155,32 @@ class _FolderLookScreenState extends State<FolderLookScreen> {
                   // планшет и телефон боком: строки цвета, формы и иконок не тянутся во всю ширину
                   return Center(
                     key: const ValueKey('look-wide'),
-                    child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 520), child: list),
+                    child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: _columnWidth), child: list),
                   );
                 },
               ),
             ),
-            // под большим пальцем и на любой ширине
-            Padding(
-              padding: EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 12 + MediaQuery.paddingOf(context).bottom),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton(
-                  onPressed: () {
-                    _rememberColor().ignore();
-                    Navigator.pop<FolderLook>(context, (name: _name.text, icon: _icon, shape: _shape, color: _color));
-                  },
-                  child: Text(l.save),
+            // под большим пальцем; на широком экране — по той же колонке, что поля, а не от
+            // края до края (хозяин 22.11 про сайт: «широкая, не адаптированная»)
+            LayoutBuilder(
+              builder: (context, constraints) => Center(
+                child: ConstrainedBox(
+                  // та же мера, что у списка выше: ширина окна вкладки, а не всего экрана
+                  constraints: BoxConstraints(maxWidth: constraints.maxWidth < _wideFrom ? double.infinity : _columnWidth),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 12 + MediaQuery.paddingOf(context).bottom),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: FilledButton(
+                        onPressed: () {
+                          _rememberColor().ignore();
+                          Navigator.pop<FolderLook>(context, (name: _name.text, icon: _icon, shape: _shape, color: _color));
+                        },
+                        child: Text(l.save),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

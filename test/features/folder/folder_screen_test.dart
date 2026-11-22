@@ -235,6 +235,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('look-wide')), findsOneWidget);
+    // хозяин 22.11 со снимка сайта: «кнопка Сохранить широкая, под сайт не адаптированная» —
+    // на широком экране она по колонке, вровень с полем имени, а не от края до края
+    final save = tester.getRect(find.widgetWithText(FilledButton, 'Сохранить'));
+    final name = tester.getRect(find.byType(TextField).first);
+    expect(save.left, name.left);
+    expect(save.right, name.right);
   });
 
   testWidgets('меню папки → плитка «Создать внутри: Холст»: холст в этой папке, сразу открыт', (tester) async {

@@ -18,8 +18,11 @@ Future<FolderCard?> askNewFolder(BuildContext context, WidgetRef ref, {String? p
   return ref.read(foldersRepositoryProvider).create(name, parentId: parentId);
 }
 
-// лист поднимается над клавиатурой; на мониторе — окно у верха экрана
-Future<T?> _sheet<T>(BuildContext context, Widget child) => showStowaSheet<T>(context, builder: (_) => child, maxHeightFactor: null);
+// лист поднимается над клавиатурой; на мониторе — окно у верха экрана. Содержимое строится
+// от контекста самого листа и закрывает его им же: на мониторе окно живёт в корневом
+// навигаторе, а страница папки — в навигаторе вкладки, и pop её контекстом снимал страницу,
+// а окно оставалось висеть (хозяин 22.11: «Удалить папку» зависло)
+Future<T?> _sheet<T>(BuildContext context, WidgetBuilder builder) => showStowaSheet<T>(context, builder: builder, maxHeightFactor: null);
 
 /// Меню папки снизу. Сверху одной строкой плитки «Создать внутри»: папку, холст, базу;
 /// ниже строки: название и вид (имя, цвет, значок на одном экране), переложить, связи,
@@ -88,7 +91,7 @@ Future<String?> showRenameSheet(BuildContext context, String current, {String? l
   final field = TextEditingController(text: current)..selection = TextSelection(baseOffset: 0, extentOffset: current.length);
   return _sheet<String>(
     context,
-    Padding(
+    (sheet) => Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -99,11 +102,11 @@ Future<String?> showRenameSheet(BuildContext context, String current, {String? l
             autofocus: true,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(labelText: label ?? l.folderNameLabel),
-            onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value),
+            onSubmitted: (value) => Navigator.pop(sheet, value.trim().isEmpty ? null : value),
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () => Navigator.pop(context, field.text.trim().isEmpty ? null : field.text),
+            onPressed: () => Navigator.pop(sheet, field.text.trim().isEmpty ? null : field.text),
             child: Text(action ?? l.save),
           ),
         ],
@@ -117,21 +120,21 @@ Future<bool> confirmFolderDelete(BuildContext context, String name) async {
   final l = L.of(context);
   final yes = await _sheet<bool>(
     context,
-    Padding(
+    (sheet) => Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(l.folderDeleteAsk(name), style: Theme.of(context).textTheme.titleMedium),
+          Text(l.folderDeleteAsk(name), style: Theme.of(sheet).textTheme.titleMedium),
           const SizedBox(height: 20),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Tokens.error, foregroundColor: Tokens.onError),
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(sheet, true),
             child: Text(l.folderDelete),
           ),
           const SizedBox(height: 8),
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
+          TextButton(onPressed: () => Navigator.pop(sheet, false), child: Text(l.cancel)),
         ],
       ),
     ),

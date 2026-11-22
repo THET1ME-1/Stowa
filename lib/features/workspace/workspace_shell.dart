@@ -939,7 +939,7 @@ class _TabBody extends ConsumerWidget {
   Widget _screen(BuildContext context, WorkspaceController controller) => switch (tab.kind) {
     'home' => const _HomeTab(),
     'inbox' => const FolderScreen(folderId: null),
-    'folder' => FolderScreen(folderId: tab.id),
+    'folder' => _FolderTab(tab: tab, controller: controller),
     'item' => _ItemTab(tab: tab, controller: controller),
     'settings' => const _SettingsTab(),
     'map' => const MapScreen(),
@@ -968,6 +968,25 @@ class _ItemTab extends ConsumerWidget {
       if (now == null || now.item.deletedAt != null) controller.drop(tab);
     });
     return ItemScreen(id: tab.id!);
+  }
+}
+
+/// Папка во вкладке. Папку удалили (или скрытую закрыли кодом) — вкладка закрывается сама,
+/// как у удалённой заметки: в списке папок её больше нет.
+class _FolderTab extends ConsumerWidget {
+  const _FolderTab({required this.tab, required this.controller});
+
+  final WsTab tab;
+  final WorkspaceController controller;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(foldersProvider, (previous, next) {
+      final was = previous?.value?.any((folder) => folder.id == tab.id) ?? false;
+      final still = next.value?.any((folder) => folder.id == tab.id) ?? false;
+      if (was && next.hasValue && !still) controller.drop(tab);
+    });
+    return FolderScreen(folderId: tab.id);
   }
 }
 

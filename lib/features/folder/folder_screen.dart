@@ -249,7 +249,9 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
         final messenger = ScaffoldMessenger.of(context);
         if (!await confirmFolderDelete(context, folder.name)) return;
         final moved = await repository.delete(folder.id, ref.read(clockProvider)());
-        if (mounted) Navigator.pop(context);
+        // во вкладке сайта папка — единственный экран: pop оставлял пустую вкладку, её
+        // закрывает сама вкладка, увидев удаление; на телефоне экран уходит, как раньше
+        if (mounted) Navigator.maybePop(context).ignore();
         showUndo(messenger, message: l.folderDeleted, label: l.restoreAction, onUndo: () => repository.restore(folder.id, moved), overDock: true);
     }
   }

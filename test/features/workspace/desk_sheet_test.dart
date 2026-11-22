@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/composer/line_dock.dart';
+import 'package:stowa/features/folder/folder_screen.dart';
+import 'package:stowa/features/folder/folder_sheets.dart';
 import 'package:stowa/features/item/item_screen.dart';
 import 'package:stowa/features/workspace/workspace_model.dart';
 import 'package:stowa/features/workspace/workspace_shell.dart';
@@ -84,6 +86,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsNothing, reason: 'вложенный выбор не выезжает шторкой снизу');
     expect(find.byKey(const ValueKey('desk-sheet')), findsWidgets);
+  });
+
+  // хозяин 22.11 со снимка сайта: «нажал Удалить папку. Окно висит, а папка не удалилась».
+  // Кнопки окна закрывали его контекстом страницы папки: во вкладке это другой навигатор,
+  // и вместо окна снималась сама страница
+  testWidgets('монитор: «Удалить папку» из страницы папки закрывает окно, а не страницу', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'gym', name: 'Абонемент', icon: 'folder', shape: 'squircle'));
+    await show(tester, const Size(1600, 960));
+    WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!.open(const WsTab.folder('gym'));
+    await tester.pumpAndSettle();
+    final page = tester.element(find.byType(FolderScreen));
+
+    bool? answer;
+    confirmFolderDelete(page, 'Абонемент').then((yes) => answer = yes).ignore();
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Удалить папку'));
+    await tester.pumpAndSettle();
+    expect(answer, isTrue);
+    expect(find.byKey(const ValueKey('desk-sheet')), findsNothing);
+    expect(find.byType(FolderScreen), findsOneWidget, reason: 'страница папки на месте');
+
+    // то же окно имени: «Сохранить» отдаёт имя и не трогает страницу
+    String? name;
+    showRenameSheet(page, 'Абонемент').then((value) => name = value).ignore();
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Сохранить'));
+    await tester.pumpAndSettle();
+    expect(name, 'Абонемент');
+    expect(find.byKey(const ValueKey('desk-sheet')), findsNothing);
+    expect(find.byType(FolderScreen), findsOneWidget);
   });
 
   testWidgets('телефон: меню заметки — шторка снизу, как было', (tester) async {

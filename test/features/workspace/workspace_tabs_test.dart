@@ -72,6 +72,26 @@ void main() {
     expect(shell.closed.where((tab) => tab.id == 'n'), isEmpty);
   });
 
+  testWidgets('папку удалили — её вкладка закрывается', (tester) async {
+    await world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: 'gym', name: 'Абонемент', icon: 'folder', shape: 'squircle'));
+    tester.view.physicalSize = const Size(1600, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => tester.pumpWidget(const SizedBox()));
+    await tester.pumpWidget(world.app());
+    await tester.pumpAndSettle();
+    final shell = WorkspaceScope.maybeOf(tester.element(find.byType(LineDock)))!;
+    shell.open(const WsTab.folder('gym'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('chip-folder:gym')), findsOneWidget);
+
+    await (world.db.update(world.db.folders)..where((t) => t.id.equals('gym'))).write(FoldersCompanion(deletedAt: Value(world.now)));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('chip-folder:gym')), findsNothing);
+    expect(shell.closed.where((tab) => tab.id == 'gym'), isEmpty);
+  });
+
   // хозяин 20.11 про сайт: «переходы экранов». Вкладка не подменяется: входящая мягко
   // поднимается на место и проявляется
   testWidgets('смена вкладки: входящая поднимается на место, а не появляется сразу', (tester) async {
