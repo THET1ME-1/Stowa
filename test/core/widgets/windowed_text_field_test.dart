@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stowa/core/widgets/windowed_text_field.dart';
+import 'package:stowa/domain/text_pieces.dart';
 import 'package:stowa/features/composer/smart_punctuation.dart';
 
 // тестировщик 22.11: длинный текст лагает — живое поле держит кусок у курсора, остальное неподвижно
@@ -22,28 +23,43 @@ class _Field {
   final UndoHistoryController undo;
 }
 
+// второй прогон всех проверок — полем слоем прокрутки, как на экране заметки: куски — дети
+// списка, касания ловит WindowedTouches над ним. Экран высокий: все куски строятся, и
+// проверяются касания и правка, а не ленивость (её проверяют тесты экрана заметки)
+var _sliver = false;
+
 Future<_Field> _pump(WidgetTester tester, String text, {int? caret, List<TextInputFormatter>? formatters}) async {
   final document = TextEditingController(text: text)..selection = TextSelection.collapsed(offset: caret ?? text.length);
   final window = TextEditingController()..value = WindowedTextField.windowFor(document.value);
   final field = _Field(document, window, FocusNode(), UndoHistoryController());
+  WindowedTextField editor({bool sliver = false}) => WindowedTextField(
+    document: document,
+    window: window,
+    pieceController: (text) => TextEditingController(text: text),
+    focusNode: field.focus,
+    undoController: field.undo,
+    inputFormatters: formatters,
+    style: _style,
+    decoration: _decoration,
+    sliver: sliver,
+    keepCaret: sliver,
+  );
+  if (_sliver) {
+    tester.view.physicalSize = const Size(800, 20000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+  }
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: SingleChildScrollView(
-          child: WindowedTextField(
-            document: document,
-            window: window,
-            pieceController: (text) => TextEditingController(text: text),
-            focusNode: field.focus,
-            undoController: field.undo,
-            inputFormatters: formatters,
-            style: _style,
-            decoration: _decoration,
-          ),
-        ),
+        body: _sliver
+            ? WindowedTouches(child: CustomScrollView(slivers: [editor(sliver: true)]))
+            : SingleChildScrollView(child: editor()),
       ),
     ),
   );
+  // распознаватели встают над списком после кадра
+  if (_sliver) await tester.pump();
   addTearDown(() async {
     await tester.pumpWidget(const SizedBox());
     document.dispose();
@@ -73,6 +89,109 @@ Future<void> _focus(WidgetTester tester, _Field field) async {
 }
 
 void main() {
+  _suite();
+  group('слоем прокрутки, как на экране заметки', () {
+    setUp(() => _sliver = true);
+    tearDown(() => _sliver = false);
+    _suite();
+  });
+  _lazySuite();
+}
+
+// тестировщик 23.11: «клавиатура дёргано открывается» — вход в правку верстал весь текст.
+// Слоем прокрутки на обычном экране строится только видимое; фокус находит живое поле сам
+void _lazySuite() {
+  group('слоем прокрутки на обычном экране: строится только видимое', () {
+    Future<_Field> lazy(WidgetTester tester, String text, {required int caret, bool keepCaret = false, double header = 0}) async {
+      final document = TextEditingController(text: text)..selection = TextSelection.collapsed(offset: caret);
+      final window = TextEditingController()..value = WindowedTextField.windowFor(document.value);
+      final field = _Field(document, window, FocusNode(), UndoHistoryController());
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WindowedTouches(
+              child: CustomScrollView(
+                slivers: [
+                  // шапка заметки над текстом: обложка, голосовые, свойства
+                  if (header > 0) SliverToBoxAdapter(child: SizedBox(height: header)),
+                  WindowedTextField(
+                    document: document,
+                    window: window,
+                    pieceController: (text) => TextEditingController(text: text),
+                    focusNode: field.focus,
+                    undoController: field.undo,
+                    style: _style,
+                    decoration: _decoration,
+                    sliver: true,
+                    keepCaret: keepCaret,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox());
+        document.dispose();
+        window.dispose();
+        field.focus.dispose();
+        field.undo.dispose();
+      });
+      field.focus.requestFocus();
+      await tester.pumpAndSettle();
+      return field;
+    }
+
+    final live = find.byWidgetPredicate((widget) => widget is EditableText && !widget.readOnly);
+    final pieces = textPieces(_long(300), target: WindowedTextField.pieceLength).length;
+
+    testWidgets('«Дописать»: курсор в конце за экраном — прокрутка шагами до поля, весь текст разом не верстается', (tester) async {
+      final text = _long(300);
+      var most = 0;
+      final field = await lazy(tester, text, caret: text.length, keepCaret: true);
+      most = _fields(tester).length;
+      expect(live, findsOneWidget, reason: 'живое поле на экране');
+      expect(tester.testTextInput.isVisible, isTrue);
+      expect(field.document.selection.baseOffset, text.length);
+      expect(most, lessThan(pieces ~/ 2), reason: 'пройденные куски выброшены, все разом не строились');
+    });
+
+    testWidgets('«Править»: курсор в конце за экраном — встаёт на первый видимый кусок', (tester) async {
+      final text = _long(300);
+      final field = await lazy(tester, text, caret: text.length);
+      expect(live, findsOneWidget);
+      expect(tester.testTextInput.isVisible, isTrue);
+      expect(field.document.selection.baseOffset, 0);
+    });
+
+    testWidgets('текст ниже экрана, над ним шапка — курсор в начало текста, поле на экране', (tester) async {
+      final text = _long(300);
+      final field = await lazy(tester, text, caret: text.length, header: 3000);
+      expect(live, findsOneWidget);
+      expect(tester.testTextInput.isVisible, isTrue);
+      expect(field.document.selection.baseOffset, 0);
+    });
+
+    testWidgets('фокус ушёл, поле прокрутили за край, фокус вернули — прокрутка к полю', (tester) async {
+      final text = _long(300);
+      final field = await lazy(tester, text, caret: 0);
+      field.focus.unfocus();
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -6000));
+      await tester.pumpAndSettle();
+      expect(live, findsNothing, reason: 'поле за краем');
+      field.focus.requestFocus();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(live, findsOneWidget);
+      expect(tester.testTextInput.isVisible, isTrue);
+      expect(field.document.selection.baseOffset, 0);
+    });
+  });
+}
+
+void _suite() {
   testWidgets('короткий текст — одно поле целиком, как обычное', (tester) async {
     final field = await _pump(tester, 'короткая заметка\nв две строки');
     expect(_fields(tester), hasLength(1));
@@ -206,7 +325,7 @@ void main() {
     final text = _long(300);
     final field = await _pump(tester, text, caret: 0);
     // последний кусок далеко внизу: прокручиваем к нему
-    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -2000));
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
     await tester.pumpAndSettle();
     // неподвижный кусок, чья десятая буква на экране
     late EditableText piece;
@@ -232,15 +351,17 @@ void main() {
     // неподвижный кусок, чья первая строка посреди экрана, и середина её слова «строка»: у края
     // экрана поле довезло бы курсор в видимую часть, и под мышью оказалось бы другое слово
     Future<({int start, Offset at})> target(WidgetTester tester) async {
-      await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -2000));
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
       await tester.pumpAndSettle();
+      // середина экрана — от его высоты: прогон слоем идёт на высоком экране
+      final height = tester.view.physicalSize.height / tester.view.devicePixelRatio;
       for (final piece in _fields(tester).where((field) => field.readOnly)) {
         final editable = tester.state<EditableTextState>(find.byWidget(piece)).renderEditable;
         final text = piece.controller.text;
         // строки куска с начала: каждая начинается словом «строка»
         for (var line = 0; line >= 0 && line < text.length; line = text.indexOf('\n', line) < 0 ? -1 : text.indexOf('\n', line) + 1) {
           final at = editable.localToGlobal(editable.getBoxesForSelection(TextSelection(baseOffset: line + 2, extentOffset: line + 3)).first.toRect().center);
-          if (at.dy > 150 && at.dy < 450) return (start: _long(300).indexOf(text) + line, at: at);
+          if (at.dy > height * 0.25 && at.dy < height * 0.75) return (start: _long(300).indexOf(text) + line, at: at);
         }
       }
       throw StateError('нет строки посреди экрана');

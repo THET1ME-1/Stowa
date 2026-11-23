@@ -243,21 +243,68 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
     });
   }
 
-  /// Поле слоем прокрутки встало, а живого поля нет на экране: курсор — на первый видимый
-  /// кусок, а с [WindowedTextField.keepCaret] — прокрутка к живому полю.
-  void _arrive(int tries) {
-    if (!mounted || _liveKey.currentContext != null) return;
-    if (!widget.keepCaret) {
-      if (_firstOnScreen() case final offset?) _select(TextSelection.collapsed(offset: offset));
+  /// Поле слоем прокрутки встало или взяло фокус, а живое поле не свёрстано на экране: курсор —
+  /// на первый видимый кусок, а с [keep] (и [WindowedTextField.keepCaret]) — прокрутка к живому
+  /// полю. Прокрутка идёт шагами в два экрана за кадр: прыжок в конец длинного текста верстал
+  /// бы все куски по пути одним кадром — на эмуляторе 0,2 с, на телефоне до секунды.
+  void _arrive(int tries, {bool keep = false}) {
+    if (!mounted) return;
+    if (_liveShown()) {
+      // дошли: курсор — в видимую часть, как при обычном фокусе
+      final caret = widget.window.selection;
+      if (tries > 0 && widget.focusNode.hasFocus && caret.isValid) _live?.bringIntoView(caret.extent);
       return;
     }
+    if (!keep && !widget.keepCaret) {
+      if (_firstOnScreen() case final offset?) {
+        _select(TextSelection.collapsed(offset: offset));
+        WidgetsBinding.instance.addPostFrameCallback((_) => _arrive(tries + 1, keep: true));
+        return;
+      }
+      // текст ниже экрана (над ним обложка, голосовые, свойства) — курсор в начало, к нему ближе всего
+      if (!_sliverReached()) _select(const TextSelection.collapsed(offset: 0));
+    }
     final position = Scrollable.maybeOf(context)?.position;
-    if (position == null || tries > 40) return;
-    // кусок выше окна построен — живое поле ниже, иначе выше
-    final below = _above.any((piece) => piece.key.currentContext != null);
-    position.jumpTo(below ? position.maxScrollExtent : position.minScrollExtent);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _arrive(tries + 1));
+    if (position == null || tries > 600) return;
+    final step = position.viewportDimension * 2;
+    final next = _liveBelow() ? position.pixels + step : position.pixels - step;
+    position.jumpTo(next.clamp(position.minScrollExtent, position.maxScrollExtent));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _arrive(tries + 1, keep: true));
     WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  /// Живое поле свёрстано в списке, а не держится в запасе за краем.
+  bool _liveShown() {
+    final box = _liveKey.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return false;
+    // ребёнок списка, в котором поле: в запасе (keptAlive) он не свёрстан
+    RenderObject? node = box;
+    while (node != null && node.parentData is! SliverMultiBoxAdaptorParentData) {
+      node = node.parent;
+    }
+    final data = node?.parentData;
+    return data is! SliverMultiBoxAdaptorParentData || !data.keptAlive;
+  }
+
+  // свой слой списка
+  RenderSliverMultiBoxAdaptor? get _sliverList {
+    final sliver = context.findRenderObject();
+    return sliver is RenderSliverMultiBoxAdaptor && sliver.geometry != null ? sliver : null;
+  }
+
+  /// Прокрутка дошла до текста: он на экране или выше. Первый кусок список строит и ниже
+  /// экрана — смотрим, осталось ли слою место на экране.
+  bool _sliverReached() {
+    final sliver = _sliverList;
+    return sliver == null || sliver.constraints.remainingPaintExtent > 0 || sliver.constraints.scrollOffset > 0;
+  }
+
+  /// Живое поле ниже свёрстанных кусков (или текст ещё не дошёл до экрана).
+  bool _liveBelow() {
+    final sliver = _sliverList;
+    final last = sliver?.lastChild;
+    if (sliver == null || last == null) return sliver == null || sliver.constraints.scrollOffset <= 0;
+    return _above.length > sliver.indexOf(last);
   }
 
   /// Начало первого неподвижного куска на экране, в отсчёте всего текста.
@@ -753,6 +800,11 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
 
   // на iPhone отмена встряхиванием идёт сюда, а не истории окна: та не знает про весь текст
   void _onFocus() {
+    // слоем прокрутки: фокус пришёл (полоса разметки, ссылка, лист тега), а поле держится в
+    // запасе за краем экрана — прокрутка к нему
+    if (widget.sliver && widget.focusNode.hasFocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _arrive(0, keep: true));
+    }
     if (defaultTargetPlatform != TargetPlatform.iOS) return;
     if (widget.focusNode.hasFocus) {
       scheduleMicrotask(() {
@@ -846,7 +898,7 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
       return SliverList.list(
         children: [
           for (final piece in _above) KeyedSubtree(key: ObjectKey(piece), child: part(_view(piece))),
-          KeyedSubtree(key: const ValueKey('live'), child: part(live)),
+          KeyedSubtree(key: const ValueKey('live'), child: _KeepLive(child: part(live))),
           for (final piece in _below) KeyedSubtree(key: ObjectKey(piece), child: part(_view(piece))),
         ],
       );
@@ -858,6 +910,28 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
         children: [for (final piece in _above) _view(piece), live, for (final piece in _below) _view(piece)],
       ),
     );
+  }
+}
+
+/// Живое поле в списке держится всегда, а не только в фокусе: фокус, запрошенный, пока поле за
+/// краем экрана (полоса разметки, ссылка после листа тега), иначе ждал бы поля, которого нет.
+class _KeepLive extends StatefulWidget {
+  const _KeepLive({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeepLive> createState() => _KeepLiveState();
+}
+
+class _KeepLiveState extends State<_KeepLive> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 
