@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/haptics.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
@@ -101,7 +101,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
   void _tap(ItemCard card) => _selecting ? _toggle(card) : _open(card.id);
 
   void _act(ItemCard card) {
-    if (!_selecting) HapticFeedback.mediumImpact();
+    if (!_selecting) Haptics.longPress().ignore();
     _toggle(card);
   }
 
@@ -188,6 +188,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
       for (final card in cards)
         if (_selected.contains(card.id)) card.id,
     ];
+    Haptics.delete().ignore();
     for (final id in ids) {
       await items.softDelete(id, ref.read(clockProvider)());
     }

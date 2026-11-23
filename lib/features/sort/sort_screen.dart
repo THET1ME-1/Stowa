@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/haptics.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/shapes.dart';
@@ -59,6 +60,7 @@ class _SortScreenState extends ConsumerState<SortScreen> {
 
   Future<void> _delete(String id) async {
     final items = ref.read(itemsRepositoryProvider);
+    Haptics.delete().ignore();
     await items.softDelete(id, _now);
     if (!mounted) return;
     _undoable(L.of(context).itemDeleted, () => items.restore(id));

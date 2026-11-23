@@ -21,6 +21,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/hint_banner.dart';
+import '../../core/haptics.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/windowed_text_field.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -763,6 +764,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final messenger = ScaffoldMessenger.of(context);
     _autosave?.cancel();
     _editing = false;
+    Haptics.delete().ignore();
     await _items.softDelete(_id, _clock());
     // во вкладке сайта заметка — единственный экран: pop снимал его и оставлял белое поле,
     // вкладку закрывает она сама, увидев удаление; на телефоне экран уходит, как раньше

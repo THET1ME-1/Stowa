@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/haptics.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -38,6 +39,7 @@ class _DeadLinksScreenState extends ConsumerState<DeadLinksScreen> {
     final l = L.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final items = ref.read(itemsRepositoryProvider);
+    Haptics.delete().ignore();
     await items.softDelete(card.id, ref.read(clockProvider)());
     showUndo(messenger, message: l.deadLinksDeleted, label: l.undo, onUndo: () => items.restore(card.id));
   }

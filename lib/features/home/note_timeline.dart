@@ -5,11 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/haptics.dart';
 import '../../core/widgets/file_count_badge.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/format/reminder_format.dart';
@@ -237,7 +237,7 @@ class _NoteTimelineState extends State<NoteTimeline> {
     final map = _map(box);
     if (map == null) return;
     if (_scrub case final old?) _drop(old);
-    HapticFeedback.mediumImpact();
+    Haptics.longPress().ignore();
     final session = ScrubSession(box.globalToLocal(details.globalPosition).dy);
     late final OverlayEntry entry;
     entry = OverlayEntry(

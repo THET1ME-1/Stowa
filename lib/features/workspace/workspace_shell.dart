@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/haptics.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
@@ -334,6 +335,7 @@ class _WorkspaceShellState extends ConsumerState<WorkspaceShell> {
         if (item == null) return;
         if (id == 'trash') {
           final items = ref.read(itemsRepositoryProvider);
+          Haptics.delete().ignore();
           items.softDelete(noteId, ref.read(clockProvider)()).ignore();
           _controller.closeTab(pane.id, pane.active);
           showUndo(ScaffoldMessenger.of(context), message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(noteId));

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/haptics.dart';
 import '../../core/widgets/file_count_badge.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/icons/icon_registry.dart';
@@ -153,6 +154,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     final items = ref.read(itemsRepositoryProvider);
     final now = ref.read(clockProvider)();
     setState(_selected.clear);
+    Haptics.delete().ignore();
     for (final id in ids) {
       items.softDelete(id, now).ignore();
     }

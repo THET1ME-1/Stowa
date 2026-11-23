@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/haptics.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/sheet_options.dart';
@@ -157,6 +158,7 @@ class DocumentHeader extends ConsumerWidget {
       case _DocAction.delete:
         final messenger = ScaffoldMessenger.of(context);
         final items = ref.read(itemsRepositoryProvider);
+        Haptics.delete().ignore();
         await items.softDelete(item.id, ref.read(clockProvider)());
         // во вкладке сайта документ — единственный экран: её закрывает вкладка, увидев удаление
         if (context.mounted) Navigator.maybePop(context).ignore();

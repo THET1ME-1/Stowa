@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/haptics.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
@@ -108,6 +109,7 @@ Future<void> moveItemById(BuildContext context, WidgetRef ref, {required String 
 
 /// Долгое нажатие на вещь в ленте: открыть, закрепить, переложить в другую папку, удалить с «Вернуть».
 Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card) async {
+  Haptics.longPress().ignore();
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final open = itemOpener(context);
@@ -137,6 +139,7 @@ Future<void> showItemActions(BuildContext context, WidgetRef ref, ItemCard card)
     case _Action.move:
       await moveItem(context, ref, card);
     case _Action.delete:
+      Haptics.delete().ignore();
       await items.softDelete(card.id, now);
       showUndo(messenger, message: l.itemDeleted, label: l.undo, onUndo: () => items.restore(card.id), overDock: true);
   }
