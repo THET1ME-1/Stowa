@@ -91,6 +91,63 @@ abstract interface class SyncRemote {
 
   /// Текущая ревизия одного файла: после отказа по ревизии, когда курсор её уже прошёл.
   Future<RemoteChange?> file(String file);
+
+  // ── история ──
+
+  /// Ревизии файла новыми первыми: нынешняя и прежние. [before] — продолжить с ревизий
+  /// старше этой.
+  Future<RevisionPage> revisions(String file, {int? before, int limit = 100});
+
+  /// Удалённые файлы с последней живой ревизией, свежие первыми.
+  Future<DeletedPage> deleted({String? after, int limit = 100});
+
+  /// Все ревизии хранилища по времени, свежие первыми.
+  Future<LogPage> log({String? after, int limit = 100});
+
+  /// Стереть прежние ревизии файла на сервере.
+  Future<void> purgeHistory(String file);
+}
+
+/// Ревизия из истории: когда её отправили и с какого устройства. В журнале правок частей
+/// нет — [blobs] пусто, содержимое берётся по [rev] из [SyncRemote.revisions].
+class RemoteRevision extends RemoteChange {
+  const RemoteRevision({required super.file, required super.rev, required super.meta, required super.blobs, required super.size, required this.at, this.device, super.deleted});
+
+  final DateTime at;
+
+  /// Имя устройства из сессии, с которой ревизию отправили; у старых ревизий нет.
+  final String? device;
+}
+
+class RevisionPage {
+  const RevisionPage(this.revisions, {this.more = false});
+
+  final List<RemoteRevision> revisions;
+  final bool more;
+}
+
+/// Удалённый файл: надгробие и последняя живая ревизия, которую можно вернуть.
+class RemoteDeleted {
+  const RemoteDeleted({required this.tomb, required this.last});
+
+  final RemoteRevision tomb;
+  final RemoteRevision last;
+}
+
+class DeletedPage {
+  const DeletedPage(this.files, {this.next});
+
+  final List<RemoteDeleted> files;
+
+  /// Курсор следующей страницы; null — дальше нет.
+  final String? next;
+}
+
+class LogPage {
+  const LogPage(this.entries, {this.next});
+
+  final List<RemoteRevision> entries;
+  final String? next;
 }
 
 /// Что телефон помнит о файле после последней синхронизации.

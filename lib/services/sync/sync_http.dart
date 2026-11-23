@@ -220,4 +220,55 @@ class HttpSyncRemote implements SyncRemote {
     _check(response);
     return _change(jsonDecode(response.body) as Map<String, Object?>);
   }
+
+  // ── история ──
+
+  static RemoteRevision _revision(String file, Map<String, Object?> json) => RemoteRevision(
+    file: file,
+    rev: json['rev'] as int,
+    deleted: json['deleted'] as bool? ?? false,
+    meta: json['meta'] as String,
+    blobs: [for (final b in json['blobs'] as List? ?? const []) b as String],
+    size: json['size'] as int,
+    at: DateTime.parse(json['at'] as String),
+    device: json['device'] as String?,
+  );
+
+  Future<Map<String, Object?>> _getJson(String path, Map<String, String> query) async {
+    final uri = Uri.parse('$base$path').replace(queryParameters: query.isEmpty ? null : query);
+    final response = await _send(() => _client.get(uri, headers: _auth), const Duration(seconds: 30));
+    _check(response);
+    return jsonDecode(response.body) as Map<String, Object?>;
+  }
+
+  @override
+  Future<RevisionPage> revisions(String file, {int? before, int limit = 100}) async {
+    final json = await _getJson('/v1/files/$file/revisions', {'before': ?before?.toString(), 'limit': '$limit'});
+    return RevisionPage([for (final r in json['revisions'] as List) _revision(file, r as Map<String, Object?>)], more: json['more'] as bool? ?? false);
+  }
+
+  @override
+  Future<DeletedPage> deleted({String? after, int limit = 100}) async {
+    final json = await _getJson('/v1/deleted', {'limit': '$limit', 'after': ?after});
+    return DeletedPage(
+      [
+        for (final raw in json['files'] as List)
+          if (raw case {'file': final String file, 'last': final Map<String, Object?> last} && final Map<String, Object?> tomb)
+            RemoteDeleted(tomb: _revision(file, {...tomb, 'deleted': true, 'blobs': const [], 'size': 0}), last: _revision(file, last)),
+      ],
+      next: json['next'] as String?,
+    );
+  }
+
+  @override
+  Future<LogPage> log({String? after, int limit = 100}) async {
+    final json = await _getJson('/v1/log', {'limit': '$limit', 'after': ?after});
+    return LogPage([for (final e in json['entries'] as List) _revision((e as Map)['file'] as String, e.cast<String, Object?>())], next: json['next'] as String?);
+  }
+
+  @override
+  Future<void> purgeHistory(String file) async {
+    final response = await _send(() => _client.delete(Uri.parse('$base/v1/files/$file/history'), headers: _auth), const Duration(seconds: 30));
+    _check(response, [204]);
+  }
 }

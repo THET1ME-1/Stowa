@@ -80,8 +80,22 @@ String _fromUtf8(List<int> b) => utf8.decode(b);
 
 /// Сервер в памяти: те же правила ревизий и курсора, что у настоящего.
 class FakeRemote implements SyncRemote {
+  FakeRemote({DateTime Function()? now}) : now = now ?? DateTime.now;
+
   final blobs = <String, List<int>>{};
-  final _files = <String, RemoteChange>{};
+  final _files = <String, RemoteRevision>{};
+
+  /// Часы сервера: время отправки ревизии.
+  DateTime Function() now;
+
+  /// Устройство сессии: подпись следующих ревизий.
+  String? device = 'тест';
+
+  /// Прежние ревизии файлов, старые первыми — как таблица revisions.
+  final history = <String, List<RemoteRevision>>{};
+
+  /// Сколько раз спросили историю: тест кэша.
+  var revisionCalls = 0;
   final _seq = <String, int>{};
   var _cursor = 0;
 
@@ -150,10 +164,56 @@ class FakeRemote implements SyncRemote {
       if (!this.blobs.containsKey(b)) throw StateError('нет части $b');
     }
     final rev = current + 1;
-    _files[file] = RemoteChange(file: file, rev: rev, meta: meta, blobs: blobs, size: size, deleted: deleted);
+    if (_files[file] case final old?) history.putIfAbsent(file, () => []).add(old);
+    _files[file] = RemoteRevision(file: file, rev: rev, meta: meta, blobs: blobs, size: size, deleted: deleted, at: now().toUtc(), device: device);
     _seq[file] = ++_cursor;
     _maybeFail('commitAnswer');
     return Committed(rev);
+  }
+
+  @override
+  Future<RevisionPage> revisions(String file, {int? before, int limit = 100}) async {
+    _maybeFail('revisions');
+    revisionCalls++;
+    final all = [?_files[file], ...(history[file] ?? const <RemoteRevision>[]).reversed].where((r) => before == null || r.rev < before).toList();
+    return RevisionPage(all.take(limit).toList(), more: all.length > limit);
+  }
+
+  @override
+  Future<DeletedPage> deleted({String? after, int limit = 100}) async {
+    _maybeFail('deleted');
+    final all = [
+      for (final tomb in _files.values)
+        if (tomb.deleted)
+          if ((history[tomb.file] ?? const <RemoteRevision>[]).lastWhereOrNull((r) => !r.deleted) case final last?) RemoteDeleted(tomb: tomb, last: last),
+    ]..sort((a, b) => b.tomb.at.compareTo(a.tomb.at));
+    final from = after == null ? 0 : int.parse(after);
+    final page = all.skip(from).take(limit).toList();
+    return DeletedPage(page, next: from + limit < all.length ? '${from + limit}' : null);
+  }
+
+  @override
+  Future<LogPage> log({String? after, int limit = 100}) async {
+    _maybeFail('log');
+    final all = [
+      for (final r in [..._files.values, for (final list in history.values) ...list])
+        RemoteRevision(file: r.file, rev: r.rev, meta: r.meta, blobs: const [], size: r.size, deleted: r.deleted, at: r.at, device: r.device),
+    ]..sort((a, b) => b.at != a.at ? b.at.compareTo(a.at) : (b.file != a.file ? b.file.compareTo(a.file) : b.rev.compareTo(a.rev)));
+    final from = after == null ? 0 : int.parse(after);
+    final page = all.skip(from).take(limit).toList();
+    return LogPage(page, next: from + limit < all.length ? '${from + limit}' : null);
+  }
+
+  @override
+  Future<void> purgeHistory(String file) async => history.remove(file);
+}
+
+extension<T> on List<T> {
+  T? lastWhereOrNull(bool Function(T item) test) {
+    for (var i = length - 1; i >= 0; i--) {
+      if (test(this[i])) return this[i];
+    }
+    return null;
   }
 }
 
