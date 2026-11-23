@@ -2387,11 +2387,11 @@ class LUk extends L {
   String get historyText => 'Текст';
 
   @override
-  String get historyDiff => 'Різниця';
+  String get historyDiff => 'З теперішньою';
 
   @override
   String get historyDiffHint =>
-      'Закреслено — було в цій версії, підсвічено — з\'явилося після';
+      'Закреслене було в цій версії, підсвічене з\'явилося після';
 
   @override
   String get historyRestore => 'Повернути цю версію';
@@ -5193,4 +5193,65 @@ class LUk extends L {
 
   @override
   String get pdfFailed => 'Не вдалося відкрити PDF';
+
+  @override
+  String get historyLocalOnly => 'Лише на цьому пристрої';
+
+  @override
+  String historyEdits(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count правки',
+      many: '$count правок',
+      few: '$count правки',
+      one: '$count правка',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyChanges => 'Зміни';
+
+  @override
+  String get historyChangesHint =>
+      'Закреслене прибрала ця правка, підсвічене — додала';
+
+  @override
+  String get historyCopy => 'Скопіювати текст';
+
+  @override
+  String get historyCopied => 'Текст версії скопійовано';
+
+  @override
+  String get historyOffline =>
+      'Немає зв\'язку із сервером: тут лише знімки цього пристрою';
+
+  @override
+  String get historyPromoTitle => 'Усі правки з усіх пристроїв';
+
+  @override
+  String get historyPromoHint =>
+      'Зі Stowa Sync історія зберігається на сервері, а видалене можна повернути.';
+
+  @override
+  String get historyEarlier => 'Показати раніше';
+
+  @override
+  String historyMoved(String path) {
+    return 'Тоді лежала: $path';
+  }
+
+  @override
+  String get historyCloudHint =>
+      'Правки з усіх пристроїв зберігаються на сервері: за місяць — усі, до року — остання за кожен день.';
+
+  @override
+  String get historyLoadFailed => 'Версія не завантажилася';
+
+  @override
+  String get historySessionOpen => 'Показати правки';
+
+  @override
+  String get historySessionClose => 'Сховати правки';
 }

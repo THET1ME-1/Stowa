@@ -2339,11 +2339,11 @@ class LEn extends L {
   String get historyText => 'Text';
 
   @override
-  String get historyDiff => 'Changes';
+  String get historyDiff => 'Vs. now';
 
   @override
   String get historyDiffHint =>
-      'Struck out: was in this version. Highlighted: added since';
+      'Struck through: in this version. Highlighted: added since';
 
   @override
   String get historyRestore => 'Restore this version';
@@ -5126,4 +5126,63 @@ class LEn extends L {
 
   @override
   String get pdfFailed => 'Couldn\'t open the PDF';
+
+  @override
+  String get historyLocalOnly => 'Only on this device';
+
+  @override
+  String historyEdits(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count edits',
+      one: '$count edit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyChanges => 'Changes';
+
+  @override
+  String get historyChangesHint =>
+      'Struck through: removed by this edit. Highlighted: added by it';
+
+  @override
+  String get historyCopy => 'Copy text';
+
+  @override
+  String get historyCopied => 'Version text copied';
+
+  @override
+  String get historyOffline =>
+      'Can\'t reach the server: only this device\'s snapshots are shown';
+
+  @override
+  String get historyPromoTitle => 'Every edit from every device';
+
+  @override
+  String get historyPromoHint =>
+      'With Stowa Sync, history lives on the server and deleted files come back.';
+
+  @override
+  String get historyEarlier => 'Show earlier';
+
+  @override
+  String historyMoved(String path) {
+    return 'Was at: $path';
+  }
+
+  @override
+  String get historyCloudHint =>
+      'Edits from all devices are kept on the server: every edit for a month, then the last one of each day for a year.';
+
+  @override
+  String get historyLoadFailed => 'The version didn\'t load';
+
+  @override
+  String get historySessionOpen => 'Show edits';
+
+  @override
+  String get historySessionClose => 'Hide edits';
 }

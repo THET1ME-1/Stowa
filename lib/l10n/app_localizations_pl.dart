@@ -2385,11 +2385,11 @@ class LPl extends L {
   String get historyText => 'Tekst';
 
   @override
-  String get historyDiff => 'Różnice';
+  String get historyDiff => 'Z obecną';
 
   @override
   String get historyDiffHint =>
-      'Przekreślone — było w tej wersji, podświetlone — doszło później';
+      'Przekreślone było w tej wersji, podświetlone pojawiło się później';
 
   @override
   String get historyRestore => 'Przywróć tę wersję';
@@ -5204,4 +5204,65 @@ class LPl extends L {
 
   @override
   String get pdfFailed => 'Nie udało się otworzyć PDF';
+
+  @override
+  String get historyLocalOnly => 'Tylko na tym urządzeniu';
+
+  @override
+  String historyEdits(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zmiany',
+      many: '$count zmian',
+      few: '$count zmiany',
+      one: '$count zmiana',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyChanges => 'Zmiany';
+
+  @override
+  String get historyChangesHint =>
+      'Przekreślone usunęła ta zmiana, podświetlone dodała';
+
+  @override
+  String get historyCopy => 'Kopiuj tekst';
+
+  @override
+  String get historyCopied => 'Skopiowano tekst wersji';
+
+  @override
+  String get historyOffline =>
+      'Brak połączenia z serwerem: widać tylko kopie z tego urządzenia';
+
+  @override
+  String get historyPromoTitle => 'Każda zmiana z każdego urządzenia';
+
+  @override
+  String get historyPromoHint =>
+      'Ze Stowa Sync historia jest na serwerze, a usunięte da się przywrócić.';
+
+  @override
+  String get historyEarlier => 'Pokaż wcześniejsze';
+
+  @override
+  String historyMoved(String path) {
+    return 'Wtedy w: $path';
+  }
+
+  @override
+  String get historyCloudHint =>
+      'Zmiany ze wszystkich urządzeń są na serwerze: przez miesiąc wszystkie, potem do roku ostatnia z każdego dnia.';
+
+  @override
+  String get historyLoadFailed => 'Nie udało się wczytać wersji';
+
+  @override
+  String get historySessionOpen => 'Pokaż zmiany';
+
+  @override
+  String get historySessionClose => 'Ukryj zmiany';
 }

@@ -2391,7 +2391,7 @@ class LRu extends L {
   String get historyText => 'Текст';
 
   @override
-  String get historyDiff => 'Разница';
+  String get historyDiff => 'С нынешней';
 
   @override
   String get historyDiffHint =>
@@ -5207,4 +5207,65 @@ class LRu extends L {
 
   @override
   String get pdfFailed => 'Не получилось открыть PDF';
+
+  @override
+  String get historyLocalOnly => 'Только на этом устройстве';
+
+  @override
+  String historyEdits(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count правки',
+      many: '$count правок',
+      few: '$count правки',
+      one: '$count правка',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyChanges => 'Изменения';
+
+  @override
+  String get historyChangesHint =>
+      'Зачёркнуто — убрала эта правка, подсвечено — добавила';
+
+  @override
+  String get historyCopy => 'Скопировать текст';
+
+  @override
+  String get historyCopied => 'Текст версии скопирован';
+
+  @override
+  String get historyOffline =>
+      'Нет связи с сервером: здесь только снимки этого устройства';
+
+  @override
+  String get historyPromoTitle => 'Все правки со всех устройств';
+
+  @override
+  String get historyPromoHint =>
+      'С Stowa Sync история хранится на сервере, а удалённое можно вернуть.';
+
+  @override
+  String get historyEarlier => 'Показать раньше';
+
+  @override
+  String historyMoved(String path) {
+    return 'Тогда лежала: $path';
+  }
+
+  @override
+  String get historyCloudHint =>
+      'Правки со всех устройств хранятся на сервере: за месяц — все, до года — последняя за каждый день.';
+
+  @override
+  String get historyLoadFailed => 'Версия не загрузилась';
+
+  @override
+  String get historySessionOpen => 'Показать правки';
+
+  @override
+  String get historySessionClose => 'Скрыть правки';
 }

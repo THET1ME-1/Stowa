@@ -2975,13 +2975,13 @@
   "@historyText": {
     "description": "Version screen tab: full text of the version"
   },
-  "historyDiff": "Changes",
+  "historyDiff": "Vs. now",
   "@historyDiff": {
-    "description": "Version screen tab: what changed between the version and now"
+    "description": "Вкладка версии: разница этой версии с нынешним текстом"
   },
-  "historyDiffHint": "Struck out: was in this version. Highlighted: added since",
+  "historyDiffHint": "Struck through: in this version. Highlighted: added since",
   "@historyDiffHint": {
-    "description": "Version screen: legend of the diff"
+    "description": "Подсказка под разницей с нынешним текстом"
   },
   "historyRestore": "Restore this version",
   "@historyRestore": {
@@ -6275,5 +6275,70 @@
   "pdfFailed": "Couldn't open the PDF",
   "@pdfFailed": {
     "description": "Вместо страниц, когда PDF битый или с паролем"
+  },
+  "historyLocalOnly": "Only on this device",
+  "@historyLocalOnly": {
+    "description": "Подпись версии заметки, которой нет на сервере: снимок этого телефона"
+  },
+  "historyEdits": "{count, plural, one{{count} edit} other{{count} edits}}",
+  "@historyEdits": {
+    "description": "Сколько правок в одном сеансе правки заметки (подряд, с одного устройства)"
+  },
+  "historyChanges": "Changes",
+  "@historyChanges": {
+    "description": "Вкладка версии: что поменяла именно эта правка против предыдущей версии"
+  },
+  "historyChangesHint": "Struck through: removed by this edit. Highlighted: added by it",
+  "@historyChangesHint": {
+    "description": "Подсказка под разницей правки"
+  },
+  "historyCopy": "Copy text",
+  "@historyCopy": {
+    "description": "Кнопка на экране версии заметки"
+  },
+  "historyCopied": "Version text copied",
+  "@historyCopied": {
+    "description": "Плашка после копирования текста версии"
+  },
+  "historyOffline": "Can't reach the server: only this device's snapshots are shown",
+  "@historyOffline": {
+    "description": "Тихая строка над историей, когда сервер не ответил"
+  },
+  "historyPromoTitle": "Every edit from every device",
+  "@historyPromoTitle": {
+    "description": "Карточка Stowa Sync под историей заметки у тех, у кого нет подписки"
+  },
+  "historyPromoHint": "With Stowa Sync, history lives on the server and deleted files come back.",
+  "@historyPromoHint": {
+    "description": "Подпись карточки Stowa Sync под историей"
+  },
+  "historyEarlier": "Show earlier",
+  "@historyEarlier": {
+    "description": "Кнопка в конце истории: загрузить версии старше"
+  },
+  "historyMoved": "Was at: {path}",
+  "@historyMoved": {
+    "description": "Версия заметки была под другим именем или в другой папке",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "historyCloudHint": "Edits from all devices are kept on the server: every edit for a month, then the last one of each day for a year.",
+  "@historyCloudHint": {
+    "description": "Подсказка под историей у подписчика"
+  },
+  "historyLoadFailed": "The version didn't load",
+  "@historyLoadFailed": {
+    "description": "Ошибка, когда текст версии не пришёл с сервера"
+  },
+  "historySessionOpen": "Show edits",
+  "@historySessionOpen": {
+    "description": "Подсказка кнопки, раскрывающей правки одного сеанса в истории"
+  },
+  "historySessionClose": "Hide edits",
+  "@historySessionClose": {
+    "description": "Подсказка кнопки, сворачивающей правки сеанса"
   }
 }

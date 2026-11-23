@@ -27,6 +27,8 @@ import 'package:stowa/features/share/share_receiver.dart';
 import 'package:stowa/services/privacy/seal_crypto.dart';
 import 'package:stowa/services/billing/store_channel.dart';
 import 'package:stowa/services/billing/store_checkout.dart';
+import 'package:stowa/services/billing/subscription.dart';
+import 'package:stowa/services/sync/cloud_history.dart';
 import 'package:stowa/services/sync/key_lock.dart';
 import 'package:stowa/services/sync/sync_service.dart' show SyncAccount;
 import 'package:stowa/services/edge_channel.dart';
@@ -281,7 +283,21 @@ class TestWorld {
         ),
         if (vaultRoot case final vaultRoot?) vaultRootProvider.overrideWith(() => VaultRootNotifier(vaultRoot)),
         if (autofill case final autofill?) autofillWatchProvider.overrideWithValue(autofill),
+        // история в облаке на поддельном сервере: вошли в Stowa Sync этого хранилища
+        if (cloudHistory case final history?) ...[
+          cloudHistoryProvider.overrideWith((ref) async => history),
+          syncSignedInProvider.overrideWith((ref) => Stream.value(true)),
+          subscriptionProvider.overrideWith(
+            (ref) => Stream.value(cloudSubscribed ? Subscription(signedIn: true, active: true, paidUntil: DateTime(2099)) : const Subscription(signedIn: true)),
+          ),
+        ],
       ];
+
+  /// История версий в облаке на поддельном сервере; null — облака нет, как у невошедшего.
+  CloudHistory? cloudHistory;
+
+  /// С [cloudHistory]: действует ли подписка.
+  var cloudSubscribed = true;
 
   /// Подстановка менеджера паролей в поле страницы (только браузер): тест отдаёт значение сам.
   AutofillWatch? autofill;

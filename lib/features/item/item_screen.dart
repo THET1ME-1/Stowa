@@ -815,7 +815,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   Future<void> _menu(Item item) async {
     final l = L.of(context);
-    final hasHistory = (ref.read(noteVersionsProvider(_id)).value ?? const []).isNotEmpty;
+    // в Stowa Sync этого хранилища история есть всегда: правки лежат на сервере, а без подписки
+    // экран истории сам предложит её
+    final hasHistory = (ref.read(noteVersionsProvider(_id)).value ?? const []).isNotEmpty || (ref.read(syncSignedInProvider).value ?? false);
     final action = await showOptionsSheet<_MenuAction>(
       context,
       title: item.title,
@@ -911,8 +913,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final full = ref.watch(itemProvider(_id)).value;
     final facts = ref.watch(itemFactsProvider(_id)).value ?? const <Fact>[];
     final highlights = ref.watch(highlightsProvider(_id)).value ?? const <Highlight>[];
-    // история держится живой, пока заметка открыта: меню «⋮» решает по ней сразу
+    // история держится живой, пока заметка открыта: меню «⋮» решает по ней сразу. Вошли в
+    // Stowa Sync этого хранилища — история есть всегда, она на сервере
     ref.watch(noteVersionsProvider(_id));
+    ref.watch(syncSignedInProvider);
     final folders = ref.watch(foldersProvider).value ?? const <FolderCard>[];
     final filesRoot = ref.watch(filesRootProvider);
     final now = _clock();

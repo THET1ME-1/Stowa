@@ -3887,16 +3887,16 @@ abstract class L {
   /// **'Text'**
   String get historyText;
 
-  /// Version screen tab: what changed between the version and now
+  /// Вкладка версии: разница этой версии с нынешним текстом
   ///
   /// In en, this message translates to:
-  /// **'Changes'**
+  /// **'Vs. now'**
   String get historyDiff;
 
-  /// Version screen: legend of the diff
+  /// Подсказка под разницей с нынешним текстом
   ///
   /// In en, this message translates to:
-  /// **'Struck out: was in this version. Highlighted: added since'**
+  /// **'Struck through: in this version. Highlighted: added since'**
   String get historyDiffHint;
 
   /// Version screen button
@@ -8776,6 +8776,96 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Couldn\'t open the PDF'**
   String get pdfFailed;
+
+  /// Подпись версии заметки, которой нет на сервере: снимок этого телефона
+  ///
+  /// In en, this message translates to:
+  /// **'Only on this device'**
+  String get historyLocalOnly;
+
+  /// Сколько правок в одном сеансе правки заметки (подряд, с одного устройства)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} edit} other{{count} edits}}'**
+  String historyEdits(num count);
+
+  /// Вкладка версии: что поменяла именно эта правка против предыдущей версии
+  ///
+  /// In en, this message translates to:
+  /// **'Changes'**
+  String get historyChanges;
+
+  /// Подсказка под разницей правки
+  ///
+  /// In en, this message translates to:
+  /// **'Struck through: removed by this edit. Highlighted: added by it'**
+  String get historyChangesHint;
+
+  /// Кнопка на экране версии заметки
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get historyCopy;
+
+  /// Плашка после копирования текста версии
+  ///
+  /// In en, this message translates to:
+  /// **'Version text copied'**
+  String get historyCopied;
+
+  /// Тихая строка над историей, когда сервер не ответил
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the server: only this device\'s snapshots are shown'**
+  String get historyOffline;
+
+  /// Карточка Stowa Sync под историей заметки у тех, у кого нет подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Every edit from every device'**
+  String get historyPromoTitle;
+
+  /// Подпись карточки Stowa Sync под историей
+  ///
+  /// In en, this message translates to:
+  /// **'With Stowa Sync, history lives on the server and deleted files come back.'**
+  String get historyPromoHint;
+
+  /// Кнопка в конце истории: загрузить версии старше
+  ///
+  /// In en, this message translates to:
+  /// **'Show earlier'**
+  String get historyEarlier;
+
+  /// Версия заметки была под другим именем или в другой папке
+  ///
+  /// In en, this message translates to:
+  /// **'Was at: {path}'**
+  String historyMoved(String path);
+
+  /// Подсказка под историей у подписчика
+  ///
+  /// In en, this message translates to:
+  /// **'Edits from all devices are kept on the server: every edit for a month, then the last one of each day for a year.'**
+  String get historyCloudHint;
+
+  /// Ошибка, когда текст версии не пришёл с сервера
+  ///
+  /// In en, this message translates to:
+  /// **'The version didn\'t load'**
+  String get historyLoadFailed;
+
+  /// Подсказка кнопки, раскрывающей правки одного сеанса в истории
+  ///
+  /// In en, this message translates to:
+  /// **'Show edits'**
+  String get historySessionOpen;
+
+  /// Подсказка кнопки, сворачивающей правки сеанса
+  ///
+  /// In en, this message translates to:
+  /// **'Hide edits'**
+  String get historySessionClose;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

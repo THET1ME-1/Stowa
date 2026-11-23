@@ -33,8 +33,12 @@ class HistoryRepository {
 
   /// Заметка снова такая, как в [version]. Нынешнее сперва уходит в историю снимком —
   /// даже без перерыва в правке, — поэтому возврат отменяется тем же экраном.
-  Future<void> restore(NoteVersion version, DateTime at) async {
-    final current = await (_db.select(_db.items)..where((t) => t.id.equals(version.itemId))).getSingleOrNull();
+  Future<void> restore(NoteVersion version, DateTime at) => restoreText(version.itemId, title: version.title, body: version.body, at: at);
+
+  /// Вернуть заметке заголовок и текст — из снимка устройства или из облака. Шапка (метки,
+  /// напоминание, свойства) остаётся нынешней.
+  Future<void> restoreText(String itemId, {required String title, required String body, required DateTime at}) async {
+    final current = await (_db.select(_db.items)..where((t) => t.id.equals(itemId))).getSingleOrNull();
     if (current == null) return;
     await _db.transaction(() async {
       await _db.into(_db.noteVersions).insert(
@@ -42,7 +46,10 @@ class HistoryRepository {
       );
       // время правки сдвигается отдельно: без перерыва триггер не снимет нынешнее второй раз
       await (_db.update(_db.items)..where((t) => t.id.equals(current.id))).write(ItemsCompanion(updatedAt: Value(at)));
-      await _items.setTitleBody(current.id, title: version.title, body: version.body, at: at);
+      await _items.setTitleBody(current.id, title: title, body: body, at: at);
     });
   }
+
+  /// Путь файла заметки в хранилище: по нему история в облаке.
+  Future<String?> pathOf(String itemId) async => (await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(itemId))).getSingleOrNull())?.path;
 }

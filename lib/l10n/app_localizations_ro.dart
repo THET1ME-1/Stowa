@@ -2361,11 +2361,11 @@ class LRo extends L {
   String get historyText => 'Text';
 
   @override
-  String get historyDiff => 'Diferențe';
+  String get historyDiff => 'Față de acum';
 
   @override
   String get historyDiffHint =>
-      'Tăiat: era în această versiune. Evidențiat: adăugat ulterior';
+      'Tăiat: era în această versiune. Evidențiat: a apărut după';
 
   @override
   String get historyRestore => 'Restabilește această versiune';
@@ -5172,4 +5172,65 @@ class LRo extends L {
 
   @override
   String get pdfFailed => 'PDF-ul nu a putut fi deschis';
+
+  @override
+  String get historyLocalOnly => 'Doar pe acest dispozitiv';
+
+  @override
+  String historyEdits(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de modificări',
+      few: '$count modificări',
+      one: '$count modificare',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyChanges => 'Modificări';
+
+  @override
+  String get historyChangesHint =>
+      'Tăiat: eliminat de această modificare. Evidențiat: adăugat de ea';
+
+  @override
+  String get historyCopy => 'Copiază textul';
+
+  @override
+  String get historyCopied => 'Textul versiunii a fost copiat';
+
+  @override
+  String get historyOffline =>
+      'Serverul nu răspunde: sunt afișate doar instantaneele acestui dispozitiv';
+
+  @override
+  String get historyPromoTitle =>
+      'Toate modificările de pe toate dispozitivele';
+
+  @override
+  String get historyPromoHint =>
+      'Cu Stowa Sync, istoricul stă pe server, iar ce ai șters poate fi recuperat.';
+
+  @override
+  String get historyEarlier => 'Arată mai vechi';
+
+  @override
+  String historyMoved(String path) {
+    return 'Era la: $path';
+  }
+
+  @override
+  String get historyCloudHint =>
+      'Modificările de pe toate dispozitivele rămân pe server: toate timp de o lună, apoi ultima din fiecare zi timp de un an.';
+
+  @override
+  String get historyLoadFailed => 'Versiunea nu s-a încărcat';
+
+  @override
+  String get historySessionOpen => 'Arată modificările';
+
+  @override
+  String get historySessionClose => 'Ascunde modificările';
 }

@@ -67,6 +67,7 @@ import '../services/billing/store_channel.dart';
 import '../services/billing/store_checkout.dart';
 import '../services/billing/subscription.dart';
 import '../services/billing/subscription_service.dart';
+import '../services/sync/cloud_history.dart';
 import '../services/sync/key_lock.dart';
 import '../services/sync/sync_service.dart';
 import '../services/vault/vault_sync.dart';
@@ -1008,6 +1009,14 @@ final syncSignedInProvider = StreamProvider<bool>((ref) {
     out.close();
   });
   return out.stream.distinct();
+});
+
+/// История версий в облаке для открытого хранилища; null — не вошли в Stowa Sync этого
+/// хранилища. Подписку проверяет сервер. Тесты подменяют поддельным сервером.
+final cloudHistoryProvider = FutureProvider<CloudHistory?>((ref) async {
+  // вход и выход меняют аккаунт: история пересобирается
+  await ref.watch(syncSignedInProvider.future);
+  return ref.watch(syncServiceProvider).cloudHistory();
 });
 
 /// Почта аккаунта Stowa; null — не вошли. Вход не зависит от подписки и от хранилища.

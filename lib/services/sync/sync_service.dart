@@ -11,6 +11,7 @@ import '../../data/db/database.dart';
 import '../../data/settings_repository.dart' show KeyStore;
 import '../../domain/vault_note.dart';
 import '../vault/vault_reader.dart';
+import 'cloud_history.dart';
 import 'key_lock.dart';
 import 'sync_crypto.dart';
 import 'sync_db_state.dart';
@@ -253,6 +254,35 @@ class SyncService {
 
   /// Токен входа; null — не вошли.
   Future<String?> token() async => (await account())?.token;
+
+  CloudHistory? _history;
+  String? _historyToken;
+
+  /// История версий в облаке для открытого хранилища; null — не вошли или аккаунт возит
+  /// другое хранилище. Подписку проверяет сервер: без неё запросы истории отвечают 402.
+  Future<CloudHistory?> cloudHistory() async {
+    final account = await this.account();
+    if (account == null || account.vaultDb != _vaultDb) return null;
+    if (_historyToken != account.token) {
+      _history = CloudHistory(remote: HttpSyncRemote(_client, account.token), key: VaultKey(account.key));
+      _historyToken = account.token;
+    }
+    return _history;
+  }
+
+  /// Положить версию из облака в хранилище по пути [path], если он свободен: возврат удалённого.
+  /// Файл качается частями во временный и встаёт на место под арендой сверки; дальше его
+  /// забирает обычная сверка, как файл снаружи. false — путь занят или хранилища нет.
+  Future<bool> placeVersion(CloudHistory history, CloudVersion version, String path) async {
+    final root = _root;
+    if (root == null) return false;
+    final files = DiskSyncFiles(root);
+    if (await files.stat(path) != null) return false;
+    final staged = await files.stage(path, history.parts(version));
+    final placed = await _reader.exclusively(() => files.place(staged, path));
+    if (placed) unawaited(trigger?.call());
+    return placed;
+  }
 
   /// Подписка появилась: снять запрет, сразу пройти и, если приложение на экране, ждать правок
   /// с других устройств (ожидание прошлое закончилось само, пока подписки не было).

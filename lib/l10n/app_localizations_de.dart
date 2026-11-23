@@ -2346,11 +2346,11 @@ class LDe extends L {
   String get historyText => 'Text';
 
   @override
-  String get historyDiff => 'Unterschiede';
+  String get historyDiff => 'Mit jetzt';
 
   @override
   String get historyDiffHint =>
-      'Durchgestrichen: stand in dieser Version. Hervorgehoben: kam danach dazu';
+      'Durchgestrichen war in dieser Version, hervorgehoben kam danach';
 
   @override
   String get historyRestore => 'Diese Version wiederherstellen';
@@ -5163,4 +5163,63 @@ class LDe extends L {
 
   @override
   String get pdfFailed => 'PDF konnte nicht geöffnet werden';
+
+  @override
+  String get historyLocalOnly => 'Nur auf diesem Gerät';
+
+  @override
+  String historyEdits(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Änderungen',
+      one: '$count Änderung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyChanges => 'Änderungen';
+
+  @override
+  String get historyChangesHint =>
+      'Durchgestrichen hat diese Änderung entfernt, hervorgehoben hinzugefügt';
+
+  @override
+  String get historyCopy => 'Text kopieren';
+
+  @override
+  String get historyCopied => 'Text der Version kopiert';
+
+  @override
+  String get historyOffline =>
+      'Keine Verbindung zum Server: nur Stände dieses Geräts';
+
+  @override
+  String get historyPromoTitle => 'Jede Änderung von jedem Gerät';
+
+  @override
+  String get historyPromoHint =>
+      'Mit Stowa Sync liegt der Verlauf auf dem Server, Gelöschtes lässt sich zurückholen.';
+
+  @override
+  String get historyEarlier => 'Ältere zeigen';
+
+  @override
+  String historyMoved(String path) {
+    return 'Lag damals: $path';
+  }
+
+  @override
+  String get historyCloudHint =>
+      'Änderungen von allen Geräten liegen auf dem Server: einen Monat lang alle, danach ein Jahr lang die letzte jedes Tages.';
+
+  @override
+  String get historyLoadFailed => 'Version nicht geladen';
+
+  @override
+  String get historySessionOpen => 'Änderungen zeigen';
+
+  @override
+  String get historySessionClose => 'Änderungen ausblenden';
 }

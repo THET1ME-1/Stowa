@@ -2342,11 +2342,11 @@ class LEs extends L {
   String get historyText => 'Texto';
 
   @override
-  String get historyDiff => 'Cambios';
+  String get historyDiff => 'Con la actual';
 
   @override
   String get historyDiffHint =>
-      'Tachado: estaba en esta versión. Resaltado: se añadió después';
+      'Tachado: estaba en esta versión. Resaltado: apareció después';
 
   @override
   String get historyRestore => 'Restaurar esta versión';
@@ -5143,4 +5143,64 @@ class LEs extends L {
 
   @override
   String get pdfFailed => 'No se pudo abrir el PDF';
+
+  @override
+  String get historyLocalOnly => 'Solo en este dispositivo';
+
+  @override
+  String historyEdits(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cambios',
+      one: '$count cambio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get historyChanges => 'Cambios';
+
+  @override
+  String get historyChangesHint =>
+      'Tachado: lo quitó este cambio. Resaltado: lo añadió';
+
+  @override
+  String get historyCopy => 'Copiar texto';
+
+  @override
+  String get historyCopied => 'Texto de la versión copiado';
+
+  @override
+  String get historyOffline =>
+      'Sin conexión con el servidor: solo se ven las copias de este dispositivo';
+
+  @override
+  String get historyPromoTitle =>
+      'Todos los cambios desde todos los dispositivos';
+
+  @override
+  String get historyPromoHint =>
+      'Con Stowa Sync, el historial se guarda en el servidor y lo borrado se puede recuperar.';
+
+  @override
+  String get historyEarlier => 'Mostrar anteriores';
+
+  @override
+  String historyMoved(String path) {
+    return 'Estaba en: $path';
+  }
+
+  @override
+  String get historyCloudHint =>
+      'Los cambios de todos los dispositivos se guardan en el servidor: todos durante un mes y luego el último de cada día durante un año.';
+
+  @override
+  String get historyLoadFailed => 'No se pudo cargar la versión';
+
+  @override
+  String get historySessionOpen => 'Mostrar cambios';
+
+  @override
+  String get historySessionClose => 'Ocultar cambios';
 }
