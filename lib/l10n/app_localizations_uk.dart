@@ -5297,4 +5297,23 @@ class LUk extends L {
   @override
   String get trashCloudOffline =>
       'Немає зв\'язку із сервером: видалене в хмарі зараз не видно';
+
+  @override
+  String get syncLogTitle => 'Журнал правок';
+
+  @override
+  String get syncLogValue => 'Що, коли й звідки змінювалося';
+
+  @override
+  String get syncLogHint =>
+      'Правки з усіх пристроїв. Дотик відкриває історію нотатки.';
+
+  @override
+  String get syncLogDeleted => 'видалено';
+
+  @override
+  String get syncLogEmpty => 'Правок поки немає';
+
+  @override
+  String get syncLogGone => 'Файлу вже немає: видалене повертається з кошика';
 }

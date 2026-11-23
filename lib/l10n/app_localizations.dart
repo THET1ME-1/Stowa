@@ -8920,6 +8920,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Can\'t reach the server: deleted files in the cloud aren\'t shown'**
   String get trashCloudOffline;
+
+  /// Экран и пункт Stowa Sync: все правки хранилища по времени, как git log
+  ///
+  /// In en, this message translates to:
+  /// **'Edit log'**
+  String get syncLogTitle;
+
+  /// Подпись пункта «Журнал правок» в Stowa Sync
+  ///
+  /// In en, this message translates to:
+  /// **'What changed, when and where'**
+  String get syncLogValue;
+
+  /// Подсказка под заголовком журнала правок
+  ///
+  /// In en, this message translates to:
+  /// **'Edits from all devices. Tap to open a note\'s history.'**
+  String get syncLogHint;
+
+  /// Пометка строки журнала: файл в этой правке удалили
+  ///
+  /// In en, this message translates to:
+  /// **'deleted'**
+  String get syncLogDeleted;
+
+  /// Пустой журнал правок
+  ///
+  /// In en, this message translates to:
+  /// **'No edits yet'**
+  String get syncLogEmpty;
+
+  /// Плашка, когда в журнале касаются удалённого файла
+  ///
+  /// In en, this message translates to:
+  /// **'The file is gone: deleted files come back from the trash'**
+  String get syncLogGone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -1187,5 +1187,11 @@
   "trashCloudPurge": "Usuń na zawsze",
   "trashCloudPurged": "Usunięto na zawsze",
   "trashCloudFailed": "Nie udało się: serwer nie odpowiedział",
-  "trashCloudOffline": "Brak połączenia z serwerem: usuniętych plików w chmurze teraz nie widać"
+  "trashCloudOffline": "Brak połączenia z serwerem: usuniętych plików w chmurze teraz nie widać",
+  "syncLogTitle": "Dziennik zmian",
+  "syncLogValue": "Co, kiedy i skąd się zmieniło",
+  "syncLogHint": "Zmiany ze wszystkich urządzeń. Dotknij, by otworzyć historię notatki.",
+  "syncLogDeleted": "usunięto",
+  "syncLogEmpty": "Na razie brak zmian",
+  "syncLogGone": "Pliku już nie ma: usunięte wraca z kosza"
 }

@@ -5308,4 +5308,23 @@ class LPl extends L {
   @override
   String get trashCloudOffline =>
       'Brak połączenia z serwerem: usuniętych plików w chmurze teraz nie widać';
+
+  @override
+  String get syncLogTitle => 'Dziennik zmian';
+
+  @override
+  String get syncLogValue => 'Co, kiedy i skąd się zmieniło';
+
+  @override
+  String get syncLogHint =>
+      'Zmiany ze wszystkich urządzeń. Dotknij, by otworzyć historię notatki.';
+
+  @override
+  String get syncLogDeleted => 'usunięto';
+
+  @override
+  String get syncLogEmpty => 'Na razie brak zmian';
+
+  @override
+  String get syncLogGone => 'Pliku już nie ma: usunięte wraca z kosza';
 }

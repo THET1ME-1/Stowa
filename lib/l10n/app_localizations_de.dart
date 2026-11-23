@@ -5264,4 +5264,24 @@ class LDe extends L {
   @override
   String get trashCloudOffline =>
       'Keine Verbindung zum Server: Gelöschtes in der Cloud ist gerade nicht sichtbar';
+
+  @override
+  String get syncLogTitle => 'Änderungsprotokoll';
+
+  @override
+  String get syncLogValue => 'Was sich wann und wo geändert hat';
+
+  @override
+  String get syncLogHint =>
+      'Änderungen von allen Geräten. Tippen öffnet den Verlauf der Notiz.';
+
+  @override
+  String get syncLogDeleted => 'gelöscht';
+
+  @override
+  String get syncLogEmpty => 'Noch keine Änderungen';
+
+  @override
+  String get syncLogGone =>
+      'Die Datei gibt es nicht mehr: Gelöschtes kommt aus dem Papierkorb zurück';
 }

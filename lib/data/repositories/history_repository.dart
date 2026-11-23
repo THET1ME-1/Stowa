@@ -52,4 +52,11 @@ class HistoryRepository {
 
   /// Путь файла заметки в хранилище: по нему история в облаке.
   Future<String?> pathOf(String itemId) async => (await (_db.select(_db.vaultFiles)..where((t) => t.itemId.equals(itemId))).getSingleOrNull())?.path;
+
+  /// Живая заметка (или холст, база, рисунок), чей файл лежит по пути [path]; null — такого нет.
+  Future<Item?> itemAt(String path) async {
+    final query = _db.select(_db.vaultFiles).join([innerJoin(_db.items, _db.items.id.equalsExp(_db.vaultFiles.itemId))])
+      ..where(_db.vaultFiles.path.equals(path) & _db.items.deletedAt.isNull());
+    return (await query.getSingleOrNull())?.readTable(_db.items);
+  }
 }

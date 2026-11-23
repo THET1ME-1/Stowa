@@ -5244,4 +5244,24 @@ class LEs extends L {
   @override
   String get trashCloudOffline =>
       'Sin conexión con el servidor: ahora no se ve lo borrado en la nube';
+
+  @override
+  String get syncLogTitle => 'Registro de cambios';
+
+  @override
+  String get syncLogValue => 'Qué cambió, cuándo y desde dónde';
+
+  @override
+  String get syncLogHint =>
+      'Cambios de todos los dispositivos. Toca para abrir el historial de la nota.';
+
+  @override
+  String get syncLogDeleted => 'borrado';
+
+  @override
+  String get syncLogEmpty => 'Todavía no hay cambios';
+
+  @override
+  String get syncLogGone =>
+      'El archivo ya no está: lo borrado vuelve desde la papelera';
 }

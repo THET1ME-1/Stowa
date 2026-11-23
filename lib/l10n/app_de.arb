@@ -1187,5 +1187,11 @@
   "trashCloudPurge": "Für immer löschen",
   "trashCloudPurged": "Für immer gelöscht",
   "trashCloudFailed": "Hat nicht geklappt: Der Server antwortet nicht",
-  "trashCloudOffline": "Keine Verbindung zum Server: Gelöschtes in der Cloud ist gerade nicht sichtbar"
+  "trashCloudOffline": "Keine Verbindung zum Server: Gelöschtes in der Cloud ist gerade nicht sichtbar",
+  "syncLogTitle": "Änderungsprotokoll",
+  "syncLogValue": "Was sich wann und wo geändert hat",
+  "syncLogHint": "Änderungen von allen Geräten. Tippen öffnet den Verlauf der Notiz.",
+  "syncLogDeleted": "gelöscht",
+  "syncLogEmpty": "Noch keine Änderungen",
+  "syncLogGone": "Die Datei gibt es nicht mehr: Gelöschtes kommt aus dem Papierkorb zurück"
 }

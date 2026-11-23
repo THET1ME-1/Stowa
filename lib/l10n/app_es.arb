@@ -1187,5 +1187,11 @@
   "trashCloudPurge": "Borrar para siempre",
   "trashCloudPurged": "Borrado para siempre",
   "trashCloudFailed": "No funcionó: el servidor no respondió",
-  "trashCloudOffline": "Sin conexión con el servidor: ahora no se ve lo borrado en la nube"
+  "trashCloudOffline": "Sin conexión con el servidor: ahora no se ve lo borrado en la nube",
+  "syncLogTitle": "Registro de cambios",
+  "syncLogValue": "Qué cambió, cuándo y desde dónde",
+  "syncLogHint": "Cambios de todos los dispositivos. Toca para abrir el historial de la nota.",
+  "syncLogDeleted": "borrado",
+  "syncLogEmpty": "Todavía no hay cambios",
+  "syncLogGone": "El archivo ya no está: lo borrado vuelve desde la papelera"
 }

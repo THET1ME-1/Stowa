@@ -1187,5 +1187,11 @@
   "trashCloudPurge": "Șterge definitiv",
   "trashCloudPurged": "Șters definitiv",
   "trashCloudFailed": "N-a mers: serverul nu a răspuns",
-  "trashCloudOffline": "Serverul nu răspunde: fișierele șterse din cloud nu se văd acum"
+  "trashCloudOffline": "Serverul nu răspunde: fișierele șterse din cloud nu se văd acum",
+  "syncLogTitle": "Jurnalul modificărilor",
+  "syncLogValue": "Ce s-a schimbat, când și de unde",
+  "syncLogHint": "Modificări de pe toate dispozitivele. Atinge ca să deschizi istoricul notiței.",
+  "syncLogDeleted": "șters",
+  "syncLogEmpty": "Încă nu sunt modificări",
+  "syncLogGone": "Fișierul nu mai există: ce ai șters revine din coș"
 }

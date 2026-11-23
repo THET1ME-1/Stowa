@@ -5275,4 +5275,24 @@ class LRo extends L {
   @override
   String get trashCloudOffline =>
       'Serverul nu răspunde: fișierele șterse din cloud nu se văd acum';
+
+  @override
+  String get syncLogTitle => 'Jurnalul modificărilor';
+
+  @override
+  String get syncLogValue => 'Ce s-a schimbat, când și de unde';
+
+  @override
+  String get syncLogHint =>
+      'Modificări de pe toate dispozitivele. Atinge ca să deschizi istoricul notiței.';
+
+  @override
+  String get syncLogDeleted => 'șters';
+
+  @override
+  String get syncLogEmpty => 'Încă nu sunt modificări';
+
+  @override
+  String get syncLogGone =>
+      'Fișierul nu mai există: ce ai șters revine din coș';
 }

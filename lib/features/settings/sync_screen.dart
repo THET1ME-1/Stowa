@@ -13,6 +13,7 @@ import '../account/email_code_form.dart';
 import '../subscription/paywall_screen.dart';
 import '../subscription/subscribe_card.dart';
 import 'own_password_sheet.dart';
+import 'sync_log_screen.dart';
 import 'settings_blocks.dart';
 import 'sync_progress_card.dart';
 
@@ -186,6 +187,22 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               ],
             ),
             if (noVault) SettingsHint(l.syncNoVault),
+            // журнал правок: что, когда и откуда менялось — как git log
+            if (!otherVault && !locked) ...[
+              const SizedBox(height: 16),
+              SettingsGroup(
+                tint: settingsTint('amber'),
+                children: [
+                  SettingsRow(
+                    key: const ValueKey('sync-log'),
+                    icon: 'history',
+                    title: l.syncLogTitle,
+                    value: l.syncLogValue,
+                    onTap: () => Navigator.of(context).push(syncLogRoute()),
+                  ),
+                ],
+              ),
+            ],
             // свой пароль шифрования: ключ к заметкам знает только человек
             if (!locked && _passwordOn != null) ...[
               const SizedBox(height: 16),

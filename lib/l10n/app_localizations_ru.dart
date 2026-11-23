@@ -5311,4 +5311,24 @@ class LRu extends L {
   @override
   String get trashCloudOffline =>
       'Нет связи с сервером: удалённое в облаке сейчас не видно';
+
+  @override
+  String get syncLogTitle => 'Журнал правок';
+
+  @override
+  String get syncLogValue => 'Что, когда и откуда менялось';
+
+  @override
+  String get syncLogHint =>
+      'Правки со всех устройств. Касание открывает историю заметки.';
+
+  @override
+  String get syncLogDeleted => 'удалено';
+
+  @override
+  String get syncLogEmpty => 'Правок пока нет';
+
+  @override
+  String get syncLogGone =>
+      'Файла больше нет: удалённое возвращается из корзины';
 }

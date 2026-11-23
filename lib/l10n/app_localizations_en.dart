@@ -5226,4 +5226,24 @@ class LEn extends L {
   @override
   String get trashCloudOffline =>
       'Can\'t reach the server: deleted files in the cloud aren\'t shown';
+
+  @override
+  String get syncLogTitle => 'Edit log';
+
+  @override
+  String get syncLogValue => 'What changed, when and where';
+
+  @override
+  String get syncLogHint =>
+      'Edits from all devices. Tap to open a note\'s history.';
+
+  @override
+  String get syncLogDeleted => 'deleted';
+
+  @override
+  String get syncLogEmpty => 'No edits yet';
+
+  @override
+  String get syncLogGone =>
+      'The file is gone: deleted files come back from the trash';
 }
