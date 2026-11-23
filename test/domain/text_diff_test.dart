@@ -60,4 +60,54 @@ void main() {
     final diff = diffLines('а\nб', 'а\nв\nг');
     expect(diffCounts(diff), (added: 2, removed: 1));
   });
+
+  // изменённая строка подсвечивает сами слова: [] — кусок, которого нет на другой стороне
+  group('разница слов', () {
+    String marked(List<WordPiece> pieces) => [for (final piece in pieces) piece.changed ? '[${piece.text}]' : piece.text].join();
+
+    test('слово заменено в середине строки', () {
+      final (before, after) = diffWords('купить молоко и хлеб', 'купить кефир и хлеб');
+      expect(marked(before), 'купить [молоко] и хлеб');
+      expect(marked(after), 'купить [кефир] и хлеб');
+    });
+
+    test('знак препинания — отдельный кусок, кириллица и ё — слово целиком', () {
+      final (before, after) = diffWords('Привет, мир', 'Привет! мир');
+      expect(marked(before), 'Привет[,] мир');
+      expect(marked(after), 'Привет[!] мир');
+      final (_, word) = diffWords('ещё раз', 'еще раз');
+      expect(marked(word), '[еще] раз');
+    });
+
+    test('подряд заменённые слова — одним куском вместе с пробелом между ними', () {
+      final (before, after) = diffWords('встреча в пятницу утром у входа', 'встреча в субботу вечером у входа');
+      expect(marked(before), 'встреча в [пятницу утром] у входа');
+      expect(marked(after), 'встреча в [субботу вечером] у входа');
+    });
+
+    test('строки разницы: убранная и добавленная рядом становятся парой', () {
+      final rows = diffRows('а\nкупить молоко\nб', 'а\nкупить кефир\nб');
+      expect([for (final row in rows) row.kind], [DiffKind.same, DiffKind.removed, DiffKind.added, DiffKind.same]);
+      expect(marked(rows[1].pieces!), 'купить [молоко]');
+      expect(marked(rows[2].pieces!), 'купить [кефир]');
+      expect(rows.first.pieces, isNull);
+    });
+
+    test('без пары и без общего — строка целиком, без подсветки слов', () {
+      final rows = diffRows('а\nодин\nдва\nб', 'а\nодин раз\nб');
+      expect(marked(rows[1].pieces!), 'один');
+      expect(marked(rows[3].pieces!), 'один[ раз]');
+      expect(rows[2].pieces, isNull);
+      final other = diffRows('совсем другое', 'ничего общего тут');
+      expect(other.every((row) => row.pieces == null), isTrue);
+    });
+
+    test('длинная строка не вешает', () {
+      final a = List.generate(20000, (index) => 'слово$index').join(' ');
+      final b = List.generate(20000, (index) => 'слово${index + 3}').join(' ');
+      final started = DateTime.now();
+      diffRows(a, b);
+      expect(DateTime.now().difference(started).inSeconds, lessThan(3));
+    });
+  });
 }
