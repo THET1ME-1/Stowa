@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import '../core/user_first.dart';
+
 class _Nothing {
   const _Nothing();
 }
@@ -16,7 +18,13 @@ class _Nothing {
 ///
 /// Тот же самый ответ (тот же объект) второй раз подписчику не уходит: пересчёт вправе
 /// вернуть прошлый, когда сигнал его не касался.
-Stream<T> recomputeOn<T>(Stream<void> changes, Future<T> Function() compute, {Duration Function(T value)? rest}) {
+///
+/// Пересчёт после правки ждёт, пока человек не занят ([first], по умолчанию [userFirst]):
+/// пока он печатает, каждая пауза в 0,7 с давала автосохранение, а за ним угадыватель папок,
+/// «вернуть сохранённое» и «связанные» перечитывали все заметки в потоке экрана — на телефоне
+/// это и был лаг набора (тестировщик 23.11). Первый ответ — сразу: его ждёт открывшийся экран.
+Stream<T> recomputeOn<T>(Stream<void> changes, Future<T> Function() compute, {Duration Function(T value)? rest, UserFirst? first}) {
+  final person = first ?? userFirst;
   late final StreamController<T> out;
   StreamSubscription<void>? source;
   Timer? resting;
@@ -29,9 +37,12 @@ Stream<T> recomputeOn<T>(Stream<void> changes, Future<T> Function() compute, {Du
 
   Future<void> run() async {
     busy = true;
-    dirty = false;
     var pause = Duration.zero;
     try {
+      if (sent is! _Nothing) await person.calm();
+      if (left) return;
+      // правки, пришедшие, пока человек был занят, этот пересчёт уже увидит
+      dirty = false;
       final value = await compute();
       if (left) return;
       if (!identical(value, sent)) out.add(value);

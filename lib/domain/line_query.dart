@@ -179,26 +179,32 @@ String searchHead(String text) {
 }
 
 /// Слова отличаются не больше чем на одну букву: лишняя, пропущенная или другая.
-bool nearWords(String a, String b) {
-  if ((a.length - b.length).abs() > 1) return false;
+bool nearWords(String a, String b) => nearPrefix(a, a.length, b);
+
+/// [nearWords] для начала [a] длиной [length], не вырезая его: поиск сверяет так каждое слово
+/// всех заметок с каждым словом запроса. Буквы — кодами: `a[i]` на кириллице создаёт строку на
+/// каждую букву, и на телефоне поиск строки по большой базе шёл секундами (тестировщик 23.11).
+bool nearPrefix(String a, int length, String b) {
+  final aLength = length < a.length ? length : a.length;
+  if ((aLength - b.length).abs() > 1) return false;
   var i = 0, j = 0, edits = 0;
-  while (i < a.length && j < b.length) {
-    if (a[i] == b[j]) {
+  while (i < aLength && j < b.length) {
+    if (a.codeUnitAt(i) == b.codeUnitAt(j)) {
       i++;
       j++;
       continue;
     }
     if (++edits > 1) return false;
-    if (a.length > b.length) {
+    if (aLength > b.length) {
       i++;
-    } else if (b.length > a.length) {
+    } else if (b.length > aLength) {
       j++;
     } else {
       i++;
       j++;
     }
   }
-  return edits + (a.length - i) + (b.length - j) <= 1;
+  return edits + (aLength - i) + (b.length - j) <= 1;
 }
 
 /// Пункты для «/список»: каждая строка или запятая.

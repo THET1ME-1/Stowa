@@ -274,6 +274,10 @@ const _paceBudget = Duration(milliseconds: 8);
 
 /// Счёт работы постройки: когда пора дать потоку передышку.
 class _Pace {
+  _Pace(this._wait);
+
+  // передышка снаружи: человек печатает — постройка ждёт, пока он не занят
+  final Future<void> Function()? _wait;
   final _busy = Stopwatch()..start();
   var _work = 0;
 
@@ -287,6 +291,7 @@ class _Pace {
 
   Future<void> rest() async {
     await Future<void>.delayed(Duration.zero);
+    await _wait?.call();
     _busy.reset();
   }
 }
@@ -322,10 +327,11 @@ class FolderIndex {
     List<FolderLabel> labels = const [],
     List<FolderDoc> rejected = const [],
     FolderMemory? memory,
+    Future<void> Function()? wait,
   }) async {
     final index = FolderIndex._(docs.length);
     final asked = <String>{};
-    final pace = _Pace();
+    final pace = _Pace(wait);
     for (final doc in docs) {
       if (pace.spent(index._learn(doc, memory, asked))) await pace.rest();
     }

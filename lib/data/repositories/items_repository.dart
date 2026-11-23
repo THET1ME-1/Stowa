@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/painting.dart' show Color;
 
 import '../../core/theme/folder_palette.dart';
+import '../../core/user_first.dart';
 import '../../domain/folder_guess.dart';
 import '../../domain/image_fingerprint.dart';
 import '../../domain/item_kind.dart';
@@ -568,6 +569,8 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       labels: labels,
       rejected: rejected,
       memory: guess.memory,
+      // человек печатает — постройка ждёт: на телефоне она секундами занимала поток экрана
+      wait: userFirst.calm,
     );
     guess
       ..signature = signature

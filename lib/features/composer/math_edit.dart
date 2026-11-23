@@ -102,8 +102,21 @@ final _display = RegExp(r'(?<!\\)\$\$([\s\S]*?)(?<!\\)\$\$');
 // открывающим — это цена («$5»)
 final _inline = RegExp(r'(?<![\\$])\$(?![\s\d$])([^$\n]*?)(?<!\\)\$(?![\d$])');
 
+// два последних разобранных текста: на каждую букву одну и ту же строку (до и после правки)
+// спрашивают правило набора, типографика, полоса разметки и просмотр формулы — до шести раз
+final _regionsMemo = <String, List<MathAround>>{};
+
 /// Формулы в тексте: блочные `$$…$$` и строчные `$…$`, без кода.
 List<MathAround> mathRegions(String text) {
+  // без «$» формул нет: большинство заметок не разбирается вовсе
+  if (!text.contains(r'$')) return const [];
+  if (_regionsMemo.remove(text) case final known?) return _regionsMemo[text] = known;
+  final regions = _scanRegions(text);
+  if (_regionsMemo.length >= 2) _regionsMemo.remove(_regionsMemo.keys.first);
+  return _regionsMemo[text] = regions;
+}
+
+List<MathAround> _scanRegions(String text) {
   final code = _codeSpans(text);
   bool inCode(int at) => code.any((span) => at >= span.$1 && at < span.$2);
   final regions = <MathAround>[];

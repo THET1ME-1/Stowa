@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
@@ -408,17 +409,10 @@ class _RowView extends StatelessWidget {
             ];
           }
         }
-        // в подсказке оформление как на странице: жирное жирным, галочки значками, без «**» и «- [ ]»
-        final shown = renderMarkup(source, marks);
-        sub = shown.text.trim().isEmpty
-            ? null
-            : MarkedText(
-                text: snippetOf(shown.text, shown.marks),
-                marks: snippetMarks(shown.text, shown.marks),
-                styles: snippetStyles(shown.text, shown.marks, shown.styles),
-                style: subStyle,
-                markColor: markColor,
-              );
+        // в подсказке оформление как на странице: жирное жирным, галочки значками, без «**» и «- [ ]».
+        // Считается один раз на найденное: панель перестраивается на каждую букву строки
+        final line = (_subtitles[hit] ??= (subtitleOf(source, marks),)).$1;
+        sub = line == null ? null : MarkedText(text: line.text, marks: line.marks, styles: line.styles, style: subStyle, markColor: markColor);
         // сервис в подписи только у ссылок и роликов; у заметки со ссылкой внутри — «заметка»
         final web = card.kind == ItemKind.link || card.kind == ItemKind.video;
         final address = !web || card.url == null ? null : Uri.tryParse(card.url!)?.host;
@@ -604,6 +598,53 @@ List<(int, int, MarkupStyle)> snippetStyles(String text, List<TextMark>? marks, 
       if (from + length > start) (from < start ? start - shift : from - shift, from < start ? from + length - start : length, kind),
   ];
 }
+
+/// Подпись карточки найденного: текст, отметки совпадений и оформление.
+typedef Subtitle = ({String text, List<TextMark> marks, List<(int, int, MarkupStyle)> styles});
+
+// подписи найденного: найденное между буквами строки то же, а панель перестраивается на каждую.
+// Подписи может не быть вовсе, поэтому в запись завёрнута и пустая
+final _subtitles = Expando<(Subtitle?,)>();
+
+/// Подпись из текста [source] с отметками [marks]: разметка разбирается вокруг первого
+/// совпадения, а не по всей заметке, и подпись не длиннее [subtitleLimit] — карточка показывает
+/// две строки. Раньше на каждую букву строки каждая карточка разбирала и верстала весь хвост
+/// заметки от совпадения: на большом хранилище строка лагала (тестировщик 23.11).
+Subtitle? subtitleOf(String source, List<TextMark> marks) {
+  if (source.length > subtitleLimit * 4) {
+    final first = marks.isEmpty ? 0 : marks.first.$1;
+    final from = source.lastIndexOf('\n', math.max(0, first - subtitleLimit)) + 1;
+    final until = source.indexOf('\n', math.min(source.length, first + subtitleLimit * 2));
+    final to = until < 0 ? source.length : until;
+    marks = [
+      for (final (start, length) in marks)
+        if (start >= from && start + length <= to) (start - from, length),
+    ];
+    source = source.substring(from, to);
+  }
+  final shown = renderMarkup(source, marks);
+  if (shown.text.trim().isEmpty) return null;
+  var text = snippetOf(shown.text, shown.marks);
+  var shownMarks = snippetMarks(shown.text, shown.marks);
+  var styles = snippetStyles(shown.text, shown.marks, shown.styles);
+  if (text.length > subtitleLimit) {
+    final space = text.lastIndexOf(' ', subtitleLimit);
+    final end = space > subtitleLimit ~/ 2 ? space : subtitleLimit;
+    text = text.substring(0, end);
+    shownMarks = [
+      for (final (start, length) in shownMarks)
+        if (start < end) (start, math.min(length, end - start)),
+    ];
+    styles = [
+      for (final (start, length, kind) in styles)
+        if (start < end) (start, math.min(length, end - start), kind),
+    ];
+  }
+  return (text: text, marks: shownMarks, styles: styles);
+}
+
+/// Сколько знаков подписи карточки нужно: она показывает две строки.
+const subtitleLimit = 400;
 
 String snippetOf(String text, List<TextMark>? marks) {
   final start = _snippetStart(text, marks);

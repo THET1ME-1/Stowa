@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/core/user_first.dart';
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/core/widgets/voice_player.dart';
@@ -194,6 +195,22 @@ void main() {
     testWidgets('время', (tester) async {
       await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
       await edit(tester, 'Купить хлеб в 6 вечера');
+      expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 18));
+    });
+
+    // тестировщик 23.11: пауза между словами больше 0,7 с разбирала весь текст, клавиатура лагала
+    testWidgets('человек ещё печатает: текст сохраняется сразу, время — когда перестал', (tester) async {
+      var now = DateTime(2026, 11, 23, 12);
+      final previous = userFirst;
+      userFirst = UserFirst(enabled: true, clock: () => now, poll: const Duration(milliseconds: 50));
+      addTearDown(() => userFirst = previous);
+      await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
+      await edit(tester, 'Купить хлеб в 6 вечера');
+      expect((await saved()).body, 'Купить хлеб в 6 вечера');
+      expect((await saved()).reminderAt, isNull);
+      now = now.add(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
       expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 18));
     });
 

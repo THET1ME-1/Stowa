@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stowa/core/user_first.dart';
 import 'package:stowa/data/recompute.dart';
 
 void main() {
@@ -32,6 +33,32 @@ void main() {
     running.single.complete(7);
     await turn();
     expect(seen, [7]);
+    await sub.cancel();
+  });
+
+  // тестировщик 23.11: «клавиатура лагает» — пересчёты после автосохранения шли посреди набора
+  test('пересчёт после правки ждёт, пока человек не занят; первый — сразу', () async {
+    var now = DateTime(2026, 11, 23, 12);
+    final person = UserFirst(enabled: true, clock: () => now, poll: const Duration(milliseconds: 5));
+    final sub = recomputeOn(changes.stream, compute, first: person).listen(seen.add);
+    person.touch();
+    changes.add(null);
+    await turn();
+    expect(running, hasLength(1), reason: 'первый ответ ждёт открывшийся экран');
+    running[0].complete(1);
+    await turn();
+    changes.add(null);
+    changes.add(null);
+    await Future<void>.delayed(const Duration(milliseconds: 40));
+    expect(running, hasLength(1), reason: 'человек печатает — пересчёт ждёт');
+    now = now.add(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(milliseconds: 40));
+    expect(running, hasLength(2), reason: 'освободился — один пересчёт на все правки');
+    running[1].complete(2);
+    await turn();
+    await turn();
+    expect(running, hasLength(2));
+    expect(seen, [1, 2]);
     await sub.cancel();
   });
 

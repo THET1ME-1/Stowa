@@ -10,6 +10,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/services.dart';
 
 import '../core/theme/folder_palette.dart';
+import '../core/user_first.dart';
 import '../data/db/database.dart';
 import '../domain/note_blocks.dart';
 import '../domain/note_links.dart';
@@ -45,7 +46,7 @@ Map<String, Object?> widgetSnapshot({required List<WidgetNote> notes, required b
           'id': note.id,
           'title': shownTitle(note.title),
           'lines': [
-            for (final line in noteLinesUnderTitle(note.body, note.title).take(widgetLineLimit))
+            for (final line in noteLinesUnderTitle(widgetHead(note.body), note.title).take(widgetLineLimit))
               {'text': line.text, if (line.done != null) 'done': line.done},
           ],
           if (note.color != null) 'color': note.color!.toARGB32(),
@@ -53,6 +54,15 @@ Map<String, Object?> widgetSnapshot({required List<WidgetNote> notes, required b
         },
   ],
 };
+
+/// Начало заметки, которого хватит на [widgetLineLimit] строк виджета: весь текст длинного
+/// конспекта разбирать незачем, а снимок строится на шестьдесят заметок разом.
+String widgetHead(String body) {
+  const enough = 4000;
+  if (body.length <= enough) return body;
+  final cut = body.lastIndexOf('\n', enough);
+  return body.substring(0, cut > 0 ? cut : enough);
+}
 
 /// Канал `stowa/widget` (iPhone и Android): `write` кладёт текст `widget.json` в папку группы или приложения
 /// и просит виджеты перерисоваться.
@@ -80,13 +90,16 @@ class WidgetSync {
   void refresh({bool now = false}) {
     _pause?.cancel();
     if (now) {
-      _write().ignore();
+      _write(now: true).ignore();
     } else {
       _pause = Timer(_quiet, () => _write().ignore());
     }
   }
 
-  Future<void> _write() async {
+  Future<void> _write({bool now = false}) async {
+    // человек печатает — снимок ждёт: он читает шестьдесят заметок в потоке экрана, а виджет
+    // на столе всё равно не виден, пока открыто приложение. Замок пишется сразу
+    if (!now) await userFirst.calm();
     var locked = _locked();
     var notes = locked ? const <WidgetNote>[] : await widgetNotes(_db);
     // замок включили, пока база отвечала: закрытый файл уже лёг, текст поверх него не класть

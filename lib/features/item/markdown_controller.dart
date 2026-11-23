@@ -36,36 +36,56 @@ TextEditingValue continueLists(TextEditingValue old, TextEditingValue next) {
 class MarkdownController extends TextEditingController {
   MarkdownController({super.text});
 
+  // разметка строки по её тексту: на букву меняется одна строка, остальные берутся готовыми
+  // (на телефоне разметка всех строк окна шла на каждую букву, тестировщик 23.11: «лагает»).
+  // Строка с курсором считается заново: у курсора видны скобки [[ссылки]]. Тема сменилась —
+  // готовые строки с прежними цветами выбрасываются
+  final _lineSpans = <String, List<InlineSpan>>{};
+  Color? _lineInk;
+
   @override
   TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
-    final mark = TextStyle(color: Tokens.muted);
+    if (_lineInk != Tokens.muted || _lineSpans.length > 4000) {
+      _lineInk = Tokens.muted;
+      _lineSpans.clear();
+    }
+    final caret = selection.isValid && selection.isCollapsed ? selection.baseOffset : -1;
     final children = <InlineSpan>[];
     final lines = text.split('\n');
     var offset = 0;
     for (final (index, line) in lines.indexed) {
       final lineStart = offset;
       offset += line.length + 1;
-      // строка-картинка приглушена целиком: подчёркивания в имени файла — не курсив
-      if (embedLine.hasMatch(line)) {
-        children.add(TextSpan(text: line, style: TextStyle(color: Tokens.muted, fontSize: 14)));
-        if (index < lines.length - 1) children.add(const TextSpan(text: '\n'));
-        continue;
+      if (caret >= lineStart && caret <= lineStart + line.length) {
+        _line(line, lineStart, children);
+      } else {
+        children.addAll(_lineSpans[line] ??= _line(line, -1, []));
       }
-      final lead = _lineMark.firstMatch(line)?.group(0) ?? '';
-      final rest = line.substring(lead.length);
-      var restStyle = const TextStyle();
-      if (lead.startsWith('#')) {
-        restStyle = const TextStyle(fontWeight: FontWeight.w700, fontSize: 19);
-      } else if (lead.contains('[x]') || lead.contains('[X]')) {
-        restStyle = TextStyle(color: Tokens.muted, decoration: TextDecoration.lineThrough, decorationColor: Tokens.muted);
-      } else if (lead.startsWith('>')) {
-        restStyle = TextStyle(color: Tokens.onSurfaceVariant);
-      }
-      if (lead.isNotEmpty) children.add(TextSpan(text: lead, style: mark));
-      _inline(rest, lineStart + lead.length, restStyle, children);
       if (index < lines.length - 1) children.add(const TextSpan(text: '\n'));
     }
     return TextSpan(style: style, children: children);
+  }
+
+  // куски одной строки; [lineStart] — где она в тексте, −1 — курсора в ней нет
+  List<InlineSpan> _line(String line, int lineStart, List<InlineSpan> out) {
+    // строка-картинка приглушена целиком: подчёркивания в имени файла — не курсив
+    if (embedLine.hasMatch(line)) {
+      out.add(TextSpan(text: line, style: TextStyle(color: Tokens.muted, fontSize: 14)));
+      return out;
+    }
+    final lead = _lineMark.firstMatch(line)?.group(0) ?? '';
+    final rest = line.substring(lead.length);
+    var restStyle = const TextStyle();
+    if (lead.startsWith('#')) {
+      restStyle = const TextStyle(fontWeight: FontWeight.w700, fontSize: 19);
+    } else if (lead.contains('[x]') || lead.contains('[X]')) {
+      restStyle = TextStyle(color: Tokens.muted, decoration: TextDecoration.lineThrough, decorationColor: Tokens.muted);
+    } else if (lead.startsWith('>')) {
+      restStyle = TextStyle(color: Tokens.onSurfaceVariant);
+    }
+    if (lead.isNotEmpty) out.add(TextSpan(text: lead, style: TextStyle(color: Tokens.muted)));
+    _inline(rest, lineStart < 0 ? -1 : lineStart + lead.length, restStyle, out);
+    return out;
   }
 
   // жирный, курсив, зачёркнутый, код: знаки по краям приглушены, середина выделена.
@@ -74,7 +94,8 @@ class MarkdownController extends TextEditingController {
   void _inline(String line, int start, TextStyle base, List<InlineSpan> out) {
     final mark = base.merge(TextStyle(color: Tokens.muted, fontWeight: FontWeight.w400, fontStyle: FontStyle.normal));
     final links = wikiPieces(line);
-    final caret = selection.isValid && selection.isCollapsed ? selection.baseOffset - start : -1;
+    // start < 0 — строка без курсора (её разметку запоминают): скобки ссылок скрыты
+    final caret = start >= 0 && selection.isValid && selection.isCollapsed ? selection.baseOffset - start : -1;
     var last = 0;
     for (final match in [...inlineMarks.allMatches(line), ...links.map((piece) => piece)]..sort((a, b) => _startOf(a).compareTo(_startOf(b)))) {
       if (_startOf(match) < last) continue;

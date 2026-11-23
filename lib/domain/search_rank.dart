@@ -160,30 +160,52 @@ const _typo = 0.6;
 /// Короче основа формой не считается: «паро» — это начало «пароля», а не форма «пары».
 const _formStem = 4;
 
-/// Слова поля заметки: свёрнутый текст и границы слов парами (начало, конец). Свёртка
-/// длину не меняет — начала совпадают с исходным текстом.
-typedef _Tokens = (String folded, Int32List spans);
+/// Слова поля заметки: разные слова поля по разу и, для каждого слова текста по порядку,
+/// где оно начинается и какое оно из разных. Свёртка длину не меняет — начала совпадают с
+/// исходным текстом.
+///
+/// Поиск сверяет с запросом только разные слова, а места слов смотрит лишь у совпавших.
+/// Раньше каждое слово каждой заметки вырезалось из текста заново на каждую букву строки —
+/// на тысяче конспектов это сотни тысяч строк за нажатие, и клавиатура телефона вставала
+/// (тестировщик 23.11). Одинаковые слова всех заметок — одна строка (`_wordPool`): её хеш
+/// считается один раз.
+class _Tokens {
+  _Tokens(this.words, this.starts, this.which);
+
+  final List<String> words;
+  final Int32List starts;
+  final Int32List which;
+}
+
+final _wordPool = <String, String>{};
 
 _Tokens _tokens(String text) {
   final folded = foldText(text);
   final matches = wordMatches(folded).toList();
-  final spans = Int32List(matches.length * 2);
-  for (final (index, match) in matches.indexed) {
-    spans[index * 2] = match.start;
-    spans[index * 2 + 1] = match.end;
+  final starts = Int32List(matches.length);
+  final which = Int32List(matches.length);
+  final words = <String>[];
+  final index = <String, int>{};
+  for (final (at, match) in matches.indexed) {
+    starts[at] = match.start;
+    final word = folded.substring(match.start, match.end);
+    which[at] = index[word] ??= () {
+      words.add(_wordPool[word] ??= word);
+      return words.length - 1;
+    }();
   }
-  return (folded, spans);
+  return _Tokens(words, starts, which);
 }
 
 /// Строка ищет на каждое нажатие, а заметки между нажатиями не меняются: разрезанный текст
-/// и язык заметки помнятся, пока текст тот же (сверка по длине и хешу). Память — границы
-/// слов числами, без копий слов.
+/// и язык заметки помнятся, пока текст тот же (сверка по длине и хешу; хеш строки из базы
+/// считается один раз — она лежит в памяти текстов, `_texts`).
 final _fieldMemory = <(String, SearchField), (int, int, _Tokens)>{};
 
 /// Сколько текстов разрезано на слова с запуска (взятое из памяти не считается): по нему
 /// видно, что прогрев поиска сделал своё дело.
 int searchTextsCut = 0;
-final _languageMemory = <String, (int, int, String?)>{};
+final _languageMemory = <String, (int, String?)>{};
 const _memoryLimit = 20000;
 
 _Tokens _fieldTokens(SearchDoc doc, SearchField field) {
@@ -191,7 +213,10 @@ _Tokens _fieldTokens(SearchDoc doc, SearchField field) {
   final key = (doc.id, field);
   final known = _fieldMemory[key];
   if (known != null && known.$1 == text.length && known.$2 == text.hashCode) return known.$3;
-  if (_fieldMemory.length > _memoryLimit) _fieldMemory.clear();
+  if (_fieldMemory.length > _memoryLimit) {
+    _fieldMemory.clear();
+    _wordPool.clear();
+  }
   final tokens = _tokens(text);
   searchTextsCut++;
   _fieldMemory[key] = (text.length, text.hashCode, tokens);
@@ -219,7 +244,7 @@ List<(String, String, double)> _variantsOf(QueryWord query) => [for (final varia
       final typed = word.startsWith(wanted);
       hit = form ? _form : (typed ? _typed : _stemStart);
       span = typed ? wanted.length : base.length;
-      while (span < word.length && span < wanted.length && word[span] == wanted[span]) {
+      while (span < word.length && span < wanted.length && word.codeUnitAt(span) == wanted.codeUnitAt(span)) {
         span++;
       }
     } else if (language != null && _sameLanguageStem(word, wanted, language)) {
@@ -229,7 +254,7 @@ List<(String, String, double)> _variantsOf(QueryWord query) => [for (final varia
         wanted.length >= 4 &&
         // короткое слово текста — не опечатка длинного запроса: «лей» не «клей»
         word.length >= 4 &&
-        (nearWords(word.substring(0, min(word.length, wanted.length)), wanted) || nearWords(word.substring(0, min(word.length, wanted.length + 1)), wanted))) {
+        (nearPrefix(word, wanted.length, wanted) || nearPrefix(word, wanted.length + 1, wanted))) {
       // опечатку ищем только у самого слова: у транслита и раскладки она даёт шум
       hit = _typo;
       span = min(word.length, wanted.length);
@@ -250,16 +275,19 @@ bool _sameLanguageStem(String word, String wanted, String language) {
   return stem != null && stem.length >= 3 && stem == languageStem(wanted, language);
 }
 
-// язык заметки по началу её текста: длинной статье хватит первых двух тысяч знаков
+// язык заметки по началу её текста: длинной статье хватит первых двух тысяч знаков. Сверка
+// памяти — по названию и тексту как есть: склейка целого конспекта на каждую букву строки
+// стоила копии всего текста
 String? _docLanguage(SearchDoc doc) {
-  final whole = '${doc.title}\n${doc.body}';
-  final sample = whole.length > 2000 ? whole.substring(0, 2000) : whole;
+  final stamp = Object.hash(doc.title.length, doc.title.hashCode, doc.body.length, doc.body.hashCode);
   final known = _languageMemory[doc.id];
-  if (known != null && known.$1 == sample.length && known.$2 == sample.hashCode) return known.$3;
+  if (known != null && known.$1 == stamp) return known.$2;
   if (_languageMemory.length > _memoryLimit) _languageMemory.clear();
+  final whole = '${doc.title}\n${doc.body.length > 2000 ? doc.body.substring(0, 2000) : doc.body}';
+  final sample = whole.length > 2000 ? whole.substring(0, 2000) : whole;
   final guessed = guessLanguage(sample);
   final language = hasLanguageStems(guessed) ? guessed : null;
-  _languageMemory[doc.id] = (sample.length, sample.hashCode, language);
+  _languageMemory[doc.id] = (stamp, language);
   return language;
 }
 
@@ -303,15 +331,26 @@ List<SearchHit> rankSearch(
     // совпадение слова запроса в поле, метки — куски, где нашлось
     final strength = [for (final _ in words) <SearchField, double>{}];
     for (final field in words.isEmpty ? const <SearchField>[] : SearchField.values) {
-      final (folded, spans) = _fieldTokens(doc, field);
-      for (var at = 0; at < spans.length; at += 2) {
-        final start = spans[at];
-        final word = folded.substring(start, spans[at + 1]);
+      final tokens = _fieldTokens(doc, field);
+      // разные слова поля: что из запроса каждое напоминает и сколько знаков подсветить
+      List<int>? found;
+      for (var unique = 0; unique < tokens.words.length; unique++) {
+        final word = tokens.words[unique];
         for (var index = 0; index < words.length; index++) {
           final (best, length) = docMemos[index][word] ??= _likeness(word, variants[index], language);
           if (best <= 0) continue;
-          marks.putIfAbsent(field, () => []).add((start, length));
+          (found ??= List.filled(tokens.words.length * words.length, 0))[unique * words.length + index] = length + 1;
           if (best > (strength[index][field] ?? 0)) strength[index][field] = best;
+        }
+      }
+      if (found == null) continue;
+      // места совпавших слов по порядку текста, как читает человек
+      final fieldMarks = marks[field] = [];
+      for (var at = 0; at < tokens.which.length; at++) {
+        final row = tokens.which[at] * words.length;
+        for (var index = 0; index < words.length; index++) {
+          final length = found[row + index];
+          if (length > 0) fieldMarks.add((tokens.starts[at], length - 1));
         }
       }
     }

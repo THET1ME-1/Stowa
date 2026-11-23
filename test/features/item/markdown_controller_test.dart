@@ -103,4 +103,31 @@ void main() {
       expect(open.style!.color, Tokens.muted);
     });
   });
+
+  // тестировщик 23.11: «лагает» — разметка всех строк считалась на каждую букву
+  testWidgets('буква в строке: остальные строки берутся готовыми, ссылка у курсора открыта', (tester) async {
+    final controller = MarkdownController(text: '## План\nСм. [[Ремонт]] тут\nтретья **строка**')..selection = const TextSelection.collapsed(offset: 2);
+    addTearDown(controller.dispose);
+    late BuildContext context;
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (inner) {
+      context = inner;
+      return const SizedBox();
+    })));
+    List<InlineSpan> children() => controller.buildTextSpan(context: context, withComposing: false).children!;
+    final before = children();
+    // буква в первой строке: третья строка — те же куски, а не новые
+    controller.value = const TextEditingValue(text: '## Планы\nСм. [[Ремонт]] тут\nтретья **строка**', selection: TextSelection.collapsed(offset: 8));
+    final after = children();
+    expect(identical(after.last, before.last), isTrue);
+    // курсор в строке со ссылкой — скобки видны (не крошечные), ушёл — снова спрятаны
+    String? hiddenBrackets(List<InlineSpan> spans) => [
+      for (final span in spans)
+        if (span is TextSpan && span.text == '[[') span.style?.fontSize == 0.01 ? 'спрятаны' : 'видны',
+    ].single;
+    expect(hiddenBrackets(after), 'спрятаны');
+    controller.selection = const TextSelection.collapsed(offset: 15);
+    expect(hiddenBrackets(children()), 'видны');
+    controller.selection = const TextSelection.collapsed(offset: 2);
+    expect(hiddenBrackets(children()), 'спрятаны');
+  });
 }

@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import '../../domain/text_diff.dart';
 import '../../domain/text_pieces.dart';
+import '../user_first.dart';
 
 /// Поле для длинного текста, которое на каждую букву верстает только кусок у курсора.
 ///
@@ -306,6 +307,8 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
   /// Правка в живом поле: документ собирается из неподвижных кусков и окна.
   void _onWindow() {
     if (_syncing) return;
+    // буква или курсор — человек занят: фон и пересчёты ждут (UserFirst)
+    userFirst.touch();
     final local = widget.window.value;
     var text = _docText;
     if (local.text != _windowText) {

@@ -22,6 +22,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../core/haptics.dart';
+import '../../core/user_first.dart';
 import '../../core/widgets/sheet_options.dart';
 import '../../core/widgets/windowed_text_field.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -45,7 +46,6 @@ import '../../domain/shopping.dart';
 import '../../domain/vault_note.dart' show unpackVaultProperties;
 import '../../l10n/app_localizations.dart';
 import '../../services/capture_service.dart' show CaptureInput, PickedFile;
-import '../composer/line_controller.dart' show LineController;
 import '../composer/line_dock.dart';
 import '../composer/markdown_bar.dart';
 import '../composer/markdown_edit.dart';
@@ -199,7 +199,6 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _autosave?.cancel();
     // ушли посреди правки — набранное не теряется
     if (_editing) _save();
-    _phraseTimer?.cancel();
     _title.dispose();
     _body.dispose();
     _bodyWindow.dispose();
@@ -258,47 +257,56 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     return _blocks;
   }
 
-  // отложенная проверка времени и места длинного текста
-  Timer? _phraseTimer;
-  static const _phraseDelay = Duration(milliseconds: 250);
-
   // текст на прошлой правке и где в нём стояли время и место на прошлой проверке
   String _lastText = '';
   List<(int, int)> _timeSpans = const [];
   (int, int)? _placeSpan;
 
+  // текст правили после прошлой проверки времени и места
+  var _phrasesStale = false;
+
   void _changed() {
     if (!_editing) return;
-    _phraseTimer?.cancel();
+    // буква — человек занят: фон и пересчёты ждут (UserFirst)
+    userFirst.touch();
+    // время и место разбираются при сохранении, а не на букву и не на короткой паузе: разбор на
+    // телефоне — десятки миллисекунд, и он лагал посреди набора (тестировщики 22 и 23.11).
+    // Стёр «8» и набрал заново до сохранения — фраза та же, но её трогали: это видно по месту
+    // правки, без разбора
     final text = '${_title.text}\n${_body.text}';
-    if (text.length <= LineController.instantLength) {
-      _checkPhrases();
-      return _restartAutosave();
-    }
-    // длинный текст разбирается, когда набор стих: на четыре тысячи знаков разбор шёл двадцать
-    // миллисекунд на букву (тестировщик 22.11: «лагает, 10 FPS»). Стёр «8» и набрал заново до
-    // паузы — фраза та же, но её трогали: это видно по месту правки, без разбора
     final edit = editedRange(_lastText, text);
     if (_timeSpans.any(edit.touches)) _timeTouched = true;
     if (_placeSpan case final span? when edit.touches(span)) _placeTouched = true;
     _timeSpans = [for (final span in _timeSpans) edit.shift(span)];
     _placeSpan = _placeSpan == null ? null : edit.shift(_placeSpan!);
     _lastText = text;
-    _phraseTimer = Timer(_phraseDelay, () {
-      if (mounted && _editing) _checkPhrases();
-    });
+    _phrasesStale = true;
     _restartAutosave();
   }
 
   void _restartAutosave() {
     _autosave?.cancel();
-    _autosave = Timer(_autosaveDelay, _save);
+    _autosave = Timer(_autosaveDelay, () => _save(pause: true));
+  }
+
+  // разбор времени и места отложен до конца набора
+  var _phrasesWaiting = false;
+
+  /// Когда человек перестанет печатать — разобрать время и место и сохранить напоминание.
+  void _phrasesWhenCalm() {
+    if (_phrasesWaiting) return;
+    _phrasesWaiting = true;
+    userFirst.calm().then((_) {
+      _phrasesWaiting = false;
+      if (mounted && _editing) _save(pause: true);
+    }).ignore();
   }
 
   /// Фраза времени или места сменилась с прошлой проверки — их трогали.
   void _checkPhrases() {
     final text = '${_title.text}\n${_body.text}';
     _lastText = text;
+    _phrasesStale = false;
     final found = parseReminder(text, _clock(), workEnd: _workEnd());
     final phrase = found == null ? null : reminderPhraseOf(text, found);
     if (phrase != _seenPhrase) _timeTouched = true;
@@ -311,12 +319,17 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     _placeSpan = cue == null ? null : (cue.start, cue.end);
   }
 
-  Future<void> _save() async {
-    // проверка длинного текста ещё ждёт паузы — сохранение не уходит мимо неё
-    if (_phraseTimer?.isActive ?? false) {
-      _phraseTimer!.cancel();
-      _checkPhrases();
+  /// [pause] — сохранение в паузе набора: текст пишется сразу, а время и место (разбор всего
+  /// текста, на телефоне десятки миллисекунд в потоке клавиатуры) — когда человек перестал
+  /// печатать. Пауза между словами больше 0,7 с — обычное дело, и разбор на ней лагал
+  /// (тестировщик 23.11). Выход из правки сохраняет всё сразу.
+  Future<void> _save({bool pause = false}) async {
+    if (pause && userFirst.busy && (_phrasesStale || _timeTouched || _placeTouched)) {
+      _phrasesWhenCalm();
+      await _saveText();
+      return;
     }
+    if (_phrasesStale) _checkPhrases();
     final body = _body.text.replaceFirst(_trailingSpace, '');
     final typed = _title.text.trim();
     // заголовок стёрли — берётся из текста, как при сохранении из строки
@@ -346,6 +359,17 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     }
     // стёрли время или место — напоминание остаётся, его снимает галочка
     if (timeTouched && placeDay == null && found != null) await _items.setReminder(_id, found.at);
+  }
+
+  /// Только текст и заголовок, без времени и места.
+  Future<void> _saveText() async {
+    final body = _body.text.replaceFirst(_trailingSpace, '');
+    final typed = _title.text.trim();
+    final title = typed.isNotEmpty ? typed : titleFor(body);
+    if (title == _savedTitle && body == _savedBody) return;
+    _savedTitle = title;
+    _savedBody = body;
+    await _items.setTitleBody(_id, title: title, body: body, at: _clock());
   }
 
   Future<void> _finish() async {

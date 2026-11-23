@@ -70,6 +70,32 @@ void main() {
     });
   }
 
+  // тестировщик 23.11: «клавиатура лагает» в любой заметке. Gboard шлёт слово с составляемым
+  // куском (composing); ответ приложения клавиатуре на букву заставляет Android перезапускать ввод
+  testWidgets('набор слова как Gboard: приложение не перебивает клавиатуру своим текстом', (tester) async {
+    await note('a', 'Ремонт\nкупить плитку');
+    await open(tester);
+    await tester.tap(find.text('Ремонт'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Править'));
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byType(TextField).last).controller!;
+    var text = field.text;
+    tester.testTextInput.log.clear();
+    const word = 'клей';
+    text = '$text ';
+    final start = text.length;
+    for (var letter = 1; letter <= word.length; letter++) {
+      final typed = '$text${word.substring(0, letter)}';
+      tester.testTextInput.updateEditingValue(TextEditingValue(text: typed, selection: TextSelection.collapsed(offset: typed.length), composing: TextRange(start: start, end: typed.length)));
+      await tester.pump();
+    }
+    final echoes = [for (final call in tester.testTextInput.log) if (call.method == 'TextInput.setEditingState') call.arguments];
+    expect(echoes, isEmpty);
+    expect(field.text, endsWith(' клей'));
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   // тестировщик 23.11: «почему вибраций нет при удержании заметки или удалении» — удары Flutter на
   // Android (KEYBOARD_TAP) многие телефоны не передают, нужен системный LONG_PRESS
   testWidgets('долгое нажатие на заметку и «Удалить» вибрируют системным долгим нажатием', (tester) async {

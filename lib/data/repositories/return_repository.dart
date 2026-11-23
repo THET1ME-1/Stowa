@@ -64,6 +64,20 @@ class ReturnRepository {
 
   Future<List<Item>> _alive() => (_db.select(_db.items)..where((t) => t.deletedAt.isNull())).get();
 
+  /// Живые заметки без текста: «в этот день» и неделе нужны имя, время и пара признаков.
+  /// Полные строки (текст, исходник холста) на тысячах заметок разбирались на главном
+  /// потоке после каждого сохранения, и клавиатура вставала (тестировщик 23.11).
+  Future<List<_Head>> _aliveHeads() async {
+    final items = _db.items;
+    final query = _db.selectOnly(items)
+      ..addColumns([items.id, items.title, items.createdAt, items.openedAt, items.folderId])
+      ..where(items.deletedAt.isNull());
+    return [
+      for (final row in await query.get())
+        (id: row.read(items.id)!, title: row.read(items.title)!, createdAt: row.read(items.createdAt)!, openedAt: row.read(items.openedAt), folderId: row.read(items.folderId)),
+    ];
+  }
+
   /// Пересчитать [compute], когда меняются заметки, факты или теги: открыл ролик — очередь короче.
   /// С [clock] — ещё и когда наступил новый день: приложение живёт открытым сутками, а «год назад»
   /// и очередь зависят от даты. Проверка даты раз в [dayCheck] ничего не считает, пока день тот же.
@@ -107,9 +121,14 @@ class ReturnRepository {
   /// Непросмотренные ролики и статьи за 30 дней, у которых известна длина. Свежие первыми.
   Future<List<WatchLaterEntry>> watchLater(DateTime now) async {
     final since = now.subtract(const Duration(days: _watchDays));
+    // ролики и ссылки отбирает база: заметок с текстом здесь не бывает. Дата — в Dart: в базе
+    // она текстом со сдвигом пояса, строками её не сравнить
+    final candidates = await (_db.select(_db.items)
+          ..where((t) => t.deletedAt.isNull() & t.openedAt.isNull() & t.kind.isInValues(const [ItemKind.video, ItemKind.link])))
+        .get();
     final items = [
-      for (final item in await _alive())
-        if ((item.kind == ItemKind.video || item.kind == ItemKind.link) && item.openedAt == null && item.createdAt.isAfter(since)) item,
+      for (final item in candidates)
+        if (item.createdAt.isAfter(since)) item,
     ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     if (items.isEmpty) return const [];
     final reading = {
@@ -129,8 +148,8 @@ class ReturnRepository {
 
   /// Ровно год (два, три…) назад, иначе месяц, иначе неделю назад. Нечего вспомнить — null.
   Future<OnThisDay?> onThisDay(DateTime now) async {
-    final items = (await _alive())..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    OnThisDay? found(List<Item> group, ReturnPeriod period, {int yearsAgo = 1}) => group.isEmpty
+    final items = (await _aliveHeads())..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    OnThisDay? found(List<_Head> group, ReturnPeriod period, {int yearsAgo = 1}) => group.isEmpty
         ? null
         : OnThisDay(
             found: OnThisDayFound(period: period, yearsAgo: yearsAgo, count: group.length, firstId: group.first.id, firstTitle: group.first.title),
@@ -158,7 +177,7 @@ class ReturnRepository {
   /// Сводка семи дней: сохранено, не открыто, без папки. Списки — свежие первыми.
   Future<WeekSummary> week(DateTime now) async {
     final since = now.subtract(const Duration(days: 7));
-    final items = [for (final item in await _alive()) if (item.createdAt.isAfter(since)) item]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final items = [for (final item in await _aliveHeads()) if (item.createdAt.isAfter(since)) item]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final unopened = [for (final item in items) if (item.openedAt == null) item.id];
     final unsorted = [for (final item in items) if (item.folderId == null) item.id];
     return WeekSummary(found: WeekFound(saved: items.length, unopened: unopened.length, unsorted: unsorted.length), unopened: unopened, unsorted: unsorted);
@@ -199,3 +218,6 @@ WatchLaterFound summarizeWatchLater(List<WatchLaterEntry> queue) => WatchLaterFo
   articles: queue.where((one) => !one.isVideo).length,
   minutes: queue.fold(0, (sum, one) => sum + one.minutes),
 );
+
+// заметка без текста для «в этот день» и недели
+typedef _Head = ({String id, String title, DateTime createdAt, DateTime? openedAt, String? folderId});
