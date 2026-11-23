@@ -381,6 +381,29 @@ class NoteLine {
   final bool? done;
 }
 
+/// Начало длинного текста — до [enough] знаков по границе строки — и сколько непустых строк
+/// осталось после него. Ленте, виджету и подписям хватает первых строк, а разбор и вёрстка
+/// целого конспекта на каждое построение карточки занимали поток экрана на телефоне
+/// (тестировщик 23.11: «клавиатура лагает» — главная перестраивается, когда она выезжает).
+({String head, int restLines}) textHead(String body, {int enough = 3000}) {
+  if (body.length <= enough) return (head: body, restLines: 0);
+  final cut = body.lastIndexOf('\n', enough);
+  final end = cut > 0 ? cut : enough;
+  var rest = 0;
+  var filled = false;
+  for (var at = end; at < body.length; at++) {
+    final code = body.codeUnitAt(at);
+    if (code == 0x0A) {
+      if (filled) rest++;
+      filled = false;
+    } else if (code != 0x20 && code != 0x09 && code != 0x0D) {
+      filled = true;
+    }
+  }
+  if (filled) rest++;
+  return (head: body.substring(0, end), restLines: rest);
+}
+
 /// Непустые строки под заголовком с их номерами. Первая пропускается, только если заголовок из неё.
 /// Блоки-запросы плагинов Obsidian: Dataview, Tasks и встроенный поиск.
 const _queryLanguages = {'dataview', 'dataviewjs', 'tasks', 'query'};

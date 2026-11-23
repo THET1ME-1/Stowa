@@ -57,12 +57,7 @@ Map<String, Object?> widgetSnapshot({required List<WidgetNote> notes, required b
 
 /// Начало заметки, которого хватит на [widgetLineLimit] строк виджета: весь текст длинного
 /// конспекта разбирать незачем, а снимок строится на шестьдесят заметок разом.
-String widgetHead(String body) {
-  const enough = 4000;
-  if (body.length <= enough) return body;
-  final cut = body.lastIndexOf('\n', enough);
-  return body.substring(0, cut > 0 ? cut : enough);
-}
+String widgetHead(String body) => textHead(body, enough: 4000).head;
 
 /// Канал `stowa/widget` (iPhone и Android): `write` кладёт текст `widget.json` в папку группы или приложения
 /// и просит виджеты перерисоваться.

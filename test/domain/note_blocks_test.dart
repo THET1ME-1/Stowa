@@ -291,4 +291,15 @@ void main() {
       expect(renderMarkup('> [!tip]', const []).text, 'Tip');
     });
   });
+
+  // тестировщик 23.11: карточка ленты разбирала и верстала весь конспект ради двух строк
+  test('начало длинного текста — по границе строки, остальные непустые строки — числом', () {
+    final body = List.generate(1000, (index) => index.isEven ? 'строка $index' : '').join('\n');
+    final (:head, :restLines) = textHead(body, enough: 100);
+    expect(head.length, lessThanOrEqualTo(100));
+    expect(body.startsWith('$head\n'), isTrue, reason: 'режется по границе строки');
+    int filled(String text) => text.split('\n').where((line) => line.trim().isNotEmpty).length;
+    expect(restLines, filled(body) - filled(head));
+    expect(textHead('коротко'), (head: 'коротко', restLines: 0));
+  });
 }

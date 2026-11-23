@@ -16,9 +16,11 @@ class MarkedText extends StatelessWidget {
     this.overflow = TextOverflow.ellipsis,
   });
 
-  /// Короткая заметка с её оформлением, без подсветки: карточки на главной и в папке.
+  /// Короткая заметка с её оформлением, без подсветки: карточки на главной и в папке. Видно не
+  /// больше [maxLines] строк — разбирается только начало: у конспекта в 40 тысяч знаков вид
+  /// каждой буквы считался на каждое построение карточки.
   factory MarkedText.note(String markdown, {required TextStyle style, int maxLines = 1, TextOverflow overflow = TextOverflow.ellipsis}) {
-    final shown = renderMarkup(markdown, const []);
+    final shown = renderMarkup(textHead(markdown, enough: maxLines * 400).head, const []);
     return MarkedText(text: shown.text, marks: const [], styles: shown.styles, style: style, markColor: Colors.transparent, maxLines: maxLines, overflow: overflow);
   }
 

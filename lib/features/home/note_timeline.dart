@@ -769,7 +769,9 @@ class _Text extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final lines = noteLinesUnderTitle(item.body, item.title);
+    final excerpt = _excerptOf(item);
+    final lines = excerpt.lines;
+    final restLines = excerpt.rest;
     final checklist = lines.isNotEmpty && lines.first.done != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -777,21 +779,51 @@ class _Text extends StatelessWidget {
         Text(shownTitle(item.title), maxLines: lines.isEmpty ? 4 : (CardDepth.linesOf(context) > _excerptLines ? 3 : 2), overflow: TextOverflow.ellipsis, style: _titleStyle(text)),
         if (lines.isNotEmpty) const SizedBox(height: 6),
         if (checklist)
-          _Checks(lines: lines, color: item.folderColor, onToggle: onToggle)
+          _Checks(lines: lines, rest: restLines, color: item.folderColor, onToggle: onToggle)
         else if (lines.isNotEmpty)
-          _Excerpt(id: item.id, lines: lines, fill: fill),
+          _Excerpt(id: item.id, excerpt: excerpt, fill: fill),
       ],
     );
   }
 }
 
+/// Разобранная выдержка карточки: строки начала текста, сколько непустых осталось после него и
+/// они же с оформлением, без значков разметки.
+class _ExcerptData {
+  _ExcerptData(this.lines, this.rest)
+    : shown = renderMarkup([for (final line in lines) line.done == null ? line.text : '${line.done! ? '☑' : '☐'} ${line.text}'].join('\n'), const []);
+
+  final List<NoteLine> lines;
+  final int rest;
+  final ({String text, List<(int, int)> marks, List<(int, int, MarkupStyle)> styles}) shown;
+
+  /// Сколько строк займёт текст при ширине — считается один раз на ширину.
+  final linesAt = <double, int>{};
+}
+
+// выдержки по тексту заметки. Главная перестраивается от фокуса строки, выезда клавиатуры и
+// каждой правки, а текст карточек тот же: разбор и вёрстка начала конспекта на каждое
+// построение стояли в кадре выезда клавиатуры (эмулятор, 1485 заметок: кадр 135 мс)
+final _excerpts = <(String, String, int, int), _ExcerptData>{};
+
+_ExcerptData _excerptOf(ItemCard item) {
+  final key = (item.id, item.title, item.body.length, item.body.hashCode);
+  if (_excerpts[key] case final known?) return known;
+  if (_excerpts.length > 400) _excerpts.clear();
+  // карточке нужны первые строки: длинный конспект разбирается по началу, остальное — числом
+  final (:head, :restLines) = textHead(item.body, enough: 1200);
+  return _excerpts[key] = _ExcerptData(noteLinesUnderTitle(head, item.title), restLines);
+}
+
 /// Две строки текста. Не влез — конец второй строки растворяется в цвете карточки,
 /// и поверх тихо сказано, сколько строк ещё внутри: вместо многоточия.
 class _Excerpt extends StatelessWidget {
-  const _Excerpt({required this.id, required this.lines, required this.fill});
+  const _Excerpt({required this.id, required this.excerpt, required this.fill});
 
   final String id;
-  final List<NoteLine> lines;
+
+  /// Строки начала текста; непустые строки после него идут в «ещё N строк» числом.
+  final _ExcerptData excerpt;
   final Color fill;
 
   @override
@@ -799,18 +831,23 @@ class _Excerpt extends StatelessWidget {
     final l = L.of(context);
     final style = _bodyStyle(Theme.of(context).textTheme);
     // пункты среди текста — значком, как их видно в заметке
-    final markdown = [for (final line in lines) line.done == null ? line.text : '${line.done! ? '☑' : '☐'} ${line.text}'].join('\n');
+    final rendered = excerpt.shown;
+    final scaler = MediaQuery.textScalerOf(context);
     return LayoutBuilder(
       builder: (context, box) {
-        final painter = TextPainter(
-          text: TextSpan(text: renderMarkup(markdown, const []).text, style: style),
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-        )..layout(maxWidth: box.maxWidth);
         final shown = CardDepth.linesOf(context);
-        final hidden = painter.computeLineMetrics().length - shown;
-        final line = painter.preferredLineHeight;
-        painter.dispose();
+        // сколько строк текст займёт при этой ширине и этом размере букв — один раз на ширину
+        final measured = excerpt.linesAt[box.maxWidth * 1000 + scaler.scale(100)] ??= () {
+          final painter = TextPainter(text: TextSpan(text: rendered.text, style: style), textDirection: Directionality.of(context), textScaler: scaler)..layout(maxWidth: box.maxWidth);
+          final count = painter.computeLineMetrics().length;
+          painter.dispose();
+          return count;
+        }();
+        final hidden = measured - shown + excerpt.rest;
+        // высота строки от текста не зависит — меряется на пустом
+        final probe = TextPainter(text: TextSpan(text: '', style: style), textDirection: Directionality.of(context), textScaler: scaler);
+        final line = probe.preferredLineHeight;
+        probe.dispose();
         final more = l.homeMoreLines(hidden);
         final moreStyle = Theme.of(context).textTheme.labelMedium!.copyWith(color: Tokens.muted);
         // подложка под подписью сплошная во всю её ширину и плавно уходит влево на 48 точек:
@@ -823,7 +860,10 @@ class _Excerpt extends StatelessWidget {
         final width = math.min(box.maxWidth, solid + blend);
         return Stack(
           children: [
-            KeyedSubtree(key: ValueKey('excerpt-$id'), child: MarkedText.note(markdown, maxLines: shown, overflow: TextOverflow.clip, style: style)),
+            KeyedSubtree(
+              key: ValueKey('excerpt-$id'),
+              child: MarkedText(text: rendered.text, marks: const [], styles: rendered.styles, style: style, markColor: Colors.transparent, maxLines: shown, overflow: TextOverflow.clip),
+            ),
             if (hidden > 0)
               Positioned(
                 key: ValueKey('excerpt-fade-$id'),
@@ -847,9 +887,12 @@ class _Excerpt extends StatelessWidget {
 
 /// Список: первые два пункта галочками, которые отмечаются отсюда, остальное — «ещё N».
 class _Checks extends StatelessWidget {
-  const _Checks({required this.lines, required this.color, required this.onToggle});
+  const _Checks({required this.lines, required this.rest, required this.color, required this.onToggle});
 
   final List<NoteLine> lines;
+
+  /// Непустые строки после разобранного начала длинного списка.
+  final int rest;
   final Color? color;
   final ValueChanged<int> onToggle;
 
@@ -858,7 +901,7 @@ class _Checks extends StatelessWidget {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final shown = lines.where((line) => line.done != null).take(CardDepth.linesOf(context)).toList();
-    final hidden = lines.length - shown.length;
+    final hidden = lines.length - shown.length + rest;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -929,7 +972,8 @@ class _Photo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lines = noteLinesUnderTitle(item.body, item.title);
+    // есть ли подпись — по началу текста: целиком длинную заметку разбирать незачем
+    final lines = noteLinesUnderTitle(textHead(item.body).head, item.title);
     final width = (360 * MediaQuery.devicePixelRatioOf(context)).round();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
