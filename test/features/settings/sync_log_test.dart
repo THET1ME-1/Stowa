@@ -78,7 +78,7 @@ void main() {
     expect(find.text('Сегодня'), findsOneWidget);
     expect(find.text('Покупки'), findsOneWidget);
     expect(find.text('План'), findsOneWidget);
-    expect(find.textContaining('Pixel 8 · 2 правки · Дом'), findsOneWidget);
+    expect(find.textContaining('Pixel 8 · 2 правки · Дом'), findsOneWidget);
     expect(find.textContaining('Сайт'), findsOneWidget);
     // служебное в журнал не попадает
     expect(find.text('tags'), findsNothing);

@@ -285,7 +285,11 @@ class TestWorld {
         if (autofill case final autofill?) autofillWatchProvider.overrideWithValue(autofill),
         // история в облаке на поддельном сервере: вошли в Stowa Sync этого хранилища
         if (cloudHistory case final history?) ...[
-          cloudHistoryProvider.overrideWith((ref) async => history),
+          // как у настоящего: история ждёт входа. Экран, что читает её без слушателя, здесь зависнет
+          cloudHistoryProvider.overrideWith((ref) async {
+            await ref.watch(syncSignedInProvider.future);
+            return history;
+          }),
           syncSignedInProvider.overrideWith((ref) => Stream.value(true)),
           subscriptionProvider.overrideWith(
             (ref) => Stream.value(cloudSubscribed ? Subscription(signedIn: true, active: true, paidUntil: DateTime(2099)) : const Subscription(signedIn: true)),

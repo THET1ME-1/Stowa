@@ -69,6 +69,9 @@ class _SyncLogScreenState extends ConsumerState<SyncLogScreen> {
   @override
   void initState() {
     super.initState();
+    // Riverpod 3 ставит на паузу провайдер без слушателей: `.future` у неслушаемой истории
+    // ждал бы вечно. Экран слушает её, пока открыт
+    ref.listenManual(cloudHistoryProvider, (_, _) {});
     _load();
   }
 
@@ -236,7 +239,7 @@ class _LogTile extends StatelessWidget {
     final folder = p.posix.dirname(version.path);
     final note = [
       ?version.device,
-      if (row.edits > 1) l.historyEdits(row.edits),
+      if (row.edits > 1) keepTogether(l.historyEdits(row.edits)),
       if (version.deleted) l.syncLogDeleted,
       if (folder != '.') folder,
     ].join(' · ');

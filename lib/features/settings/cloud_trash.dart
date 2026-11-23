@@ -16,6 +16,7 @@ import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/sync/cloud_history.dart';
 import '../../services/sync/sync_http.dart';
+import '../item/history_screen.dart' show keepTogether;
 import '../item/note_history.dart' show CloudAccess;
 
 /// Удалённое в облаке и можно ли его сейчас видеть.
@@ -137,6 +138,8 @@ class _CloudTrashSectionState extends ConsumerState<CloudTrashSection> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
+    // возврат и стирание читают историю `.future`: она должна быть под слушателем
+    ref.watch(cloudHistoryProvider);
     final trash = ref.watch(cloudTrashProvider).value;
     if (trash == null) return const SizedBox.shrink();
     if (trash.access == CloudAccess.offline) {
@@ -217,9 +220,9 @@ class _CloudRow extends StatelessWidget {
     final folder = p.posix.dirname(file.path);
     final note = [
       if (folder != '.') folder,
-      l.trashCloudDeleted(DateFormat.MMMd(l.localeName).format(file.deletedAt)),
+      keepTogether(l.trashCloudDeleted(DateFormat.MMMd(l.localeName).format(file.deletedAt))),
       ?file.device,
-      if (file.attachments.isNotEmpty) l.trashCloudAttachments(file.attachments.length),
+      if (file.attachments.isNotEmpty) keepTogether(l.trashCloudAttachments(file.attachments.length)),
     ].join(' · ');
     return Pressable(
       radius: BorderRadius.circular(Radii.tile),

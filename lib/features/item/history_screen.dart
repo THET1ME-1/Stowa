@@ -27,7 +27,9 @@ import 'note_history.dart';
 
 /// История вырастает из нажатой кнопки, как страница заметки. Вернули версию — экран отдаёт true.
 /// [document] — холст, база или рисунок: возвращается весь файл, снимков устройства у них нет.
-Route<bool> historyRoute(String itemId, {bool document = false}) => MaterialPageRoute(builder: (_) => HistoryScreen(itemId: itemId, document: document));
+Route<bool> historyRoute(String itemId, {bool document = false}) => MaterialPageRoute(
+  builder: (_) => HistoryScreen(itemId: itemId, document: document),
+);
 
 /// «Сегодня, 14:05», «7 нояб., 10:20».
 String versionTime(L l, DateTime at, DateTime now) {
@@ -42,11 +44,17 @@ String _clock(L l, HistoryEntry entry) {
   return from == null ? to : '${DateFormat.Hm(l.localeName).format(from)}–$to';
 }
 
-/// «+3 −1» от [older] к [newer]; тот же текст — «Текст тот же».
+/// Число со словом не рвётся по строкам: «3 правки», а не «3» в конце строки и «правки» в начале.
+String keepTogether(String text) => text.replaceAll(' ', ' ');
+
+/// Ширина колонки истории на мониторе: как у текста заметки и экранов настроек.
+const historyMaxWidth = 760.0;
+
+/// «+3 −1», «+1», «−2» от [older] к [newer]; тот же текст — «Текст тот же».
 String changesLabel(L l, String older, String newer) {
   final counts = diffCounts(diffLines(older, newer));
   if (counts.added == 0 && counts.removed == 0) return l.historyNoChanges;
-  return '+${counts.added} −${counts.removed}';
+  return [if (counts.added > 0) '+${counts.added}', if (counts.removed > 0) '−${counts.removed}'].join(' ');
 }
 
 /// История заметки: «Сейчас», потом версии по дням, новые сверху. С Stowa Sync — правки со
@@ -75,9 +83,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
   Future<void> _openVersion(HistoryEntry entry, HistoryEntry? previous) async {
     final cloudOn = ref.read(cloudNoteHistoryProvider(_key)).value?.access == CloudAccess.on;
-    final restored = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => VersionScreen(itemId: widget.itemId, entry: entry, previous: previous, cloudOn: cloudOn, document: widget.document)));
+    final restored = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => VersionScreen(itemId: widget.itemId, entry: entry, previous: previous, cloudOn: cloudOn, document: widget.document),
+      ),
+    );
     if (restored == true && mounted) Navigator.pop(context, true);
   }
 
@@ -108,126 +118,147 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 0),
-              sliver: SliverList.list(
-                children: [
-                  Align(alignment: Alignment.centerLeft, child: _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context))),
-                  const SizedBox(height: 16),
-                  Text(l.historyTitle, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6)),
-                  if (item != null) ...[
-                    const SizedBox(height: 4),
-                    Text(shownTitle(item.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.muted)),
-                  ],
-                  if (access == CloudAccess.offline) ...[
-                    const SizedBox(height: 12),
-                    _QuietLine(icon: 'cloud_off', text: l.historyOffline),
-                  ],
-                  const SizedBox(height: 20),
-                  if (item != null)
-                    _VersionRow(
-                      key: const ValueKey('history-now'),
-                      time: l.historyNow,
-                      preview: _preview(item.body, item.title),
-                      note: versionTime(l, item.updatedAt, now),
-                      kind: _RowKind.current,
-                      radius: BorderRadius.circular(Radii.card),
-                    ),
-                  if (loading) ...[const SizedBox(height: 16), const Center(child: SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.4)))],
-                ],
-              ),
-            ),
-            for (final (label, indexes) in days)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(Space.screen, 20, Space.screen, 0),
-                sliver: SliverList.builder(
-                  itemCount: indexes.length + 1,
-                  itemBuilder: (context, position) {
-                    if (position == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-                        child: Text(label, style: text.titleSmall!.copyWith(color: Tokens.muted, fontWeight: FontWeight.w600)),
-                      );
-                    }
-                    final index = indexes[position - 1];
-                    final entry = entries[index];
-                    final previous = index + 1 < entries.length ? entries[index + 1] : null;
-                    final first = position == 1, last = position == indexes.length;
-                    final session = entry.session;
-                    final opened = session != null && _open.contains(entry.cloud!.rev);
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: last ? 0 : 4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _VersionRow(
-                            time: _clock(l, entry),
-                            preview: _preview(entry.body, entry.title),
-                            note: [
-                              // «только на этом устройстве» имеет смысл, только когда рядом облако
-                              if (!entry.localOnly) ?entry.device else if (access == CloudAccess.on) l.historyLocalOnly,
-                              if (entry.edits > 1) l.historyEdits(entry.edits),
-                              if (previous != null) changesLabel(l, previous.body, entry.body),
-                            ].join(' · '),
-                            moved: entry.path != null && currentPath != null && entry.path != currentPath ? l.historyMoved(p.posix.withoutExtension(entry.path!)) : null,
-                            kind: entry.localOnly && access == CloudAccess.on ? _RowKind.local : _RowKind.cloud,
-                            radius: BorderRadius.vertical(top: Radius.circular(first ? Radii.card : 8), bottom: Radius.circular(last && !opened ? Radii.card : 8)),
-                            expanded: session != null && entry.edits > 1 ? opened : null,
-                            onExpand: () => setState(() => opened ? _open.remove(entry.cloud!.rev) : _open.add(entry.cloud!.rev)),
-                            onTap: () => _openVersion(entry, previous),
-                          ),
-                          if (opened)
-                            _SessionEdits(
-                              session: session,
-                              previous: previous,
-                              last: last,
-                              document: widget.document,
-                              onOpen: (version, edit, before) => _openVersion(edit, before),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 24 + bottom),
-              sliver: SliverList.list(
-                children: [
-                  if (cloud?.more ?? false)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Center(
-                        child: TextButton.icon(
-                          onPressed: () => setState(() => _budget *= 2),
-                          icon: Icon(symbolIcon('expand_more'), size: 20),
-                          label: Text(l.historyEarlier),
-                        ),
-                      ),
-                    ),
-                  if (access == CloudAccess.signedOut || access == CloudAccess.noSubscription)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: AccentCard(
-                        key: const ValueKey('history-promo'),
-                        icon: 'history',
-                        title: l.historyPromoTitle,
-                        hint: l.historyPromoHint,
-                        onTap: () => Navigator.of(context).push(paywallRoute()),
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text(access == CloudAccess.on ? l.historyCloudHint : l.historyHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        // на мониторе — колонкой по центру, как текст заметки, а не строками во всю вкладку
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: historyMaxWidth),
+            child: _list(context, l, text, item, entries, days, access, loading, cloud, now, currentPath, bottom),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _list(
+    BuildContext context,
+    L l,
+    TextTheme text,
+    Item? item,
+    List<HistoryEntry> entries,
+    List<(String, List<int>)> days,
+    CloudAccess? access,
+    bool loading,
+    CloudNoteHistory? cloud,
+    DateTime now,
+    String? currentPath,
+    double bottom,
+  ) {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 0),
+          sliver: SliverList.list(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
+              ),
+              const SizedBox(height: 16),
+              Text(l.historyTitle, style: text.headlineMedium!.copyWith(fontSize: 26, height: 1.1, letterSpacing: -0.6)),
+              if (item != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  shownTitle(item.title),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodyMedium!.copyWith(color: Tokens.muted),
+                ),
+              ],
+              if (access == CloudAccess.offline) ...[const SizedBox(height: 12), _QuietLine(icon: 'cloud_off', text: l.historyOffline)],
+              const SizedBox(height: 20),
+              if (item != null)
+                _VersionRow(
+                  key: const ValueKey('history-now'),
+                  time: l.historyNow,
+                  preview: _preview(item.body, item.title),
+                  note: versionTime(l, item.updatedAt, now),
+                  kind: _RowKind.current,
+                  radius: BorderRadius.circular(Radii.card),
+                ),
+              if (loading) ...[const SizedBox(height: 16), const Center(child: SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.4)))],
+            ],
+          ),
+        ),
+        for (final (label, indexes) in days)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(Space.screen, 20, Space.screen, 0),
+            sliver: SliverList.builder(
+              itemCount: indexes.length + 1,
+              itemBuilder: (context, position) {
+                if (position == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+                    child: Text(
+                      label,
+                      style: text.titleSmall!.copyWith(color: Tokens.muted, fontWeight: FontWeight.w600),
+                    ),
+                  );
+                }
+                final index = indexes[position - 1];
+                final entry = entries[index];
+                final previous = index + 1 < entries.length ? entries[index + 1] : null;
+                final first = position == 1, last = position == indexes.length;
+                final session = entry.session;
+                final opened = session != null && _open.contains(entry.cloud!.rev);
+                return Padding(
+                  padding: EdgeInsets.only(bottom: last ? 0 : 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _VersionRow(
+                        time: _clock(l, entry),
+                        preview: _preview(entry.body, entry.title),
+                        note: [
+                          // «только на этом устройстве» имеет смысл, только когда рядом облако
+                          if (!entry.localOnly) ?entry.device else if (access == CloudAccess.on) l.historyLocalOnly,
+                          if (entry.edits > 1) keepTogether(l.historyEdits(entry.edits)),
+                          if (previous != null) keepTogether(changesLabel(l, previous.body, entry.body)),
+                        ].join(' · '),
+                        moved: entry.path != null && currentPath != null && entry.path != currentPath ? l.historyMoved(p.posix.withoutExtension(entry.path!)) : null,
+                        kind: entry.localOnly && access == CloudAccess.on ? _RowKind.local : _RowKind.cloud,
+                        radius: BorderRadius.vertical(top: Radius.circular(first ? Radii.card : 8), bottom: Radius.circular(last && !opened ? Radii.card : 8)),
+                        expanded: session != null && entry.edits > 1 ? opened : null,
+                        onExpand: () => setState(() => opened ? _open.remove(entry.cloud!.rev) : _open.add(entry.cloud!.rev)),
+                        onTap: () => _openVersion(entry, previous),
+                      ),
+                      if (opened) _SessionEdits(session: session, previous: previous, last: last, document: widget.document, onOpen: (version, edit, before) => _openVersion(edit, before)),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 24 + bottom),
+          sliver: SliverList.list(
+            children: [
+              if (cloud?.more ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Center(
+                    child: TextButton.icon(onPressed: () => setState(() => _budget *= 2), icon: Icon(symbolIcon('expand_more'), size: 20), label: Text(l.historyEarlier)),
+                  ),
+                ),
+              if (access == CloudAccess.signedOut || access == CloudAccess.noSubscription)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: AccentCard(
+                    key: const ValueKey('history-promo'),
+                    icon: 'history',
+                    title: l.historyPromoTitle,
+                    hint: l.historyPromoHint,
+                    onTap: () => Navigator.of(context).push(paywallRoute()),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(access == CloudAccess.on ? l.historyCloudHint : l.historyHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -283,7 +314,9 @@ class _SessionEdits extends ConsumerWidget {
         if (edits == null) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Center(child: snapshot.hasError ? _QuietLine(icon: 'error', text: l.historyLoadFailed) : const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2.2))),
+            child: Center(
+              child: snapshot.hasError ? _QuietLine(icon: 'error', text: l.historyLoadFailed) : const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2.2)),
+            ),
           );
         }
         return Column(
@@ -344,7 +377,10 @@ class _QuietLine extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(padding: const EdgeInsets.only(top: 1), child: Icon(symbolIcon(icon), size: 16, color: Tokens.muted)),
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(symbolIcon(icon), size: 16, color: Tokens.muted),
+        ),
         const SizedBox(width: 8),
         Expanded(child: Text(text, style: style)),
       ],
@@ -355,18 +391,7 @@ class _QuietLine extends StatelessWidget {
 /// Строка версии: время, первая строка текста, откуда и что поменялось. Блоки списка сцеплены,
 /// как в настройках: края скруглены только у первого и последнего блока дня.
 class _VersionRow extends StatelessWidget {
-  const _VersionRow({
-    super.key,
-    required this.time,
-    required this.preview,
-    required this.radius,
-    required this.kind,
-    this.note,
-    this.moved,
-    this.expanded,
-    this.onExpand,
-    this.onTap,
-  });
+  const _VersionRow({super.key, required this.time, required this.preview, required this.radius, required this.kind, this.note, this.moved, this.expanded, this.onExpand, this.onTap});
 
   final String time;
   final String preview;
@@ -412,9 +437,17 @@ class _VersionRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(time, style: text.titleSmall!.copyWith(fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                Text(
+                  time,
+                  style: text.titleSmall!.copyWith(fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()]),
+                ),
                 const SizedBox(height: 2),
-                Text(preview, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant)),
+                Text(
+                  preview,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant),
+                ),
                 if (note case final note? when note.isNotEmpty) ...[const SizedBox(height: 2), Text(note, style: small)],
                 if (moved case final moved?) ...[const SizedBox(height: 2), Text(moved, maxLines: 1, overflow: TextOverflow.ellipsis, style: small)],
               ],
@@ -424,10 +457,18 @@ class _VersionRow extends StatelessWidget {
             IconButton(
               tooltip: open ? l.historySessionClose : l.historySessionOpen,
               onPressed: onExpand,
-              icon: AnimatedRotation(turns: open ? 0.5 : 0, duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic, child: Icon(symbolIcon('expand_more'), size: 22, color: Tokens.muted)),
+              icon: AnimatedRotation(
+                turns: open ? 0.5 : 0,
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                child: Icon(symbolIcon('expand_more'), size: 22, color: Tokens.muted),
+              ),
             )
           else if (onTap != null)
-            Padding(padding: const EdgeInsets.only(right: 4), child: Icon(symbolIcon('chevron_right'), size: 20, color: Tokens.muted)),
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(symbolIcon('chevron_right'), size: 20, color: Tokens.muted),
+            ),
         ],
       ),
     );
@@ -455,9 +496,17 @@ class _EditRow extends StatelessWidget {
         decoration: BoxDecoration(color: Tokens.container, borderRadius: radius),
         child: Row(
           children: [
-            Text(time, style: text.bodyMedium!.copyWith(fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+            Text(
+              time,
+              style: text.bodyMedium!.copyWith(fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()]),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: Text(note ?? '', style: text.bodySmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()]))),
+            Expanded(
+              child: Text(
+                note ?? '',
+                style: text.bodySmall!.copyWith(color: Tokens.muted, fontFeatures: const [FontFeature.tabularFigures()]),
+              ),
+            ),
             Icon(symbolIcon('chevron_right'), size: 18, color: Tokens.muted),
           ],
         ),
@@ -491,6 +540,13 @@ class VersionScreen extends ConsumerStatefulWidget {
 
 class _VersionScreenState extends ConsumerState<VersionScreen> {
   late var _view = widget.previous == null ? _VersionView.now : _VersionView.changes;
+
+  @override
+  void initState() {
+    super.initState();
+    // возврат документа читает историю `.future`: без слушателя Riverpod 3 её приостановит
+    ref.listenManual(cloudHistoryProvider, (_, _) {});
+  }
 
   Future<void> _restore() async {
     final entry = widget.entry;
@@ -556,81 +612,92 @@ class _VersionScreenState extends ConsumerState<VersionScreen> {
       );
     }
 
-    final origin = [
-      if (!entry.localOnly) ?entry.device else if (widget.cloudOn) l.historyLocalOnly,
-      if (entry.edits > 1) l.historyEdits(entry.edits),
-    ].join(' · ');
+    final origin = [if (!entry.localOnly) ?entry.device else if (widget.cloudOn) l.historyLocalOnly, if (entry.edits > 1) keepTogether(l.historyEdits(entry.edits))].join(' · ');
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 0),
-              child: Row(
-                children: [
-                  _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
-                  const Spacer(),
-                  _RoundButton(icon: 'content_copy', tooltip: l.historyCopy, onTap: _copy),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 24),
-                children: [
-                  Text(entry.from == null ? versionTime(l, entry.at, now) : '${versionTime(l, entry.from!, now)}–${DateFormat.Hm(l.localeName).format(entry.at)}', style: text.titleSmall!.copyWith(color: Tokens.muted)),
-                  if (origin.isNotEmpty) Text(origin, style: text.bodySmall!.copyWith(color: Tokens.muted)),
-                  const SizedBox(height: 6),
-                  Text(shownTitle(entry.title), style: text.headlineMedium!.copyWith(fontSize: 24, height: 1.15, letterSpacing: -0.5)),
-                  const SizedBox(height: 16),
-                  SegmentedButton<_VersionView>(
-                    showSelectedIcon: false,
-                    segments: [
-                      ButtonSegment(value: _VersionView.text, label: Text(l.historyText)),
-                      if (widget.previous != null) ButtonSegment(value: _VersionView.changes, label: Text(l.historyChanges)),
-                      ButtonSegment(value: _VersionView.now, label: Text(l.historyDiff)),
-                    ],
-                    selected: {_view},
-                    onSelectionChanged: (picked) => setState(() => _view = picked.single),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
-                    decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
-                    child: switch (_view) {
-                      _VersionView.changes => _DiffView(rows: diffRows(widget.previous!.body, entry.body)),
-                      _VersionView.now when current != null => _DiffView(rows: diffRows(entry.body, current.body)),
-                      _ => NoteBody(blocks: parseNoteBlocks(entry.body), onToggle: (_) {}, onEdit: () {}, onLink: (_) {}, image: image),
-                    },
-                  ),
-                  if (_view != _VersionView.text) ...[
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(_view == _VersionView.changes ? l.historyChangesHint : l.historyDiffHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 16 + bottom),
-              child: SizedBox(
-                height: 56,
-                child: FilledButton.icon(
-                  onPressed: _restore,
-                  style: FilledButton.styleFrom(backgroundColor: Tokens.accent, foregroundColor: Tokens.onAccent, shape: const StadiumBorder()),
-                  icon: Icon(symbolIcon('restore'), size: 20),
-                  label: Text(l.historyRestore, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ),
-              ),
-            ),
-          ],
+        // на мониторе — колонкой по центру, как список истории
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: historyMaxWidth),
+            child: _page(context, l, text, entry, current, image, now, origin, bottom),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _page(BuildContext context, L l, TextTheme text, HistoryEntry entry, Item? current, Widget Function(String name) image, DateTime now, String origin, double bottom) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 0),
+          child: Row(
+            children: [
+              _RoundButton(icon: 'arrow_back', tooltip: MaterialLocalizations.of(context).backButtonTooltip, onTap: () => Navigator.pop(context)),
+              const Spacer(),
+              _RoundButton(icon: 'content_copy', tooltip: l.historyCopy, onTap: _copy),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(Space.screen, 16, Space.screen, 24),
+            children: [
+              Text(
+                entry.from == null ? versionTime(l, entry.at, now) : '${versionTime(l, entry.from!, now)}–${DateFormat.Hm(l.localeName).format(entry.at)}',
+                style: text.titleSmall!.copyWith(color: Tokens.muted),
+              ),
+              if (origin.isNotEmpty) Text(origin, style: text.bodySmall!.copyWith(color: Tokens.muted)),
+              const SizedBox(height: 6),
+              Text(shownTitle(entry.title), style: text.headlineMedium!.copyWith(fontSize: 24, height: 1.15, letterSpacing: -0.5)),
+              const SizedBox(height: 16),
+              SegmentedButton<_VersionView>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(value: _VersionView.text, label: Text(l.historyText)),
+                  if (widget.previous != null) ButtonSegment(value: _VersionView.changes, label: Text(l.historyChanges)),
+                  ButtonSegment(value: _VersionView.now, label: Text(l.historyDiff)),
+                ],
+                selected: {_view},
+                onSelectionChanged: (picked) => setState(() => _view = picked.single),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+                decoration: BoxDecoration(color: Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
+                child: switch (_view) {
+                  _VersionView.changes => _DiffView(rows: diffRows(widget.previous!.body, entry.body)),
+                  _VersionView.now when current != null => _DiffView(rows: diffRows(entry.body, current.body)),
+                  _ => NoteBody(blocks: parseNoteBlocks(entry.body), onToggle: (_) {}, onEdit: () {}, onLink: (_) {}, image: image),
+                },
+              ),
+              if (_view != _VersionView.text) ...[
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(_view == _VersionView.changes ? l.historyChangesHint : l.historyDiffHint, style: text.bodySmall!.copyWith(color: Tokens.muted, height: 1.4)),
+                ),
+              ],
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(Space.screen, 8, Space.screen, 16 + bottom),
+          child: SizedBox(
+            height: 56,
+            child: FilledButton.icon(
+              onPressed: _restore,
+              style: FilledButton.styleFrom(backgroundColor: Tokens.accent, foregroundColor: Tokens.onAccent, shape: const StadiumBorder()),
+              icon: Icon(symbolIcon('restore'), size: 20),
+              label: Text(l.historyRestore, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -667,10 +734,11 @@ class _DiffView extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 16,
-                  child: Text(
-                    switch (row.kind) { DiffKind.same => '', DiffKind.added => '+', DiffKind.removed => '−' },
-                    style: body.copyWith(fontWeight: FontWeight.w700, color: row.kind == DiffKind.added ? FolderPalette.ink(mint) : Tokens.error),
-                  ),
+                  child: Text(switch (row.kind) {
+                    DiffKind.same => '',
+                    DiffKind.added => '+',
+                    DiffKind.removed => '−',
+                  }, style: body.copyWith(fontWeight: FontWeight.w700, color: row.kind == DiffKind.added ? FolderPalette.ink(mint) : Tokens.error)),
                 ),
                 Expanded(
                   child: switch (embedLine.firstMatch(row.text)) {
@@ -684,11 +752,7 @@ class _DiffView extends StatelessWidget {
                             embed.group(1)!.trim().split('/').last,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: body.copyWith(
-                              color: Tokens.muted,
-                              decoration: row.kind == DiffKind.removed ? TextDecoration.lineThrough : null,
-                              decorationColor: Tokens.muted,
-                            ),
+                            style: body.copyWith(color: Tokens.muted, decoration: row.kind == DiffKind.removed ? TextDecoration.lineThrough : null, decorationColor: Tokens.muted),
                           ),
                         ),
                       ],
@@ -700,11 +764,7 @@ class _DiffView extends StatelessWidget {
                             TextSpan(
                               text: piece.text,
                               style: piece.changed
-                                  ? body.copyWith(
-                                      backgroundColor: wordTint(row.kind),
-                                      decoration: row.kind == DiffKind.removed ? TextDecoration.lineThrough : null,
-                                      decorationColor: Tokens.onSurface,
-                                    )
+                                  ? body.copyWith(backgroundColor: wordTint(row.kind), decoration: row.kind == DiffKind.removed ? TextDecoration.lineThrough : null, decorationColor: Tokens.onSurface)
                                   : body.copyWith(color: row.kind == DiffKind.removed ? Tokens.onSurfaceVariant : null),
                             ),
                         ],
@@ -712,9 +772,7 @@ class _DiffView extends StatelessWidget {
                     ),
                     _ => Text(
                       row.text,
-                      style: row.kind == DiffKind.removed
-                          ? body.copyWith(color: Tokens.onSurfaceVariant, decoration: TextDecoration.lineThrough, decorationColor: Tokens.onSurfaceVariant)
-                          : body,
+                      style: row.kind == DiffKind.removed ? body.copyWith(color: Tokens.onSurfaceVariant, decoration: TextDecoration.lineThrough, decorationColor: Tokens.onSurfaceVariant) : body,
                     ),
                   },
                 ),

@@ -158,7 +158,7 @@ void main() {
       await push('Ремонт кухни\nсейчас', world.now.subtract(const Duration(minutes: 5)));
       await note('Ремонт кухни\nсейчас');
       await openHistory(tester);
-      expect(find.textContaining('3 правки'), findsOneWidget);
+      expect(find.textContaining('3 правки'), findsOneWidget);
       expect(find.text('07:00–07:05'), findsOneWidget);
       await tester.tap(find.byTooltip('Показать правки'));
       await tester.pumpAndSettle();
@@ -177,7 +177,7 @@ void main() {
       await push('Ремонт кухни\nсовсем другое', world.now.subtract(const Duration(hours: 1)));
       await note('Ремонт кухни\nсовсем другое', at: world.now.subtract(const Duration(hours: 1)));
       await openHistory(tester);
-      expect(find.textContaining('+1 −1'), findsOneWidget);
+      expect(find.textContaining('+1 −1'), findsOneWidget);
       await tester.tap(find.text('плитка белая'));
       await tester.pumpAndSettle();
       expect(find.text('Изменения'), findsOneWidget);

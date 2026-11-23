@@ -75,7 +75,8 @@ void main() {
     await open(tester);
     expect(find.text('В облаке'), findsOneWidget);
     expect(find.text('Ушла'), findsOneWidget);
-    expect(find.textContaining('1 вложение'), findsOneWidget);
+    // число и слово склеены неразрывным пробелом: подпись не рвётся по строкам
+    expect(find.textContaining('1 вложение'), findsOneWidget);
     expect(find.text('Живая'), findsNothing);
     await tester.tap(cloudRestore());
     await disk(tester, () => File('${vault.path}/Ушла.md').existsSync() && find.text('Ушла').evaluate().isEmpty);
