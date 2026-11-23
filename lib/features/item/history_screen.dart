@@ -26,7 +26,8 @@ import 'note_body.dart';
 import 'note_history.dart';
 
 /// История вырастает из нажатой кнопки, как страница заметки. Вернули версию — экран отдаёт true.
-Route<bool> historyRoute(String itemId) => MaterialPageRoute(builder: (_) => HistoryScreen(itemId: itemId));
+/// [document] — холст, база или рисунок: возвращается весь файл, снимков устройства у них нет.
+Route<bool> historyRoute(String itemId, {bool document = false}) => MaterialPageRoute(builder: (_) => HistoryScreen(itemId: itemId, document: document));
 
 /// «Сегодня, 14:05», «7 нояб., 10:20».
 String versionTime(L l, DateTime at, DateTime now) {
@@ -52,9 +53,13 @@ String changesLabel(L l, String older, String newer) {
 /// всех устройств сеансами (подряд, с одного устройства), касание сеанса раскрывает каждую
 /// правку. Без подписки или без сети — снимки этого устройства.
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key, required this.itemId});
+  const HistoryScreen({super.key, required this.itemId, this.document = false});
 
   final String itemId;
+
+  /// Холст, база или рисунок: в строках — то, что в нём ищется, возврат меняет весь файл.
+  /// Снимки устройства у документа не годятся: они помнят только текст для поиска.
+  final bool document;
 
   @override
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
@@ -66,11 +71,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   /// Раскрытые сеансы: номер ревизии конца сеанса.
   final _open = <int>{};
 
+  (String, int, bool) get _key => (widget.itemId, _budget, widget.document);
+
   Future<void> _openVersion(HistoryEntry entry, HistoryEntry? previous) async {
-    final cloudOn = ref.read(cloudNoteHistoryProvider((widget.itemId, _budget))).value?.access == CloudAccess.on;
+    final cloudOn = ref.read(cloudNoteHistoryProvider(_key)).value?.access == CloudAccess.on;
     final restored = await Navigator.of(
       context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => VersionScreen(itemId: widget.itemId, entry: entry, previous: previous, cloudOn: cloudOn)));
+    ).push<bool>(MaterialPageRoute(builder: (_) => VersionScreen(itemId: widget.itemId, entry: entry, previous: previous, cloudOn: cloudOn, document: widget.document)));
     if (restored == true && mounted) Navigator.pop(context, true);
   }
 
@@ -79,8 +86,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
     final item = ref.watch(itemProvider(widget.itemId)).value?.item;
-    final local = ref.watch(noteVersionsProvider(widget.itemId)).value ?? const <NoteVersion>[];
-    final cloudState = ref.watch(cloudNoteHistoryProvider((widget.itemId, _budget)));
+    final local = widget.document ? const <NoteVersion>[] : ref.watch(noteVersionsProvider(widget.itemId)).value ?? const <NoteVersion>[];
+    final cloudState = ref.watch(cloudNoteHistoryProvider(_key));
     final cloud = cloudState.value;
     final loading = cloudState.isLoading && cloud == null;
     final access = cloud?.access;
@@ -176,6 +183,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               session: session,
                               previous: previous,
                               last: last,
+                              document: widget.document,
                               onOpen: (version, edit, before) => _openVersion(edit, before),
                             ),
                         ],
@@ -253,9 +261,10 @@ String _preview(String body, String title) {
 /// Правки внутри раскрытого сеанса, кроме последней — она сама строка сеанса. Тексты
 /// приходят с сервера, когда сеанс раскрыли.
 class _SessionEdits extends ConsumerWidget {
-  const _SessionEdits({required this.session, required this.previous, required this.last, required this.onOpen});
+  const _SessionEdits({required this.session, required this.previous, required this.last, required this.onOpen, this.document = false});
 
   final VersionSession session;
+  final bool document;
 
   /// Строка старше сеанса: с ней сравнивается первая правка.
   final HistoryEntry? previous;
@@ -298,7 +307,7 @@ class _SessionEdits extends ConsumerWidget {
 
   Future<List<HistoryEntry>> _load(CloudHistory history) async => [
     for (final version in session.versions.skip(1))
-      if (noteTextOf(await history.text(version), version) case final text)
+      if (noteTextOf(await history.text(version), version, document: document) case final text)
         HistoryEntry(title: text.title, body: text.body, at: version.at, device: version.device, cloud: version, path: version.path),
   ];
 }
@@ -462,13 +471,16 @@ enum _VersionView { text, changes, now }
 /// Версия целиком: текст, что поменяла эта правка, разница с нынешним; внизу «Вернуть эту
 /// версию». Возврат — новая правка: нынешний текст сперва ложится снимком.
 class VersionScreen extends ConsumerStatefulWidget {
-  const VersionScreen({super.key, required this.itemId, required this.entry, this.previous, this.cloudOn = false});
+  const VersionScreen({super.key, required this.itemId, required this.entry, this.previous, this.cloudOn = false, this.document = false});
 
   final String itemId;
   final HistoryEntry entry;
 
   /// Рядом история из облака: снимок этого устройства подписан.
   final bool cloudOn;
+
+  /// Холст, база или рисунок: возвращается файл версии целиком.
+  final bool document;
 
   /// Версия до этой: с ней сравнивается «Изменения». null — старше версий нет.
   final HistoryEntry? previous;
@@ -482,8 +494,36 @@ class _VersionScreenState extends ConsumerState<VersionScreen> {
 
   Future<void> _restore() async {
     final entry = widget.entry;
+    if (widget.document) {
+      await _restoreFile(entry.cloud!);
+      return;
+    }
     await ref.read(historyRepositoryProvider).restoreText(widget.itemId, title: entry.title, body: entry.body, at: ref.read(clockProvider)());
     if (mounted) Navigator.pop(context, true);
+  }
+
+  /// Холст, база, рисунок: файл версии встаёт на место нынешнего. «Отменить» кладёт прежний
+  /// файл обратно — он мог ещё не уйти на сервер, поэтому берётся с диска, а не из облака.
+  Future<void> _restoreFile(CloudVersion version) async {
+    final l = L.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final history = await ref.read(cloudHistoryProvider.future);
+    final path = await ref.read(historyRepositoryProvider).pathOf(widget.itemId);
+    if (history == null || path == null) return;
+    final sync = ref.read(syncServiceProvider);
+    final List<int>? before;
+    try {
+      before = await sync.replaceFile(path, history.parts(version));
+    } on Object {
+      if (mounted) showNote(messenger, l.historyLoadFailed);
+      return;
+    }
+    if (before == null) {
+      if (mounted) showNote(messenger, l.historyLoadFailed);
+      return;
+    }
+    if (mounted) Navigator.pop(context, true);
+    showUndo(messenger, message: l.historyRestored, label: l.undo, onUndo: () => sync.replaceFile(path, Stream.value(before!)));
   }
 
   Future<void> _copy() async {

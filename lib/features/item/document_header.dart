@@ -12,9 +12,10 @@ import '../../l10n/app_localizations.dart';
 import '../folder/folder_sheets.dart' show showRenameSheet;
 import '../workspace/workspace_model.dart';
 import '../workspace/workspace_shell.dart' show WorkspaceScope;
+import 'history_screen.dart';
 import 'item_actions.dart';
 
-enum _DocAction { rename, move, pin, notice, date, delete }
+enum _DocAction { rename, move, pin, notice, date, history, delete }
 
 /// Шапка холста, базы и рисунка — как у заметки (хозяин 22.11: «Почему шапка холста не такая
 /// как шапка заметки», «Как мне папку выбрать, как название поменять?»).
@@ -35,6 +36,8 @@ class DocumentHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = L.of(context);
     final folders = ref.watch(foldersProvider).value ?? const [];
+    // вошли в Stowa Sync этого хранилища — у документа есть история на сервере
+    ref.watch(syncSignedInProvider);
     final path = folderPath(l, item.folderId, folders);
     final workspace = WorkspaceScope.maybeOf(context);
     if (workspace != null) {
@@ -140,6 +143,7 @@ class DocumentHeader extends ConsumerWidget {
           icon: item.noticeAt == null ? 'notifications_active' : 'notifications_off',
         ),
         SheetChoice(value: _DocAction.date, title: l.itemDateChange, icon: 'calendar_today'),
+        if (ref.read(syncSignedInProvider).value ?? false) SheetChoice(value: _DocAction.history, title: l.historyTitle, icon: 'history'),
         SheetChoice(value: _DocAction.delete, title: l.itemDelete, icon: 'delete', danger: true),
       ],
     );
@@ -155,6 +159,9 @@ class DocumentHeader extends ConsumerWidget {
         await toggleNoticed(context, ref, id: item.id, noticed: item.noticeAt != null, overDock: false);
       case _DocAction.date:
         await changeItemDate(context, ref, id: item.id, created: item.createdAt);
+      case _DocAction.history:
+        // «Отменить» после возврата показывает сам экран версии: прежний файл знает только он
+        await Navigator.of(context).push(historyRoute(item.id, document: true));
       case _DocAction.delete:
         final messenger = ScaffoldMessenger.of(context);
         final items = ref.read(itemsRepositoryProvider);

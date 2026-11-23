@@ -270,6 +270,23 @@ class SyncService {
     return _history;
   }
 
+  /// Заменить файл хранилища [path] содержимым [data]: возврат версии холста, базы, рисунка.
+  /// Файл встаёт на место под арендой сверки, только если его не трогали, пока качали; дальше
+  /// его забирает сверка, как правку снаружи. Отдаёт прежнее содержимое — для «Отменить»;
+  /// null — файл поправили посреди возврата или хранилища нет.
+  Future<List<int>?> replaceFile(String path, Stream<List<int>> data) async {
+    final root = _root;
+    if (root == null) return null;
+    final files = DiskSyncFiles(root);
+    final before = await files.stat(path);
+    final old = before == null ? const <int>[] : await files.read(path, 0, before.size);
+    final staged = await files.stage(path, data);
+    final placed = await _reader.exclusively(() => files.place(staged, path, expect: before));
+    if (!placed) return null;
+    unawaited(trigger?.call());
+    return old;
+  }
+
   /// Положить версию из облака в хранилище по пути [path], если он свободен: возврат удалённого.
   /// Файл качается частями во временный и встаёт на место под арендой сверки; дальше его
   /// забирает обычная сверка, как файл снаружи. false — путь занят или хранилища нет.

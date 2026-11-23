@@ -97,8 +97,10 @@ List<HistoryEntry> mergeHistory({required String title, required String body, re
 }
 
 /// Заголовок и текст заметки из файла версии — тем же разбором, что у сверки хранилища.
-({String title, String body}) noteTextOf(String fileText, CloudVersion version) {
-  final note = readVaultNote(fileText, fileName: p.posix.basename(version.path), fileModified: version.at);
+/// У холста, базы и рисунка [document]: текст — то, что в нём ищется (карточки, подписи, виды).
+({String title, String body}) noteTextOf(String fileText, CloudVersion version, {bool document = false}) {
+  final name = p.posix.basename(version.path);
+  final note = document ? readVaultDocument(fileText, fileName: name, fileModified: version.at) : readVaultNote(fileText, fileName: name, fileModified: version.at);
   return (title: note.title, body: note.body);
 }
 
@@ -106,7 +108,7 @@ List<HistoryEntry> mergeHistory({required String title, required String body, re
 const historyBudget = 24 * 1024 * 1024;
 
 /// Сеансы из облака: тексты концов сеансов, пока не кончится [budget] байт.
-Future<CloudNoteHistory> loadCloudNoteHistory(CloudHistory history, String path, {int budget = historyBudget}) async {
+Future<CloudNoteHistory> loadCloudNoteHistory(CloudHistory history, String path, {int budget = historyBudget, bool document = false}) async {
   try {
     final versions = await history.versions(path);
     final entries = <HistoryEntry>[];
@@ -119,7 +121,7 @@ Future<CloudNoteHistory> loadCloudNoteHistory(CloudHistory history, String path,
         break;
       }
       spent += last.size;
-      final text = noteTextOf(await history.text(last), last);
+      final text = noteTextOf(await history.text(last), last, document: document);
       entries.add(
         HistoryEntry(
           title: text.title,
@@ -147,10 +149,10 @@ Future<CloudNoteHistory> loadCloudNoteHistory(CloudHistory history, String path,
   }
 }
 
-/// Облачная история заметки: (id заметки, бюджет байт). «Показать раньше» удваивает бюджет;
-/// уже открытые тексты берутся из памяти службы.
-final cloudNoteHistoryProvider = FutureProvider.autoDispose.family<CloudNoteHistory, (String, int)>((ref, key) async {
-  final (itemId, budget) = key;
+/// Облачная история заметки: (id заметки, бюджет байт, документ ли). «Показать раньше» удваивает
+/// бюджет; уже открытые тексты берутся из памяти службы.
+final cloudNoteHistoryProvider = FutureProvider.autoDispose.family<CloudNoteHistory, (String, int, bool)>((ref, key) async {
+  final (itemId, budget, document) = key;
   if (!await ref.watch(syncSignedInProvider.future)) return const CloudNoteHistory(CloudAccess.signedOut);
   final subscription = await ref.watch(subscriptionProvider.future);
   if (!subscription.activeNow) return const CloudNoteHistory(CloudAccess.noSubscription);
@@ -158,5 +160,5 @@ final cloudNoteHistoryProvider = FutureProvider.autoDispose.family<CloudNoteHist
   if (history == null) return const CloudNoteHistory(CloudAccess.signedOut);
   final path = await ref.read(historyRepositoryProvider).pathOf(itemId);
   if (path == null) return const CloudNoteHistory(CloudAccess.on);
-  return loadCloudNoteHistory(history, path, budget: budget);
+  return loadCloudNoteHistory(history, path, budget: budget, document: document);
 });
