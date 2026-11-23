@@ -1069,7 +1069,7 @@ class LDe extends L {
 
   @override
   String get aiKeyWhere =>
-      'Den Schlüssel gibt es beim Anbieter: bei OpenRouter unter Keys, dort gibt es auch kostenlose Modelle.';
+      'Füge einen Schlüssel eines beliebigen Anbieters ein: Stowa erkennt ihn am Anfang des Schlüssels.';
 
   @override
   String get aiCheckOk => 'Der Schlüssel funktioniert';
@@ -5310,4 +5310,18 @@ class LDe extends L {
   String subOwnedGrant(String date) {
     return 'Vom Stowa-Team vergeben, bis $date';
   }
+
+  @override
+  String aiKeyProvider(String name) {
+    return 'Anbieter: $name';
+  }
+
+  @override
+  String get aiProviderCustom => 'Eigene Adresse';
+
+  @override
+  String get aiProviderCustomHint => 'Jede OpenAI-kompatible API';
+
+  @override
+  String get aiSpeechUnavailable => 'Bei diesem Anbieter nicht verfügbar';
 }

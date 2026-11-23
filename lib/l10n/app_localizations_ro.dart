@@ -1069,7 +1069,7 @@ class LRo extends L {
 
   @override
   String get aiKeyWhere =>
-      'Cheia o iei de la furnizor: pe OpenRouter e la Keys, există și modele gratuite.';
+      'Lipește cheia oricărui furnizor: Stowa îl recunoaște după începutul cheii.';
 
   @override
   String get aiCheckOk => 'Cheia funcționează';
@@ -5321,4 +5321,18 @@ class LRo extends L {
   String subOwnedGrant(String date) {
     return 'Oferit de echipa Stowa, până pe $date';
   }
+
+  @override
+  String aiKeyProvider(String name) {
+    return 'Furnizor: $name';
+  }
+
+  @override
+  String get aiProviderCustom => 'Adresă proprie';
+
+  @override
+  String get aiProviderCustomHint => 'Orice API compatibil cu OpenAI';
+
+  @override
+  String get aiSpeechUnavailable => 'Furnizorul nu o oferă';
 }

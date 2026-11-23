@@ -21,12 +21,15 @@ void main() {
   late TestWorld world;
   late SettingsRepository settings;
   final asked = <String>[];
+  // свой ответ поставщика для одного теста: клиент подменяется при сборке приложения
+  Future<http.Response> Function(http.Request request)? answer;
 
   setUp(() async {
     world = TestWorld();
     SharedPreferences.setMockInitialValues({});
     settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
     asked.clear();
+    answer = null;
   });
   tearDown(() => world.dispose());
 
@@ -40,6 +43,7 @@ void main() {
     world
       ..settings = settings
       ..aiHttp = MockClient((request) async {
+        if (answer case final answer?) return answer(request);
         asked.add(request.url.path);
         if (request.url.path.endsWith('/models')) {
           return http.Response(jsonEncode({'data': [{'id': 'google/gemma-4:free', 'name': 'Gemma 4', 'pricing': {'prompt': '0'}, 'architecture': {'input_modalities': ['text', 'image']}}]}), 200);
@@ -120,6 +124,41 @@ void main() {
     expect(await settings.readKey(), 'sk-or-good');
     expect(asked, contains('/api/v1/key'));
     expect(find.text('Работает'), findsOneWidget);
+  });
+
+  testWidgets('ключ Claude при выбранном OpenRouter уходит к Anthropic, поставщик и модель меняются', (tester) async {
+    answer = (request) async {
+      asked.add('${request.url.host}${request.url.path}');
+      expect(request.headers['x-api-key'], 'sk-ant-api03-good');
+      return http.Response(jsonEncode({'data': [{'id': 'claude-opus-5-5', 'display_name': 'Claude Opus 5.5'}], 'has_more': false}), 200);
+    };
+    await openSection(tester, 'Разбор ИИ');
+    await tester.tap(find.text('Ключ'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('ai-key-field')), 'sk-ant-api03-good');
+    await tester.pump();
+    expect(find.text('Поставщик: Anthropic (Claude)'), findsOneWidget);
+    await tester.tap(find.text('Сохранить и проверить'));
+    await tester.pumpAndSettle();
+    expect(asked, contains('api.anthropic.com/v1/models'));
+    expect(asked.where((path) => path.contains('openrouter')), isEmpty);
+    expect(await settings.readKey(), 'sk-ant-api03-good');
+    expect(settings.ai.baseUrl, 'https://api.anthropic.com/v1');
+    expect(settings.ai.sortModel, 'claude-opus-5-5');
+    expect(find.text('Anthropic (Claude)'), findsOneWidget);
+    // расшифровки у Anthropic нет — строка говорит об этом и не открывается
+    expect(find.text('Нет у этого поставщика'), findsOneWidget);
+  });
+
+  testWidgets('поставщик выбирается из списка, модель — его по умолчанию', (tester) async {
+    await openSection(tester, 'Разбор ИИ');
+    await tester.tap(find.text('Поставщик'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Groq'), 200, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('Groq'));
+    await tester.pumpAndSettle();
+    expect(settings.ai.baseUrl, 'https://api.groq.com/openai/v1');
+    expect(settings.ai.sortModel, 'meta-llama/llama-4-scout-17b-16e-instruct');
   });
 
   testWidgets('ключ, который поставщик не принял, не сохраняется, лист говорит почему', (tester) async {

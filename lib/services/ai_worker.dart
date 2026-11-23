@@ -145,7 +145,8 @@ class AiWorker {
           await (_db.update(_db.aiJobs)..where((t) => t.itemId.equals(job.itemId))).write(AiJobsCompanion(nextTryAt: Value(_clock().add(const Duration(seconds: 20)))));
           continue;
         }
-        final speechModel = _settings.ai.speechModel;
+        // у Anthropic и других без расшифровки голосовое раскладывается по названию
+        final speechModel = _settings.ai.canTranscribe ? _settings.ai.speechModel : null;
         final voice = item.kind == ItemKind.voice && item.transcript == null;
         // уже разложено — руками, правилом, похожестью: платный разбор дал бы одно описание,
         // а текст и так ищется. Как при сохранении: разложенное без ИИ в очередь не встаёт.

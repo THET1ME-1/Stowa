@@ -1074,7 +1074,7 @@ class LRu extends L {
 
   @override
   String get aiKeyWhere =>
-      'Ключ даёт поставщик: на OpenRouter он в разделе Keys, есть бесплатные модели.';
+      'Вставь ключ любого поставщика: Stowa узнает его по началу ключа.';
 
   @override
   String get aiCheckOk => 'Ключ работает';
@@ -5357,4 +5357,18 @@ class LRu extends L {
   String subOwnedGrant(String date) {
     return 'Выдана командой Stowa, до $date';
   }
+
+  @override
+  String aiKeyProvider(String name) {
+    return 'Поставщик: $name';
+  }
+
+  @override
+  String get aiProviderCustom => 'Свой адрес';
+
+  @override
+  String get aiProviderCustomHint => 'Любой API, совместимый с OpenAI';
+
+  @override
+  String get aiSpeechUnavailable => 'Нет у этого поставщика';
 }

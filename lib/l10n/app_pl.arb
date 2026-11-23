@@ -47,7 +47,7 @@
   "aiKeyPaste": "Wklej",
   "aiKeySave": "Zapisz i sprawdź",
   "aiKeyRemove": "Usuń klucz",
-  "aiKeyWhere": "Klucz bierzesz od dostawcy: na OpenRouter jest w sekcji Keys, są też darmowe modele.",
+  "aiKeyWhere": "Wklej klucz dowolnego dostawcy: Stowa rozpozna go po początku klucza.",
   "aiCheckOk": "Klucz działa",
   "aiCheckAuth": "Dostawca odrzucił klucz",
   "aiCheckPayment": "Na kluczu brak środków",
@@ -1199,5 +1199,9 @@
   "syncCopyWarnTitle": "Kopia w chmurze wkrótce zostanie usunięta",
   "syncCopyWarnBody": "{date} serwer usunie kopię Stowa Sync i historię wersji. Na urządzeniach wszystko zostanie. Odnów subskrypcję, aby je zachować.",
   "subOwnedTitle": "Subskrypcja już kupiona",
-  "subOwnedGrant": "Przyznana przez zespół Stowa, do {date}"
+  "subOwnedGrant": "Przyznana przez zespół Stowa, do {date}",
+  "aiKeyProvider": "Dostawca: {name}",
+  "aiProviderCustom": "Własny adres",
+  "aiProviderCustomHint": "Dowolne API zgodne z OpenAI",
+  "aiSpeechUnavailable": "Ten dostawca jej nie ma"
 }

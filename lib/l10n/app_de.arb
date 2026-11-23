@@ -47,7 +47,7 @@
   "aiKeyPaste": "Einfügen",
   "aiKeySave": "Speichern und prüfen",
   "aiKeyRemove": "Schlüssel entfernen",
-  "aiKeyWhere": "Den Schlüssel gibt es beim Anbieter: bei OpenRouter unter Keys, dort gibt es auch kostenlose Modelle.",
+  "aiKeyWhere": "Füge einen Schlüssel eines beliebigen Anbieters ein: Stowa erkennt ihn am Anfang des Schlüssels.",
   "aiCheckOk": "Der Schlüssel funktioniert",
   "aiCheckAuth": "Der Anbieter hat den Schlüssel abgelehnt",
   "aiCheckPayment": "Der Schlüssel hat kein Guthaben",
@@ -1199,5 +1199,9 @@
   "syncCopyWarnTitle": "Deine Cloud-Kopie wird bald gelöscht",
   "syncCopyWarnBody": "Am {date} löscht der Server deine Stowa-Sync-Kopie und den Versionsverlauf. Auf deinen Geräten bleibt alles. Verlängere, um sie zu behalten.",
   "subOwnedTitle": "Abo bereits gekauft",
-  "subOwnedGrant": "Vom Stowa-Team vergeben, bis {date}"
+  "subOwnedGrant": "Vom Stowa-Team vergeben, bis {date}",
+  "aiKeyProvider": "Anbieter: {name}",
+  "aiProviderCustom": "Eigene Adresse",
+  "aiProviderCustomHint": "Jede OpenAI-kompatible API",
+  "aiSpeechUnavailable": "Bei diesem Anbieter nicht verfügbar"
 }

@@ -1065,7 +1065,7 @@ class LEs extends L {
 
   @override
   String get aiKeyWhere =>
-      'La clave la da el proveedor: en OpenRouter está en Keys, y hay modelos gratis.';
+      'Pega la clave de cualquier proveedor: Stowa lo reconoce por el inicio de la clave.';
 
   @override
   String get aiCheckOk => 'La clave funciona';
@@ -5290,4 +5290,18 @@ class LEs extends L {
   String subOwnedGrant(String date) {
     return 'Otorgada por el equipo de Stowa, hasta el $date';
   }
+
+  @override
+  String aiKeyProvider(String name) {
+    return 'Proveedor: $name';
+  }
+
+  @override
+  String get aiProviderCustom => 'Dirección propia';
+
+  @override
+  String get aiProviderCustomHint => 'Cualquier API compatible con OpenAI';
+
+  @override
+  String get aiSpeechUnavailable => 'Este proveedor no la ofrece';
 }

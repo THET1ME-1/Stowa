@@ -47,7 +47,7 @@
   "aiKeyPaste": "Вставити",
   "aiKeySave": "Зберегти й перевірити",
   "aiKeyRemove": "Видалити ключ",
-  "aiKeyWhere": "Ключ дає постачальник: на OpenRouter він у розділі Keys, є безкоштовні моделі.",
+  "aiKeyWhere": "Встав ключ будь-якого постачальника: Stowa впізнає його за початком ключа.",
   "aiCheckOk": "Ключ працює",
   "aiCheckAuth": "Постачальник не прийняв ключ",
   "aiCheckPayment": "На ключі немає грошей",
@@ -1199,5 +1199,9 @@
   "syncCopyWarnTitle": "Копію в хмарі скоро буде стерто",
   "syncCopyWarnBody": "{date} сервер зітре копію Stowa Sync та історію версій. На пристроях усе залишиться. Продовжте підписку, щоб їх зберегти.",
   "subOwnedTitle": "Підписку вже куплено",
-  "subOwnedGrant": "Видана командою Stowa, до {date}"
+  "subOwnedGrant": "Видана командою Stowa, до {date}",
+  "aiKeyProvider": "Постачальник: {name}",
+  "aiProviderCustom": "Своя адреса",
+  "aiProviderCustomHint": "Будь-який API, сумісний з OpenAI",
+  "aiSpeechUnavailable": "Немає в цього постачальника"
 }

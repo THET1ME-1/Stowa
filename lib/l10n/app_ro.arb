@@ -47,7 +47,7 @@
   "aiKeyPaste": "Lipește",
   "aiKeySave": "Salvează și verifică",
   "aiKeyRemove": "Șterge cheia",
-  "aiKeyWhere": "Cheia o iei de la furnizor: pe OpenRouter e la Keys, există și modele gratuite.",
+  "aiKeyWhere": "Lipește cheia oricărui furnizor: Stowa îl recunoaște după începutul cheii.",
   "aiCheckOk": "Cheia funcționează",
   "aiCheckAuth": "Furnizorul a respins cheia",
   "aiCheckPayment": "Cheia nu are credit",
@@ -1199,5 +1199,9 @@
   "syncCopyWarnTitle": "Copia din cloud va fi ștearsă în curând",
   "syncCopyWarnBody": "Pe {date} serverul va șterge copia Stowa Sync și istoricul versiunilor. Pe dispozitive rămâne totul. Reînnoiește ca să le păstrezi.",
   "subOwnedTitle": "Abonamentul este deja cumpărat",
-  "subOwnedGrant": "Oferit de echipa Stowa, până pe {date}"
+  "subOwnedGrant": "Oferit de echipa Stowa, până pe {date}",
+  "aiKeyProvider": "Furnizor: {name}",
+  "aiProviderCustom": "Adresă proprie",
+  "aiProviderCustomHint": "Orice API compatibil cu OpenAI",
+  "aiSpeechUnavailable": "Furnizorul nu o oferă"
 }

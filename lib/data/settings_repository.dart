@@ -5,13 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:uuid/uuid.dart';
 
+import '../domain/ai_providers.dart';
 import '../domain/appearance.dart';
 import '../domain/edge_settings.dart';
 import '../domain/known_vaults.dart' as known;
 import '../domain/reminder_parser.dart' show defaultWorkEnd;
 import '../domain/return_plan.dart';
 import '../l10n/app_language.dart';
-import '../services/ai_client.dart';
 
 /// Где лежит ключ ИИ. На телефоне — защищённое хранилище системы, в тестах — память.
 abstract interface class KeyStore {
@@ -87,6 +87,12 @@ class AiSettings {
 
   /// Разбор идёт: ключ есть и очередь не на паузе.
   bool get active => hasKey && !paused;
+
+  /// Знакомый поставщик по адресу; свой адрес — null.
+  AiProvider? get provider => providerOfUrl(baseUrl);
+
+  /// У поставщика есть расшифровка голоса. Свой адрес — пусть решает человек.
+  bool get canTranscribe => provider?.speech ?? true;
 }
 
 /// Настройки приложения: ключ ИИ, поставщик, модели, пауза очереди и язык.
@@ -213,6 +219,18 @@ class SettingsRepository {
   }
 
   Future<void> setBaseUrl(String url) => _set(() => _prefs.setString(_baseUrl, url.trim().isEmpty ? defaultAiBaseUrl : url.trim()));
+
+  /// Сменить поставщика: модели прежнего у нового не найдутся, поэтому модель разбора —
+  /// его по умолчанию (или [model] из живого списка), расшифровка выключается.
+  /// Пауза снимается: её вызывал прежний поставщик.
+  Future<void> setProvider(AiProvider provider, {String? model}) => _set(() async {
+    await _prefs.setString(_baseUrl, provider.baseUrl);
+    await _prefs.setString(_sortModel, model ?? provider.model);
+    await _prefs.remove(_speechModel);
+    await _prefs.remove(_paused);
+    await _prefs.remove(_pauseReason);
+    return _prefs.remove(_retryAt);
+  });
 
   Future<void> setSortModel(String model) => _set(() => _prefs.setString(_sortModel, model));
 

@@ -1072,7 +1072,7 @@ class LPl extends L {
 
   @override
   String get aiKeyWhere =>
-      'Klucz bierzesz od dostawcy: na OpenRouter jest w sekcji Keys, są też darmowe modele.';
+      'Wklej klucz dowolnego dostawcy: Stowa rozpozna go po początku klucza.';
 
   @override
   String get aiCheckOk => 'Klucz działa';
@@ -5352,4 +5352,18 @@ class LPl extends L {
   String subOwnedGrant(String date) {
     return 'Przyznana przez zespół Stowa, do $date';
   }
+
+  @override
+  String aiKeyProvider(String name) {
+    return 'Dostawca: $name';
+  }
+
+  @override
+  String get aiProviderCustom => 'Własny adres';
+
+  @override
+  String get aiProviderCustomHint => 'Dowolne API zgodne z OpenAI';
+
+  @override
+  String get aiSpeechUnavailable => 'Ten dostawca jej nie ma';
 }

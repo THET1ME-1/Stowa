@@ -1391,9 +1391,9 @@
   "@aiKeyRemove": {
     "description": "aiKeyRemove"
   },
-  "aiKeyWhere": "Get a key from your provider: on OpenRouter it is under Keys, and free models are available.",
+  "aiKeyWhere": "Paste a key from any provider: Stowa recognizes it by how the key starts.",
   "@aiKeyWhere": {
-    "description": "aiKeyWhere"
+    "description": "Hint under the API key field"
   },
   "aiCheckOk": "The key works",
   "@aiCheckOk": {
@@ -6454,5 +6454,26 @@
         "type": "String"
       }
     }
+  },
+  "aiKeyProvider": "Provider: {name}",
+  "@aiKeyProvider": {
+    "description": "Which provider the pasted key goes to",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiProviderCustom": "Custom address",
+  "@aiProviderCustom": {
+    "description": "Provider list: enter your own API address"
+  },
+  "aiProviderCustomHint": "Any OpenAI-compatible API",
+  "@aiProviderCustomHint": {
+    "description": "Subtitle of the custom address row"
+  },
+  "aiSpeechUnavailable": "Not offered by this provider",
+  "@aiSpeechUnavailable": {
+    "description": "Voice transcription row when the provider has no transcription"
   }
 }

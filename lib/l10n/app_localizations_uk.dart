@@ -1071,7 +1071,7 @@ class LUk extends L {
 
   @override
   String get aiKeyWhere =>
-      'Ключ дає постачальник: на OpenRouter він у розділі Keys, є безкоштовні моделі.';
+      'Встав ключ будь-якого постачальника: Stowa впізнає його за початком ключа.';
 
   @override
   String get aiCheckOk => 'Ключ працює';
@@ -5342,4 +5342,18 @@ class LUk extends L {
   String subOwnedGrant(String date) {
     return 'Видана командою Stowa, до $date';
   }
+
+  @override
+  String aiKeyProvider(String name) {
+    return 'Постачальник: $name';
+  }
+
+  @override
+  String get aiProviderCustom => 'Своя адреса';
+
+  @override
+  String get aiProviderCustomHint => 'Будь-який API, сумісний з OpenAI';
+
+  @override
+  String get aiSpeechUnavailable => 'Немає в цього постачальника';
 }

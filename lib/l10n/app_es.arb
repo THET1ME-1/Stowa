@@ -47,7 +47,7 @@
   "aiKeyPaste": "Pegar",
   "aiKeySave": "Guardar y comprobar",
   "aiKeyRemove": "Quitar clave",
-  "aiKeyWhere": "La clave la da el proveedor: en OpenRouter está en Keys, y hay modelos gratis.",
+  "aiKeyWhere": "Pega la clave de cualquier proveedor: Stowa lo reconoce por el inicio de la clave.",
   "aiCheckOk": "La clave funciona",
   "aiCheckAuth": "El proveedor rechazó la clave",
   "aiCheckPayment": "La clave no tiene saldo",
@@ -1199,5 +1199,9 @@
   "syncCopyWarnTitle": "Tu copia en la nube se borrará pronto",
   "syncCopyWarnBody": "El {date} el servidor borrará tu copia de Stowa Sync y el historial de versiones. En tus dispositivos queda todo. Renueva para conservarlos.",
   "subOwnedTitle": "Suscripción ya comprada",
-  "subOwnedGrant": "Otorgada por el equipo de Stowa, hasta el {date}"
+  "subOwnedGrant": "Otorgada por el equipo de Stowa, hasta el {date}",
+  "aiKeyProvider": "Proveedor: {name}",
+  "aiProviderCustom": "Dirección propia",
+  "aiProviderCustomHint": "Cualquier API compatible con OpenAI",
+  "aiSpeechUnavailable": "Este proveedor no la ofrece"
 }

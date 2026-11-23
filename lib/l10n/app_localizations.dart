@@ -1925,10 +1925,10 @@ abstract class L {
   /// **'Remove key'**
   String get aiKeyRemove;
 
-  /// aiKeyWhere
+  /// Hint under the API key field
   ///
   /// In en, this message translates to:
-  /// **'Get a key from your provider: on OpenRouter it is under Keys, and free models are available.'**
+  /// **'Paste a key from any provider: Stowa recognizes it by how the key starts.'**
   String get aiKeyWhere;
 
   /// aiCheckOk
@@ -8992,6 +8992,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Granted by the Stowa team, until {date}'**
   String subOwnedGrant(String date);
+
+  /// Which provider the pasted key goes to
+  ///
+  /// In en, this message translates to:
+  /// **'Provider: {name}'**
+  String aiKeyProvider(String name);
+
+  /// Provider list: enter your own API address
+  ///
+  /// In en, this message translates to:
+  /// **'Custom address'**
+  String get aiProviderCustom;
+
+  /// Subtitle of the custom address row
+  ///
+  /// In en, this message translates to:
+  /// **'Any OpenAI-compatible API'**
+  String get aiProviderCustomHint;
+
+  /// Voice transcription row when the provider has no transcription
+  ///
+  /// In en, this message translates to:
+  /// **'Not offered by this provider'**
+  String get aiSpeechUnavailable;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

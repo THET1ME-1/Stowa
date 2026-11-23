@@ -1065,7 +1065,7 @@ class LEn extends L {
 
   @override
   String get aiKeyWhere =>
-      'Get a key from your provider: on OpenRouter it is under Keys, and free models are available.';
+      'Paste a key from any provider: Stowa recognizes it by how the key starts.';
 
   @override
   String get aiCheckOk => 'The key works';
@@ -5272,4 +5272,18 @@ class LEn extends L {
   String subOwnedGrant(String date) {
     return 'Granted by the Stowa team, until $date';
   }
+
+  @override
+  String aiKeyProvider(String name) {
+    return 'Provider: $name';
+  }
+
+  @override
+  String get aiProviderCustom => 'Custom address';
+
+  @override
+  String get aiProviderCustomHint => 'Any OpenAI-compatible API';
+
+  @override
+  String get aiSpeechUnavailable => 'Not offered by this provider';
 }

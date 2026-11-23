@@ -10,6 +10,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/sheet_options.dart';
+import '../../domain/ai_providers.dart';
 import '../../domain/hints.dart' show Tip;
 import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
@@ -394,7 +395,7 @@ class AiScreen extends ConsumerWidget {
               tint: settingsTint('violet'),
               children: [
                 SettingsRow(icon: 'key', title: l.aiKey, value: ai.hasKey ? l.aiKeySet : l.aiKeyNone, onTap: () => showSettingsSheet(context, const _KeySheet())),
-                SettingsRow(icon: 'dns', title: l.aiProvider, value: Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => showSettingsSheet(context, _ProviderSheet(current: ai.baseUrl))),
+                SettingsRow(icon: 'dns', title: l.aiProvider, value: ai.provider?.name ?? Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl, onTap: () => _pickProvider(context, ref, ai)),
                 SettingsRow(icon: 'category', title: l.aiSortModel, value: _modelLabel(ai.sortModel), onTap: () => showSettingsSheet(context, const _ModelSheet(speech: false))),
                 SettingsSwitchRow(
                   icon: 'auto_awesome',
@@ -406,8 +407,8 @@ class AiScreen extends ConsumerWidget {
                 SettingsRow(
                   icon: 'graphic_eq',
                   title: l.aiSpeechModel,
-                  value: ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!),
-                  onTap: () => showSettingsSheet(context, const _ModelSheet(speech: true)),
+                  value: !ai.canTranscribe ? l.aiSpeechUnavailable : (ai.speechModel == null ? l.aiSpeechOff : _modelLabel(ai.speechModel!)),
+                  onTap: ai.canTranscribe ? () => showSettingsSheet(context, const _ModelSheet(speech: true)) : null,
                 ),
                 SettingsRow(icon: 'receipt_long', title: l.aiLog, onTap: () => Navigator.of(context).push(aiLogRoute())),
               ],
@@ -417,6 +418,29 @@ class AiScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Поставщик из списка знакомых или свой адрес. Другой поставщик — модели по умолчанию.
+Future<void> _pickProvider(BuildContext context, WidgetRef ref, AiSettings ai) async {
+  final l = L.of(context);
+  const custom = '';
+  final current = ai.provider;
+  final picked = await showOptionsSheet<String>(
+    context,
+    title: l.aiProvider,
+    selected: current?.id ?? custom,
+    options: [
+      for (final provider in aiProviders) SheetChoice(value: provider.id, title: provider.name, subtitle: provider.host),
+      SheetChoice(value: custom, title: l.aiProviderCustom, icon: 'link', subtitle: current == null ? Uri.tryParse(ai.baseUrl)?.host : l.aiProviderCustomHint),
+    ],
+  );
+  if (picked == null || !context.mounted) return;
+  if (picked == custom) {
+    await showSettingsSheet(context, _ProviderSheet(current: ai.baseUrl));
+    return;
+  }
+  final provider = aiProviders.firstWhere((one) => one.id == picked);
+  if (provider != current) await ref.read(settingsRepositoryProvider).setProvider(provider);
 }
 
 /// Состояние разбора: работает, выключен, на паузе или ждёт поставщика.
@@ -547,8 +571,11 @@ class _KeySheetState extends ConsumerState<_KeySheet> {
       _busy = true;
       _error = null;
     });
+    // ключ идёт к своему хозяину: `sk-ant-` — к Anthropic, даже если выбран OpenRouter
+    final target = _target(key, settings.ai);
+    final client = AiClient(http: ref.read(aiHttpProvider), baseUrl: target?.baseUrl ?? settings.ai.baseUrl, apiKey: key);
     try {
-      await AiClient(http: ref.read(aiHttpProvider), baseUrl: settings.ai.baseUrl, apiKey: key).check();
+      await client.check();
     } on AiFailure catch (failure) {
       // поставщик молчит — ключ всё равно сохраняется, проверится при разборе
       if (!{AiFailureKind.network, AiFailureKind.timeout, AiFailureKind.server}.contains(failure.kind)) {
@@ -562,16 +589,31 @@ class _KeySheetState extends ConsumerState<_KeySheet> {
       }
     }
     await settings.saveKey(key);
+    if (target != null && target != settings.ai.provider) {
+      // модель — из живого списка нового поставщика: имя по умолчанию могло устареть
+      String? model;
+      try {
+        final models = await client.models();
+        if (models.isNotEmpty) model = pickSortModel(target, [for (final one in models) (id: one.id, seesImages: one.seesImages)]);
+      } on AiFailure {
+        // без списка остаётся модель по умолчанию
+      }
+      await settings.setProvider(target, model: model);
+    }
     navigator.pop();
     showNote(messenger, l.aiCheckOk);
     ref.read(aiDrainProvider)().ignore();
   }
 
+  /// Поставщик, узнанный по ключу. Свой адрес не трогаем: человек вписал его сам.
+  AiProvider? _target(String key, AiSettings ai) => ai.provider == null ? null : (providerOfKey(key) ?? ai.provider);
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
-    final hasKey = ref.watch(aiSettingsProvider).value?.hasKey ?? false;
+    final ai = ref.watch(aiSettingsProvider).value ?? const AiSettings();
+    final hasKey = ai.hasKey;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, Space.screen),
       child: Column(
@@ -590,7 +632,7 @@ class _KeySheetState extends ConsumerState<_KeySheet> {
             autocorrect: false,
             enableSuggestions: false,
             decoration: InputDecoration(
-              hintText: hasKey ? '••••••••' : 'sk-or-…',
+              hintText: hasKey ? '••••••••' : 'sk-…',
               errorText: _error,
               suffixIcon: Padding(
                 padding: const EdgeInsets.only(right: 6),
@@ -598,6 +640,17 @@ class _KeySheetState extends ConsumerState<_KeySheet> {
               ),
             ),
             onSubmitted: (_) => _save(),
+          ),
+          // к кому уйдёт ключ: видно сразу после вставки, до проверки
+          ListenableBuilder(
+            listenable: _field,
+            builder: (context, _) {
+              final name = _target(_field.text.trim(), ai)?.name ?? Uri.tryParse(ai.baseUrl)?.host ?? ai.baseUrl;
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+                child: Text(l.aiKeyProvider(name), key: const ValueKey('ai-key-provider'), style: text.bodySmall!.copyWith(color: Tokens.muted)),
+              );
+            },
           ),
           const SizedBox(height: 16),
           FilledButton(
