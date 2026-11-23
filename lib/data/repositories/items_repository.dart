@@ -570,7 +570,7 @@ WHERE corrections.from_folder_id IS NOT NULL AND items.deleted_at IS NULL
       rejected: rejected,
       memory: guess.memory,
       // человек печатает — постройка ждёт: на телефоне она секундами занимала поток экрана
-      wait: userFirst.calm,
+      wait: userFirst.doneTyping,
     );
     guess
       ..signature = signature

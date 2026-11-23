@@ -92,14 +92,25 @@ class WidgetSync {
     if (now) {
       _write(now: true).ignore();
     } else {
+      _waiting = true;
       _pause = Timer(_quiet, () => _write().ignore());
     }
+  }
+
+  // запись ждёт паузы или конца набора
+  var _waiting = false;
+
+  /// Ушли из приложения: отложенная запись — сразу. Набор кончился, а процесс могут выгрузить,
+  /// и виджет на столе остался бы с прежним текстом.
+  void flush() {
+    if (_waiting) refresh(now: true);
   }
 
   Future<void> _write({bool now = false}) async {
     // человек печатает — снимок ждёт: он читает шестьдесят заметок в потоке экрана, а виджет
     // на столе всё равно не виден, пока открыто приложение. Замок пишется сразу
-    if (!now) await userFirst.calm();
+    if (!now) await userFirst.doneTyping();
+    _waiting = false;
     var locked = _locked();
     var notes = locked ? const <WidgetNote>[] : await widgetNotes(_db);
     // замок включили, пока база отвечала: закрытый файл уже лёг, текст поверх него не класть

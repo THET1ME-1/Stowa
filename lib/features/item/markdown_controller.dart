@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/palette.dart';
 import '../../core/theme/tokens.dart';
 import '../../domain/note_blocks.dart';
 import '../../domain/note_links.dart' show WikiPiece, wikiPieces;
@@ -38,15 +39,16 @@ class MarkdownController extends TextEditingController {
 
   // разметка строки по её тексту: на букву меняется одна строка, остальные берутся готовыми
   // (на телефоне разметка всех строк окна шла на каждую букву, тестировщик 23.11: «лагает»).
-  // Строка с курсором считается заново: у курсора видны скобки [[ссылки]]. Тема сменилась —
-  // готовые строки с прежними цветами выбрасываются
+  // Строка с курсором считается заново: у курсора видны скобки [[ссылки]]. Цвета из Tokens
+  // дольше кадра держать нельзя — готовые строки помнятся вместе с палитрой, на которой
+  // посчитаны, и выбрасываются, как только палитра другая
   final _lineSpans = <String, List<InlineSpan>>{};
-  Color? _lineInk;
+  StowaPalette? _linePalette;
 
   @override
   TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
-    if (_lineInk != Tokens.muted || _lineSpans.length > 4000) {
-      _lineInk = Tokens.muted;
+    if (!identical(_linePalette, Tokens.palette) || _lineSpans.length > 4000) {
+      _linePalette = Tokens.palette;
       _lineSpans.clear();
     }
     final caret = selection.isValid && selection.isCollapsed ? selection.baseOffset : -1;

@@ -37,11 +37,11 @@ void main() {
   });
 
   // тестировщик 23.11: «клавиатура лагает» — пересчёты после автосохранения шли посреди набора
-  test('пересчёт после правки ждёт, пока человек не занят; первый — сразу', () async {
+  test('пересчёт после правки ждёт конца набора; первый — сразу; мышь его не держит', () async {
     var now = DateTime(2026, 11, 23, 12);
     final person = UserFirst(enabled: true, clock: () => now, poll: const Duration(milliseconds: 5));
     final sub = recomputeOn(changes.stream, compute, first: person).listen(seen.add);
-    person.touch();
+    person.type();
     changes.add(null);
     await turn();
     expect(running, hasLength(1), reason: 'первый ответ ждёт открывшийся экран');
@@ -59,6 +59,13 @@ void main() {
     await turn();
     expect(running, hasLength(2));
     expect(seen, [1, 2]);
+    // на компьютере мышь двигается всё время: касание без набора пересчёт не держит
+    person.touch();
+    changes.add(null);
+    await Future<void>.delayed(const Duration(milliseconds: 40));
+    expect(running, hasLength(3));
+    running[2].complete(3);
+    await turn();
     await sub.cancel();
   });
 

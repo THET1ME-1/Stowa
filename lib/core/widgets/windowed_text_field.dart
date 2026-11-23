@@ -44,6 +44,8 @@ class WindowedTextField extends StatefulWidget {
     this.textCapitalization = TextCapitalization.none,
     this.keyboardType = TextInputType.multiline,
     this.scrollPadding = const EdgeInsets.all(20),
+    this.sliver = false,
+    this.keepCaret = false,
   });
 
   /// Текст не длиннее — одно поле целиком.
@@ -70,6 +72,23 @@ class WindowedTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final EdgeInsets scrollPadding;
 
+  /// Слоем прокрутки (`SliverList`): каждый кусок — свой ребёнок списка, верстаются только
+  /// видимые. Колонкой при входе в правку верстался весь текст разом — на телефоне секунду и
+  /// больше в потоке, через который идёт клавиатура, и она дёргалась, открываясь (тестировщик
+  /// 23.11). Живое поле, пока в фокусе, список не выбрасывает и за краем экрана
+  /// (`EditableText` держит себя сам, `AutomaticKeepAlive`). Касания неподвижных кусков ловит
+  /// [WindowedTouches] над списком.
+  ///
+  /// Живое поле строится, только когда оно у экрана. Курсор при входе оказался за экраном
+  /// (в конце длинной заметки, а смотрят на начало) — он переходит на первый видимый кусок:
+  /// иначе фокус ждал бы поля, которого нет, и клавиатура не встала бы, а прокрутка к концу
+  /// сверстала бы весь текст.
+  final bool sliver;
+
+  /// Курсор остаётся, где его поставили, даже за экраном («Дописать» — в конце): прокрутка
+  /// идёт до живого поля.
+  final bool keepCaret;
+
   /// Что покажет живое поле для [document]: им хозяин заполняет [window] до первого показа,
   /// иначе поле заполнило бы его само посреди построения экрана.
   static TextEditingValue windowFor(TextEditingValue document) {
@@ -79,6 +98,40 @@ class WindowedTextField extends StatefulWidget {
 
   @override
   State<WindowedTextField> createState() => _WindowedTextFieldState();
+}
+
+/// Касания неподвижных кусков [WindowedTextField] со `sliver: true`: распознаватели стоят над
+/// списком прокрутки, а не в куске. Протяжка мышью раскрывает окно на весь текст, кусок, на
+/// котором её начали, уходит из дерева — распознаватель в нём умер бы посреди протяжки.
+/// Касание мимо неподвижных кусков распознаватели не берут, как и у поля колонкой.
+class WindowedTouches extends StatefulWidget {
+  const WindowedTouches({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<WindowedTouches> createState() => _WindowedTouchesState();
+}
+
+class _WindowedTouchesState extends State<WindowedTouches> {
+  Map<Type, GestureRecognizerFactory> _gestures = const {};
+
+  // поле приходит посреди построения и уходит посреди разборки дерева: меняем после кадра
+  void _use(Map<Type, GestureRecognizerFactory> gestures) {
+    if (identical(gestures, _gestures)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !identical(gestures, _gestures)) setState(() => _gestures = gestures);
+    });
+  }
+
+  void _drop(Map<Type, GestureRecognizerFactory> gestures) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && identical(gestures, _gestures)) setState(() => _gestures = const {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => RawGestureDetector(behavior: HitTestBehavior.translucent, gestures: _gestures, child: widget.child);
 }
 
 /// Кусок текста и блок (код, формула), открытый на его начале.
@@ -172,6 +225,9 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
 
   bool get _whole => _above.isEmpty && _below.isEmpty;
 
+  // распознаватели над списком прокрутки (поле слоем прокрутки)
+  _WindowedTouchesState? _outer;
+
   @override
   void initState() {
     super.initState();
@@ -183,7 +239,51 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
     // значения отмены и повтора — после кадра: их слушают кнопки, которые сейчас строятся
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _publish();
+      if (widget.sliver) _arrive(0);
     });
+  }
+
+  /// Поле слоем прокрутки встало, а живого поля нет на экране: курсор — на первый видимый
+  /// кусок, а с [WindowedTextField.keepCaret] — прокрутка к живому полю.
+  void _arrive(int tries) {
+    if (!mounted || _liveKey.currentContext != null) return;
+    if (!widget.keepCaret) {
+      if (_firstOnScreen() case final offset?) _select(TextSelection.collapsed(offset: offset));
+      return;
+    }
+    final position = Scrollable.maybeOf(context)?.position;
+    if (position == null || tries > 40) return;
+    // кусок выше окна построен — живое поле ниже, иначе выше
+    final below = _above.any((piece) => piece.key.currentContext != null);
+    position.jumpTo(below ? position.maxScrollExtent : position.minScrollExtent);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _arrive(tries + 1));
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  /// Начало первого неподвижного куска на экране, в отсчёте всего текста.
+  int? _firstOnScreen() {
+    final viewport = Scrollable.maybeOf(context)?.context.findRenderObject();
+    if (viewport is! RenderBox || !viewport.hasSize) return null;
+    final top = viewport.localToGlobal(Offset.zero).dy;
+    final bottom = top + viewport.size.height;
+    bool shown(_Piece piece) {
+      final box = piece.key.currentContext?.findRenderObject();
+      if (box is! RenderBox || !box.attached || !box.hasSize) return false;
+      final at = box.localToGlobal(Offset.zero).dy;
+      return at + box.size.height > top && at < bottom;
+    }
+
+    var start = 0;
+    for (final piece in _above) {
+      if (shown(piece)) return start;
+      start += piece.text.length + 1;
+    }
+    start = _start + _windowText.length + 1;
+    for (final piece in _below) {
+      if (shown(piece)) return start;
+      start += piece.text.length + 1;
+    }
+    return null;
   }
 
   void _listen(WindowedTextField of) {
@@ -220,6 +320,7 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
 
   @override
   void dispose() {
+    _outer?._drop(_gestures);
     _unlisten(widget);
     _shrinkTimer?.cancel();
     _swallowTimer?.cancel();
@@ -308,7 +409,7 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
   void _onWindow() {
     if (_syncing) return;
     // буква или курсор — человек занят: фон и пересчёты ждут (UserFirst)
-    userFirst.touch();
+    userFirst.type();
     final local = widget.window.value;
     var text = _docText;
     if (local.text != _windowText) {
@@ -614,6 +715,13 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
 
   void _apply(TextEditingValue? value) {
     if (value == null) return;
+    // курсор — у места отменённой правки, как в редакторах, а не где он стоял тогда: с первым
+    // шагом истории запомнился курсор входа в правку, а он бывает в конце длинной заметки —
+    // окно уехало бы за экран
+    if (value.text != _docText) {
+      final edit = editedRange(_docText, value.text);
+      value = value.copyWith(selection: TextSelection.collapsed(offset: edit.end + edit.delta), composing: TextRange.empty);
+    }
     _applying = true;
     widget.document.value = value;
     _applying = false;
@@ -724,17 +832,30 @@ class _WindowedTextFieldState extends State<WindowedTextField> with UndoManagerC
         ),
       ),
     );
-    return TextFieldTapRegion(
-      child: RawGestureDetector(
-        // касание доходит и туда, где живое поле на миг глухо (второе касание двойного);
-        // где кусок не неподвижный, распознаватели касание не берут сами
-        behavior: HitTestBehavior.translucent,
-        gestures: _gestures,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [for (final piece in _above) _view(piece), live, for (final piece in _below) _view(piece)],
-        ),
+    // касание доходит и туда, где живое поле на миг глухо (второе касание двойного);
+    // где кусок не неподвижный, распознаватели касание не берут сами
+    Widget touches(Widget child) => TextFieldTapRegion(
+      child: RawGestureDetector(behavior: HitTestBehavior.translucent, gestures: _gestures, child: child),
+    );
+    if (widget.sliver) {
+      final outer = _outer = context.findAncestorStateOfType<_WindowedTouchesState>();
+      outer?._use(_gestures);
+      // распознаватели над списком есть — куску остаётся только быть частью поля для касаний мимо
+      Widget part(Widget child) => outer == null ? touches(child) : TextFieldTapRegion(child: child);
+      // ключ — снаружи: список узнаёт ребёнка по нему, когда окно переезжает и номера сдвигаются
+      return SliverList.list(
+        children: [
+          for (final piece in _above) KeyedSubtree(key: ObjectKey(piece), child: part(_view(piece))),
+          KeyedSubtree(key: const ValueKey('live'), child: part(live)),
+          for (final piece in _below) KeyedSubtree(key: ObjectKey(piece), child: part(_view(piece))),
+        ],
+      );
+    }
+    return touches(
+      Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [for (final piece in _above) _view(piece), live, for (final piece in _below) _view(piece)],
       ),
     );
   }

@@ -364,7 +364,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
 
   void _onLine() {
     // буква в строке — человек занят: фон и пересчёты ждут (UserFirst)
-    userFirst.touch();
+    userFirst.type();
     _manual = false;
     if (_line.text.isEmpty) _filter = null;
     if (!_line.settled) {

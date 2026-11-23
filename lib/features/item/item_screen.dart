@@ -190,10 +190,23 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     HardwareKeyboard.instance.addHandler(_onKey);
     // открыл — значит посмотрел: очередь «посмотреть потом» и сводка недели больше о ней не напомнят
     _items.markOpened(widget.id, _clock()).ignore();
+    _life = AppLifecycleListener(onHide: _leaving);
+  }
+
+  late final AppLifecycleListener _life;
+
+  /// Ушли из приложения посреди правки: сохранить всё сразу, с временем и местом. Разбор их
+  /// ждал конца набора, а свёрнутое приложение система может выгрузить — «завтра в 9» осталось
+  /// бы текстом без напоминания, и следующий вход в правку счёл бы фразу уже виденной.
+  void _leaving() {
+    if (!_editing) return;
+    _autosave?.cancel();
+    _save().ignore();
   }
 
   @override
   void dispose() {
+    _life.dispose();
     _paste.release(this);
     HardwareKeyboard.instance.removeHandler(_onKey);
     _autosave?.cancel();
@@ -213,6 +226,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   /// поле не показывает, поле — для своего. С `append` курсор встаёт с новой строки в конце.
   void _startEditing(Item item, {bool append = false}) {
     if (_editing) return;
+    _appending = append;
     final body = item.body;
     _savedTitle = item.title;
     _savedBody = body.replaceFirst(_trailingSpace, '');
@@ -228,6 +242,9 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     setState(() => _editing = true);
     _bodyFocus.requestFocus();
   }
+
+  // правку открыло «Дописать»: курсор в конце, даже если конец длинной заметки за экраном
+  var _appending = false;
 
   // время и место в тексте, какими их видели на прошлом нажатии
   String? _seenPhrase;
@@ -267,8 +284,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
 
   void _changed() {
     if (!_editing) return;
-    // буква — человек занят: фон и пересчёты ждут (UserFirst)
-    userFirst.touch();
+    // буква — человек печатает: фон и пересчёты ждут (UserFirst)
+    userFirst.type();
     // время и место разбираются при сохранении, а не на букву и не на короткой паузе: разбор на
     // телефоне — десятки миллисекунд, и он лагал посреди набора (тестировщики 22 и 23.11).
     // Стёр «8» и набрал заново до сохранения — фраза та же, но её трогали: это видно по месту
@@ -296,7 +313,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   void _phrasesWhenCalm() {
     if (_phrasesWaiting) return;
     _phrasesWaiting = true;
-    userFirst.calm().then((_) {
+    userFirst.doneTyping().then((_) {
       _phrasesWaiting = false;
       if (mounted && _editing) _save(pause: true);
     }).ignore();
@@ -324,7 +341,7 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
   /// печатать. Пауза между словами больше 0,7 с — обычное дело, и разбор на ней лагал
   /// (тестировщик 23.11). Выход из правки сохраняет всё сразу.
   Future<void> _save({bool pause = false}) async {
-    if (pause && userFirst.busy && (_phrasesStale || _timeTouched || _placeTouched)) {
+    if (pause && userFirst.typing && (_phrasesStale || _timeTouched || _placeTouched)) {
       _phrasesWhenCalm();
       await _saveText();
       return;
@@ -957,6 +974,8 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
     final bodyStyle = text.bodyLarge!.copyWith(fontSize: 16, height: 1.5, color: Tokens.onSurface);
     final bottom = MediaQuery.paddingOf(context).bottom;
     final side = desk ? math.max(12.0, (MediaQuery.sizeOf(context).width - _deskColumn) / 2) : 12.0;
+    // поля прокрутки; в правке панель выше: конец текста должен прокручиваться над полосой разметки
+    final listPadding = desk ? EdgeInsets.fromLTRB(side, 6, side, bottom + 24) : EdgeInsets.fromLTRB(12, 6, 12, (_editing ? _editDockHeight : _dockHeight) + _dockGap * 2 + bottom);
     final cover = gallery.isEmpty ? null : gallery[_cover.clamp(0, gallery.length - 1)];
     // картинка из текста по имени; касание открывает просмотр всех фото заметки на ней
     Widget inlineImage(String name) {
@@ -1131,11 +1150,15 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                 child: Stack(
                   key: _stackKey,
                   children: [
-                    ListView(
+                    // слоями: текст заметки — свой слой, длинный конспект верстается по видимым кускам
+                    WindowedTouches(
+                      child: CustomScrollView(
                       controller: _scroll,
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-                      // в правке панель выше: конец текста должен прокручиваться над полосой разметки
-                      padding: desk ? EdgeInsets.fromLTRB(side, 6, side, bottom + 24) : EdgeInsets.fromLTRB(12, 6, 12, (_editing ? _editDockHeight : _dockHeight) + _dockGap * 2 + bottom),
+                      slivers: [
+                        SliverPadding(
+                          padding: listPadding.copyWith(bottom: 0),
+                          sliver: SliverList.list(
                       children: [
                         // файл ещё ложится: вещь уже правится, а показать его пока нечем
                         if (full.copying > 0) ...[
@@ -1386,19 +1409,25 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                               ),
                             ),
                           ),
-                        if (_editing || blocks.isNotEmpty) ...[
-                          SizedBox(height: desk ? 4 : 12),
-                          AnimatedContainer(
+                        if (_editing || blocks.isNotEmpty) SizedBox(height: desk ? 4 : 12),
+                      ],
+                          ),
+                        ),
+                        if (_editing || blocks.isNotEmpty)
+                          SliverPadding(
+                            padding: EdgeInsets.only(left: listPadding.left, right: listPadding.right),
+                            sliver: _BodyCard(
                             key: const ValueKey('item-body-card'),
-                            duration: Motion.medium,
                             // на мониторе текст лежит на странице, как в макете, а не в карточке
                             padding: desk ? const EdgeInsets.fromLTRB(6, 10, 6, 10) : const EdgeInsets.fromLTRB(20, 18, 20, 20),
-                            decoration: desk ? null : BoxDecoration(color: _editing ? Tokens.containerHigh : Tokens.container, borderRadius: BorderRadius.circular(Radii.card)),
-                            child: _editing
+                            color: desk ? null : (_editing ? Tokens.containerHigh : Tokens.container),
+                            sliver: _editing
                                 ? Focus(
                                     // Tab в формуле — к следующему полю, как в Latex Suite; вне формулы — как обычно
                                     canRequestFocus: false,
                                     skipTraversal: true,
+                                    // вокруг слоя прокрутки: своей подписи для чтения с экрана у него нет
+                                    includeSemantics: false,
                                     onKeyEvent: (node, event) => mathTabKey(_bodyWindow, event),
                                     // длинная заметка: на каждую букву верстается только кусок у курсора
                                     // (тестировщик 22.11: «длинный текст лагает, 10 FPS»)
@@ -1422,11 +1451,17 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                                       scrollPadding: const EdgeInsets.only(bottom: _editDockHeight + _dockGap * 2 + 24),
                                       style: bodyStyle,
                                       decoration: _bare(l.itemBodyHint),
+                                      sliver: true,
+                                      keepCaret: _appending,
                                     ),
                                   )
-                                : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink, image: inlineImage),
+                                : NoteBody(blocks: blocks, onToggle: (index) => _toggle(item, index), onEdit: () => _startEditing(item), onLink: _openLink, image: inlineImage, sliver: true),
+                            ),
                           ),
-                        ],
+                        SliverPadding(
+                          padding: listPadding.copyWith(top: 0),
+                          sliver: SliverList.list(
+                      children: [
                         if (galleryBelow && cover != null) ...[
                           const SizedBox(height: 12),
                           _PhotoCover(
@@ -1474,6 +1509,10 @@ class _ItemScreenState extends ConsumerState<ItemScreen> {
                           if (isPdfFile(file.mime, file.path)) PdfPanel(path: p.join(filesRoot.path, file.path), mime: file.mime) else FileTile(file: file, filesRoot: filesRoot),
                         if (!_editing) RelatedBlock(itemId: _id, onOpen: (id) => openItem(context, id)),
                       ],
+                          ),
+                        ),
+                      ],
+                      ),
                     ),
                     // на телефоне панель плавает внизу; на широком экране низ у общей строки — панель под шапкой
                     if (!desk) Positioned(left: 12, right: 12, bottom: _dockGap + bottom, child: dock),
@@ -1570,6 +1609,33 @@ String _capitalized(String text) => text.isEmpty ? text : text[0].toUpperCase() 
 
 /// Круглая кнопка на подложке. Связанная группа задаёт свои углы.
 /// «Сохраняю файл · 40 %» с полоской: пока не пропадёт, оригинал удалять рано.
+/// Карточка текста заметки слоем прокрутки: подложка под всем слоем, а верстаются только
+/// видимые куски текста. [color] пусто — без карточки (монитор: текст лежит на странице).
+class _BodyCard extends StatelessWidget {
+  const _BodyCard({super.key, required this.padding, required this.color, required this.sliver});
+
+  final EdgeInsets padding;
+  final Color? color;
+  final Widget sliver;
+
+  @override
+  Widget build(BuildContext context) {
+    final inner = SliverPadding(padding: padding, sliver: sliver);
+    final color = this.color;
+    if (color == null) return inner;
+    // цвет плавно меняется при входе в правку и выходе из неё
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(end: color),
+      duration: Motion.medium,
+      builder: (context, shown, child) => DecoratedSliver(
+        decoration: BoxDecoration(color: shown, borderRadius: BorderRadius.circular(Radii.card)),
+        sliver: child!,
+      ),
+      child: inner,
+    );
+  }
+}
+
 class _Copying extends ConsumerWidget {
   const _Copying({required this.itemId, required this.count});
 

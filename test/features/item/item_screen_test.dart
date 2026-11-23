@@ -214,6 +214,28 @@ void main() {
       expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 18));
     });
 
+    testWidgets('ушёл из приложения посреди набора — время разобрано сразу, напоминание стоит', (tester) async {
+      var now = DateTime(2026, 11, 23, 12);
+      final previous = userFirst;
+      userFirst = UserFirst(enabled: true, clock: () => now, poll: const Duration(milliseconds: 50));
+      addTearDown(() => userFirst = previous);
+      await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
+      await edit(tester, 'Купить хлеб в 6 вечера');
+      expect((await saved()).reminderAt, isNull, reason: 'набор ещё идёт');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      addTearDown(() {
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      });
+      await tester.pumpAndSettle();
+      expect((await saved()).reminderAt, DateTime(world.now.year, world.now.month, world.now.day, 18));
+      // набор кончился: ожидающие конца набора доходят до конца
+      now = now.add(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('вписал место — напоминание у магазина', (tester) async {
       await open(tester, body: 'Купить хлеб', title: 'Купить хлеб');
       await edit(tester, 'Купить хлеб, буду проходить мимо магазина');
@@ -315,15 +337,30 @@ void main() {
     final huge = List.generate(300, (index) => 'Строка конспекта $index, в ней мысль про ремонт и плитку').join('\n');
     TextEditingController live(WidgetTester tester) => tester.widget<TextField>(find.byType(TextField).last).controller!;
 
-    testWidgets('живое поле держит кусок у курсора, сохраняется весь текст', (tester) async {
+    testWidgets('«Дописать»: живое поле — кусок в конце, сохраняется весь текст', (tester) async {
       await open(tester, body: 'Ремонт\n$huge', title: 'Ремонт');
-      await tester.tap(find.byTooltip('Править'));
+      await tester.tap(find.text('Дописать'));
       await tester.pumpAndSettle();
       expect(live(tester).text.length, lessThan(4500));
-      await tester.enterText(find.byType(TextField).last, '${live(tester).text}\nновая строка');
+      expect(live(tester).text, endsWith('плитку\n'));
+      expect(tester.testTextInput.isVisible, isTrue);
+      await tester.enterText(find.byType(TextField).last, '${live(tester).text}новая строка');
       await tester.tap(find.text('Готово'));
       await tester.pumpAndSettle();
       expect((await saved()).body, 'Ремонт\n$huge\nновая строка');
+    });
+
+    // тестировщик 23.11: «клавиатура дёргано открывается» — вход в правку верстал весь текст.
+    // Теперь верстается видимое, и курсор встаёт туда, куда смотрят, а не в конец за экраном
+    testWidgets('«Править»: курсор там, куда смотрят, клавиатура встаёт, весь текст не верстается', (tester) async {
+      await open(tester, body: 'Ремонт\n$huge', title: 'Ремонт');
+      await tester.tap(find.byTooltip('Править'));
+      await tester.pumpAndSettle();
+      expect(tester.testTextInput.isVisible, isTrue);
+      expect(live(tester).text, startsWith('Ремонт\n'));
+      expect(live(tester).selection.baseOffset, 0);
+      // конца текста нет в дереве: его куски ещё не строились
+      expect(find.textContaining('Строка конспекта 299', findRichText: true, skipOffstage: false), findsNothing);
     });
 
     testWidgets('«Отменить» возвращает весь текст, а не кусок', (tester) async {
@@ -335,7 +372,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       await tester.tap(find.byTooltip('Отменить'));
       await tester.pumpAndSettle();
-      expect(live(tester).text, before);
+      // курсор встаёт у места отменённой правки — окно может переехать к нему, правки в нём нет
+      expect(live(tester).text, isNot(contains('затирка')));
+      expect(live(tester).text, startsWith(before.substring(0, 200)));
       await tester.tap(find.text('Готово'));
       await tester.pumpAndSettle();
       expect((await saved()).body, 'Ремонт\n$huge');
@@ -349,7 +388,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Готово'));
       await tester.pumpAndSettle();
-      expect((await saved()).body, 'Ремонт\n$huge****');
+      expect((await saved()).body, '****Ремонт\n$huge');
     });
   });
 
@@ -632,7 +671,7 @@ void main() {
     await open(tester, body: long, title: 'Строка номер 1');
     await tester.tap(find.byTooltip('Править'));
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView).first, const Offset(0, -6000));
+    await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -6000));
     await tester.pumpAndSettle();
     final field = find.byType(TextField).last;
     final bar = find.byKey(const ValueKey('edit-dock'));
@@ -806,6 +845,10 @@ void main() {
     });
 
     testWidgets('фото между абзацами — в тексте на своём месте, остальные — после текста', (tester) async {
+      // экран высокий: текст лежит слоем прокрутки, блоки далеко за экраном не строятся
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       await show(
         tester,
         ItemsCompanion.insert(
@@ -824,11 +867,13 @@ void main() {
       await tester.scrollUntilVisible(find.text('клей серый'), 200, scrollable: find.byType(Scrollable).first);
       await tester.pumpAndSettle();
       final card = find.byKey(const ValueKey('item-body-card'));
-      expect(find.descendant(of: card, matching: find.byType(Image)), findsOneWidget);
+      // текст — слоем прокрутки: блоки выше экрана в дереве, но не на экране
+      final inline = find.descendant(of: card, matching: find.byType(Image), skipOffstage: false);
+      expect(inline, findsOneWidget);
       expect(find.textContaining('![['), findsNothing);
       // картинка стоит между своими строками
-      final photo = tester.getTopLeft(find.descendant(of: card, matching: find.byType(Image))).dy;
-      expect(photo, greaterThan(tester.getTopLeft(find.textContaining('вот так легла')).dy));
+      final photo = tester.getTopLeft(inline).dy;
+      expect(photo, greaterThan(tester.getTopLeft(find.textContaining('вот так легла', skipOffstage: false)).dy));
       expect(photo, lessThan(tester.getTopLeft(find.text('клей серый')).dy));
       // файла нет — тихая плашка с именем
       expect(find.text('нет.jpg'), findsOneWidget);
@@ -888,7 +933,7 @@ void main() {
       expect(find.byType(LinkPreviewCard), findsOneWidget);
       expect(find.text('Торт без выпечки из печенья'), findsOneWidget);
       // карточка — под текстом заметки, а не вместо него
-      expect(tester.getTopLeft(find.byType(LinkPreviewCard)).dy, greaterThan(tester.getBottomLeft(body).dy));
+      expect(tester.getTopLeft(find.byType(LinkPreviewCard)).dy, greaterThan(sliverRect(tester, body).bottom));
     });
 
     ItemsCompanion adultLink() => ItemsCompanion.insert(
@@ -988,7 +1033,7 @@ void main() {
       }
       await show(tester, ItemsCompanion.insert(id: 'a', kind: ItemKind.note, title: 'Борщ', body: const Value('Борщ со свёклой, рецепт'), createdAt: world.now, updatedAt: world.now));
       // до конца: внизу у списка запас под плавающую панель, крестик выходит из-под неё
-      await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -2000));
       await tester.pumpAndSettle();
       expect(find.text('Свёкла подешевела, купить на борщ'), findsOneWidget);
       expect(find.textContaining('общее:'), findsOneWidget);
@@ -1010,12 +1055,12 @@ void main() {
       await other('hops', 'Хмель', body: 'каскад и цитра');
       await open(tester, body: 'Пиво\nварить с [[Хмель]]', title: 'Пиво');
       expect(find.textContaining('[[', findRichText: true), findsNothing);
-      await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -2000));
       await tester.pumpAndSettle();
       expect(find.text('в тексте заметки'), findsOneWidget);
       // у связи из текста крестика нет: её держит текст
       expect(find.byTooltip('Не связывать'), findsNothing);
-      await tester.drag(find.byType(ListView).first, const Offset(0, 2000));
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, 2000));
       await tester.pumpAndSettle();
       // касание ровно по слову «Хмель»: где оно в абзаце, говорит сам абзац
       final paragraph = tester.renderObject<RenderParagraph>(find.textContaining('варить с', findRichText: true).first);
@@ -1067,7 +1112,7 @@ void main() {
       await other('list', 'Список вещей');
       await world.db.into(world.db.links).insert(LinksCompanion.insert(fromId: 'a', toId: 'list', source: LinkSource.manual));
       await open(tester, body: 'Отпуск в горах', title: 'Отпуск в горах');
-      await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -2000));
       await tester.pumpAndSettle();
       expect(find.text('связь вручную'), findsOneWidget);
       await tester.tap(find.byTooltip('Убрать связь'));

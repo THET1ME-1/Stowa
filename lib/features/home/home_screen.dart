@@ -347,6 +347,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // ушёл из приложения, а файл ещё ложится: система доделает, даже если Stowa выгрузят
     if (state == AppLifecycleState.paused) {
+      // снимок виджета ждал конца набора — пишется сейчас, пока процесс жив
+      ref.read(widgetSyncProvider).flush();
       _handOverFiles().ignore();
       _watch?.stop().ignore();
       _watch = null;

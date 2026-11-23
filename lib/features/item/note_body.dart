@@ -17,9 +17,15 @@ const _thinSpace = '\u2009';
 /// Текст заметки на странице вещи: абзацы, заголовки, списки, галочки, цитаты.
 /// Касание по тексту открывает правку, по галочке — отмечает дело, по ссылке — открывает её.
 class NoteBody extends StatelessWidget {
-  const NoteBody({super.key, required this.blocks, required this.onToggle, required this.onEdit, required this.onLink, this.image});
+  const NoteBody({super.key, required this.blocks, required this.onToggle, required this.onEdit, required this.onLink, this.image, this.sliver = false});
 
   final List<NoteBlock> blocks;
+
+  /// Слоем прокрутки (`SliverList`), а не колонкой: длинная заметка верстает только видимые
+  /// блоки. Колонкой конспект в 40 тысяч знаков верстался весь при открытии — на телефоне
+  /// секунду и больше в потоке, через который идёт клавиатура (тестировщик 23.11: «клавиатура
+  /// дёргано открывается и закрывается»).
+  final bool sliver;
   final ValueChanged<int> onToggle;
   final VoidCallback onEdit;
   final ValueChanged<String> onLink;
@@ -38,10 +44,12 @@ class NoteBody extends StatelessWidget {
       final listy = block is BulletBlock || block is NumberedBlock || block is CheckBlock;
       final wasListy = previous is BulletBlock || previous is NumberedBlock || previous is CheckBlock;
       final gap = previous == null ? 0.0 : (listy && wasListy ? 2.0 : (block is HeadingBlock ? 20.0 : 12.0));
-      children.add(SizedBox(height: gap));
-      children.add(_block(context, block, body));
+      // воздух сверху у самого блока: в слое прокрутки блок — отдельный ребёнок
+      final shown = _block(context, block, body);
+      children.add(gap == 0 ? shown : Padding(padding: EdgeInsets.only(top: gap), child: shown));
       previous = block;
     }
+    if (sliver) return SliverList.list(children: children);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
   }
 

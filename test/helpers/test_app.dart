@@ -515,3 +515,10 @@ class _TestClipboardImages extends ClipboardImages {
   @override
   Future<XFile?> read() async => _world.clipboardImage;
 }
+
+/// Где на экране видимая часть слоя прокрутки: карточка текста заметки — слой, а не
+/// прямоугольник виджета, и `getRect` её не меряет.
+Rect sliverRect(WidgetTester tester, Finder finder) {
+  final sliver = tester.renderObject(finder);
+  return MatrixUtils.transformRect(sliver.getTransformTo(null), sliver.paintBounds);
+}

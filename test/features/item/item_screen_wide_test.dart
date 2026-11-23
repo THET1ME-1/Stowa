@@ -114,9 +114,9 @@ void main() {
     expect(find.descendant(of: props, matching: find.text('Ремонт')), findsOneWidget);
     expect(tester.getRect(props).top, greaterThan(tester.getRect(title).bottom), reason: 'свойства под заголовком');
 
-    final body = tester.widget<AnimatedContainer>(find.byKey(const ValueKey('item-body-card')));
-    expect(body.decoration, isNull, reason: 'текст без карточки');
-    expect(tester.getRect(find.byKey(const ValueKey('item-body-card'))).top, greaterThan(tester.getRect(props).bottom));
+    final body = find.byKey(const ValueKey('item-body-card'));
+    expect(find.descendant(of: body, matching: find.byType(DecoratedSliver)), findsNothing, reason: 'текст без карточки');
+    expect(sliverRect(tester, body).top, greaterThan(tester.getRect(props).bottom));
 
     // строка папки — щелчок переложить
     await tester.tap(find.descendant(of: props, matching: find.text('Ремонт')));
@@ -214,7 +214,7 @@ void main() {
     expect(bar.top - screen.top, lessThan(24));
     expect(bar.width, lessThanOrEqualTo(772));
     // текст колонкой, строка ввода с ним не пересекается
-    final body = tester.getRect(find.byKey(const ValueKey('item-body-card')));
+    final body = sliverRect(tester, find.byKey(const ValueKey('item-body-card')));
     expect(body.width, lessThanOrEqualTo(760));
     final capsule = tester.getRect(find.descendant(of: line, matching: find.textContaining('Закинь')).first);
     expect(body.bottom, lessThan(capsule.top));

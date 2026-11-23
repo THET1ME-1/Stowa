@@ -27,11 +27,33 @@ class UserFirst {
 
   final DateTime Function() _clock;
   DateTime? _until;
+  DateTime? _typingUntil;
   var _working = 0;
 
   /// Человек нажал клавишу, щёлкнул или прокрутил.
   void touch() {
     if (enabled) _until = _clock().add(hold);
+  }
+
+  /// Человек набрал букву в поле: он занят ([touch]) и ещё печатает ([typing]).
+  void type() {
+    if (!enabled) return;
+    touch();
+    _typingUntil = _clock().add(hold);
+  }
+
+  /// Набор идёт: буква была меньше [hold] назад.
+  bool get typing {
+    final until = _typingUntil;
+    return until != null && _clock().isBefore(until);
+  }
+
+  /// Пересчёты после правки ждут конца набора, а не любого касания: на компьютере движение
+  /// мыши — тоже касание, и списки не обновлялись бы, пока мышь двигается.
+  Future<void> doneTyping() async {
+    while (typing) {
+      await Future<void>.delayed(poll);
+    }
   }
 
   /// [work] — то, чего человек ждёт прямо сейчас (поиск строки): пока оно идёт, он занят.
