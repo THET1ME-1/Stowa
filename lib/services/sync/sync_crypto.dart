@@ -27,7 +27,17 @@ String normalizePath(String path) => unorm.nfc(path);
 
 /// Что телефон знает о файле. Лежит на сервере только зашифрованным.
 class FileMeta {
-  const FileMeta({required this.path, required this.mtime, required this.size, required this.hash, this.deleted = false, this.v = syncFormat, this.chunk = syncChunk});
+  const FileMeta({
+    required this.path,
+    required this.mtime,
+    required this.size,
+    required this.hash,
+    this.deleted = false,
+    this.v = syncFormat,
+    this.chunk = syncChunk,
+    this.prev,
+    this.to,
+  });
 
   final int v;
   final String path;
@@ -41,7 +51,24 @@ class FileMeta {
   final bool deleted;
   final int chunk;
 
-  Map<String, Object?> toJson() => {'v': v, 'path': path, 'mtime': mtime, 'size': size, 'hash': hash, 'deleted': deleted, 'chunk': chunk};
+  /// Номер прежнего пути, если файл сюда переехал: первая отправка после переименования
+  /// или переноса. По нему история идёт дальше назад, через переезд.
+  final String? prev;
+
+  /// У надгробия: номер пути, куда файл переехал. Такое удаление — не удаление.
+  final String? to;
+
+  Map<String, Object?> toJson() => {
+    'v': v,
+    'path': path,
+    'mtime': mtime,
+    'size': size,
+    'hash': hash,
+    'deleted': deleted,
+    'chunk': chunk,
+    'prev': ?prev,
+    'to': ?to,
+  };
 
   factory FileMeta.fromJson(Map<String, Object?> json) => FileMeta(
     v: json['v'] as int,
@@ -51,6 +78,8 @@ class FileMeta {
     hash: json['hash'] as String,
     deleted: json['deleted'] as bool? ?? false,
     chunk: json['chunk'] as int? ?? syncChunk,
+    prev: json['prev'] as String?,
+    to: json['to'] as String?,
   );
 }
 

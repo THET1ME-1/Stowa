@@ -290,6 +290,75 @@ void main() {
     expect(b.vault.files.length, 1);
   });
 
+  // история идёт по номеру файла, а он считается от пути: переезд связывается в заголовках
+  group('переезд файла не рвёт историю', () {
+    Future<FileMeta> metaOf(String path) async => key.openMeta((await remote.file(key.fileId(path)))!.meta);
+
+    test('переименованная заметка несёт номер прежнего пути, надгробие — нового', () async {
+      final a = Device(remote, key);
+      a.vault.putText('Старое.md', '---\nid: n1\n---\nтекст\n');
+      await a.sync();
+      a.vault.files['Новое.md'] = a.vault.files.remove('Старое.md')!;
+      await a.sync();
+      expect((await metaOf('Новое.md')).prev, key.fileId('Старое.md'));
+      final tomb = await metaOf('Старое.md');
+      expect(tomb.deleted, true);
+      expect(tomb.to, key.fileId('Новое.md'));
+    });
+
+    test('переехала и поправлена в одном проходе — узнаётся по id в шапке', () async {
+      final a = Device(remote, key);
+      a.vault.putText('Папка/План.md', '---\nid: n2\ntags: [дом]\n---\nпервая строка\n');
+      a.vault.putText('Другая.md', '---\nid: n3\n---\nчужая\n');
+      await a.sync();
+      a.vault.files.remove('Папка/План.md');
+      a.vault.putText('Дом/План ремонта.md', '---\nid: n2\ntags: [дом]\n---\nпервая строка\nвторая\n');
+      await a.sync();
+      expect((await metaOf('Дом/План ремонта.md')).prev, key.fileId('Папка/План.md'));
+      expect((await metaOf('Другая.md')).prev, isNull);
+    });
+
+    test('вложение переехало — узнаётся по содержимому', () async {
+      final a = Device(remote, key);
+      final photo = List.generate(500, (i) => i * 7 % 256);
+      a.vault.put('План/фото.jpg', photo);
+      await a.sync();
+      a.vault.files['План ремонта/фото.jpg'] = a.vault.files.remove('План/фото.jpg')!;
+      await a.sync();
+      expect((await metaOf('План ремонта/фото.jpg')).prev, key.fileId('План/фото.jpg'));
+    });
+
+    test('копия файла не крадёт переезд у оригинала, двум копиям достаётся один переезд', () async {
+      final a = Device(remote, key);
+      a.vault.putText('a.md', 'одинаковое\n');
+      a.vault.putText('b.md', 'другое\n');
+      await a.sync();
+      // a.md на месте: новый файл с тем же текстом — просто копия
+      a.vault.putText('копия.md', 'одинаковое\n');
+      await a.sync();
+      expect((await metaOf('копия.md')).prev, isNull);
+      // b.md пропал, появились два файла с его текстом: переезд у одного
+      a.vault.files.remove('b.md');
+      a.vault.putText('b1.md', 'другое\n');
+      a.vault.putText('b2.md', 'другое\n');
+      await a.sync();
+      final prevs = [(await metaOf('b1.md')).prev, (await metaOf('b2.md')).prev];
+      expect(prevs.where((p) => p == key.fileId('b.md')).length, 1);
+      expect(prevs.where((p) => p == null).length, 1);
+    });
+
+    test('второй телефон принимает переезд как удаление и новый файл', () async {
+      final a = Device(remote, key), b = Device(remote, key);
+      a.vault.putText('Старое.md', '---\nid: n1\n---\nтекст\n');
+      await a.sync();
+      await b.sync();
+      a.vault.files['Новое.md'] = a.vault.files.remove('Старое.md')!;
+      await a.sync();
+      await b.sync();
+      expect(b.vault.files.keys.toSet(), {'Новое.md'});
+    });
+  });
+
   for (var seed = 1; seed <= 25; seed++) {
     test('симуляция $seed: три телефона, правки, удаления, обрывы и падения', () => _simulate(seed), tags: 'heavy');
   }

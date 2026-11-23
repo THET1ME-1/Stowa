@@ -414,13 +414,19 @@ class SyncEngine {
       for (final was in alive)
         if (!local.containsKey(was.file)) was,
     ];
+    // переезд: пропавший файл и новый — один и тот же. Заметка узнаётся по id в шапке (у
+    // пропавшей — по тени), остальное — по содержимому. Связь едет в заголовках, и история
+    // идёт через переименование дальше назад
+    final moves = await _Moves.of(gone, state);
+
     // на втором телефоне с той же копией почти все файлы только сверяются: экран зовёт
     // этап «сверяю и отправляю», а в счёт идут и совпавшие
     _expect(SyncStage.send, files: changed.length + gone.length, bytes: changed.fold(0, (sum, pair) => sum + pair.$2.size));
     await _each(changed, (pair) async {
       final (file, seen) = pair;
       _file = seen.path;
-      final result = await _upload(file, seen, known[file]);
+      final was = known[file];
+      final result = await _upload(file, seen, was, moves: was == null || was.hash.isEmpty ? moves : null);
       _settled(file, seen.size);
       if (result == null) return;
       if (result is Conflict) {
@@ -434,8 +440,10 @@ class SyncEngine {
 
     if (gone.length > massDeleteCount && gone.length > alive.length * massDeleteShare) throw const _MassDelete();
     for (final was in gone) {
+      // переехавший файл ещё не дошёл до сервера: надгробие подождёт, иначе связь потеряется
+      if (moves.waiting(was.file)) continue;
       _file = was.path;
-      final meta = FileMeta(path: was.path, mtime: DateTime.now().millisecondsSinceEpoch, size: 0, hash: '', deleted: true);
+      final meta = FileMeta(path: was.path, mtime: DateTime.now().millisecondsSinceEpoch, size: 0, hash: '', deleted: true, to: moves.movedTo[was.file]);
       final result = await remote.commit(was.file, baseRev: was.rev, meta: await key.sealMeta(meta), blobs: const [], size: 0, deleted: true);
       _settled(was.file, 0);
       if (result is Conflict) {
@@ -451,7 +459,8 @@ class SyncEngine {
   }
 
   /// Отправить файл. null — содержимое уже на сервере или файл меняется прямо сейчас.
-  Future<CommitResult?> _upload(String file, LocalFile seen, SyncedFile? was) async {
+  /// [moves] — для файла, которого на этом пути ещё не было: вдруг он сюда переехал.
+  Future<CommitResult?> _upload(String file, LocalFile seen, SyncedFile? was, {_Moves? moves}) async {
     final blobs = <String>[];
     final whole = _Digest();
     final sink = hash.sha256.startChunkedConversion(whole);
@@ -488,8 +497,11 @@ class SyncEngine {
     final after = await vault.stat(seen.path);
     if (after == null || after.size != seen.size || after.mtime != seen.mtime) return null;
 
-    final meta = FileMeta(path: seen.path, mtime: seen.mtime, size: seen.size, hash: contentHash);
+    final noteId = moves == null || !_isNote(seen.path) ? null : noteIdIn(utf8.decode(await vault.read(seen.path, 0, min(1024, seen.size)), allowMalformed: true));
+    final prev = moves?.claim(file, noteId: noteId, hash: contentHash);
+    final meta = FileMeta(path: seen.path, mtime: seen.mtime, size: seen.size, hash: contentHash, prev: prev);
     final result = await remote.commit(file, baseRev: was?.rev ?? 0, meta: await key.sealMeta(meta), blobs: blobs, size: seen.size);
+    if (prev != null) moves!.settle(prev, file, committed: result is Committed);
     if (result is Committed) {
       await _put(SyncedFile(file: file, path: seen.path, rev: result.rev, hash: contentHash, size: seen.size, mtime: seen.mtime));
       if ((_isNote(seen.path) || _isMetaJson(seen.path)) && seen.size <= _shadowLimit) {
@@ -518,6 +530,66 @@ class SyncEngine {
 
 /// С какого размера часть сперва ищется на сервере, а не отправляется сразу.
 const _askFirst = 256 * 1024;
+
+/// `id` заметки из её шапки: первые строки файла в формате Obsidian.
+String? noteIdIn(String head) {
+  if (!head.startsWith('---')) return null;
+  final end = head.indexOf('\n---', 3);
+  final header = end < 0 ? head : head.substring(0, end);
+  return RegExp(r'^id:\s*"?([^"\n]+?)"?\s*$', multiLine: true).firstMatch(header)?.group(1)?.trim();
+}
+
+/// Переезды одного прохода: какой пропавший файл стал каким новым. Пропавший достаётся
+/// одному новому — копия с тем же содержимым переезд не крадёт.
+class _Moves {
+  _Moves(this._byId, this._byHash);
+
+  static Future<_Moves> of(List<SyncedFile> gone, SyncState state) async {
+    final byId = <String, SyncedFile>{}, byHash = <String, SyncedFile>{};
+    for (final was in gone) {
+      byHash.putIfAbsent(was.hash, () => was);
+      if (!_isNote(was.path)) continue;
+      final id = noteIdIn(await state.shadow(was.file) ?? '');
+      if (id != null) byId.putIfAbsent(id, () => was);
+    }
+    return _Moves(byId, byHash);
+  }
+
+  final Map<String, SyncedFile> _byId;
+  final Map<String, SyncedFile> _byHash;
+
+  /// Занятые пропавшие: номер пропавшего → номер нового, ещё не отправленного.
+  final _claimed = <String, String>{};
+
+  /// Пропавший → новый, уже на сервере: номер нового ляжет в надгробие.
+  final movedTo = <String, String>{};
+
+  /// Новый файл [file] — переезд? Номер прежнего пути или null. Заметка ищется по id,
+  /// всё остальное — по содержимому.
+  String? claim(String file, {String? noteId, required String hash}) {
+    final was = (noteId == null ? null : _byId[noteId]) ?? _byHash[hash];
+    if (was == null || _claimed.containsKey(was.file) || movedTo.containsKey(was.file)) return null;
+    _claimed[was.file] = file;
+    return was.file;
+  }
+
+  /// Новый файл ушёл на сервер или нет. Не ушёл — пропавший снова свободен, и его надгробие
+  /// в этом проходе не уходит: следующий проход свяжет их заново.
+  void settle(String prev, String file, {required bool committed}) {
+    if (committed) {
+      _claimed.remove(prev);
+      movedTo[prev] = file;
+    } else {
+      _held.add(prev);
+      _claimed.remove(prev);
+    }
+  }
+
+  final _held = <String>{};
+
+  /// Надгробию пропавшего ждать следующего прохода.
+  bool waiting(String file) => _held.contains(file) || _claimed.containsKey(file);
+}
 
 /// Файл поправили, пока качали: изменение откладывается, следующий проход склеит.
 class _Moved implements Exception {
