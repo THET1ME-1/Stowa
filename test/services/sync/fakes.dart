@@ -96,6 +96,19 @@ class FakeRemote implements SyncRemote {
 
   /// Сколько раз спросили историю: тест кэша.
   var revisionCalls = 0;
+
+  /// Сколько раз копию стирали за неуплату.
+  var epoch = 0;
+
+  /// Стереть копию, как уборка сервера через 30 дней без подписки: файлы, история и части
+  /// уходят, эпоха растёт, курсор — нет.
+  void wipe() {
+    _files.clear();
+    _seq.clear();
+    history.clear();
+    blobs.clear();
+    epoch++;
+  }
   final _seq = <String, int>{};
   var _cursor = 0;
 
@@ -126,7 +139,7 @@ class FakeRemote implements SyncRemote {
         if (e.value > since) (e.value, _files[e.key]!),
     ]..sort((a, b) => a.$1.compareTo(b.$1));
     final page = fresh.take(50).toList();
-    return ChangePage(cursor: page.isEmpty ? max(since, 0) : page.last.$1, more: fresh.length > page.length, changes: [for (final p in page) p.$2]);
+    return ChangePage(cursor: page.isEmpty ? max(since, 0) : page.last.$1, more: fresh.length > page.length, changes: [for (final p in page) p.$2], epoch: epoch);
   }
 
   @override
@@ -226,6 +239,21 @@ extension<T> on List<T> {
 
 class MemoryState implements SyncState {
   int _cursor = 0;
+  int? _epoch;
+
+  @override
+  Future<int?> epoch() async => _epoch;
+
+  @override
+  Future<void> setEpoch(int epoch) async => _epoch = epoch;
+
+  @override
+  Future<void> reset() async {
+    _cursor = 0;
+    _files.clear();
+    _shadows.clear();
+    _pending.clear();
+  }
   final _files = <String, SyncedFile>{};
   final _shadows = <String, String>{};
   final _pending = <String>{};

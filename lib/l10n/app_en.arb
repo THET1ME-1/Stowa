@@ -6410,5 +6410,36 @@
   "syncLogGone": "The file is gone: deleted files come back from the trash",
   "@syncLogGone": {
     "description": "Плашка, когда в журнале касаются удалённого файла"
+  },
+  "syncCopyUntil": "Your cloud copy is kept until {date}. After that the server erases it along with version history; everything stays on your devices. Renew to keep the copy.",
+  "@syncCopyUntil": {
+    "description": "Stowa Sync без подписки: до какого дня сервер хранит копию",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subCopyUntil": "Your cloud copy is kept until {date}. Renew so it isn't erased.",
+  "@subCopyUntil": {
+    "description": "Подпись карточки «Купить подписку» в настройках, когда копия ждёт продления",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncCopyWarnTitle": "Your cloud copy will be erased soon",
+  "@syncCopyWarnTitle": {
+    "description": "Уведомление за неделю до стирания копии без подписки"
+  },
+  "syncCopyWarnBody": "On {date} the server will erase your Stowa Sync copy and version history. Everything stays on your devices. Renew to keep them.",
+  "@syncCopyWarnBody": {
+    "description": "Текст уведомления о скором стирании копии",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }

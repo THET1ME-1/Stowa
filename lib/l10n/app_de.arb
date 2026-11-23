@@ -1193,5 +1193,9 @@
   "syncLogHint": "Änderungen von allen Geräten. Tippen öffnet den Verlauf der Notiz.",
   "syncLogDeleted": "gelöscht",
   "syncLogEmpty": "Noch keine Änderungen",
-  "syncLogGone": "Die Datei gibt es nicht mehr: Gelöschtes kommt aus dem Papierkorb zurück"
+  "syncLogGone": "Die Datei gibt es nicht mehr: Gelöschtes kommt aus dem Papierkorb zurück",
+  "syncCopyUntil": "Die Kopie in der Cloud bleibt bis {date}. Danach löscht der Server sie samt Versionsverlauf, auf deinen Geräten bleibt alles. Verlängere das Abo, dann bleibt die Kopie.",
+  "subCopyUntil": "Die Cloud-Kopie bleibt bis {date}. Verlängere, damit sie nicht gelöscht wird.",
+  "syncCopyWarnTitle": "Deine Cloud-Kopie wird bald gelöscht",
+  "syncCopyWarnBody": "Am {date} löscht der Server deine Stowa-Sync-Kopie und den Versionsverlauf. Auf deinen Geräten bleibt alles. Verlängere, um sie zu behalten."
 }

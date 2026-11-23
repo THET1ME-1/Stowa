@@ -243,6 +243,25 @@ class SyncEngine {
     var cursor = await state.cursor();
     while (true) {
       final page = await remote.changes(cursor);
+      // сервер стёр копию (подписки не было дольше 30 дней): память о нём устарела. Забываем
+      // её и идём как первый проход — без удалений, всё своё уйдёт заново. Память без эпохи
+      // (до стираний) при нулевой эпохе сервера сбрасывать незачем
+      final known = await state.epoch();
+      if (known != page.epoch) {
+        if (known != null || page.epoch > 0) {
+          await state.reset();
+          _known = {};
+          waiting.clear();
+          pages.clear();
+          await state.setEpoch(page.epoch);
+          if (cursor != 0) {
+            cursor = 0;
+            continue;
+          }
+        } else {
+          await state.setEpoch(page.epoch);
+        }
+      }
       pages.add(page);
       cursor = page.cursor;
       if (!page.more) break;

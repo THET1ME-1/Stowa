@@ -174,7 +174,12 @@ class HttpSyncRemote implements SyncRemote {
     final response = await _send(() => _client.get(Uri.parse('$base/v1/changes?since=$since&wait=$wait'), headers: _auth), Duration(seconds: 30 + wait));
     _check(response);
     final json = jsonDecode(response.body) as Map<String, Object?>;
-    return ChangePage(cursor: json['cursor'] as int, more: json['more'] as bool, changes: [for (final c in json['changes'] as List) _change(c as Map<String, Object?>)]);
+    return ChangePage(
+      cursor: json['cursor'] as int,
+      more: json['more'] as bool,
+      changes: [for (final c in json['changes'] as List) _change(c as Map<String, Object?>)],
+      epoch: json['epoch'] as int? ?? 0,
+    );
   }
 
   @override

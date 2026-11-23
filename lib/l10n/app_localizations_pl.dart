@@ -5327,4 +5327,22 @@ class LPl extends L {
 
   @override
   String get syncLogGone => 'Pliku już nie ma: usunięte wraca z kosza';
+
+  @override
+  String syncCopyUntil(String date) {
+    return 'Kopia w chmurze jest przechowywana do $date. Potem serwer usunie ją razem z historią wersji, a na urządzeniach wszystko zostanie. Odnów subskrypcję, a kopia zostanie.';
+  }
+
+  @override
+  String subCopyUntil(String date) {
+    return 'Kopia w chmurze jest do $date. Odnów, żeby jej nie usunięto.';
+  }
+
+  @override
+  String get syncCopyWarnTitle => 'Kopia w chmurze wkrótce zostanie usunięta';
+
+  @override
+  String syncCopyWarnBody(String date) {
+    return '$date serwer usunie kopię Stowa Sync i historię wersji. Na urządzeniach wszystko zostanie. Odnów subskrypcję, aby je zachować.';
+  }
 }

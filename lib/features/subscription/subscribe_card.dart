@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/tokens.dart';
@@ -39,9 +40,11 @@ class SubscribeCard extends ConsumerWidget {
         ),
       );
     }
+    // подписка кончилась, а копия на сервере ещё есть: человек видит, до какого дня она живёт
+    final hint = subscription.copyAtRisk ? l.subCopyUntil(DateFormat.MMMMd(l.localeName).format(subscription.copyUntil!.toLocal())) : l.subBuyHint;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: AccentCard(key: const ValueKey('settings-subscribe'), title: l.subBuy, hint: l.subBuyHint, onTap: () => Navigator.of(context).push(paywallRoute())),
+      child: AccentCard(key: const ValueKey('settings-subscribe'), title: l.subBuy, hint: hint, onTap: () => Navigator.of(context).push(paywallRoute())),
     );
   }
 }

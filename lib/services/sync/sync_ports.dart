@@ -53,11 +53,14 @@ class RemoteChange {
 }
 
 class ChangePage {
-  const ChangePage({required this.cursor, required this.changes, this.more = false});
+  const ChangePage({required this.cursor, required this.changes, this.more = false, this.epoch = 0});
 
   final int cursor;
   final bool more;
   final List<RemoteChange> changes;
+
+  /// Сколько раз сервер стирал копию за неуплату. Сменилась — память о синхронизации устарела.
+  final int epoch;
 }
 
 sealed class CommitResult {
@@ -189,4 +192,13 @@ abstract interface class SyncState {
   Future<String?> shadow(String file);
 
   Future<void> setShadow(String file, String? text);
+
+  /// Эпоха сервера, при которой собрана эта память; null — память старше эпох.
+  Future<int?> epoch();
+
+  Future<void> setEpoch(int epoch);
+
+  /// Забыть всё, что известно о сервере: курсор, файлы, тени, отложенное. Следующий проход —
+  /// как первый: без удалений, всё своё уходит заново.
+  Future<void> reset();
 }

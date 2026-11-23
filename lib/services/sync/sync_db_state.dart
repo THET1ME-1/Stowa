@@ -61,10 +61,22 @@ class DbSyncState implements SyncState {
     }
   }
 
+  static const epochFlag = 'sync:epoch';
+
+  @override
+  Future<int?> epoch() async => int.tryParse((await (_db.select(_db.vaultFlags)..where((f) => f.name.equals(epochFlag))).getSingleOrNull())?.value ?? '');
+
+  @override
+  Future<void> setEpoch(int epoch) => _db.into(_db.vaultFlags).insertOnConflictUpdate(VaultFlagsCompanion.insert(name: epochFlag, value: Value('$epoch')));
+
+  @override
+  Future<void> reset() => clear();
+
   /// Забыть всё о синхронизации: после выхода следующий вход идёт как первый, без удалений.
+  /// Эпоха тоже забывается: новый аккаунт — новый счёт стираний.
   Future<void> clear() async {
     await _db.delete(_db.syncEntries).go();
     await _db.delete(_db.syncShadows).go();
-    await (_db.delete(_db.vaultFlags)..where((f) => f.name.equals(cursorFlag) | f.name.like('$_pendingPrefix%'))).go();
+    await (_db.delete(_db.vaultFlags)..where((f) => f.name.equals(cursorFlag) | f.name.equals(epochFlag) | f.name.like('$_pendingPrefix%'))).go();
   }
 }

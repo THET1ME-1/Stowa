@@ -5295,4 +5295,22 @@ class LRo extends L {
   @override
   String get syncLogGone =>
       'Fișierul nu mai există: ce ai șters revine din coș';
+
+  @override
+  String syncCopyUntil(String date) {
+    return 'Copia din cloud se păstrează până pe $date. Apoi serverul o șterge împreună cu istoricul versiunilor, iar pe dispozitive rămâne totul. Reînnoiește abonamentul ca să păstrezi copia.';
+  }
+
+  @override
+  String subCopyUntil(String date) {
+    return 'Copia din cloud se păstrează până pe $date. Reînnoiește ca să nu fie ștearsă.';
+  }
+
+  @override
+  String get syncCopyWarnTitle => 'Copia din cloud va fi ștearsă în curând';
+
+  @override
+  String syncCopyWarnBody(String date) {
+    return 'Pe $date serverul va șterge copia Stowa Sync și istoricul versiunilor. Pe dispozitive rămâne totul. Reînnoiește ca să le păstrezi.';
+  }
 }

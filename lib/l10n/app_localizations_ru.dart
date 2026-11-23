@@ -5331,4 +5331,22 @@ class LRu extends L {
   @override
   String get syncLogGone =>
       'Файла больше нет: удалённое возвращается из корзины';
+
+  @override
+  String syncCopyUntil(String date) {
+    return 'Копия в облаке хранится до $date. Потом сервер её сотрёт вместе с историей версий, а на устройствах всё останется. Продлите подписку, и копия сохранится.';
+  }
+
+  @override
+  String subCopyUntil(String date) {
+    return 'Копия в облаке хранится до $date. Продлите, чтобы она не стёрлась.';
+  }
+
+  @override
+  String get syncCopyWarnTitle => 'Копия в облаке скоро сотрётся';
+
+  @override
+  String syncCopyWarnBody(String date) {
+    return '$date сервер сотрёт копию Stowa Sync и историю версий. На устройствах всё останется. Продлите подписку, чтобы их сохранить.';
+  }
 }

@@ -100,13 +100,28 @@ abstract interface class NotificationPort {
 /// Держит будильники системы в согласии с базой. Любая правка напоминаний —
 /// сохранение, «Готово», удаление, «Отменить» — ведёт к одному пересчёту.
 class ReminderService {
-  ReminderService(this._port);
+  ReminderService(this._port, {this.extra});
 
   final NotificationPort _port;
   String? _last;
 
+  /// Будильник не из заметок: «копия в облаке скоро сотрётся». Берётся из сохранённого снимка
+  /// подписки на каждом пересчёте — пересчёт снимает все будильники разом, в любом окне
+  /// приложения, и будильник, поставленный отдельно, пропал бы.
+  final Future<Reminder?> Function(DateTime now)? extra;
+
+  List<Reminder>? _reminders;
+
+  /// Пересчитать с прошлым списком напоминаний: поменялось только [extra]. Списка ещё не было —
+  /// ничего не трогаем: снять будильники, не зная напоминаний, значит потерять их.
+  Future<void> refresh(DateTime now) async {
+    if (_reminders case final reminders?) await sync(reminders, now);
+  }
+
   Future<void> sync(List<Reminder> reminders, DateTime now) async {
-    final coming = reminders.where((one) => one.at.isAfter(now)).toList()..sort((a, b) => a.at.compareTo(b.at));
+    _reminders = reminders;
+    final own = await extra?.call(now).catchError((Object _) => null);
+    final coming = [...reminders, ?own].where((one) => one.at.isAfter(now)).toList()..sort((a, b) => a.at.compareTo(b.at));
     final planned = coming.take(_limit).toList();
     // тот же список — системе ничего не говорим
     final key = planned.map((one) => '${one.id}|${one.at.toIso8601String()}|${one.title}|${one.body}').join('\n');

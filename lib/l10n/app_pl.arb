@@ -1193,5 +1193,9 @@
   "syncLogHint": "Zmiany ze wszystkich urządzeń. Dotknij, by otworzyć historię notatki.",
   "syncLogDeleted": "usunięto",
   "syncLogEmpty": "Na razie brak zmian",
-  "syncLogGone": "Pliku już nie ma: usunięte wraca z kosza"
+  "syncLogGone": "Pliku już nie ma: usunięte wraca z kosza",
+  "syncCopyUntil": "Kopia w chmurze jest przechowywana do {date}. Potem serwer usunie ją razem z historią wersji, a na urządzeniach wszystko zostanie. Odnów subskrypcję, a kopia zostanie.",
+  "subCopyUntil": "Kopia w chmurze jest do {date}. Odnów, żeby jej nie usunięto.",
+  "syncCopyWarnTitle": "Kopia w chmurze wkrótce zostanie usunięta",
+  "syncCopyWarnBody": "{date} serwer usunie kopię Stowa Sync i historię wersji. Na urządzeniach wszystko zostanie. Odnów subskrypcję, aby je zachować."
 }

@@ -5316,4 +5316,22 @@ class LUk extends L {
 
   @override
   String get syncLogGone => 'Файлу вже немає: видалене повертається з кошика';
+
+  @override
+  String syncCopyUntil(String date) {
+    return 'Копія в хмарі зберігається до $date. Потім сервер її зітре разом з історією версій, а на пристроях усе залишиться. Продовжте підписку, і копія збережеться.';
+  }
+
+  @override
+  String subCopyUntil(String date) {
+    return 'Копія в хмарі зберігається до $date. Продовжте, щоб її не стерло.';
+  }
+
+  @override
+  String get syncCopyWarnTitle => 'Копію в хмарі скоро буде стерто';
+
+  @override
+  String syncCopyWarnBody(String date) {
+    return '$date сервер зітре копію Stowa Sync та історію версій. На пристроях усе залишиться. Продовжте підписку, щоб їх зберегти.';
+  }
 }

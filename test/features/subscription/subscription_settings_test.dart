@@ -100,6 +100,27 @@ void main() {
     expect(find.byType(PaywallScreen), findsOneWidget);
   });
 
+  // подписка кончилась, копия на сервере ждёт 30 дней: человек видит, до какого дня
+  testWidgets('подписка кончилась — в настройках и в Stowa Sync видно, до какого дня живёт копия', (tester) async {
+    await world.syncAccount.write(SyncAccount(email: 'me@x.io', token: 't1', key: VaultKey.generate().bytes, vaultDb: 'stowa').toJson());
+    final copyUntil = DateTime(2026, 12, 21, 12);
+    account = {'email': 'me@x.io', 'active': false, 'buyer_id': 'b-1', 'paid_until': DateTime(2026, 11, 21).toUtc().toIso8601String(), 'copy_until': copyUntil.toUtc().toIso8601String()};
+    await world.subscription.write(jsonEncode(Subscription.fromAccount(account).toJson()));
+    await pumpScreen(tester, const SettingsScreen());
+    expect(find.text('Копия в облаке хранится до 21 декабря. Продлите, чтобы она не стёрлась.'), findsOneWidget);
+    await pumpScreen(tester, const SyncScreen());
+    expect(find.byKey(const ValueKey('sync-copy-until')), findsOneWidget);
+    expect(find.textContaining('Копия в облаке хранится до 21 декабря. Потом сервер её сотрёт'), findsOneWidget);
+  });
+
+  testWidgets('копию уже стёрли — обычное предложение подписки, без даты', (tester) async {
+    await world.syncAccount.write(SyncAccount(email: 'me@x.io', token: 't1', key: VaultKey.generate().bytes, vaultDb: 'stowa').toJson());
+    account = {'email': 'me@x.io', 'active': false, 'buyer_id': 'b-1'};
+    await world.subscription.write(jsonEncode(Subscription.fromAccount(account).toJson()));
+    await pumpScreen(tester, const SyncScreen());
+    expect(find.byKey(const ValueKey('sync-copy-until')), findsNothing);
+  });
+
   testWidgets('с подпиской — срок вместо покупки', (tester) async {
     await subscribed(SubSource.lava);
     await pumpScreen(tester, const SettingsScreen(section: 'account'));

@@ -5246,4 +5246,22 @@ class LEn extends L {
   @override
   String get syncLogGone =>
       'The file is gone: deleted files come back from the trash';
+
+  @override
+  String syncCopyUntil(String date) {
+    return 'Your cloud copy is kept until $date. After that the server erases it along with version history; everything stays on your devices. Renew to keep the copy.';
+  }
+
+  @override
+  String subCopyUntil(String date) {
+    return 'Your cloud copy is kept until $date. Renew so it isn\'t erased.';
+  }
+
+  @override
+  String get syncCopyWarnTitle => 'Your cloud copy will be erased soon';
+
+  @override
+  String syncCopyWarnBody(String date) {
+    return 'On $date the server will erase your Stowa Sync copy and version history. Everything stays on your devices. Renew to keep them.';
+  }
 }

@@ -28,6 +28,7 @@ class Subscription {
     this.cancellable = false,
     this.test = false,
     this.buyerId,
+    this.copyUntil,
   });
 
   /// Не вошли.
@@ -45,6 +46,7 @@ class Subscription {
     cancellable: json['cancellable'] == true,
     test: json['test'] == true,
     buyerId: json['buyer_id'] as String?,
+    copyUntil: DateTime.tryParse(json['copy_until'] as String? ?? ''),
   );
 
   final bool signedIn;
@@ -66,6 +68,13 @@ class Subscription {
   /// Номер покупателя: магазин возвращает его в чеке, так сервер узнаёт своего.
   final String? buyerId;
 
+  /// Подписки нет, а копия на сервере есть: в этот момент сервер её сотрёт. null — стирать
+  /// нечего или подписка действует.
+  final DateTime? copyUntil;
+
+  /// Копия на сервере ждёт продления: подписки нет, срок стирания впереди.
+  bool get copyAtRisk => !activeNow && copyUntil != null && copyUntil!.isAfter(DateTime.now());
+
   /// Действует сейчас: снимок мог устареть, срок сверяется с часами.
   bool get activeNow => signedIn && active && paidUntil != null && paidUntil!.isAfter(DateTime.now());
 
@@ -80,6 +89,7 @@ class Subscription {
     'cancellable': cancellable,
     'test': test,
     'buyer_id': buyerId,
+    'copy_until': copyUntil?.toUtc().toIso8601String(),
   };
 
   static Subscription fromJson(Map<String, Object?> json) => json['signed_in'] == false ? none : Subscription.fromAccount(json);

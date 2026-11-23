@@ -99,6 +99,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       final reminders = next.value;
       if (reminders != null) ref.read(reminderServiceProvider).sync(reminders, ref.read(clockProvider)());
     }, fireImmediately: true);
+    // подписка кончилась или её продлили: предупреждение о стирании копии встаёт или снимается
+    ref.listenManual(subscriptionProvider, (previous, next) {
+      if (next.value == null || previous?.value == next.value) return;
+      ref.read(reminderServiceProvider).refresh(ref.read(clockProvider)()).ignore();
+    });
     // человек переложил вещь сам (и при запуске): похожее из «Без папки» ложится следом
     ref.listenManual(manualMovesProvider, (previous, next) {
       if (next.value == null || previous?.value == next.value) return;

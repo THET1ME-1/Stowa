@@ -8956,6 +8956,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'The file is gone: deleted files come back from the trash'**
   String get syncLogGone;
+
+  /// Stowa Sync без подписки: до какого дня сервер хранит копию
+  ///
+  /// In en, this message translates to:
+  /// **'Your cloud copy is kept until {date}. After that the server erases it along with version history; everything stays on your devices. Renew to keep the copy.'**
+  String syncCopyUntil(String date);
+
+  /// Подпись карточки «Купить подписку» в настройках, когда копия ждёт продления
+  ///
+  /// In en, this message translates to:
+  /// **'Your cloud copy is kept until {date}. Renew so it isn\'t erased.'**
+  String subCopyUntil(String date);
+
+  /// Уведомление за неделю до стирания копии без подписки
+  ///
+  /// In en, this message translates to:
+  /// **'Your cloud copy will be erased soon'**
+  String get syncCopyWarnTitle;
+
+  /// Текст уведомления о скором стирании копии
+  ///
+  /// In en, this message translates to:
+  /// **'On {date} the server will erase your Stowa Sync copy and version history. Everything stays on your devices. Renew to keep them.'**
+  String syncCopyWarnBody(String date);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

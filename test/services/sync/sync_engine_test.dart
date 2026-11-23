@@ -290,6 +290,37 @@ void main() {
     expect(b.vault.files.length, 1);
   });
 
+  // подписки не было дольше 30 дней: сервер стёр копию и поднял эпоху. После продления
+  // телефон забывает, что уже отправлял, и собирает копию заново, ничего не удаляя
+  test('копию стёрли за неуплату — после продления всё уходит заново, на телефоне ничего не пропадает', () async {
+    final a = Device(remote, key), b = Device(remote, key);
+    a.vault.putText('a.md', 'a\n');
+    a.vault.put('фото.jpg', [1, 2, 3]);
+    await a.sync();
+    await b.sync();
+    remote.wipe();
+    final again = await a.sync();
+    expect(again.error, isNull);
+    expect(again.pushed, 2);
+    expect(a.vault.files.keys.toSet(), {'a.md', 'фото.jpg'});
+    // второй телефон с той же копией: свои файлы совпали с пришедшими, не задвоились
+    final second = await b.sync();
+    expect(second.error, isNull);
+    expect(b.vault.files.keys.toSet(), {'a.md', 'фото.jpg'});
+    expect(b.vault.text('a.md'), 'a\n');
+    // эпоха запомнилась: следующий проход ничего не гоняет
+    final calm = await a.sync();
+    expect(calm.pushed + calm.pulled, 0);
+  });
+
+  test('старая память без эпохи и сервер, ни разу не стиравший копию, — ничего не сбрасывается', () async {
+    final a = Device(remote, key);
+    a.vault.putText('a.md', 'a\n');
+    await a.sync();
+    final calm = await a.sync();
+    expect(calm.pushed, 0);
+  });
+
   // история идёт по номеру файла, а он считается от пути: переезд связывается в заголовках
   group('переезд файла не рвёт историю', () {
     Future<FileMeta> metaOf(String path) async => key.openMeta((await remote.file(key.fileId(path)))!.meta);

@@ -18,6 +18,8 @@ import '../core/icons/icon_registry.dart';
 import '../core/fs/web_files.dart' show watchAutofill;
 import '../core/platform.dart' show aside, isAndroid, isIOS, isWeb;
 import '../l10n/app_language.dart';
+import 'package:intl/date_symbol_data_local.dart' show initializeDateFormatting;
+
 import '../l10n/app_localizations.dart' show lookupL;
 import '../domain/article_text.dart';
 import '../domain/backup_nudge.dart';
@@ -61,6 +63,7 @@ import '../core/clipboard/paste_router.dart';
 import '../core/clipboard/paste_source.dart' if (dart.library.js_interop) '../core/clipboard/paste_source_web.dart';
 import '../services/billing/billing_api.dart';
 import '../services/billing/checkout.dart';
+import '../services/billing/copy_warning.dart';
 import '../services/billing/in_app_store_billing.dart';
 import '../services/billing/lava_checkout.dart';
 import '../services/billing/store_channel.dart';
@@ -1098,7 +1101,22 @@ final repeatProvider = StreamProvider.autoDispose.family<RepeatNote?, String>((r
 
 /// Система уведомлений: настоящая подставляется в main, в тестах — тишина.
 final notificationPortProvider = Provider<NotificationPort>((ref) => const SilentNotificationPort());
-final reminderServiceProvider = Provider((ref) => ReminderService(ref.watch(notificationPortProvider)));
+final reminderServiceProvider = Provider(
+  (ref) => ReminderService(
+    ref.watch(notificationPortProvider),
+    // предупреждение о стирании копии — из сохранённого снимка подписки, в любом окне
+    extra: (now) async {
+      final subscription = ref.read(subscriptionServiceProvider);
+      await subscription.load();
+      final language = ref.read(languageProvider).value ?? AppLanguage.resolve(PlatformDispatcher.instance.locales);
+      final l = lookupL(language.locale);
+      // окно «Поделиться» или полка могут пересчитать будильники раньше, чем Flutter загрузит
+      // даты языка: без них предупреждение упало бы и снялось
+      await initializeDateFormatting(l.localeName);
+      return copyWarning(subscription.state.value, l, now);
+    },
+  ),
+);
 
 /// Заметки, закреплённые в уведомлениях, и служба, которая держит их уведомления.
 final noticeServiceProvider = Provider((ref) => NoticeService(ref.watch(notificationPortProvider)));

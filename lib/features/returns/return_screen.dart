@@ -8,11 +8,13 @@ import '../../data/providers.dart';
 import '../../data/repositories/return_repository.dart';
 import '../../domain/return_plan.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/billing/copy_warning.dart' show syncCopyPayload;
 import '../../services/reminder_service.dart' show reminderItemId;
 import '../../services/return_service.dart' show returnText;
 import '../folder/folder_cards.dart';
 import '../item/item_screen.dart';
 import '../privacy/hidden_item_route.dart';
+import '../settings/sync_screen.dart' show syncRoute;
 
 Route<void> returnRoute(ReturnKind kind) => MaterialPageRoute(builder: (_) => ReturnScreen(kind: kind));
 
@@ -26,6 +28,8 @@ Route<void> returnRoute(ReturnKind kind) => MaterialPageRoute(builder: (_) => Re
 
 /// Экран по касанию уведомления или ничего, если адрес незнакомый.
 Route<void>? notificationRoute(String payload) {
+  // «копия в облаке скоро сотрётся» — на экран Stowa Sync, где продлевают
+  if (payload == syncCopyPayload) return syncRoute();
   // скрытая заметка: сперва код или отпечаток, потом сама заметка
   if (payload.startsWith('hidden:')) return hiddenItemRoute(reminderItemId(payload));
   final target = notificationTarget(payload);

@@ -165,7 +165,11 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
           children: [
             if (locked) ...[
               AccentCard(key: const ValueKey('sync-offer'), title: l.syncOffer, hint: l.syncOfferHint, onTap: () => Navigator.of(context).push(paywallRoute())),
-              const SizedBox(height: 16),
+              // подписки нет, а копия на сервере ещё есть: до какого дня
+              if (subscription.copyAtRisk)
+                SettingsHint(key: const ValueKey('sync-copy-until'), l.syncCopyUntil(DateFormat.MMMMd(l.localeName).format(subscription.copyUntil!.toLocal())))
+              else
+                const SizedBox(height: 16),
             ],
             SettingsGroup(
               tint: tint,

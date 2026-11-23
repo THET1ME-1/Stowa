@@ -5284,4 +5284,22 @@ class LDe extends L {
   @override
   String get syncLogGone =>
       'Die Datei gibt es nicht mehr: Gelöschtes kommt aus dem Papierkorb zurück';
+
+  @override
+  String syncCopyUntil(String date) {
+    return 'Die Kopie in der Cloud bleibt bis $date. Danach löscht der Server sie samt Versionsverlauf, auf deinen Geräten bleibt alles. Verlängere das Abo, dann bleibt die Kopie.';
+  }
+
+  @override
+  String subCopyUntil(String date) {
+    return 'Die Cloud-Kopie bleibt bis $date. Verlängere, damit sie nicht gelöscht wird.';
+  }
+
+  @override
+  String get syncCopyWarnTitle => 'Deine Cloud-Kopie wird bald gelöscht';
+
+  @override
+  String syncCopyWarnBody(String date) {
+    return 'Am $date löscht der Server deine Stowa-Sync-Kopie und den Versionsverlauf. Auf deinen Geräten bleibt alles. Verlängere, um sie zu behalten.';
+  }
 }

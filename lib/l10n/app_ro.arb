@@ -1193,5 +1193,9 @@
   "syncLogHint": "Modificări de pe toate dispozitivele. Atinge ca să deschizi istoricul notiței.",
   "syncLogDeleted": "șters",
   "syncLogEmpty": "Încă nu sunt modificări",
-  "syncLogGone": "Fișierul nu mai există: ce ai șters revine din coș"
+  "syncLogGone": "Fișierul nu mai există: ce ai șters revine din coș",
+  "syncCopyUntil": "Copia din cloud se păstrează până pe {date}. Apoi serverul o șterge împreună cu istoricul versiunilor, iar pe dispozitive rămâne totul. Reînnoiește abonamentul ca să păstrezi copia.",
+  "subCopyUntil": "Copia din cloud se păstrează până pe {date}. Reînnoiește ca să nu fie ștearsă.",
+  "syncCopyWarnTitle": "Copia din cloud va fi ștearsă în curând",
+  "syncCopyWarnBody": "Pe {date} serverul va șterge copia Stowa Sync și istoricul versiunilor. Pe dispozitive rămâne totul. Reînnoiește ca să le păstrezi."
 }

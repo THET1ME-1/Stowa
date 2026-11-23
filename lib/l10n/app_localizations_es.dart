@@ -5264,4 +5264,22 @@ class LEs extends L {
   @override
   String get syncLogGone =>
       'El archivo ya no está: lo borrado vuelve desde la papelera';
+
+  @override
+  String syncCopyUntil(String date) {
+    return 'La copia en la nube se guarda hasta el $date. Después el servidor la borra junto con el historial de versiones; en tus dispositivos queda todo. Renueva la suscripción y la copia se conservará.';
+  }
+
+  @override
+  String subCopyUntil(String date) {
+    return 'La copia en la nube se guarda hasta el $date. Renueva para que no se borre.';
+  }
+
+  @override
+  String get syncCopyWarnTitle => 'Tu copia en la nube se borrará pronto';
+
+  @override
+  String syncCopyWarnBody(String date) {
+    return 'El $date el servidor borrará tu copia de Stowa Sync y el historial de versiones. En tus dispositivos queda todo. Renueva para conservarlos.';
+  }
 }
