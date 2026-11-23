@@ -9,7 +9,6 @@ import '../../services/billing/subscription.dart';
 import '../settings/settings_blocks.dart';
 import '../subscription/paywall_screen.dart';
 import '../subscription/subscription_date.dart';
-import '../subscription/subscription_screen.dart';
 
 Route<void> accountRoute() => settingsPageRoute(const AccountScreen());
 
@@ -118,7 +117,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   icon: 'mail',
                   title: email,
                   value: subscription.activeNow ? l.subActiveUntil(subscriptionDate(context, subscription.paidUntil!)) : l.subBuy,
-                  onTap: () => Navigator.of(context).push(subscription.activeNow ? subscriptionRoute() : paywallRoute()),
+                  onTap: () => Navigator.of(context).push(subscriptionRoute()),
                 ),
               ],
             ),

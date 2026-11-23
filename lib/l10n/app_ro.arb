@@ -1070,7 +1070,7 @@
   "accountDeleteLive": "Anulează mai întâi reînnoirea abonamentului, altfel plățile continuă.",
   "accountDeleted": "Cont șters",
   "subBuy": "Cumpără abonament",
-  "subBuyHint": "Sincronizare, cloud pentru fișiere și panoul lateral din browser",
+  "subBuyHint": "Sincronizare, cloud pentru fișiere, istoricul versiunilor și panoul lateral",
   "subActiveUntil": "Stowa Sync până pe {date}",
   "paywallLead": "Notițele și fișierele tale pe toate dispozitivele. Pe un singur dispozitiv, Stowa rămâne gratuită.",
   "featureSync": "Sincronizare cu criptare end-to-end",
@@ -1197,5 +1197,7 @@
   "syncCopyUntil": "Copia din cloud se păstrează până pe {date}. Apoi serverul o șterge împreună cu istoricul versiunilor, iar pe dispozitive rămâne totul. Reînnoiește abonamentul ca să păstrezi copia.",
   "subCopyUntil": "Copia din cloud se păstrează până pe {date}. Reînnoiește ca să nu fie ștearsă.",
   "syncCopyWarnTitle": "Copia din cloud va fi ștearsă în curând",
-  "syncCopyWarnBody": "Pe {date} serverul va șterge copia Stowa Sync și istoricul versiunilor. Pe dispozitive rămâne totul. Reînnoiește ca să le păstrezi."
+  "syncCopyWarnBody": "Pe {date} serverul va șterge copia Stowa Sync și istoricul versiunilor. Pe dispozitive rămâne totul. Reînnoiește ca să le păstrezi.",
+  "subOwnedTitle": "Abonamentul este deja cumpărat",
+  "subOwnedGrant": "Oferit de echipa Stowa, până pe {date}"
 }

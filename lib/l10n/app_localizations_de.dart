@@ -4853,7 +4853,7 @@ class LDe extends L {
 
   @override
   String get subBuyHint =>
-      'Synchronisierung, Cloud für Dateien und die Seitenleiste im Browser';
+      'Synchronisierung, Cloud für Dateien, Versionsverlauf und Seitenleiste';
 
   @override
   String subActiveUntil(String date) {
@@ -5301,5 +5301,13 @@ class LDe extends L {
   @override
   String syncCopyWarnBody(String date) {
     return 'Am $date löscht der Server deine Stowa-Sync-Kopie und den Versionsverlauf. Auf deinen Geräten bleibt alles. Verlängere, um sie zu behalten.';
+  }
+
+  @override
+  String get subOwnedTitle => 'Abo bereits gekauft';
+
+  @override
+  String subOwnedGrant(String date) {
+    return 'Vom Stowa-Team vergeben, bis $date';
   }
 }

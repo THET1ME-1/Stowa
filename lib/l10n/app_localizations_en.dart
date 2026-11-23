@@ -4819,7 +4819,8 @@ class LEn extends L {
   String get subBuy => 'Get a subscription';
 
   @override
-  String get subBuyHint => 'Sync, cloud for files and the browser side panel';
+  String get subBuyHint =>
+      'Sync, cloud for files, version history and the side panel';
 
   @override
   String subActiveUntil(String date) {
@@ -5263,5 +5264,13 @@ class LEn extends L {
   @override
   String syncCopyWarnBody(String date) {
     return 'On $date the server will erase your Stowa Sync copy and version history. Everything stays on your devices. Renew to keep them.';
+  }
+
+  @override
+  String get subOwnedTitle => 'Subscription active';
+
+  @override
+  String subOwnedGrant(String date) {
+    return 'Granted by the Stowa team, until $date';
   }
 }

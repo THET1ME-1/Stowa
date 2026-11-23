@@ -10,8 +10,6 @@ import '../../services/billing/subscription.dart';
 import '../settings/settings_blocks.dart';
 import 'subscription_date.dart';
 
-Route<void> subscriptionRoute() => settingsPageRoute(const SubscriptionScreen());
-
 /// Страницы подписок магазинов: отменяют магазинную подписку там.
 final _playSubscriptions = Uri.parse('https://play.google.com/store/account/subscriptions?sku=stowa_sub&package=app.stowa');
 final _appleSubscriptions = Uri.parse('https://apps.apple.com/account/subscriptions');
@@ -30,16 +28,31 @@ String sourceName(L l, SubSource source) => switch (source) {
   SubSource.apple => l.subSourceApple,
 };
 
-/// Подписка: тариф, срок, откуда, продление. Отменить продление оплаты картой можно здесь
-/// (только вне магазинов), магазинную — на странице подписок своего магазина.
-class SubscriptionScreen extends ConsumerStatefulWidget {
-  const SubscriptionScreen({super.key});
+/// Что о купленной подписке написано под тем, что она даёт: тариф, откуда, продление. Отменить
+/// продление оплаты картой можно здесь (только вне магазинов), магазинную — на странице
+/// подписок своего магазина. Срок — в карточке «Подписка уже куплена» над списком.
+class SubscriptionDetails extends ConsumerStatefulWidget {
+  const SubscriptionDetails({super.key});
 
   @override
-  ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
+  ConsumerState<SubscriptionDetails> createState() => _SubscriptionDetailsState();
 }
 
-class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
+/// Срок купленной подписки одной фразой: «Продлится 21 декабря», «Продление отменено,
+/// доступ до 21 декабря», «Выдана командой Stowa, до 21 декабря».
+String ownedLine(BuildContext context, L l, Subscription subscription) {
+  final until = subscription.paidUntil;
+  if (until == null) return l.subUntil;
+  // дата не рвётся по строкам: «2 января» на одной, «2027 г.» на другой читается плохо
+  final date = subscriptionDate(context, until).replaceAll(' ', ' ');
+  return switch (subscription.source) {
+    SubSource.grant || null => l.subOwnedGrant(date),
+    _ when subscription.autoRenew => l.subRenewOn(date),
+    _ => l.subRenewOff(date),
+  };
+}
+
+class _SubscriptionDetailsState extends ConsumerState<SubscriptionDetails> {
   bool _busy = false;
   String? _error;
 
@@ -96,8 +109,6 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     final text = Theme.of(context).textTheme;
     final subscription = ref.watch(subscriptionProvider).value ?? Subscription.none;
     final channel = ref.watch(storeChannelProvider);
-    final until = subscription.paidUntil;
-    final date = until == null ? null : subscriptionDate(context, until);
     final source = subscription.source;
     // магазинную подписку отменяют в её магазине; чужой магазин сборка не называет
     final manage = switch (source) {
@@ -106,46 +117,34 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       _ => null,
     };
     final canCancel = channel == StoreChannel.direct && source == SubSource.lava && subscription.cancellable;
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
-          children: [
-            SettingsHeader(l.subTitle),
-            const SizedBox(height: 18),
-            SettingsGroup(
-              tint: settingsTint('sky'),
-              children: [
-                if (subscription.plan case final plan?) SettingsRow(key: const ValueKey('sub-plan'), icon: 'event_repeat', title: planName(l, plan), value: l.subPlan, onTap: null),
-                if (date != null)
-                  SettingsRow(
-                    key: const ValueKey('sub-until'),
-                    icon: 'event',
-                    title: date,
-                    value: source == SubSource.grant || source == null ? l.subUntil : (subscription.autoRenew ? l.subRenewOn(date) : l.subRenewOff(date)),
-                    onTap: null,
-                  ),
-                if (source != null) SettingsRow(key: const ValueKey('sub-source'), icon: 'payments', title: sourceName(l, source), value: subscription.test ? l.subTest : null, onTap: null),
-              ],
-            ),
-            if (canCancel || manage != null) ...[
-              const SizedBox(height: 16),
-              SettingsGroup(
-                tint: settingsTint('rose'),
-                children: [
-                  if (canCancel) SettingsRow(key: const ValueKey('sub-cancel'), icon: 'event_busy', title: l.subCancel, onTap: _busy ? null : () => _cancel(subscription)),
-                  if (manage case (final label, final url)) SettingsRow(key: const ValueKey('sub-manage'), icon: 'open_in_new', title: label, onTap: () => ref.read(urlOpenerProvider)(url)),
-                ],
-              ),
+    final plan = subscription.plan;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (plan != null || source != null)
+          SettingsGroup(
+            tint: settingsTint('sky'),
+            children: [
+              if (plan != null) SettingsRow(key: const ValueKey('sub-plan'), icon: 'event_repeat', title: planName(l, plan), value: l.subPlan, onTap: null),
+              if (source != null) SettingsRow(key: const ValueKey('sub-source'), icon: 'payments', title: sourceName(l, source), value: subscription.test ? l.subTest : null, onTap: null),
             ],
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
-                child: Text(_error!, style: text.bodyMedium!.copyWith(color: Tokens.error, height: 1.4)),
-              ),
-          ],
-        ),
-      ),
+          ),
+        if (canCancel || manage != null) ...[
+          const SizedBox(height: 16),
+          SettingsGroup(
+            tint: settingsTint('rose'),
+            children: [
+              if (canCancel) SettingsRow(key: const ValueKey('sub-cancel'), icon: 'event_busy', title: l.subCancel, onTap: _busy ? null : () => _cancel(subscription)),
+              if (manage case (final label, final url)) SettingsRow(key: const ValueKey('sub-manage'), icon: 'open_in_new', title: label, onTap: () => ref.read(urlOpenerProvider)(url)),
+            ],
+          ),
+        ],
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
+            child: Text(_error!, style: text.bodyMedium!.copyWith(color: Tokens.error, height: 1.4)),
+          ),
+      ],
     );
   }
 }

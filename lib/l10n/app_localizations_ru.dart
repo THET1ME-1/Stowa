@@ -4900,7 +4900,8 @@ class LRu extends L {
   String get subBuy => 'Купить подписку';
 
   @override
-  String get subBuyHint => 'Синхронизация, облако для файлов и боковая панель';
+  String get subBuyHint =>
+      'Синхронизация, облако для файлов, история версий и боковая панель';
 
   @override
   String subActiveUntil(String date) {
@@ -5348,5 +5349,13 @@ class LRu extends L {
   @override
   String syncCopyWarnBody(String date) {
     return '$date сервер сотрёт копию Stowa Sync и историю версий. На устройствах всё останется. Продлите подписку, чтобы их сохранить.';
+  }
+
+  @override
+  String get subOwnedTitle => 'Подписка уже куплена';
+
+  @override
+  String subOwnedGrant(String date) {
+    return 'Выдана командой Stowa, до $date';
   }
 }

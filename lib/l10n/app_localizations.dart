@@ -8225,10 +8225,10 @@ abstract class L {
   /// **'Get a subscription'**
   String get subBuy;
 
-  /// Подпись под «Купить подписку»
+  /// Подпись карточки «Купить подписку»: что входит в Stowa Sync
   ///
   /// In en, this message translates to:
-  /// **'Sync, cloud for files and the browser side panel'**
+  /// **'Sync, cloud for files, version history and the side panel'**
   String get subBuyHint;
 
   /// Первый пункт настроек при подписке
@@ -8980,6 +8980,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'On {date} the server will erase your Stowa Sync copy and version history. Everything stays on your devices. Renew to keep them.'**
   String syncCopyWarnBody(String date);
+
+  /// Карточка вверху настроек и экрана подписки, когда Stowa Sync куплена
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription active'**
+  String get subOwnedTitle;
+
+  /// Срок подписки, выданной командой вручную
+  ///
+  /// In en, this message translates to:
+  /// **'Granted by the Stowa team, until {date}'**
+  String subOwnedGrant(String date);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

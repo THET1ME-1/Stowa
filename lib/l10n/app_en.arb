@@ -5873,9 +5873,9 @@
   "@subBuy": {
     "description": "Первый пункт настроек, цветом акцента"
   },
-  "subBuyHint": "Sync, cloud for files and the browser side panel",
+  "subBuyHint": "Sync, cloud for files, version history and the side panel",
   "@subBuyHint": {
-    "description": "Подпись под «Купить подписку»"
+    "description": "Подпись карточки «Купить подписку»: что входит в Stowa Sync"
   },
   "subActiveUntil": "Stowa Sync until {date}",
   "@subActiveUntil": {
@@ -6436,6 +6436,19 @@
   "syncCopyWarnBody": "On {date} the server will erase your Stowa Sync copy and version history. Everything stays on your devices. Renew to keep them.",
   "@syncCopyWarnBody": {
     "description": "Текст уведомления о скором стирании копии",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subOwnedTitle": "Subscription active",
+  "@subOwnedTitle": {
+    "description": "Карточка вверху настроек и экрана подписки, когда Stowa Sync куплена"
+  },
+  "subOwnedGrant": "Granted by the Stowa team, until {date}",
+  "@subOwnedGrant": {
+    "description": "Срок подписки, выданной командой вручную",
     "placeholders": {
       "date": {
         "type": "String"

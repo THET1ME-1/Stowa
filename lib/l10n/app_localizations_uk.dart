@@ -4887,7 +4887,8 @@ class LUk extends L {
   String get subBuy => 'Купити підписку';
 
   @override
-  String get subBuyHint => 'Синхронізація, хмара для файлів і бічна панель';
+  String get subBuyHint =>
+      'Синхронізація, хмара для файлів, історія версій і бічна панель';
 
   @override
   String subActiveUntil(String date) {
@@ -5333,5 +5334,13 @@ class LUk extends L {
   @override
   String syncCopyWarnBody(String date) {
     return '$date сервер зітре копію Stowa Sync та історію версій. На пристроях усе залишиться. Продовжте підписку, щоб їх зберегти.';
+  }
+
+  @override
+  String get subOwnedTitle => 'Підписку вже куплено';
+
+  @override
+  String subOwnedGrant(String date) {
+    return 'Видана командою Stowa, до $date';
   }
 }

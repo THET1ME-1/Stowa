@@ -60,6 +60,14 @@ void main() {
     await world.subscription.write(jsonEncode(Subscription.fromAccount(account).toJson()));
   }
 
+  /// Докрутить до строки и поставить её на экран: под карточкой и списком того, что даёт
+  /// подписка, управление ниже края.
+  Future<void> reveal(WidgetTester tester, Finder finder) async {
+    await tester.scrollUntilVisible(finder, 200);
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> pumpScreen(WidgetTester tester, Widget screen) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.75;
@@ -78,8 +86,8 @@ void main() {
     await pumpScreen(tester, const SettingsScreen(section: 'account', title: 'Аккаунт'));
     expect(gap('Аккаунт', find.byKey(const ValueKey('settings-subscription'))), greaterThanOrEqualTo(16));
 
-    await pumpScreen(tester, const SubscriptionScreen());
-    expect(gap('Подписка', find.byKey(const ValueKey('sub-plan'))), greaterThanOrEqualTo(16));
+    await pumpScreen(tester, const PaywallScreen());
+    expect(gap('Stowa Sync', find.byKey(const ValueKey('paywall-owned'))), greaterThanOrEqualTo(16));
 
     await pumpScreen(tester, const AccountScreen());
     expect(gap('Аккаунт', find.byKey(const ValueKey('account-email'))), greaterThanOrEqualTo(16));
@@ -121,20 +129,31 @@ void main() {
     expect(find.byKey(const ValueKey('sync-copy-until')), findsNothing);
   });
 
-  testWidgets('с подпиской — срок вместо покупки', (tester) async {
+  // хозяин 23.11: «Купить или Уже куплено как в Togetherly, а после него все блоки настроек»
+  testWidgets('с подпиской первым пунктом — «Подписка уже куплена», тот же экран подписки', (tester) async {
     await subscribed(SubSource.lava);
-    await pumpScreen(tester, const SettingsScreen(section: 'account'));
+    await pumpScreen(tester, const SettingsScreen());
     expect(find.byKey(const ValueKey('settings-subscribe')), findsNothing);
-    expect(find.byKey(const ValueKey('settings-subscription')), findsOneWidget);
-    expect(find.textContaining('Stowa Sync до '), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('settings-subscription')));
+    final owned = find.byKey(const ValueKey('settings-subscription'));
+    expect(owned, findsOneWidget);
+    expect(find.text('Подписка уже куплена'), findsOneWidget);
+    expect(find.textContaining('Продлится '), findsOneWidget);
+    expect(tester.getTopLeft(owned).dy, lessThan(tester.getTopLeft(find.byKey(const ValueKey('settings-account'))).dy));
+    expect(tester.getTopLeft(owned).dy, lessThan(tester.getTopLeft(find.byKey(const ValueKey('settings-catalog'))).dy));
+    await tester.tap(owned);
     await tester.pumpAndSettle();
-    expect(find.byType(SubscriptionScreen), findsOneWidget);
+    // экран один: то же, что даёт подписка, но вместо покупки — что куплено
+    expect(find.byType(PaywallScreen), findsOneWidget);
+    expect(find.byKey(const ValueKey('paywall-owned')), findsOneWidget);
+    expect(find.text('История версий'), findsOneWidget);
+    expect(find.byKey(const ValueKey('paywall-continue')), findsNothing);
   });
 
   testWidgets('экран подписки: тариф, срок, откуда', (tester) async {
     await subscribed(SubSource.grant);
-    await pumpScreen(tester, const SubscriptionScreen());
+    await pumpScreen(tester, const PaywallScreen());
+    expect(find.textContaining('Выдана командой Stowa, до '), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('sub-source')), 200);
     expect(find.text('3 месяца'), findsOneWidget);
     expect(find.text('Выдана командой Stowa'), findsOneWidget);
     expect(find.byKey(const ValueKey('sub-cancel')), findsNothing);
@@ -143,7 +162,8 @@ void main() {
 
   testWidgets('отмена продления спрашивает и показывает срок', (tester) async {
     await subscribed(SubSource.lava, cancellable: true);
-    await pumpScreen(tester, const SubscriptionScreen());
+    await pumpScreen(tester, const PaywallScreen());
+    await reveal(tester, find.byKey(const ValueKey('sub-cancel')));
     await tester.tap(find.byKey(const ValueKey('sub-cancel')));
     await tester.pumpAndSettle();
     expect(find.textContaining('Отменить продление? Stowa Sync будет работать до'), findsOneWidget);
@@ -158,7 +178,8 @@ void main() {
   testWidgets('подписка Google Play — управление в Google Play', (tester) async {
     world.storeChannel = StoreChannel.play;
     await subscribed(SubSource.play);
-    await pumpScreen(tester, const SubscriptionScreen());
+    await pumpScreen(tester, const PaywallScreen());
+    await reveal(tester, find.byKey(const ValueKey('sub-manage')));
     await tester.tap(find.byKey(const ValueKey('sub-manage')));
     await tester.pump();
     expect(world.openedUrls.single.toString(), 'https://play.google.com/store/account/subscriptions?sku=stowa_sub&package=app.stowa');
@@ -167,7 +188,8 @@ void main() {
   testWidgets('в сборке App Store подписка картой — без отмены и без чужого магазина', (tester) async {
     world.storeChannel = StoreChannel.appstore;
     await subscribed(SubSource.lava, cancellable: true);
-    await pumpScreen(tester, const SubscriptionScreen());
+    await pumpScreen(tester, const PaywallScreen());
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('sub-source')), 200);
     expect(find.byKey(const ValueKey('sub-cancel')), findsNothing);
     expect(find.textContaining('Google Play'), findsNothing);
   });

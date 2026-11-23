@@ -4836,7 +4836,7 @@ class LEs extends L {
 
   @override
   String get subBuyHint =>
-      'Sincronización, nube para archivos y panel lateral del navegador';
+      'Sincronización, nube para archivos, historial de versiones y panel lateral';
 
   @override
   String subActiveUntil(String date) {
@@ -5281,5 +5281,13 @@ class LEs extends L {
   @override
   String syncCopyWarnBody(String date) {
     return 'El $date el servidor borrará tu copia de Stowa Sync y el historial de versiones. En tus dispositivos queda todo. Renueva para conservarlos.';
+  }
+
+  @override
+  String get subOwnedTitle => 'Suscripción ya comprada';
+
+  @override
+  String subOwnedGrant(String date) {
+    return 'Otorgada por el equipo de Stowa, hasta el $date';
   }
 }

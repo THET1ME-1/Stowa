@@ -13,10 +13,16 @@ import '../../services/billing/store_channel.dart';
 import '../../services/billing/subscription.dart';
 import '../account/sign_in_screen.dart';
 import '../settings/settings_blocks.dart';
+import '../../core/widgets/pressable.dart';
 import '../settings/settings_screen.dart' show privacyPolicyUrl;
 import 'subscription_date.dart';
+import 'subscription_screen.dart';
 
 Route<void> paywallRoute() => settingsPageRoute(const PaywallScreen());
+
+/// Экран подписки один на оба случая, как Togetherly+: не куплено — что даёт и покупка,
+/// куплено — то же самое с отметкой «уже куплена», сроком и управлением.
+Route<void> subscriptionRoute() => paywallRoute();
 
 /// Условия подписки: в сборке App Store — стандартное соглашение Apple, иначе — свои.
 Uri termsUrl(Locale locale, StoreChannel channel) => channel == StoreChannel.appstore
@@ -36,8 +42,9 @@ final List<_Feature> _features = [
 
 enum _Phase { choose, waiting, done }
 
-/// Экран покупки Stowa Sync: что даёт подписка, три срока, оплата кассой этой сборки.
-/// Не вошёл — сперва вход по почте, потом оплата, без лишнего касания.
+/// Экран подписки Stowa Sync. Не куплено: что даёт подписка, три срока, оплата кассой этой
+/// сборки; не вошёл — сперва вход по почте, потом оплата, без лишнего касания. Куплено: тот
+/// же список с карточкой «Подписка уже куплена», тариф, откуда и управление продлением.
 class PaywallScreen extends ConsumerStatefulWidget {
   const PaywallScreen({super.key});
 
@@ -187,24 +194,44 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     ref.listen(subscriptionProvider, (_, next) {
       if ((next.value?.activeNow ?? false) && _phase == _Phase.waiting) _finish();
     });
-    final phase = _phase == _Phase.choose && subscription.activeNow && !_busy ? _Phase.done : _phase;
+    // подписка уже есть (открыли купленную или оплата только что прошла): вместо покупки — что
+    // куплено и как ей управлять
+    final owned = subscription.activeNow && _phase != _Phase.waiting && !_busy;
+    final copyUntil = subscription.copyAtRisk ? subscription.copyUntil : null;
     return Scaffold(
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(Space.screen, 6, Space.screen, 40),
           children: [
             SettingsHeader(l.syncTitle),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 20),
-              child: Text(l.paywallLead, style: text.bodyLarge!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
-            ),
+            const SizedBox(height: 18),
+            if (owned)
+              _OwnedCard(title: l.subOwnedTitle, line: ownedLine(context, l, subscription))
+            else ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(l.paywallLead, style: text.bodyLarge!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
+              ),
+              // подписка кончилась, копия на сервере ещё живёт: до какого дня
+              if (copyUntil != null)
+                Padding(
+                  key: const ValueKey('paywall-copy-until'),
+                  padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+                  child: Text(l.syncCopyUntil(subscriptionDate(context, copyUntil)), style: text.bodyMedium!.copyWith(color: Tokens.onSurface, height: 1.4)),
+                ),
+            ],
+            const SizedBox(height: 20),
             _FeatureList(l: l),
             const SizedBox(height: 24),
-            switch (phase) {
-              _Phase.done => _DoneCard(subscription: subscription, onClose: () => Navigator.of(context).maybePop()),
-              _Phase.waiting => _WaitingCard(url: _payUrl, onOpen: _payUrl == null ? null : () => ref.read(urlOpenerProvider)(Uri.parse(_payUrl!))),
-              _Phase.choose => _choose(l, text),
-            },
+            // оплата только что прошла: подтверждение там, где человек нажимал «Продолжить»
+            if (_phase == _Phase.done)
+              _DoneCard(subscription: subscription, onClose: () => Navigator.of(context).maybePop())
+            else if (owned)
+              const SubscriptionDetails()
+            else if (_phase == _Phase.waiting)
+              _WaitingCard(url: _payUrl, onOpen: _payUrl == null ? null : () => ref.read(urlOpenerProvider)(Uri.parse(_payUrl!)))
+            else
+              _choose(l, text),
           ],
         ),
       ),
@@ -471,6 +498,58 @@ class _WaitingCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// «Подписка уже куплена»: спокойная карточка вместо покупки, как у Togetherly+, когда он есть.
+/// Залитая акцентом — только «Купить»: купленное не зовёт, а сообщает.
+class OwnedCard extends StatelessWidget {
+  const OwnedCard({super.key, required this.title, required this.line, this.onTap});
+
+  final String title;
+  final String line;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final card = Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 14, 16),
+      decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: Tokens.accent, shape: BoxShape.circle),
+            child: Icon(symbolIcon('verified', filled: true), size: 22, color: Tokens.onAccent),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: text.titleMedium!.copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(line, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.3)),
+              ],
+            ),
+          ),
+          if (onTap != null) ...[const SizedBox(width: 8), Icon(symbolIcon('chevron_right'), size: 22, color: Tokens.muted)],
+        ],
+      ),
+    );
+    return onTap == null ? card : Pressable(radius: BorderRadius.circular(Radii.card), onTap: onTap, child: card);
+  }
+}
+
+class _OwnedCard extends StatelessWidget {
+  const _OwnedCard({required this.title, required this.line});
+
+  final String title;
+  final String line;
+
+  @override
+  Widget build(BuildContext context) => KeyedSubtree(key: const ValueKey('paywall-owned'), child: OwnedCard(title: title, line: line));
 }
 
 class _DoneCard extends StatelessWidget {

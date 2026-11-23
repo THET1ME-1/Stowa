@@ -4864,7 +4864,7 @@ class LRo extends L {
 
   @override
   String get subBuyHint =>
-      'Sincronizare, cloud pentru fișiere și panoul lateral din browser';
+      'Sincronizare, cloud pentru fișiere, istoricul versiunilor și panoul lateral';
 
   @override
   String subActiveUntil(String date) {
@@ -5312,5 +5312,13 @@ class LRo extends L {
   @override
   String syncCopyWarnBody(String date) {
     return 'Pe $date serverul va șterge copia Stowa Sync și istoricul versiunilor. Pe dispozitive rămâne totul. Reînnoiește ca să le păstrezi.';
+  }
+
+  @override
+  String get subOwnedTitle => 'Abonamentul este deja cumpărat';
+
+  @override
+  String subOwnedGrant(String date) {
+    return 'Oferit de echipa Stowa, până pe $date';
   }
 }

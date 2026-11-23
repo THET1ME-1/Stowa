@@ -1070,7 +1070,7 @@
   "accountDeleteLive": "Primero cancela la renovación de la suscripción; si no, se te seguirá cobrando.",
   "accountDeleted": "Cuenta eliminada",
   "subBuy": "Suscribirme",
-  "subBuyHint": "Sincronización, nube para archivos y panel lateral del navegador",
+  "subBuyHint": "Sincronización, nube para archivos, historial de versiones y panel lateral",
   "subActiveUntil": "Stowa Sync hasta el {date}",
   "paywallLead": "Tus notas y archivos en todos tus dispositivos. En un solo dispositivo, Stowa sigue siendo gratis.",
   "featureSync": "Sincronización con cifrado de extremo a extremo",
@@ -1197,5 +1197,7 @@
   "syncCopyUntil": "La copia en la nube se guarda hasta el {date}. Después el servidor la borra junto con el historial de versiones; en tus dispositivos queda todo. Renueva la suscripción y la copia se conservará.",
   "subCopyUntil": "La copia en la nube se guarda hasta el {date}. Renueva para que no se borre.",
   "syncCopyWarnTitle": "Tu copia en la nube se borrará pronto",
-  "syncCopyWarnBody": "El {date} el servidor borrará tu copia de Stowa Sync y el historial de versiones. En tus dispositivos queda todo. Renueva para conservarlos."
+  "syncCopyWarnBody": "El {date} el servidor borrará tu copia de Stowa Sync y el historial de versiones. En tus dispositivos queda todo. Renueva para conservarlos.",
+  "subOwnedTitle": "Suscripción ya comprada",
+  "subOwnedGrant": "Otorgada por el equipo de Stowa, hasta el {date}"
 }

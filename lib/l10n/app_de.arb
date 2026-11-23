@@ -1070,7 +1070,7 @@
   "accountDeleteLive": "Kündige zuerst die Verlängerung des Abos, sonst wird weiter abgebucht.",
   "accountDeleted": "Konto gelöscht",
   "subBuy": "Abo abschließen",
-  "subBuyHint": "Synchronisierung, Cloud für Dateien und die Seitenleiste im Browser",
+  "subBuyHint": "Synchronisierung, Cloud für Dateien, Versionsverlauf und Seitenleiste",
   "subActiveUntil": "Stowa Sync bis {date}",
   "paywallLead": "Deine Notizen und Dateien auf all deinen Geräten. Auf einem einzelnen Gerät bleibt Stowa kostenlos.",
   "featureSync": "Ende-zu-Ende-verschlüsselte Synchronisierung",
@@ -1197,5 +1197,7 @@
   "syncCopyUntil": "Die Kopie in der Cloud bleibt bis {date}. Danach löscht der Server sie samt Versionsverlauf, auf deinen Geräten bleibt alles. Verlängere das Abo, dann bleibt die Kopie.",
   "subCopyUntil": "Die Cloud-Kopie bleibt bis {date}. Verlängere, damit sie nicht gelöscht wird.",
   "syncCopyWarnTitle": "Deine Cloud-Kopie wird bald gelöscht",
-  "syncCopyWarnBody": "Am {date} löscht der Server deine Stowa-Sync-Kopie und den Versionsverlauf. Auf deinen Geräten bleibt alles. Verlängere, um sie zu behalten."
+  "syncCopyWarnBody": "Am {date} löscht der Server deine Stowa-Sync-Kopie und den Versionsverlauf. Auf deinen Geräten bleibt alles. Verlängere, um sie zu behalten.",
+  "subOwnedTitle": "Abo bereits gekauft",
+  "subOwnedGrant": "Vom Stowa-Team vergeben, bis {date}"
 }

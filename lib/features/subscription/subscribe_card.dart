@@ -8,13 +8,12 @@ import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/billing/subscription.dart';
-import '../settings/settings_blocks.dart';
 import 'paywall_screen.dart';
-import 'subscription_date.dart';
 import 'subscription_screen.dart';
 
-/// Первый пункт настроек. Подписки нет — «Купить подписку», залитая акцентом темы: её видно
-/// с первого взгляда. Подписка есть — строка со сроком, ведёт на экран подписки.
+/// Первый пункт настроек, как Togetherly+ в Togetherly: подписки нет — «Купить подписку»,
+/// залитая акцентом темы, её видно с первого взгляда; подписка есть — «Подписка уже куплена»
+/// со сроком, спокойно. Оба ведут на один экран подписки, за ним — все разделы настроек.
 class SubscribeCard extends ConsumerWidget {
   const SubscribeCard({super.key});
 
@@ -23,20 +22,13 @@ class SubscribeCard extends ConsumerWidget {
     final l = L.of(context);
     final subscription = ref.watch(subscriptionProvider).value ?? Subscription.none;
     if (subscription.activeNow) {
-      final source = subscription.source;
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: SettingsGroup(
-          tint: settingsTint('sky'),
-          children: [
-            SettingsRow(
-              key: const ValueKey('settings-subscription'),
-              icon: 'cloud_sync',
-              title: l.subActiveUntil(subscriptionDate(context, subscription.paidUntil!)),
-              value: source == null ? null : sourceName(l, source),
-              onTap: () => Navigator.of(context).push(subscriptionRoute()),
-            ),
-          ],
+        child: OwnedCard(
+          key: const ValueKey('settings-subscription'),
+          title: l.subOwnedTitle,
+          line: ownedLine(context, l, subscription),
+          onTap: () => Navigator.of(context).push(subscriptionRoute()),
         ),
       );
     }

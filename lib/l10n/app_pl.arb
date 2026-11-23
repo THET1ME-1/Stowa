@@ -1070,7 +1070,7 @@
   "accountDeleteLive": "Najpierw anuluj odnawianie subskrypcji, inaczej płatności będą dalej pobierane.",
   "accountDeleted": "Konto usunięte",
   "subBuy": "Kup subskrypcję",
-  "subBuyHint": "Synchronizacja, chmura na pliki i panel boczny w przeglądarce",
+  "subBuyHint": "Synchronizacja, chmura na pliki, historia wersji i panel boczny",
   "subActiveUntil": "Stowa Sync do {date}",
   "paywallLead": "Notatki i pliki na wszystkich twoich urządzeniach. Na jednym urządzeniu Stowa zostaje darmowa.",
   "featureSync": "Synchronizacja z szyfrowaniem end-to-end",
@@ -1197,5 +1197,7 @@
   "syncCopyUntil": "Kopia w chmurze jest przechowywana do {date}. Potem serwer usunie ją razem z historią wersji, a na urządzeniach wszystko zostanie. Odnów subskrypcję, a kopia zostanie.",
   "subCopyUntil": "Kopia w chmurze jest do {date}. Odnów, żeby jej nie usunięto.",
   "syncCopyWarnTitle": "Kopia w chmurze wkrótce zostanie usunięta",
-  "syncCopyWarnBody": "{date} serwer usunie kopię Stowa Sync i historię wersji. Na urządzeniach wszystko zostanie. Odnów subskrypcję, aby je zachować."
+  "syncCopyWarnBody": "{date} serwer usunie kopię Stowa Sync i historię wersji. Na urządzeniach wszystko zostanie. Odnów subskrypcję, aby je zachować.",
+  "subOwnedTitle": "Subskrypcja już kupiona",
+  "subOwnedGrant": "Przyznana przez zespół Stowa, do {date}"
 }

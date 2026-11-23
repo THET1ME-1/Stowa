@@ -4897,7 +4897,7 @@ class LPl extends L {
 
   @override
   String get subBuyHint =>
-      'Synchronizacja, chmura na pliki i panel boczny w przeglądarce';
+      'Synchronizacja, chmura na pliki, historia wersji i panel boczny';
 
   @override
   String subActiveUntil(String date) {
@@ -5344,5 +5344,13 @@ class LPl extends L {
   @override
   String syncCopyWarnBody(String date) {
     return '$date serwer usunie kopię Stowa Sync i historię wersji. Na urządzeniach wszystko zostanie. Odnów subskrypcję, aby je zachować.';
+  }
+
+  @override
+  String get subOwnedTitle => 'Subskrypcja już kupiona';
+
+  @override
+  String subOwnedGrant(String date) {
+    return 'Przyznana przez zespół Stowa, do $date';
   }
 }
