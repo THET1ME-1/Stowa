@@ -8,7 +8,6 @@ import 'package:stowa/features/account/account_screen.dart';
 import 'package:stowa/features/settings/settings_screen.dart';
 import 'package:stowa/features/settings/sync_screen.dart';
 import 'package:stowa/features/subscription/paywall_screen.dart';
-import 'package:stowa/features/subscription/subscription_screen.dart';
 import 'package:stowa/services/billing/store_channel.dart';
 import 'package:stowa/services/billing/subscription.dart';
 import 'package:stowa/services/sync/sync_crypto.dart';
