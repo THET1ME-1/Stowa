@@ -8285,10 +8285,10 @@ abstract class L {
   /// **'Version history'**
   String get featureHistory;
 
-  /// Что даёт подписка
+  /// Подсказка пункта «История версий» на экране покупки: сроки хранения как на сервере
   ///
   /// In en, this message translates to:
-  /// **'Every edit of a note is kept on the server: see what changed and bring back any version.'**
+  /// **'Edits from all your devices are kept on the server: every edit for a month, then the last one of each day for a year. See what changed and bring back any version or deleted file.'**
   String get featureHistoryHint;
 
   /// Что даёт подписка

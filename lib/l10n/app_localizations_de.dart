@@ -4890,7 +4890,7 @@ class LDe extends L {
 
   @override
   String get featureHistoryHint =>
-      'Jede Änderung einer Notiz liegt auf dem Server: Du siehst, was sich geändert hat, und holst jede Version zurück.';
+      'Änderungen von allen Geräten liegen auf dem Server: einen Monat lang alle, danach ein Jahr lang die letzte jedes Tages. Du siehst, was sich geändert hat, und holst jede Version und Gelöschtes zurück.';
 
   @override
   String get featureLinks => 'Board per Link teilen';

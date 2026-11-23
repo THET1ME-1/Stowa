@@ -1080,7 +1080,7 @@
   "featurePanel": "Panel lateral en el navegador",
   "featurePanelHint": "Apunta y busca sin salir de la página.",
   "featureHistory": "Historial de versiones",
-  "featureHistoryHint": "Cada cambio de una nota se guarda en el servidor: ves qué cambió y recuperas cualquier versión.",
+  "featureHistoryHint": "Los cambios de todos tus dispositivos se guardan en el servidor: todos durante un mes y luego el último de cada día durante un año. Ves qué cambió y recuperas cualquier versión o archivo borrado.",
   "featureLinks": "Tablero por enlace",
   "featureLinksHint": "Enseña un tablero a quien quieras. La clave va dentro del enlace, así que el servidor no puede leerlo.",
   "soon": "Pronto",

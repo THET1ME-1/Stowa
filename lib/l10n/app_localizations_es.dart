@@ -4872,7 +4872,7 @@ class LEs extends L {
 
   @override
   String get featureHistoryHint =>
-      'Cada cambio de una nota se guarda en el servidor: ves qué cambió y recuperas cualquier versión.';
+      'Los cambios de todos tus dispositivos se guardan en el servidor: todos durante un mes y luego el último de cada día durante un año. Ves qué cambió y recuperas cualquier versión o archivo borrado.';
 
   @override
   String get featureLinks => 'Tablero por enlace';

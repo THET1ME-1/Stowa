@@ -1080,7 +1080,7 @@
   "featurePanel": "Panel boczny w przeglądarce",
   "featurePanelHint": "Zapisuj i szukaj, nie wychodząc ze strony.",
   "featureHistory": "Historia wersji",
-  "featureHistoryHint": "Każda zmiana notatki jest na serwerze: widać, co się zmieniło, i można przywrócić dowolną wersję.",
+  "featureHistoryHint": "Zmiany ze wszystkich urządzeń są na serwerze: przez miesiąc wszystkie, potem do roku ostatnia z każdego dnia. Widać, co się zmieniło, i można przywrócić każdą wersję oraz usunięte pliki.",
   "featureLinks": "Tablica przez link",
   "featureLinksHint": "Pokaż tablicę komu chcesz. Klucz jest w samym linku, więc serwer jej nie odczyta.",
   "soon": "Wkrótce",

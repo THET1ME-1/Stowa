@@ -1080,7 +1080,7 @@
   "featurePanel": "Seitenleiste im Browser",
   "featurePanelHint": "Notieren und finden, ohne die Seite zu verlassen.",
   "featureHistory": "Versionsverlauf",
-  "featureHistoryHint": "Jede Änderung einer Notiz liegt auf dem Server: Du siehst, was sich geändert hat, und holst jede Version zurück.",
+  "featureHistoryHint": "Änderungen von allen Geräten liegen auf dem Server: einen Monat lang alle, danach ein Jahr lang die letzte jedes Tages. Du siehst, was sich geändert hat, und holst jede Version und Gelöschtes zurück.",
   "featureLinks": "Board per Link teilen",
   "featureLinksHint": "Zeig ein Board, wem du willst. Der Schlüssel steckt im Link selbst, der Server kann es nicht lesen.",
   "soon": "Bald",

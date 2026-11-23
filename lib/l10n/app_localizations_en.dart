@@ -4855,7 +4855,7 @@ class LEn extends L {
 
   @override
   String get featureHistoryHint =>
-      'Every edit of a note is kept on the server: see what changed and bring back any version.';
+      'Edits from all your devices are kept on the server: every edit for a month, then the last one of each day for a year. See what changed and bring back any version or deleted file.';
 
   @override
   String get featureLinks => 'Share a board by link';

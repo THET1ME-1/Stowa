@@ -4900,7 +4900,7 @@ class LRo extends L {
 
   @override
   String get featureHistoryHint =>
-      'Fiecare modificare a unei notițe stă pe server: vezi ce s-a schimbat și readuci orice versiune.';
+      'Modificările de pe toate dispozitivele rămân pe server: toate timp de o lună, apoi ultima din fiecare zi timp de un an. Vezi ce s-a schimbat și poți recupera orice versiune sau fișier șters.';
 
   @override
   String get featureLinks => 'Tablă prin link';

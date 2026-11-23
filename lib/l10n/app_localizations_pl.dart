@@ -4933,7 +4933,7 @@ class LPl extends L {
 
   @override
   String get featureHistoryHint =>
-      'Każda zmiana notatki jest na serwerze: widać, co się zmieniło, i można przywrócić dowolną wersję.';
+      'Zmiany ze wszystkich urządzeń są na serwerze: przez miesiąc wszystkie, potem do roku ostatnia z każdego dnia. Widać, co się zmieniło, i można przywrócić każdą wersję oraz usunięte pliki.';
 
   @override
   String get featureLinks => 'Tablica przez link';

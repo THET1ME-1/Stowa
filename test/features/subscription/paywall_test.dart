@@ -140,12 +140,14 @@ void main() {
     await settle(tester);
   }
 
-  testWidgets('пять пунктов, два — скоро', (tester) async {
+  // история версий вышла 23.11.2026: «Скоро» осталось только у доски по ссылке
+  testWidgets('пять пунктов, один — скоро', (tester) async {
     await open(tester);
     for (final title in ['Синхронизация со сквозным шифрованием', 'Облако для файлов', 'Боковая панель в браузере', 'История версий', 'Доска по ссылке']) {
       expect(find.text(title), findsOneWidget);
     }
-    expect(find.text('Скоро'), findsNWidgets(2));
+    expect(find.text('Скоро'), findsOneWidget);
+    expect(find.textContaining('за месяц — все'), findsOneWidget);
   });
 
   testWidgets('цены внешней кассы в валюте страны, смена валюты', (tester) async {

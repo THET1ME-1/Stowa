@@ -5918,9 +5918,9 @@
   "@featureHistory": {
     "description": "Что даёт подписка"
   },
-  "featureHistoryHint": "Every edit of a note is kept on the server: see what changed and bring back any version.",
+  "featureHistoryHint": "Edits from all your devices are kept on the server: every edit for a month, then the last one of each day for a year. See what changed and bring back any version or deleted file.",
   "@featureHistoryHint": {
-    "description": "Что даёт подписка"
+    "description": "Подсказка пункта «История версий» на экране покупки: сроки хранения как на сервере"
   },
   "featureLinks": "Share a board by link",
   "@featureLinks": {
