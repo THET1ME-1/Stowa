@@ -4836,7 +4836,7 @@ class LEs extends L {
 
   @override
   String get subBuyHint =>
-      'Sincronización, nube para archivos, historial de versiones y panel lateral';
+      'Sincronización, nube para archivos e historial de versiones';
 
   @override
   String subActiveUntil(String date) {

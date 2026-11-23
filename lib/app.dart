@@ -14,7 +14,6 @@ import 'core/user_first.dart';
 import 'data/providers.dart';
 import 'domain/appearance.dart';
 import 'features/privacy/privacy_gate.dart';
-import 'features/subscription/panel_gate.dart';
 import 'features/subscription/paywall_screen.dart';
 import 'services/billing/store_channel.dart';
 import 'features/vault/vault_gate.dart';
@@ -50,7 +49,7 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (userFirst.enabled) HardwareKeyboard.instance.addHandler(_onAnyKey);
-    // stowa.work/?subscribe — сюда ведёт кнопка замка боковой панели: сразу экран покупки
+    // stowa.work/?subscribe — ссылка сразу на экран подписки (из письма, из подсказки)
     if (isWeb && !isPanelAddress() && Uri.base.queryParameters.containsKey('subscribe')) {
       WidgetsBinding.instance.addPostFrameCallback((_) => appNavigator.currentState?.push(paywallRoute()));
     }
@@ -163,16 +162,9 @@ class _StowaAppState extends ConsumerState<StowaApp> with WidgetsBindingObserver
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarContrastEnforced: false,
         ),
-        child: _attentive(_panelText(context, _panelGate(widget.lockable ? PrivacyGate(child: child!) : child!))),
+        child: _attentive(_panelText(context, widget.lockable ? PrivacyGate(child: child!) : child!)),
       ),
       home: widget.home,
     );
-  }
-
-  /// Боковая панель браузера (адрес `?panel`) — часть Stowa Sync: без подписки вместо неё замок.
-  /// Сайт в обычной вкладке бесплатный.
-  Widget _panelGate(Widget child) {
-    if (!isWeb || !isPanelAddress()) return child;
-    return PanelGate(store: ref.read(subscriptionStoreProvider), open: ref.read(urlOpenerProvider), child: child);
   }
 }

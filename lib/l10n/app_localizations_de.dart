@@ -4853,7 +4853,7 @@ class LDe extends L {
 
   @override
   String get subBuyHint =>
-      'Synchronisierung, Cloud für Dateien, Versionsverlauf und Seitenleiste';
+      'Synchronisierung, Cloud für Dateien und Versionsverlauf';
 
   @override
   String subActiveUntil(String date) {

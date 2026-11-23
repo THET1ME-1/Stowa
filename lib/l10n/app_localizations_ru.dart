@@ -4900,8 +4900,7 @@ class LRu extends L {
   String get subBuy => 'Купить подписку';
 
   @override
-  String get subBuyHint =>
-      'Синхронизация, облако для файлов, история версий и боковая панель';
+  String get subBuyHint => 'Синхронизация, облако для файлов и история версий';
 
   @override
   String subActiveUntil(String date) {

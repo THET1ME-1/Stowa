@@ -4,11 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/features/settings/sync_screen.dart';
-import 'package:stowa/features/subscription/panel_gate.dart';
 import 'package:stowa/features/subscription/paywall_screen.dart';
-import 'package:stowa/l10n/app_localizations.dart';
 import 'package:stowa/services/billing/subscription.dart';
 import 'package:stowa/services/sync/sync_crypto.dart';
 import 'package:stowa/services/sync/sync_service.dart';
@@ -85,56 +82,4 @@ void main() {
     });
   });
 
-  group('боковая панель', () {
-    final opened = <Uri>[];
-
-    Future<void> pumpGate(WidgetTester tester, KeyStore store) async {
-      opened.clear();
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('ru'),
-          localizationsDelegates: L.localizationsDelegates,
-          supportedLocales: L.supportedLocales,
-          home: PanelGate(
-            store: store,
-            open: (url) async {
-              opened.add(url);
-              return true;
-            },
-            child: const Text('строка панели'),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-    }
-
-    testWidgets('панель без подписки — замок, кнопка ведёт к покупке на сайте', (tester) async {
-      await pumpGate(tester, MemoryKeyStore());
-      expect(find.text('строка панели'), findsNothing);
-      expect(find.text('Боковая панель входит в Stowa Sync'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('panel-subscribe')));
-      expect(opened.single.toString(), 'https://stowa.work/?subscribe');
-    });
-
-    testWidgets('истёкшая подписка — тоже замок', (tester) async {
-      await pumpGate(tester, MemoryKeyStore()..value = _snapshot(active: false));
-      expect(find.text('строка панели'), findsNothing);
-    });
-
-    testWidgets('панель с подпиской — строка', (tester) async {
-      await pumpGate(tester, MemoryKeyStore()..value = _snapshot(active: true));
-      expect(find.text('строка панели'), findsOneWidget);
-    });
-
-    testWidgets('подписка появилась во вкладке — замок снимается сам', (tester) async {
-      final store = MemoryKeyStore();
-      await pumpGate(tester, store);
-      expect(find.text('строка панели'), findsNothing);
-      store.value = _snapshot(active: true);
-      await tester.pump(const Duration(seconds: 4));
-      await tester.pump();
-      expect(find.text('строка панели'), findsOneWidget);
-    });
-  });
 }

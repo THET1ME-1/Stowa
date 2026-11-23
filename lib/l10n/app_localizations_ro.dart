@@ -4864,7 +4864,7 @@ class LRo extends L {
 
   @override
   String get subBuyHint =>
-      'Sincronizare, cloud pentru fișiere, istoricul versiunilor și panoul lateral';
+      'Sincronizare, cloud pentru fișiere și istoricul versiunilor';
 
   @override
   String subActiveUntil(String date) {

@@ -4,19 +4,16 @@ import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatf
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
 import '../../core/platform.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
-import '../../data/settings_repository.dart' show KeyStore, SecureKeyStore;
 import '../../l10n/app_language.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/panel_bridge.dart';
 import '../composer/line_dock.dart' show SendButton;
-import '../subscription/panel_gate.dart';
 import 'tab_busy_screen.dart';
 
 /// Боковая панель браузера при открытой вкладке Stowa (STOWA-9). Хранилище держит вкладка,
@@ -24,12 +21,9 @@ import 'tab_busy_screen.dart';
 /// Вкладка не ответила — прежний экран «уже открыта». Отдельное приложение, как
 /// [TabBusyApp]: до базы и настроек панель не доходит.
 class PanelApp extends StatelessWidget {
-  const PanelApp({super.key, required this.client, required this.onOpenHere, this.locale, this.subscription = const SecureKeyStore('subscription')});
+  const PanelApp({super.key, required this.client, required this.onOpenHere, this.locale});
 
   final PanelClient client;
-
-  /// Снимок подписки, который пишет вкладка сайта; тесты подменяют.
-  final KeyStore subscription;
 
   /// Попросить вкладку уйти; завершается, когда хранилище свободно.
   final Future<void> Function() onOpenHere;
@@ -45,12 +39,8 @@ class PanelApp extends StatelessWidget {
     localizationsDelegates: const [L.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
     localeListResolutionCallback: (deviceLocales, _) => AppLanguage.resolve(deviceLocales ?? const []).locale,
     builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(panelTextScale)), child: child!),
-    // лёгкая панель (без базы и провайдеров) — тоже часть Stowa Sync: снимок подписки читается напрямую
-    home: PanelGate(
-      store: subscription,
-      open: (url) => launchUrl(url, mode: LaunchMode.externalApplication).catchError((_) => false),
-      child: PanelScreen(client: client, onOpenHere: onOpenHere),
-    ),
+    // панель — бесплатная, как сам сайт: по сути это расширение, поставить его может любой
+    home: PanelScreen(client: client, onOpenHere: onOpenHere),
   );
 }
 

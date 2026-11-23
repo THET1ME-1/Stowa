@@ -35,7 +35,6 @@ typedef _Feature = ({String icon, String tint, String Function(L) title, String 
 final List<_Feature> _features = [
   (icon: 'cloud_sync', tint: 'sky', title: (l) => l.featureSync, hint: (l) => l.featureSyncHint, soon: false),
   (icon: 'photo_library', tint: 'teal', title: (l) => l.featureFiles, hint: (l) => l.featureFilesHint, soon: false),
-  (icon: 'side_navigation', tint: 'violet', title: (l) => l.featurePanel, hint: (l) => l.featurePanelHint, soon: false),
   (icon: 'history', tint: 'amber', title: (l) => l.featureHistory, hint: (l) => l.featureHistoryHint, soon: false),
   (icon: 'link', tint: 'rose', title: (l) => l.featureLinks, hint: (l) => l.featureLinksHint, soon: true),
 ];

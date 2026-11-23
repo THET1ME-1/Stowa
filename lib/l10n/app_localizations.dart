@@ -8228,7 +8228,7 @@ abstract class L {
   /// Подпись карточки «Купить подписку»: что входит в Stowa Sync
   ///
   /// In en, this message translates to:
-  /// **'Sync, cloud for files, version history and the side panel'**
+  /// **'Sync, cloud for files and version history'**
   String get subBuyHint;
 
   /// Первый пункт настроек при подписке

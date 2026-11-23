@@ -4896,8 +4896,7 @@ class LPl extends L {
   String get subBuy => 'Kup subskrypcję';
 
   @override
-  String get subBuyHint =>
-      'Synchronizacja, chmura na pliki, historia wersji i panel boczny';
+  String get subBuyHint => 'Synchronizacja, chmura na pliki i historia wersji';
 
   @override
   String subActiveUntil(String date) {

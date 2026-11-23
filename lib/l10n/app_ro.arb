@@ -1070,7 +1070,7 @@
   "accountDeleteLive": "Anulează mai întâi reînnoirea abonamentului, altfel plățile continuă.",
   "accountDeleted": "Cont șters",
   "subBuy": "Cumpără abonament",
-  "subBuyHint": "Sincronizare, cloud pentru fișiere, istoricul versiunilor și panoul lateral",
+  "subBuyHint": "Sincronizare, cloud pentru fișiere și istoricul versiunilor",
   "subActiveUntil": "Stowa Sync până pe {date}",
   "paywallLead": "Notițele și fișierele tale pe toate dispozitivele. Pe un singur dispozitiv, Stowa rămâne gratuită.",
   "featureSync": "Sincronizare cu criptare end-to-end",

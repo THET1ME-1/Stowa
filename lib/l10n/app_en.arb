@@ -5873,7 +5873,7 @@
   "@subBuy": {
     "description": "Первый пункт настроек, цветом акцента"
   },
-  "subBuyHint": "Sync, cloud for files, version history and the side panel",
+  "subBuyHint": "Sync, cloud for files and version history",
   "@subBuyHint": {
     "description": "Подпись карточки «Купить подписку»: что входит в Stowa Sync"
   },

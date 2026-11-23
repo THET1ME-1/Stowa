@@ -1070,7 +1070,7 @@
   "accountDeleteLive": "Kündige zuerst die Verlängerung des Abos, sonst wird weiter abgebucht.",
   "accountDeleted": "Konto gelöscht",
   "subBuy": "Abo abschließen",
-  "subBuyHint": "Synchronisierung, Cloud für Dateien, Versionsverlauf und Seitenleiste",
+  "subBuyHint": "Synchronisierung, Cloud für Dateien und Versionsverlauf",
   "subActiveUntil": "Stowa Sync bis {date}",
   "paywallLead": "Deine Notizen und Dateien auf all deinen Geräten. Auf einem einzelnen Gerät bleibt Stowa kostenlos.",
   "featureSync": "Ende-zu-Ende-verschlüsselte Synchronisierung",

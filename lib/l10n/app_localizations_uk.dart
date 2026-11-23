@@ -4887,8 +4887,7 @@ class LUk extends L {
   String get subBuy => 'Купити підписку';
 
   @override
-  String get subBuyHint =>
-      'Синхронізація, хмара для файлів, історія версій і бічна панель';
+  String get subBuyHint => 'Синхронізація, хмара для файлів та історія версій';
 
   @override
   String subActiveUntil(String date) {

@@ -1070,7 +1070,7 @@
   "accountDeleteLive": "Najpierw anuluj odnawianie subskrypcji, inaczej płatności będą dalej pobierane.",
   "accountDeleted": "Konto usunięte",
   "subBuy": "Kup subskrypcję",
-  "subBuyHint": "Synchronizacja, chmura na pliki, historia wersji i panel boczny",
+  "subBuyHint": "Synchronizacja, chmura na pliki i historia wersji",
   "subActiveUntil": "Stowa Sync do {date}",
   "paywallLead": "Notatki i pliki na wszystkich twoich urządzeniach. Na jednym urządzeniu Stowa zostaje darmowa.",
   "featureSync": "Synchronizacja z szyfrowaniem end-to-end",

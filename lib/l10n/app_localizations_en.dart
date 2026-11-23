@@ -4819,8 +4819,7 @@ class LEn extends L {
   String get subBuy => 'Get a subscription';
 
   @override
-  String get subBuyHint =>
-      'Sync, cloud for files, version history and the side panel';
+  String get subBuyHint => 'Sync, cloud for files and version history';
 
   @override
   String subActiveUntil(String date) {
