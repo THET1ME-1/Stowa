@@ -11,6 +11,7 @@ import '../../core/icons/icon_registry.dart';
 import '../../core/platform.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/above_system_bar.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/shape_badge.dart';
 import '../../core/widgets/undo_snack.dart';
@@ -404,24 +405,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       if (request == null) return;
       WidgetsBinding.instance.addPostFrameCallback((_) => _dock.currentState?.searchTag(request.tag));
     });
+    // оба вида собираются здесь, а не в LayoutBuilder: клавиатура меняет высоту тела каждый кадр
+    // своего выезда, и LayoutBuilder пересобирал бы на каждом кадре всю ленту и строку (телефон:
+    // «дёргается, 10 FPS»). Одни и те же виджеты Flutter второй раз не строит
+    final wide = WorkspaceShell(
+      onFind: () => _dock.currentState?.focusLine(),
+      composer: (open) => LineDock(key: _dock, onOpenItem: open, onboarding: true, maxWidth: 760),
+    );
+    final phone = Stack(
+      children: [
+        _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
+        Positioned.fill(
+          child: LineDock(key: _dock, onOpenItem: _open, onboarding: true),
+        ),
+      ],
+    );
     return Scaffold(
       // широкое окно (браузер, компьютер) — рабочее пространство с доками и вкладками;
       // обходы, слежка за хранилищем и синхронизация остаются здесь, при любой ширине
-      body: LayoutBuilder(
-        builder: (context, constraints) => constraints.maxWidth >= workspaceFrom
-            ? WorkspaceShell(
-                onFind: () => _dock.currentState?.focusLine(),
-                composer: (open) => LineDock(key: _dock, onOpenItem: open, onboarding: true, maxWidth: 760),
-              )
-            : Stack(
-                children: [
-                  _Feed(onOpen: _open, onTag: (name) => _dock.currentState?.searchTag(name)),
-                  Positioned.fill(
-                    child: LineDock(key: _dock, onOpenItem: _open, onboarding: true),
-                  ),
-                ],
-              ),
-      ),
+      body: LayoutBuilder(builder: (context, constraints) => constraints.maxWidth >= workspaceFrom ? wide : phone),
     );
   }
 }
@@ -449,7 +451,9 @@ class _Feed extends ConsumerWidget {
     final items = ref.read(itemsRepositoryProvider);
     // карточка шага знакомства стоит над строкой: лента оставляет и под неё место, низ не прячется
     final hints = ref.watch(hintsProvider).value;
-    final bottom = MediaQuery.paddingOf(context).bottom + (hints != null && visibleStep(hints) != null ? 130 : 0);
+    // системную полосу снизу добавляют сами отступы ленты (AboveSystemBar) и точки: от неё лента
+    // пересобиралась целиком на первых кадрах выезда клавиатуры, когда полоса уходит под неё
+    final lift = _dockSpace + (hints != null && visibleStep(hints) != null ? 130 : 0);
 
     return CustomScrollView(
       slivers: [
@@ -570,7 +574,7 @@ class _Feed extends ConsumerWidget {
           SliverToBoxAdapter(
             child: NoteTimeline(
               // точки заметок держатся над строкой ввода, как аватарки в чате
-              bottomInset: _dockSpace + bottom,
+              bottomInset: lift,
               items: recent,
               pinned: pinnedNotes,
               filesRoot: filesRoot,
@@ -589,13 +593,10 @@ class _Feed extends ConsumerWidget {
         if (recent.isEmpty && pinnedNotes.isEmpty && folders.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: _dockSpace + bottom),
-              child: _Empty(message: l.homeEmpty),
-            ),
+            child: AboveSystemBar(lift: lift, child: _Empty(message: l.homeEmpty)),
           )
         else
-          SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
+          SliverToBoxAdapter(child: AboveSystemBar(lift: lift)),
       ],
     );
   }

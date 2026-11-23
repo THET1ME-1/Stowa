@@ -1132,6 +1132,75 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
     }
     _wasRested = rested;
 
+    // всё, что показывает строка, собирается здесь, а не в LayoutBuilder ниже: высота у строки
+    // меняется на каждом кадре выезда клавиатуры, и LayoutBuilder пересобирал бы поле, кнопки и
+    // панель каждый кадр. Одни и те же виджеты Flutter второй раз не строит
+    // на мониторе плашки приложения — пилюлей над всем, что строка показывает сверху
+    final deskToastHost = !_full && WorkspaceScope.maybeOf(context) != null ? const DeskToastHost() : null;
+    final toastView = _full ? null : _toastView();
+    // в редакторе на весь экран панели нет, строка забирает всю высоту
+    final panelView = _full
+        ? null
+        : Flexible(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 420),
+              reverseDuration: const Duration(milliseconds: 180),
+              switchInCurve: Motion.spatial,
+              switchOutCurve: Motion.emphasizedAccelerate.flipped,
+              layoutBuilder: (current, previous) => Stack(alignment: Alignment.bottomCenter, children: [...previous, ?current]),
+              transitionBuilder: riseTransition,
+              child: !showPanel
+                  ? (showStep
+                        // место панели отдаёт всю высоту: карточка прижата к строке своей высотой
+                        ? Align(
+                            key: ValueKey('step-${step.name}'),
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: StartCard(step: step, onSkip: () => ref.read(hintsRepositoryProvider).skipStep().ignore(), onTry: _tryOf(step)),
+                            ),
+                          )
+                        : const SizedBox(key: ValueKey('none'), width: double.infinity))
+                  : Padding(
+                      key: ValueKey(_tray ? 'tray' : 'panel'),
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _tray
+                          ? Container(
+                              decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
+                              padding: const EdgeInsets.all(6),
+                              child: AttachTray(
+                                gallery: ref.watch(galleryInTrayProvider),
+                                // камеру открывает система телефона; сайт на телефоне — тоже
+                                camera: defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS,
+                                selected: [for (final file in _files) file.key],
+                                onToggle: _toggleAsset,
+                                onPickMedia: () => _pick(pickGalleryMedia),
+                                onCamera: () => _pick(pickCameraPhoto),
+                                onVideo: () => _pick(pickCameraVideo),
+                                onFiles: () => _pick(pickAnyFiles),
+                                onLink: _pasteLink,
+                              ),
+                            )
+                          : LinePanel(
+                              state: _panel,
+                              selected: _shownSelected,
+                              rest: rest,
+                              now: now,
+                              filesRoot: ref.watch(filesRootProvider),
+                              filter: _filter,
+                              onFilter: (kind) => setState(() {
+                                _filter = kind;
+                                _manual = false;
+                              }),
+                              onTap: (index) => _actRow(rows[index]),
+                              onAppend: _append,
+                              onSmartFolder: _found.query.hasFilters && _found.results.isNotEmpty ? _saveSmart : null,
+                            ),
+                    ),
+            ),
+          );
+    final composer = _composer(l, now);
+
     return PopScope(
       canPop: !_active,
       onPopInvokedWithResult: (didPop, _) {
@@ -1173,69 +1242,9 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // на мониторе плашки приложения — пилюлей над всем, что строка показывает сверху
-                      if (!_full && WorkspaceScope.maybeOf(context) != null) const DeskToastHost(),
-                      if (!_full) _toastView(),
-                      // в редакторе на весь экран панели нет, строка забирает всю высоту
-                      if (!_full)
-                        Flexible(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 420),
-                            reverseDuration: const Duration(milliseconds: 180),
-                            switchInCurve: Motion.spatial,
-                            switchOutCurve: Motion.emphasizedAccelerate.flipped,
-                            layoutBuilder: (current, previous) => Stack(alignment: Alignment.bottomCenter, children: [...previous, ?current]),
-                            transitionBuilder: riseTransition,
-                            child: !showPanel
-                                ? (showStep
-                                      // место панели отдаёт всю высоту: карточка прижата к строке своей высотой
-                                      ? Align(
-                                          key: ValueKey('step-${step.name}'),
-                                          alignment: Alignment.bottomCenter,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(bottom: 8),
-                                            child: StartCard(step: step, onSkip: () => ref.read(hintsRepositoryProvider).skipStep().ignore(), onTry: _tryOf(step)),
-                                          ),
-                                        )
-                                      : const SizedBox(key: ValueKey('none'), width: double.infinity))
-                                : Padding(
-                                    key: ValueKey(_tray ? 'tray' : 'panel'),
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: _tray
-                                        ? Container(
-                                            decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
-                                            padding: const EdgeInsets.all(6),
-                                            child: AttachTray(
-                                              gallery: ref.watch(galleryInTrayProvider),
-                                              // камеру открывает система телефона; сайт на телефоне — тоже
-                                              camera: defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS,
-                                              selected: [for (final file in _files) file.key],
-                                              onToggle: _toggleAsset,
-                                              onPickMedia: () => _pick(pickGalleryMedia),
-                                              onCamera: () => _pick(pickCameraPhoto),
-                                              onVideo: () => _pick(pickCameraVideo),
-                                              onFiles: () => _pick(pickAnyFiles),
-                                              onLink: _pasteLink,
-                                            ),
-                                          )
-                                        : LinePanel(
-                                            state: _panel,
-                                            selected: _shownSelected,
-                                            rest: rest,
-                                            now: now,
-                                            filesRoot: ref.watch(filesRootProvider),
-                                            filter: _filter,
-                                            onFilter: (kind) => setState(() {
-                                              _filter = kind;
-                                              _manual = false;
-                                            }),
-                                            onTap: (index) => _actRow(rows[index]),
-                                            onAppend: _append,
-                                            onSmartFolder: _found.query.hasFilters && _found.results.isNotEmpty ? _saveSmart : null,
-                                          ),
-                                  ),
-                          ),
-                        ),
+                      ?deskToastHost,
+                      ?toastView,
+                      ?panelView,
                       // раскрытие и сворачивание ведёт сама высота карточки, кадр за кадром,
                       // пружинкой макета в обе стороны; выше экрана перелёт не пускаем
                       AnimatedBuilder(
@@ -1250,7 +1259,7 @@ class LineDockState extends ConsumerState<LineDock> with SingleTickerProviderSta
                               : null;
                           return SizedBox(key: _cardKey, height: height, child: child);
                         },
-                        child: _composer(l, now),
+                        child: composer,
                       ),
                     ],
                   ),

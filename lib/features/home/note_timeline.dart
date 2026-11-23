@@ -98,7 +98,9 @@ class NoteTimeline extends StatefulWidget {
   /// Закреплённые: своим блоком над днями, у карточки вместо часа — день записи.
   final List<ItemCard> pinned;
 
-  /// Сколько снизу экрана закрывает строка ввода: точка заметки держится над ней.
+  /// Сколько закрывает строка ввода над системной полосой снизу: точка заметки держится над ней.
+  /// Полосу точки и полоса прокрутки добавляют сами: она меняется на первых кадрах выезда
+  /// клавиатуры, и лента от неё пересобиралась бы целиком.
   final double bottomInset;
   final Directory filesRoot;
   final DateTime now;
@@ -208,10 +210,13 @@ class _NoteTimelineState extends State<NoteTimeline> {
         mark(item, false);
       }
     }
-    final padding = MediaQuery.paddingOf(context);
+    // отступы читаются без подписки: снимок берётся на миг удержания, а подписка пересобирала бы
+    // всю ленту на кадрах выезда клавиатуры
+    final padding = context.getInheritedWidgetOfExactType<MediaQuery>()?.data.padding ?? EdgeInsets.zero;
+    final lift = widget.bottomInset + padding.bottom;
     final viewBottom = viewTop + view.size.height;
     final trackTop = math.max(viewTop, padding.top) + 16;
-    final trackBottom = viewBottom - widget.bottomInset - 16;
+    final trackBottom = viewBottom - lift - 16;
     if (trackBottom - trackTop < 120) return null;
     return ScrubMap(
       marks: marks,
@@ -224,7 +229,7 @@ class _NoteTimelineState extends State<NoteTimeline> {
       trackBottom: trackBottom,
       dotTop: _dotTop,
       dotBottom: _dotBottom,
-      dotEdge: viewBottom - widget.bottomInset - _dotBottom,
+      dotEdge: viewBottom - lift - _dotBottom,
     );
   }
 
@@ -407,11 +412,13 @@ class _TimelineDot extends LeafRenderObjectWidget {
   final Color ring;
   final double bottomInset;
 
+  // системная полоса снизу — подпиской самой точки: на её смене обновляются только точки,
+  // а не вся лента
   @override
   RenderTimelineDot createRenderObject(BuildContext context) => RenderTimelineDot(
     color: color,
     ring: ring,
-    bottomInset: bottomInset,
+    bottomInset: bottomInset + MediaQuery.paddingOf(context).bottom,
     scroll: Scrollable.maybeOf(context)?.position,
     fade: _RailFade.of(context),
   );
@@ -421,7 +428,7 @@ class _TimelineDot extends LeafRenderObjectWidget {
     renderObject
       ..color = color
       ..ring = ring
-      ..bottomInset = bottomInset
+      ..bottomInset = bottomInset + MediaQuery.paddingOf(context).bottom
       ..scroll = Scrollable.maybeOf(context)?.position
       ..fade = _RailFade.of(context);
   }

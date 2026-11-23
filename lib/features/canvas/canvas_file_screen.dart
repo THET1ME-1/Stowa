@@ -11,11 +11,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/icons/icon_registry.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/above_system_bar.dart';
 import '../../core/widgets/file_picture.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../domain/hints.dart' show Tip;
 import '../../core/widgets/marked_text.dart';
 import '../../core/widgets/sheet_options.dart';
+import '../../core/widgets/size_watch.dart';
 import '../../core/widgets/undo_snack.dart';
 import '../../data/db/database.dart';
 import '../../data/providers.dart';
@@ -857,15 +859,18 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
                     child: _Banner(text: l.canvasBroken, icon: 'error'),
                   ),
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      viewport = constraints.biggest;
+                  // размер окна — без LayoutBuilder: высота меняется на каждом кадре выезда
+                  // клавиатуры, и в нём весь холст строился бы заново каждый кадр
+                  child: SizeWatch(
+                    onSize: (size) {
+                      viewport = size;
                       // первый показ — всё целиком: размер окна известен только здесь
                       if (!_fitted && !viewport.isEmpty) {
                         _fitted = true;
                         WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? fitAll() : null);
                       }
-                      return CanvasDropZone(
+                    },
+                    child: CanvasDropZone(
                         enabled: _editable,
                         onFiles: (files, at) => placeFiles(files, at).ignore(),
                         child: Focus(
@@ -1061,8 +1066,10 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
                             Positioned(
                               left: Space.screen,
                               right: Space.screen,
-                              bottom: MediaQuery.paddingOf(context).bottom + 16 + lineSpace,
-                              child: Row(
+                              bottom: 0,
+                              child: AboveSystemBar(
+                                lift: 16 + lineSpace,
+                                child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
@@ -1105,12 +1112,12 @@ class _CanvasFileScreenState extends ConsumerState<CanvasFileScreen> with Canvas
                                   ],
                                 ],
                               ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      );
-                    },
+                      ),
                   ),
                 ),
               ],

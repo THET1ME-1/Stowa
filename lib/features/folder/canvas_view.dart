@@ -50,7 +50,9 @@ class CanvasView extends ConsumerStatefulWidget {
   final List<ItemCard> cards;
   final ValueChanged<String> onOpen;
 
-  /// Низ холста закрыт строкой ввода: «уместить» показывает вещи выше неё.
+  /// Низ холста закрыт строкой ввода над системной полосой: «уместить» показывает вещи выше неё.
+  /// Полосу холст добавляет сам в миг «уместить»: подписка на неё пересобирала бы весь экран
+  /// папки на первых кадрах выезда клавиатуры.
   final double bottomInset;
 
   @override
@@ -221,7 +223,9 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
       return;
     }
     final bounds = canvasBounds(boxes, margin: 24);
-    final visible = Size(viewport.width, max(120, viewport.height - widget.bottomInset));
+    // системная полоса — без подписки, на миг «уместить»
+    final bar = context.getInheritedWidgetOfExactType<MediaQuery>()?.data.padding.bottom ?? 0;
+    final visible = Size(viewport.width, max(120, viewport.height - widget.bottomInset - bar));
     final scale = min(visible.width / bounds.width, visible.height / bounds.height).clamp(0.1, 1.2);
     final dx = (visible.width - bounds.width * scale) / 2 - (_origin + bounds.left) * scale;
     final dy = (visible.height - bounds.height * scale) / 2 - (_origin + bounds.top) * scale;
@@ -452,13 +456,9 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
     ];
     final hover = _wire?.from ?? _hoverCard;
 
-    // файлы из системы, брошенные мышью: каждый — заметка этой папки там, где отпустили
-    return CanvasDropZone(
-      onFiles: (files, at) => placeFiles(files, at).ignore(),
-      child: LayoutBuilder(
-      builder: (context, constraints) {
-        viewport = constraints.biggest;
-        return Focus(
+    // холст собирается здесь, а LayoutBuilder ниже только узнаёт размер окна: высота меняется на
+    // каждом кадре выезда клавиатуры, и в LayoutBuilder весь холст строился бы заново каждый кадр
+    final canvas = Focus(
           focusNode: canvasFocus,
           onKeyEvent: _onFocusKey,
           child: Stack(
@@ -630,7 +630,14 @@ class _CanvasViewState extends ConsumerState<CanvasView> with CanvasControls {
           ],
         ),
         );
-      },
+    // файлы из системы, брошенные мышью: каждый — заметка этой папки там, где отпустили
+    return CanvasDropZone(
+      onFiles: (files, at) => placeFiles(files, at).ignore(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          viewport = constraints.biggest;
+          return canvas;
+        },
       ),
     );
   }

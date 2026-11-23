@@ -10,6 +10,7 @@ import '../../core/theme/motion.dart';
 import '../../core/theme/palette.dart';
 import '../../core/theme/shapes.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/widgets/above_system_bar.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/motion_bits.dart';
 import '../../core/widgets/pressable.dart';
@@ -306,7 +307,6 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
     final filesRoot = ref.watch(filesRootProvider);
     final now = ref.read(clockProvider)();
     final board = showAsBoard(cards, folder?.view ?? FolderView.auto);
-    final bottom = MediaQuery.paddingOf(context).bottom;
 
     // порядок чипов как на экране 6 макета: сначала то, что смотрят, потом читают
     const kindOrder = [ItemKind.video, ItemKind.voice, ItemKind.link, ItemKind.note, ItemKind.image, ItemKind.file];
@@ -486,7 +486,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                   ],
                   const SizedBox(height: 12),
                   Expanded(
-                    child: CanvasView(folderId: folder.id, cards: cards, onOpen: _open, bottomInset: _dockSpace + bottom),
+                    child: CanvasView(folderId: folder.id, cards: cards, onOpen: _open, bottomInset: _dockSpace),
                   ),
                 ],
               )
@@ -537,17 +537,20 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                   const SliverToBoxAdapter(child: SizedBox(height: 12)),
                   // в папке только вложенные: «пусто» было бы неправдой
                   if (cards.isEmpty && children.isNotEmpty)
-                    SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom))
+                    const SliverToBoxAdapter(child: AboveSystemBar(lift: _dockSpace))
                   else if (cards.isEmpty)
                     SliverFillRemaining(
                       hasScrollBody: false,
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(40, 0, 40, _dockSpace + bottom),
-                        child: Center(
-                          child: Text(
-                            l.folderEmpty,
-                            textAlign: TextAlign.center,
-                            style: text.bodyLarge!.copyWith(color: Tokens.muted),
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: AboveSystemBar(
+                          lift: _dockSpace,
+                          child: Center(
+                            child: Text(
+                              l.folderEmpty,
+                              textAlign: TextAlign.center,
+                              style: text.bodyLarge!.copyWith(color: Tokens.muted),
+                            ),
                           ),
                         ),
                       ),
@@ -574,21 +577,22 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
                         ),
                       ),
                     ),
-                  if (cards.isNotEmpty) SliverToBoxAdapter(child: SizedBox(height: _dockSpace + bottom)),
+                  if (cards.isNotEmpty) const SliverToBoxAdapter(child: AboveSystemBar(lift: _dockSpace)),
                 ],
               ),
             // лента уходит под строку в тень фона, как dock.float в макете
+            // высота тени — отступом AboveSystemBar: системную полосу читает он, а не весь экран
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
-              height: _dockSpace + bottom,
               child: IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     // прозрачный край того же цвета: от прозрачного чёрного светлая тема серела бы
                     gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Tokens.background.withValues(alpha: 0), Tokens.background], stops: const [0, 0.3]),
                   ),
+                  child: const AboveSystemBar(lift: _dockSpace),
                 ),
               ),
             ),
@@ -597,12 +601,15 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
               Positioned(
                 left: Space.screen,
                 right: Space.screen,
-                bottom: bottom + 16,
-                child: _SelectionBar(
-                  onMove: () => _moveSelected(cards),
-                  onTag: () => _tagSelected(cards, remove: false),
-                  onUntag: cards.any((card) => _selected.contains(card.id) && card.tags.isNotEmpty) ? () => _tagSelected(cards, remove: true) : null,
-                  onDelete: () => _deleteSelected(cards),
+                bottom: 0,
+                child: AboveSystemBar(
+                  lift: 16,
+                  child: _SelectionBar(
+                    onMove: () => _moveSelected(cards),
+                    onTag: () => _tagSelected(cards, remove: false),
+                    onUntag: cards.any((card) => _selected.contains(card.id) && card.tags.isNotEmpty) ? () => _tagSelected(cards, remove: true) : null,
+                    onDelete: () => _deleteSelected(cards),
+                  ),
                 ),
               )
             // на широком экране строка одна, общая, под всеми окнами
