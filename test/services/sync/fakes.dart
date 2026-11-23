@@ -205,7 +205,14 @@ class FakeRemote implements SyncRemote {
   }
 
   @override
-  Future<void> purgeHistory(String file) async => history.remove(file);
+  Future<void> purgeHistory(String file, {int? upto}) async {
+    final kept = (history[file] ?? const <RemoteRevision>[]).where((r) => upto != null && r.rev > upto).toList();
+    if (kept.isEmpty) {
+      history.remove(file);
+    } else {
+      history[file] = kept;
+    }
+  }
 }
 
 extension<T> on List<T> {

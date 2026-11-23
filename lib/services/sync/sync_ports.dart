@@ -104,8 +104,8 @@ abstract interface class SyncRemote {
   /// Все ревизии хранилища по времени, свежие первыми.
   Future<LogPage> log({String? after, int limit = 100});
 
-  /// Стереть прежние ревизии файла на сервере.
-  Future<void> purgeHistory(String file);
+  /// Стереть прежние ревизии файла на сервере; [upto] — только не новее этой ревизии.
+  Future<void> purgeHistory(String file, {int? upto});
 }
 
 /// Ревизия из истории: когда её отправили и с какого устройства. В журнале правок частей

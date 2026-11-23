@@ -167,6 +167,8 @@ void main() {
     await history.purge(gone);
     expect(await history.deleted(), isEmpty);
     expect(remote.history[key.fileId('Новое.md')], isNull);
+    // на прежнем пути остались только правки живого файла: текста удалённой заметки нет нигде
     expect(remote.history[key.fileId('Старое.md')], isNotEmpty);
+    expect(await texts('Старое.md'), ['другой файл, правка\n', 'другой файл\n']);
   });
 }

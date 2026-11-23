@@ -76,6 +76,15 @@ class HistoryScreen extends ConsumerStatefulWidget {
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   var _budget = historyBudget;
 
+  // превью и «+3 −1» считаются один раз на текст: длинный конспект не разбирается и не
+  // сравнивается заново на каждую перерисовку, когда раскрывают сеанс
+  final _previews = <(String, String), String>{};
+  final _labels = <(String, String), String>{};
+
+  String _shown(String body, String title) => _previews.putIfAbsent((body, title), () => _preview(body, title));
+
+  String _changes(L l, String older, String newer) => _labels.putIfAbsent((older, newer), () => keepTogether(changesLabel(l, older, newer)));
+
   /// Раскрытые сеансы: номер ревизии конца сеанса.
   final _open = <int>{};
 
@@ -171,7 +180,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 _VersionRow(
                   key: const ValueKey('history-now'),
                   time: l.historyNow,
-                  preview: _preview(item.body, item.title),
+                  preview: _shown(item.body, item.title),
                   note: versionTime(l, item.updatedAt, now),
                   kind: _RowKind.current,
                   radius: BorderRadius.circular(Radii.card),
@@ -208,12 +217,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     children: [
                       _VersionRow(
                         time: _clock(l, entry),
-                        preview: _preview(entry.body, entry.title),
+                        preview: _shown(entry.body, entry.title),
                         note: [
                           // «только на этом устройстве» имеет смысл, только когда рядом облако
                           if (!entry.localOnly) ?entry.device else if (access == CloudAccess.on) l.historyLocalOnly,
                           if (entry.edits > 1) keepTogether(l.historyEdits(entry.edits)),
-                          if (previous != null) keepTogether(changesLabel(l, previous.body, entry.body)),
+                          if (previous != null) _changes(l, previous.body, entry.body),
                         ].join(' · '),
                         moved: entry.path != null && currentPath != null && entry.path != currentPath ? l.historyMoved(p.posix.withoutExtension(entry.path!)) : null,
                         kind: entry.localOnly && access == CloudAccess.on ? _RowKind.local : _RowKind.cloud,

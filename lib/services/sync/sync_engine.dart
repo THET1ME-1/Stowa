@@ -440,8 +440,12 @@ class SyncEngine {
 
     if (gone.length > massDeleteCount && gone.length > alive.length * massDeleteShare) throw const _MassDelete();
     for (final was in gone) {
-      // переехавший файл ещё не дошёл до сервера: надгробие подождёт, иначе связь потеряется
-      if (moves.waiting(was.file)) continue;
+      // переехавший файл ещё не дошёл до сервера: надгробие подождёт, иначе связь потеряется.
+      // В счёт хода оно идёт как отложенное, иначе полоса встала бы, не дойдя до конца
+      if (moves.waiting(was.file)) {
+        _settled(was.file, 0);
+        continue;
+      }
       _file = was.path;
       final meta = FileMeta(path: was.path, mtime: DateTime.now().millisecondsSinceEpoch, size: 0, hash: '', deleted: true, to: moves.movedTo[was.file]);
       final result = await remote.commit(was.file, baseRev: was.rev, meta: await key.sealMeta(meta), blobs: const [], size: 0, deleted: true);

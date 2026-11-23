@@ -267,8 +267,9 @@ class HttpSyncRemote implements SyncRemote {
   }
 
   @override
-  Future<void> purgeHistory(String file) async {
-    final response = await _send(() => _client.delete(Uri.parse('$base/v1/files/$file/history'), headers: _auth), const Duration(seconds: 30));
+  Future<void> purgeHistory(String file, {int? upto}) async {
+    final uri = Uri.parse('$base/v1/files/$file/history').replace(queryParameters: upto == null ? null : {'upto': '$upto'});
+    final response = await _send(() => _client.delete(uri, headers: _auth), const Duration(seconds: 30));
     _check(response, [204]);
   }
 }

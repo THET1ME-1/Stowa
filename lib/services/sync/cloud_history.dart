@@ -4,6 +4,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'sync_crypto.dart';
 import 'sync_engine.dart' show syncable;
@@ -269,16 +270,24 @@ class CloudHistory {
     return (out, page.next);
   }
 
-  /// Стереть навсегда удалённый файл: историю его пути и всех прежних путей, если на них
-  /// сейчас тоже ничего не живёт. Живой файл, занявший прежний путь, не трогается.
+  /// Стереть навсегда удалённый файл: его историю на всех путях, где он жил. Если на прежнем
+  /// пути сейчас живёт другой файл, стираются только ревизии удалённого (не новее его
+  /// последней на этом пути) — история живого остаётся.
   Future<void> purge(DeletedFile file) async {
     final ids = <String>{file.tomb, for (final attachment in file.attachments) attachment.tomb};
+    // последняя ревизия удалённого на каждом пути его цепочки
+    final upto = <String, int>{};
     for (final version in await versions(file.last.path)) {
-      ids.add(version.file);
+      upto[version.file] = max(upto[version.file] ?? 0, version.rev);
     }
-    for (final id in ids) {
+    for (final id in {...ids, ...upto.keys}) {
       final now = await remote.file(id);
-      if (now == null || now.deleted) await remote.purgeHistory(id);
+      final live = now != null && !now.deleted;
+      if (!live) {
+        await remote.purgeHistory(id);
+      } else if (upto[id] case final rev?) {
+        await remote.purgeHistory(id, upto: rev);
+      }
     }
     _cache.clear();
     _cached = 0;
