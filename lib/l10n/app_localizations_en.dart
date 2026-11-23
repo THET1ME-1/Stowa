@@ -5185,4 +5185,45 @@ class LEn extends L {
 
   @override
   String get historySessionClose => 'Hide edits';
+
+  @override
+  String get trashCloudTitle => 'In the cloud';
+
+  @override
+  String get trashCloudHint =>
+      'Anything deleted on any device or emptied from the trash is kept for a year. It comes back to where it was.';
+
+  @override
+  String trashCloudDeleted(String date) {
+    return 'Deleted $date';
+  }
+
+  @override
+  String trashCloudAttachments(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attachments',
+      one: '$count attachment',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashCloudPurgeAsk(String name) {
+    return 'Erase “$name” forever? The file and all its history will leave the server, and you won\'t be able to restore it.';
+  }
+
+  @override
+  String get trashCloudPurge => 'Erase forever';
+
+  @override
+  String get trashCloudPurged => 'Erased forever';
+
+  @override
+  String get trashCloudFailed => 'That didn\'t work: the server didn\'t answer';
+
+  @override
+  String get trashCloudOffline =>
+      'Can\'t reach the server: deleted files in the cloud aren\'t shown';
 }

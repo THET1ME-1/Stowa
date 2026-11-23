@@ -1178,5 +1178,14 @@
   "historyCloudHint": "Правки з усіх пристроїв зберігаються на сервері: за місяць — усі, до року — остання за кожен день.",
   "historyLoadFailed": "Версія не завантажилася",
   "historySessionOpen": "Показати правки",
-  "historySessionClose": "Сховати правки"
+  "historySessionClose": "Сховати правки",
+  "trashCloudTitle": "У хмарі",
+  "trashCloudHint": "Видалене на будь-якому пристрої й стерте з кошика зберігається рік. Повернеться на попереднє місце.",
+  "trashCloudDeleted": "Видалено {date}",
+  "trashCloudAttachments": "{count, plural, one{{count} вкладення} few{{count} вкладення} many{{count} вкладень} other{{count} вкладення}}",
+  "trashCloudPurgeAsk": "Стерти «{name}» назавжди? Файл і вся його історія зникнуть із сервера, повернути буде неможливо.",
+  "trashCloudPurge": "Стерти назавжди",
+  "trashCloudPurged": "Стерто назавжди",
+  "trashCloudFailed": "Не вийшло: сервер не відповів",
+  "trashCloudOffline": "Немає зв'язку із сервером: видалене в хмарі зараз не видно"
 }

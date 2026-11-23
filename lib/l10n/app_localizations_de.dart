@@ -5222,4 +5222,46 @@ class LDe extends L {
 
   @override
   String get historySessionClose => 'Änderungen ausblenden';
+
+  @override
+  String get trashCloudTitle => 'In der Cloud';
+
+  @override
+  String get trashCloudHint =>
+      'Auf jedem Gerät Gelöschtes und aus dem Papierkorb Geleertes bleibt ein Jahr. Es kommt an seinen alten Platz zurück.';
+
+  @override
+  String trashCloudDeleted(String date) {
+    return 'Gelöscht $date';
+  }
+
+  @override
+  String trashCloudAttachments(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Anhänge',
+      one: '$count Anhang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashCloudPurgeAsk(String name) {
+    return '„$name“ für immer löschen? Die Datei und ihr ganzer Verlauf verschwinden vom Server und lassen sich nicht zurückholen.';
+  }
+
+  @override
+  String get trashCloudPurge => 'Für immer löschen';
+
+  @override
+  String get trashCloudPurged => 'Für immer gelöscht';
+
+  @override
+  String get trashCloudFailed =>
+      'Hat nicht geklappt: Der Server antwortet nicht';
+
+  @override
+  String get trashCloudOffline =>
+      'Keine Verbindung zum Server: Gelöschtes in der Cloud ist gerade nicht sichtbar';
 }

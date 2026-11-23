@@ -1178,5 +1178,14 @@
   "historyCloudHint": "Modificările de pe toate dispozitivele rămân pe server: toate timp de o lună, apoi ultima din fiecare zi timp de un an.",
   "historyLoadFailed": "Versiunea nu s-a încărcat",
   "historySessionOpen": "Arată modificările",
-  "historySessionClose": "Ascunde modificările"
+  "historySessionClose": "Ascunde modificările",
+  "trashCloudTitle": "În cloud",
+  "trashCloudHint": "Ce ai șters pe orice dispozitiv sau ai golit din coș se păstrează un an. Revine unde era.",
+  "trashCloudDeleted": "Șters {date}",
+  "trashCloudAttachments": "{count, plural, one{{count} atașament} few{{count} atașamente} other{{count} de atașamente}}",
+  "trashCloudPurgeAsk": "Ștergi definitiv „{name}”? Fișierul și tot istoricul lui dispar de pe server și nu vor mai putea fi recuperate.",
+  "trashCloudPurge": "Șterge definitiv",
+  "trashCloudPurged": "Șters definitiv",
+  "trashCloudFailed": "N-a mers: serverul nu a răspuns",
+  "trashCloudOffline": "Serverul nu răspunde: fișierele șterse din cloud nu se văd acum"
 }

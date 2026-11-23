@@ -5265,4 +5265,47 @@ class LPl extends L {
 
   @override
   String get historySessionClose => 'Ukryj zmiany';
+
+  @override
+  String get trashCloudTitle => 'W chmurze';
+
+  @override
+  String get trashCloudHint =>
+      'Usunięte na dowolnym urządzeniu i wyczyszczone z kosza jest przechowywane rok. Wraca na swoje miejsce.';
+
+  @override
+  String trashCloudDeleted(String date) {
+    return 'Usunięto $date';
+  }
+
+  @override
+  String trashCloudAttachments(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count załącznika',
+      many: '$count załączników',
+      few: '$count załączniki',
+      one: '$count załącznik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashCloudPurgeAsk(String name) {
+    return 'Usunąć „$name” na zawsze? Plik i cała jego historia znikną z serwera i nie da się ich przywrócić.';
+  }
+
+  @override
+  String get trashCloudPurge => 'Usuń na zawsze';
+
+  @override
+  String get trashCloudPurged => 'Usunięto na zawsze';
+
+  @override
+  String get trashCloudFailed => 'Nie udało się: serwer nie odpowiedział';
+
+  @override
+  String get trashCloudOffline =>
+      'Brak połączenia z serwerem: usuniętych plików w chmurze teraz nie widać';
 }

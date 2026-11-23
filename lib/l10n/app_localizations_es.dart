@@ -5203,4 +5203,45 @@ class LEs extends L {
 
   @override
   String get historySessionClose => 'Ocultar cambios';
+
+  @override
+  String get trashCloudTitle => 'En la nube';
+
+  @override
+  String get trashCloudHint =>
+      'Lo borrado en cualquier dispositivo o vaciado de la papelera se guarda un año. Vuelve a su sitio.';
+
+  @override
+  String trashCloudDeleted(String date) {
+    return 'Borrado $date';
+  }
+
+  @override
+  String trashCloudAttachments(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adjuntos',
+      one: '$count adjunto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashCloudPurgeAsk(String name) {
+    return '¿Borrar «$name» para siempre? El archivo y todo su historial se irán del servidor y no se podrá recuperar.';
+  }
+
+  @override
+  String get trashCloudPurge => 'Borrar para siempre';
+
+  @override
+  String get trashCloudPurged => 'Borrado para siempre';
+
+  @override
+  String get trashCloudFailed => 'No funcionó: el servidor no respondió';
+
+  @override
+  String get trashCloudOffline =>
+      'Sin conexión con el servidor: ahora no se ve lo borrado en la nube';
 }

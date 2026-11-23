@@ -5233,4 +5233,46 @@ class LRo extends L {
 
   @override
   String get historySessionClose => 'Ascunde modificările';
+
+  @override
+  String get trashCloudTitle => 'În cloud';
+
+  @override
+  String get trashCloudHint =>
+      'Ce ai șters pe orice dispozitiv sau ai golit din coș se păstrează un an. Revine unde era.';
+
+  @override
+  String trashCloudDeleted(String date) {
+    return 'Șters $date';
+  }
+
+  @override
+  String trashCloudAttachments(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de atașamente',
+      few: '$count atașamente',
+      one: '$count atașament',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashCloudPurgeAsk(String name) {
+    return 'Ștergi definitiv „$name”? Fișierul și tot istoricul lui dispar de pe server și nu vor mai putea fi recuperate.';
+  }
+
+  @override
+  String get trashCloudPurge => 'Șterge definitiv';
+
+  @override
+  String get trashCloudPurged => 'Șters definitiv';
+
+  @override
+  String get trashCloudFailed => 'N-a mers: serverul nu a răspuns';
+
+  @override
+  String get trashCloudOffline =>
+      'Serverul nu răspunde: fișierele șterse din cloud nu se văd acum';
 }

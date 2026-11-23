@@ -15,6 +15,7 @@ import '../../data/repositories/trash_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../composer/panel_text.dart';
 import '../item/adult_veil.dart';
+import 'cloud_trash.dart';
 
 Route<void> trashRoute() => MaterialPageRoute(builder: (_) => const TrashScreen());
 
@@ -84,7 +85,7 @@ class TrashScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             if (entries.isEmpty)
               Padding(
-                padding: const EdgeInsets.only(top: 80),
+                padding: const EdgeInsets.only(top: 48),
                 child: Column(
                   children: [
                     Container(
@@ -134,6 +135,8 @@ class TrashScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+            // удалённое на других устройствах и стёртое из корзины — с сервера Stowa Sync
+            const CloudTrashSection(),
           ],
         ),
       ),

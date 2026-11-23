@@ -1178,5 +1178,14 @@
   "historyCloudHint": "Änderungen von allen Geräten liegen auf dem Server: einen Monat lang alle, danach ein Jahr lang die letzte jedes Tages.",
   "historyLoadFailed": "Version nicht geladen",
   "historySessionOpen": "Änderungen zeigen",
-  "historySessionClose": "Änderungen ausblenden"
+  "historySessionClose": "Änderungen ausblenden",
+  "trashCloudTitle": "In der Cloud",
+  "trashCloudHint": "Auf jedem Gerät Gelöschtes und aus dem Papierkorb Geleertes bleibt ein Jahr. Es kommt an seinen alten Platz zurück.",
+  "trashCloudDeleted": "Gelöscht {date}",
+  "trashCloudAttachments": "{count, plural, one{{count} Anhang} other{{count} Anhänge}}",
+  "trashCloudPurgeAsk": "„{name}“ für immer löschen? Die Datei und ihr ganzer Verlauf verschwinden vom Server und lassen sich nicht zurückholen.",
+  "trashCloudPurge": "Für immer löschen",
+  "trashCloudPurged": "Für immer gelöscht",
+  "trashCloudFailed": "Hat nicht geklappt: Der Server antwortet nicht",
+  "trashCloudOffline": "Keine Verbindung zum Server: Gelöschtes in der Cloud ist gerade nicht sichtbar"
 }

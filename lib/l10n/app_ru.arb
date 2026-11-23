@@ -1459,5 +1459,14 @@
   "historyCloudHint": "Правки со всех устройств хранятся на сервере: за месяц — все, до года — последняя за каждый день.",
   "historyLoadFailed": "Версия не загрузилась",
   "historySessionOpen": "Показать правки",
-  "historySessionClose": "Скрыть правки"
+  "historySessionClose": "Скрыть правки",
+  "trashCloudTitle": "В облаке",
+  "trashCloudHint": "Удалённое на любом устройстве и стёртое из корзины хранится год. Вернётся на прежнее место.",
+  "trashCloudDeleted": "Удалено {date}",
+  "trashCloudAttachments": "{count, plural, one{{count} вложение} few{{count} вложения} many{{count} вложений} other{{count} вложения}}",
+  "trashCloudPurgeAsk": "Стереть «{name}» навсегда? Файл и вся его история уйдут с сервера, вернуть будет нельзя.",
+  "trashCloudPurge": "Стереть навсегда",
+  "trashCloudPurged": "Стёрто навсегда",
+  "trashCloudFailed": "Не получилось: сервер не ответил",
+  "trashCloudOffline": "Нет связи с сервером: удалённое в облаке сейчас не видно"
 }

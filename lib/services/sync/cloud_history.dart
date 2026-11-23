@@ -76,7 +76,7 @@ List<VersionSession> sessionsOf(List<CloudVersion> versions, {Duration gap = con
 
 /// Удалённый файл, который можно вернуть: его последняя живая версия.
 class DeletedFile {
-  const DeletedFile({required this.last, required this.deletedAt, required this.tomb, this.device});
+  const DeletedFile({required this.last, required this.deletedAt, required this.tomb, this.device, this.attachments = const []});
 
   final CloudVersion last;
   final DateTime deletedAt;
@@ -86,7 +86,20 @@ class DeletedFile {
 
   /// С какого устройства удалили.
   final String? device;
+
+  /// Удалённые вместе с заметкой вложения из её папки: возвращаются вместе с ней.
+  final List<DeletedFile> attachments;
+
+  /// Где файл лежал до удаления. Стёртое из корзины лежало в `.trash/` — показывается и
+  /// возвращается на прежнее место.
+  String get path => last.path.startsWith(_trash) ? last.path.substring(_trash.length) : last.path;
 }
+
+/// Корзина хранилища (`trashFolder`): удалённое в Stowa лежит там, пока корзину не очистят.
+const _trash = '.trash/';
+
+/// Папка вложений заметки — та же, что у раскладки хранилища (`attachmentsDir`).
+String _attachmentsOf(String notePath) => notePath.endsWith('.md') ? notePath.substring(0, notePath.length - 3) : notePath;
 
 /// Строка журнала правок: что и откуда поменялось. Содержимого в ней нет.
 class LogEntry {
@@ -208,22 +221,38 @@ class CloudHistory {
 
   Future<String> text(CloudVersion version) async => utf8.decode(await content(version), allowMalformed: true);
 
-  /// Удалённое, что можно вернуть, свежее первым. Переезды удалением не считаются, служебное
-  /// не показывается.
+  /// Удалённое, что можно вернуть, свежее первым. Переезды удалением не считаются (в корзину
+  /// Stowa заметка переезжает, и её там видно), служебное не показывается. Вложения из папки
+  /// удалённой заметки идут вместе с ней, отдельными строками их нет.
   Future<List<DeletedFile>> deleted() async {
-    final out = <DeletedFile>[];
+    final all = <DeletedFile>[];
     String? after;
     do {
       final page = await remote.deleted(after: after, limit: 200);
       for (final one in page.files) {
         final tomb = await _open(one.tomb);
         final last = await _open(one.last);
-        if (tomb == null || last == null || tomb.meta.to != null || !shownInHistory(last.meta.path)) continue;
-        out.add(DeletedFile(last: last.version, deletedAt: tomb.version.at, tomb: one.tomb.file, device: one.tomb.device));
+        if (tomb == null || last == null || tomb.meta.to != null) continue;
+        final path = last.meta.path;
+        if (!syncable(path) || path.startsWith('.stowa/') || path.startsWith('.obsidian/')) continue;
+        all.add(DeletedFile(last: last.version, deletedAt: tomb.version.at, tomb: one.tomb.file, device: one.tomb.device));
       }
       after = page.next;
     } while (after != null);
-    return out;
+    final notes = {for (final file in all) if (file.path.toLowerCase().endsWith('.md')) '${_attachmentsOf(file.path)}/': file};
+    final attached = <DeletedFile, List<DeletedFile>>{};
+    final out = <DeletedFile>[];
+    for (final file in all) {
+      final owner = notes.entries.where((note) => note.value != file && file.path.startsWith(note.key)).firstOrNull?.value;
+      if (owner != null) {
+        attached.putIfAbsent(owner, () => []).add(file);
+      } else {
+        out.add(file);
+      }
+    }
+    return [
+      for (final file in out) DeletedFile(last: file.last, deletedAt: file.deletedAt, tomb: file.tomb, device: file.device, attachments: attached[file] ?? const []),
+    ];
   }
 
   /// Журнал правок хранилища, свежее первым: страница и курсор следующей.
@@ -243,7 +272,7 @@ class CloudHistory {
   /// Стереть навсегда удалённый файл: историю его пути и всех прежних путей, если на них
   /// сейчас тоже ничего не живёт. Живой файл, занявший прежний путь, не трогается.
   Future<void> purge(DeletedFile file) async {
-    final ids = <String>{file.tomb};
+    final ids = <String>{file.tomb, for (final attachment in file.attachments) attachment.tomb};
     for (final version in await versions(file.last.path)) {
       ids.add(version.file);
     }

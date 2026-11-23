@@ -101,11 +101,24 @@ void main() {
     vault.files['Новое место.md'] = vault.files.remove('Переехала.md')!;
     await engine.sync();
     final deleted = await history.deleted();
-    expect({for (final file in deleted) file.last.path}, {'Ушла.md', 'Ушла/фото.jpg'});
-    final note = deleted.firstWhere((file) => file.last.path == 'Ушла.md');
+    // вложение из папки заметки — при ней, отдельной строки нет
+    expect([for (final file in deleted) file.path], ['Ушла.md']);
+    final note = deleted.single;
+    expect([for (final file in note.attachments) file.path], ['Ушла/фото.jpg']);
     expect(await history.text(note.last), 'прощай\n');
     expect(note.device, 'тест');
     expect(note.tomb, key.fileId('Ушла.md'));
+  });
+
+  test('удалённое в корзину — переезд, стёртое из корзины — под прежним именем', () async {
+    await save('Дела.md', '---\nid: n5\n---\nсписок\n');
+    await move('Дела.md', '.trash/Дела.md');
+    expect(await history.deleted(), isEmpty);
+    vault.files.remove('.trash/Дела.md');
+    await engine.sync();
+    final gone = (await history.deleted()).single;
+    expect(gone.path, 'Дела.md');
+    expect(gone.last.path, '.trash/Дела.md');
   });
 
   test('содержимое второй раз берётся из памяти', () async {

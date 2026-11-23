@@ -1178,5 +1178,14 @@
   "historyCloudHint": "Zmiany ze wszystkich urządzeń są na serwerze: przez miesiąc wszystkie, potem do roku ostatnia z każdego dnia.",
   "historyLoadFailed": "Nie udało się wczytać wersji",
   "historySessionOpen": "Pokaż zmiany",
-  "historySessionClose": "Ukryj zmiany"
+  "historySessionClose": "Ukryj zmiany",
+  "trashCloudTitle": "W chmurze",
+  "trashCloudHint": "Usunięte na dowolnym urządzeniu i wyczyszczone z kosza jest przechowywane rok. Wraca na swoje miejsce.",
+  "trashCloudDeleted": "Usunięto {date}",
+  "trashCloudAttachments": "{count, plural, one{{count} załącznik} few{{count} załączniki} many{{count} załączników} other{{count} załącznika}}",
+  "trashCloudPurgeAsk": "Usunąć „{name}” na zawsze? Plik i cała jego historia znikną z serwera i nie da się ich przywrócić.",
+  "trashCloudPurge": "Usuń na zawsze",
+  "trashCloudPurged": "Usunięto na zawsze",
+  "trashCloudFailed": "Nie udało się: serwer nie odpowiedział",
+  "trashCloudOffline": "Brak połączenia z serwerem: usuniętych plików w chmurze teraz nie widać"
 }

@@ -8866,6 +8866,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Hide edits'**
   String get historySessionClose;
+
+  /// Раздел корзины: удалённое, которое хранит сервер Stowa Sync
+  ///
+  /// In en, this message translates to:
+  /// **'In the cloud'**
+  String get trashCloudTitle;
+
+  /// Подсказка под заголовком раздела «В облаке»
+  ///
+  /// In en, this message translates to:
+  /// **'Anything deleted on any device or emptied from the trash is kept for a year. It comes back to where it was.'**
+  String get trashCloudHint;
+
+  /// Когда файл удалили: «Удалено 21 нояб.»
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {date}'**
+  String trashCloudDeleted(String date);
+
+  /// Сколько вложений вернётся вместе с удалённой заметкой
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} attachment} other{{count} attachments}}'**
+  String trashCloudAttachments(num count);
+
+  /// Вопрос перед стиранием удалённого файла с сервера навсегда
+  ///
+  /// In en, this message translates to:
+  /// **'Erase “{name}” forever? The file and all its history will leave the server, and you won\'t be able to restore it.'**
+  String trashCloudPurgeAsk(String name);
+
+  /// Кнопка: стереть удалённый файл и его историю с сервера
+  ///
+  /// In en, this message translates to:
+  /// **'Erase forever'**
+  String get trashCloudPurge;
+
+  /// Плашка после стирания с сервера
+  ///
+  /// In en, this message translates to:
+  /// **'Erased forever'**
+  String get trashCloudPurged;
+
+  /// Плашка, когда возврат или стирание из облака не удались
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work: the server didn\'t answer'**
+  String get trashCloudFailed;
+
+  /// Тихая строка в корзине, когда сервер не ответил
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the server: deleted files in the cloud aren\'t shown'**
+  String get trashCloudOffline;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

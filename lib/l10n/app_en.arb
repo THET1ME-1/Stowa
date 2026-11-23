@@ -6340,5 +6340,51 @@
   "historySessionClose": "Hide edits",
   "@historySessionClose": {
     "description": "Подсказка кнопки, сворачивающей правки сеанса"
+  },
+  "trashCloudTitle": "In the cloud",
+  "@trashCloudTitle": {
+    "description": "Раздел корзины: удалённое, которое хранит сервер Stowa Sync"
+  },
+  "trashCloudHint": "Anything deleted on any device or emptied from the trash is kept for a year. It comes back to where it was.",
+  "@trashCloudHint": {
+    "description": "Подсказка под заголовком раздела «В облаке»"
+  },
+  "trashCloudDeleted": "Deleted {date}",
+  "@trashCloudDeleted": {
+    "description": "Когда файл удалили: «Удалено 21 нояб.»",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trashCloudAttachments": "{count, plural, one{{count} attachment} other{{count} attachments}}",
+  "@trashCloudAttachments": {
+    "description": "Сколько вложений вернётся вместе с удалённой заметкой"
+  },
+  "trashCloudPurgeAsk": "Erase “{name}” forever? The file and all its history will leave the server, and you won't be able to restore it.",
+  "@trashCloudPurgeAsk": {
+    "description": "Вопрос перед стиранием удалённого файла с сервера навсегда",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashCloudPurge": "Erase forever",
+  "@trashCloudPurge": {
+    "description": "Кнопка: стереть удалённый файл и его историю с сервера"
+  },
+  "trashCloudPurged": "Erased forever",
+  "@trashCloudPurged": {
+    "description": "Плашка после стирания с сервера"
+  },
+  "trashCloudFailed": "That didn't work: the server didn't answer",
+  "@trashCloudFailed": {
+    "description": "Плашка, когда возврат или стирание из облака не удались"
+  },
+  "trashCloudOffline": "Can't reach the server: deleted files in the cloud aren't shown",
+  "@trashCloudOffline": {
+    "description": "Тихая строка в корзине, когда сервер не ответил"
   }
 }

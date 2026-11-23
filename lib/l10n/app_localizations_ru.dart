@@ -5268,4 +5268,47 @@ class LRu extends L {
 
   @override
   String get historySessionClose => 'Скрыть правки';
+
+  @override
+  String get trashCloudTitle => 'В облаке';
+
+  @override
+  String get trashCloudHint =>
+      'Удалённое на любом устройстве и стёртое из корзины хранится год. Вернётся на прежнее место.';
+
+  @override
+  String trashCloudDeleted(String date) {
+    return 'Удалено $date';
+  }
+
+  @override
+  String trashCloudAttachments(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вложения',
+      many: '$count вложений',
+      few: '$count вложения',
+      one: '$count вложение',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashCloudPurgeAsk(String name) {
+    return 'Стереть «$name» навсегда? Файл и вся его история уйдут с сервера, вернуть будет нельзя.';
+  }
+
+  @override
+  String get trashCloudPurge => 'Стереть навсегда';
+
+  @override
+  String get trashCloudPurged => 'Стёрто навсегда';
+
+  @override
+  String get trashCloudFailed => 'Не получилось: сервер не ответил';
+
+  @override
+  String get trashCloudOffline =>
+      'Нет связи с сервером: удалённое в облаке сейчас не видно';
 }

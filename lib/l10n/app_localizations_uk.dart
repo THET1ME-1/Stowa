@@ -5254,4 +5254,47 @@ class LUk extends L {
 
   @override
   String get historySessionClose => 'Сховати правки';
+
+  @override
+  String get trashCloudTitle => 'У хмарі';
+
+  @override
+  String get trashCloudHint =>
+      'Видалене на будь-якому пристрої й стерте з кошика зберігається рік. Повернеться на попереднє місце.';
+
+  @override
+  String trashCloudDeleted(String date) {
+    return 'Видалено $date';
+  }
+
+  @override
+  String trashCloudAttachments(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вкладення',
+      many: '$count вкладень',
+      few: '$count вкладення',
+      one: '$count вкладення',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashCloudPurgeAsk(String name) {
+    return 'Стерти «$name» назавжди? Файл і вся його історія зникнуть із сервера, повернути буде неможливо.';
+  }
+
+  @override
+  String get trashCloudPurge => 'Стерти назавжди';
+
+  @override
+  String get trashCloudPurged => 'Стерто назавжди';
+
+  @override
+  String get trashCloudFailed => 'Не вийшло: сервер не відповів';
+
+  @override
+  String get trashCloudOffline =>
+      'Немає зв\'язку із сервером: видалене в хмарі зараз не видно';
 }

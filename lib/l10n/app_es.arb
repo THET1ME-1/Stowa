@@ -1178,5 +1178,14 @@
   "historyCloudHint": "Los cambios de todos los dispositivos se guardan en el servidor: todos durante un mes y luego el último de cada día durante un año.",
   "historyLoadFailed": "No se pudo cargar la versión",
   "historySessionOpen": "Mostrar cambios",
-  "historySessionClose": "Ocultar cambios"
+  "historySessionClose": "Ocultar cambios",
+  "trashCloudTitle": "En la nube",
+  "trashCloudHint": "Lo borrado en cualquier dispositivo o vaciado de la papelera se guarda un año. Vuelve a su sitio.",
+  "trashCloudDeleted": "Borrado {date}",
+  "trashCloudAttachments": "{count, plural, one{{count} adjunto} other{{count} adjuntos}}",
+  "trashCloudPurgeAsk": "¿Borrar «{name}» para siempre? El archivo y todo su historial se irán del servidor y no se podrá recuperar.",
+  "trashCloudPurge": "Borrar para siempre",
+  "trashCloudPurged": "Borrado para siempre",
+  "trashCloudFailed": "No funcionó: el servidor no respondió",
+  "trashCloudOffline": "Sin conexión con el servidor: ahora no se ve lo borrado en la nube"
 }

@@ -5,11 +5,13 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/database.dart';
 import '../../data/settings_repository.dart' show KeyStore;
 import '../../domain/vault_note.dart';
+import '../vault/vault_layout.dart' show attachmentsDir, uniqueNotePath;
 import '../vault/vault_reader.dart';
 import 'cloud_history.dart';
 import 'key_lock.dart';
@@ -287,18 +289,35 @@ class SyncService {
     return old;
   }
 
-  /// Положить версию из облака в хранилище по пути [path], если он свободен: возврат удалённого.
-  /// Файл качается частями во временный и встаёт на место под арендой сверки; дальше его
-  /// забирает обычная сверка, как файл снаружи. false — путь занят или хранилища нет.
-  Future<bool> placeVersion(CloudHistory history, CloudVersion version, String path) async {
+  /// Вернуть удалённое: файл ложится на прежнее место, занято — рядом, «План 2.md». Заметка
+  /// возвращается со своими вложениями, они ложатся первыми: сверка, читая заметку, их уже
+  /// видит. Файл качается частями во временный и встаёт под арендой сверки, только если путь
+  /// всё ещё свободен. Отдаёт путь вернувшегося файла; null — хранилища нет или путь заняли.
+  Future<String?> restoreDeleted(CloudHistory history, DeletedFile file) async {
     final root = _root;
-    if (root == null) return false;
+    if (root == null) return null;
     final files = DiskSyncFiles(root);
-    if (await files.stat(path) != null) return false;
-    final staged = await files.stage(path, history.parts(version));
-    final placed = await _reader.exclusively(() => files.place(staged, path));
-    if (placed) unawaited(trigger?.call());
-    return placed;
+    final taken = {for (final one in await files.list()) one.path.toLowerCase()};
+    String free(String wanted) {
+      final path = uniqueNotePath(wanted, (candidate) => taken.contains(candidate.toLowerCase()));
+      taken.add(path.toLowerCase());
+      return path;
+    }
+
+    Future<bool> place(CloudVersion version, String path) async {
+      final staged = await files.stage(path, history.parts(version));
+      return _reader.exclusively(() => files.place(staged, path));
+    }
+
+    final target = free(file.path);
+    final from = '${attachmentsDir(file.path)}/';
+    for (final attachment in file.attachments) {
+      final inside = attachment.path.startsWith(from) ? attachment.path.substring(from.length) : p.posix.basename(attachment.path);
+      await place(attachment.last, free('${attachmentsDir(target)}/$inside'));
+    }
+    if (!await place(file.last, target)) return null;
+    unawaited(trigger?.call());
+    return target;
   }
 
   /// Подписка появилась: снять запрет, сразу пройти и, если приложение на экране, ждать правок
