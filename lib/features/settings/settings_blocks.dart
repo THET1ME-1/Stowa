@@ -165,11 +165,14 @@ class _RowText extends StatelessWidget {
 
 /// Строка-переход: значок, название, значение подписью, стрелка.
 class SettingsRow extends StatelessWidget {
-  const SettingsRow({super.key, required this.icon, required this.title, this.value, required this.onTap});
+  const SettingsRow({super.key, required this.icon, required this.title, this.value, required this.onTap, this.leading});
 
   final String icon;
   final String title;
   final String? value;
+
+  /// Своё слева вместо круглого значка [icon], того же размера 44.
+  final Widget? leading;
 
   /// null — строка только показывает значение: без касания и без стрелки.
   final VoidCallback? onTap;
@@ -184,7 +187,7 @@ class SettingsRow extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
           child: Row(
             children: [
-              SettingsIconChip(icon),
+              leading ?? SettingsIconChip(icon),
               const SizedBox(width: 16),
               Expanded(child: _RowText(title: title, value: value)),
               const SizedBox(width: 8),

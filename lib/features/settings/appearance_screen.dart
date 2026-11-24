@@ -10,9 +10,11 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/color_picker_sheet.dart';
 import '../../core/widgets/pressable.dart';
 import '../../data/providers.dart';
+import '../../data/repositories/folders_repository.dart';
 import '../../domain/appearance.dart';
 import '../../l10n/app_localizations.dart';
 import '../workspace/workspace_shell.dart' show workspaceFrom;
+import 'folder_looks_screen.dart';
 import 'settings_blocks.dart';
 
 Route<void> appearanceRoute() => MaterialPageRoute(builder: (_) => const AppearanceScreen());
@@ -57,6 +59,7 @@ class AppearanceScreen extends ConsumerWidget {
     final appearance = ref.watch(appearanceProvider).value ?? const Appearance();
     final wallpaperAvailable = ref.watch(wallpaperProvider).value != null;
     final usesWallpaper = appearance.wallpaper && wallpaperAvailable;
+    final folders = inTreeOrder(ref.watch(foldersProvider).value ?? const <FolderCard>[]);
     Future<void> save(Appearance value) {
       HapticFeedback.selectionClick();
       return ref.read(settingsRepositoryProvider).setAppearance(value);
@@ -177,6 +180,23 @@ class AppearanceScreen extends ConsumerWidget {
                 ],
               ),
             ],
+            // название и вид любой папки отсюда, не заходя в неё; «⋮» в папке открывает то же
+            if (folders.isNotEmpty) ...[
+              SettingsSection(l.foldersTab),
+              SettingsGroup(
+                tint: settingsTint('rose'),
+                children: [
+                  SettingsRow(
+                    key: const ValueKey('appearance-folders'),
+                    icon: 'folder',
+                    leading: _FolderColors([for (final folder in folders) folder.color]),
+                    title: l.folderEdit,
+                    value: l.foldersCount(folders.length),
+                    onTap: () => Navigator.of(context).push(settingsPageRoute<void>(const FolderLooksScreen())),
+                  ),
+                ],
+              ),
+            ],
             // вкладки есть только у рабочего пространства широкого окна: на телефоне выбирать нечего
             if (MediaQuery.sizeOf(context).width >= workspaceFrom) ...[
               SettingsSection(l.tabsSection),
@@ -211,6 +231,45 @@ class AppearanceScreen extends ConsumerWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Цвета первых трёх папок кружками внахлёст, как «+N» на полке главной: видно, о чём строка.
+class _FolderColors extends StatelessWidget {
+  const _FolderColors(this.colors);
+
+  final List<Color> colors;
+
+  static const _dot = 24.0;
+  static const _step = 10.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final dots = colors.take(3).toList();
+    return SizedBox(
+      width: 44,
+      height: 44,
+      child: Center(
+        child: SizedBox(
+          width: _dot + _step * (dots.length - 1),
+          height: _dot,
+          child: Stack(
+            children: [
+              // кружок обведён цветом строки: внахлёст они не сливаются
+              for (final (index, color) in dots.indexed)
+                Positioned(
+                  left: _step * index,
+                  child: Container(
+                    width: _dot,
+                    height: _dot,
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: Tokens.containerHigh, width: 2)),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

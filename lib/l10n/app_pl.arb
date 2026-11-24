@@ -1203,5 +1203,7 @@
   "aiKeyProvider": "Dostawca: {name}",
   "aiProviderCustom": "Własny adres",
   "aiProviderCustomHint": "Dowolne API zgodne z OpenAI",
-  "aiSpeechUnavailable": "Ten dostawca jej nie ma"
+  "aiSpeechUnavailable": "Ten dostawca jej nie ma",
+  "folderLooksHint": "Dotknij folderu, aby zmienić jego nazwę, kolor, kształt i ikonę.",
+  "foldersTab": "Foldery"
 }

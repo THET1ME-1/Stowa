@@ -9016,6 +9016,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Not offered by this provider'**
   String get aiSpeechUnavailable;
+
+  /// Пояснение над списком папок в «Настройки → Оформление → Папки»
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a folder to change its name, color, shape and icon.'**
+  String get folderLooksHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

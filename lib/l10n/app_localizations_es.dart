@@ -671,7 +671,7 @@ class LEs extends L {
   String get tagsTab => 'Tags';
 
   @override
-  String get foldersTab => 'Folders';
+  String get foldersTab => 'Carpetas';
 
   @override
   String get tagsPinned => 'On the home screen';
@@ -5304,4 +5304,8 @@ class LEs extends L {
 
   @override
   String get aiSpeechUnavailable => 'Este proveedor no la ofrece';
+
+  @override
+  String get folderLooksHint =>
+      'Toca una carpeta para cambiar su nombre, color, forma e icono.';
 }

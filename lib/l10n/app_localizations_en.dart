@@ -5286,4 +5286,8 @@ class LEn extends L {
 
   @override
   String get aiSpeechUnavailable => 'Not offered by this provider';
+
+  @override
+  String get folderLooksHint =>
+      'Tap a folder to change its name, color, shape and icon.';
 }

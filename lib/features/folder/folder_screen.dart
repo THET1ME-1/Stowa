@@ -242,10 +242,7 @@ class _FolderScreenState extends ConsumerState<FolderScreen> {
       case FolderAction.move:
         await _moveFolder(folder);
       case FolderAction.edit:
-        final look = await Navigator.of(context).push(folderLookRoute(folder));
-        if (look == null) return;
-        if (look.name.trim().isNotEmpty && look.name.trim() != folder.name) await repository.rename(folder.id, look.name.trim());
-        await repository.setLook(folder.id, icon: look.icon, shape: look.shape, color: look.color);
+        await editFolderLook(context, repository, folder);
       case FolderAction.delete:
         final l = L.of(context);
         final messenger = ScaffoldMessenger.of(context);

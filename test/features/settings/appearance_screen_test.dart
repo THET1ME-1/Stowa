@@ -1,8 +1,10 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stowa/core/theme/palette.dart';
 import 'package:stowa/core/theme/tokens.dart';
+import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/settings_repository.dart';
 import 'package:stowa/domain/appearance.dart';
 
@@ -104,6 +106,66 @@ void main() {
     expect(settings.appearance.wallpaper, isTrue);
     expect(Tokens.accent, world.wallpaper!.dark.primary);
     expect(find.byKey(const ValueKey('seed-0')), findsNothing);
+  });
+
+  Future<void> addFolder(String id, String name, {String? parentId}) =>
+      world.db.into(world.db.folders).insert(FoldersCompanion.insert(id: id, name: name, icon: 'restaurant', shape: 'cookie9', parentId: Value(parentId)));
+
+  Future<void> openFolders(WidgetTester tester, {Size size = const Size(400, 880), double textScale = 1}) async {
+    await open(tester, size: size, textScale: textScale);
+    final row = find.byKey(const ValueKey('appearance-folders'));
+    await tester.scrollUntilVisible(row, 200, scrollable: find.byType(Scrollable).first);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('папки: название и вид меняются прямо из оформления, не заходя в папку', (tester) async {
+    await addFolder('food', 'Рецепты');
+    await addFolder('soup', 'Супы', parentId: 'food');
+    await open(tester);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('appearance-folders')), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('2 папки'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('appearance-folders')));
+    await tester.pumpAndSettle();
+
+    // все папки деревом: вложенная под своей, путь родителей под именем
+    expect(find.byKey(const ValueKey('folder-looks')), findsOneWidget);
+    expect(find.text('Супы'), findsOneWidget);
+    expect(tester.getTopLeft(find.byKey(const ValueKey('folder-look-soup'))).dy, greaterThan(tester.getTopLeft(find.byKey(const ValueKey('folder-look-food'))).dy));
+
+    // тот же экран «Название и вид», что открывает «⋮» в самой папке
+    await tester.tap(find.byKey(const ValueKey('folder-look-soup')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('folder-look')), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('folder-name-field')), 'супчики');
+    await tester.tap(find.byKey(const ValueKey('color-mint')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    // назад к списку, папка уже новая
+    expect(find.byKey(const ValueKey('folder-looks')), findsOneWidget);
+    expect(find.text('Супчики'), findsOneWidget);
+    final soup = await (world.db.select(world.db.folders)..where((t) => t.id.equals('soup'))).getSingle();
+    expect(soup.name, 'Супчики');
+    expect(soup.color, 'mint');
+  });
+
+  testWidgets('без папок строки «Папки» в оформлении нет', (tester) async {
+    await open(tester);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    expect(find.text('Чёрный фон'), findsOneWidget);
+    expect(find.byKey(const ValueKey('appearance-folders')), findsNothing);
+  });
+
+  testWidgets('папки на 320 точках с крупным шрифтом: длинные имя и путь влезают', (tester) async {
+    await addFolder('a', 'Очень длинное название верхней папки для проверки');
+    await addFolder('b', 'Вложенная папка с не менее длинным названием', parentId: 'a');
+    await addFolder('c', 'Третий уровень вложенности с длинным именем', parentId: 'b');
+    await openFolders(tester, size: const Size(320, 700), textScale: 1.3);
+    expect(find.byKey(const ValueKey('folder-look-c')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   for (final light in [false, true]) {

@@ -671,7 +671,7 @@ class LUk extends L {
   String get tagsTab => 'Tags';
 
   @override
-  String get foldersTab => 'Folders';
+  String get foldersTab => 'Папки';
 
   @override
   String get tagsPinned => 'On the home screen';
@@ -5356,4 +5356,8 @@ class LUk extends L {
 
   @override
   String get aiSpeechUnavailable => 'Немає в цього постачальника';
+
+  @override
+  String get folderLooksHint =>
+      'Торкнися папки, щоб змінити її назву, колір, форму й іконку.';
 }

@@ -1484,5 +1484,6 @@
   "aiKeyProvider": "Поставщик: {name}",
   "aiProviderCustom": "Свой адрес",
   "aiProviderCustomHint": "Любой API, совместимый с OpenAI",
-  "aiSpeechUnavailable": "Нет у этого поставщика"
+  "aiSpeechUnavailable": "Нет у этого поставщика",
+  "folderLooksHint": "Коснись папки, чтобы поменять её название, цвет, форму и иконку."
 }

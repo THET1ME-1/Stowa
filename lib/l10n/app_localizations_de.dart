@@ -673,7 +673,7 @@ class LDe extends L {
   String get tagsTab => 'Tags';
 
   @override
-  String get foldersTab => 'Folders';
+  String get foldersTab => 'Ordner';
 
   @override
   String get tagsPinned => 'On the home screen';
@@ -5324,4 +5324,8 @@ class LDe extends L {
 
   @override
   String get aiSpeechUnavailable => 'Bei diesem Anbieter nicht verfügbar';
+
+  @override
+  String get folderLooksHint =>
+      'Tippe auf einen Ordner, um Namen, Farbe, Form und Symbol zu ändern.';
 }

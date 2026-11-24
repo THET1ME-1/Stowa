@@ -1203,5 +1203,7 @@
   "aiKeyProvider": "Proveedor: {name}",
   "aiProviderCustom": "Dirección propia",
   "aiProviderCustomHint": "Cualquier API compatible con OpenAI",
-  "aiSpeechUnavailable": "Este proveedor no la ofrece"
+  "aiSpeechUnavailable": "Este proveedor no la ofrece",
+  "folderLooksHint": "Toca una carpeta para cambiar su nombre, color, forma e icono.",
+  "foldersTab": "Carpetas"
 }

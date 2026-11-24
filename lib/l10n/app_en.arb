@@ -6475,5 +6475,9 @@
   "aiSpeechUnavailable": "Not offered by this provider",
   "@aiSpeechUnavailable": {
     "description": "Voice transcription row when the provider has no transcription"
+  },
+  "folderLooksHint": "Tap a folder to change its name, color, shape and icon.",
+  "@folderLooksHint": {
+    "description": "Пояснение над списком папок в «Настройки → Оформление → Папки»"
   }
 }

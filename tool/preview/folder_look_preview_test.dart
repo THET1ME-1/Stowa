@@ -8,9 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:path/path.dart' as p;
+import 'package:stowa/data/db/database.dart';
 import 'package:stowa/data/repositories/folders_repository.dart';
 import 'package:stowa/features/folder/folder_look_screen.dart';
+import 'package:stowa/features/settings/appearance_screen.dart';
 
 import '../../test/helpers/test_app.dart';
 
@@ -68,4 +71,32 @@ void main() {
     await open(tester, const Size(1000, 700));
     await _shot(tester, 'look-4-планшет');
   });
+
+  // «Настройки → Оформление → Папки»: строка внизу оформления и список папок
+  for (final (name, size) in [('телефон', const Size(392, 850)), ('узкий', const Size(320, 680))]) {
+    testWidgets('оформление и папки, $name', (tester) async {
+      final world = TestWorld();
+      addTearDown(world.dispose);
+      final db = world.db;
+      for (final (index, (id, title, icon, shape, color, parent)) in [
+        ('work', 'Работа', 'laptop_mac', 'squircle', 'blue', null),
+        ('food', 'Рецепты', 'restaurant', 'cookie9', 'tangerine', null),
+        ('soup', 'Супы и всё, что варится в большой кастрюле', 'soup_kitchen', 'gem', 'amber', 'food'),
+        ('ideas', 'Идеи', 'lightbulb', 'cookie6', null, null),
+        ('study', 'Учёба', 'school', 'pill', 'violet', null),
+      ].indexed) {
+        await db.into(db.folders).insert(FoldersCompanion.insert(id: id, name: title, icon: icon, shape: shape, color: Value(color), parentId: Value(parent), sortOrder: Value(index)));
+      }
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = size;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(RepaintBoundary(key: const ValueKey('shot'), child: world.wrap(const AppearanceScreen())));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+      await _shot(tester, 'look-5-оформление-$name');
+      await tester.tap(find.byKey(const ValueKey('appearance-folders')));
+      await tester.pumpAndSettle();
+      await _shot(tester, 'look-6-папки-$name');
+    });
+  }
 }

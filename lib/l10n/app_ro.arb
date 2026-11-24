@@ -1203,5 +1203,7 @@
   "aiKeyProvider": "Furnizor: {name}",
   "aiProviderCustom": "Adresă proprie",
   "aiProviderCustomHint": "Orice API compatibil cu OpenAI",
-  "aiSpeechUnavailable": "Furnizorul nu o oferă"
+  "aiSpeechUnavailable": "Furnizorul nu o oferă",
+  "folderLooksHint": "Atinge un dosar ca să-i schimbi numele, culoarea, forma și pictograma.",
+  "foldersTab": "Dosare"
 }

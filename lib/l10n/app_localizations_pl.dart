@@ -671,7 +671,7 @@ class LPl extends L {
   String get tagsTab => 'Tags';
 
   @override
-  String get foldersTab => 'Folders';
+  String get foldersTab => 'Foldery';
 
   @override
   String get tagsPinned => 'On the home screen';
@@ -5366,4 +5366,8 @@ class LPl extends L {
 
   @override
   String get aiSpeechUnavailable => 'Ten dostawca jej nie ma';
+
+  @override
+  String get folderLooksHint =>
+      'Dotknij folderu, aby zmienić jego nazwę, kolor, kształt i ikonę.';
 }

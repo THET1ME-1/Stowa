@@ -1203,5 +1203,7 @@
   "aiKeyProvider": "Постачальник: {name}",
   "aiProviderCustom": "Своя адреса",
   "aiProviderCustomHint": "Будь-який API, сумісний з OpenAI",
-  "aiSpeechUnavailable": "Немає в цього постачальника"
+  "aiSpeechUnavailable": "Немає в цього постачальника",
+  "folderLooksHint": "Торкнися папки, щоб змінити її назву, колір, форму й іконку.",
+  "foldersTab": "Папки"
 }

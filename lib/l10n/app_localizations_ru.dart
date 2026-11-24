@@ -5371,4 +5371,8 @@ class LRu extends L {
 
   @override
   String get aiSpeechUnavailable => 'Нет у этого поставщика';
+
+  @override
+  String get folderLooksHint =>
+      'Коснись папки, чтобы поменять её название, цвет, форму и иконку.';
 }

@@ -1203,5 +1203,7 @@
   "aiKeyProvider": "Anbieter: {name}",
   "aiProviderCustom": "Eigene Adresse",
   "aiProviderCustomHint": "Jede OpenAI-kompatible API",
-  "aiSpeechUnavailable": "Bei diesem Anbieter nicht verfügbar"
+  "aiSpeechUnavailable": "Bei diesem Anbieter nicht verfügbar",
+  "folderLooksHint": "Tippe auf einen Ordner, um Namen, Farbe, Form und Symbol zu ändern.",
+  "foldersTab": "Ordner"
 }

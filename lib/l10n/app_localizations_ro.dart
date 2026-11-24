@@ -672,7 +672,7 @@ class LRo extends L {
   String get tagsTab => 'Tags';
 
   @override
-  String get foldersTab => 'Folders';
+  String get foldersTab => 'Dosare';
 
   @override
   String get tagsPinned => 'On the home screen';
@@ -5335,4 +5335,8 @@ class LRo extends L {
 
   @override
   String get aiSpeechUnavailable => 'Furnizorul nu o oferă';
+
+  @override
+  String get folderLooksHint =>
+      'Atinge un dosar ca să-i schimbi numele, culoarea, forma și pictograma.';
 }

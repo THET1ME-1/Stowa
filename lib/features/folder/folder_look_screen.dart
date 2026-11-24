@@ -21,6 +21,16 @@ typedef FolderLook = ({String name, String icon, String shape, String? color});
 /// Экран «Цвет и значок» вырастает из нажатой кнопки и отдаёт выбранное или null.
 Route<FolderLook> folderLookRoute(FolderCard folder) => MaterialPageRoute(builder: (_) => FolderLookScreen(folder: folder));
 
+/// «Название и вид» целиком: экран выбора и запись выбранного. Его зовут «⋮» самой папки
+/// и «Настройки → Оформление → Папки», поэтому оба входа меняют папку одинаково.
+Future<void> editFolderLook(BuildContext context, FoldersRepository repository, FolderCard folder) async {
+  final look = await Navigator.of(context).push(folderLookRoute(folder));
+  if (look == null) return;
+  final name = look.name.trim();
+  if (name.isNotEmpty && name != folder.name) await repository.rename(folder.id, name);
+  await repository.setLook(folder.id, icon: look.icon, shape: look.shape, color: look.color);
+}
+
 // весь набор один раз: тысячи имён не пересобираются на каждый кадр;
 // «10k», «4g» и прочие цифры уходят в конец, иначе набор начинается с них
 final List<String> _allIcons = [
