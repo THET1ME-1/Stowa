@@ -17,6 +17,7 @@ import '../../domain/json_canvas.dart' show CanvasDoc;
 import '../../domain/models.dart' show ItemKind, documentExtension, isDocumentKind;
 import 'vault_layout.dart';
 import 'vault_meta.dart';
+import 'vault_reader.dart' show VaultReader;
 
 /// Переносит правки из базы в файлы хранилища. Очередь `vault_queue` ставят
 /// триггеры базы; писатель забирает задачу арендой, как хранитель файлов, поэтому
@@ -92,6 +93,7 @@ class VaultWriter {
     sawExternalEdit = false;
     var done = 0;
     var postponed = false;
+    var scanning = false;
     try {
       do {
         _again = false;
@@ -108,6 +110,13 @@ class VaultWriter {
             continue;
           }
           if (!await _claim(task)) continue;
+          // идёт сверка папки: заметка пишется после неё. Запись посреди сверки та принимала
+          // за правку снаружи, и заметка двоилась «(Stowa)»
+          if (_order(task.target) == 0 && await VaultReader.scanning(_db, _root, now: _clock())) {
+            await (_db.update(_db.vaultQueue)..where((t) => t.target.equals(task.target) & t.version.equals(task.version))).write(const VaultQueueCompanion(claimedUntil: Value(null)));
+            scanning = true;
+            break;
+          }
           try {
             await _run(task.target);
           } on _ExternalEdit {
@@ -124,8 +133,13 @@ class VaultWriter {
           await (_db.delete(_db.vaultQueue)..where((t) => t.target.equals(task.target) & t.version.equals(task.version))).go();
           done++;
         }
+        if (scanning) break;
       } while (_again);
-      if (postponed) {
+      if (scanning) {
+        // сверка закончится сама: заглядывать, пока метка не снята
+        _retry?.cancel();
+        _retry = Timer(const Duration(milliseconds: 300), () => drain().ignore());
+      } else if (postponed) {
         // человек занят: вернёмся к отложенному, когда он отпустит клавиши
         _retry?.cancel();
         _retry = Timer(_gate.hold, () => drain().ignore());

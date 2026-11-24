@@ -99,12 +99,39 @@ class VaultReader {
       _owner = owner;
       _renewed.reset();
       _renewed.start();
+      await _writersDone();
       return await work();
     } finally {
       _owner = null;
       await _db.customUpdate('DELETE FROM vault_flags WHERE name = ? AND value LIKE ?', variables: [Variable.withString(_flag), Variable.withString('%|$owner')], updates: {_db.vaultFlags});
       finished.complete();
     }
+  }
+
+  /// Писатель любого окна приложения пишет заметку прямо сейчас (держит её задачу): сверка
+  /// ждёт, пока он допишет файл и карту файлов. Иначе своя запись выглядела правкой снаружи
+  /// при незаписанной правке в базе, и заметка двоилась «(Stowa)» (24.11.2026, быстрый ИИ
+  /// раскладывал заметку посреди сверки). Новых задач писатель, пока стоит метка, не берёт.
+  /// Ждём не дольше аренды задачи: оборванный писатель её не продлит.
+  Future<void> _writersDone() async {
+    final until = DateTime.now().add(const Duration(seconds: 16));
+    while (DateTime.now().isBefore(until)) {
+      final now = _clock().millisecondsSinceEpoch;
+      final busy = await (_db.selectOnly(_db.vaultQueue)
+            ..addColumns([_db.vaultQueue.target])
+            ..where(_db.vaultQueue.target.like('item:%') & _db.vaultQueue.claimedUntil.isBiggerThanValue(now))
+            ..limit(1))
+          .getSingleOrNull();
+      if (busy == null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+  }
+
+  /// Идёт ли сейчас сверка этой папки в каком-нибудь окне приложения: живая метка `reading`.
+  static Future<bool> scanning(AppDatabase db, Directory root, {required DateTime now}) async {
+    final row = await (db.select(db.vaultFlags)..where((t) => t.name.equals('reading:${root.path}'))).getSingleOrNull();
+    final expires = int.tryParse(row?.value?.split('|').first ?? '');
+    return expires != null && expires >= now.millisecondsSinceEpoch;
   }
 
   /// Хвосты очередей сверок этого движка: своя у каждой базы и папки хранилища.
