@@ -1205,5 +1205,7 @@
   "aiProviderCustomHint": "Jede OpenAI-kompatible API",
   "aiSpeechUnavailable": "Bei diesem Anbieter nicht verfügbar",
   "folderLooksHint": "Tippe auf einen Ordner, um Namen, Farbe, Form und Symbol zu ändern.",
-  "foldersTab": "Ordner"
+  "foldersTab": "Ordner",
+  "aiStatePaused": "Pausiert",
+  "aiDisabledHint": "Der Schlüssel bleibt gespeichert, Notizen werden ohne KI sortiert."
 }

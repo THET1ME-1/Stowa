@@ -508,7 +508,7 @@ class _Feed extends ConsumerWidget {
             ),
           ),
         ),
-        if (ref.watch(aiSettingsProvider).value case final ai? when ai.paused)
+        if (ref.watch(aiSettingsProvider).value case final ai? when ai.stalled)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(Space.screen, 0, Space.screen, 16),

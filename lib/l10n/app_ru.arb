@@ -1485,5 +1485,7 @@
   "aiProviderCustom": "Свой адрес",
   "aiProviderCustomHint": "Любой API, совместимый с OpenAI",
   "aiSpeechUnavailable": "Нет у этого поставщика",
-  "folderLooksHint": "Коснись папки, чтобы поменять её название, цвет, форму и иконку."
+  "folderLooksHint": "Коснись папки, чтобы поменять её название, цвет, форму и иконку.",
+  "aiStatePaused": "На паузе",
+  "aiDisabledHint": "Ключ сохранён, заметки раскладываются без ИИ."
 }

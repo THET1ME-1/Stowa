@@ -351,6 +351,32 @@ void main() {
     });
   });
 
+  test('выключенный разбор не зовёт модель, задачи ждут включения', () async {
+    reply = (_) => answer({'folder_id': 'food'});
+    await add('a');
+    await settings.setAiEnabled(false);
+    await worker().drain();
+    expect(calls, 0);
+    expect(await db.select(db.aiJobs).get(), hasLength(1));
+
+    await settings.setAiEnabled(true);
+    await worker().drain();
+    expect(calls, 1);
+    expect(await db.select(db.aiJobs).get(), isEmpty);
+  });
+
+  test('выключили посреди прохода — следующая заметка модели уже не уходит', () async {
+    reply = (_) {
+      // человек выключил разбор, пока модель отвечала на первую заметку
+      settings.setAiEnabled(false);
+      return answer({'folder_id': 'food'});
+    };
+    await add('a');
+    await add('b');
+    await worker().runOnce();
+    expect(calls, 1);
+  });
+
   test('без ключа очередь не идёт вовсе', () async {
     await settings.saveKey(null);
     reply = (_) => answer({});

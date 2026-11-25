@@ -1205,5 +1205,7 @@
   "aiProviderCustomHint": "Dowolne API zgodne z OpenAI",
   "aiSpeechUnavailable": "Ten dostawca jej nie ma",
   "folderLooksHint": "Dotknij folderu, aby zmienić jego nazwę, kolor, kształt i ikonę.",
-  "foldersTab": "Foldery"
+  "foldersTab": "Foldery",
+  "aiStatePaused": "Wstrzymany",
+  "aiDisabledHint": "Klucz zostaje zapisany, notatki są układane bez AI."
 }

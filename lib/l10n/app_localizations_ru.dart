@@ -5375,4 +5375,10 @@ class LRu extends L {
   @override
   String get folderLooksHint =>
       'Коснись папки, чтобы поменять её название, цвет, форму и иконку.';
+
+  @override
+  String get aiStatePaused => 'На паузе';
+
+  @override
+  String get aiDisabledHint => 'Ключ сохранён, заметки раскладываются без ИИ.';
 }

@@ -419,7 +419,7 @@ final titleByShotProvider = Provider<bool Function()>((ref) {
 /// ИИ в приоритете: сохранение читает выбор при каждой заметке, тесты подменяют.
 final aiFirstProvider = Provider<bool Function()>((ref) {
   final settings = ref.watch(settingsRepositoryProvider);
-  return () => settings.ai.aiFirst;
+  return () => settings.ai.checkGuesses;
 });
 
 final workEndProvider = Provider<int Function()>((ref) {

@@ -210,7 +210,7 @@ void backgroundDispatcher() {
         filesRoot: filesRoot,
         clock: DateTime.now,
         files: FileKeeper(db, filesRoot: filesRoot, movable: ownTemporaryFolders(scratch), clock: DateTime.now, runner: 'background'),
-        aiFirst: () => settings.ai.aiFirst,
+        aiFirst: () => settings.ai.checkGuesses,
       );
       await TelegramService(capture: capture, prefs: prefs, tokens: const SecureKeyStore('tg_token'), http: client, inbox: Directory(p.join(scratch.path, 'telegram_inbox')))
           .pull()

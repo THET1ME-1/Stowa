@@ -9022,6 +9022,18 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Tap a folder to change its name, color, shape and icon.'**
   String get folderLooksHint;
+
+  /// Надпись на главном выключателе разбора ИИ, когда поставщик не принял ключ или кончились деньги
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get aiStatePaused;
+
+  /// Пояснение под выключенным разбором ИИ, когда ключ есть
+  ///
+  /// In en, this message translates to:
+  /// **'Your key is kept, notes are sorted without AI.'**
+  String get aiDisabledHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

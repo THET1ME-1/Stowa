@@ -5308,4 +5308,11 @@ class LEs extends L {
   @override
   String get folderLooksHint =>
       'Toca una carpeta para cambiar su nombre, color, forma e icono.';
+
+  @override
+  String get aiStatePaused => 'En pausa';
+
+  @override
+  String get aiDisabledHint =>
+      'La clave sigue guardada, las notas se ordenan sin IA.';
 }

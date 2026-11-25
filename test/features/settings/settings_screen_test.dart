@@ -114,6 +114,57 @@ void main() {
     expect(find.textContaining('заметки без папки разложатся сами'), findsOneWidget);
   });
 
+  testWidgets('выключатель разбора: ключ остаётся, разбор встаёт и включается обратно', (tester) async {
+    await settings.saveKey('sk-ant-good');
+    await openSection(tester, 'Разбор ИИ');
+    expect(find.text('Работает'), findsOneWidget);
+    expect(tester.widget<Switch>(find.descendant(of: find.byKey(const ValueKey('ai-switch')), matching: find.byType(Switch))).value, isTrue);
+
+    await tester.tap(find.byKey(const ValueKey('ai-switch')));
+    await tester.pumpAndSettle();
+    expect(settings.ai.enabled, isFalse);
+    expect(settings.ai.active, isFalse);
+    expect(find.text('Выключен'), findsOneWidget);
+    expect(find.text('Ключ сохранён, заметки раскладываются без ИИ.'), findsOneWidget);
+    // ключ на месте: строка ключа так и говорит «Задан»
+    expect(find.text('Задан'), findsOneWidget);
+    expect(await settings.readKey(), 'sk-ant-good');
+
+    // в общих настройках итог разбора — «Выключен», без модели
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    final aiRow = find.ancestor(of: find.text('Разбор ИИ'), matching: find.byType(InkWell)).first;
+    expect(find.descendant(of: aiRow, matching: find.text('Выключен')), findsOneWidget);
+
+    await tester.tap(find.text('Разбор ИИ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('ai-switch')));
+    await tester.pumpAndSettle();
+    expect(settings.ai.active, isTrue);
+    expect(find.text('Работает'), findsOneWidget);
+  });
+
+  testWidgets('без ключа выключатель разбора открывает ввод ключа', (tester) async {
+    await openSection(tester, 'Разбор ИИ');
+    await tester.tap(find.byKey(const ValueKey('ai-switch')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('ai-key-field')), findsOneWidget);
+    expect(settings.ai.active, isFalse);
+  });
+
+  testWidgets('разбор на паузе, но выключен человеком — плашки паузы на главной нет', (tester) async {
+    await settings.saveKey('sk-ant-good');
+    await settings.pause('auth');
+    await open(tester, keyStatus: 200);
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('ai-paused')), findsOneWidget);
+
+    await settings.setAiEnabled(false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('ai-paused')), findsNothing);
+  });
+
   testWidgets('рабочий ключ сохраняется после проверки у поставщика', (tester) async {
     await openSection(tester, 'Разбор ИИ');
     await tester.tap(find.text('Ключ'));

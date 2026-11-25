@@ -5328,4 +5328,11 @@ class LDe extends L {
   @override
   String get folderLooksHint =>
       'Tippe auf einen Ordner, um Namen, Farbe, Form und Symbol zu ändern.';
+
+  @override
+  String get aiStatePaused => 'Pausiert';
+
+  @override
+  String get aiDisabledHint =>
+      'Der Schlüssel bleibt gespeichert, Notizen werden ohne KI sortiert.';
 }

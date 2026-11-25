@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/hint_banner.dart';
 import '../../core/widgets/pressable.dart';
@@ -55,6 +56,7 @@ String aiFailureText(L l, AiFailureKind kind) => switch (kind) {
 
 /// «Работает · nemotron-3.5-super-vl» — подпись строки «Разбор ИИ» в настройках.
 String aiSummary(L l, AiSettings ai) => switch (ai) {
+  AiSettings(enabled: false) => l.aiStateOff,
   AiSettings(paused: true) => _pauseText(l, ai),
   AiSettings(hasKey: true) => '${l.aiStateOn} · ${_modelLabel(ai.sortModel)}',
   _ => l.aiStateOff,
@@ -387,7 +389,22 @@ class AiScreen extends ConsumerWidget {
           children: [
             SettingsHeader(l.settingsAi),
             const SizedBox(height: 18),
-            _AiCard(settings: ai, queued: queued, busy: ref.watch(aiBusyProvider).value ?? false, onSortNow: () => ref.read(aiDrainProvider)().ignore()),
+            _AiCard(
+              settings: ai,
+              queued: queued,
+              busy: ref.watch(aiBusyProvider).value ?? false,
+              onSortNow: () => ref.read(aiDrainProvider)().ignore(),
+              onToggle: (on) async {
+                // включить без ключа нечего: сразу к ключу
+                if (on && !ai.hasKey) {
+                  await showSettingsSheet(context, const _KeySheet());
+                  return;
+                }
+                await ref.read(settingsRepositoryProvider).setAiEnabled(on);
+                // включили — очередь, что ждала, идёт сразу
+                if (on) ref.read(aiDrainProvider)().ignore();
+              },
+            ),
             const SizedBox(height: 8),
             // где взять ключ — первый вопрос новичка; с ключом подсказка не нужна
             HintBanner(tip: Tip.aiKey, when: !ai.hasKey, padding: const EdgeInsets.only(bottom: 8)),
@@ -443,61 +460,125 @@ Future<void> _pickProvider(BuildContext context, WidgetRef ref, AiSettings ai) a
   if (provider != current) await ref.read(settingsRepositoryProvider).setProvider(provider);
 }
 
-/// Состояние разбора: работает, выключен, на паузе или ждёт поставщика.
+/// Выключатель разбора и его состояние: работает, выключен, на паузе или ждёт поставщика.
+/// Выключенный разбор ключ не теряет: включил обратно — очередь пошла с того же места.
 class _AiCard extends StatelessWidget {
-  const _AiCard({required this.settings, required this.queued, required this.busy, required this.onSortNow});
+  const _AiCard({required this.settings, required this.queued, required this.busy, required this.onSortNow, required this.onToggle});
 
   final AiSettings settings;
   final int queued;
   final bool busy;
   final VoidCallback onSortNow;
 
+  /// Касание выключателя; без ключа включение открывает ввод ключа.
+  final ValueChanged<bool> onToggle;
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final text = Theme.of(context).textTheme;
+    final on = settings.hasKey && settings.enabled;
     final retryAt = settings.retryAt;
-    final waiting = retryAt != null && retryAt.isAfter(DateTime.now());
-    final (state, stateColor, stateText) = switch (settings) {
-      AiSettings(paused: true) => (_pauseText(l, settings), Tokens.error, Tokens.onError),
-      AiSettings(hasKey: true) => (l.aiStateOn, Tokens.accent, Tokens.onAccent),
-      _ => (l.aiStateOff, Tokens.graphite, Tokens.onSurface),
+    final waiting = settings.active && retryAt != null && retryAt.isAfter(DateTime.now());
+    final label = switch (settings) {
+      _ when !on => l.aiStateOff,
+      AiSettings(paused: true) => l.aiStatePaused,
+      _ => l.aiStateOn,
     };
     final hint = switch (settings) {
       AiSettings(hasKey: false) => l.aiStateOffHint,
-      _ when waiting => l.aiStateWait(DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(retryAt)),
+      AiSettings(enabled: false) => l.aiDisabledHint,
       AiSettings(paused: true) => null,
+      _ when waiting => l.aiStateWait(DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(retryAt)),
       _ => queued > 0 ? l.aiQueued(queued) : null,
     };
+    final sortNow = settings.active && !waiting && queued > 0;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-      decoration: BoxDecoration(color: Tokens.containerHigh, borderRadius: BorderRadius.circular(Radii.card)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // состояние пилюлей: пауза видна издалека, без чтения мелкого текста
-          Container(
-            key: const ValueKey('ai-state'),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(color: stateColor, borderRadius: BorderRadius.circular(100)),
-            child: Text(state, style: text.labelLarge!.copyWith(color: stateText)),
-          ),
-          if (hint != null) ...[
-            const SizedBox(height: 12),
-            Text(hint, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
-          ],
-          if (settings.active && !waiting && queued > 0) ...[
-            const SizedBox(height: 12),
-            FilledButton.tonalIcon(
-              onPressed: busy ? null : onSortNow,
-              icon: busy
-                  ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Tokens.onSurfaceVariant))
-                  : Icon(symbolIcon('play_arrow', filled: true)),
-              label: Text(busy ? l.aiSortingNow : l.aiSortNow),
+    // выключатель сам по себе, пояснение под ним на фоне — как главный выключатель Android
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _MainSwitch(key: const ValueKey('ai-switch'), on: on, label: label, onChanged: onToggle),
+        if (settings.stalled || hint != null || sortNow)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // пауза красной пилюлей: видна издалека, без чтения мелкого текста
+                if (settings.stalled)
+                  Container(
+                    key: const ValueKey('ai-state'),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(color: Tokens.error, borderRadius: BorderRadius.circular(100)),
+                    child: Text(_pauseText(l, settings), style: text.labelLarge!.copyWith(color: Tokens.onError)),
+                  ),
+                if (hint != null) Text(hint, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
+                if (sortNow) ...[
+                  if (hint != null) const SizedBox(height: 12),
+                  FilledButton.tonalIcon(
+                    onPressed: busy ? null : onSortNow,
+                    icon: busy
+                        ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Tokens.onSurfaceVariant))
+                        : Icon(symbolIcon('play_arrow', filled: true)),
+                    label: Text(busy ? l.aiSortingNow : l.aiSortNow),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ],
+          ),
+      ],
+    );
+  }
+}
+
+/// Главный выключатель раздела, как «Использовать Wi‑Fi» в настройках Android: пилюля во всю
+/// ширину, включённая залита акцентом. Касание по всей пилюле переключает.
+class _MainSwitch extends StatelessWidget {
+  const _MainSwitch({super.key, required this.on, required this.label, required this.onChanged});
+
+  final bool on;
+  final String label;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = on ? Tokens.accent : Tokens.containerHighest;
+    final ink = on ? Tokens.onAccent : Tokens.onSurface;
+    return Semantics(
+      toggled: on,
+      label: label,
+      onTap: () => onChanged(!on),
+      excludeSemantics: true,
+      child: Pressable(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onChanged(!on);
+        },
+        pressedScale: 0.98,
+        child: AnimatedContainer(
+          duration: Motion.short,
+          curve: Motion.emphasized,
+          constraints: const BoxConstraints(minHeight: 64),
+          padding: const EdgeInsets.fromLTRB(22, 8, 12, 8),
+          decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(100)),
+          child: Row(
+            children: [
+              Expanded(child: Text(label, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: ink))),
+              const SizedBox(width: 12),
+              // на залитой акцентом пилюле обычный выключатель слился бы с ней: цвета наоборот
+              Switch(
+                value: on,
+                onChanged: (value) {
+                  HapticFeedback.selectionClick();
+                  onChanged(value);
+                },
+                thumbColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? Tokens.accent : Tokens.outline),
+                trackColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? Tokens.onAccent : Tokens.containerHigh),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

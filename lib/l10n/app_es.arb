@@ -1205,5 +1205,7 @@
   "aiProviderCustomHint": "Cualquier API compatible con OpenAI",
   "aiSpeechUnavailable": "Este proveedor no la ofrece",
   "folderLooksHint": "Toca una carpeta para cambiar su nombre, color, forma e icono.",
-  "foldersTab": "Carpetas"
+  "foldersTab": "Carpetas",
+  "aiStatePaused": "En pausa",
+  "aiDisabledHint": "La clave sigue guardada, las notas se ordenan sin IA."
 }

@@ -62,6 +62,7 @@ class AiSettings {
     this.speechModel,
     this.aiFirst = false,
     this.hasKey = false,
+    this.enabled = true,
     this.paused = false,
     this.pauseReason,
     this.retryAt,
@@ -78,6 +79,10 @@ class AiSettings {
   final bool aiFirst;
   final bool hasKey;
 
+  /// Выключатель «Разбор ИИ»: выключенный не шлёт поставщику ни одного запроса,
+  /// а ключ остаётся на месте. По умолчанию включён — ключ вставили, чтобы разбирал.
+  final bool enabled;
+
   /// Ключ не принят или кончились деньги: очередь ждёт смены ключа.
   final bool paused;
   final String? pauseReason;
@@ -85,8 +90,15 @@ class AiSettings {
   /// Поставщик попросил подождать до этого времени (429).
   final DateTime? retryAt;
 
-  /// Разбор идёт: ключ есть и очередь не на паузе.
-  bool get active => hasKey && !paused;
+  /// Разбор идёт: ключ есть, разбор включён и очередь не на паузе.
+  bool get active => hasKey && enabled && !paused;
+
+  /// Пауза, о которой надо сказать: человек разбор не выключал, а он стоит.
+  bool get stalled => enabled && paused;
+
+  /// Догадки угадывателя встают в очередь на перепроверку: «ИИ в приоритете» и разбор
+  /// включён. Выключенный разбор их не копит, иначе включение отправило бы модели всё разом.
+  bool get checkGuesses => aiFirst && enabled;
 
   /// Знакомый поставщик по адресу; свой адрес — null.
   AiProvider? get provider => providerOfUrl(baseUrl);
@@ -109,6 +121,7 @@ class SettingsRepository {
   static const _speechModel = 'ai_speech_model';
   static const _aiFirst = 'ai_first';
   static const _hasKey = 'ai_has_key';
+  static const _aiEnabled = 'ai_enabled';
   static const _paused = 'ai_paused';
   static const _pauseReason = 'ai_pause_reason';
   static const _retryAt = 'ai_retry_at';
@@ -190,6 +203,7 @@ class SettingsRepository {
       speechModel: _prefs.getString(_speechModel),
       aiFirst: _prefs.getBool(_aiFirst) ?? false,
       hasKey: _prefs.getBool(_hasKey) ?? false,
+      enabled: _prefs.getBool(_aiEnabled) ?? true,
       paused: _prefs.getBool(_paused) ?? false,
       pauseReason: _prefs.getString(_pauseReason),
       retryAt: retry == null ? null : DateTime.fromMillisecondsSinceEpoch(retry),
@@ -206,12 +220,14 @@ class SettingsRepository {
   /// Перечитать с диска: фоновая очередь могла поставить паузу, пока приложение спало.
   Future<void> reload() => _set(_prefs.reload);
 
-  /// Новый ключ снимает паузу: ошибку вызывал прежний.
+  /// Новый ключ снимает паузу: ошибку вызывал прежний. И включает разбор: ключ
+  /// вставляют, чтобы разбирал.
   Future<void> saveKey(String? key) async {
     final cleaned = key?.trim();
     final value = cleaned == null || cleaned.isEmpty ? null : cleaned;
     await _keys.write(value);
     await _prefs.setBool(_hasKey, value != null);
+    if (value != null) await _prefs.remove(_aiEnabled);
     await _prefs.remove(_paused);
     await _prefs.remove(_pauseReason);
     await _prefs.remove(_retryAt);
@@ -237,6 +253,9 @@ class SettingsRepository {
   Future<void> setSpeechModel(String? model) => _set(() => model == null || model.isEmpty ? _prefs.remove(_speechModel) : _prefs.setString(_speechModel, model));
 
   Future<void> setAiFirst(bool on) => _set(() => _prefs.setBool(_aiFirst, on));
+
+  /// Выключатель «Разбор ИИ». Ключ, поставщик и модели не трогаются.
+  Future<void> setAiEnabled(bool on) => _set(() => _prefs.setBool(_aiEnabled, on));
 
   Future<void> pause(String reason) => _set(() async {
     await _prefs.setBool(_paused, true);

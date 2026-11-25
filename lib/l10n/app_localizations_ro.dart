@@ -5339,4 +5339,11 @@ class LRo extends L {
   @override
   String get folderLooksHint =>
       'Atinge un dosar ca să-i schimbi numele, culoarea, forma și pictograma.';
+
+  @override
+  String get aiStatePaused => 'În pauză';
+
+  @override
+  String get aiDisabledHint =>
+      'Cheia rămâne salvată, notițele se sortează fără AI.';
 }

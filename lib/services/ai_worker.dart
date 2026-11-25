@@ -134,6 +134,8 @@ class AiWorker {
       var sorted = 0;
       var failed = 0;
       for (final job in jobs) {
+        // выключили разбор посреди прохода — следующая заметка поставщику уже не уходит
+        if (!_settings.ai.enabled) break;
         final found = await (_db.select(_db.items)..where((t) => t.id.equals(job.itemId))).getSingleOrNull();
         // скрытая заметка поставщику ИИ не уходит, даже голосовое на расшифровку
         if (found == null || found.deletedAt != null || await _hidden(found.folderId)) {

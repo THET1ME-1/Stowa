@@ -5360,4 +5360,10 @@ class LUk extends L {
   @override
   String get folderLooksHint =>
       'Торкнися папки, щоб змінити її назву, колір, форму й іконку.';
+
+  @override
+  String get aiStatePaused => 'На паузі';
+
+  @override
+  String get aiDisabledHint => 'Ключ збережено, нотатки розкладаються без ШІ.';
 }

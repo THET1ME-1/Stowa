@@ -5370,4 +5370,11 @@ class LPl extends L {
   @override
   String get folderLooksHint =>
       'Dotknij folderu, aby zmienić jego nazwę, kolor, kształt i ikonę.';
+
+  @override
+  String get aiStatePaused => 'Wstrzymany';
+
+  @override
+  String get aiDisabledHint =>
+      'Klucz zostaje zapisany, notatki są układane bez AI.';
 }

@@ -44,6 +44,29 @@ void main() {
     expect(settings.ai.active, isTrue);
   });
 
+  test('разбор выключается без удаления ключа и включается обратно', () async {
+    await settings.saveKey('sk-ant-good');
+    await settings.setAiFirst(true);
+    expect(settings.ai.enabled, isTrue);
+    expect(settings.ai.checkGuesses, isTrue);
+
+    await settings.setAiEnabled(false);
+    expect(settings.ai.enabled, isFalse);
+    expect(settings.ai.active, isFalse);
+    // выключенный разбор не копит догадки угадывателя на перепроверку
+    expect(settings.ai.checkGuesses, isFalse);
+    expect(settings.ai.hasKey, isTrue);
+    expect(await settings.readKey(), 'sk-ant-good');
+
+    await settings.setAiEnabled(true);
+    expect(settings.ai.active, isTrue);
+
+    // новый ключ вставляют, чтобы разбирал: выключенный разбор включается сам
+    await settings.setAiEnabled(false);
+    await settings.saveKey('sk-ant-new');
+    expect(settings.ai.active, isTrue);
+  });
+
   test('язык: свой выбор или как в системе', () async {
     expect(settings.language, isNull);
     await settings.setLanguage(AppLanguage.de);

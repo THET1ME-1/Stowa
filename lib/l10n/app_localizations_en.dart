@@ -5290,4 +5290,10 @@ class LEn extends L {
   @override
   String get folderLooksHint =>
       'Tap a folder to change its name, color, shape and icon.';
+
+  @override
+  String get aiStatePaused => 'Paused';
+
+  @override
+  String get aiDisabledHint => 'Your key is kept, notes are sorted without AI.';
 }

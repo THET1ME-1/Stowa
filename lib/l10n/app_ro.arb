@@ -1205,5 +1205,7 @@
   "aiProviderCustomHint": "Orice API compatibil cu OpenAI",
   "aiSpeechUnavailable": "Furnizorul nu o oferă",
   "folderLooksHint": "Atinge un dosar ca să-i schimbi numele, culoarea, forma și pictograma.",
-  "foldersTab": "Dosare"
+  "foldersTab": "Dosare",
+  "aiStatePaused": "În pauză",
+  "aiDisabledHint": "Cheia rămâne salvată, notițele se sortează fără AI."
 }
