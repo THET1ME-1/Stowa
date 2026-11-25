@@ -79,6 +79,14 @@
           <td>When you save a link, Stowa downloads the page to show a preview, the article, or video subtitles. For YouTube, TikTok, and Lib sites it uses their public APIs. Once a week on Wi-Fi, Stowa checks whether saved links still open. The site sees the same kind of request a browser makes, including your IP address.</td>
         </tr>
         <tr>
+          <td>Our server: links on the website</td>
+          <td>Browsers don't let stowa.work download other sites' pages, so on the website our server in Moscow does it: it gets the link address, downloads the page, and hands it to your tab. The linked site then sees our server's IP address, not yours. The server does not store link addresses or pages and does not log them. The phone app talks to websites directly.</td>
+        </tr>
+        <tr>
+          <td>Our server: reminders on the website</td>
+          <td>So that a reminder arrives while the stowa.work tab is closed, the website gives our server the reminder time, your browser's push service address, and the notification text, which the website itself encrypted with that browser's key. The server cannot read the text. When the time comes, it passes it to the browser's push service (Google, Mozilla, Microsoft, or Apple) and deletes it. If you don't allow the website to show notifications, nothing is sent.</td>
+        </tr>
+        <tr>
           <td>Maps</td>
           <td>Map tiles come from OpenStreetMap (tile.openstreetmap.org), which sees the area you are viewing. Address search goes to Photon (photon.komoot.io) with the text you typed and the map center. Place names for coordinates come from your phone's geocoder, or from OpenStreetMap's Nominatim if the phone has none.</td>
         </tr>

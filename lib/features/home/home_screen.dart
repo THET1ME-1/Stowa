@@ -296,8 +296,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     if (notificationRoute(tap.payload) case final route?) appNavigator.currentState?.push(route);
   }
 
-  /// Раз в 15 минут на сайте: решить вечерний возврат и вернуть смахнутые закреплённые.
+  /// Раз в 15 минут на сайте — то, что телефон делает фоновыми задачами: вечерний возврат,
+  /// смахнутые закреплённые и недельная проверка мёртвых ссылок (берёт только ссылки, которые
+  /// не проверялись неделю).
   Future<void> _browserTick() async {
+    ref.read(linkCheckerProvider).run().catchError((_) {}).ignore();
     if (!mounted) return;
     final language = ref.read(languageProvider).value ?? AppLanguage.resolve(WidgetsBinding.instance.platformDispatcher.locales);
     final l = lookupL(language.locale);

@@ -63,6 +63,7 @@ import '../core/clipboard/paste_router.dart';
 import '../core/clipboard/paste_source.dart' if (dart.library.js_interop) '../core/clipboard/paste_source_web.dart';
 import '../core/fs/import_pick.dart' if (dart.library.js_interop) '../core/fs/import_pick_web.dart';
 import '../services/media_probe_pick.dart' if (dart.library.js_interop) '../services/media_probe_pick_web.dart';
+import '../services/fetch_relay.dart';
 import '../services/billing/billing_api.dart';
 import '../services/billing/checkout.dart';
 import '../services/billing/copy_warning.dart';
@@ -330,7 +331,7 @@ final foldersRepositoryProvider = Provider((ref) => FoldersRepository(ref.watch(
 final articleImagesProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchArticleImages());
 
 /// Как спросить адрес, жив ли он: в тестах — без сети.
-final linkCheckProvider = Provider<LinkCheck>((ref) => httpLinkReply);
+final linkCheckProvider = Provider<LinkCheck>((ref) => isWeb ? relayLinkReply : httpLinkReply);
 final linkCheckerProvider = Provider((ref) => LinkChecker(ref.watch(databaseProvider), clock: ref.watch(clockProvider), check: ref.watch(linkCheckProvider)));
 
 /// Битые ссылки, которые ещё не решены: «Настройки → Битые ссылки».
@@ -708,14 +709,15 @@ final backupServiceProvider = Provider(
 /// Язык, выбранный в настройках; null — язык устройства.
 final languageProvider = StreamProvider((ref) => ref.watch(settingsRepositoryProvider).watchLanguage());
 
-/// Сеть для превью. Тесты подставляют свою, без интернета.
-final linkFetchProvider = Provider<Fetch>((ref) => httpFetch);
+/// Сеть для превью. В браузере чужие сайты закрыты (CORS) — через сервер Stowa.
+/// Тесты подставляют свою, без интернета.
+final linkFetchProvider = Provider<Fetch>((ref) => isWeb ? relayFetch : httpFetch);
 
 /// Запрос со своими заголовками: API сайтов Lib. Тесты подставляют свой.
-final linkFetchWithProvider = Provider<FetchWith>((ref) => httpFetchWith);
+final linkFetchWithProvider = Provider<FetchWith>((ref) => isWeb ? relayFetchWith : httpFetchWith);
 
 /// Запрос с телом: плеер YouTube за дорожками субтитров. Тесты подставляют свой.
-final linkPostProvider = Provider<Post>((ref) => httpPost);
+final linkPostProvider = Provider<Post>((ref) => isWeb ? relayPost : httpPost);
 
 /// Разбор без ИИ после сохранения: «Без папки» заново и теги соседей.
 final autoSorterProvider = Provider((ref) => AutoSorter(ref.watch(databaseProvider), clock: ref.watch(clockProvider)));

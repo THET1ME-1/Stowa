@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 
 import '../data/db/database.dart';
@@ -49,8 +50,10 @@ Future<FetchReply> httpPost(Uri uri, String json) async {
   }
 }
 
-/// Телефон сейчас на Wi-Fi или проводе: картинки статей качаются только так.
+/// Телефон сейчас на Wi-Fi или проводе: картинки статей качаются только так. Сайт открыт
+/// на компьютере: мобильного трафика у него нет, а браузер вид сети часто не говорит.
 Future<bool> onWifi() async {
+  if (kIsWeb) return true;
   final kinds = await Connectivity().checkConnectivity();
   return kinds.contains(ConnectivityResult.wifi) || kinds.contains(ConnectivityResult.ethernet);
 }
