@@ -1207,5 +1207,11 @@
   "folderLooksHint": "Dotknij folderu, aby zmienić jego nazwę, kolor, kształt i ikonę.",
   "foldersTab": "Foldery",
   "aiStatePaused": "Wstrzymany",
-  "aiDisabledHint": "Klucz zostaje zapisany, notatki są układane bez AI."
+  "aiDisabledHint": "Klucz zostaje zapisany, notatki są układane bez AI.",
+  "aiPauseReasonPayment": "Na kluczu skończyły się środki",
+  "aiPauseReasonAuth": "Dostawca odrzucił klucz",
+  "aiPauseAdvicePayment": "Doładuj konto u dostawcy i ponów.",
+  "aiPauseAdviceAuth": "Sprawdź klucz albo wklej nowy.",
+  "aiPauseRetry": "Ponów",
+  "aiPauseChangeKey": "Zmień klucz"
 }

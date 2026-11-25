@@ -5335,4 +5335,24 @@ class LDe extends L {
   @override
   String get aiDisabledHint =>
       'Der Schlüssel bleibt gespeichert, Notizen werden ohne KI sortiert.';
+
+  @override
+  String get aiPauseReasonPayment => 'Guthaben des Schlüssels aufgebraucht';
+
+  @override
+  String get aiPauseReasonAuth => 'Der Anbieter hat den Schlüssel abgelehnt';
+
+  @override
+  String get aiPauseAdvicePayment =>
+      'Lade dein Konto beim Anbieter auf und wiederhole.';
+
+  @override
+  String get aiPauseAdviceAuth =>
+      'Prüf den Schlüssel oder füg einen neuen ein.';
+
+  @override
+  String get aiPauseRetry => 'Wiederholen';
+
+  @override
+  String get aiPauseChangeKey => 'Schlüssel ändern';
 }

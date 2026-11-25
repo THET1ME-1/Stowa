@@ -152,6 +152,59 @@ void main() {
     expect(settings.ai.active, isFalse);
   });
 
+  testWidgets('пауза в «Разборе ИИ»: причина и совет плашкой во всю ширину, «Повторить» снимает паузу', (tester) async {
+    await settings.saveKey('sk-ant-good');
+    await settings.pause('payment');
+    // шрифт тестов шире настоящего: две кнопки в ряд влезают от 600 точек
+    await open(tester, keyStatus: 200, size: const Size(600, 900));
+    await tester.tap(find.text('Разбор ИИ'));
+    await tester.pumpAndSettle();
+    expect(find.text('На паузе'), findsOneWidget);
+    expect(find.text('На ключе кончились деньги'), findsOneWidget);
+    expect(find.text('Пополни счёт у поставщика и повтори.'), findsOneWidget);
+    // плашка продолжает выключатель: та же ширина, без своего отступа
+    final state = tester.getRect(find.byKey(const ValueKey('ai-state')));
+    final toggle = tester.getRect(find.byKey(const ValueKey('ai-switch')));
+    expect(state.left, toggle.left);
+    expect(state.width, toggle.width);
+    // две кнопки поровну в один ряд
+    Rect button(String label) => tester.getRect(find.ancestor(of: find.text(label), matching: find.byType(FilledButton)));
+    expect(button('Повторить').width, button('Сменить ключ').width);
+    expect(button('Повторить').top, button('Сменить ключ').top);
+
+    await tester.tap(find.text('Повторить'));
+    await tester.pumpAndSettle();
+    expect(settings.ai.paused, isFalse);
+    expect(settings.ai.active, isTrue);
+    expect(find.byKey(const ValueKey('ai-state')), findsNothing);
+    expect(find.text('Работает'), findsOneWidget);
+  });
+
+  testWidgets('320 точек и крупный шрифт: кнопки паузы встают одна под другой во всю ширину', (tester) async {
+    await settings.saveKey('sk-ant-good');
+    await settings.pause('payment');
+    await open(tester, keyStatus: 200, size: const Size(320, 700), textScale: 1.3);
+    // главная с плашкой паузы прошла по дороге в настройки: и она влезает
+    expect(tester.takeException(), isNull);
+    await tester.scrollUntilVisible(find.text('Разбор ИИ'), 200, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('Разбор ИИ'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    Rect button(String label) => tester.getRect(find.ancestor(of: find.text(label), matching: find.byType(FilledButton)));
+    expect(button('Повторить').width, button('Сменить ключ').width);
+    expect(button('Сменить ключ').top, greaterThan(button('Повторить').bottom));
+  });
+
+  testWidgets('ключ не принят: плашка ведёт к новому ключу', (tester) async {
+    await settings.saveKey('sk-ant-bad');
+    await settings.pause('auth');
+    await openSection(tester, 'Разбор ИИ');
+    expect(find.text('Поставщик не принял ключ'), findsOneWidget);
+    await tester.tap(find.text('Сменить ключ'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('ai-key-field')), findsOneWidget);
+  });
+
   testWidgets('разбор на паузе, но выключен человеком — плашки паузы на главной нет', (tester) async {
     await settings.saveKey('sk-ant-good');
     await settings.pause('auth');

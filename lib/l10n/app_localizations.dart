@@ -9034,6 +9034,42 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Your key is kept, notes are sorted without AI.'**
   String get aiDisabledHint;
+
+  /// Заголовок плашки паузы на экране «Разбор ИИ»: почему разбор стоит
+  ///
+  /// In en, this message translates to:
+  /// **'The key is out of credit'**
+  String get aiPauseReasonPayment;
+
+  /// Заголовок плашки паузы на экране «Разбор ИИ»: почему разбор стоит
+  ///
+  /// In en, this message translates to:
+  /// **'The provider rejected the key'**
+  String get aiPauseReasonAuth;
+
+  /// Совет под причиной паузы: что сделать человеку
+  ///
+  /// In en, this message translates to:
+  /// **'Top up your provider account and retry.'**
+  String get aiPauseAdvicePayment;
+
+  /// Совет под причиной паузы: что сделать человеку
+  ///
+  /// In en, this message translates to:
+  /// **'Check the key or paste a new one.'**
+  String get aiPauseAdviceAuth;
+
+  /// Кнопка на плашке паузы: снять паузу тем же ключом
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get aiPauseRetry;
+
+  /// Кнопка на плашке паузы: открыть ввод нового ключа
+  ///
+  /// In en, this message translates to:
+  /// **'Change key'**
+  String get aiPauseChangeKey;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -262,6 +262,14 @@ class SettingsRepository {
     return _prefs.setString(_pauseReason, reason);
   });
 
+  /// Снять паузу тем же ключом: человек пополнил счёт или поставщик снова принимает ключ.
+  /// Не вышло — первый же запрос поставит паузу обратно.
+  Future<void> resume() => _set(() async {
+    await _prefs.remove(_paused);
+    await _prefs.remove(_pauseReason);
+    return _prefs.remove(_retryAt);
+  });
+
   Future<void> retryAfter(DateTime at) => _set(() => _prefs.setInt(_retryAt, at.millisecondsSinceEpoch));
 
   /// Запоминать, где сохранена вещь. По умолчанию да: без этого нет карты.

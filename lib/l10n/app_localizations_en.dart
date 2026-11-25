@@ -5296,4 +5296,22 @@ class LEn extends L {
 
   @override
   String get aiDisabledHint => 'Your key is kept, notes are sorted without AI.';
+
+  @override
+  String get aiPauseReasonPayment => 'The key is out of credit';
+
+  @override
+  String get aiPauseReasonAuth => 'The provider rejected the key';
+
+  @override
+  String get aiPauseAdvicePayment => 'Top up your provider account and retry.';
+
+  @override
+  String get aiPauseAdviceAuth => 'Check the key or paste a new one.';
+
+  @override
+  String get aiPauseRetry => 'Retry';
+
+  @override
+  String get aiPauseChangeKey => 'Change key';
 }

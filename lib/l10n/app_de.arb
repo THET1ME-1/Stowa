@@ -1207,5 +1207,11 @@
   "folderLooksHint": "Tippe auf einen Ordner, um Namen, Farbe, Form und Symbol zu ändern.",
   "foldersTab": "Ordner",
   "aiStatePaused": "Pausiert",
-  "aiDisabledHint": "Der Schlüssel bleibt gespeichert, Notizen werden ohne KI sortiert."
+  "aiDisabledHint": "Der Schlüssel bleibt gespeichert, Notizen werden ohne KI sortiert.",
+  "aiPauseReasonPayment": "Guthaben des Schlüssels aufgebraucht",
+  "aiPauseReasonAuth": "Der Anbieter hat den Schlüssel abgelehnt",
+  "aiPauseAdvicePayment": "Lade dein Konto beim Anbieter auf und wiederhole.",
+  "aiPauseAdviceAuth": "Prüf den Schlüssel oder füg einen neuen ein.",
+  "aiPauseRetry": "Wiederholen",
+  "aiPauseChangeKey": "Schlüssel ändern"
 }

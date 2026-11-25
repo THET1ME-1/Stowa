@@ -5381,4 +5381,22 @@ class LRu extends L {
 
   @override
   String get aiDisabledHint => 'Ключ сохранён, заметки раскладываются без ИИ.';
+
+  @override
+  String get aiPauseReasonPayment => 'На ключе кончились деньги';
+
+  @override
+  String get aiPauseReasonAuth => 'Поставщик не принял ключ';
+
+  @override
+  String get aiPauseAdvicePayment => 'Пополни счёт у поставщика и повтори.';
+
+  @override
+  String get aiPauseAdviceAuth => 'Проверь ключ или вставь новый.';
+
+  @override
+  String get aiPauseRetry => 'Повторить';
+
+  @override
+  String get aiPauseChangeKey => 'Сменить ключ';
 }

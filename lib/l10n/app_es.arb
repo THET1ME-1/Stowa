@@ -1207,5 +1207,11 @@
   "folderLooksHint": "Toca una carpeta para cambiar su nombre, color, forma e icono.",
   "foldersTab": "Carpetas",
   "aiStatePaused": "En pausa",
-  "aiDisabledHint": "La clave sigue guardada, las notas se ordenan sin IA."
+  "aiDisabledHint": "La clave sigue guardada, las notas se ordenan sin IA.",
+  "aiPauseReasonPayment": "La clave no tiene saldo",
+  "aiPauseReasonAuth": "El proveedor rechazó la clave",
+  "aiPauseAdvicePayment": "Recarga tu cuenta con el proveedor y reintenta.",
+  "aiPauseAdviceAuth": "Revisa la clave o pega una nueva.",
+  "aiPauseRetry": "Reintentar",
+  "aiPauseChangeKey": "Cambiar clave"
 }

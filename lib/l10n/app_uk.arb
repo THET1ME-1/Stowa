@@ -1207,5 +1207,11 @@
   "folderLooksHint": "Торкнися папки, щоб змінити її назву, колір, форму й іконку.",
   "foldersTab": "Папки",
   "aiStatePaused": "На паузі",
-  "aiDisabledHint": "Ключ збережено, нотатки розкладаються без ШІ."
+  "aiDisabledHint": "Ключ збережено, нотатки розкладаються без ШІ.",
+  "aiPauseReasonPayment": "На ключі скінчилися гроші",
+  "aiPauseReasonAuth": "Постачальник не прийняв ключ",
+  "aiPauseAdvicePayment": "Поповни рахунок у постачальника й повтори.",
+  "aiPauseAdviceAuth": "Перевір ключ або встав новий.",
+  "aiPauseRetry": "Повторити",
+  "aiPauseChangeKey": "Змінити ключ"
 }

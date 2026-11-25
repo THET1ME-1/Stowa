@@ -404,8 +404,13 @@ class AiScreen extends ConsumerWidget {
                 // включили — очередь, что ждала, идёт сразу
                 if (on) ref.read(aiDrainProvider)().ignore();
               },
+              onResume: () async {
+                await ref.read(settingsRepositoryProvider).resume();
+                ref.read(aiDrainProvider)().ignore();
+              },
+              onChangeKey: () => showSettingsSheet(context, const _KeySheet()),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             // где взять ключ — первый вопрос новичка; с ключом подсказка не нужна
             HintBanner(tip: Tip.aiKey, when: !ai.hasKey, padding: const EdgeInsets.only(bottom: 8)),
             SettingsGroup(
@@ -463,7 +468,15 @@ Future<void> _pickProvider(BuildContext context, WidgetRef ref, AiSettings ai) a
 /// Выключатель разбора и его состояние: работает, выключен, на паузе или ждёт поставщика.
 /// Выключенный разбор ключ не теряет: включил обратно — очередь пошла с того же места.
 class _AiCard extends StatelessWidget {
-  const _AiCard({required this.settings, required this.queued, required this.busy, required this.onSortNow, required this.onToggle});
+  const _AiCard({
+    required this.settings,
+    required this.queued,
+    required this.busy,
+    required this.onSortNow,
+    required this.onToggle,
+    required this.onResume,
+    required this.onChangeKey,
+  });
 
   final AiSettings settings;
   final int queued;
@@ -472,6 +485,10 @@ class _AiCard extends StatelessWidget {
 
   /// Касание выключателя; без ключа включение открывает ввод ключа.
   final ValueChanged<bool> onToggle;
+
+  /// Снять паузу тем же ключом и сменить ключ — две кнопки на плашке паузы.
+  final VoidCallback onResume;
+  final VoidCallback onChangeKey;
 
   @override
   Widget build(BuildContext context) {
@@ -485,66 +502,173 @@ class _AiCard extends StatelessWidget {
       AiSettings(paused: true) => l.aiStatePaused,
       _ => l.aiStateOn,
     };
-    final hint = switch (settings) {
+    final payment = settings.pauseReason == AiFailureKind.payment.name;
+
+    // что сейчас с разбором — плашкой, приклеенной к выключателю снизу
+    final Widget? state = switch (settings) {
+      AiSettings(stalled: true) => _SwitchFooter(
+        title: payment ? l.aiPauseReasonPayment : l.aiPauseReasonAuth,
+        body: payment ? l.aiPauseAdvicePayment : l.aiPauseAdviceAuth,
+        alarm: true,
+        // главное действие — по причине: деньги пополняют и повторяют, плохой ключ меняют
+        actions: [
+          (label: payment ? l.aiPauseRetry : l.aiPauseChangeKey, onPressed: payment ? onResume : onChangeKey, main: true, icon: null),
+          (label: payment ? l.aiPauseChangeKey : l.aiPauseRetry, onPressed: payment ? onChangeKey : onResume, main: false, icon: null),
+        ],
+      ),
+      _ when waiting => _SwitchFooter(title: l.aiStateWait(DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(retryAt))),
+      AiSettings(active: true) when queued > 0 => _SwitchFooter(
+        title: l.aiQueued(queued),
+        actions: [
+          (
+            label: busy ? l.aiSortingNow : l.aiSortNow,
+            onPressed: busy ? null : onSortNow,
+            main: false,
+            icon: busy
+                ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Tokens.onSurfaceVariant))
+                : Icon(symbolIcon('play_arrow', filled: true)),
+          ),
+        ],
+      ),
+      _ => null,
+    };
+    // выключенному разбору хватает подписи: делать с ним нечего, пока не включишь
+    final caption = switch (settings) {
       AiSettings(hasKey: false) => l.aiStateOffHint,
       AiSettings(enabled: false) => l.aiDisabledHint,
-      AiSettings(paused: true) => null,
-      _ when waiting => l.aiStateWait(DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(retryAt)),
-      _ => queued > 0 ? l.aiQueued(queued) : null,
+      _ => null,
     };
-    final sortNow = settings.active && !waiting && queued > 0;
 
-    // выключатель сам по себе, пояснение под ним на фоне — как главный выключатель Android
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _MainSwitch(key: const ValueKey('ai-switch'), on: on, label: label, onChanged: onToggle),
-        if (settings.stalled || hint != null || sortNow)
+        _MainSwitch(key: const ValueKey('ai-switch'), on: on, label: label, joined: state != null, onChanged: onToggle),
+        if (state != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // пауза красной пилюлей: видна издалека, без чтения мелкого текста
-                if (settings.stalled)
-                  Container(
-                    key: const ValueKey('ai-state'),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(color: Tokens.error, borderRadius: BorderRadius.circular(100)),
-                    child: Text(_pauseText(l, settings), style: text.labelLarge!.copyWith(color: Tokens.onError)),
-                  ),
-                if (hint != null) Text(hint, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
-                if (sortNow) ...[
-                  if (hint != null) const SizedBox(height: 12),
-                  FilledButton.tonalIcon(
-                    onPressed: busy ? null : onSortNow,
-                    icon: busy
-                        ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Tokens.onSurfaceVariant))
-                        : Icon(symbolIcon('play_arrow', filled: true)),
-                    label: Text(busy ? l.aiSortingNow : l.aiSortNow),
-                  ),
-                ],
-              ],
+            padding: const EdgeInsets.only(top: 4),
+            child: ClipRRect(
+              key: const ValueKey('ai-state'),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8), bottom: Radius.circular(Radii.card)),
+              child: state,
             ),
+          ),
+        // подпись — от края надписи выключателя, а не от края пилюли
+        if (caption != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 12, 22, 0),
+            child: Text(caption, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.4)),
           ),
       ],
     );
   }
 }
 
+/// Кнопка плашки: [main] — залитая кнопка приложения, иначе тихая того же размера и формы.
+typedef _FooterAction = ({String label, VoidCallback? onPressed, bool main, Widget? icon});
+
+/// Плашка под главным выключателем, его продолжение: текст с того же края, что надпись
+/// выключателя, кнопки поровну на всю ширину. [alarm] — сбой, который ждёт человека: заголовок
+/// красный. Красной подложки нет: в тёмной теме розовый поверх серого выходит бурым.
+class _SwitchFooter extends StatelessWidget {
+  const _SwitchFooter({required this.title, this.body, this.alarm = false, this.actions = const []});
+
+  final String title;
+  final String? body;
+  final bool alarm;
+  final List<_FooterAction> actions;
+
+  /// Поле вокруг кнопок: слева — край надписи выключателя, справа и снизу столько же.
+  static const _edge = 22.0;
+  static const _gap = 8.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return ColoredBox(
+      color: Tokens.containerHigh,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(_edge, 16, _edge, actions.isEmpty ? 16 : _edge),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: text.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: alarm ? Tokens.error : Tokens.onSurface)),
+            if (body != null) ...[
+              const SizedBox(height: 4),
+              Text(body!, style: text.bodyMedium!.copyWith(color: Tokens.onSurfaceVariant, height: 1.35)),
+            ],
+            if (actions.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              LayoutBuilder(builder: (context, constraints) => _buttons(context, constraints.maxWidth)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Кнопки делят ширину поровну. Если надпись не влезает в свою долю (узкий экран, крупный
+  /// шрифт, длинный перевод), каждая кнопка встаёт на всю ширину, одна под другой.
+  Widget _buttons(BuildContext context, double width) {
+    final share = (width - _gap * (actions.length - 1)) / actions.length;
+    final fits = actions.every((action) => _buttonWidth(context, action) <= share);
+    final buttons = [for (final action in actions) _button(action)];
+    if (fits) {
+      return Row(children: [for (final (index, button) in buttons.indexed) ...[if (index > 0) const SizedBox(width: _gap), Expanded(child: button)]]);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [for (final (index, button) in buttons.indexed) ...[if (index > 0) const SizedBox(height: _gap), button]],
+    );
+  }
+
+  /// Сколько кнопке нужно в ширину: надпись её же шрифтом и размером, значок и поля.
+  double _buttonWidth(BuildContext context, _FooterAction action) {
+    final style = Theme.of(context).filledButtonTheme.style?.textStyle?.resolve(const {}) ?? Theme.of(context).textTheme.labelLarge;
+    final painter = TextPainter(
+      text: TextSpan(text: action.label, style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final label = painter.width;
+    painter.dispose();
+    return label + (action.icon == null ? 0 : 18 + 8) + _padding * 2;
+  }
+
+  Widget _button(_FooterAction action) {
+    final style = action.main ? _inlineButton : FilledButton.styleFrom(backgroundColor: Tokens.containerHighest, foregroundColor: Tokens.onSurface).merge(_inlineButton);
+    final label = Text(action.label, textAlign: TextAlign.center);
+    return action.icon == null
+        ? FilledButton(onPressed: action.onPressed, style: style, child: label)
+        : FilledButton.icon(onPressed: action.onPressed, style: style, icon: action.icon, label: label);
+  }
+}
+
+/// Поле внутри кнопки плашки по бокам.
+const _padding = 20.0;
+
+/// Кнопки плашки ниже общих (56): в плашке на две строки текста большая кнопка не по росту.
+const _inlineButton = ButtonStyle(
+  minimumSize: WidgetStatePropertyAll(Size(0, 40)),
+  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: _padding)),
+);
+
 /// Главный выключатель раздела, как «Использовать Wi‑Fi» в настройках Android: пилюля во всю
-/// ширину, включённая залита акцентом. Касание по всей пилюле переключает.
+/// ширину, включённая залита акцентом. Касание по всей пилюле переключает. [joined] — под ним
+/// строка состояния: низ скруглён слегка, как у строк внутри группы.
 class _MainSwitch extends StatelessWidget {
-  const _MainSwitch({super.key, required this.on, required this.label, required this.onChanged});
+  const _MainSwitch({super.key, required this.on, required this.label, required this.onChanged, this.joined = false});
 
   final bool on;
   final String label;
   final ValueChanged<bool> onChanged;
+  final bool joined;
 
   @override
   Widget build(BuildContext context) {
     final fill = on ? Tokens.accent : Tokens.containerHighest;
     final ink = on ? Tokens.onAccent : Tokens.onSurface;
+    final radius = joined ? const BorderRadius.vertical(top: Radius.circular(Radii.card), bottom: Radius.circular(8)) : BorderRadius.circular(32);
     return Semantics(
       toggled: on,
       label: label,
@@ -556,12 +680,13 @@ class _MainSwitch extends StatelessWidget {
           onChanged(!on);
         },
         pressedScale: 0.98,
+        radius: radius,
         child: AnimatedContainer(
           duration: Motion.short,
           curve: Motion.emphasized,
           constraints: const BoxConstraints(minHeight: 64),
           padding: const EdgeInsets.fromLTRB(22, 8, 12, 8),
-          decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(100)),
+          decoration: BoxDecoration(color: fill, borderRadius: radius),
           child: Row(
             children: [
               Expanded(child: Text(label, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: ink))),
@@ -601,16 +726,22 @@ class AiPausedBanner extends StatelessWidget {
         key: const ValueKey('ai-paused'),
         padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
         decoration: BoxDecoration(color: Tokens.error.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(Radii.tile)),
-        child: Row(
-          children: [
-            Icon(symbolIcon('pause_circle', filled: true), size: 22, color: Tokens.error),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(_pauseText(l, settings), style: text.bodyMedium!.copyWith(color: Tokens.onSurface)),
-            ),
-            const SizedBox(width: 8),
-            Text(l.aiPausedAction, style: text.labelLarge!.copyWith(color: Tokens.error)),
-          ],
+        // на узком экране с крупным шрифтом «Проверить ключ» переносится, а не выталкивает край
+        child: LayoutBuilder(
+          builder: (context, constraints) => Row(
+            children: [
+              Icon(symbolIcon('pause_circle', filled: true), size: 22, color: Tokens.error),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(_pauseText(l, settings), style: text.bodyMedium!.copyWith(color: Tokens.onSurface)),
+              ),
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.4),
+                child: Text(l.aiPausedAction, textAlign: TextAlign.end, style: text.labelLarge!.copyWith(color: Tokens.error)),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -5366,4 +5366,23 @@ class LUk extends L {
 
   @override
   String get aiDisabledHint => 'Ключ збережено, нотатки розкладаються без ШІ.';
+
+  @override
+  String get aiPauseReasonPayment => 'На ключі скінчилися гроші';
+
+  @override
+  String get aiPauseReasonAuth => 'Постачальник не прийняв ключ';
+
+  @override
+  String get aiPauseAdvicePayment =>
+      'Поповни рахунок у постачальника й повтори.';
+
+  @override
+  String get aiPauseAdviceAuth => 'Перевір ключ або встав новий.';
+
+  @override
+  String get aiPauseRetry => 'Повторити';
+
+  @override
+  String get aiPauseChangeKey => 'Змінити ключ';
 }

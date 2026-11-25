@@ -6487,5 +6487,29 @@
   "aiDisabledHint": "Your key is kept, notes are sorted without AI.",
   "@aiDisabledHint": {
     "description": "Пояснение под выключенным разбором ИИ, когда ключ есть"
+  },
+  "aiPauseReasonPayment": "The key is out of credit",
+  "@aiPauseReasonPayment": {
+    "description": "Заголовок плашки паузы на экране «Разбор ИИ»: почему разбор стоит"
+  },
+  "aiPauseReasonAuth": "The provider rejected the key",
+  "@aiPauseReasonAuth": {
+    "description": "Заголовок плашки паузы на экране «Разбор ИИ»: почему разбор стоит"
+  },
+  "aiPauseAdvicePayment": "Top up your provider account and retry.",
+  "@aiPauseAdvicePayment": {
+    "description": "Совет под причиной паузы: что сделать человеку"
+  },
+  "aiPauseAdviceAuth": "Check the key or paste a new one.",
+  "@aiPauseAdviceAuth": {
+    "description": "Совет под причиной паузы: что сделать человеку"
+  },
+  "aiPauseRetry": "Retry",
+  "@aiPauseRetry": {
+    "description": "Кнопка на плашке паузы: снять паузу тем же ключом"
+  },
+  "aiPauseChangeKey": "Change key",
+  "@aiPauseChangeKey": {
+    "description": "Кнопка на плашке паузы: открыть ввод нового ключа"
   }
 }

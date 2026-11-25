@@ -1487,5 +1487,11 @@
   "aiSpeechUnavailable": "Нет у этого поставщика",
   "folderLooksHint": "Коснись папки, чтобы поменять её название, цвет, форму и иконку.",
   "aiStatePaused": "На паузе",
-  "aiDisabledHint": "Ключ сохранён, заметки раскладываются без ИИ."
+  "aiDisabledHint": "Ключ сохранён, заметки раскладываются без ИИ.",
+  "aiPauseReasonPayment": "На ключе кончились деньги",
+  "aiPauseReasonAuth": "Поставщик не принял ключ",
+  "aiPauseAdvicePayment": "Пополни счёт у поставщика и повтори.",
+  "aiPauseAdviceAuth": "Проверь ключ или вставь новый.",
+  "aiPauseRetry": "Повторить",
+  "aiPauseChangeKey": "Сменить ключ"
 }

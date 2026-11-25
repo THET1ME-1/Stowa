@@ -5377,4 +5377,22 @@ class LPl extends L {
   @override
   String get aiDisabledHint =>
       'Klucz zostaje zapisany, notatki są układane bez AI.';
+
+  @override
+  String get aiPauseReasonPayment => 'Na kluczu skończyły się środki';
+
+  @override
+  String get aiPauseReasonAuth => 'Dostawca odrzucił klucz';
+
+  @override
+  String get aiPauseAdvicePayment => 'Doładuj konto u dostawcy i ponów.';
+
+  @override
+  String get aiPauseAdviceAuth => 'Sprawdź klucz albo wklej nowy.';
+
+  @override
+  String get aiPauseRetry => 'Ponów';
+
+  @override
+  String get aiPauseChangeKey => 'Zmień klucz';
 }

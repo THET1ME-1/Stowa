@@ -57,6 +57,10 @@ void main() {
       await settings.saveKey('sk-ant-good');
       await settings.pause('payment');
     },
+    'ключ-не-принят': (settings) async {
+      await settings.saveKey('sk-ant-bad');
+      await settings.pause('auth');
+    },
     'без-ключа': (_) async {},
   };
 

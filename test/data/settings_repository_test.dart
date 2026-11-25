@@ -44,6 +44,18 @@ void main() {
     expect(settings.ai.active, isTrue);
   });
 
+  test('пополнил счёт — пауза снимается тем же ключом', () async {
+    await settings.saveKey('sk-ant-good');
+    await settings.pause('payment');
+    await settings.retryAfter(DateTime.now().add(const Duration(minutes: 5)));
+    await settings.resume();
+    expect(settings.ai.paused, isFalse);
+    expect(settings.ai.pauseReason, isNull);
+    expect(settings.ai.retryAt, isNull);
+    expect(settings.ai.active, isTrue);
+    expect(await settings.readKey(), 'sk-ant-good');
+  });
+
   test('разбор выключается без удаления ключа и включается обратно', () async {
     await settings.saveKey('sk-ant-good');
     await settings.setAiFirst(true);

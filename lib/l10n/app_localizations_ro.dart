@@ -5346,4 +5346,23 @@ class LRo extends L {
   @override
   String get aiDisabledHint =>
       'Cheia rămâne salvată, notițele se sortează fără AI.';
+
+  @override
+  String get aiPauseReasonPayment => 'Cheia nu mai are credit';
+
+  @override
+  String get aiPauseReasonAuth => 'Furnizorul a respins cheia';
+
+  @override
+  String get aiPauseAdvicePayment =>
+      'Alimentează contul la furnizor și reîncearcă.';
+
+  @override
+  String get aiPauseAdviceAuth => 'Verifică cheia sau lipește una nouă.';
+
+  @override
+  String get aiPauseRetry => 'Reîncearcă';
+
+  @override
+  String get aiPauseChangeKey => 'Schimbă cheia';
 }

@@ -5315,4 +5315,23 @@ class LEs extends L {
   @override
   String get aiDisabledHint =>
       'La clave sigue guardada, las notas se ordenan sin IA.';
+
+  @override
+  String get aiPauseReasonPayment => 'La clave no tiene saldo';
+
+  @override
+  String get aiPauseReasonAuth => 'El proveedor rechazó la clave';
+
+  @override
+  String get aiPauseAdvicePayment =>
+      'Recarga tu cuenta con el proveedor y reintenta.';
+
+  @override
+  String get aiPauseAdviceAuth => 'Revisa la clave o pega una nueva.';
+
+  @override
+  String get aiPauseRetry => 'Reintentar';
+
+  @override
+  String get aiPauseChangeKey => 'Cambiar clave';
 }
