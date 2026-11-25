@@ -133,8 +133,7 @@ class SettingsScreen extends ConsumerWidget {
               tint: settingsTint('violet'),
               children: [
                 SettingsRow(icon: 'auto_awesome', title: l.settingsAi, value: aiSummary(l, ai), onTap: () => Navigator.of(context).push(aiRoute())),
-                if (!inBrowser)
-                  SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute())),
+                SettingsRow(icon: 'replay', title: l.settingsReturns, value: returnsSummary(l, returns), onTap: () => Navigator.of(context).push(returnsRoute())),
               ],
             ),
             ],

@@ -97,6 +97,19 @@ abstract interface class NotificationPort {
   Future<List<int>> activePinned();
 }
 
+/// Порт, которому нужен запуск после первого кадра: подписка на касания и разбор запуска
+/// касанием по уведомлению.
+abstract interface class StartingNotificationPort implements NotificationPort {
+  Future<void> start();
+}
+
+/// Касание уведомления ([action] — `open`) или его кнопки (`done`, `snooze`, `notice_remove`)
+/// там, где кнопку выполняет само приложение, а не фоновый процесс: в браузере.
+typedef NotificationTap = ({String action, String payload});
+
+/// Действие «просто открыть» у [NotificationTap].
+const notificationOpen = 'open';
+
 /// Держит будильники системы в согласии с базой. Любая правка напоминаний —
 /// сохранение, «Готово», удаление, «Отменить» — ведёт к одному пересчёту.
 class ReminderService {
@@ -138,7 +151,7 @@ class ReminderService {
 
 /// Настоящие уведомления: на Android канал «Напоминания» и точные будильники, если разрешены;
 /// на iPhone — те же напоминания без кнопок.
-class LocalNotificationPort implements NotificationPort {
+class LocalNotificationPort implements StartingNotificationPort {
   LocalNotificationPort({
     required this.channelName,
     required this.doneLabel,
@@ -175,6 +188,7 @@ class LocalNotificationPort implements NotificationPort {
   AndroidFlutterLocalNotificationsPlugin? get _android => _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
   /// Часовой пояс и подписка на тапы. Если приложение открыли тапом — сразу открыть вещь.
+  @override
   Future<void> start() async {
     if (_ready) return;
     zones.initializeTimeZones();

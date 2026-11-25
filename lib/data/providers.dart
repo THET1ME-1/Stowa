@@ -62,6 +62,7 @@ import '../core/clipboard/paste_menu.dart';
 import '../core/clipboard/paste_router.dart';
 import '../core/clipboard/paste_source.dart' if (dart.library.js_interop) '../core/clipboard/paste_source_web.dart';
 import '../core/fs/import_pick.dart' if (dart.library.js_interop) '../core/fs/import_pick_web.dart';
+import '../services/media_probe_pick.dart' if (dart.library.js_interop) '../services/media_probe_pick_web.dart';
 import '../services/billing/billing_api.dart';
 import '../services/billing/checkout.dart';
 import '../services/billing/copy_warning.dart';
@@ -296,7 +297,7 @@ final itemFactsProvider = StreamProvider.autoDispose.family<List<Fact>, String>(
 });
 
 /// Длина и кадры своего ролика: в тестах подменяется.
-final mediaProbeProvider = Provider<MediaProbe>((ref) => const ChannelMediaProbe());
+final mediaProbeProvider = Provider<MediaProbe>((ref) => platformMediaProbe());
 
 /// Конвейер извлекателей: деньги, контакты, текст документов, EXIF, автор и сайт ссылки.
 /// Один на окно и зависит только от неизменного, как хранитель файлов.
@@ -1105,6 +1106,10 @@ final repeatProvider = StreamProvider.autoDispose.family<RepeatNote?, String>((r
 
 /// Система уведомлений: настоящая подставляется в main, в тестах — тишина.
 final notificationPortProvider = Provider<NotificationPort>((ref) => const SilentNotificationPort());
+
+/// Касания и кнопки уведомлений, которые выполняет само приложение (браузер). На телефоне
+/// кнопки выполняет фоновый процесс, а касание открывает экран из `main`, — здесь пусто.
+final notificationTapsProvider = Provider<Stream<NotificationTap>>((ref) => const Stream.empty());
 final reminderServiceProvider = Provider(
   (ref) => ReminderService(
     ref.watch(notificationPortProvider),

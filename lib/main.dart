@@ -29,6 +29,8 @@ import 'features/share/share_receiver.dart';
 import 'features/web/panel_host.dart';
 import 'features/web/panel_screen.dart';
 import 'features/web/tab_busy_screen.dart';
+import 'l10n/app_language.dart';
+import 'l10n/app_localizations.dart';
 import 'services/panel_bridge.dart';
 import 'services/panel_db.dart';
 import 'services/panel_writes.dart';
@@ -37,6 +39,7 @@ import 'services/crash_reporter.dart';
 import 'services/privacy/privacy_service.dart';
 import 'services/reminder_actions.dart';
 import 'services/reminder_service.dart';
+import 'services/web_notifications.dart' if (dart.library.js_interop) 'services/web_notifications_web.dart';
 import 'services/vault/vault_layout.dart' show attachmentsDefaultFor;
 import 'services/vault/vault_location.dart';
 import 'services/vault/vault_writer.dart';
@@ -61,7 +64,10 @@ Future<void> main() async {
     await startWebFiles(open: opened ?? browserFirstVault);
     // просим браузер не стирать заметки, когда на диске мало места
     unawaited(persistStorage());
-    await _run(const StowaApp(), null, 'web');
+    // напоминания, возврат и закреплённое — уведомлениями браузера, подписи на языке системы, как у телефона
+    final l = lookupL(AppLanguage.resolve(PlatformDispatcher.instance.locales).locale);
+    final notifications = browserNotificationPort(doneLabel: l.reminderDoneAction, snoozeLabel: l.reminderSnoozeAction, removeLabel: l.noticeRemove);
+    await _run(const StowaApp(), notifications, 'web');
     return;
   }
   final notifications = reminderPort(
@@ -178,7 +184,7 @@ Future<void> _runPanel(PanelClient client, AppDatabase db, Future<void> Function
 
 /// [window] — какое окно запущено: с ним ошибка уходит в отчёт. [notifications] нет
 /// в браузере: там напоминания молчат.
-Future<void> _run(StowaApp app, LocalNotificationPort? notifications, String window) async {
+Future<void> _run(StowaApp app, StartingNotificationPort? notifications, String window) async {
   // запоминает, по чему нажали: из этого места вырастет следующий экран
   UnfoldTouch.install();
   // сюда выбор файлов, камера и «Поделиться» кладут свои копии: их можно переносить, а не копировать
@@ -240,6 +246,8 @@ Future<void> _run(StowaApp app, LocalNotificationPort? notifications, String win
           startLockProvider.overrideWithValue(session.lock),
           cacheRootProvider.overrideWithValue(cache),
           notificationPortProvider.overrideWithValue(notifications ?? const SilentNotificationPort()),
+          // кнопки уведомлений, которые выполняет само приложение: в браузере фонового процесса нет
+          if (notifications != null) notificationTapsProvider.overrideWithValue(browserNotificationTaps(notifications)),
           settingsRepositoryProvider.overrideWithValue(settings),
           hintsRepositoryProvider.overrideWithValue(hints),
           preferencesProvider.overrideWithValue(prefs),

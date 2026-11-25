@@ -270,6 +270,7 @@ class TestWorld {
         deviceCountryProvider.overrideWithValue(deviceCountry),
         keyLockCostProvider.overrideWithValue(keyLockCost),
         pastedFilesProvider.overrideWithValue(pasted.stream),
+        notificationTapsProvider.overrideWithValue(notificationTaps.stream),
         clipboardImagesProvider.overrideWithValue(_TestClipboardImages(this)),
         urlOpenerProvider.overrideWithValue((url) async {
           openedUrls.add(url);
@@ -331,6 +332,9 @@ class TestWorld {
 
   /// Буфер обмена: что «вставили» сочетанием Ctrl+V (в браузере — событие вставки страницы).
   final pasted = StreamController<List<XFile>>.broadcast();
+
+  /// Касания и кнопки уведомлений браузера, которые выполняет главная.
+  final notificationTaps = StreamController<NotificationTap>.broadcast();
 
   /// Картинка в буфере Android (то, что отдаёт канал `stowa/clipboard`); null — картинки нет.
   XFile? clipboardImage;
@@ -403,6 +407,7 @@ class TestWorld {
 
   Future<void> dispose() async {
     await pasted.close();
+    await notificationTaps.close();
     await _dismissed.close();
     await _edgeChanges.close();
     shared.close().ignore();

@@ -54,7 +54,13 @@ import 'reminder_carousel.dart';
 import 'note_timeline.dart';
 import 'pinned_tags_row.dart';
 import '../tags/tag_search.dart';
-import '../returns/return_screen.dart' show notificationRoute;
+import '../returns/return_screen.dart' show notificationRoute, notificationTarget;
+import '../../app.dart' show appNavigator;
+import '../../l10n/app_language.dart';
+import '../../services/billing/copy_warning.dart' show syncCopyPayload;
+import '../../services/reminder_actions.dart' show handleReminderAction;
+import '../../services/reminder_service.dart' show NotificationTap, notificationOpen, reminderItemId;
+import '../../services/return_service.dart' show ReturnService;
 import '../places/place_always_card.dart';
 import 'return_pills.dart';
 import 'vault_sync_bar.dart';
@@ -172,6 +178,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       _shared = ref.read(sharedInboxProvider).listen((pieces) {
         if (mounted) receiveShared(context, ref, pieces).ignore();
       }, onError: (_) {});
+      // касания и кнопки уведомлений браузера: выполняет эта вкладка, фонового процесса там нет
+      _taps = ref.read(notificationTapsProvider).listen((tap) => _onNotificationTap(tap).ignore());
+      // вечерний возврат и смахнутые закреплённые — как фоновая задача телефона раз в 15 минут,
+      // пока сайт открыт
+      if (isWeb) {
+        _browserTick().ignore();
+        _browserTimer = Timer.periodic(const Duration(minutes: 15), (_) => _browserTick().ignore());
+      }
       // при открытии: файлы, которые не успели лечь до закрытия или выключения телефона
       ref.read(captureServiceProvider).files.drain().ignore();
       // вещи, которые ещё не разобраны извлекателями или разобраны старой их версией
@@ -202,6 +216,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     _watch?.stop().ignore();
     _placeTimer?.cancel();
     _shared?.cancel().ignore();
+    _taps?.cancel().ignore();
+    _browserTimer?.cancel();
     _panel?.stop();
     super.dispose();
   }
@@ -258,6 +274,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
   Timer? _placeTimer;
   StreamSubscription<List<SharedPiece>>? _shared;
+  StreamSubscription<NotificationTap>? _taps;
+  Timer? _browserTimer;
+
+  /// Касание уведомления открывает заметку (на мониторе — вкладкой) или экран; кнопка
+  /// выполняется так же, как фоновым процессом телефона, и база сама переставит будильники.
+  Future<void> _onNotificationTap(NotificationTap tap) async {
+    if (tap.action != notificationOpen) {
+      await handleReminderAction(ref.read(itemsRepositoryProvider), actionId: tap.action, itemId: reminderItemId(tap.payload), now: ref.read(clockProvider)());
+      return;
+    }
+    if (!mounted) return;
+    final target = notificationTarget(tap.payload);
+    final plain = target.kind == null && !tap.payload.startsWith('hidden:') && tap.payload != syncCopyPayload;
+    if (plain && target.itemId != null) {
+      // строка главной живёт и во вкладке рабочего места: от неё заметка откроется своей вкладкой
+      final from = _dock.currentContext ?? context;
+      if (from.mounted) openItem(from, target.itemId!).ignore();
+      return;
+    }
+    if (notificationRoute(tap.payload) case final route?) appNavigator.currentState?.push(route);
+  }
+
+  /// Раз в 15 минут на сайте: решить вечерний возврат и вернуть смахнутые закреплённые.
+  Future<void> _browserTick() async {
+    if (!mounted) return;
+    final language = ref.read(languageProvider).value ?? AppLanguage.resolve(WidgetsBinding.instance.platformDispatcher.locales);
+    final l = lookupL(language.locale);
+    await ReturnService(
+      ref.read(databaseProvider),
+      prefs: ref.read(preferencesProvider),
+      port: ref.read(notificationPortProvider),
+      clock: ref.read(clockProvider),
+      settings: () => ref.read(returnSettingsProvider).value ?? const ReturnSettings(),
+      l: () => l,
+    ).tick().catchError((_) => null);
+    await _syncNotices(force: true);
+  }
 
   /// Сработавшее по месту снять, тревоги поставить заново. Без Android (тесты) канал молчит.
   Future<void> _syncPlaces() async {
@@ -559,8 +612,8 @@ class _Feed extends ConsumerWidget {
               onOpen: (next) => onOpen(next.id),
             ),
           ),
-        // спросить про уведомления один раз, когда уже есть что возвращать; в браузере уведомлений нет
-        if (recent.isNotEmpty && ref.watch(returnsAskedProvider).value == false && !ref.watch(storedInBrowserProvider))
+        // спросить про уведомления один раз, когда уже есть что возвращать
+        if (recent.isNotEmpty && ref.watch(returnsAskedProvider).value == false)
           const SliverToBoxAdapter(child: ReturnsAskCard()),
         // «12 ссылок с habr.com без папки — сделать папку?»
         if (ref.watch(folderSuggestionProvider).value case final suggestion?) SliverToBoxAdapter(child: FolderSuggestCard(suggestion: suggestion)),
