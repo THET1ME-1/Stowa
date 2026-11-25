@@ -2,10 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+import 'dart:math';
+import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart';
+import 'package:http/http.dart' as http;
 import 'package:web/web.dart' as web;
 
 import 'reminder_service.dart';
+import 'sync/sync_http.dart' show syncServer;
+import 'web_push_crypto.dart';
 
 /// Уведомления браузера: открытая вкладка держит будильники и показывает их своим service
 /// worker (`web/stowa_sw.js`) — только так у уведомления есть кнопки.
@@ -19,9 +25,12 @@ Stream<NotificationTap> browserNotificationTaps(NotificationPort port) => port i
 typedef PlannedNotice = ({int id, String title, String body, DateTime at, String payload});
 
 /// Уведомления в браузере. Будильник — таймер вкладки: пока вкладка открыта, уведомление
-/// приходит в срок (скрытой вкладке браузер сдвигает таймеры до минуты). Кнопки «Готово»,
-/// «Через час» и «Убрать» service worker передаёт вкладке, которая держит хранилище; вкладки
-/// нет — открывает Stowa с действием в адресе, и [start] выполняет его при запуске.
+/// приходит в срок (скрытой вкладке браузер сдвигает таймеры до минуты). Закрыли вкладку —
+/// напоминание присылает сервер Stowa через Web Push: план будильников уходит туда после
+/// каждой правки, текст шифрует сама страница ключами своей подписки (RFC 8291), сервер его
+/// не видит. Кнопки «Готово», «Через час» и «Убрать» service worker передаёт вкладке, которая
+/// держит хранилище; вкладки нет — открывает Stowa с действием в адресе, и [start] выполняет
+/// его при запуске.
 class WebNotificationPort implements StartingNotificationPort {
   WebNotificationPort({required this.doneLabel, required this.snoozeLabel, required this.removeLabel});
 
@@ -44,6 +53,76 @@ class WebNotificationPort implements StartingNotificationPort {
   // свой service worker; не встал (частный режим Firefox) — null, и уведомлений нет: без него
   // у уведомления не было бы кнопок, а `ready` ждал бы вечно
   final _registration = Completer<web.ServiceWorkerRegistration?>();
+
+  // ——— план для сервера: напоминания при закрытой вкладке ———
+
+  Timer? _upload;
+  String? _vapidKey;
+
+  // правки будильников идут пачкой (пересчёт снимает все и ставит заново): план уходит один раз
+  void _planChanged() {
+    _upload?.cancel();
+    _upload = Timer(const Duration(seconds: 2), () => unawaited(_sendPlan().catchError((Object _) {})));
+  }
+
+  Future<void> _sendPlan() async {
+    final registration = await _registration.future;
+    if (registration == null || !_allowed) return;
+    final subscription = await _subscription(registration);
+    if (subscription == null) return;
+    final uaPublic = subscription.getKey('p256dh')?.toDart.asUint8List();
+    final authSecret = subscription.getKey('auth')?.toDart.asUint8List();
+    if (uaPublic == null || authSecret == null) return;
+    final now = DateTime.now();
+    final notices = <Map<String, Object>>[];
+    for (final notice in planned.where((one) => one.at.isAfter(now)).take(100)) {
+      final plaintext = webPushNotice(
+        title: notice.title,
+        body: notice.body,
+        tag: 'reminder-${notice.id}',
+        payload: notice.payload,
+        actions: [(reminderDone, doneLabel), (reminderSnooze, snoozeLabel)],
+      );
+      final body = await _encrypt(plaintext, uaPublic, authSecret);
+      notices.add({'id': notice.id, 'at': notice.at.toUtc().toIso8601String(), 'body': base64Url.encode(body).replaceAll('=', '')});
+    }
+    await http
+        .put(Uri.parse('$syncServer/v1/push/plan'), headers: {'content-type': 'application/json'}, body: jsonEncode({'endpoint': subscription.endpoint, 'notices': notices}))
+        .timeout(const Duration(seconds: 20));
+  }
+
+  // подписка этого браузера на push; нет — заводится с открытым ключом сервера
+  Future<web.PushSubscription?> _subscription(web.ServiceWorkerRegistration registration) async {
+    try {
+      final manager = registration.pushManager;
+      final existing = await manager.getSubscription().toDart;
+      if (existing != null) return existing;
+      final key = _vapidKey ??= (jsonDecode((await http.get(Uri.parse('$syncServer/v1/push/key')).timeout(const Duration(seconds: 20))).body) as Map)['key'] as String;
+      final raw = Uint8List.fromList(base64Url.decode(base64Url.normalize(key)));
+      return await manager.subscribe(web.PushSubscriptionOptionsInit(userVisibleOnly: true, applicationServerKey: raw.toJS)).toDart;
+    } on Object {
+      // браузер без push-службы (частный режим, сборка без ключей Google): только пока вкладка открыта
+      return null;
+    }
+  }
+
+  // своё тело на каждое сообщение: одноразовый ключ и соль
+  Future<Uint8List> _encrypt(List<int> plaintext, List<int> uaPublic, List<int> authSecret) async {
+    final ecdh = Ecdh.p256(length: 32);
+    final pair = await ecdh.newKeyPair();
+    final mine = await pair.extractPublicKey();
+    final theirs = EcPublicKey(x: uaPublic.sublist(1, 33), y: uaPublic.sublist(33, 65), type: KeyPairType.p256);
+    final shared = await (await ecdh.sharedSecretKey(keyPair: pair, remotePublicKey: theirs)).extractBytes();
+    final random = Random.secure();
+    return webPushBody(
+      plaintext: plaintext,
+      uaPublic: uaPublic,
+      authSecret: authSecret,
+      asPublic: [4, ...mine.x, ...mine.y],
+      sharedSecret: shared,
+      salt: [for (var index = 0; index < 16; index++) random.nextInt(256)],
+    );
+  }
 
   /// Все будильники, которые ждут: их же в срок отправит сервер, если вкладку закроют.
   List<PlannedNotice> get planned => [..._planned.values]..sort((a, b) => a.at.compareTo(b.at));
@@ -152,6 +231,8 @@ class WebNotificationPort implements StartingNotificationPort {
     } on Object {
       // браузер без уведомлений
     }
+    // разрешили — будильники, поставленные до этого, тоже уходят серверу
+    _planChanged();
   }
 
   @override
@@ -161,12 +242,14 @@ class WebNotificationPort implements StartingNotificationPort {
     }
     _timers.clear();
     _planned.clear();
+    _planChanged();
   }
 
   @override
   Future<void> schedule({required int id, required String title, required String body, required DateTime at, required String payload}) async {
     _planned[id] = (id: id, title: title, body: body, at: at, payload: payload);
     _arm();
+    _planChanged();
   }
 
   // поставить таймеры ближайшим; просроченное, пока вкладка спала, — показать сейчас
@@ -183,6 +266,8 @@ class WebNotificationPort implements StartingNotificationPort {
     _timers.remove(id);
     final notice = _planned.remove(id);
     if (notice == null) return;
+    // показала вкладка — сервер (он шлёт с запасом в 20 с) этого уже не пришлёт
+    _planChanged();
     unawaited(
       _show(
         notice.title,
@@ -216,7 +301,7 @@ class WebNotificationPort implements StartingNotificationPort {
   @override
   Future<void> cancel(int id) async {
     _timers.remove(id)?.cancel();
-    _planned.remove(id);
+    if (_planned.remove(id) != null) _planChanged();
     for (final notification in await _shown()) {
       if (notification.tag.endsWith('-$id')) notification.close();
     }
