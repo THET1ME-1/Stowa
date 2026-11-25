@@ -219,7 +219,7 @@ class _OpenAiClient implements AiClient {
     }
   }
 
-  /// У OpenRouter есть /key. Где список моделей открыт и без ключа (NVIDIA, Hugging Face),
+  /// У OpenRouter есть /key. Где список моделей открыт и без ключа (Hugging Face),
   /// ключ проверяет запрос в одно слово. У остальных /models закрыт ключом: ответил — ключ принят.
   /// Свой адрес — сперва /key, его нет — /models.
   @override

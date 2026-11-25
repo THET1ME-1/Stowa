@@ -17,7 +17,6 @@ void main() {
       'tgp_v1_abc': 'together',
       'fw_abc': 'fireworks',
       'csk-abc': 'cerebras',
-      'nvapi-abc': 'nvidia',
       'hf_abc': 'huggingface',
     };
     for (final MapEntry(key: key, value: id) in cases.entries) {

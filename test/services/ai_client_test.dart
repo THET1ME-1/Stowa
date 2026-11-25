@@ -220,13 +220,13 @@ void main() {
 
     test('где список моделей открыт, ключ проверяет запрос в одно слово', () async {
       late http.Request seen;
-      await at('https://integrate.api.nvidia.com/v1', (request) async {
+      await at('https://router.huggingface.co/v1', (request) async {
         seen = request;
         return ok('o');
       }).check();
       expect(seen.url.path, '/v1/chat/completions');
       expect((jsonDecode(seen.body) as Map)['max_tokens'], 1);
-      final failure = await failureOf(() => at('https://integrate.api.nvidia.com/v1', (_) async => json({}, 401)).check());
+      final failure = await failureOf(() => at('https://router.huggingface.co/v1', (_) async => json({}, 401)).check());
       expect(failure.kind, AiFailureKind.auth);
     });
   });

@@ -161,15 +161,8 @@ final aiProviders = <AiProvider>[
     prefer: const ['Llama-4-Scout', 'Llama-4-Maverick', 'Qwen2.5-VL'],
     speech: true,
   ),
-  AiProvider(
-    id: 'nvidia',
-    name: 'NVIDIA',
-    baseUrl: 'https://integrate.api.nvidia.com/v1',
-    model: 'nvidia/nemotron-3.5-super-vl-120b-a12b',
-    keyPattern: RegExp(r'^nvapi-'),
-    prefer: const ['nemotron-3.5-super-vl', 'gemma-3-12b'],
-    openModels: true,
-  ),
+  // NVIDIA убран 25.11.2026 (хозяин: «убери нафиг»): его сервер не отвечает сайту, а список
+  // у сайта и телефона один. Выбравший его раньше остаётся на нём как на «своём адресе»
   AiProvider(
     id: 'huggingface',
     name: 'Hugging Face',
