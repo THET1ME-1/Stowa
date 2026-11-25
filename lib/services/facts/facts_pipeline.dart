@@ -159,6 +159,17 @@ class FactsPipeline {
       final last = attempt == _moveRetries;
       try {
         drafts = await extractor.extract(ExtractInput(item: item, files: seen, filesRoot: _filesRoot));
+      } on NothingToRead catch (nothing) {
+        // разобранное другим устройством не затирается пустотой: прогон помечен, факты те же
+        final kept = await (_db.select(_db.facts)..where((t) => t.itemId.equals(itemId) & t.extractor.equals(extractor.name))).get();
+        if (kept.isNotEmpty) {
+          await _db.into(_db.extractorRuns).insertOnConflictUpdate(
+            ExtractorRunsCompanion.insert(itemId: itemId, extractor: extractor.name, version: extractor.version, itemStamp: Value(stamp)),
+          );
+          return;
+        }
+        drafts = nothing.orElse;
+        break;
       } catch (error) {
         final moved = last ? null : await _movedFiles(itemId, seen);
         if (moved != null) {

@@ -88,6 +88,36 @@ void main() {
     expect(text, allOf(contains('гуанчиале'), contains('рецепт')));
   });
 
+  test('сайт без копии страницы не затирает карточки и статью, пришедшие с телефона синхронизацией', () async {
+    // телефон: скачал страницу и разобрал её
+    await link('r', 'https://food.md/carbonara');
+    await savePage(home, 'r', '<html><body><article>${articlePage()}</article><script type="application/ld+json">{"@type":"Recipe","name":"Карбонара","recipeIngredient":["гуанчиале"]}</script></body></html>');
+    await pipeline().runItem('r', network: true);
+    expect(await factsOf('r', FactKind.ingredient), isNotEmpty);
+
+    // сайт: заметка пришла файлом (своё время превью), факты и прогоны — из .stowa/facts, копии
+    // страницы нет (не синхронизируется), а сам сайт её не скачал
+    final site = AppDatabase.memory();
+    final siteHome = await Directory.systemTemp.createTemp('stowa_site');
+    addTearDown(() async {
+      await site.close();
+      await siteHome.delete(recursive: true);
+    });
+    final later = now.add(const Duration(hours: 3));
+    await site.into(site.items).insert(ItemsCompanion.insert(id: 'r', kind: ItemKind.link, title: 'Карбонара', url: const Value('https://food.md/carbonara'), previewAt: Value(later), createdAt: now, updatedAt: now));
+    for (final fact in await db.select(db.facts).get()) {
+      await site.into(site.facts).insert(fact);
+    }
+    for (final run in await db.select(db.extractorRuns).get()) {
+      await site.into(site.extractorRuns).insert(run);
+    }
+    await FactsPipeline(site, filesRoot: siteHome, clock: () => later, extractors: [PageExtractor(), ArticleExtractor(), PageFetchExtractor(fetch: fetch)]).runItem('r', network: true);
+
+    final kept = await (site.select(site.facts)..where((t) => t.itemId.equals('r'))).get();
+    expect(kept.where((fact) => fact.kind == FactKind.ingredient).map((fact) => fact.value), ['гуанчиале']);
+    expect(kept.where((fact) => fact.kind == FactKind.articleText), hasLength(1));
+  });
+
   test('статья из копии страницы: текст ищется, слова и минуты чтения — у факта', () async {
     await link('a', 'https://blog.example.com/kofe');
     await savePage(home, 'a', articlePage());

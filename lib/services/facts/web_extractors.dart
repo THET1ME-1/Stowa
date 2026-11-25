@@ -115,10 +115,12 @@ class PageExtractor extends Extractor {
   Future<List<FactDraft>> extract(ExtractInput input) async {
     final html = await readPage(input.filesRoot, input.item.id);
     final url = Uri.tryParse(input.item.url ?? '');
-    // для взрослых по словам самой страницы, даже если вида у неё нет, или по сайту:
-    // страница за проверкой возраста не сохраняется вовсе
-    final adult = (html != null && adultPage(html)) || (url != null && adultSite(url));
-    final page = html == null ? null : structuredPage(html);
+    // копии нет: карточки с другого устройства не трогаем; своих нет — хотя бы 18+ по сайту
+    // (страница за проверкой возраста не сохраняется вовсе)
+    if (html == null) throw NothingToRead(orElse: [if (url != null && adultSite(url)) const FactDraft(FactKind.adult, '18+')]);
+    // для взрослых по словам самой страницы, даже если вида у неё нет, или по сайту
+    final adult = adultPage(html) || (url != null && adultSite(url));
+    final page = structuredPage(html);
     return [
       if (page != null) ...pageFacts(page),
       if (adult) const FactDraft(FactKind.adult, '18+'),
@@ -234,7 +236,9 @@ class ArticleExtractor extends Extractor {
   Future<List<FactDraft>> extract(ExtractInput input) async {
     final html = await readPage(input.filesRoot, input.item.id);
     final page = Uri.tryParse(input.item.url ?? '');
-    if (html == null || page == null) return const [];
+    if (page == null) return const [];
+    // копии нет: текст статьи с другого устройства остаётся
+    if (html == null) throw const NothingToRead();
     final found = await aside(() {
       final article = extractArticle(html, page);
       return article == null ? null : (text: article.plainText, words: article.words, minutes: article.minutes);

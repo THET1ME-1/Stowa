@@ -30,6 +30,15 @@ class ExtractInput {
   String nameOf(Attachment attachment) => p.basename(attachment.path).replaceFirst(RegExp(r'^\d+_'), '');
 }
 
+/// Правилу нечего читать на этом устройстве: копии страницы нет (синхронизация её не возит,
+/// скачать не вышло). Факты, пришедшие с другого устройства в `.stowa/facts`, остаются как
+/// есть; своих нет — пишется [orElse]. Появится копия — разбор пройдёт заново по ней.
+class NothingToRead implements Exception {
+  const NothingToRead({this.orElse = const []});
+
+  final List<FactDraft> orElse;
+}
+
 /// Маленькое правило без ИИ: достаёт из вещи факты одного вида знания.
 ///
 /// Новый вид знания — новый извлекатель, база не меняется. Улучшили правило —
