@@ -63,6 +63,8 @@ void main() {
   for (final MapEntry(key: name, value: prepare) in states.entries) {
     for (final light in [false, true]) {
       testWidgets('$name ${light ? 'светлая' : 'тёмная'}', (tester) async {
+        // кадры лежат в tool/, а не в test/: анализатор не узнаёт в них тест
+        // ignore: invalid_use_of_visible_for_testing_member
         SharedPreferences.setMockInitialValues({});
         final settings = SettingsRepository(await SharedPreferences.getInstance(), MemoryKeyStore());
         await prepare(settings);
