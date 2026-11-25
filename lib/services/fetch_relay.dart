@@ -24,7 +24,8 @@ class FetchRelay {
           headers: {'content-type': 'application/json'},
           body: jsonEncode({'url': uri.toString(), if (headers.isNotEmpty) 'headers': headers, 'post': ?post, 'max': ?max}),
         )
-        .timeout(const Duration(seconds: 40));
+        // сервер пробует сайт напрямую и, если Москва не пускает, ещё раз через выход: до 45 с
+        .timeout(const Duration(seconds: 60));
     // сервер занят или с адреса слишком много — для ссылки это то же, что нет сети: попробуем позже
     if (response.statusCode != 200) throw HttpException('посредник ответил ${response.statusCode}', uri: uri);
     return (jsonDecode(response.body) as Map).cast<String, Object?>();
