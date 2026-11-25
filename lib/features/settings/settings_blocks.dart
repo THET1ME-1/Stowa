@@ -35,9 +35,9 @@ class _DeskPage extends StatelessWidget {
 /// Лист настроек снизу: поднимается над клавиатурой. На мониторе — окном у верха экрана.
 Future<T?> showSettingsSheet<T>(BuildContext context, Widget child) => showStowaSheet<T>(context, builder: (_) => child, maxHeightFactor: null);
 
-// разделы настроек, которым в браузере не с чем работать: уведомлений системы, бота
-// Telegram и переноса выгрузок с телефона там нет
-const _noBrowserSections = {'returns', 'outside', 'import'};
+// разделы настроек, которым в браузере не с чем работать: пусто с 25.11.2026 — бот Telegram,
+// перенос и уведомления работают и на сайте. Новый раздел только для телефона — сюда
+const _noBrowserSections = <String>{};
 
 /// Показывать ли раздел настроек [id]. [inBrowser] — заметки лежат в браузере
 /// (`storedInBrowserProvider`): там прячется то, что без телефона не работает.

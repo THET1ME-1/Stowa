@@ -6511,5 +6511,29 @@
   "aiPauseChangeKey": "Change key",
   "@aiPauseChangeKey": {
     "description": "Кнопка на плашке паузы: открыть ввод нового ключа"
+  },
+  "placeSettingHintBrowser": "The place shows on the note and the map, and only a street-name lookup leaves the browser.",
+  "@placeSettingHintBrowser": {
+    "description": "Подсказка под «Запоминать, где сохранено» на сайте"
+  },
+  "crashSettingHintBrowser": "The developer gets the error and your browser name, never your notes or file names.",
+  "@crashSettingHintBrowser": {
+    "description": "Подсказка под «Отчёты об ошибках» на сайте"
+  },
+  "importReading": "Reading the export: {done} of {total}",
+  "@importReading": {
+    "description": "Ход копирования выбранной папки выгрузки в браузере перед переносом",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importReadFailed": "Couldn't read the export: the browser is out of space.",
+  "@importReadFailed": {
+    "description": "Копия выгрузки в браузер не удалась"
   }
 }

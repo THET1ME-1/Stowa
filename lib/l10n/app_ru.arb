@@ -1493,5 +1493,9 @@
   "aiPauseAdvicePayment": "Пополни счёт у поставщика и повтори.",
   "aiPauseAdviceAuth": "Проверь ключ или вставь новый.",
   "aiPauseRetry": "Повторить",
-  "aiPauseChangeKey": "Сменить ключ"
+  "aiPauseChangeKey": "Сменить ключ",
+  "placeSettingHintBrowser": "Место видно в заметке и на карте, наружу уходит только запрос названия улицы.",
+  "crashSettingHintBrowser": "Разработчик получает ошибку и название браузера, без заметок и имён файлов.",
+  "importReading": "Читаю выгрузку: {done} из {total}",
+  "importReadFailed": "Не вышло прочитать выгрузку: в браузере не хватает места."
 }

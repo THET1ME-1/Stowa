@@ -184,6 +184,25 @@ void main() {
       expect(event['tags'], {'window': 'quick', 'library': 'widgets library'});
     });
 
+    test('ошибка с сайта: система и браузер вместо Android и телефона, переживает файл', () {
+      final crash = CrashRecord(
+        id: '0123456789abcdef0123456789abcdef',
+        at: DateTime.utc(2026, 11, 25, 12),
+        platform: 'dart',
+        type: 'StateError',
+        frames: const [],
+        window: 'main',
+        release: 'app.stowa@0.1.3+16',
+        osName: 'Linux',
+        model: 'Chrome 131',
+      );
+      expect(crash.toEvent()['contexts'], {
+        'os': {'name': 'Linux'},
+        'device': {'model': 'Chrome 131'},
+      });
+      expect(CrashRecord.fromJson(crash.toJson()).osName, 'Linux');
+    });
+
     test('падение процесса помечено как fatal и необработанное', () {
       final event = record(fatal: true).toEvent();
       expect(event['level'], 'fatal');

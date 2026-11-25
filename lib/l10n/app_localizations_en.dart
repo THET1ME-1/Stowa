@@ -5314,4 +5314,21 @@ class LEn extends L {
 
   @override
   String get aiPauseChangeKey => 'Change key';
+
+  @override
+  String get placeSettingHintBrowser =>
+      'The place shows on the note and the map, and only a street-name lookup leaves the browser.';
+
+  @override
+  String get crashSettingHintBrowser =>
+      'The developer gets the error and your browser name, never your notes or file names.';
+
+  @override
+  String importReading(int done, int total) {
+    return 'Reading the export: $done of $total';
+  }
+
+  @override
+  String get importReadFailed =>
+      'Couldn\'t read the export: the browser is out of space.';
 }

@@ -50,6 +50,9 @@ class TelegramService {
   bool _pulling = false;
 
   static const _offset = 'tg_offset';
+
+  /// Пачек за один опрос: Telegram отдаёт до 100 сообщений разом, тысяча — с запасом.
+  static const _rounds = 10;
   static const _ownerId = 'tg_owner_id';
   static const _ownerName = 'tg_owner_name';
   static const _botName = 'tg_bot_name';
@@ -91,29 +94,35 @@ class TelegramService {
     try {
       final token = await _tokens.read();
       if (token == null) return 0;
-      final offset = _prefs.getInt(_offset) ?? 0;
-      final raw = await _call(token, 'getUpdates', {'offset': '$offset', 'timeout': '0'});
-      final batch = parseUpdates({'result': raw});
-      if (batch.lastUpdateId == null) return 0;
-
-      var ownerId = _prefs.getInt(_ownerId);
-      if (ownerId == null && batch.senders.isNotEmpty) {
-        ownerId = batch.senders.first.id;
-        await _prefs.setInt(_ownerId, ownerId);
-        await _prefs.setString(_ownerName, batch.senders.first.name);
-        _changes.add(null);
-      }
-
       var saved = 0;
-      for (final message in batch.messages) {
-        // чужие сообщения не сохраняются: бот найти может любой
-        if (message.fromId == ownerId) {
-          await _save(token, message);
-          saved++;
+      // Telegram отдаёт сообщения, пока их не подтвердят вызовом с бо́льшим offset. Поэтому после
+      // пачки сразу спрашиваем следующую: подтверждение уходит в ту же секунду, а не при следующем
+      // открытии приложения — иначе второе устройство с тем же ботом (сайт и телефон) забрало бы
+      // те же сообщения ещё раз. Пришедшее за это время разбирается тем же проходом.
+      for (var round = 0; round < _rounds; round++) {
+        final offset = _prefs.getInt(_offset) ?? 0;
+        final raw = await _call(token, 'getUpdates', {'offset': '$offset', 'timeout': '0'});
+        final batch = parseUpdates({'result': raw});
+        if (batch.lastUpdateId == null) break;
+
+        var ownerId = _prefs.getInt(_ownerId);
+        if (ownerId == null && batch.senders.isNotEmpty) {
+          ownerId = batch.senders.first.id;
+          await _prefs.setInt(_ownerId, ownerId);
+          await _prefs.setString(_ownerName, batch.senders.first.name);
+          _changes.add(null);
         }
-        await _prefs.setInt(_offset, message.updateId + 1);
+
+        for (final message in batch.messages) {
+          // чужие сообщения не сохраняются: бот найти может любой
+          if (message.fromId == ownerId) {
+            await _save(token, message);
+            saved++;
+          }
+          await _prefs.setInt(_offset, message.updateId + 1);
+        }
+        await _prefs.setInt(_offset, batch.lastUpdateId! + 1);
       }
-      await _prefs.setInt(_offset, batch.lastUpdateId! + 1);
       return saved;
     } finally {
       _pulling = false;

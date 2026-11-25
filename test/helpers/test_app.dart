@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:stowa/app.dart';
+import 'package:stowa/core/fs/import_pick.dart' show BrowserImport;
 import 'package:stowa/core/clipboard/clipboard_images.dart';
 import 'package:stowa/core/theme/app_theme.dart';
 import 'package:stowa/data/db/database.dart';
@@ -76,6 +77,9 @@ class TestWorld {
 
   /// Заметки лежат в браузере (`storedInBrowserProvider`): там прячется то, что без телефона не работает.
   var inBrowser = false;
+
+  /// Выгрузка, которую «выбрали» окном браузера для переноса; null — выбор отменили.
+  BrowserImport? browserImport;
 
   /// Знакомство и подсказки. По умолчанию выключены: старые тесты не ждут карточек над строкой.
   /// Тесты знакомства ставят `HintsRepository.memory()` до `app()`.
@@ -172,6 +176,7 @@ class TestWorld {
         vaultMissingProvider.overrideWithValue(vaultMissing),
         vaultPickerProvider.overrideWithValue(() async => pickedFolder),
         bookmarksPickerProvider.overrideWithValue(() async => pickedFile),
+        browserImportPickerProvider.overrideWithValue(({required bool file}) async => browserImport),
         vaultHomeProvider.overrideWithValue(vaultHome),
         if (browserVaults case final browserVaults?) browserVaultsRootProvider.overrideWithValue(browserVaults),
         // тесты изображают телефон; с [inBrowser] — сайт, где галереи нет

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
-import '../../core/platform.dart';
 import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
@@ -248,7 +247,7 @@ class _PanelBody extends ConsumerWidget {
           nav('home', l.wsHome, const WsTab.home()),
           nav('inbox', l.folderNone, const WsTab.inbox(), count: inbox),
           nav('schedule', l.returnWatchTitle, const WsTab.later(), count: later),
-          if (!isWeb) nav('map', l.mapTitle, const WsTab.map()),
+          nav('map', l.mapTitle, const WsTab.map()),
           nav('hub', l.graphTitle, const WsTab.graph()),
         ];
       case 'pinned':

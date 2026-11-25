@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../core/browser_info.dart' show browserDeviceName;
 import '../../data/db/database.dart';
 import '../../data/settings_repository.dart' show KeyStore;
 import '../../domain/vault_note.dart';
@@ -22,8 +23,11 @@ import 'sync_engine.dart';
 import 'sync_http.dart';
 import 'sync_progress.dart';
 
-/// Имя телефона: «Xiaomi 14», «iPhone 15». Не узнали — пусто, письмо обойдётся без него.
+/// Имя телефона: «Xiaomi 14», «iPhone 15», у сайта — «Chrome, Linux». Не узнали — пусто,
+/// письмо обойдётся без него.
 Future<String> phoneName() async {
+  // в браузере Platform из dart:io бросает на любом вопросе
+  if (kIsWeb) return browserDeviceName();
   try {
     final info = DeviceInfoPlugin();
     if (Platform.isAndroid) {

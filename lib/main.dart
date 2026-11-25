@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'app_session.dart';
+import 'core/browser_info.dart' show browserAbout;
 import 'core/fs/web_files.dart';
 import 'core/motion/unfold/unfold_touch.dart';
 import 'core/platform.dart';
@@ -190,7 +191,9 @@ Future<void> _run(StowaApp app, LocalNotificationPort? notifications, String win
   final appSupport = isWeb ? webAppDirectory : await getApplicationSupportDirectory();
   // ошибки ловятся как можно раньше: база и хранилище ниже тоже могут упасть
   final crashes = crashReporterFor(appSupport, settings, window);
-  if (!kDebugMode && !isWeb) {
+  // файла о телефоне у сайта нет: версию и браузер он узнаёт сам
+  if (isWeb) unawaited(browserAbout().then(crashes.useAbout));
+  if (!kDebugMode) {
     crashes.attach();
     AppLifecycleListener(onResume: crashes.send);
     // выключили отчёты — накопленное стирается сразу
@@ -247,11 +250,9 @@ Future<void> _run(StowaApp app, LocalNotificationPort? notifications, String win
     ),
   );
   if (notifications != null) unawaited(notifications.start());
-  if (!isWeb) {
-    unawaited(scheduleBackgroundWork().catchError((_) {}));
-    // накопленное с прошлого раза, в том числе падение, после которого приложение открыли заново
-    unawaited(crashes.send());
-  }
+  if (!isWeb) unawaited(scheduleBackgroundWork().catchError((_) {}));
+  // накопленное с прошлого раза, в том числе падение, после которого приложение открыли заново
+  unawaited(crashes.send());
   // таблицы времени ~100 языков собираются при первом разборе: пусть не на первой набранной букве
   WidgetsBinding.instance.addPostFrameCallback((_) => Timer(const Duration(milliseconds: 300), warmUpReminders));
   // проверка сбора на эмуляторе: сборка с --dart-define=CRASH_PROBE=true роняет ошибку сама

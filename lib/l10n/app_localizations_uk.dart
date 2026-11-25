@@ -5385,4 +5385,21 @@ class LUk extends L {
 
   @override
   String get aiPauseChangeKey => 'Змінити ключ';
+
+  @override
+  String get placeSettingHintBrowser =>
+      'Місце видно в нотатці й на мапі, назовні йде тільки запит назви вулиці.';
+
+  @override
+  String get crashSettingHintBrowser =>
+      'Розробник отримує помилку й назву браузера, без нотаток і назв файлів.';
+
+  @override
+  String importReading(int done, int total) {
+    return 'Читаю вивантаження: $done з $total';
+  }
+
+  @override
+  String get importReadFailed =>
+      'Не вдалося прочитати вивантаження: у браузері бракує місця.';
 }

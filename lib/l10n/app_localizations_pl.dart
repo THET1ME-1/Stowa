@@ -5395,4 +5395,21 @@ class LPl extends L {
 
   @override
   String get aiPauseChangeKey => 'Zmień klucz';
+
+  @override
+  String get placeSettingHintBrowser =>
+      'Miejsce widać w notatce i na mapie, na zewnątrz idzie tylko zapytanie o nazwę ulicy.';
+
+  @override
+  String get crashSettingHintBrowser =>
+      'Twórca dostaje błąd i nazwę przeglądarki, bez notatek i nazw plików.';
+
+  @override
+  String importReading(int done, int total) {
+    return 'Czytam eksport: $done z $total';
+  }
+
+  @override
+  String get importReadFailed =>
+      'Nie udało się odczytać eksportu: w przeglądarce brakuje miejsca.';
 }

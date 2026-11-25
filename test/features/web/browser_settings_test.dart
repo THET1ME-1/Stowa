@@ -35,22 +35,24 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  test('в браузере нет разделов, которым там не с чем работать; остальные на месте', () {
-    for (final id in ['returns', 'outside', 'import']) {
-      expect(settingsSectionShown(id, inBrowser: true), isFalse, reason: id);
-      expect(settingsSectionShown(id, inBrowser: false), isTrue, reason: id);
-    }
-    // Stowa Sync в браузере есть: тот же аккаунт, что на телефоне
-    for (final id in ['vault', 'sync', 'look', 'ai', 'order', 'data', 'line', 'keys', 'start', 'language', 'help']) {
+  test('сайт наравне с телефоном: в браузере все разделы настроек', () {
+    // Stowa Sync — тот же аккаунт, что на телефоне; бот, перенос и уведомления — с 25.11.2026
+    for (final id in ['vault', 'sync', 'look', 'ai', 'returns', 'outside', 'order', 'data', 'import', 'line', 'keys', 'start', 'language', 'help']) {
       expect(settingsSectionShown(id, inBrowser: true), isTrue, reason: id);
     }
   });
 
-  testWidgets('«Данные» в браузере: места и отчётов об ошибках нет — там их никто не собирает', (tester) async {
+  testWidgets('«Данные» в браузере: место и отчёты об ошибках есть, подсказки про браузер', (tester) async {
     await show(tester, const SettingsScreen(section: 'data'), inBrowser: true);
-    expect(find.text('Запоминать, где сохранено'), findsNothing);
-    expect(find.text('Отчёты об ошибках'), findsNothing);
+    expect(find.text('Запоминать, где сохранено'), findsOneWidget);
+    expect(find.text('Отчёты об ошибках'), findsOneWidget);
+    expect(find.text('Разработчик получает ошибку и название браузера, без заметок и имён файлов.'), findsOneWidget);
     expect(find.text('Корзина'), findsOneWidget);
+  });
+
+  testWidgets('«Снаружи» в браузере: свой бот Telegram, без «Под рукой»', (tester) async {
+    await show(tester, const SettingsScreen(section: 'outside'), inBrowser: true);
+    expect(find.text('Свой бот Telegram'), findsOneWidget);
   });
 
   testWidgets('«Данные» на телефоне: всё как было', (tester) async {

@@ -95,6 +95,7 @@ class CrashRecord {
     this.release,
     this.environment,
     this.os,
+    this.osName = 'Android',
     this.model,
     this.maker,
   });
@@ -112,6 +113,8 @@ class CrashRecord {
     release: json['release'] as String?,
     environment: json['environment'] as String?,
     os: json['os'] as String?,
+    // Android поля не пишет: его записи — всегда Android
+    osName: json['os_name'] as String? ?? 'Android',
     model: json['model'] as String?,
     maker: json['maker'] as String?,
   );
@@ -137,6 +140,11 @@ class CrashRecord {
   final String? release;
   final String? environment;
   final String? os;
+
+  /// Система: «Android» на телефоне, «Windows», «Linux», «macOS» у сайта.
+  final String osName;
+
+  /// Модель телефона; у сайта — браузер с версией, «Chrome 131».
   final String? model;
   final String? maker;
 
@@ -159,6 +167,7 @@ class CrashRecord {
     'release': ?release,
     'environment': ?environment,
     'os': ?os,
+    'os_name': osName,
     'model': ?model,
     'maker': ?maker,
   };
@@ -186,7 +195,7 @@ class CrashRecord {
       ],
     },
     'contexts': {
-      if (os != null) 'os': {'name': 'Android', 'version': os},
+      if (os != null || osName != 'Android') 'os': {'name': osName, 'version': ?os},
       if (model != null || maker != null) 'device': {'model': ?model, 'manufacturer': ?maker},
     },
     'tags': {'window': window, 'library': ?library},

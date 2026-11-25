@@ -170,8 +170,6 @@ class SettingsScreen extends ConsumerWidget {
               children: [SettingsRow(icon: 'delete', title: l.trashTitle, value: trashed > 0 ? '$trashed' : null, onTap: () => Navigator.of(context).push(trashRoute()))],
             ),
             const SizedBox(height: 8),
-            // место в браузере не пишется
-            if (!inBrowser)
             SettingsGroup(
               tint: settingsTint('mint'),
               children: [
@@ -191,7 +189,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            if (!inBrowser) SettingsHint(l.placeSettingHint),
+            SettingsHint(inBrowser ? l.placeSettingHintBrowser : l.placeSettingHint),
             SettingsGroup(
               tint: settingsTint('coral'),
               children: [
@@ -216,8 +214,6 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsHint(l.titleDateHint),
-            // отчёты об ошибках из браузера не уходят: выключателю там нечего выключать
-            if (!inBrowser)
             SettingsGroup(
               tint: settingsTint('amber'),
               children: [
@@ -229,7 +225,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            if (!inBrowser) SettingsHint(l.crashSettingHint),
+            SettingsHint(inBrowser ? l.crashSettingHintBrowser : l.crashSettingHint),
             const PrivacySettings(),
             SettingsSection(l.settingsArticles),
             SettingsGroup(

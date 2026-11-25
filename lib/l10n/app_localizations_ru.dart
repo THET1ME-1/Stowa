@@ -5399,4 +5399,21 @@ class LRu extends L {
 
   @override
   String get aiPauseChangeKey => 'Сменить ключ';
+
+  @override
+  String get placeSettingHintBrowser =>
+      'Место видно в заметке и на карте, наружу уходит только запрос названия улицы.';
+
+  @override
+  String get crashSettingHintBrowser =>
+      'Разработчик получает ошибку и название браузера, без заметок и имён файлов.';
+
+  @override
+  String importReading(int done, int total) {
+    return 'Читаю выгрузку: $done из $total';
+  }
+
+  @override
+  String get importReadFailed =>
+      'Не вышло прочитать выгрузку: в браузере не хватает места.';
 }

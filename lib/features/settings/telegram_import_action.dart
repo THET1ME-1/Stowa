@@ -9,33 +9,28 @@ import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/telegram_import.dart';
 import '../composer/panel_text.dart' show untitledFor;
-import '../vault/vault_actions.dart';
+import 'import_pick_action.dart';
 
 /// «Из Telegram»: человек выбирает папку выгрузки, сообщения становятся заметками,
 /// итог — плашкой: сколько перенесено и сколько уже было.
 Future<void> importTelegram(BuildContext context, WidgetRef ref) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
-  final navigator = Navigator.of(context, rootNavigator: true);
-  final picked = await ref.read(vaultPickerProvider)();
-  if (picked == null || !context.mounted) return;
-  if (!await ensureFileAccess(context, ref) || !context.mounted) return;
-
-  final status = ValueNotifier<(String, double?)>((l.importProgress(0, 0), null));
-  unawaited(showDialog<void>(context: context, barrierDismissible: false, builder: (context) => ProgressDialog(status: status)));
+  final picked = await pickImport(context, ref, file: false);
+  if (picked == null) return;
+  final status = picked.status;
   try {
     final import = TelegramImport(
       ref.read(databaseProvider),
       ref.read(captureServiceProvider),
       untitled: ({required mime, required fileName, required at}) => untitledFor(l, mime: mime, fileName: fileName, at: at),
     );
-    final report = await import.run(Directory(picked), progress: (done, total) => status.value = (l.importProgress(done, total), total == 0 ? null : done / total));
+    final report = await import.run(Directory(picked.path), progress: (done, total) => status.value = (l.importProgress(done, total), total == 0 ? null : done / total));
     final done = [l.importDone(report.added), if (report.repeated > 0) l.importRepeated(report.repeated), if (report.filled > 0) l.importFilled(report.filled)].join(', ');
     showNote(messenger, report.filesMissing > 0 ? '$done. ${l.importMissing(report.filesMissing)}' : done);
   } on TelegramImportError {
     showNote(messenger, l.importNotTelegram);
   } finally {
-    navigator.pop();
-    status.dispose();
+    await picked.close();
   }
 }

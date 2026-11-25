@@ -5355,4 +5355,21 @@ class LDe extends L {
 
   @override
   String get aiPauseChangeKey => 'Schlüssel ändern';
+
+  @override
+  String get placeSettingHintBrowser =>
+      'Der Ort erscheint in der Notiz und auf der Karte, nach außen geht nur die Abfrage des Straßennamens.';
+
+  @override
+  String get crashSettingHintBrowser =>
+      'Der Entwickler erhält den Fehler und den Browsernamen, aber keine Notizen oder Dateinamen.';
+
+  @override
+  String importReading(int done, int total) {
+    return 'Lese den Export: $done von $total';
+  }
+
+  @override
+  String get importReadFailed =>
+      'Der Export ließ sich nicht lesen: Im Browser ist kein Platz mehr.';
 }

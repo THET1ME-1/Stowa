@@ -1213,5 +1213,9 @@
   "aiPauseAdvicePayment": "Lade dein Konto beim Anbieter auf und wiederhole.",
   "aiPauseAdviceAuth": "Prüf den Schlüssel oder füg einen neuen ein.",
   "aiPauseRetry": "Wiederholen",
-  "aiPauseChangeKey": "Schlüssel ändern"
+  "aiPauseChangeKey": "Schlüssel ändern",
+  "placeSettingHintBrowser": "Der Ort erscheint in der Notiz und auf der Karte, nach außen geht nur die Abfrage des Straßennamens.",
+  "crashSettingHintBrowser": "Der Entwickler erhält den Fehler und den Browsernamen, aber keine Notizen oder Dateinamen.",
+  "importReading": "Lese den Export: {done} von {total}",
+  "importReadFailed": "Der Export ließ sich nicht lesen: Im Browser ist kein Platz mehr."
 }

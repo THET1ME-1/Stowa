@@ -5334,4 +5334,21 @@ class LEs extends L {
 
   @override
   String get aiPauseChangeKey => 'Cambiar clave';
+
+  @override
+  String get placeSettingHintBrowser =>
+      'El lugar aparece en la nota y en el mapa, y del navegador solo sale la consulta del nombre de la calle.';
+
+  @override
+  String get crashSettingHintBrowser =>
+      'El desarrollador recibe el error y el nombre del navegador, sin notas ni nombres de archivos.';
+
+  @override
+  String importReading(int done, int total) {
+    return 'Leyendo la exportación: $done de $total';
+  }
+
+  @override
+  String get importReadFailed =>
+      'No se pudo leer la exportación: el navegador no tiene espacio.';
 }

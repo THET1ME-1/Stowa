@@ -9070,6 +9070,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Change key'**
   String get aiPauseChangeKey;
+
+  /// Подсказка под «Запоминать, где сохранено» на сайте
+  ///
+  /// In en, this message translates to:
+  /// **'The place shows on the note and the map, and only a street-name lookup leaves the browser.'**
+  String get placeSettingHintBrowser;
+
+  /// Подсказка под «Отчёты об ошибках» на сайте
+  ///
+  /// In en, this message translates to:
+  /// **'The developer gets the error and your browser name, never your notes or file names.'**
+  String get crashSettingHintBrowser;
+
+  /// Ход копирования выбранной папки выгрузки в браузере перед переносом
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the export: {done} of {total}'**
+  String importReading(int done, int total);
+
+  /// Копия выгрузки в браузер не удалась
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the export: the browser is out of space.'**
+  String get importReadFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

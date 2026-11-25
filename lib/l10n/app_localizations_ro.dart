@@ -5365,4 +5365,21 @@ class LRo extends L {
 
   @override
   String get aiPauseChangeKey => 'Schimbă cheia';
+
+  @override
+  String get placeSettingHintBrowser =>
+      'Locul apare în notiță și pe hartă, din browser pleacă doar cererea numelui străzii.';
+
+  @override
+  String get crashSettingHintBrowser =>
+      'Dezvoltatorul primește eroarea și numele browserului, fără notițe și nume de fișiere.';
+
+  @override
+  String importReading(int done, int total) {
+    return 'Citesc exportul: $done din $total';
+  }
+
+  @override
+  String get importReadFailed =>
+      'Nu am putut citi exportul: browserul nu mai are spațiu.';
 }

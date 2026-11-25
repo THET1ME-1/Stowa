@@ -41,7 +41,10 @@ class CrashReporter {
 
   final _seen = <String>{};
   var _written = 0;
-  late final Map<String, Object?> _about = _readAbout();
+  late Map<String, Object?> _about = _readAbout();
+
+  /// Сведения об устройстве не из файла: сайт узнаёт версию и браузер сам, файла Android у него нет.
+  void useAbout(Map<String, Object?> about) => _about = about;
 
   /// Ловить всё, что не поймал код: ошибки внутри Flutter и вне его. Прежние
   /// обработчики остаются: в консоль ошибка пишется как раньше.
@@ -74,6 +77,7 @@ class CrashReporter {
         release: _about['release'] as String?,
         environment: kReleaseMode ? 'production' : (kProfileMode ? 'profile' : 'debug'),
         os: _about['os'] as String?,
+        osName: _about['os_name'] as String? ?? 'Android',
         model: _about['model'] as String?,
         maker: _about['maker'] as String?,
       );

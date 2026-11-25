@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:stowa/core/fs/import_pick.dart' show BrowserImport;
 import 'package:stowa/data/db/database.dart';
 import 'package:stowa/features/settings/import_screen.dart';
 
@@ -69,8 +70,55 @@ void main() {
     expect(find.text('Перенёс 1 заметку'), findsOneWidget);
   });
 
+  testWidgets('сайт: папку Keep выбрали в браузере — сперва чтение выгрузки, потом перенос, копия стёрта', (tester) async {
+    final keep = Directory(p.join(world.files.path, 'Takeout', 'Keep'))..createSync(recursive: true);
+    File(p.join(keep.path, 'Борщ.json')).writeAsStringSync(jsonEncode({'title': 'Борщ', 'textContent': 'свёкла', 'createdTimestampUsec': 1683885600000000}));
+    final picked = _PickedInBrowser(keep.parent.path);
+    world
+      ..inBrowser = true
+      ..browserImport = picked;
+    await open(tester);
+    await tester.tap(find.text('Из Google Keep'));
+    await settle(tester);
+    expect(picked.steps, [(1, 1)]);
+    expect(find.text('Перенёс 1 заметку'), findsOneWidget);
+    final items = await tester.runAsync(() => world.db.select(world.db.items).get()) ?? <Item>[];
+    expect(items.single.title, 'Борщ');
+    expect(picked.disposed, isTrue);
+  });
+
+  testWidgets('сайт: выбор в браузере отменили — ничего не происходит', (tester) async {
+    world.inBrowser = true;
+    await open(tester);
+    await tester.tap(find.text('Из Telegram'));
+    await settle(tester);
+    expect(find.byType(Dialog), findsNothing);
+  });
+
   testWidgets('320 точек и крупный шрифт: экран влезает', (tester) async {
     await open(tester, size: const Size(320, 640), textScale: 1.3);
     expect(tester.takeException(), isNull);
   });
+}
+
+/// Выгрузка «из окна браузера»: копия уже лежит в [folder].
+class _PickedInBrowser implements BrowserImport {
+  _PickedInBrowser(this.folder);
+
+  final String folder;
+  final steps = <(int, int)>[];
+  var disposed = false;
+
+  @override
+  int get count => 1;
+
+  @override
+  Future<String> copy(void Function(int done, int total) progress) async {
+    progress(1, 1);
+    steps.add((1, 1));
+    return folder;
+  }
+
+  @override
+  Future<void> dispose() async => disposed = true;
 }

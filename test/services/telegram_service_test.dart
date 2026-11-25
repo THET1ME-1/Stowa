@@ -70,6 +70,41 @@ void main() {
     expect(asked.last, contains('offset=11'));
   });
 
+  test('сайт и телефон с одним ботом: забранное одним другому уже не приходит', () async {
+    // Telegram как есть: вызов с offset подтверждает и стирает всё, что младше
+    final pending = [textUpdate(30, 42, 'купить хлеб'), textUpdate(31, 42, 'позвонить маме')];
+    final shared = MockClient((request) async {
+      final path = request.url.path;
+      if (path.endsWith('/getUpdates')) {
+        final offset = int.parse(request.url.queryParameters['offset'] ?? '0');
+        pending.removeWhere((update) => (update['update_id']! as int) < offset);
+        return json({'ok': true, 'result': pending});
+      }
+      return http.Response('{}', 404);
+    });
+    Future<TelegramService> device(AppDatabase base, String name) async {
+      SharedPreferences.setMockInitialValues({});
+      return TelegramService(
+        capture: CaptureService(base, tags: TagsRepository(base), filesRoot: home, clock: () => DateTime(2026, 11, 25, 12)),
+        // своё хранилище настроек у каждого устройства
+        prefs: await SharedPreferences.getInstance(),
+        tokens: MemoryKeyStore()..value = '123:abc',
+        inbox: Directory('${inbox.path}/$name'),
+        http: shared,
+      );
+    }
+
+    final siteDb = AppDatabase.memory();
+    final phoneDb = AppDatabase.memory();
+    addTearDown(siteDb.close);
+    addTearDown(phoneDb.close);
+    final site = await device(siteDb, 'site');
+    expect(await site.pull(), 2);
+    final phone = await device(phoneDb, 'phone');
+    expect(await phone.pull(), 0);
+    expect(await phoneDb.select(phoneDb.items).get(), isEmpty);
+  });
+
   test('бот слушает только хозяина — первого, кто ему написал', () async {
     updates = [textUpdate(10, 42, '/start'), textUpdate(11, 7, 'спам от чужого'), textUpdate(12, 42, 'моё')];
     await bot.pull();

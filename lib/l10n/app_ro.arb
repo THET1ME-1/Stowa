@@ -1213,5 +1213,9 @@
   "aiPauseAdvicePayment": "Alimentează contul la furnizor și reîncearcă.",
   "aiPauseAdviceAuth": "Verifică cheia sau lipește una nouă.",
   "aiPauseRetry": "Reîncearcă",
-  "aiPauseChangeKey": "Schimbă cheia"
+  "aiPauseChangeKey": "Schimbă cheia",
+  "placeSettingHintBrowser": "Locul apare în notiță și pe hartă, din browser pleacă doar cererea numelui străzii.",
+  "crashSettingHintBrowser": "Dezvoltatorul primește eroarea și numele browserului, fără notițe și nume de fișiere.",
+  "importReading": "Citesc exportul: {done} din {total}",
+  "importReadFailed": "Nu am putut citi exportul: browserul nu mai are spațiu."
 }

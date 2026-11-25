@@ -1213,5 +1213,9 @@
   "aiPauseAdvicePayment": "Recarga tu cuenta con el proveedor y reintenta.",
   "aiPauseAdviceAuth": "Revisa la clave o pega una nueva.",
   "aiPauseRetry": "Reintentar",
-  "aiPauseChangeKey": "Cambiar clave"
+  "aiPauseChangeKey": "Cambiar clave",
+  "placeSettingHintBrowser": "El lugar aparece en la nota y en el mapa, y del navegador solo sale la consulta del nombre de la calle.",
+  "crashSettingHintBrowser": "El desarrollador recibe el error y el nombre del navegador, sin notas ni nombres de archivos.",
+  "importReading": "Leyendo la exportación: {done} de {total}",
+  "importReadFailed": "No se pudo leer la exportación: el navegador no tiene espacio."
 }

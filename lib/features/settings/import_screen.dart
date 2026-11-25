@@ -8,7 +8,7 @@ import '../../core/widgets/undo_snack.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/notes_import.dart';
-import '../vault/vault_actions.dart';
+import 'import_pick_action.dart';
 import 'settings_blocks.dart';
 import 'telegram_import_action.dart';
 
@@ -51,22 +51,12 @@ class ImportScreen extends ConsumerWidget {
 Future<void> importNotes(BuildContext context, WidgetRef ref, ImportSource source) async {
   final l = L.of(context);
   final messenger = ScaffoldMessenger.of(context);
-  final navigator = Navigator.of(context, rootNavigator: true);
-  final picked = source == ImportSource.bookmarks ? await ref.read(bookmarksPickerProvider)() : await ref.read(vaultPickerProvider)();
-  if (picked == null || !context.mounted) return;
-  if (!await ensureFileAccess(context, ref) || !context.mounted) return;
-
-  final status = ValueNotifier<(String, double?)>((l.importProgress(0, 0), null));
-  unawaited(
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => ProgressDialog(status: status),
-    ),
-  );
+  final picked = await pickImport(context, ref, file: source == ImportSource.bookmarks);
+  if (picked == null) return;
+  final status = picked.status;
   try {
     final import = NotesImport(ref.read(databaseProvider), ref.read(captureServiceProvider));
-    final report = await import.run(source, picked, progress: (done, total) => status.value = (l.importProgress(done, total), total == 0 ? null : done / total));
+    final report = await import.run(source, picked.path, progress: (done, total) => status.value = (l.importProgress(done, total), total == 0 ? null : done / total));
     final done = [l.importDone(report.added), if (report.repeated > 0) l.importRepeated(report.repeated)].join(', ');
     showNote(messenger, report.filesMissing > 0 ? '$done. ${l.importFilesNotFound(report.filesMissing)}' : done);
   } on NotesImportError {
@@ -77,7 +67,6 @@ Future<void> importNotes(BuildContext context, WidgetRef ref, ImportSource sourc
       ImportSource.mymind => l.importNotMymind,
     });
   } finally {
-    navigator.pop();
-    status.dispose();
+    await picked.close();
   }
 }

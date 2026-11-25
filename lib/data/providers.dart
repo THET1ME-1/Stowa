@@ -61,6 +61,7 @@ import '../core/clipboard/keyboard_content.dart';
 import '../core/clipboard/paste_menu.dart';
 import '../core/clipboard/paste_router.dart';
 import '../core/clipboard/paste_source.dart' if (dart.library.js_interop) '../core/clipboard/paste_source_web.dart';
+import '../core/fs/import_pick.dart' if (dart.library.js_interop) '../core/fs/import_pick_web.dart';
 import '../services/billing/billing_api.dart';
 import '../services/billing/checkout.dart';
 import '../services/billing/copy_warning.dart';
@@ -133,6 +134,9 @@ final bookmarksPickerProvider = Provider<Future<String?> Function()>(
     return picked.firstOrNull?.path;
   },
 );
+
+/// Выбор выгрузки для переноса окном браузера; на телефоне не зовётся, в тестах — подмена.
+final browserImportPickerProvider = Provider<Future<BrowserImport?> Function({required bool file})>((ref) => chooseBrowserImport);
 
 /// Единственное место хранилища на iPhone; null — место выбирает человек (Android).
 final vaultHomeProvider = Provider<Directory?>((ref) => null);
