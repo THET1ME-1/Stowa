@@ -1217,5 +1217,6 @@
   "placeSettingHintBrowser": "Der Ort erscheint in der Notiz und auf der Karte, nach außen geht nur die Abfrage des Straßennamens.",
   "crashSettingHintBrowser": "Der Entwickler erhält den Fehler und den Browsernamen, aber keine Notizen oder Dateinamen.",
   "importReading": "Lese den Export: {done} von {total}",
-  "importReadFailed": "Der Export ließ sich nicht lesen: Im Browser ist kein Platz mehr."
+  "importReadFailed": "Der Export ließ sich nicht lesen: Im Browser ist kein Platz mehr.",
+  "importScreenHintBrowser": "Entpacke den Export auf dem Computer und wähle seinen Ordner, für Lesezeichen die .html-Datei."
 }

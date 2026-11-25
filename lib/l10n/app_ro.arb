@@ -1217,5 +1217,6 @@
   "placeSettingHintBrowser": "Locul apare în notiță și pe hartă, din browser pleacă doar cererea numelui străzii.",
   "crashSettingHintBrowser": "Dezvoltatorul primește eroarea și numele browserului, fără notițe și nume de fișiere.",
   "importReading": "Citesc exportul: {done} din {total}",
-  "importReadFailed": "Nu am putut citi exportul: browserul nu mai are spațiu."
+  "importReadFailed": "Nu am putut citi exportul: browserul nu mai are spațiu.",
+  "importScreenHintBrowser": "Dezarhivează exportul pe computer și alege dosarul lui, iar pentru marcaje — fișierul .html."
 }

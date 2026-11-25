@@ -9094,6 +9094,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Couldn\'t read the export: the browser is out of space.'**
   String get importReadFailed;
+
+  /// Подсказка под источниками на экране «Перенос» на сайте
+  ///
+  /// In en, this message translates to:
+  /// **'Unzip the export on your computer and pick its folder; for bookmarks, pick the .html file.'**
+  String get importScreenHintBrowser;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

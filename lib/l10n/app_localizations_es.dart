@@ -5351,4 +5351,8 @@ class LEs extends L {
   @override
   String get importReadFailed =>
       'No se pudo leer la exportación: el navegador no tiene espacio.';
+
+  @override
+  String get importScreenHintBrowser =>
+      'Descomprime la exportación en el ordenador y elige su carpeta; para marcadores, el archivo .html.';
 }

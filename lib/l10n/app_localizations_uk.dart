@@ -5402,4 +5402,8 @@ class LUk extends L {
   @override
   String get importReadFailed =>
       'Не вдалося прочитати вивантаження: у браузері бракує місця.';
+
+  @override
+  String get importScreenHintBrowser =>
+      'Розпакуй вивантаження на комп\'ютер і вибери його папку, а для закладок — файл .html.';
 }

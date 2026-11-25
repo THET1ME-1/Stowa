@@ -50,15 +50,22 @@ class WebMediaProbe implements MediaProbe {
       final context = canvas.getContext('2d') as web.CanvasRenderingContext2D?;
       if (context == null) return written;
       for (var index = 0; index < at.length && index < outs.length; index++) {
-        if (!await _seek(element, at[index])) continue;
-        context.drawImage(element, 0, 0, canvas.width, canvas.height);
-        final bytes = await _jpeg(canvas);
-        if (bytes == null) continue;
-        await File(outs[index]).writeAsBytes(bytes);
-        written[index] = true;
+        try {
+          if (!await _seek(element, at[index])) continue;
+          context.drawImage(element, 0, 0, canvas.width, canvas.height);
+          final bytes = await _jpeg(canvas);
+          if (bytes == null) continue;
+          // папки обложек и кадров заводит тот, кто пишет: на телефоне — Android, здесь — мы
+          final out = File(outs[index]);
+          await out.parent.create(recursive: true);
+          await out.writeAsBytes(bytes);
+          written[index] = true;
+        } on Object {
+          // браузер не отдал этот кадр: остальные пробуем дальше
+        }
       }
     } on Object {
-      // браузер не отдал кадр: что успели — записано
+      // проигрыватель сломался посреди: что успели — записано
     } finally {
       video.close();
     }

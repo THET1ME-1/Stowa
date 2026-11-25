@@ -6535,5 +6535,9 @@
   "importReadFailed": "Couldn't read the export: the browser is out of space.",
   "@importReadFailed": {
     "description": "Копия выгрузки в браузер не удалась"
+  },
+  "importScreenHintBrowser": "Unzip the export on your computer and pick its folder; for bookmarks, pick the .html file.",
+  "@importScreenHintBrowser": {
+    "description": "Подсказка под источниками на экране «Перенос» на сайте"
   }
 }

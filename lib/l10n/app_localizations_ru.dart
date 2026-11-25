@@ -5416,4 +5416,8 @@ class LRu extends L {
   @override
   String get importReadFailed =>
       'Не вышло прочитать выгрузку: в браузере не хватает места.';
+
+  @override
+  String get importScreenHintBrowser =>
+      'Распакуй выгрузку на компьютер и выбери её папку, а для закладок — файл .html.';
 }

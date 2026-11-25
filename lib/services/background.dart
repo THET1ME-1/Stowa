@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../core/icons/icon_registry.dart';
+import '../core/platform.dart' show isWeb;
 import '../data/db/database.dart';
 import '../data/repositories/items_repository.dart';
 import '../data/repositories/tags_repository.dart';
@@ -56,6 +57,9 @@ const _abandoned = Duration(seconds: 16);
 /// Файлы ещё копируются, а приложение уходит: система доделает сама, без сети,
 /// даже если Stowa выгрузят или телефон перезагрузят.
 Future<void> scheduleFileWork() async {
+  // в браузере фона нет: файлы доложит вкладка, а плагин поставил бы свой service worker
+  // поверх нашего (web/stowa_sw.js) и унёс бы с ним кнопки уведомлений
+  if (isWeb) return;
   await Workmanager().initialize(backgroundDispatcher);
   await Workmanager().registerOneOffTask(_fileTask, _fileTask, existingWorkPolicy: ExistingWorkPolicy.keep, backoffPolicy: BackoffPolicy.linear, backoffPolicyDelay: const Duration(minutes: 1));
 }

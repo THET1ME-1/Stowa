@@ -38,7 +38,7 @@ class ImportScreen extends ConsumerWidget {
                 SettingsRow(icon: 'psychology', title: l.importMymind, onTap: () => importNotes(context, ref, ImportSource.mymind)),
               ],
             ),
-            SettingsHint(l.importScreenHint),
+            SettingsHint(ref.watch(storedInBrowserProvider) ? l.importScreenHintBrowser : l.importScreenHint),
           ],
         ),
       ),

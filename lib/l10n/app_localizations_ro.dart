@@ -5382,4 +5382,8 @@ class LRo extends L {
   @override
   String get importReadFailed =>
       'Nu am putut citi exportul: browserul nu mai are spațiu.';
+
+  @override
+  String get importScreenHintBrowser =>
+      'Dezarhivează exportul pe computer și alege dosarul lui, iar pentru marcaje — fișierul .html.';
 }

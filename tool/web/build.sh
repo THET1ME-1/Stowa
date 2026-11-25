@@ -16,7 +16,9 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 flutter pub get
-nice -n 19 flutter build web --release --no-web-resources-cdn --no-tree-shake-icons
+# --pwa-strategy=none: устаревший service worker Flutter не собирается — на его месте свой,
+# web/stowa_sw.js (кнопки уведомлений), а web/flutter_bootstrap.js его и не регистрирует
+nice -n 19 flutter build web --release --no-web-resources-cdn --no-tree-shake-icons --pwa-strategy=none
 
 # без этих двух файлов база в браузере не откроется: их версия записана в web/README.md
 for file in sqlite3.wasm drift_worker.js main.dart.js; do

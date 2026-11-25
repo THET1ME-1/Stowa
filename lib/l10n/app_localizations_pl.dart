@@ -5412,4 +5412,8 @@ class LPl extends L {
   @override
   String get importReadFailed =>
       'Nie udało się odczytać eksportu: w przeglądarce brakuje miejsca.';
+
+  @override
+  String get importScreenHintBrowser =>
+      'Rozpakuj eksport na komputerze i wybierz jego folder, a dla zakładek plik .html.';
 }

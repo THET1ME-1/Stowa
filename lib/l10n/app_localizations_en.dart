@@ -5331,4 +5331,8 @@ class LEn extends L {
   @override
   String get importReadFailed =>
       'Couldn\'t read the export: the browser is out of space.';
+
+  @override
+  String get importScreenHintBrowser =>
+      'Unzip the export on your computer and pick its folder; for bookmarks, pick the .html file.';
 }

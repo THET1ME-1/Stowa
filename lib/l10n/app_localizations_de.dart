@@ -5372,4 +5372,8 @@ class LDe extends L {
   @override
   String get importReadFailed =>
       'Der Export ließ sich nicht lesen: Im Browser ist kein Platz mehr.';
+
+  @override
+  String get importScreenHintBrowser =>
+      'Entpacke den Export auf dem Computer und wähle seinen Ordner, für Lesezeichen die .html-Datei.';
 }
