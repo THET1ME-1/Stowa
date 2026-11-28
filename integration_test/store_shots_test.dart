@@ -13,7 +13,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:stowa/app.dart';
 import 'package:stowa/data/db/database.dart';
+import 'package:stowa/data/hints_repository.dart';
 import 'package:stowa/data/providers.dart';
+import 'package:stowa/data/settings_repository.dart';
+import 'package:stowa/domain/hints.dart';
 import 'package:stowa/domain/models.dart';
 import 'package:stowa/features/home/folder_shelf.dart';
 import 'package:stowa/features/home/note_timeline.dart';
@@ -226,6 +229,11 @@ void main() {
       final now = DateTime.now();
       final demo = isRu ? _Demo.ru() : _Demo.en();
 
+      // убрать онбординг и баннер «Возвращать сохранённое?»
+      await container.read(hintsRepositoryProvider).restore(HintsState.finished);
+      await container.read(settingsRepositoryProvider).setReturnsAsked();
+      await wait();
+
       // обложки к рецептам
       final covers = <String, String>{};
       final colors = [
@@ -253,6 +261,8 @@ void main() {
         await (db.update(db.items)..where((t) => t.id.equals(entry.key))).write(const ItemsCompanion(kind: Value(ItemKind.image)));
       }
 
+      // ждём обновления ленты после засева
+      await wait();
       await wait();
       await wait();
 
@@ -278,12 +288,32 @@ void main() {
 
       // 3. Страница заметки
       final noteTitle = demo.items[6].title; // билеты / tickets
-      final noteCard = find.descendant(of: find.byType(NoteTimeline), matching: find.text(noteTitle));
+      var noteCard = find.descendant(of: find.byType(NoteTimeline), matching: find.text(noteTitle));
+      if (noteCard.evaluate().isEmpty) {
+        // прокрутить ленту, если карточка ниже
+        final scrollable = find.descendant(of: find.byType(NoteTimeline), matching: find.byType(Scrollable));
+        if (scrollable.evaluate().isNotEmpty) {
+          await tester.scrollUntilVisible(noteCard, 300, scrollable: scrollable.first);
+          await wait();
+        }
+        noteCard = find.descendant(of: find.byType(NoteTimeline), matching: find.text(noteTitle));
+      }
       if (noteCard.evaluate().isNotEmpty) {
         await tester.tap(noteCard.first);
         await wait();
+        await wait();
         await shot('$lang-03-note');
         await home();
+      } else {
+        // снимем первую заметку, которая есть
+        final anyCard = find.descendant(of: find.byType(NoteTimeline), matching: find.byType(GestureDetector));
+        if (anyCard.evaluate().isNotEmpty) {
+          await tester.tap(anyCard.first);
+          await wait();
+          await wait();
+          await shot('$lang-03-note');
+          await home();
+        }
       }
 
       // 4. Поиск
@@ -299,13 +329,19 @@ void main() {
       await wait();
 
       // 5. Редактор на весь экран
+      final line2 = find.byType(TextField);
       tester.binding.focusedEditable = null;
-      await tester.enterText(line, isRu
+      await tester.enterText(line2, isRu
           ? '# Поездка в Грецию\n- [ ] паспорт\n- [ ] переходник\n- [ ] страховка\n**Вылет** в пятницу'
           : '# Trip to Greece\n- [ ] passport\n- [ ] adapter\n- [ ] insurance\n**Departure** on Friday');
       await wait();
-      await tester.tap(find.byTooltip(l.fullExpand));
       await wait();
+      final expand = find.byTooltip(l.fullExpand);
+      if (expand.evaluate().isNotEmpty) {
+        await tester.tap(expand.first);
+        await wait();
+        await wait();
+      }
       await shot('$lang-05-editor');
       await home();
 

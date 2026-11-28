@@ -38,11 +38,18 @@ jobs:
       - name: Запуск симулятора
         run: |
           set -euo pipefail
+          # iPhone 15 Pro Max = 1290×2796 (6.7" App Store)
           DEVICE=$(xcrun simctl list devices available -j | python3 -c "
           import json, sys
           runtimes = json.load(sys.stdin)['devices']
           version = lambda name: [int(part) for part in name.split('iOS-')[1].split('-')]
           newest = sorted((name for name in runtimes if 'iOS-' in name and runtimes[name]), key=version)
+          targets = ['iPhone 16 Pro Max', 'iPhone 15 Pro Max', 'iPhone 16 Plus', 'iPhone 15 Plus']
+          for name in reversed(newest):
+              for device in runtimes[name]:
+                  if device['name'] in targets:
+                      print(device['udid']); sys.exit()
+          # запасной: любой iPhone
           print(next(device['udid'] for name in reversed(newest) for device in runtimes[name] if device['name'].startswith('iPhone')))
           ")
           echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
