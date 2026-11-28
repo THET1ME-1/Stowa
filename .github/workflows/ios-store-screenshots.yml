@@ -1,0 +1,145 @@
+name: Снимки и видео для магазинов (iPhone)
+
+# Собирает приложение под симулятор, засевает демо-данные, ходит по экранам
+# и снимает каждый через simctl. Два прогона: русский и английский.
+# Параллельно записывает видео всей сессии.
+# Артефакт: папка store-screenshots/ с PNG и MP4 по языкам.
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    runs-on: macos-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Самый свежий Xcode
+        run: |
+          set -euo pipefail
+          NEWEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1 || true)
+          [ -z "$NEWEST" ] && NEWEST=/Applications/Xcode.app
+          sudo xcode-select -s "$NEWEST"
+          xcodebuild -version
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.6
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter gen-l10n
+
+      - name: Сборка под симулятор
+        run: flutter build ios --simulator --debug --no-tree-shake-icons --target=integration_test/store_shots_test.dart
+
+      - name: Запуск симулятора
+        run: |
+          set -euo pipefail
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          runtimes = json.load(sys.stdin)['devices']
+          version = lambda name: [int(part) for part in name.split('iOS-')[1].split('-')]
+          newest = sorted((name for name in runtimes if 'iOS-' in name and runtimes[name]), key=version)
+          print(next(device['udid'] for name in reversed(newest) for device in runtimes[name] if device['name'].startswith('iPhone')))
+          ")
+          echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
+          defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+
+      - name: Снимки и видео
+        run: |
+          set -euo pipefail
+          mkdir -p out
+
+          take_shots() {
+            local data="$1" outdir="$2"
+            mkdir -p "$outdir"
+            set +e
+            while true; do
+              find "$data/tmp" -name '*.request' 2>/dev/null | while read -r request; do
+                name=$(basename "$request" .request)
+                xcrun simctl io "$DEVICE" screenshot "$outdir/$name.png" > /dev/null 2>&1
+                rm -f "$request"
+              done
+              sleep 0.3
+            done
+          }
+
+          run_lang() {
+            local lang="$1" apple_lang="$2" apple_locale="$3"
+            echo "=== $lang ==="
+
+            xcrun simctl terminate "$DEVICE" app.stowa 2>/dev/null || true
+            xcrun simctl uninstall "$DEVICE" app.stowa 2>/dev/null || true
+            sleep 3
+            xcrun simctl install "$DEVICE" build/ios/iphonesimulator/Runner.app
+
+            # разрешения заранее: без них на снимках системные попапы
+            for access in photos photos-add microphone location; do
+              xcrun simctl privacy "$DEVICE" grant "$access" app.stowa
+            done
+            TCC="$HOME/Library/Developer/CoreSimulator/Devices/$DEVICE/data/Library/TCC/TCC.db"
+            sqlite3 "$TCC" "UPDATE access SET auth_version = 2 WHERE client = 'app.stowa' AND service = 'kTCCServicePhotos'" || true
+
+            # запись видео
+            xcrun simctl io "$DEVICE" recordVideo --codec h264 --force "out/$lang-video.mp4" > /dev/null 2>&1 &
+            RECORD=$!
+            sleep 2
+
+            xcrun simctl launch --console-pty "$DEVICE" app.stowa \
+              -AppleLanguages "($apple_lang)" -AppleLocale "$apple_locale" \
+              >> "out/$lang-app.log" 2>&1 &
+
+            # ждём, пока приложение создаст контейнер
+            DATA=""
+            for attempt in $(seq 1 30); do
+              DATA=$(xcrun simctl get_app_container "$DEVICE" app.stowa data 2>/dev/null || true)
+              [ -n "$DATA" ] && break
+              sleep 1
+            done
+            [ -n "$DATA" ] || { echo "контейнер не найден"; return 1; }
+
+            # подхватчик снимков
+            take_shots "$DATA" "out/$lang" &
+            SHOTS=$!
+
+            # ждём result.txt
+            RESULT=""
+            for second in $(seq 1 600); do
+              RESULT=$(find "$DATA/tmp" -name result.txt -path '*store-shots*' 2>/dev/null | head -1 || true)
+              if [ -n "$RESULT" ] && grep -q '^done$' "$RESULT"; then break; fi
+              sleep 1
+            done
+
+            # последний кадр на всякий
+            xcrun simctl io "$DEVICE" screenshot "out/$lang/99-end.png" > /dev/null 2>&1 || true
+
+            kill "$SHOTS" 2>/dev/null || true
+            kill -INT "$RECORD" 2>/dev/null || true
+            for attempt in $(seq 1 15); do kill -0 "$RECORD" 2>/dev/null || break; sleep 1; done
+            kill -9 "$RECORD" 2>/dev/null || true
+
+            if [ -n "$RESULT" ]; then
+              cp "$RESULT" "out/$lang/result.txt"
+              cat "$RESULT"
+            else
+              echo "тест не дошёл до конца"
+            fi
+
+            tail -n 40 "out/$lang-app.log" || true
+            xcrun simctl spawn "$DEVICE" log show --last 8m --style compact \
+              --predicate 'process == "Runner"' > "out/$lang/system.log" 2>&1 || true
+          }
+
+          run_lang ru ru ru_RU
+          run_lang en en en_US
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: store-screenshots
+          path: out/
