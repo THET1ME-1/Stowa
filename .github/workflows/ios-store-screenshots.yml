@@ -44,15 +44,25 @@ jobs:
           runtimes = json.load(sys.stdin)['devices']
           version = lambda name: [int(part) for part in name.split('iOS-')[1].split('-')]
           newest = sorted((name for name in runtimes if 'iOS-' in name and runtimes[name]), key=version)
-          targets = ['iPhone 16 Pro Max', 'iPhone 15 Pro Max', 'iPhone 16 Plus', 'iPhone 15 Plus']
+          targets = ['iPhone 17 Pro Max', 'iPhone 16 Pro Max', 'iPhone 15 Pro Max', 'iPhone 17 Plus', 'iPhone 16 Plus', 'iPhone 15 Plus']
           for name in reversed(newest):
               for device in runtimes[name]:
                   if device['name'] in targets:
                       print(device['udid']); sys.exit()
-          # запасной: любой iPhone
+          # запасной: самый крупный iPhone с Max/Plus в имени, иначе любой
+          for name in reversed(newest):
+              for device in runtimes[name]:
+                  if 'Max' in device['name'] or 'Plus' in device['name']:
+                      print(device['udid']); sys.exit()
           print(next(device['udid'] for name in reversed(newest) for device in runtimes[name] if device['name'].startswith('iPhone')))
           ")
           echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
+          echo "Выбран: $(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          for devs in json.load(sys.stdin)['devices'].values():
+              for d in devs:
+                  if d['udid'] == '$DEVICE': print(d['name']); sys.exit()
+          ")"
           defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b

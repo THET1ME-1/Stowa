@@ -286,34 +286,15 @@ void main() {
       await shot('$lang-02-folder');
       await home();
 
-      // 3. Страница заметки
-      final noteTitle = demo.items[6].title; // билеты / tickets
-      var noteCard = find.descendant(of: find.byType(NoteTimeline), matching: find.text(noteTitle));
-      if (noteCard.evaluate().isEmpty) {
-        // прокрутить ленту, если карточка ниже
-        final scrollable = find.descendant(of: find.byType(NoteTimeline), matching: find.byType(Scrollable));
-        if (scrollable.evaluate().isNotEmpty) {
-          await tester.scrollUntilVisible(noteCard, 300, scrollable: scrollable.first);
-          await wait();
-        }
-        noteCard = find.descendant(of: find.byType(NoteTimeline), matching: find.text(noteTitle));
-      }
+      // 3. Страница заметки — тапаем по закреплённой «Встреча/Meeting»
+      final noteTitle = demo.items[3].title;
+      final noteCard = find.text(noteTitle);
       if (noteCard.evaluate().isNotEmpty) {
         await tester.tap(noteCard.first);
         await wait();
         await wait();
         await shot('$lang-03-note');
         await home();
-      } else {
-        // снимем первую заметку, которая есть
-        final anyCard = find.descendant(of: find.byType(NoteTimeline), matching: find.byType(GestureDetector));
-        if (anyCard.evaluate().isNotEmpty) {
-          await tester.tap(anyCard.first);
-          await wait();
-          await wait();
-          await shot('$lang-03-note');
-          await home();
-        }
       }
 
       // 4. Поиск
