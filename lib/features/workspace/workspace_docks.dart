@@ -6,6 +6,7 @@ import '../../core/theme/folder_palette.dart';
 import '../../core/theme/motion.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/pressable.dart';
+import '../../core/widgets/stowa_mark.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/folders_repository.dart';
 import '../../domain/return_plan.dart';
@@ -404,7 +405,10 @@ class _VaultCardState extends ConsumerState<_VaultCard> {
                   height: 34,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(color: Tokens.accent, borderRadius: BorderRadius.circular(11)),
-                  child: Text(name.characters.first.toUpperCase(), style: text.titleMedium!.copyWith(color: Tokens.onAccent, fontWeight: FontWeight.w800)),
+                  // хранилище с именем приложения — знак Stowa, остальные — первая буква имени
+                  child: isStowaName(name)
+                      ? StowaMark(size: 20, color: Tokens.onAccent)
+                      : Text(name.characters.first.toUpperCase(), style: text.titleMedium!.copyWith(color: Tokens.onAccent, fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -466,7 +470,9 @@ class _VaultOption extends StatelessWidget {
         // строка с числом заметок выше: соседние хранилища не слипаются; ширину даёт список
         minimumSize: WidgetStatePropertyAll(Size(0, subtitle == null ? 44 : 56)),
       ),
-      leadingIcon: Icon(symbolIcon(icon, filled: selected), size: 20, color: selected ? Tokens.onSurface : Tokens.onSurfaceVariant),
+      leadingIcon: isStowaName(title) && icon.startsWith('folder')
+          ? StowaMark(size: 20, color: selected ? Tokens.onSurface : Tokens.onSurfaceVariant)
+          : Icon(symbolIcon(icon, filled: selected), size: 20, color: selected ? Tokens.onSurface : Tokens.onSurfaceVariant),
       trailingIcon: selected ? Icon(symbolIcon('check'), size: 18, color: Tokens.onSurface) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
