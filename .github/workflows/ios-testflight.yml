@@ -1,0 +1,118 @@
+name: iPhone → TestFlight
+
+# Подписанная сборка для App Store с кассой магазина (STOWA_STORE=appstore: в ней нет ни слова
+# про оплату снаружи) и заливка в TestFlight. Только вручную, по слову владельца.
+#
+# Подпись по API App Store Connect (codemagic-cli-tools): профили App Store для приложения и двух
+# расширений. Группа group.app.stowa должна быть заведена в портале и привязана ко всем трём
+# App ID — через API её не создать, а без неё профиль выходит без группы и экспорт падает.
+#
+# Секреты: APPSTORE_ISSUER_ID, APPSTORE_KEY_ID, APPSTORE_PRIVATE_KEY (ключ .p8),
+# APPSTORE_CERT_KEY (ключ действующего сертификата распространения — не менять: с новым ключом
+# каждый прогон выпускал бы новый сертификат, а их у Apple мало), APPSTORE_APP_ID.
+on:
+  workflow_dispatch:
+
+jobs:
+  testflight:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Самый свежий Xcode
+        run: |
+          set -euo pipefail
+          NEWEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1 || true)
+          [ -z "$NEWEST" ] && NEWEST=/Applications/Xcode.app
+          sudo xcode-select -s "$NEWEST"
+          xcodebuild -version
+
+      - name: Правила мест
+        run: swiftc ios/Runner/PlaceRules.swift tool/ios_tests/place_rules/main.swift -o /tmp/place_rules && /tmp/place_rules
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.6
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter gen-l10n
+
+      # касса сборки App Store: тесты экрана покупки в том же режиме, что и сборка
+      - name: Тесты кассы App Store и имён iPhone
+        run: flutter test test/ios test/features/subscription --dart-define=STOWA_STORE=appstore
+
+      - name: Инструменты подписи
+        run: pipx install codemagic-cli-tools
+
+      - name: Подписать проект
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APPSTORE_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          CERTIFICATE_PRIVATE_KEY: ${{ secrets.APPSTORE_CERT_KEY }}
+        run: |
+          set -euo pipefail
+          keychain initialize
+          # профиль нужен каждому, у кого свой ID: без профиля расширения .ipa не подпишется
+          for id in app.stowa app.stowa.Share app.stowa.Widget; do
+            app-store-connect fetch-signing-files "$id" \
+              --platform IOS \
+              --type IOS_APP_STORE \
+              --certificate-key "@env:CERTIFICATE_PRIVATE_KEY" \
+              --create
+          done
+          keychain add-certificates
+          xcode-project use-profiles --project ios/Runner.xcodeproj
+
+      # номер сборки у Apple свой и только растёт: последний из TestFlight плюс один
+      - name: Номер сборки
+        id: build
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APPSTORE_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          APP_ID: ${{ secrets.APPSTORE_APP_ID }}
+        run: |
+          FALLBACK=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_ID" 2>/dev/null || true)
+          if [ -n "$LATEST" ]; then NUMBER=$((LATEST + 1)); else NUMBER="$FALLBACK"; fi
+          [ "$NUMBER" -gt "$FALLBACK" ] 2>/dev/null || NUMBER="$FALLBACK"
+          echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
+          echo "номер сборки: $NUMBER"
+
+      # --no-tree-shake-icons: значок выбирается по имени из базы
+      - name: Сборка .ipa
+        run: |
+          flutter build ipa --release \
+            --dart-define=STOWA_STORE=appstore \
+            --build-number "${{ steps.build.outputs.number }}" \
+            --no-tree-shake-icons \
+            --export-options-plist "$HOME/export_options.plist"
+
+      # пустая группа в профиле уже роняла сборки Fern и Togetherly: права смотреть в готовом
+      - name: Права, манифесты и версии в .ipa
+        run: |
+          set -euo pipefail
+          IPA=$(ls build/ios/ipa/*.ipa | head -1)
+          rm -rf /tmp/ipa && mkdir -p /tmp/ipa && unzip -q "$IPA" -d /tmp/ipa
+          APP=$(ls -d /tmp/ipa/Payload/*.app)
+          for bundle in "$APP" "$APP/PlugIns/ShareExtension.appex" "$APP/PlugIns/StowaWidget.appex"; do
+            echo "== $bundle"
+            codesign -d --entitlements :- "$bundle" > /tmp/entitlements.plist 2>/dev/null
+            grep -q 'group.app.stowa' /tmp/entitlements.plist || { echo "Нет группы group.app.stowa в правах"; cat /tmp/entitlements.plist; exit 1; }
+            [ -f "$bundle/PrivacyInfo.xcprivacy" ] || { echo "Нет PrivacyInfo.xcprivacy"; exit 1; }
+            /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$bundle/Info.plist"
+          done
+
+      - name: Залить в TestFlight
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APPSTORE_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          app-store-connect publish --path "build/ios/ipa/*.ipa"

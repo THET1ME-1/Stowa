@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/icons/icon_registry.dart';
+import '../../core/platform.dart' show isIOS;
 import '../../core/theme/tokens.dart';
 import '../../data/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -120,12 +121,29 @@ class _PrivacyGateState extends ConsumerState<PrivacyGate> with WidgetsBindingOb
     if ((_lock?.appLock ?? false) && mounted) _setLocked(true);
   }
 
+  /// Что уже сказали iPhone о заставке ([_tellGuard]).
+  bool? _toldGuard;
+
+  /// iPhone снимает экран для переключателя приложений раньше, чем Flutter дорисует заставку:
+  /// прятать экран там должен Swift (SceneDelegate), и знать, нужно ли, ему надо заранее.
+  void _tellGuard() {
+    if (!isIOS) return;
+    final guarding = _guarding;
+    if (guarding == _toldGuard) return;
+    _toldGuard = guarding;
+    _window.invokeMethod<void>('guard', guarding).catchError((Object _) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     // замок включили в настройках — сейчас не запираем, только при следующем уходе
     ref.listen(privacyLockProvider, (previous, next) {
       if (next.value?.appLock != true && _locked) _setLocked(false);
+      _tellGuard();
     });
+    // открыли или закрыли скрытые папки
+    ref.listen(hiddenOpenProvider, (previous, next) => _tellGuard());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _tellGuard());
     return Stack(
       children: [
         widget.child,

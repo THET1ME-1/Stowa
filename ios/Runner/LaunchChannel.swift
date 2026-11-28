@@ -18,9 +18,31 @@ final class LaunchChannel: NSObject, FlutterSceneLifeCycleDelegate {
   /// Ссылка, с которой открыли, пока Dart её не спросил.
   private var pending: String?
 
+  /// Dart уже спросил, с чем открыли: дальше всё идёт через `open`.
+  private var asked = false
+
+  /// Касание уведомления, которое показал не плагин, а сам Swift (напоминание у места):
+  /// то же, что ссылка `stowa://open?payload=…`. До вопроса Dart ждёт, потом сразу в Dart.
+  static func deliver(_ action: String) {
+    // касание пришло раньше, чем движок Flutter поднял каналы: отдать при регистрации
+    guard let launch = shared else {
+      early = action
+      return
+    }
+    if launch.asked {
+      launch.channel?.invokeMethod("open", arguments: action)
+    } else {
+      launch.pending = action
+    }
+  }
+
+  private static var early: String?
+
   static func register(_ registry: FlutterPluginRegistry) {
     guard let registrar = registry.registrar(forPlugin: "StowaLaunch") else { return }
     let launch = LaunchChannel()
+    launch.pending = early
+    early = nil
     let channel = FlutterMethodChannel(name: "stowa/launch", binaryMessenger: registrar.messenger())
     channel.setMethodCallHandler { call, result in
       guard call.method == "initial" else {
@@ -29,6 +51,7 @@ final class LaunchChannel: NSObject, FlutterSceneLifeCycleDelegate {
       }
       result(launch.pending)
       launch.pending = nil
+      launch.asked = true
     }
     launch.channel = channel
     registrar.addSceneDelegate(launch)

@@ -27,6 +27,9 @@ class _Port implements NotificationPort {
   Future<void> show({required int id, required String title, required String body, required String payload}) async {}
 
   @override
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
+
+  @override
   Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async {
     showCalls++;
     shown[id] = (title: title, body: body, payload: payload, private: private);

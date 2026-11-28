@@ -25,6 +25,10 @@ jobs:
           sudo xcode-select -s "$NEWEST"
           xcodebuild -version
 
+      # правила тревог у места — без Flutter и симулятора, за секунды
+      - name: Правила мест
+        run: swiftc ios/Runner/PlaceRules.swift tool/ios_tests/place_rules/main.swift -o /tmp/place_rules && /tmp/place_rules
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.47.6
@@ -76,6 +80,23 @@ jobs:
           done
           # подписи настройки виджета: таблица строк скомпилирована хотя бы по-русски
           [ -f "$WIDGET/ru.lproj/Localizable.strings" ] || { echo "Нет ru.lproj/Localizable.strings"; ls -R "$WIDGET"; exit 1; }
+
+      # без манифеста приватности App Store не примет сборку (ITMS-91053), без переводов
+      # окна разрешений по-английски на любом языке
+      - name: Манифесты приватности и переводы разрешений
+        run: |
+          set -euo pipefail
+          APP=build/ios/iphonesimulator/Runner.app
+          for bundle in "$APP" "$APP/PlugIns/ShareExtension.appex" "$APP/PlugIns/StowaWidget.appex"; do
+            [ -f "$bundle/PrivacyInfo.xcprivacy" ] || { echo "Нет PrivacyInfo.xcprivacy в $bundle"; exit 1; }
+          done
+          for lang in en ru uk ro pl de es; do
+            strings="$APP/$lang.lproj/InfoPlist.strings"
+            [ -f "$strings" ] || { echo "Нет $strings"; ls "$APP"; exit 1; }
+            plutil -p "$strings" | grep -q NSLocationAlwaysAndWhenInUseUsageDescription || { echo "В $strings нет строки места «всегда»"; exit 1; }
+          done
+          plutil -p "$APP/ru.lproj/InfoPlist.strings"
+          /usr/libexec/PlistBuddy -c "Print :BGTaskSchedulerPermittedIdentifiers" "$APP/Info.plist"
 
       - name: Запуск в симуляторе
         run: |

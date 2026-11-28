@@ -21,6 +21,12 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		5701A0012EF0000000000120 /* LaunchChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000020 /* LaunchChannel.swift */; };
 		5701A0012EF0000000000121 /* WidgetChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000021 /* WidgetChannel.swift */; };
+		5701A0012EF0000000000122 /* PlaceAlarms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000022 /* PlaceAlarms.swift */; };
+		5701A0012EF0000000000123 /* PlaceRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000023 /* PlaceRules.swift */; };
+		5701A0012EF0000000000124 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000024 /* InfoPlist.xcstrings */; };
+		5701A0012EF0000000000125 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000025 /* PrivacyInfo.xcprivacy */; };
+		5701A0012EF0000000000126 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000026 /* PrivacyInfo.xcprivacy */; };
+		5701A0012EF0000000000127 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000027 /* PrivacyInfo.xcprivacy */; };
 		5701A0012EF0000000000101 /* StowaWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000001 /* StowaWidgetBundle.swift */; };
 		5701A0012EF0000000000102 /* Snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000002 /* Snapshot.swift */; };
 		5701A0012EF0000000000103 /* Texts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5701A0012EF0000000000003 /* Texts.swift */; };
@@ -108,6 +114,12 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5701A0012EF0000000000020 /* LaunchChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchChannel.swift; sourceTree = "<group>"; };
 		5701A0012EF0000000000021 /* WidgetChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetChannel.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000022 /* PlaceAlarms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceAlarms.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000023 /* PlaceRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceRules.swift; sourceTree = "<group>"; };
+		5701A0012EF0000000000024 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		5701A0012EF0000000000025 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5701A0012EF0000000000026 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5701A0012EF0000000000027 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5701A0012EF0000000000001 /* StowaWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StowaWidgetBundle.swift; sourceTree = "<group>"; };
 		5701A0012EF0000000000002 /* Snapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Snapshot.swift; sourceTree = "<group>"; };
 		5701A0012EF0000000000003 /* Texts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Texts.swift; sourceTree = "<group>"; };
@@ -161,6 +173,7 @@
 			children = (
 				8072EBD72B61937D0035633A /* ShareExtension.entitlements */,
 				8072EBCA2B6191600035633A /* ShareViewController.swift */,
+				5701A0012EF0000000000026 /* PrivacyInfo.xcprivacy */,
 				8072EBCC2B6191600035633A /* MainInterface.storyboard */,
 				8072EBCF2B6191600035633A /* Info.plist */,
 			);
@@ -172,6 +185,7 @@
 			children = (
 				5701A0012EF000000000000A /* StowaWidget.entitlements */,
 				5701A0012EF0000000000001 /* StowaWidgetBundle.swift */,
+				5701A0012EF0000000000027 /* PrivacyInfo.xcprivacy */,
 				5701A0012EF0000000000002 /* Snapshot.swift */,
 				5701A0012EF0000000000003 /* Texts.swift */,
 				5701A0012EF0000000000004 /* Palette.swift */,
@@ -233,6 +247,10 @@
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				5701A0012EF0000000000020 /* LaunchChannel.swift */,
 				5701A0012EF0000000000021 /* WidgetChannel.swift */,
+				5701A0012EF0000000000022 /* PlaceAlarms.swift */,
+				5701A0012EF0000000000023 /* PlaceRules.swift */,
+				5701A0012EF0000000000024 /* InfoPlist.xcstrings */,
+				5701A0012EF0000000000025 /* PrivacyInfo.xcprivacy */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				8072EBD82B61937D0035633A /* Runner.entitlements */,
 			);
@@ -352,6 +370,12 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
+				uk,
+				ro,
+				pl,
+				de,
+				es,
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
@@ -382,6 +406,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8072EBCE2B6191600035633A /* MainInterface.storyboard in Resources */,
+				5701A0012EF0000000000126 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -390,6 +415,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5701A0012EF000000000010B /* Localizable.xcstrings in Resources */,
+				5701A0012EF0000000000127 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,6 +427,8 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				5701A0012EF0000000000124 /* InfoPlist.xcstrings in Resources */,
+				5701A0012EF0000000000125 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -481,6 +509,8 @@
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				5701A0012EF0000000000120 /* LaunchChannel.swift in Sources */,
 				5701A0012EF0000000000121 /* WidgetChannel.swift in Sources */,
+				5701A0012EF0000000000122 /* PlaceAlarms.swift in Sources */,
+				5701A0012EF0000000000123 /* PlaceRules.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

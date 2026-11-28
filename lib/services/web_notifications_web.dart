@@ -286,6 +286,10 @@ class WebNotificationPort implements StartingNotificationPort {
       // возвращающее — тихое: о нём человек не просил
       _show(title, body: body, tag: 'return-$id', payload: payload, silent: true);
 
+  /// Сайт решает возвращающее проходом каждые 15 минут, пока вкладка открыта: заранее не ставит.
+  @override
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
+
   @override
   Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) => _show(
     title,

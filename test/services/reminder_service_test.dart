@@ -24,6 +24,9 @@ class _FakePort implements NotificationPort {
   Future<void> show({required int id, required String title, required String body, required String payload}) async {}
 
   @override
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
+
+  @override
   Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async {}
 
   @override
@@ -91,5 +94,23 @@ void main() {
     expect(notificationId('tooth'), notificationId('tooth'));
     expect(notificationId('tooth'), isNot(notificationId('teeth')));
     expect(notificationId('tooth'), inInclusiveRange(0, 0x7fffffff));
+  });
+
+  test('iPhone: у напоминания «Готово» и «Через час», у закреплённой «Убрать», все без открытия приложения', () {
+    final categories = darwinCategories(done: 'Готово', snooze: 'Через час', remove: 'Убрать');
+    final byId = {for (final one in categories) one.identifier: one};
+    expect(byId[reminderCategory]!.actions.map((action) => (action.identifier, action.title)), [(reminderDone, 'Готово'), (reminderSnooze, 'Через час')]);
+    expect(byId[pinnedCategory]!.actions.map((action) => (action.identifier, action.title)), [(noticeRemoveAction, 'Убрать')]);
+    // кнопка с `foreground` открыла бы приложение и ушла бы мимо фонового обработчика
+    for (final action in categories.expand((one) => one.actions)) {
+      expect(action.options, isEmpty);
+    }
+  });
+
+  test('закреплённое узнаётся и по каналу Android, и по стопке iPhone', () {
+    expect(isPinnedNotification(channelId: 'pinned'), isTrue);
+    expect(isPinnedNotification(groupKey: pinnedGroup), isTrue);
+    expect(isPinnedNotification(channelId: 'reminders'), isFalse);
+    expect(isPinnedNotification(), isFalse);
   });
 }

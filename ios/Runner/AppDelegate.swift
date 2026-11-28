@@ -2,6 +2,13 @@ import AVFoundation
 import Flutter
 import UIKit
 import UserNotifications
+import flutter_local_notifications
+import workmanager_apple
+
+/// Фоновые задачи iPhone. Те же имена — в BGTaskSchedulerPermittedIdentifiers Info.plist и
+/// `iosBackgroundTasks` в lib/services/background.dart (сверяет ios_background_names_test.dart).
+let returnTaskId = "stowa-return"
+let processingTaskId = "stowa-ai-queue"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -11,6 +18,15 @@ import UserNotifications
   ) -> Bool {
     // без делегата iOS не показывает напоминание, пока приложение открыто
     UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+    // кнопки уведомлений и фоновые задачи идут в отдельном движке Dart без экрана: плагины
+    // и свои каналы в нём надо зарегистрировать, иначе «Готово» нажимается впустую
+    FlutterLocalNotificationsPlugin.setPluginRegistrantCallback(registerHeadless)
+    WorkmanagerPlugin.setPluginRegistrantCallback(registerHeadless)
+    // BGTaskScheduler отдаёт задачу, только если обработчик зарегистрирован до конца запуска
+    WorkmanagerPlugin.registerPeriodicTask(withIdentifier: returnTaskId, frequency: NSNumber(value: 15 * 60))
+    WorkmanagerPlugin.registerBGProcessingTask(withIdentifier: processingTaskId)
+    // система будит приложение у круга: менеджер мест должен быть на месте сразу
+    PlaceAlarms.shared.start()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -20,7 +36,46 @@ import UserNotifications
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     setupMediaChannel(engineBridge.pluginRegistry)
     WidgetChannel.register(engineBridge.pluginRegistry)
+    PlaceAlarms.register(engineBridge.pluginRegistry)
+    WindowGuard.register(engineBridge.pluginRegistry)
   }
+
+  // MARK: уведомления, которые показывает сам Swift (напоминания у места)
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    guard notification.request.identifier.hasPrefix(PlaceAlarms.prefix) else {
+      super.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler)
+      return
+    }
+    completionHandler([.banner, .list, .sound])
+  }
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    guard let payload = PlaceAlarms.payload(of: response) else {
+      super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
+      return
+    }
+    LaunchChannel.deliver("open:\(payload)")
+    completionHandler()
+  }
+}
+
+/// Движок без экрана (кнопка уведомления, фоновая задача): плагины и канал мест — фон после
+/// прихода к месту переставляет круги через него же.
+private func registerHeadless(_ registry: FlutterPluginRegistry) {
+  GeneratedPluginRegistrant.register(with: registry)
+  PlaceAlarms.register(registry)
+}
+
+extension AppDelegate {
 
   /// Канал `stowa/media`: длина, размер и кадры своего ролика. Пара к MediaChannel.kt.
   private func setupMediaChannel(_ registry: FlutterPluginRegistry) {

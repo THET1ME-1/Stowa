@@ -435,6 +435,9 @@ class FakeNotificationPort implements NotificationPort {
   @override
   Future<void> show({required int id, required String title, required String body, required String payload}) async {}
 
+  @override
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
+
   /// Заметки, закреплённые в уведомлениях: номер → заголовок.
   final pinned = <int, String>{};
 

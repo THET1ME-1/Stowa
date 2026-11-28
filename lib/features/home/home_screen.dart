@@ -60,6 +60,8 @@ import '../../l10n/app_language.dart';
 import '../../services/billing/copy_warning.dart' show syncCopyPayload;
 import '../../services/reminder_actions.dart' show handleReminderAction;
 import '../../services/reminder_service.dart' show NotificationTap, notificationOpen, reminderItemId;
+import '../../services/background.dart' show scheduleIPhoneProcessing;
+import '../../services/link_preview_service.dart' show onWifi;
 import '../../services/return_service.dart' show ReturnService;
 import '../places/place_always_card.dart';
 import 'return_pills.dart';
@@ -181,8 +183,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       // касания и кнопки уведомлений браузера: выполняет эта вкладка, фонового процесса там нет
       _taps = ref.read(notificationTapsProvider).listen((tap) => _onNotificationTap(tap).ignore());
       // вечерний возврат и смахнутые закреплённые — как фоновая задача телефона раз в 15 минут,
-      // пока сайт открыт
-      if (isWeb) {
+      // пока сайт открыт. iPhone тоже: его фон по расписанию не обещан
+      if (isWeb || isIOS) {
         _browserTick().ignore();
         _browserTimer = Timer.periodic(const Duration(minutes: 15), (_) => _browserTick().ignore());
       }
@@ -300,19 +302,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   /// смахнутые закреплённые и недельная проверка мёртвых ссылок (берёт только ссылки, которые
   /// не проверялись неделю).
   Future<void> _browserTick() async {
-    ref.read(linkCheckerProvider).run().catchError((_) {}).ignore();
+    // на телефоне мёртвые ссылки проверяются только по Wi-Fi: мобильный трафик на это не тратится
+    if (await onWifi()) ref.read(linkCheckerProvider).run().catchError((_) {}).ignore();
     if (!mounted) return;
+    await _returns().tick().catchError((_) => null);
+    await _syncNotices(force: true);
+  }
+
+  ReturnService _returns() {
     final language = ref.read(languageProvider).value ?? AppLanguage.resolve(WidgetsBinding.instance.platformDispatcher.locales);
     final l = lookupL(language.locale);
-    await ReturnService(
+    return ReturnService(
       ref.read(databaseProvider),
       prefs: ref.read(preferencesProvider),
       port: ref.read(notificationPortProvider),
       clock: ref.read(clockProvider),
       settings: () => ref.read(returnSettingsProvider).value ?? const ReturnSettings(),
       l: () => l,
-    ).tick().catchError((_) => null);
-    await _syncNotices(force: true);
+    );
   }
 
   /// Сработавшее по месту снять, тревоги поставить заново. Без Android (тесты) канал молчит.
@@ -415,8 +422,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       _watch?.stop().ignore();
       _watch = null;
       ref.read(syncServiceProvider).stopListening();
+      // iPhone: вечернее возвращающее — заранее, пока процесс жив; долгую обработку — снова
+      if (isIOS) {
+        _returns().planAhead().catchError((_) => null).ignore();
+        scheduleIPhoneProcessing().catchError((_) {}).ignore();
+      }
       return;
     }
+    // вернулся: вечер мог наступить, пока приложение было свёрнуто
+    if (state == AppLifecycleState.resumed && isIOS) _browserTick().ignore();
     // «ближайшее» считается от момента подписки, после паузы его надо пересчитать
     if (state != AppLifecycleState.resumed) return;
     ref.read(captureServiceProvider).files.drain().ignore();

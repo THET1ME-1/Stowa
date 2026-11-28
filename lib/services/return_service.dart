@@ -34,6 +34,11 @@ class ReturnService {
     final now = _clock();
     final settings = _settings();
     await _prefs.reload();
+    // на iPhone сегодняшнее поставлено заранее и вечером его показала сама система
+    if (_prefs.getString(returnPlannedPref) == returnDayKey(now) && now.hour * 60 + now.minute >= settings.evening) {
+      await _prefs.setString(returnDayPref, returnDayKey(now));
+      await _prefs.remove(returnPlannedPref);
+    }
     final lastDay = _prefs.getString(returnDayPref);
     // сперва дешёвое: сегодня уже было, тихие часы или ещё не вечер — база не нужна
     if (lastDay == returnDayKey(now) || isQuietTime(now, settings) || now.hour * 60 + now.minute < settings.evening) return null;
@@ -50,7 +55,41 @@ class ReturnService {
     await _prefs.setString(returnDayPref, returnDayKey(now));
     return pick;
   }
+
+  /// iPhone: фон может и не проснуться к вечеру, поэтому возвращающее ближайшего вечера
+  /// ставится заранее — при уходе из приложения и фоновым проходом. Решение то же, что у [tick],
+  /// но на минуту начала вечера. Нечего вернуть — прежнее снимается.
+  Future<ReturnPick?> planAhead() async {
+    final now = _clock();
+    final settings = _settings();
+    await _prefs.reload();
+    final lastDay = _prefs.getString(returnDayPref);
+    final today = DateTime(now.year, now.month, now.day);
+    final evening = settings.evening;
+    // сегодняшний вечер уже начался или возвращающее сегодня было — ставим на завтра
+    final day = lastDay == returnDayKey(now) || now.hour * 60 + now.minute >= evening ? DateTime(today.year, today.month, today.day + 1) : today;
+    final at = DateTime(day.year, day.month, day.day, evening ~/ 60, evening % 60);
+    final repository = ReturnRepository(_db);
+    final found = ReturnFound(
+      watch: settings.watchLater ? summarizeWatchLater(await repository.watchLater(at)) : null,
+      day: settings.onThisDay ? (await repository.onThisDay(at))?.found : null,
+      week: settings.week && at.weekday == settings.weekDay ? (await repository.week(at)).found : null,
+    );
+    final pick = pickReturn(now: at, settings: settings, lastDay: lastDay, found: found);
+    await _port.cancel(returnPlannedNotificationId);
+    if (pick == null) {
+      await _prefs.remove(returnPlannedPref);
+      return null;
+    }
+    final text = returnText(_l(), pick);
+    await _port.scheduleQuiet(id: returnPlannedNotificationId, title: text.title, body: text.body, at: at, payload: text.payload);
+    await _prefs.setString(returnPlannedPref, returnDayKey(at));
+    return pick;
+  }
 }
+
+/// День, на вечер которого возвращающее поставлено заранее ([ReturnService.planAhead]).
+const returnPlannedPref = 'return_planned';
 
 /// Текст уведомления и куда ведёт касание: `return:<вид>` — экран, `note:<id>` — сама заметка.
 ({String title, String body, String payload}) returnText(L l, ReturnPick pick) {

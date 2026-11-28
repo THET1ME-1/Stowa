@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../core/icons/icon_registry.dart';
-import '../core/platform.dart' show isWeb;
+import '../core/platform.dart' show isIOS, isWeb;
 import '../data/db/database.dart';
 import '../data/repositories/items_repository.dart';
 import '../data/repositories/tags_repository.dart';
@@ -77,10 +77,32 @@ Future<bool> keepFilesInBackground(AppDatabase db, Directory filesRoot, Director
   return false;
 }
 
+/// Имена фоновых задач iPhone: они же стоят в `BGTaskSchedulerPermittedIdentifiers` Info.plist
+/// и регистрируются в AppDelegate.swift. Сверяет тест `ios_background_names_test.dart`.
+const iosBackgroundTasks = [_returnTask, _aiTask];
+
+/// iPhone: короткое обновление (секунды, по расписанию системы) — возврат и вечернее заранее;
+/// долгая обработка (минуты, обычно ночью на зарядке) — файлы, бот, ИИ и раз в неделю ссылки.
+/// «Каждые 15 минут» система там не обещает: то же самое приложение делает и при открытии.
+Future<void> _scheduleOnIPhone() async {
+  await Workmanager().registerPeriodicTask(_returnTask, _returnTask, frequency: const Duration(minutes: 15), existingWorkPolicy: ExistingPeriodicWorkPolicy.keep);
+  await scheduleIPhoneProcessing();
+}
+
+/// Долгую обработку iPhone система запускает один раз: ставить заново при каждом открытии и
+/// в конце самой задачи.
+Future<void> scheduleIPhoneProcessing() => Workmanager().registerProcessingTask(
+  _aiTask,
+  _aiTask,
+  initialDelay: const Duration(minutes: 15),
+  constraints: Constraints(networkType: NetworkType.connected),
+);
+
 /// Раз в 15 минут при наличии сети система будит приложение: забирает сообщения бота и разбирает очередь ИИ,
 /// даже если его давно не открывали.
 Future<void> scheduleBackgroundWork() async {
   await Workmanager().initialize(backgroundDispatcher);
+  if (isIOS) return _scheduleOnIPhone();
   await Workmanager().registerPeriodicTask(
     _aiTask,
     _aiTask,
@@ -105,7 +127,10 @@ Future<void> returnInBackground(AppDatabase db, SharedPreferences prefs, Setting
   final language = settings.language ?? AppLanguage.resolve(PlatformDispatcher.instance.locales);
   final l = lookupL(language.locale);
   final port = reminderPort();
-  await ReturnService(db, prefs: prefs, port: port, clock: DateTime.now, settings: () => settings.returns, l: () => l).tick();
+  final returns = ReturnService(db, prefs: prefs, port: port, clock: DateTime.now, settings: () => settings.returns, l: () => l);
+  await returns.tick();
+  // iPhone: следующий вечер — заранее, система может не разбудить к нему
+  if (isIOS) await returns.planAhead().catchError((_) => null);
   // сработавшее по месту, пока приложение закрыто, снимается в базе; тревоги ставятся заново
   await PlaceAlarmService(db, channel: const MethodPlaceChannel(), settings: () => settings.returns, l: () => l).sync().catchError((_) {});
   // закреплённые в уведомлениях: смахнутые встают обратно раз в 15 минут, после перезагрузки — тоже
@@ -234,6 +259,9 @@ void backgroundDispatcher() {
       }
       // бот и ИИ поменяли вещи — в файлы
       await vault.run().catchError((_) {});
+      // iPhone: своей недельной задачи у ссылок там нет — проверяются здесь, только по Wi-Fi
+      // (проверщик сам берёт лишь то, что не проверялось неделю)
+      if (isIOS && await onWifi()) await LinkChecker(db, clock: DateTime.now).run().catchError((_) {});
       // сеть есть: заодно уходят накопленные отчёты, и свои, и от окон
       await crashes.send(client);
       return true;
@@ -243,6 +271,8 @@ void backgroundDispatcher() {
     } finally {
       client.close();
       await db.close();
+      // долгая обработка iPhone одноразовая: следующую ставит сама
+      if (isIOS && task == _aiTask) await scheduleIPhoneProcessing().catchError((_) {});
     }
   });
 }

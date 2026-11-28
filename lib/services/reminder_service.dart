@@ -17,6 +17,30 @@ const reminderSnooze = 'snooze';
 /// «Убрать» на заметке, закреплённой в уведомлениях.
 const noticeRemoveAction = 'notice_remove';
 
+/// Категории уведомлений iPhone: какие кнопки у напоминания и у закреплённой заметки.
+const reminderCategory = 'reminder';
+const pinnedCategory = 'pinned';
+
+/// Стопка закреплённых в шторке. На iPhone по ней закреплённые и узнаются: каналов там нет.
+const pinnedGroup = 'stowa.pinned';
+
+/// Вечернее возвращающее, поставленное заранее (iPhone: фон там не обещает проснуться к вечеру).
+/// Пересчёт напоминаний его не снимает.
+const returnPlannedNotificationId = 7000002;
+
+/// Кнопки уведомлений iPhone. Без `foreground` кнопка выполняется фоновым процессом Dart и
+/// приложение не открывает — как на Android. Подписи уходят в систему один раз за запуск.
+List<DarwinNotificationCategory> darwinCategories({required String done, required String snooze, required String remove}) => [
+  DarwinNotificationCategory(
+    reminderCategory,
+    actions: [DarwinNotificationAction.plain(reminderDone, done), DarwinNotificationAction.plain(reminderSnooze, snooze)],
+  ),
+  DarwinNotificationCategory(pinnedCategory, actions: [DarwinNotificationAction.plain(noticeRemoveAction, remove)]),
+];
+
+/// Закреплённое ли это уведомление: Android узнаёт его по каналу, iPhone — по стопке.
+bool isPinnedNotification({String? channelId, String? groupKey}) => channelId == 'pinned' || groupKey == pinnedGroup;
+
 // значки разметки в начале строки и выделение внутри
 final _lineMarks = RegExp(r'^(#{1,6}\s+|[-*+]\s+\[[ xX]\]\s+|[-*+]\s+|>\s+|\d+[.)]\s+)');
 final _inlineMarks = RegExp(r'\*\*|__|`|~~');
@@ -63,6 +87,9 @@ class SilentNotificationPort implements NotificationPort {
   Future<void> show({required int id, required String title, required String body, required String payload}) async {}
 
   @override
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload}) async {}
+
+  @override
   Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async {}
 
   @override
@@ -85,6 +112,10 @@ abstract interface class NotificationPort {
 
   /// Показать сейчас, в тихом канале «Возвращение»: то, о чём человек не просил, не звенит.
   Future<void> show({required int id, required String title, required String body, required String payload});
+
+  /// То же тихое уведомление, но в назначенный момент: на iPhone вечернее возвращающее ставится
+  /// заранее, фон к вечеру может и не проснуться. Его не снимает [cancelAll].
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload});
 
   /// Заметка, закреплённая в уведомлениях: тихо, без смахивания на экране блокировки, с
   /// кнопкой «Убрать». [private] — на экране блокировки без текста («Код на вход»).
@@ -150,7 +181,7 @@ class ReminderService {
 }
 
 /// Настоящие уведомления: на Android канал «Напоминания» и точные будильники, если разрешены;
-/// на iPhone — те же напоминания без кнопок.
+/// на iPhone — категории с теми же кнопками (`darwinCategories`).
 class LocalNotificationPort implements StartingNotificationPort {
   LocalNotificationPort({
     required this.channelName,
@@ -199,9 +230,14 @@ class LocalNotificationPort implements StartingNotificationPort {
     }
     await _plugin.initialize(
       // на iPhone разрешение не спрашивается при запуске: только по действию человека, в ensurePermission
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('ic_stat_reminder'),
-        iOS: DarwinInitializationSettings(requestAlertPermission: false, requestBadgePermission: false, requestSoundPermission: false),
+      settings: InitializationSettings(
+        android: const AndroidInitializationSettings('ic_stat_reminder'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+          notificationCategories: darwinCategories(done: doneLabel, snooze: snoozeLabel, remove: removeLabel),
+        ),
       ),
       onDidReceiveNotificationResponse: (response) {
         final id = response.payload;
@@ -228,7 +264,31 @@ class LocalNotificationPort implements StartingNotificationPort {
   @override
   Future<void> cancelAll() async {
     await start();
-    await _plugin.cancelAllPendingNotifications();
+    // на iPhone среди будущих лежит и вечернее возвращающее: его ставит не пересчёт напоминаний
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      await _plugin.cancelAllPendingNotifications();
+      return;
+    }
+    for (final pending in await _plugin.pendingNotificationRequests()) {
+      if (pending.id != returnPlannedNotificationId) await _plugin.cancel(id: pending.id);
+    }
+  }
+
+  @override
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload}) async {
+    await start();
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body.isEmpty ? null : body,
+      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails('returns', returnChannelName, importance: Importance.low, priority: Priority.low),
+        iOS: const DarwinNotificationDetails(presentSound: false, interruptionLevel: InterruptionLevel.passive),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: payload,
+    );
   }
 
   @override
@@ -246,6 +306,7 @@ class LocalNotificationPort implements StartingNotificationPort {
           priority: Priority.low,
           styleInformation: body.isEmpty ? null : BigTextStyleInformation(body),
         ),
+        iOS: const DarwinNotificationDetails(presentSound: false, interruptionLevel: InterruptionLevel.passive),
       ),
       payload: payload,
     );
@@ -273,9 +334,20 @@ class LocalNotificationPort implements StartingNotificationPort {
           onlyAlertOnce: true,
           showWhen: false,
           visibility: private ? NotificationVisibility.private : NotificationVisibility.public,
-          groupKey: 'stowa.pinned',
+          groupKey: pinnedGroup,
           styleInformation: body.isEmpty ? null : BigTextStyleInformation(body),
           actions: [AndroidNotificationAction(noticeRemoveAction, removeLabel, cancelNotification: true)],
+        ),
+        // iPhone не умеет «не смахивается»: смахнутое ставится снова при возврате в приложение,
+        // поэтому баннером поверх экрана оно не выскакивает — только тихо ложится в шторку.
+        // Скрыть текст на заблокированном экране там может только сам человек («Показ миниатюр»)
+        iOS: const DarwinNotificationDetails(
+          presentBanner: false,
+          presentList: true,
+          presentSound: false,
+          interruptionLevel: InterruptionLevel.passive,
+          threadIdentifier: pinnedGroup,
+          categoryIdentifier: pinnedCategory,
         ),
       ),
       payload: payload,
@@ -293,7 +365,10 @@ class LocalNotificationPort implements StartingNotificationPort {
     await start();
     try {
       final active = await _plugin.getActiveNotifications();
-      return [for (final one in active) if (one.channelId == 'pinned' && one.id != null) one.id!];
+      return [
+        for (final one in active)
+          if (isPinnedNotification(channelId: one.channelId, groupKey: one.groupKey) && one.id != null) one.id!,
+      ];
     } on Object {
       return const [];
     }
@@ -320,6 +395,7 @@ class LocalNotificationPort implements StartingNotificationPort {
             AndroidNotificationAction(reminderSnooze, snoozeLabel, cancelNotification: true),
           ],
         ),
+        iOS: const DarwinNotificationDetails(categoryIdentifier: reminderCategory, interruptionLevel: InterruptionLevel.active),
       ),
       // без разрешения на точные будильники система может сдвинуть на несколько минут
       androidScheduleMode: _exact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,

@@ -25,6 +25,12 @@ class _FakePort implements NotificationPort {
   @override
   Future<void> show({required int id, required String title, required String body, required String payload}) async => shown.add((id: id, title: title, body: body, payload: payload));
 
+  final planned = <({int id, String title, String body, DateTime at, String payload})>[];
+
+  @override
+  Future<void> scheduleQuiet({required int id, required String title, required String body, required DateTime at, required String payload}) async =>
+      planned.add((id: id, title: title, body: body, at: at, payload: payload));
+
   @override
   Future<void> showPinned({required int id, required String title, required String body, required String payload, required bool private}) async {}
 
@@ -114,5 +120,47 @@ void main() {
     await service().tick();
     expect(port.shown, isEmpty);
     expect(prefs.getString(returnDayPref), isNull);
+  });
+
+  group('iPhone: вечернее ставится заранее', () {
+    test('днём — на сегодняшний вечер, с тем же текстом, что показал бы проход', () async {
+      await note('Ролик про турку', DateTime(2026, 11, 5, 12), kind: ItemKind.video, seconds: 754);
+      now = DateTime(2026, 11, 6, 15);
+      await service().planAhead();
+      final planned = port.planned.single;
+      expect(planned.at, DateTime(2026, 11, 6, 20));
+      expect((planned.id, planned.title, planned.body), (returnPlannedNotificationId, 'Посмотреть потом', '1 ролик — 13 минут'));
+      expect(prefs.getString(returnPlannedPref), '2026-11-06');
+    });
+
+    test('вечер уже идёт или сегодня уже было — на завтра', () async {
+      await note('Ролик', DateTime(2026, 11, 5, 12), kind: ItemKind.video, seconds: 754);
+      now = DateTime(2026, 11, 6, 21);
+      await service().planAhead();
+      expect(port.planned.single.at, DateTime(2026, 11, 7, 20));
+
+      port.planned.clear();
+      now = DateTime(2026, 11, 6, 9);
+      await prefs.setString(returnDayPref, '2026-11-06');
+      await service().planAhead();
+      expect(port.planned.single.at, DateTime(2026, 11, 7, 20));
+    });
+
+    test('показанное системой вечером засчитывается днём: проход не шлёт второе', () async {
+      await note('Ролик', DateTime(2026, 11, 5, 12), kind: ItemKind.video, seconds: 754);
+      now = DateTime(2026, 11, 6, 15);
+      await service().planAhead();
+      now = DateTime(2026, 11, 6, 20, 30);
+      await service().tick();
+      expect(port.shown, isEmpty);
+      expect(prefs.getString(returnDayPref), '2026-11-06');
+    });
+
+    test('нечего вернуть — заранее ничего не стоит', () async {
+      now = DateTime(2026, 11, 6, 15);
+      await service().planAhead();
+      expect(port.planned, isEmpty);
+      expect(prefs.getString(returnPlannedPref), isNull);
+    });
   });
 }

@@ -1,0 +1,335 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "shouldTranslate": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa uses the camera to add photos and videos to your notes."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Камера нужна, чтобы снимать фото и видео в заметки."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Камера потрібна, щоб знімати фото й відео в нотатки."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa folosește camera ca să adaugi poze și clipuri în notițe."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aparat jest potrzebny, żeby dodawać zdjęcia i filmy do notatek."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa nutzt die Kamera, um Fotos und Videos zu deinen Notizen hinzuzufügen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa usa la cámara para añadir fotos y vídeos a tus notas."
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription": {
+      "shouldTranslate": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa uses Face ID to unlock the app and your hidden folders."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID открывает приложение и скрытые папки."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID відкриває застосунок і приховані теки."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID deblochează aplicația și dosarele ascunse."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID odblokowuje aplikację i ukryte foldery."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID entsperrt die App und deine versteckten Ordner."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID desbloquea la app y tus carpetas ocultas."
+          }
+        }
+      }
+    },
+    "NSLocationAlwaysAndWhenInUseUsageDescription": {
+      "shouldTranslate": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa reminds you of a note when you arrive at a place, even when the app is closed."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa напомнит о заметке, когда ты придёшь в нужное место, даже если приложение закрыто."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa нагадає про нотатку, коли ти прийдеш у потрібне місце, навіть якщо застосунок закрито."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa îți amintește de o notiță când ajungi într-un loc, chiar dacă aplicația e închisă."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa przypomni o notatce, gdy dotrzesz na miejsce, nawet gdy aplikacja jest zamknięta."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa erinnert dich an eine Notiz, wenn du an einem Ort ankommst, auch wenn die App geschlossen ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa te recuerda una nota al llegar a un lugar, incluso con la app cerrada."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "shouldTranslate": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa remembers where a note was saved and reminds you at a place."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa запоминает, где сохранена заметка, и напоминает у нужного места."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa запам'ятовує, де збережено нотатку, і нагадує в потрібному місці."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa ține minte unde ai salvat o notiță și îți amintește la locul potrivit."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa zapamiętuje, gdzie zapisano notatkę, i przypomina na miejscu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa merkt sich, wo eine Notiz gespeichert wurde, und erinnert dich vor Ort."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa recuerda dónde guardaste una nota y te avisa en el lugar."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "shouldTranslate": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa uses the microphone to record voice notes."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Микрофон нужен для голосовых заметок."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мікрофон потрібен для голосових нотаток."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microfonul e necesar pentru notițele vocale."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon jest potrzebny do notatek głosowych."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa nutzt das Mikrofon für Sprachnotizen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa usa el micrófono para grabar notas de voz."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "shouldTranslate": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa saves photos from your notes to the library."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa сохраняет фото из заметок в галерею."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa зберігає фото з нотаток у галерею."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa salvează pozele din notițe în galerie."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa zapisuje zdjęcia z notatek w galerii."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa speichert Fotos aus deinen Notizen in der Mediathek."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa guarda las fotos de tus notas en la fototeca."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "shouldTranslate": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa shows your recent photos so you can add them to a note."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa показывает свежие фото, чтобы добавить их в заметку."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa показує свіжі фото, щоб додати їх у нотатку."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa îți arată pozele recente ca să le adaugi într-o notiță."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa pokazuje ostatnie zdjęcia, żeby dodać je do notatki."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa zeigt deine neuesten Fotos, damit du sie zu einer Notiz hinzufügen kannst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stowa muestra tus fotos recientes para añadirlas a una nota."
+          }
+        }
+      }
+    }
+  }
+}

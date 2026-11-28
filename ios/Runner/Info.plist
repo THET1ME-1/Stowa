@@ -4,6 +4,16 @@
 <dict>
 	<key>AppGroupId</key>
 	<string>$(CUSTOM_GROUP_ID)</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>stowa-return</string>
+		<string>stowa-ai-queue</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -67,6 +77,8 @@
 	<string>Stowa uses the camera to add photos and videos to your notes.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Stowa uses Face ID to unlock the app and your hidden folders.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Stowa reminds you of a note when you arrive at a place, even when the app is closed.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Stowa remembers where a note was saved and reminds you at a place.</string>
 	<key>NSMicrophoneUsageDescription</key>
