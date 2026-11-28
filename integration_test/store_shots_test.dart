@@ -266,7 +266,8 @@ void main() {
       await wait();
       await wait();
 
-      // 1. Главная с лентой
+      // 1. Главная с лентой — ждём пока подхватчик снимков стартует
+      await wait();
       await shot('$lang-01-home');
 
       // 2. Папка «Рецепты» доской
@@ -286,8 +287,8 @@ void main() {
       await shot('$lang-02-folder');
       await home();
 
-      // 3. Страница заметки — тапаем по закреплённой «Встреча/Meeting»
-      final noteTitle = demo.items[3].title;
+      // 3. Страница заметки — «Билеты в Стамбул / Istanbul tickets» с чеклистом
+      final noteTitle = demo.items[6].title;
       final noteCard = find.text(noteTitle);
       if (noteCard.evaluate().isNotEmpty) {
         await tester.tap(noteCard.first);
