@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Цвета значка приложения. Собирает tool/brand/make_icons.py. -->
 <resources>
-    <color name="ic_launcher_background">#F6F6F4</color>
-    <color name="ic_launcher_glyph">#141517</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_glyph">#000000</color>
 </resources>

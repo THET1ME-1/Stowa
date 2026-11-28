@@ -22,6 +22,9 @@ GRAPHITE = '#141517'
 INK = '#F2F2F0'
 PAPER = '#F6F6F4'
 INK_ON_PAPER = '#141517'
+# значок приложения в магазинах и на телефоне — как мастер: чёрная S на белом (хозяин 28.11.2026)
+WHITE = '#FFFFFF'
+BLACK = '#000000'
 
 text = MASTER.read_text()
 HALF = re.search(r'<path id="half" d="([^"]+)"', text).group(1)
@@ -56,7 +59,7 @@ def png(svg, size, path):
 ios = ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
 for old in ios.glob('*.png'):
     old.unlink()
-png(glyph_svg(INK_ON_PAPER, PAPER), 1024, ios / 'AppIcon-light.png')
+png(glyph_svg(BLACK, WHITE), 1024, ios / 'AppIcon-light.png')
 # тёмный и тонированный — знак на прозрачном: фон рисует система
 png(glyph_svg(INK), 1024, ios / 'AppIcon-dark.png')
 png(glyph_svg('#FFFFFF'), 1024, ios / 'AppIcon-tinted.png')
@@ -92,24 +95,31 @@ vector = f'''<?xml version="1.0" encoding="utf-8"?>
 (res / 'drawable/ic_launcher_monochrome.xml').write_text(vector.replace('@color/ic_launcher_glyph', '#FFFFFFFF'))
 (res / 'mipmap-anydpi-v26').mkdir(exist_ok=True)
 (res / 'mipmap-anydpi-v26/ic_launcher.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
-<!-- Днём светлый лист и графитовый знак, ночью наоборот; в цвет обоев — одноцветный слой. -->
+<!-- Чёрная S на белом в любой теме; в цвет обоев — одноцветный слой. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background" />
     <foreground android:drawable="@drawable/ic_launcher_foreground" />
     <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
 </adaptive-icon>
 ''')
-for folder, background, glyph in (('values', PAPER, INK_ON_PAPER), ('values-night', GRAPHITE, INK)):
-    (res / folder / 'ic_launcher_colors.xml').write_text(f'''<?xml version="1.0" encoding="utf-8"?>
+(res / 'values/ic_launcher_colors.xml').write_text(f'''<?xml version="1.0" encoding="utf-8"?>
 <!-- Цвета значка приложения. Собирает tool/brand/make_icons.py. -->
 <resources>
-    <color name="ic_launcher_background">{background}</color>
-    <color name="ic_launcher_glyph">{glyph}</color>
+    <color name="ic_launcher_background">{WHITE}</color>
+    <color name="ic_launcher_glyph">{BLACK}</color>
 </resources>
 ''')
+# ночной вариант значка снят: значок один, белый
+(res / 'values-night/ic_launcher_colors.xml').unlink(missing_ok=True)
 # запасные картинки для лаунчеров, которые слоёв не читают
 for folder, size in (('mdpi', 48), ('hdpi', 72), ('xhdpi', 96), ('xxhdpi', 144), ('xxxhdpi', 192)):
-    png(glyph_svg(INK_ON_PAPER, PAPER), size, res / f'mipmap-{folder}/ic_launcher.png')
+    png(glyph_svg(BLACK, WHITE), size, res / f'mipmap-{folder}/ic_launcher.png')
+
+# магазины: Google Play — 512×512 без прозрачности, углы скругляет сам Play; App Store берёт
+# значок из сборки (AppIcon-light.png выше)
+store = ROOT / 'docs/store/icon'
+png(glyph_svg(BLACK, WHITE), 512, store / 'play-icon-512.png')
+png(glyph_svg(BLACK, WHITE), 1024, store / 'app-store-icon-1024.png')
 
 # сайт: значок вкладки меняется со светлой и тёмной темой браузера, установленный сайт — графит
 web = ROOT / 'web'
