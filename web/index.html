@@ -24,36 +24,32 @@
     html, body { margin: 0; height: 100%; background: #0C0D0E; }
     @media (prefers-color-scheme: light) { html, body { background: #ECECE9; } }
 
-    /* заставка до первого кадра: знак Stowa в цвет темы и три дышащие точки под ним, без слов —
-       язык человека ещё не известен */
+    /* заставка до первого кадра: знак Stowa в цвет темы, без слов — язык человека ещё не известен.
+       «Дыхание»: половинки по очереди чуть уменьшаются и светлеют, как два листа */
     #loading {
-      position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
       transition: opacity .4s ease; pointer-events: none;
     }
-    #loading svg { width: 88px; height: 88px; color: #F2F2F0; }
+    #loading svg { width: 88px; height: 88px; overflow: visible; color: #F2F2F0; }
     @media (prefers-color-scheme: light) { #loading svg { color: #141517; } }
-    #loading .dots { display: flex; gap: 10px; }
-    #loading span {
-      width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, .6);
-      animation: breathe 1.8s ease-in-out infinite;
-    }
-    #loading span:nth-child(2) { animation-delay: .25s; }
-    #loading span:nth-child(3) { animation-delay: .5s; }
-    @keyframes breathe { 0%, 100% { opacity: .25; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
-    @media (prefers-color-scheme: light) { #loading span { background: rgba(0, 0, 0, .5); } }
-    @media (prefers-reduced-motion: reduce) { #loading span { animation: none; opacity: .6; } }
+    #loading .top { transform-origin: 649px 458px; animation: breathe 2.4s ease-in-out infinite; }
+    #loading .bot { transform-origin: 620px 770px; animation: breathe 2.4s ease-in-out infinite; animation-delay: -1.2s; }
+    @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.9); opacity: .45; } }
+    @media (prefers-reduced-motion: reduce) { #loading .top, #loading .bot { animation: none; } }
   </style>
 </head>
 <body>
   <div id="loading" role="status" aria-label="Stowa">
     <!-- знак из design/logo/master/S_logo_master.svg: фигура и её копия, повёрнутая на 180° -->
     <svg viewBox="300 270 656 688" aria-hidden="true">
-      <g fill="currentColor">
+      <defs>
         <path id="half" d="M921,716 L913,694 L904,678 L897,668 L879,648 L866,637 L850,626 L823,612 L794,602 L790,602 L776,598 L764,597 L763,596 L739,595 L738,594 L721,594 L720,593 L721,591 L726,589 L728,587 L735,584 L760,569 L771,564 L773,562 L782,558 L784,556 L793,552 L808,543 L806,543 L801,546 L783,552 L780,554 L778,554 L775,556 L748,566 L736,572 L729,574 L708,584 L706,584 L558,654 L556,654 L533,665 L531,665 L491,683 L484,685 L465,694 L458,696 L439,705 L427,709 L413,716 L406,718 L371,735 L360,743 L344,759 L337,768 L327,787 L323,798 L321,810 L320,811 L320,816 L319,817 L319,841 L320,842 L320,848 L327,871 L336,888 L347,903 L363,918 L376,927 L395,936 L412,941 L424,942 L425,943 L729,943 L730,942 L740,942 L741,941 L746,941 L752,939 L757,939 L793,928 L815,918 L817,916 L834,907 L848,897 L867,881 L883,864 L893,851 L904,834 L913,816 L921,794 L921,790 L923,785 L924,774 L925,773 L925,766 L926,765 L926,744 L925,743 L925,735 L924,734 L924,729 L923,728Z"/>
-        <use href="#half" transform="rotate(180 634.5 614.0)"/>
+      </defs>
+      <g fill="currentColor">
+        <g class="bot"><use href="#half"/></g>
+        <g class="top"><use href="#half" transform="rotate(180 634.5 614.0)"/></g>
       </g>
     </svg>
-    <div class="dots"><span></span><span></span><span></span></div>
   </div>
   <script>
     // знак в цвет темы, которую человек выбрал в «Оформлении»: настройки приложения лежат
@@ -67,7 +63,6 @@
         document.documentElement.style.background = page;
         document.body.style.background = page;
         var svg = document.querySelector('#loading svg');
-        var dots = document.querySelectorAll('#loading span');
         var color = light ? '#141517' : '#F2F2F0';
         if (typeof seed === 'number') {
           var r = ((seed >> 16) & 255) / 255, g = ((seed >> 8) & 255) / 255, b = (seed & 255) / 255;
@@ -83,7 +78,6 @@
           color = 'hsl(' + Math.round(h) + ',' + Math.round(s * 100) + '%,' + Math.round(l * 100) + '%)';
         }
         svg.style.color = color;
-        for (var i = 0; i < dots.length; i++) dots[i].style.background = color;
       } catch (error) {
         // настроек нет (первый заход) или хранилище закрыто — знак в цвет графита
       }
